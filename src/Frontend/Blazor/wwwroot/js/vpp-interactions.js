@@ -48,18 +48,96 @@
         });
     }
 
+    function updateRadzenDropdownDirection(panel) {
+        if (!(panel instanceof Element) || !panel.matches(".rz-dropdown-panel")) {
+            return;
+        }
+
+        var triggerId = panel.id && panel.id.indexOf("popup-") === 0
+            ? panel.id.substring("popup-".length)
+            : "";
+        var trigger = triggerId ? document.getElementById(triggerId) : null;
+        if (!trigger || panel.offsetParent === null) {
+            panel.classList.remove("vpp-transient-surface--above");
+            return;
+        }
+
+        var panelRect = panel.getBoundingClientRect();
+        var triggerRect = trigger.getBoundingClientRect();
+        panel.classList.toggle("vpp-transient-surface--above", panelRect.top < triggerRect.top);
+    }
+
+    function scheduleRadzenDropdownDirection(root) {
+        var panels = [];
+        if (root instanceof Element) {
+            if (root.matches(".rz-dropdown-panel")) {
+                panels.push(root);
+            }
+            if (root.closest(".rz-dropdown-panel")) {
+                panels.push(root.closest(".rz-dropdown-panel"));
+            }
+        }
+        if (root.querySelectorAll) {
+            panels.push.apply(panels, root.querySelectorAll(".rz-dropdown-panel"));
+        }
+
+        Array.from(new Set(panels)).forEach(function (panel) {
+            window.requestAnimationFrame(function () {
+                updateRadzenDropdownDirection(panel);
+            });
+        });
+    }
+
     normalizeGridRegions(document);
     normalizeRadzenAriaValues(document);
+    scheduleRadzenDropdownDirection(document);
     new MutationObserver(function (records) {
         records.forEach(function (record) {
             record.addedNodes.forEach(function (node) {
                 if (node instanceof Element) {
                     normalizeGridRegions(node);
                     normalizeRadzenAriaValues(node);
+                    scheduleRadzenDropdownDirection(node);
                 }
             });
         });
     }).observe(document.documentElement, { childList: true, subtree: true });
+
+    document.addEventListener("click", function (event) {
+        var trigger = event.target instanceof Element
+            ? event.target.closest(".rz-dropdown")
+            : null;
+        if (!trigger) {
+            return;
+        }
+
+        window.requestAnimationFrame(function () {
+            var panel = document.getElementById("popup-" + trigger.id);
+            if (panel) {
+                updateRadzenDropdownDirection(panel);
+            }
+        });
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+        if (!["Enter", " ", "ArrowDown", "ArrowUp"].includes(event.key)) {
+            return;
+        }
+
+        var trigger = event.target instanceof Element
+            ? event.target.closest(".rz-dropdown")
+            : null;
+        if (!trigger) {
+            return;
+        }
+
+        window.requestAnimationFrame(function () {
+            var panel = document.getElementById("popup-" + trigger.id);
+            if (panel) {
+                updateRadzenDropdownDirection(panel);
+            }
+        });
+    }, true);
 
     function prefersReducedMotion() {
         return window.matchMedia

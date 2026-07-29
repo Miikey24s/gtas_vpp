@@ -13,6 +13,7 @@ public sealed class DataSurfaceArchitectureTests
         var contracts = Read(componentRoot, "VppDataSurfaceContracts.cs");
         var frame = Read(componentRoot, "VppDataSurfaceFrame.razor");
         var toolbar = Read(componentRoot, "VppDataToolbar.razor");
+        var filterSelect = Read(componentRoot, "VppFilterSelect.razor");
         var footer = Read(componentRoot, "VppDataSummaryFooter.razor");
         var cellPopover = Read(componentRoot, "VppCellValuePopover.razor");
         var cellPopoverStyles = Read(componentRoot, "VppCellValuePopover.razor.css");
@@ -34,6 +35,7 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("data-vpp-data-source-mode", frame, StringComparison.Ordinal);
         Assert.Contains("data-vpp-data-density", frame, StringComparison.Ordinal);
         Assert.Contains("role=\"group\"", toolbar, StringComparison.Ordinal);
+        Assert.Contains("? \"true\" : \"false\"", filterSelect, StringComparison.Ordinal);
         Assert.Contains("data-vpp-data-footer-mode", footer, StringComparison.Ordinal);
         Assert.Contains("aria-live=\"polite\"", footer, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface", cellPopover, StringComparison.Ordinal);

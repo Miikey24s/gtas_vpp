@@ -157,7 +157,8 @@
     color: var(--vpp-text-secondary);
 }
 
-.rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li):hover {
+.rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li):hover,
+.rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li).rz-state-focused:not(.rz-state-highlight) {
     background: color-mix(in srgb, var(--vpp-primary-500) 7%, transparent);
     color: var(--vpp-text-primary);
 }
@@ -195,14 +196,12 @@
     box-shadow: inset 0 0 0 1px var(--vpp-border-default);
 }
 
-.rz-paginator .rz-dropdown.rz-dropdown-open,
-.rz-paginator .rz-dropdown:focus-visible,
-.rz-pager .rz-dropdown.rz-dropdown-open,
-.rz-pager .rz-dropdown:focus-visible {
+.rz-paginator .rz-dropdown[aria-expanded="true"],
+.rz-pager .rz-dropdown[aria-expanded="true"] {
     outline: 0;
-    background: color-mix(in srgb, var(--vpp-primary-500) 7%, var(--vpp-bg-elevated));
+    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated));
     color: var(--vpp-text-primary);
-    box-shadow: inset 0 0 0 1px var(--vpp-border-focus), var(--vpp-shadow-xs);
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
 }
 
 .rz-dialog,

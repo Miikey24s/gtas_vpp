@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.97` — 2026-07-29
+> **Phiên bản:** `2.98` — 2026-07-29
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -1254,6 +1254,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-29 | Pager page-size focus + popup direction | Page-size trigger đóng/mở bằng chuột giữ chrome trung tính, không có viền xanh oval; keyboard focus vẫn có inset ring. Option hover/selected phải giống filter canonical. Popup sát đáy được Radzen lật lên trên thì motion cũng chạy hướng lên, không dùng animation của sidebar | Global accessibility focus cộng với state open của bridge tạo hai lớp ring; Radzen portal tự đổi vị trí nhưng CSS trước đó luôn animate xuống nên nhìn nhảy/conflict | Global pager dropdown + transient motion | Tách pointer-open khỏi keyboard focus; override focus tại lớp accessibility; đánh dấu portal `above` theo geometry trong interaction runtime và khóa bằng Playwright | Mọi Radzen pager/dropdown portal; Catalog là consumer đại diện | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Catalog shared-frame responsive correction | Catalog phải dùng đầy đủ data-surface contract chung: khung sở hữu border/radius, grid giữ min-width theo schema và dùng native horizontal scroll khi vùng nội dung hẹp hoặc browser zoom cao; không ép cột Mặt hàng thành vài ký tự | Lượt trước chỉ sửa đường nối toolbar/header nên test pass nhưng bỏ sót lỗi thị giác ở viewport hẹp: CSS route `overflow-x: hidden` làm Radzen co cột và trông như header/data bị đè | Shared data-surface behavior + Catalog schema | Đưa overflow/min-width behavior vào Radzen bridge opt-in; Catalog chỉ khai báo min-width tổng và width/min-width từng cột; thêm route-real gate ở `960×768` | Catalog trước; các data-grid opt-in khác kế thừa behavior nhưng giữ schema riêng | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | My Orders view selector labels | Ba lựa chọn chỉ hiển thị `Đơn kỳ hiện tại / Đơn bổ sung / Kỳ trước`, bỏ toàn bộ badge số | Số lượng đã có trong nội dung và footer liên quan; badge làm selector nặng và gây nhiễu khi mục đích chính chỉ là đổi view | My Orders route | Bỏ `Badge` khỏi `OrderViewOptions` và xóa các computed count chỉ phục vụ badge; giữ capability badge/ordinal của component dùng chung cho workflow thực sự cần đánh số | `dashboard?tab=0`; không lan sang step selector | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Chốt kỳ — data-surface proposal | Dùng khung Catalog, bỏ KPI cards; phía trên bảng đặt hai selector `Kỳ này / Tùy chọn` và `Theo đơn / Theo phòng ban`; toolbar có filter nhà cung cấp. Bảng đổi bộ cột theo góc nhìn nhưng dùng chung filter/footer/paging/action contract | Owner muốn Chốt kỳ gọn, đọc như một data workspace thay vì dashboard bốn bước/card dày | Period settlement route | Chưa implementation; chờ owner duyệt bộ cột hai mode, sau đó gen ảnh concept runtime-like trước khi code | `PeriodSettlementPanel`, settlement DTO/read model và final action footer | PENDING OWNER APPROVAL |

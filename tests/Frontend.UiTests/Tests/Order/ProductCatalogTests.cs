@@ -94,15 +94,55 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         var filterPopupGeometry = await ReadPopupGeometryAsync(
             filterPanel,
             filterPanel.Locator("[role='option']").First);
+        var filterSelectedChrome = await ReadOptionChromeAsync(filterPanel.Locator("[role='option']").First);
+        var filterHoverOption = filterPanel.Locator("[role='option']").Nth(1);
+        await filterHoverOption.HoverAsync();
+        var filterHoverOptionChrome = await ReadOptionChromeAsync(filterHoverOption);
         await Page.Keyboard.PressAsync("Escape");
 
         await pageSizeDropdown.ClickAsync();
         var pageSizePanel = Page.Locator(".rz-dropdown-panel:visible").Last;
         await pageSizePanel.WaitForAsync();
+        await Page.WaitForTimeoutAsync(100);
+        var pageSizeFocusEnvelope = await pageSizeDropdown.EvaluateAsync<string>("""
+            element => {
+                const style = getComputedStyle(element);
+                return `${style.outlineStyle}|${style.outlineWidth}|${style.outlineOffset}|${style.borderRadius}`;
+            }
+        """);
+        pageSizeFocusEnvelope.Should().StartWith("none|",
+            "opening the page-size popup must not draw the global external oval focus ring");
         var pageSizePopupGeometry = await ReadPopupGeometryAsync(
             pageSizePanel,
             pageSizePanel.Locator(".rz-state-highlight").First);
         pageSizePopupGeometry.Should().Be(filterPopupGeometry, "Radzen select popup must reuse canonical filter popup geometry");
+        var pageSizeSelectedChrome = await ReadOptionChromeAsync(pageSizePanel.Locator(".rz-state-highlight").First);
+        var pageSizeHoverOption = pageSizePanel.Locator(".rz-dropdown-item:not(.rz-state-highlight)").First;
+        await pageSizeHoverOption.HoverAsync();
+        var pageSizeHoverOptionChrome = await ReadOptionChromeAsync(pageSizeHoverOption);
+        pageSizeSelectedChrome.Should().Be(filterSelectedChrome, "selected options use the canonical blue-tinted state");
+        pageSizeHoverOptionChrome.Should().Be(filterHoverOptionChrome, "hovered options use the canonical filter hover state");
+        var popupDirection = await pageSizePanel.EvaluateAsync<string>("""
+            (panel) => {
+                const trigger = document.getElementById(panel.id.replace(/^popup-/, ''));
+                if (!trigger) return 'missing';
+                const panelRect = panel.getBoundingClientRect();
+                const triggerRect = trigger.getBoundingClientRect();
+                return `${panelRect.top < triggerRect.top}|${getComputedStyle(panel).animationName}`;
+            }
+        """);
+        popupDirection.Should().Be("true|vpp-transient-enter-up",
+            "a pager popup flipped above its trigger must animate upward and remain independent of sidebar motion");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "catalog-page-size-popup-open-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
         var catalogGeometry = await Page.EvaluateAsync<string>("""
             () => {
                 const workspace = document.querySelector('.vpp-catalog-workspace');
@@ -158,6 +198,13 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         element => {
             const style = getComputedStyle(element);
             return `${style.height}|${style.borderRadius}|${style.backgroundColor}|${style.color}|${style.boxShadow}`;
+        }
+    """);
+
+    private static Task<string> ReadOptionChromeAsync(ILocator option) => option.EvaluateAsync<string>("""
+        element => {
+            const style = getComputedStyle(element);
+            return `${style.minHeight}|${style.borderRadius}|${style.backgroundColor}|${style.color}|${style.fontWeight}`;
         }
     """);
 

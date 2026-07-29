@@ -23,7 +23,7 @@
         {
             <button type="button"
                     role="option"
-                    aria-selected="@IsSelected(option.Value)"
+                    aria-selected="@(IsSelected(option.Value) ? "true" : "false")"
                     title="@option.Label"
                     popovertarget="@PopoverId"
                     popovertargetaction="hide"
