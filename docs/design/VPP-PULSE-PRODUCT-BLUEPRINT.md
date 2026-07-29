@@ -1,6 +1,6 @@
 # VPP Pulse — Product-wide UI/UX & Data Storytelling Blueprint
 
-> **Trạng thái:** Ready for design review — production UI chưa sửa
+> **Trạng thái:** `HISTORICAL PRODUCT INVENTORY` — giữ route/data/state coverage; visual direction đã được supersede bởi OpenAI/Codex contract trong `UI-SYSTEM-001`
 > **Phiên bản:** 0.5
 > **Ngày:** 2026-07-18
 > **Phạm vi:** Toàn bộ GTAS VPP — Auth, Employee, Management, Procurement, Reports, Library, Permission và system states

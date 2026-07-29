@@ -20,13 +20,15 @@
     margin-bottom: var(--vpp-space-3);
     padding: var(--vpp-space-3);
     box-shadow: var(--vpp-shadow-xs);
-    transition: all var(--vpp-transition-fast);
+    transition:
+        background-color var(--vpp-transition-fast),
+        border-color var(--vpp-transition-fast),
+        box-shadow var(--vpp-transition-fast);
 }
 
 .vpp-datagrid-card .rz-datatable-row:hover {
     border-color: var(--vpp-border-strong);
     box-shadow: var(--vpp-shadow-sm);
-    transform: translateY(-1px);
 }
 
 .vpp-datagrid-card .rz-datatable-data {
@@ -59,13 +61,14 @@
 .vpp-dg-skeleton-cell {
     height: 14px;
     border-radius: var(--vpp-radius-sm);
-    animation: vpp-shimmer 1.5s infinite;
-}
-
-@keyframes vpp-shimmer {
-    0%   { background: var(--vpp-bg-surface); }
-    50%  { background: var(--vpp-bg-elevated); }
-    100% { background: var(--vpp-bg-surface); }
+    background: linear-gradient(
+        90deg,
+        var(--vpp-border-default) 25%,
+        var(--vpp-bg-elevated) 50%,
+        var(--vpp-border-default) 75%
+    );
+    background-size: 200% 100%;
+    animation: vpp-skeleton-shimmer var(--vpp-motion-skeleton-duration) var(--vpp-motion-easing-standard) infinite;
 }
 
 /* ── Ghi đè mật độ hiển thị gọn ─────────────────────────────── */

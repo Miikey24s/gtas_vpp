@@ -1,6 +1,6 @@
 ---
 name: gtas-vpp-ui-system
-description: Plan, implement, refactor, review, or report GTAS VPP Blazor/Radzen UI using the owner-approved M0-M2 Atlas style contract, reusable design tokens and workspace patterns, responsive route-real QA, and the repository living plan. Use for UI plans, wave reports, visual review artifacts, or changes under src/Frontend/Blazor involving layout, design system, Radzen components, Atlas parity, responsive behavior, visual states, accessibility, or browser verification.
+description: Plan, implement, refactor, review, or report GTAS VPP Blazor/Radzen UI using the owner-approved OpenAI/Codex-inspired visual contract, reusable design tokens and workspace patterns, responsive route-real QA, and the repository living plan. Use for UI plans, wave reports, visual review artifacts, or changes under src/Frontend/Blazor involving layout, design system, Radzen components, Atlas reference parity, responsive behavior, visual states, accessibility, or browser verification.
 ---
 
 # GTAS VPP UI System
@@ -36,7 +36,7 @@ Use composition, not markup inheritance. Do not create `UniversalPage<T>`, `Univ
 
 ## Implement one vertical slice
 
-1. Reuse the approved M0-M2 visual language; Atlas is read-only reference and the real Blazor route is final authority.
+1. Reuse the approved OpenAI/Codex-inspired minimal visual language; Atlas is read-only layout/business reference and the real Blazor route is final authority.
 2. Implement loading, empty, filtered-empty, error, denied, disabled, success, and long-data behavior that the route needs.
 3. Use `@Loc[]`, semantic HTML, keyboard focus, stable geometry, and tokens instead of inline styles or new hard-coded colors.
 4. Query Microsoft Learn or Radzen MCP only for the exact component/API question. If Radzen quota or key fails, stop the Radzen-dependent work.

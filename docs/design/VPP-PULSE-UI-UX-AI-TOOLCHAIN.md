@@ -1,6 +1,6 @@
 # VPP Pulse — UI/UX AI Agent Toolchain
 
-> **Trạng thái:** `ADOPTED — UPDATED 2026-07-28`
+> **Trạng thái:** `ADOPTED — UPDATED 2026-07-29`
 >
 > **Mục tiêu:** Giúp AI agent hiểu đúng source, dữ liệu, layout, accessibility, performance và data story của GTAS VPP mà không tạo một UI Lab hoặc toolchain trùng lặp.
 
@@ -28,8 +28,9 @@
 
 | Công cụ | Vai trò trong GTAS VPP | Trạng thái | Quy tắc dùng |
 |---|---|---|---|
+| OpenAI Developers Docs | UI guidelines chính thức của ChatGPT/Apps SDK và GPT-5.6 frontend/agentic guidance | Plugin chính thức đang dùng | Nguồn research art direction chính; chuyển nguyên tắc sang token/Blazor, không nhập thư viện React hoặc sao chép pixel ChatGPT |
 | Microsoft Learn MCP | Tài liệu chính chủ .NET, Blazor, ASP.NET Core, Aspire và Microsoft accessibility | Đã cài global | Tra trước khi quyết định API/kiến trúc Microsoft có thể thay đổi theo phiên bản |
-| Sosumi Apple Docs MCP | Apple Developer Documentation, Human Interface Guidelines (HIG) và WWDC ở dạng Markdown cho AI | Đã cài global, kết nối HTTP không cần API key | Nguồn tham khảo trực tiếp cho visual hierarchy, clarity, spacing, feedback và accessibility; đây là dịch vụ mã nguồn mở không chính thức, mọi kết luận quan trọng vẫn đối chiếu URL Apple gốc |
+| Sosumi Apple Docs MCP | Apple Developer Documentation/HIG | Đã cài global nhưng retired khỏi art direction GTAS | Không tra mặc định; chỉ dùng khi owner yêu cầu riêng một behavior Apple-platform. Không được dùng để override OpenAI contract |
 | shadcn MCP | Tìm, đọc và cài component/block từ shadcn-compatible registries | Từng dùng cho React POC đã archive | Chỉ dùng cho prototype cô lập khi owner mở lại phạm vi React; không thêm component vào `scripts/browser/` |
 | Radzen Blazor MCP | Component, property, event, DataGrid, Dialog, validation và theme Radzen | Đã cài | Bắt buộc tra trước khi sửa Radzen; hết quota/key thì dừng toàn bộ công việc và chờ key mới |
 | Playwright MCP | DOM/ARIA snapshot, thao tác route thật, viewport, screenshot, console và request lỗi | Đã cài | Công cụ browser mặc định cho agent; không dùng `networkidle` làm điều kiện duy nhất với Blazor Server |
@@ -49,13 +50,14 @@ chrome-devtools  npx -y chrome-devtools-mcp@latest --no-usage-statistics --no-pe
 
 Sau khi cài MCP mới, mở task Codex mới hoặc restart Codex nếu tool chưa xuất hiện trong phiên hiện tại.
 
-Sosumi dùng Streamable HTTP, chỉ đọc tài liệu và không lưu secret trong repository. Apple có MCP chính thức qua Xcode, nhưng cơ chế đó yêu cầu macOS/Xcode nên không dùng được trên máy Windows hiện tại. GTAS VPP dùng Sosumi để truy xuất HIG mới theo yêu cầu; browser Blazor thật và QA của dự án vẫn là implementation authority.
+Sosumi vẫn có thể tồn tại ở cấu hình máy cho project khác, nhưng GTAS VPP không còn dùng Apple HIG làm art direction. OpenAI UI guidelines là nguồn research chính; browser Blazor thật và QA của dự án vẫn là implementation authority.
 
 ### Reference stack cho quyết định UI
 
 - **Figma Make/Opus:** được tự nghiên cứu và chọn art direction cho prototype; không bị khóa bởi token/style cũ.
 - **Owner feedback + GTAS runtime:** nguồn quyết định cuối sau khi prototype đã có để review trực quan.
-- **Apple HIG, ChatGPT, Notion, Linear và Figma:** nguồn nghiên cứu tùy chọn, không có nguồn nào là art direction độc quyền hoặc mẫu phải sao chép.
+- **OpenAI/ChatGPT:** art-direction research chính cho minimal system, visual hierarchy, action density và accessibility; không phải pixel source.
+- **Apple HIG, Notion và Linear:** chỉ là nguồn so sánh phụ khi owner yêu cầu; không định hướng GTAS mặc định.
 - **Radzen + Microsoft:** nguồn quyết định khả năng triển khai Blazor/Radzen đúng component/framework đang dùng.
 - **React/Tailwind/shadcn docs:** chỉ dùng khi owner mở lại frontend React phụ hoặc khi Figma cần code layer cô lập; không quyết định implementation Blazor hiện tại.
 - **W3C/Deque:** nguồn quyết định accessibility; không được hy sinh để bắt chước một visual reference.
@@ -160,8 +162,8 @@ Chart chỉ được thêm khi nó trả lời câu hỏi tốt hơn số, bản
 ## 6. Nguồn chính chủ đã đối chiếu
 
 - [Microsoft Learn MCP Server](https://learn.microsoft.com/en-us/training/support/mcp-get-started)
-- [Apple — Giving external agents access to Xcode](https://developer.apple.com/documentation/Xcode/giving-external-agents-access-to-xcode)
-- [Sosumi — Apple Docs for LLMs](https://sosumi.ai/)
+- [OpenAI — UI guidelines](https://developers.openai.com/plugins/concepts/ui-guidelines)
+- [OpenAI — Prompt engineering for GPT-5.6 coding/front-end work](https://developers.openai.com/api/docs/guides/prompt-engineering#coding)
 - [shadcn/ui MCP Server](https://ui.shadcn.com/docs/mcp)
 - [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
 - [Playwright accessibility testing](https://playwright.dev/docs/accessibility-testing)

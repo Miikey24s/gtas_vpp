@@ -107,7 +107,10 @@
     border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-card);
     padding: var(--vpp-space-5);
-    transition: all var(--vpp-transition-fast);
+    transition:
+        background-color var(--vpp-transition-fast),
+        border-color var(--vpp-transition-fast),
+        box-shadow var(--vpp-transition-fast);
     cursor: default;
 }
 
@@ -1189,12 +1192,14 @@
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-medium);
     cursor: pointer;
-    transition: all var(--vpp-transition-fast);
+    transition:
+        background-color var(--vpp-transition-fast),
+        color var(--vpp-transition-fast),
+        box-shadow var(--vpp-transition-fast);
 }
 
 .vpp-empty-state-action:hover {
     background: var(--vpp-primary-600);
-    transform: translateY(-1px);
     box-shadow: var(--vpp-shadow-sm);
 }
 

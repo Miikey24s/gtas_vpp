@@ -24,6 +24,8 @@
 4. Không thêm global `::-webkit-scrollbar`/`scrollbar-color`; giữ scrollbar native, trừ vùng tab có affordance cuộn riêng.
 5. `!important` chỉ dùng khi selector/cascade của third-party đã được chứng minh trên DOM runtime; ghi lý do sát rule.
 6. Không xóa hàng loạt `app.css`. Mỗi wave retire theo consumer, có test/browser evidence và rollback rõ.
+7. Motion dùng token canonical trong `vpp-tokens.css`: `80ms` pressed, `120ms` hover/focus, `160–180ms` transient/navigation và `220ms` layout. Không dùng `transition: all`, forced reflow ripple hoặc duplicate `@keyframes`.
+8. `vpp-polish.css` sở hữu motion project-wide; `vpp-radzen-theme.css` chỉ bridge popup/dialog portal của Radzen sang cùng token. Mọi motion phải có nhánh `prefers-reduced-motion` và không làm dịch anchor/layout.
 
 ## Phân loại debt sau F1
 
@@ -41,4 +43,5 @@
 - Architecture test kiểm tra semantic token có đủ Light/Dark.
 - Bridge không chứa hex/RGB/HSL và không tham chiếu token VPP chưa định nghĩa.
 - Foundation không chứa experiment đã retire hoặc custom scrollbar toàn cục.
+- Project-owned CSS không có duplicate keyframe hoặc `transition: all`; JavaScript không tạo forced-reflow ripple/View Transition riêng.
 - Browser test đối chiếu token VPP với biến Radzen đã resolve trên route thật ở Light/Dark.

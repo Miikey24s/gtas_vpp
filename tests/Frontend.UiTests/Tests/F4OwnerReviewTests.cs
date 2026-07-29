@@ -48,7 +48,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
         await switchbar.Locator("[data-testid='create-supplement']").WaitForAsync();
         (await switchbar.Locator(".vpp-orders-selection-summary").InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
-        await CaptureAsync("t001-my-orders-segmented-selector-1920x1080.png");
+        await CaptureAsync("my-orders-segmented-selector-1920x1080.png");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
             }
             """);
         draftColumns.Should().StartWith("true", "draft headers, rows and direct quantity input must share the same column tracks");
-        await CaptureAsync("t001-additional-order-draft-1920x1080.png");
+        await CaptureAsync("additional-order-draft-1920x1080.png");
 
         var continueButton = Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục" });
         (await continueButton.IsEnabledAsync()).Should().BeTrue("a missing supplement reason is validated visibly before submit instead of silently disabling navigation");
@@ -108,12 +108,12 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await reasonPrompt.ClickAsync();
         var reasonDialog = Page.Locator(".vpp-supplement-reason-dialog");
         await reasonDialog.WaitForAsync();
-        await CaptureAsync("t001-supplement-reason-form-1920x1080.png");
+        await CaptureAsync("supplement-reason-form-1920x1080.png");
         await reasonDialog.Locator("textarea").FillAsync("Bổ sung vật tư phát sinh trong kỳ");
         await reasonDialog.Locator(".vpp-supplement-reason-save").ClickAsync();
         await reasonDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
         (await Page.Locator(".vpp-order-review-warning").CountAsync()).Should().Be(0);
-        await CaptureAsync("t001-additional-order-review-1920x1080.png");
+        await CaptureAsync("additional-order-review-1920x1080.png");
     }
 
     [Fact]

@@ -672,7 +672,10 @@
     border-radius: 50%;
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-bold);
-    transition: all var(--vpp-transition-base);
+    transition:
+        background-color var(--vpp-transition-base),
+        border-color var(--vpp-transition-base),
+        color var(--vpp-transition-base);
 }
 
 .vpp-custom-step.active .step-num {

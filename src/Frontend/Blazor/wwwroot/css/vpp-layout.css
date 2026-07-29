@@ -644,15 +644,6 @@ leftsidebar {
     transform: rotate(-55deg) scale(0.7);
 }
 
-.vpp-theme-switch.is-switching .vpp-theme-icon {
-    animation: vpp-theme-pop 180ms ease-out;
-}
-
-@keyframes vpp-theme-pop {
-    0% { transform: scale(0.9) rotate(-8deg); }
-    100% { transform: scale(1) rotate(0deg); }
-}
-
 .vpp-header-row,
 .vpp-header-actions {
     min-width: 0;
@@ -1265,7 +1256,11 @@ leftsidebar {
     padding: var(--vpp-space-5);
     min-height: 220px;
     box-shadow: inset var(--vpp-shadow-xs);
-    transition: all var(--vpp-transition-fast);
+    transition:
+        background-color var(--vpp-transition-fast),
+        border-color var(--vpp-transition-fast),
+        color var(--vpp-transition-fast),
+        box-shadow var(--vpp-transition-fast);
 }
 
 .vpp-settle-status-card.status-warning {

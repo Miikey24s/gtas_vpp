@@ -138,6 +138,31 @@
     border: var(--vpp-border-width) solid var(--vpp-border-default);
 }
 
+/* Radzen render popup/dialog qua portal riêng; bridge này dùng cùng motion token
+   với transient surface project-owned mà không transform outer anchor geometry. */
+:where(.rz-popup, .rz-dropdown-panel, .rz-multiselect-panel, .rz-autocomplete-panel, .rz-context-menu) {
+    animation: vpp-transient-enter-down
+        var(--vpp-transient-motion-duration)
+        var(--vpp-transient-motion-easing)
+        both;
+    will-change: opacity, clip-path;
+}
+
+.rz-dialog:not(.rz-dialog-side) {
+    animation: vpp-dialog-enter
+        var(--vpp-motion-base-duration)
+        var(--vpp-motion-easing-standard)
+        both;
+}
+
+.rz-dialog-side,
+.rz-dialog-mask {
+    animation: vpp-surface-fade-in
+        var(--vpp-motion-layout-duration)
+        var(--vpp-motion-easing-standard)
+        both;
+}
+
 .rz-dialog-confirm,
 .rz-dialog-alert {
     margin: 0;

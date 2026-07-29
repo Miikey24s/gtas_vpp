@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    CẢI TIẾN THANH BÊN VPP — Giai đoạn 2 (v2)
-   Thu gọn mượt, trạng thái dòng lấy cảm hứng Apple Music, chú giải khi chỉ hiện biểu tượng
+   Thu gọn mượt, trạng thái dòng theo OpenAI/Codex minimal system, chú giải khi chỉ hiện biểu tượng
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Khung thanh bên ─────────────────────────────────────────── */
@@ -140,7 +140,7 @@
     opacity: 1;
 }
 
-/* Hover lấy cảm hứng Apple Music: bề mặt trung tính toàn dòng, rộng và không dịch chuyển. */
+/* Hover OpenAI/Codex: bề mặt trung tính toàn dòng, rộng và không dịch chuyển. */
 .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:hover,
 .rz-navigation-item.ppjsidebarmenu:not(.rz-navigation-item-active) > .rz-navigation-item-wrapper:has(> .rz-navigation-item-link:focus-visible) {
     background-color: var(--vpp-sidebar-item-hover-bg) !important;
@@ -164,45 +164,11 @@
     opacity: 0 !important;
 }
 
-/* Tạo lại hiệu ứng nhấn Material trên toàn wrapper để radial mở rộng đến cả hai mép dòng. */
+/* Wrapper sở hữu pressed surface toàn dòng; không dùng ripple làm chậm điều hướng. */
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
-    isolation: isolate;
-    overflow: hidden;
-}
-
-.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    display: block;
-    border-radius: inherit;
-    color: var(--vpp-text-primary);
-    background: radial-gradient(circle, currentColor 1%, transparent 1%) center / 15000%;
-    opacity: 0;
-    pointer-events: none;
-    transition: background-size 320ms ease-out, opacity 360ms ease-out;
-}
-
-.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper:active::after {
-    background-size: 0%;
-    opacity: 0.1;
-    transition: background-size 0s, opacity 0s;
-}
-
-.vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper.vpp-pressing::after {
-    animation: vpp-sidebar-press-expand 360ms ease-out forwards;
-}
-
-@keyframes vpp-sidebar-press-expand {
-    from {
-        background-size: 0%;
-        opacity: 0.1;
-    }
-    to {
-        background-size: 15000%;
-        opacity: 0;
-    }
+    transition:
+        background-color var(--vpp-transition-fast),
+        color var(--vpp-transition-fast);
 }
 
 .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper > .rz-navigation-item-link {
@@ -297,7 +263,7 @@
     background-color: var(--vpp-sidebar-item-active-bg) !important;
 }
 
-/* Phân cấp kiểu Apple Music: bề mặt hover toàn chiều rộng, content cấp ba và rail lùi thêm một nhịp. */
+/* Phân cấp tối giản: bề mặt hover toàn chiều rộng, content cấp ba và rail lùi thêm một nhịp. */
 .vpp-sidebar:not(.sidebar-collapsed) .rz-navigation-menu .rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper {
     padding-inline-start: calc(var(--vpp-sidebar-child-content-offset) + var(--vpp-sidebar-nested-indent-step));
 }
@@ -493,7 +459,7 @@
     box-shadow: none !important;
 }
 
-/* Dùng một nhịp điều hướng 200ms kiểu Apple cho dòng mở rộng và indicator để rail active đi cùng content. */
+/* Dùng một nhịp điều hướng thống nhất cho dòng mở rộng và indicator để rail active đi cùng content. */
 .vpp-sidebar .rz-expander {
     transition: grid-template-rows var(--vpp-navigation-motion-duration)
         var(--vpp-navigation-motion-easing) !important;
@@ -524,8 +490,4 @@
         transition-delay: 0s !important;
     }
 
-    .vpp-sidebar .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper::after {
-        animation: none;
-        transition: none;
-    }
 }

@@ -208,8 +208,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("display: flow-root;", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-admin-tabs .rz-tabview-nav-container", adminCss, StringComparison.Ordinal);
         Assert.DoesNotContain("ul[role=\"tablist\"]", tabsCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-navigation-motion-duration: 200ms;", tokensCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-navigation-motion-easing: cubic-bezier(0.32, 0.72, 0, 1);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-motion-base-duration: 180ms;", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-motion-duration: var(--vpp-motion-base-duration);", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-navigation-motion-easing: var(--vpp-motion-easing-standard);", tokensCss, StringComparison.Ordinal);
         Assert.Contains("var tabIndicatorDuration = navigationMotionDuration;", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("function normalizePrimaryTabChrome(tabList, host)", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("host.style.setProperty(\"height\", headerHeight, \"important\")", interactionsJs, StringComparison.Ordinal);
@@ -345,7 +347,7 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
-    public void SidebarNavigation_UsesAppleMusicInspiredRowStates()
+    public void SidebarNavigation_UsesOpenAiInspiredMinimalRowStates()
     {
         var root = GetFrontendRoot();
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
@@ -356,7 +358,7 @@ public sealed class SharedUiFoundationTests
         var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
 
         Assert.Contains("--vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("--vpp-font-sidebar: -apple-system", tokensCss, StringComparison.Ordinal);
+        Assert.Contains("--vpp-font-sidebar: var(--vpp-font-body);", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-width: 286px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-sidebar-collapsed-width: 72px;", tokensCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-header-height: var(--vpp-sidebar-collapsed-width);", tokensCss, StringComparison.Ordinal);
@@ -412,23 +414,14 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("padding-inline-end: var(--vpp-space-4) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("--rz-panel-menu-item-active-indicator: transparent;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("opacity: 0 !important;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("background: radial-gradient(circle, currentColor 1%, transparent 1%) center / 15000%;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("background-size: 0%;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("transition: background-size 320ms ease-out, opacity 360ms ease-out;", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("animation: vpp-sidebar-press-expand 360ms ease-out forwards;", sidebarCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("radial-gradient(circle", sidebarCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-sidebar-press-expand", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("@media (prefers-reduced-motion: reduce)", sidebarCss, StringComparison.Ordinal);
-        Assert.Contains("var pressSurfaceSelector = [", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("function playPressSurface(target)", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("document.addEventListener(\"pointerdown\"", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("surface.classList.add(\"vpp-pressing\")", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains(".vpp-sidebar-brand", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains(".vpp-sidebar-user-menu .user-menu-trigger", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains(".rz-tabview .rz-tabview-nav-link", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("function playPressSurface(target)", interactionsJs, StringComparison.Ordinal);
+        Assert.DoesNotContain("void surface.offsetWidth", interactionsJs, StringComparison.Ordinal);
         Assert.Contains(".vpp-header-tab", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("button[role='tab']", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("position: relative;", polishCss, StringComparison.Ordinal);
-        Assert.Contains(".rz-tabview .rz-tabview-nav-link.vpp-pressing::before", polishCss, StringComparison.Ordinal);
-        Assert.Contains("button[role=\"tab\"].vpp-pressing::before", polishCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-pressing", polishCss, StringComparison.Ordinal);
         Assert.Contains(".submenu > .rz-navigation-item-wrapper-active:hover", sidebarCss, StringComparison.Ordinal);
         Assert.Contains(".rz-navigation-menu .rz-navigation-menu > .rz-navigation-item.ppjsidebarmenu > .rz-navigation-item-wrapper", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("padding-inline-start: calc(var(--vpp-sidebar-child-content-offset) + var(--vpp-sidebar-nested-indent-step));", sidebarCss, StringComparison.Ordinal);
@@ -503,7 +496,7 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
-    public void MyOrders_UsesTheAppleOrderWorkspaceContract()
+    public void MyOrders_UsesTheMinimalOrderWorkspaceContract()
     {
         var root = GetFrontendRoot();
         var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
@@ -683,6 +676,62 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void AuthoredMotion_UsesCanonicalTokensWithoutDuplicateKeyframesOrLayoutRipple()
+    {
+        var root = GetFrontendRoot();
+        var cssRoot = Path.Combine(root, "wwwroot", "css");
+        var authoredCss = Directory.EnumerateFiles(cssRoot, "*.css", SearchOption.AllDirectories)
+            .Append(Path.Combine(root, "wwwroot", "app.css"))
+            .ToArray();
+        var authoredJavaScript = Directory.EnumerateFiles(Path.Combine(root, "wwwroot", "js"), "*.js", SearchOption.AllDirectories)
+            .ToArray();
+
+        var transitionAll = authoredCss
+            .Where(path => File.ReadAllText(path).Contains("transition: all", StringComparison.OrdinalIgnoreCase))
+            .Select(path => Path.GetRelativePath(root, path))
+            .ToArray();
+        Assert.True(
+            transitionAll.Length == 0,
+            $"Use explicit paint/compositor properties instead of transition: all: {string.Join(", ", transitionAll)}");
+
+        var keyframeOwners = authoredCss
+            .SelectMany(path => System.Text.RegularExpressions.Regex.Matches(
+                    File.ReadAllText(path),
+                    "@keyframes\\s+([a-zA-Z0-9_-]+)",
+                    System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+                .Select(match => new
+                {
+                    Name = match.Groups[1].Value,
+                    Path = Path.GetRelativePath(root, path)
+                }))
+            .GroupBy(owner => owner.Name, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => $"{group.Key}: {string.Join(", ", group.Select(owner => owner.Path))}")
+            .ToArray();
+        Assert.True(
+            keyframeOwners.Length == 0,
+            $"Each project-owned keyframe needs one canonical owner: {string.Join("; ", keyframeOwners)}");
+
+        var script = string.Join("\n", authoredJavaScript.Select(File.ReadAllText));
+        Assert.DoesNotContain("void surface.offsetWidth", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-pressing", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("startViewTransition", script, StringComparison.Ordinal);
+
+        var tokens = File.ReadAllText(Path.Combine(cssRoot, "vpp-tokens.css"));
+        var bridge = File.ReadAllText(Path.Combine(cssRoot, "vpp-radzen-theme.css"));
+        var polish = File.ReadAllText(Path.Combine(cssRoot, "vpp-polish.css"));
+        Assert.Contains("--vpp-motion-instant-duration: 80ms;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-motion-fast-duration: 120ms;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-motion-base-duration: 180ms;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-motion-layout-duration: 220ms;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-motion-skeleton-duration: 1200ms;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-motion-spinner-duration: 900ms;", tokens, StringComparison.Ordinal);
+        Assert.Contains(".rz-dropdown-panel", bridge, StringComparison.Ordinal);
+        Assert.Contains("@media (prefers-reduced-motion: reduce)", polish, StringComparison.Ordinal);
+        Assert.DoesNotContain("scroll-behavior: smooth", polish, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void OrderDetailComposite_UsesTypedVariantsAndKeepsRouteActionsOutside()
     {
         var root = GetFrontendRoot();
@@ -731,23 +780,19 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
-    public void AuthenticatedShell_UsesOneReducedMotionSafeRefreshReveal()
+    public void AuthenticatedShell_AvoidsDecorativeRefreshRevealAndForcedReflow()
     {
         var root = GetFrontendRoot();
         var app = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
         var polishStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var interactions = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
 
-        Assert.Contains("vpp-page-entering", app, StringComparison.Ordinal);
-        Assert.Contains("navigation.type === 'reload'", app, StringComparison.Ordinal);
-        Assert.Contains("prefers-reduced-motion: reduce", app, StringComparison.Ordinal);
-        Assert.Contains("vpp-shell-enter-inline", polishStyles, StringComparison.Ordinal);
-        Assert.Contains("vpp-shell-enter-block", polishStyles, StringComparison.Ordinal);
-        Assert.Contains("vpp-content-enter", polishStyles, StringComparison.Ordinal);
-        Assert.Contains("cubic-bezier(0.32, 0.72, 0, 1)", polishStyles, StringComparison.Ordinal);
-        Assert.Contains("animation: none !important;", polishStyles, StringComparison.Ordinal);
-        Assert.Contains("function settlePageEntry()", interactions, StringComparison.Ordinal);
-        Assert.Contains("event.persisted", interactions, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-page-entering", app, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-shell-enter-inline", polishStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-shell-enter-block", polishStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-content-enter", polishStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("function settlePageEntry()", interactions, StringComparison.Ordinal);
+        Assert.DoesNotContain("void surface.offsetWidth", interactions, StringComparison.Ordinal);
     }
 
     [Fact]

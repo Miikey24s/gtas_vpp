@@ -11,7 +11,7 @@
 
 ## Kiến trúc UI
 
-- M0–M2 Atlas là style contract đã được owner chuẩn hóa; Atlas vẫn read-only và browser Blazor thật là visual authority cuối.
+- OpenAI/Codex-inspired minimal system là visual contract chính: neutral system surface, typography gọn, spacing/radius nhất quán, icon outline đơn sắc, một primary action rõ và motion tiết chế. M0–M2 Atlas chỉ còn là reference bố cục/nghiệp vụ đã chuẩn hóa; Atlas vẫn read-only và browser Blazor thật là visual authority cuối.
 - Dùng composition: token → primitive → composite → workspace pattern → route. Không tạo cây kế thừa markup hoặc `UniversalPage<T>`.
 - Chỉ trích xuất abstraction khi ít nhất hai route thật có cùng layout/behavior. Route giữ API, permission và nghiệp vụ; pattern chỉ giữ layout/state composition.
 - Razor/HTML sở hữu shell, navigation, card, toolbar, action bar, state và responsive layout. Radzen giữ DataGrid, Dialog, DropDown, DatePicker, Numeric, validation và component phức tạp có giá trị.

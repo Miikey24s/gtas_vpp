@@ -103,10 +103,10 @@
     --vpp-color-white: #FFFFFF;
     --vpp-color-black: #0A0A0A;
 
-    --vpp-font-display: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
-    --vpp-font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI Variable Text', 'Segoe UI', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    --vpp-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-    --vpp-font-sidebar: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI Variable Text', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --vpp-font-body: system-ui, 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', Arial, sans-serif;
+    --vpp-font-display: var(--vpp-font-body);
+    --vpp-font-mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', 'JetBrains Mono', Consolas, monospace;
+    --vpp-font-sidebar: var(--vpp-font-body);
 
     --vpp-font-weight-normal: 400;
     --vpp-font-weight-medium: 500;
@@ -427,16 +427,23 @@
 
 /* ── Hiệu ứng chuyển đổi ──────────────────────────────────────── */
 :root {
-    --vpp-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --vpp-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --vpp-navigation-motion-duration: 200ms;
-    --vpp-navigation-motion-easing: cubic-bezier(0.32, 0.72, 0, 1);
-    --vpp-sidebar-transition: 220ms cubic-bezier(0.32, 0.72, 0, 1);
-    --vpp-transient-motion-duration: var(--vpp-navigation-motion-duration);
-    --vpp-transient-motion-easing: var(--vpp-navigation-motion-easing);
-    --vpp-transient-motion-distance: var(--vpp-space-1);
-    --vpp-transient-motion-scale: 0.95;
-    --vpp-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --vpp-motion-instant-duration: 80ms;
+    --vpp-motion-fast-duration: 120ms;
+    --vpp-motion-base-duration: 180ms;
+    --vpp-motion-layout-duration: 220ms;
+    --vpp-motion-slow-duration: 240ms;
+    --vpp-motion-skeleton-duration: 1200ms;
+    --vpp-motion-spinner-duration: 900ms;
+    --vpp-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+    --vpp-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+    --vpp-transition-fast: var(--vpp-motion-fast-duration) var(--vpp-motion-easing-standard);
+    --vpp-transition-base: var(--vpp-motion-base-duration) var(--vpp-motion-easing-standard);
+    --vpp-navigation-motion-duration: var(--vpp-motion-base-duration);
+    --vpp-navigation-motion-easing: var(--vpp-motion-easing-standard);
+    --vpp-sidebar-transition: var(--vpp-motion-layout-duration) var(--vpp-motion-easing-standard);
+    --vpp-transient-motion-duration: 160ms;
+    --vpp-transient-motion-easing: var(--vpp-motion-easing-standard);
+    --vpp-transition-slow: var(--vpp-motion-slow-duration) var(--vpp-motion-easing-standard);
 }
 
 /* ── Thang lớp xếp chồng (z-index) ───────────────────────────── */
@@ -487,7 +494,7 @@ h4 { font-size: var(--vpp-text-xl); }
 }
 
 /* ── Khung xương ánh sáng lướt ────────────────────────────────── */
-@keyframes vpp-shimmer {
+@keyframes vpp-skeleton-shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
 }
@@ -500,6 +507,6 @@ h4 { font-size: var(--vpp-text-xl); }
         var(--vpp-border-default) 75%
     );
     background-size: 200% 100%;
-    animation: vpp-shimmer 1.5s ease-in-out infinite;
+    animation: vpp-skeleton-shimmer var(--vpp-motion-skeleton-duration) var(--vpp-motion-easing-standard) infinite;
     border-radius: var(--vpp-radius-sm);
 }

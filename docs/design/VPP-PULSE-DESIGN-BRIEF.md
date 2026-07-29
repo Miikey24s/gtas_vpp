@@ -1,13 +1,13 @@
 # VPP Pulse — Design Brief
 
-> **Trạng thái:** Prototype baseline đã validate — chưa sửa UI production
+> **Trạng thái:** `SUPERSEDED FOR ACTIVE UI` — giữ làm historical research; OpenAI/Codex visual contract trong `UI-SYSTEM-001` là authority hiện hành
 > **Phiên bản:** 0.2
 > **Ngày:** 2026-07-18
 > **Phạm vi:** GTAS VPP, Vietnamese-first, Interactive Server, rebrand độc lập
 
 ## 1. Quyết định thiết kế
 
-GTAS VPP sẽ theo hướng **Editorial Industrial Clarity**: một giao diện vận hành doanh nghiệp có nhịp điệu thị giác rõ, typography có cá tính và điểm nhấn đủ “wow”, nhưng mọi quyết định vẫn phục vụ tốc độ, độ chính xác và khả năng hoàn thành nghiệp vụ.
+Hướng **Editorial Industrial Clarity** dưới đây là baseline nghiên cứu năm 2026-07-18, không còn là art direction production. GTAS VPP hiện dùng OpenAI/Codex-inspired minimal system; các mục bên dưới chỉ còn giá trị lịch sử hoặc data-story insight không xung đột authority mới.
 
 Tên làm việc của hướng này là **VPP Pulse** — “nhịp vận hành có chủ đích”. Pulse không phải dashboard nhiều hiệu ứng; nó là cách biến trạng thái, deadline, luồng duyệt và dữ liệu thành các nhịp nhìn dễ quét.
 
@@ -224,7 +224,7 @@ Base frames: 1440×900 để thiết kế, kiểm chứng lại ở 1920×1080; 
 - Mỗi component có tên, variant, state, usage note và accessibility note.
 - Mỗi screen có route, role, data state, primary action và responsive behavior.
 - Không dùng hình ảnh placeholder không có nguồn; motif abstract có thể dựng bằng vector/CSS.
-- Figma là nguồn visual truth; source code là nguồn behavior/business truth.
+- Figma là historical research context; browser Blazor runtime là visual authority, source/API là behavior/business authority.
 - Sau khi prototype được duyệt, triển khai từng slice, mỗi slice có build/test/browser evidence riêng.
 
 ## 8. Các điểm lệch cần xử lý khi bước vào code

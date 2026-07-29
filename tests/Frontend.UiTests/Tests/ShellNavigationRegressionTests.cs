@@ -428,7 +428,7 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             }
             """);
         hierarchy.RootIconLeft.Should().BeApproximately(8, 0.1,
-            "the expanded content rail should sit close to the sidebar edge like Apple Music");
+            "the expanded content rail should sit close to the sidebar edge under the shared minimal navigation contract");
         hierarchy.LogoLeft.Should().BeApproximately(hierarchy.RootIconLeft, 0.1);
         hierarchy.AvatarLeft.Should().BeApproximately(hierarchy.RootIconLeft, 0.1);
         hierarchy.ChildIconLeft.Should().BeApproximately(hierarchy.RootTextLeft, 0.1,
@@ -436,7 +436,7 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         hierarchy.GrandchildIconLeft.Should().BeApproximately(hierarchy.ChildParentTextLeft, 0.1,
             "a grandchild icon must start on the same column as its parent label");
         (hierarchy.ChildTextLeft - hierarchy.ChildIconRight).Should().BeApproximately(12, 0.1,
-            "Apple-style icon and label spacing should use one 12px rhythm");
+            "icon and label spacing should use one shared 12px navigation rhythm");
         (hierarchy.ChildIconLeft - hierarchy.ActiveIndicatorLeft).Should().BeApproximately(12, 0.1,
             "the child rail must sit immediately before the child icon");
 
@@ -466,8 +466,8 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                 };
             }
             """);
-        dashboardMotion.Duration.Should().Be("0.2s");
-        dashboardMotion.Easing.Should().Be("cubic-bezier(0.32, 0.72, 0, 1)");
+        dashboardMotion.Duration.Should().Be("0.18s");
+        dashboardMotion.Easing.Should().Be("cubic-bezier(0.2, 0, 0, 1)");
         if (string.Equals(await dashboardParent.GetAttributeAsync("aria-expanded"), "true", StringComparison.OrdinalIgnoreCase))
         {
             await dashboardParentToggle.ClickAsync();

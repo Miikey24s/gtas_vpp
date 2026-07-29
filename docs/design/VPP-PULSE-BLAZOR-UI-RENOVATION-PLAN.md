@@ -2,19 +2,19 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.88` — 2026-07-29
+> **Phiên bản:** `2.89` — 2026-07-29
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
 > **Implementation authority:** Blazor/Radzen là implementation authority hiện tại. Chỉ khôi phục hoặc tạo lại React khi owner có quyết định mới.
 >
-> **Research/reference:** Personal Design DNA, VPP Pulse/Figma, PPJ-inspired operating values, Apple HIG và các nguồn UI/data/accessibility chính thức phù hợp từng vấn đề.
+> **Research/reference:** OpenAI/ChatGPT UI guidelines là art-direction research chính; VPP Pulse/Figma và Atlas giữ context bố cục/nghiệp vụ; Microsoft/Radzen/W3C quyết định implementation và accessibility.
 
 ---
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F0/F1/F2/F3 DONE; F4 IMPLEMENTED — OWNER REVIEW`.
+> **Trạng thái:** `F0–F4 DONE; F5 IN PROGRESS; F6/F7 OPENED BY OWNER`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -24,10 +24,10 @@
 | Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | Data-surface DS0–DS2 đã được owner duyệt; DS3 đã chuẩn hóa Create Order, Department Summary và đủ 4 bước Vận hành kỳ trên một workflow/state dùng chung, đang chờ owner visual review. DS4/R1 vẫn khóa. | [Data-surface execution](../execution/UI-DATA-SURFACE-001.md#5-kế-hoạch-chi-tiết) |
+| Bước code hiện tại? | `T001` đã retired; F4 trở thành regression contract. Đang triển khai F5 M0–M2, sau đó F6 M3–M8, R1 refactor và F7 hardening liên tục trước lượt owner review tổng thể. | [Data-surface execution](../execution/UI-DATA-SURFACE-001.md#5-kế-hoạch-chi-tiết) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
-| Cần owner duyệt gì? | Duyệt visual cuối của F4 trên Catalog, Users + cột hiển thị, Create Order hai bước và History detail: native scroll, không cuộn toàn trang, filter/popup cùng motif danh sách đơn và header cấp cháu dễ đọc. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
+| Cần owner duyệt gì? | Sau F7, owner rà lại toàn bộ màn hình một lần bằng final review board: responsive, VI/EN, Light/Dark, motion/animation, keyboard, state và nghiệp vụ đại diện. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
 
 Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
@@ -402,9 +402,9 @@ Mỗi vùng chỉ trả lời một câu hỏi: **đang ở đâu → điều g�
 
 Mỗi wave phải chạy browser review ở `1920×1080`, spot-check `768×1024`/`390×844`, VI/EN, Light/Dark/Print, loading/empty/error/success/disabled và kiểm tra console/network trước khi chuyển wave.
 
-### 6.6 Owner-derived Apple-like shell và page contract — 2026-07-23
+### 6.6 OpenAI/Codex-inspired shell và page contract — superseded 2026-07-29
 
-Contract này tổng hợp ba task tham chiếu `My Orders`, `Fix sidebar và header layout`, `Cập nhật sidebar theo Aspire` và feedback trong task hiện tại. Nó áp dụng cho **header, sidebar và toàn bộ page**, không chỉ route đang được nhắc tới.
+Contract này giữ toàn bộ geometry/nghiệp vụ owner đã duyệt từ các vòng trước, nhưng art direction hiện hành là OpenAI/Codex minimal system. Nó áp dụng cho **header, sidebar và toàn bộ page**, không chỉ route đang được nhắc tới.
 
 **Shell geometry và hierarchy**
 
@@ -427,8 +427,8 @@ Contract này tổng hợp ba task tham chiếu `My Orders`, `Fix sidebar và he
 
 **Typography, surface và content**
 
-- Control/sidebar/header label dùng system-font stack, body token khoảng `14/20`, weight Regular/Medium; heading/page data dùng semantic scale để tạo hierarchy. Không nhúng SF Pro trái license và không ép ALL CAPS.
-- Sidebar/header là navigation chrome bình tĩnh; content canvas tách lớp nhẹ; card/table surface sáng rõ, border-first, radius nhỏ, shadow tối giản. Không copy Liquid Glass hoặc màu Apple vào nghiệp vụ GTAS.
+- Control/sidebar/header label dùng system-font stack, body token khoảng `14/20`, weight Regular/Medium; heading/page data dùng semantic scale ít bậc để tạo hierarchy và không ép ALL CAPS.
+- Sidebar/header là navigation chrome bình tĩnh; content canvas tách lớp nhẹ; card/table surface sáng rõ, border-first, radius nhất quán, shadow chỉ dành cho transient/elevated surface. Không copy brand/pixel ChatGPT vào nghiệp vụ GTAS.
 - Mỗi page đi theo `scope/context → takeaway/evidence → action → detail on demand`; bỏ page title/helper/status/deadline lặp lại nếu tab, card hoặc meta đã trả lời cùng câu hỏi.
 - Khi primary header-tab hoặc sidebar grandchild đã xác định page, content bắt đầu trực tiếp bằng filter/KPI/workspace; không lặp page title và helper text ở đầu trang. Action nghiệp vụ được đặt trong toolbar/card sở hữu dữ liệu thay vì giữ một page-heading rỗng.
 - Không đặt nút `Làm mới/Refresh` thường trực ở page heading. Dữ liệu cập nhật theo thao tác/filter hoặc navigation; retry chỉ xuất hiện trong error state có thể khôi phục, còn reload toàn document đã thuộc browser.
@@ -703,7 +703,7 @@ Status hợp lệ:
 | `/logoutprocess` | APPROVED | Safe clear + redirect login; branded progress shell |
 | `/Error` | PENDING | Safe message + correlation + retry |
 | `/not-found` | PENDING | Return to valid workspace |
-| Shell/notification/reconnect | OWNER_REVIEW | Reconnect giữ circuit behavior chuẩn Blazor; Apple-inspired status/alert đã qua isolated responsive QA |
+| Shell/notification/reconnect | OWNER_REVIEW | Reconnect giữ circuit behavior chuẩn Blazor; status/alert tối giản đang được retrofit theo OpenAI/Codex contract |
 
 **W0.2 round-2 evidence — 2026-07-19:**
 
@@ -789,7 +789,7 @@ Status hợp lệ:
 
 - consistency wins over local decoration: a new screen must reuse the existing project tokens, system-font stack, control sizing, state colors and interaction rhythm; if a design breaks a shared rule, report the conflict before implementing it;
 - primary content axis aligns to the first primary-header tab label; the first control row is vertically centered against the first sidebar navigation row, with route-real DOM geometry deciding any ambiguous case;
-- compact controls use the Apple Music-style grouped surface: one quiet container, flat items, selected item uses the project primary blue, no permanent blue border, and focus uses a neutral high-contrast ring instead of a browser-blue outline;
+- compact controls use an OpenAI-like grouped surface: one quiet container, flat items, selected item uses the project primary blue, no permanent blue border, and focus uses a neutral high-contrast ring instead of a browser-blue outline;
 - icon-only actions embedded beside text use a borderless 20px visual box with a 14–15px lightweight symbol, align to the text centre and reveal only a restrained hover/focus surface; do not stack a visible button border around an icon whose glyph already contains overlapping squares or another enclosing shape;
 - selects, search fields, date fields and filter controls share the same compact hit area, radius, typography and hover/focus behavior; dense route filters use a project-owned menu so the popup does not fall back to browser-blue native styling, while date entry may remain native;
 - filter triggers use the neutral surface for `Tất cả`/`All` and project blue only when a specific value is active; search controls follow the same rule when their input is non-empty; clear-filter remains an enabled interactive control in both states, returns every related trigger/search to default, and uses blue only when there is something to clear;
@@ -915,13 +915,13 @@ Status hợp lệ:
 - count nằm sát section title; order header chuyển từ label/value form hai dòng thành hai metadata field ngang, action giữ cùng hàng;
 - Radzen docs đã được đối chiếu cho contextual Button/DataGrid composition; Release build pass `0 warning / 0 error`, frontend `143/143`, isolated browser tests `2/2` pass gồm bốn viewport và submitted lifecycle state.
 
-**W1 My Orders round-7 owner feedback — 2026-07-20:**
+**W1 My Orders round-7 owner feedback — 2026-07-20 — historical, superseded by D-OPENAI-UI-01:**
 
 - round 6 vẫn mang cảm giác dashboard template và còn quá nhiều lớp trang trí;
 - owner yêu cầu route này chỉ học Apple, không pha Notion/Figma/Linear: nhẹ, đơn giản và tối ưu;
 - gradient, left accent, progress rail, pill background, outlined CTA, evidence kéo hết chiều ngang và card lồng nhau đều làm nội dung nặng hơn giá trị thực.
 
-**W1 round-7 Apple-led direction — 2026-07-20:**
+**W1 round-7 Apple-led direction — 2026-07-20 — historical evidence only:**
 
 - `Simplicity`: mỗi thành phần phải có mục đích; bỏ progress visualization khi deadline text đã đủ trả lời;
 - `Hierarchy`: dùng typography và spacing để phân cấp; không dùng nhiều màu, gradient hoặc border cạnh tranh;
@@ -931,7 +931,7 @@ Status hợp lệ:
 - Apple HIG là bộ lọc thẩm mỹ chính, không phải mẫu để sao chép pixel; W3C/Deque, Radzen/Microsoft và nguồn data visualization chính chủ vẫn được dùng cho accessibility, component behavior và cách trình bày dữ liệu mà HIG không đặc tả đủ cho dashboard web;
 - các nguồn Notion/Figma/Linear ở round 6 chỉ còn là lịch sử nghiên cứu, không còn là art direction chủ động của `dashboard.my-orders`.
 
-**W1 round-7 MCP/reference decision — 2026-07-20:**
+**W1 round-7 MCP/reference decision — 2026-07-20 — no longer active for GTAS:**
 
 - Apple cung cấp MCP chính thức qua Xcode nhưng yêu cầu macOS/Xcode, không phù hợp workstation Windows hiện tại;
 - chọn Sosumi Apple Docs MCP vì truy xuất on-demand Apple Developer Documentation, HIG và WWDC, không cần API key và không cài index cũ vào repository;
@@ -1254,6 +1254,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 
 | Date | Route/component | Decision/feedback | Why | Local/Global | Plan change | Retrofit targets | Status |
 |---|---|---|---|---|---|---|---|
+| 2026-07-29 | Global art direction + execution mode | Retire `T001`; OpenAI/Codex minimal system thay Apple làm visual research chính. Dùng system colors/font, restrained type scale, token spacing/radius, icon outline, một CTA chính và motion có mục đích; không sao chép pixel ChatGPT | Owner muốn làm toàn bộ UI một lượt chuẩn và cho rằng OpenAI phù hợp hơn với cách GPT-5.6/Codex mở rộng codebase | Global | Mở F5–F7 + DS4/R1; khôi phục full QA; thêm OpenAI visual/motion contract vào authority | Toàn bộ M0–M8, shell, transient surfaces, animations, docs/toolchain | IN PROGRESS |
 | 2026-07-29 | DS2 Catalog + primary header flattening | Catalog bỏ block giới thiệu lặp, dùng đúng motif `filter → header có # → rows → footer/pager`; server paging luôn hiện trong viewport. Primary header không còn tab con/breadcrumb; `Quản lý` được thay trực tiếp bằng `Tổng hợp phòng ban` | Owner review phát hiện Catalog thiếu footer/cột số thứ tự dù API đã paging và nested header-tab tạo hierarchy thừa | Catalog route + global authenticated header | Sửa grid thành flex data/pager, thêm page-aware row number; xóa breadcrumb model/markup/CSS và dùng label primary trực tiếp | Catalog, dashboard/order-create, period, pricing và mọi header consumer | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | DS3 History + Department Summary viewport correction | Cả hai route dùng cùng shell full-height; chi tiết đơn bắt đầu ngang mép trên KPI và cùng chạm đáy viewport với danh sách. Không dùng `text-box` trim cho nội dung phiếu/badge tiếng Việt vì có thể xén dấu hoặc đỉnh glyph | Owner review phát hiện Department Summary bị đứt chuỗi height, detail bắt đầu cao hơn KPI và phần trên chữ bị cắt | Shared History workspace + dashboard shell routing | Áp `vpp-history-shell` cho History và Department Summary; đổi detail sang grid row KPI → đáy; bỏ local glyph trim và khóa bằng route geometry | History, Department Summary, future HistoryWorkspaceShell consumers | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-28 | F4 owner review round 6 — collapsed user popup | Sidebar mở rộng giữ account popup trong sidebar; sidebar thu gọn phải mở popup sang bên phải rail và bám đáy, không dùng panel rộng phủ lên icon/navigation | Owner phát hiện popup user ở rail thu gọn không còn giống behavior trước và che cả sidebar lẫn main content | Global shell interaction | Tách anchor theo shell state; thêm browser geometry gate cho expanded motion và collapsed no-overlap/bottom anchor | Account menu ở mọi authenticated route, desktop collapsed shell | IMPLEMENTED — OWNER_REVIEW |

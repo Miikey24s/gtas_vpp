@@ -32,21 +32,11 @@
     <ImportMap />
     <link rel="icon" type="image/svg+xml" href="@Assets["images/vpp-app-icon.svg"]" />
     <script>
-        // Áp dụng theme và đánh dấu entry cấp document trước lần paint đầu tiên.
-        // Điều hướng nội bộ Blazor không chạy lại script này.
+        // Áp dụng theme trước lần paint đầu tiên; không chạy reveal trang trí ở direct load.
         (function(){
             var m = document.cookie.match(/(?:^|;\s*)VPPTheme=([^;]*)/);
             var t = m ? m[1] : 'material3';
             if (t.indexOf('dark') !== -1) document.documentElement.classList.add('rz-theme-dark');
-
-            var reduceMotion = window.matchMedia
-                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            var navigation = performance.getEntriesByType
-                ? performance.getEntriesByType('navigation')[0]
-                : null;
-            if (!reduceMotion && (!navigation || navigation.type === 'navigate' || navigation.type === 'reload')) {
-                document.documentElement.classList.add('vpp-page-entering');
-            }
         })();
     </script>
     <HeadOutlet @rendermode="InteractiveServer" />
