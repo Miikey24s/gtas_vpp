@@ -48,11 +48,13 @@
 
             @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
             {
-                <VppEmptyState Icon="check_circle"
-                               Title="@Loc["AllClear"]"
-                               Description="@Loc["NoPendingAdditionalOrders"]"
-                               PrimaryText="@Loc["RefreshQueue"]"
-                               PrimaryAction="@(_ => ReloadRequested.InvokeAsync())" />
+                <VppContentState State="VppContentStateKind.Success"
+                                 Icon="check_circle"
+                                 Title="@Loc["AllClear"]"
+                                 Description="@Loc["NoPendingAdditionalOrders"]"
+                                 PrimaryActionText="@Loc["RefreshQueue"]"
+                                 PrimaryActionIcon="@VppIcons.Refresh"
+                                 PrimaryAction="@(_ => ReloadRequested.InvokeAsync())" />
             }
             else
             {

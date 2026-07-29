@@ -62,21 +62,22 @@
         }
         else if (SelectedOrder is null)
         {
-            <VppStatePanel State="empty"
-                           Icon="receipt_long"
-                           Title="@(HasTableFilters && TotalCount == 0 ? Loc["NoOrdersMatchSelectedFilters"] : Loc["HistorySelectOrder"] )"
-                           Description="@(HasTableFilters && TotalCount == 0 ? Loc["HistoryAdjustFilters"] : Loc["HistorySelectOrderDescription"] )"
-                           Class="vpp-history-state-panel vpp-history-detail-state vpp-history-detail-no-selection" />
+            <VppContentState State="@(HasTableFilters && TotalCount == 0 ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                             Icon="receipt_long"
+                             Title="@(HasTableFilters && TotalCount == 0 ? Loc["NoOrdersMatchSelectedFilters"] : Loc["HistorySelectOrder"] )"
+                             Description="@(HasTableFilters && TotalCount == 0 ? Loc["HistoryAdjustFilters"] : Loc["HistorySelectOrderDescription"] )"
+                             Class="vpp-history-state-panel vpp-history-detail-state vpp-history-detail-no-selection" />
         }
         else if (HasDetailError)
         {
-            <VppStatePanel State="error"
-                           Icon="error"
-                           Title="@Loc["HistoryDetailsLoadFailed"]"
-                           Description="@Loc["HistoryDetailsErrorDescription"]"
-                           RetryText="@Loc["Retry"]"
-                           RetryAction="@(_ => RetryRequested.InvokeAsync())"
-                           Class="vpp-history-state-panel vpp-history-detail-state" />
+            <VppContentState State="VppContentStateKind.Error"
+                             Icon="error"
+                             Title="@Loc["HistoryDetailsLoadFailed"]"
+                             Description="@Loc["HistoryDetailsErrorDescription"]"
+                             PrimaryActionText="@Loc["Retry"]"
+                             PrimaryActionIcon="@VppIcons.Refresh"
+                             PrimaryAction="@(_ => RetryRequested.InvokeAsync())"
+                             Class="vpp-history-state-panel vpp-history-detail-state" />
         }
         else
         {

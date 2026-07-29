@@ -11,16 +11,17 @@
     }
     else if (!string.IsNullOrWhiteSpace(_error))
     {
-        <VppStatePanel State="error"
-                       Icon="error_outline"
-                       Title="@Loc["HistoryLoadFailed"]"
-                       Description="@_error"
-                       RetryText="@Loc["Retry"]"
-                       RetryAction="@(_ => LoadAsync())" />
+        <VppContentState State="VppContentStateKind.Error"
+                         Icon="error_outline"
+                         Title="@Loc["HistoryLoadFailed"]"
+                         Description="@_error"
+                         PrimaryActionText="@Loc["Retry"]"
+                         PrimaryActionIcon="@VppIcons.Refresh"
+                         PrimaryAction="@(_ => LoadAsync())" />
     }
     else if (_history is null)
     {
-        <VppStatePanel State="empty" Icon="history" Title="@Loc["NoRequestHistory"]" />
+        <VppContentState State="VppContentStateKind.Empty" Icon="history" Title="@Loc["NoRequestHistory"]" />
     }
     else
     {

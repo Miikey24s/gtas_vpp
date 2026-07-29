@@ -14,11 +14,12 @@
 }
 else if (!CanViewReport)
 {
-    <VppEmptyState Icon="lock"
-                   Title="@Loc["AccessDenied"]"
-                   Description="@Loc["NoPermission"]"
-                   SecondaryText="@Loc["BackToAllowedPage"]"
-                   SecondaryHref="/" />
+    <VppContentState State="VppContentStateKind.Denied"
+                     Icon="lock"
+                     Title="@Loc["AccessDenied"]"
+                     Description="@Loc["NoPermission"]"
+                     SecondaryActionText="@Loc["BackToAllowedPage"]"
+                     SecondaryActionHref="/" />
 }
 else
 {
@@ -116,11 +117,13 @@ else
         }
         else if (Summary is null || Summary.TotalOrders == 0)
         {
-            <VppEmptyState Icon="analytics"
-                           Title="@Loc["NoReportData"]"
-                           Description="@Loc["NoReportDataDescription"]"
-                           PrimaryText="@Loc["Refresh"]"
-                           PrimaryAction="@(async _ => await LoadAsync())" />
+            <VppContentState State="VppContentStateKind.Empty"
+                             Icon="analytics"
+                             Title="@Loc["NoReportData"]"
+                             Description="@Loc["NoReportDataDescription"]"
+                             PrimaryActionText="@Loc["Refresh"]"
+                             PrimaryActionIcon="@VppIcons.Refresh"
+                             PrimaryAction="@(async _ => await LoadAsync())" />
         }
         else
         {
@@ -191,9 +194,10 @@ else
                     }
                     else
                     {
-                        <VppEmptyState Icon="show_chart"
-                                       Title="@Loc["NoReportData"]"
-                                       Description="@Loc["NoReportDataDescription"]" />
+                        <VppContentState State="VppContentStateKind.Empty"
+                                         Icon="show_chart"
+                                         Title="@Loc["NoReportData"]"
+                                         Description="@Loc["NoReportDataDescription"]" />
                     }
                 </article>
 
@@ -212,9 +216,10 @@ else
                     }
                     else
                     {
-                        <VppEmptyState Icon="donut_large"
-                                       Title="@Loc["NoReportData"]"
-                                       Description="@Loc["NoReportDataDescription"]" />
+                        <VppContentState State="VppContentStateKind.Empty"
+                                         Icon="donut_large"
+                                         Title="@Loc["NoReportData"]"
+                                         Description="@Loc["NoReportDataDescription"]" />
                     }
                 </article>
 
@@ -225,9 +230,10 @@ else
                         <p>@(Summary.SettlementId.HasValue ? Loc["ReportDepartmentsSettledDescription"] : Loc["ReportDepartmentsLiveDescription"])</p>
                         @if (FilteredDepartmentBreakdown.Count == 0)
                         {
-                            <VppEmptyState Icon="search_off"
-                                           Title="@Loc["NoDepartmentReportData"]"
-                                           Description="@Loc["ReportDepartmentSearchPlaceholder"]" />
+                            <VppContentState State="VppContentStateKind.FilteredEmpty"
+                                             Icon="search_off"
+                                             Title="@Loc["NoDepartmentReportData"]"
+                                             Description="@Loc["ReportDepartmentSearchPlaceholder"]" />
                         }
                         else
                         {

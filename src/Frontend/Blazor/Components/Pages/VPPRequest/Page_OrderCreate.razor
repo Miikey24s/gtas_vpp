@@ -21,10 +21,10 @@
 
             @if (!CanSubmitForPeriod)
             {
-                <VppStatePanel State="warning"
-                               Icon="event_busy"
-                               Title="@Loc["RequestActionUnavailable"]"
-                               Description="@PeriodActionReason" />
+                <VppContentState State="VppContentStateKind.Warning"
+                                 Icon="event_busy"
+                                 Title="@Loc["RequestActionUnavailable"]"
+                                 Description="@PeriodActionReason" />
             }
 
             <section class="vpp-wizard-stage">

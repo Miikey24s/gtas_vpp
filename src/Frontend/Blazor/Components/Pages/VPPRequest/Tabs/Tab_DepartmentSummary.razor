@@ -12,11 +12,12 @@
                        IsGridRefreshing="@(IsGridLoading && !_isInitialLoading)">
     @if (!CanView)
     {
-        <VppEmptyState Icon="lock"
-                       Title="@Loc["AccessDenied"]"
-                       Description="@Loc["NoPermission"]"
-                       SecondaryText="@Loc["BackToAllowedPage"]"
-                       SecondaryHref="/" />
+        <VppContentState State="VppContentStateKind.Denied"
+                         Icon="lock"
+                         Title="@Loc["AccessDenied"]"
+                         Description="@Loc["NoPermission"]"
+                         SecondaryActionText="@Loc["BackToAllowedPage"]"
+                         SecondaryActionHref="/" />
     }
     else if (_isInitialLoading)
     {
@@ -42,15 +43,15 @@
 
         @if (_summaryError)
         {
-            <VppStatePanel State="error" Icon="error" Title="@Loc["HistoryLoadFailed"]"
-                           Description="@Loc["HistoryLoadErrorDescription"]" RetryText="@Loc["Retry"]"
-                           RetryAction="@(_ => RefreshAsync())" Class="vpp-history-state-panel" />
+            <VppContentState State="VppContentStateKind.Error" Icon="error" Title="@Loc["HistoryLoadFailed"]"
+                             Description="@Loc["HistoryLoadErrorDescription"]" PrimaryActionText="@Loc["Retry"]"
+                             PrimaryActionIcon="@VppIcons.Refresh" PrimaryAction="@(_ => RefreshAsync())" Class="vpp-history-state-panel" />
         }
         else if (_summary is null)
         {
-            <VppEmptyState Icon="business" Title="@Loc["NoData"]"
-                           Description="@Loc["NoDepartmentOrdersFound"]" PrimaryText="@Loc["Refresh"]"
-                           PrimaryAction="@(_ => RefreshAsync())" Class="vpp-history-state-panel" />
+            <VppContentState State="VppContentStateKind.Empty" Icon="business" Title="@Loc["NoData"]"
+                             Description="@Loc["NoDepartmentOrdersFound"]" PrimaryActionText="@Loc["Refresh"]"
+                             PrimaryActionIcon="@VppIcons.Refresh" PrimaryAction="@(_ => RefreshAsync())" Class="vpp-history-state-panel" />
         }
         else
         {

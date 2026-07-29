@@ -912,8 +912,11 @@ public sealed class SharedUiFoundationTests
         var root = GetFrontendRoot();
         var contentState = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppContentState.razor"));
         var contentStateKind = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppContentStateKind.cs"));
-        var emptyState = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppEmptyState.razor"));
         var notifications = File.ReadAllText(Path.Combine(root, "Components", "Layout", "NotificationCenter.razor"));
+        var pageMarkup = string.Join("\n", Directory.EnumerateFiles(
+            Path.Combine(root, "Components", "Pages"),
+            "*.razor",
+            SearchOption.AllDirectories).Select(File.ReadAllText));
 
         Assert.Contains("VppContentStateKind State", contentState, StringComparison.Ordinal);
         foreach (var state in new[] { "Empty", "FilteredEmpty", "Loading", "Error", "Denied", "Disabled", "Success", "Warning" })
@@ -926,8 +929,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("role=\"@SemanticRole\"", contentState, StringComparison.Ordinal);
         Assert.Contains("aria-busy=\"@IsLoading\"", contentState, StringComparison.Ordinal);
         Assert.Contains("aria-describedby=\"@(HasDescription ? DescriptionId : null)\"", contentState, StringComparison.Ordinal);
-        Assert.Contains("role=\"status\"", emptyState, StringComparison.Ordinal);
-        Assert.Contains("aria-labelledby=\"@TitleId\"", emptyState, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppEmptyState", pageMarkup, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppStatePanel", pageMarkup, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "Components", "Shared", "EmptyState.razor")));
+        Assert.False(File.Exists(Path.Combine(root, "Components", "Shared", "VppEmptyState.razor")));
+        Assert.False(File.Exists(Path.Combine(root, "Components", "Shared", "VppStatePanel.razor")));
         Assert.Contains("tabindex=\"-1\"", notifications, StringComparison.Ordinal);
         Assert.Contains("_focusPanelOnRender = true;", notifications, StringComparison.Ordinal);
         Assert.Contains("_focusTriggerOnRender = true;", notifications, StringComparison.Ordinal);

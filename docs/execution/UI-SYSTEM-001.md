@@ -1,6 +1,6 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `ACTIVE — F0–F5 DONE; F6 IN PROGRESS; F7 OPENED BY OWNER`
+- Status: `ACTIVE — F0–F6 DONE; F7 IN PROGRESS`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
@@ -177,8 +177,8 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 | F3 — Composite | `DONE — OWNER APPROVED` | **Sol · High** — phải suy luận behavior chung từ hai consumer thật, rủi ro abstraction sai. | Trích xuất order-detail filter-to-footer typed dùng chung; shared composite sở hữu focus/hover, popup positioning, row feedback, scrollbar gutter, virtualization và footer; route chỉ giữ header/action/API/nghiệp vụ. | **Luồng mẫu hoàn chỉnh:** My Orders và History giống nhau cả interaction + scroll; chỉ header nghiệp vụ và độ rộng route khác nhau. Danh sách đơn History vẫn giữ paging/footer riêng. | Runtime isolated: popup board hai route + fixture 500 dòng; evidence local ignored. | Owner mở F4; build/frontend + direct parity + long-scroll gate đã pass. |
 | F4 — Pattern | `DONE — OWNER OPENED FULL ROLLOUT 2026-07-29` | **Sol · XHigh** — checkpoint kiến trúc khó nhất, ảnh hưởng scalability dài hạn. | Khóa `page outer inset`; tạo sáu pattern typed/slot-based; chuẩn hóa shell seam, directional indicator, navigation rhythm và transient-surface motion toàn cục. | **Khung scalable hoàn chỉnh:** agent có bản đồ chọn pattern; page giữ cùng nhịp với header/sidebar; interaction nổi dùng một ngôn ngữ; route vẫn sở hữu API/permission/nghiệp vụ. Đây chưa phải toàn bộ màn đã migrate. | Runtime board 6 archetype + 12 route consumer; shell expanded/collapsed; hover/indicator và popup filter; evidence local ignored. | Owner yêu cầu tiếp tục toàn plan; mọi correction F4 trở thành regression contract của F5–F7. |
 | F5 — M0–M2 reference | `DONE — 2026-07-29` | **Terra · High** implement; **Sol · High** review từng slice — giữ chuẩn reference. | Shell/account/system transition, catalog, order create, My Orders và History dùng OpenAI/Codex contract; route đã đúng pattern được harden thay vì rewrite. | **UI nhóm người dùng chính hoàn chỉnh** trên UI system mới và trở thành mẫu cho agent. | Runtime browser matrix 4 viewport; account VI/EN; shell motion; data/filter/detail và Create Order lifecycle. | Release build + frontend `198/198`; focused M0–M2 browser matrix `14/14`, Create Order lifecycle `1/1`, not-found flow `1/1`. |
-| F6 — M3–M8 rollout | `IN PROGRESS` | **Terra · High** — rollout lớn nhưng pattern đã ổn định. | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | Từng vertical slice có test, route-real QA và evidence trước commit; owner review tổng thể dồn sau F7 theo yêu cầu mới nhất. |
-| F7 — Hardening | `PENDING F6` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, tối ưu performance/axe/Print và khóa visual baseline đã được owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh:** sẵn sàng bàn giao và mở rộng lâu dài. | Final board: before/after, 4 viewport, Light/Dark/Print và QA scorecard. | Full frontend verify, route matrix đại diện, performance/accessibility và debt report pass. |
+| F6 — M3–M8 rollout | `DONE — FINAL REVIEW DEFERRED TO F7` | **Terra · High** — rollout lớn nhưng pattern đã ổn định. | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | F6A/F6B có build, unit/architecture, route-real và visual evidence; owner review tổng thể dồn sau F7. |
+| F7 — Hardening | `IN PROGRESS` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, tối ưu performance/axe/Print và khóa visual baseline đã được owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh:** sẵn sàng bàn giao và mở rộng lâu dài. | Final board: before/after, 4 viewport, Light/Dark/Print và QA scorecard. | Full frontend verify, route matrix đại diện, performance/accessibility và debt report pass. |
 
 Routing trên áp dụng riêng cho `UI-SYSTEM-001`; chỉ đổi model ở ranh giới wave/checkpoint lớn. `Sol review` là lượt review độc lập, không phải hai agent cùng sửa một worktree. Theo quyết định owner mới nhất, plan không kiểm tra hoặc báo cáo quota/% tài khoản trừ khi owner chủ động mở lại phạm vi đó.
 
@@ -193,7 +193,7 @@ Mốc dễ hiểu:
 
 - F2 được triển khai trên branch authority trước khi hai commit F0/F1 từ worktree tách được tích hợp; hiện dependency đã được hợp nhất đúng thứ tự trong lịch sử branch hiện tại.
 - Canonical primitive là `Components/DesignSystem/Primitives/VppContentState.razor` với `VppContentStateKind`; enum bao phủ `Empty`, `FilteredEmpty`, `Loading`, `Error`, `Denied`, `Disabled`, `Success` và `Warning`.
-- Hai consumer thật đã migrate: `HistoryOrderList` và `Tab_ProductCatalog`, cho error/retry và filter-empty. `VppStatePanel`/`VppEmptyState` còn consumer nên được giữ làm adapter tương thích, không xóa.
+- Hai consumer thật đầu tiên đã migrate: `HistoryOrderList` và `Tab_ProductCatalog`, cho error/retry và filter-empty. Các adapter tương thích được giữ ở F2 và chỉ xóa tại F6B sau khi toàn bộ consumer về 0.
 - Sol review phát hiện và sửa hai regression: state class không còn match CSS legacy và retry action mất icon Refresh. Fix commit `139e151`.
 - Evidence: `dotnet build src/Frontend/Blazor/gtas_vpp_fe.csproj --no-restore -c Release` (`0 warning/error`); `./scripts/gtas.cmd test-frontend` (`180/180`); isolated Playwright `HistoryTests` + `ProductCatalogTests` (`3/3`). Screenshot/trace thô không commit khi chưa có owner visual approval.
 
@@ -270,6 +270,13 @@ Mốc dễ hiểu:
 - Library truyền full-height từ shell đến grid/pager. Lookup desktop giữ master/detail resize; tablet chia dọc hai pane. List/detail admin xếp dọc dưới `1100px`; nested Pricing tab không còn sticky-offset đè toolbar.
 - Toolbar, search/filter, column picker, header/row/footer và transient loading dùng shared token/motion. Icon raw và transform switch được thay bằng semantic icon/class trong các file chạm tới.
 - Browser evidence chỉ được chụp sau loading overlay settle; desktop/tablet screenshots của 10 admin/report route đã được kiểm bằng mắt. Release build pass `0 warning/error`, frontend unit/architecture pass `199/199`, DS4 route matrix + workspace/Library regression pass `5/5`, Permission mutation/restore pass `1/1`; owner review được dồn sau F7 theo yêu cầu làm hết plan trước.
+
+### 5.8 F6B Vận hành kỳ và system state — 2026-07-29
+
+- Bốn bước Vận hành kỳ dùng bounded workspace chung, chạm đúng bottom inset như History/Library thay vì kết thúc giữa viewport. Review, Demand, Supply và Settlement giữ cùng stepper, kỳ mục tiêu, toolbar/frame/footer; route vẫn sở hữu settlement state và nghiệp vụ chuyển bước.
+- Responsive browser review phát hiện `flex-basis` desktop bị áp theo trục dọc làm filter Supply phình cao ở mobile. Shared period toolbar đã khóa flex item về control height khi xếp dọc; không vá riêng search/dropdown.
+- Tất cả page consumer đã migrate khỏi `VppEmptyState` và `VppStatePanel` string API sang `VppContentStateKind` typed. Ba adapter `EmptyState`, `VppEmptyState`, `VppStatePanel` được xóa sau khi architecture scan xác nhận consumer bằng 0.
+- Evidence: Release build `0 warning/error`; frontend unit/architecture `199/199`; DS3 desktop `1/1`, responsive `1024×768` + `390×844` `2/2`; History/Catalog/Department/DS3/Report matrix `10/10`; Order Create lifecycle mutation-isolated `1/1`. Ảnh desktop/mobile được kiểm bằng mắt; output thô vẫn Git ignored.
 
 ### 5.1 Visual review contract
 

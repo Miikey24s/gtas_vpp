@@ -52,11 +52,13 @@
         @* ── DataGrid ───────────────────────────────────────── *@
         @if (TotalCount == 0 && !IsGridLoading && !IsLoading)
         {
-            <VppEmptyState Icon="business"
-                           Title="@Loc["NoData"]"
-                           Description="@Loc["NoOrdersMatchSelectedFilters"]"
-                           PrimaryText="@Loc["Reload"]"
-                           PrimaryAction="@(async _ => await ReloadAsync())" />
+            <VppContentState State="VppContentStateKind.FilteredEmpty"
+                             Icon="business"
+                             Title="@Loc["NoData"]"
+                             Description="@Loc["NoOrdersMatchSelectedFilters"]"
+                             PrimaryActionText="@Loc["Reload"]"
+                             PrimaryActionIcon="@VppIcons.Refresh"
+                             PrimaryAction="@(async _ => await ReloadAsync())" />
         }
         else
         {
@@ -175,9 +177,10 @@
 }
 else
 {
-    <VppEmptyState Icon="lock"
-                   Title="@Loc["AccessDenied"]"
-                   Description="@Loc["NoPermission"]"
-                   SecondaryText="@Loc["BackToAllowedPage"]"
-                   SecondaryHref="/" />
+    <VppContentState State="VppContentStateKind.Denied"
+                     Icon="lock"
+                     Title="@Loc["AccessDenied"]"
+                     Description="@Loc["NoPermission"]"
+                     SecondaryActionText="@Loc["BackToAllowedPage"]"
+                     SecondaryActionHref="/" />
 }

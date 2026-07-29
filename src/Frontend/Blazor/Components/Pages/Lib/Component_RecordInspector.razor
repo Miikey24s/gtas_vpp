@@ -19,7 +19,7 @@
                 <div class="vpp-record-inspector-body">
                     @if (CoreProperties.Count == 0)
                     {
-                        <VppEmptyState Icon="info" Title="Chưa có thông tin mô tả" />
+                        <VppContentState State="VppContentStateKind.Empty" Icon="info" Title="Chưa có thông tin mô tả" />
                     }
                     else
                     {
@@ -36,7 +36,7 @@
                 <div class="vpp-record-inspector-body">
                     @if (AuditProperties.Count == 0)
                     {
-                        <VppEmptyState Icon="history" Title="Chưa có dữ liệu nhật ký" />
+                        <VppContentState State="VppContentStateKind.Empty" Icon="history" Title="Chưa có dữ liệu nhật ký" />
                     }
                     else
                     {
@@ -53,7 +53,7 @@
                 <div class="vpp-record-inspector-body">
                     @if (SystemProperties.Count == 0)
                     {
-                        <VppEmptyState Icon="key" Title="Không có định danh kỹ thuật" />
+                        <VppContentState State="VppContentStateKind.Empty" Icon="key" Title="Không có định danh kỹ thuật" />
                     }
                     else
                     {

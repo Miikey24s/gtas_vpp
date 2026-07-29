@@ -117,9 +117,10 @@
 }
 else
 {
-    <VppEmptyState Icon="lock"
-                   Title="@Loc["AccessDenied"]"
-                   Description="@Loc["NoPermission"]"
-                   SecondaryText="@Loc["BackToAllowedPage"]"
-                   SecondaryHref="/" />
+    <VppContentState State="VppContentStateKind.Denied"
+                     Icon="lock"
+                     Title="@Loc["AccessDenied"]"
+                     Description="@Loc["NoPermission"]"
+                     SecondaryActionText="@Loc["BackToAllowedPage"]"
+                     SecondaryActionHref="/" />
 }

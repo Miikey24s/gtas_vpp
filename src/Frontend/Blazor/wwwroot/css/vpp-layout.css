@@ -1388,6 +1388,7 @@ leftsidebar {
     font-weight: var(--vpp-font-weight-semibold);
 }
 
+.vpp-period-hero-main h2,
 .vpp-period-hero-main h3 {
     margin: 0;
     font-size: var(--vpp-text-xl);
@@ -1519,6 +1520,7 @@ leftsidebar {
     gap: var(--vpp-space-3);
 }
 
+.vpp-supply-exceptions-heading h3,
 .vpp-supply-exceptions-heading h4 {
     margin: 0;
 }
@@ -1746,6 +1748,9 @@ leftsidebar {
 
 .vpp-period-workspace {
     display: grid;
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: var(--vpp-space-3);
 }
 
@@ -1933,6 +1938,7 @@ leftsidebar {
     background: color-mix(in srgb, var(--vpp-warning) 8%, var(--vpp-bg-elevated));
 }
 
+.vpp-settlement-blockers h3,
 .vpp-settlement-blockers h4 {
     margin: 0;
     color: var(--vpp-text-primary);

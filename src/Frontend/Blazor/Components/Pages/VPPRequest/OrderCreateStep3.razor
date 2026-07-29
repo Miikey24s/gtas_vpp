@@ -36,10 +36,10 @@
 
         @if (Context.SelectedItems.Count == 0)
         {
-            <VppStatePanel State="empty"
-                           Icon="remove_shopping_cart"
-                           Title="@Loc["WizardNoItemsToSubmit"]"
-                           Description="@Loc["WizardNoItemsToSubmitDesc"]" />
+            <VppContentState State="VppContentStateKind.Empty"
+                             Icon="remove_shopping_cart"
+                             Title="@Loc["WizardNoItemsToSubmit"]"
+                             Description="@Loc["WizardNoItemsToSubmitDesc"]" />
         }
         else
         {
