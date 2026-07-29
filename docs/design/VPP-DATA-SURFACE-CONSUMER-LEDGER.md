@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **17 file / 22 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
+Source hiện có **18 file / 23 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -14,6 +14,7 @@ Source hiện có **17 file / 22 DataGrid thật**. Generic type reference trong
 | `Components/Pages/Lib/Component_ShareGrid.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_CategoryLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA2 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_SupplierLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
+| `Components/Pages/Lib/Tabs/Tab_ItemLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor` | 2 | Master/detail admin | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |

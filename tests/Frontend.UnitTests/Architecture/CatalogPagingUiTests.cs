@@ -27,12 +27,16 @@ public sealed class CatalogPagingUiTests
     public void LibraryItemGrid_UsesTypedCatalogEndpointWithoutHardDelete()
     {
         var source = ReadSource("Components", "Pages", "Lib", "Component_Library.razor");
-        var grid = ReadSource("Components", "Pages", "Lib", "Component_ShareGrid.razor.cs");
+        var grid = ReadSource("Components", "Pages", "Lib", "Tabs", "Tab_ItemLibrary.razor.cs");
+        var editor = ReadSource("Components", "Pages", "Lib", "Tabs", "Dialog", "Dialog_ItemEditor.razor");
 
-        Assert.Contains("DataEndpoint=\"@Config.ApiCatalogItems\"", source, StringComparison.Ordinal);
+        Assert.Contains("<Tab_ItemLibrary", source, StringComparison.Ordinal);
+        Assert.Contains("Config.ApiCatalogItems", grid, StringComparison.Ordinal);
+        Assert.Contains("/status", grid, StringComparison.Ordinal);
+        Assert.Contains("VppItemCreateRequest", editor, StringComparison.Ordinal);
+        Assert.Contains("VppItemUpdateRequest", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("AllowHardDelete", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("HardDeleteRow", grid, StringComparison.Ordinal);
-        Assert.Contains("SetStatus=@ApiSetStatusAsync", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("DeleteFromApi", grid, StringComparison.Ordinal);
     }
 
     private static string ReadSource(params string[] relativeSegments)

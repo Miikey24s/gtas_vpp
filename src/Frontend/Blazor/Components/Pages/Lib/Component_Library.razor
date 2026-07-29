@@ -38,7 +38,7 @@
                 <RadzenTabsItem Text="@Loc["Operations"]">
                     @if (IsActiveTab(2))
                     {
-                        <Component_ShareGrid TType=VppItemResDTO @bind-Data=@operations DicDropdownData=@CategoryDropdownDatas Add=@ApiAddAsync Update=@ApiUpdateAsync SetStatus=@ApiSetStatusAsync DataEndpoint="@Config.ApiCatalogItems" PagePermissionResDTO="@PagePermissionResDTO" CreateLabel="@Loc["AddItem"]" GridAriaLabel="@Loc["Operations"]" SearchPlaceholder="@Loc["LibrarySearchItems"]" SearchFields="@(new[] { "VppCode", "VppName" })" />
+                        <Tab_ItemLibrary PagePermissionResDTO="@PagePermissionResDTO" />
                     }
                 </RadzenTabsItem>
             }
