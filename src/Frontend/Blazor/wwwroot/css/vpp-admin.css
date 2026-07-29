@@ -2086,6 +2086,108 @@
     padding: var(--vpp-space-3);
 }
 
+/* Editor quản trị: outer dialog giữ kích thước, shell giữ body scroll và footer sticky. */
+.rz-dialog.vpp-admin-dialog--compact,
+.rz-dialog.vpp-admin-dialog--standard,
+.rz-dialog.vpp-admin-dialog--workspace {
+    display: flex;
+    max-width: calc(100vw - (2 * var(--vpp-space-4)));
+    max-height: calc(100vh - (2 * var(--vpp-space-4)));
+    overflow: hidden;
+}
+
+.rz-dialog.vpp-admin-dialog--compact .rz-dialog-content,
+.rz-dialog.vpp-admin-dialog--standard .rz-dialog-content,
+.rz-dialog.vpp-admin-dialog--workspace .rz-dialog-content {
+    width: 100%;
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.rz-dialog.vpp-admin-dialog--compact .vpp-adaptive-dialog-shell,
+.rz-dialog.vpp-admin-dialog--standard .vpp-adaptive-dialog-shell {
+    width: 100%;
+}
+
+.rz-dialog.vpp-admin-dialog--workspace .vpp-adaptive-dialog-shell {
+    width: 100%;
+    height: 100%;
+}
+
+.vpp-adaptive-dialog-shell {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.vpp-adaptive-dialog-body {
+    min-height: 0;
+    overflow: auto;
+    padding: var(--vpp-space-4);
+}
+
+.vpp-adaptive-dialog-body .rz-form-field {
+    width: 100%;
+}
+
+.vpp-adaptive-dialog-intro {
+    padding: var(--vpp-space-4) var(--vpp-space-4) 0;
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-adaptive-dialog-footer {
+    border-top: var(--vpp-border-width) solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+    padding: var(--vpp-space-3) var(--vpp-space-4);
+}
+
+.vpp-adaptive-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--vpp-space-2);
+}
+
+@media (max-width: 768px) {
+    .rz-dialog-wrapper.vpp-admin-dialog-wrapper {
+        align-items: center;
+        justify-content: center;
+        padding: var(--vpp-space-3);
+    }
+
+    .rz-dialog.vpp-admin-dialog--standard,
+    .rz-dialog.vpp-admin-dialog--workspace {
+        width: 100vw !important;
+        max-width: none;
+        height: 100dvh !important;
+        max-height: none;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    /* Form ngắn vẫn là modal gọn; chỉ editor lớn mới chiếm toàn màn hình. */
+    .rz-dialog.vpp-admin-dialog--compact {
+        position: relative !important;
+        inset: auto !important;
+        width: calc(100vw - (2 * var(--vpp-space-3))) !important;
+        max-width: calc(100vw - (2 * var(--vpp-space-3)));
+        height: auto !important;
+        max-height: calc(100dvh - (2 * var(--vpp-space-3)));
+        margin: auto;
+        border-radius: var(--vpp-radius-modal);
+    }
+
+    .vpp-adaptive-dialog-body {
+        padding: var(--vpp-space-3);
+    }
+
+    .vpp-adaptive-dialog-footer {
+        padding-bottom: calc(var(--vpp-space-3) + env(safe-area-inset-bottom));
+    }
+}
+
 @media (max-width: 1440px) {
     .vpp-admin-grid.rz-data-grid,
     .vpp-admin-grid.rz-datatable {

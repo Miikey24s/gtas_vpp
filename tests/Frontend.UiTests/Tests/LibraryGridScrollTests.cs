@@ -375,4 +375,77 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var compactDirection = await split.EvaluateAsync<string>("element => getComputedStyle(element).flexDirection");
         compactDirection.Should().Be("column");
     }
+
+    [Fact]
+    public async Task LookupEditor_Uses_AdaptiveDialogShell_OnDesktopAndMobile()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=0", new() { WaitUntil = WaitUntilState.Load });
+
+        var surface = Page.Locator("[data-testid='lookup-categories-data-surface']");
+        await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await surface.Locator(".vpp-library-primary-action").ClickAsync();
+
+        var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await dialog.Locator(".vpp-adaptive-dialog-shell[data-vpp-admin-dialog-size='compact']").CountAsync()).Should().Be(1);
+        (await dialog.Locator(".vpp-adaptive-dialog-body").CountAsync()).Should().Be(1);
+        (await dialog.Locator(".vpp-adaptive-dialog-footer").CountAsync()).Should().Be(1);
+
+        var desktopBox = await dialog.BoundingBoxAsync();
+        desktopBox.Should().NotBeNull();
+        desktopBox!.Width.Should().BeLessThanOrEqualTo(640);
+        desktopBox.X.Should().BeGreaterThan(0);
+        desktopBox.X.Should().BeLessThan(1366 - desktopBox.Width);
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "aa1-lookup-editor-desktop.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
+        await Page.Keyboard.PressAsync("Escape");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+
+        await Page.SetViewportSizeAsync(390, 844);
+        var sidebarBackdrop = Page.Locator(".vpp-sidebar-backdrop:visible");
+        if (await sidebarBackdrop.CountAsync() > 0)
+        {
+            await sidebarBackdrop.ClickAsync();
+            await sidebarBackdrop.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
+        await surface.Locator(".vpp-library-primary-action").ClickAsync();
+        dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var mobileBox = await dialog.BoundingBoxAsync();
+        mobileBox.Should().NotBeNull();
+        mobileBox!.Width.Should().BeLessThan(390);
+        mobileBox.Height.Should().BeLessThan(844);
+        mobileBox.X.Should().BeGreaterThanOrEqualTo(0);
+        mobileBox.Y.Should().BeGreaterThan(0);
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "aa1-lookup-editor-mobile.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
+        await Page.Keyboard.PressAsync("Escape");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+    }
 }

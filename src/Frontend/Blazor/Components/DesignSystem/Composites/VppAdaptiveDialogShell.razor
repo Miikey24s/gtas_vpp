@@ -1,0 +1,32 @@
+<section class="vpp-adaptive-dialog-shell @Class"
+         data-vpp-admin-dialog-size="@SizeCssClass"
+         data-testid="@TestId">
+    @if (Intro is not null)
+    {
+        <div class="vpp-adaptive-dialog-intro">
+            @Intro
+        </div>
+    }
+
+    <div class="vpp-adaptive-dialog-body">
+        @ChildContent
+    </div>
+
+    @if (Footer is not null)
+    {
+        <footer class="vpp-adaptive-dialog-footer">
+            @Footer
+        </footer>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment? Intro { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public VppAdminDialogSize Size { get; set; } = VppAdminDialogSize.Compact;
+    [Parameter] public string? TestId { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string SizeCssClass => Size.ToString().ToLowerInvariant();
+}

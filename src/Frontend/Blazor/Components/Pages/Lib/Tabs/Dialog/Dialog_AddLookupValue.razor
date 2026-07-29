@@ -6,6 +6,8 @@
 @inject IToastService _toastService
 @inject GlobalClass glb
 
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Compact" TestId="lookup-value-editor">
+<ChildContent>
 <RadzenStack Gap="1rem">
     <RadzenRow>
         <RadzenColumn Size="12" SizeMD="6">
@@ -54,13 +56,15 @@
         </RadzenColumn>
     </RadzenRow>
     
-    <RadzenRow>
-        <RadzenColumn Size="12" class="rz-text-align-end">
-            <RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" Style="margin-right: 8px;" />
-            <RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
-        </RadzenColumn>
-    </RadzenRow>
 </RadzenStack>
+</ChildContent>
+<Footer>
+    <div class="vpp-adaptive-dialog-actions">
+        <RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" />
+        <RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
+    </div>
+</Footer>
+</VppAdaptiveDialogShell>
 
 @code {
     [Parameter] public LookupValueResDTO Model { get; set; } = new() { Code = "", Value = "" };
@@ -68,9 +72,9 @@
     
     private bool isBusy = false;
 
-    private void Cancel()
+    private async Task Cancel()
     {
-        DialogService.Close(null);
+        await DialogService.TryCloseAsync(null);
     }
 
     private async Task Save()

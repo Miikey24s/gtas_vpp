@@ -652,6 +652,35 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void AdminDialogs_UseTypedAdaptiveContractAndStickyShell()
+    {
+        var root = GetFrontendRoot();
+        var compositesRoot = Path.Combine(root, "Components", "DesignSystem", "Composites");
+        var contracts = File.ReadAllText(Path.Combine(compositesRoot, "VppAdminDialogContracts.cs"));
+        var shell = File.ReadAllText(Path.Combine(compositesRoot, "VppAdaptiveDialogShell.razor"));
+        var adminStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
+        var lookupTab = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor.cs"));
+        var lookupDialog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Dialog", "Dialog_AddLookupCategory.razor"));
+
+        foreach (var size in new[] { "Compact", "Standard", "Workspace" })
+        {
+            Assert.Contains(size, contracts, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("VppAdminDialogProfiles", contracts, StringComparison.Ordinal);
+        Assert.Contains("CssClass", contracts, StringComparison.Ordinal);
+        Assert.Contains("ContentCssClass", contracts, StringComparison.Ordinal);
+        Assert.Contains("AutoFocusFirstElement", contracts, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-admin-dialog-size", shell, StringComparison.Ordinal);
+        Assert.Contains("vpp-adaptive-dialog-body", shell, StringComparison.Ordinal);
+        Assert.Contains("vpp-adaptive-dialog-footer", shell, StringComparison.Ordinal);
+        Assert.Contains("overflow: auto;", adminStyles, StringComparison.Ordinal);
+        Assert.Contains("100dvh", adminStyles, StringComparison.Ordinal);
+        Assert.Contains("VppAdminDialogProfiles.Create", lookupTab, StringComparison.Ordinal);
+        Assert.Contains("<VppAdaptiveDialogShell", lookupDialog, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TransientSurfaces_UseOneDirectionalMotionContract()
     {
         var root = GetFrontendRoot();

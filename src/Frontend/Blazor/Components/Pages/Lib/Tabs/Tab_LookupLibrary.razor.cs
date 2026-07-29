@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -198,10 +199,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         // Nối lại 2 dialog thêm mới (trước đây mồ côi — Atlas yêu cầu primary action "Thêm ...").
         protected async Task OpenAddCategoryAsync()
         {
+            var options = VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["AddClass"].Value, closeAriaLabel: Loc["Close"].Value);
             var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupCategory>(
                 Loc["AddClass"].Value,
                 new Dictionary<string, object?> { ["IsCreate"] = true },
-                new DialogOptions { Width = "min(560px, 96vw)", Resizable = false, Draggable = true });
+                options);
 
             if (result is LookupCategoryResDTO)
             {
@@ -218,10 +220,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             // Dialog không tự gán LookupCategoryId — truyền model đã gắn category đang chọn.
             var model = new LookupValueResDTO { Code = "", Value = "", LookupCategoryId = selectedLookupCategory.Id };
+            var options = VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["AddLookupValue"].Value, closeAriaLabel: Loc["Close"].Value);
             var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupValue>(
                 Loc["AddLookupValue"].Value,
                 new Dictionary<string, object?> { ["IsCreate"] = true, ["Model"] = model },
-                new DialogOptions { Width = "min(560px, 96vw)", Resizable = false, Draggable = true });
+                options);
 
             if (result is LookupValueResDTO)
             {
