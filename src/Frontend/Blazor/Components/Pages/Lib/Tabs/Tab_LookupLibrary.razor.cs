@@ -35,6 +35,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private int valueCount { get; set; } = 0;
         private string? currentValueFilter { get; set; }
         private int currentValueSkip { get; set; }
+        private bool CanModifyLookup => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
 
         protected override async Task OnInitializedAsync()
         {
@@ -211,6 +212,20 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
+        protected async Task OpenEditCategoryAsync(LookupCategoryResDTO source)
+        {
+            var model = CloneCategory(source);
+            var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupCategory>(
+                Loc["Edit"].Value,
+                new Dictionary<string, object?> { ["IsCreate"] = false, ["Model"] = model },
+                VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["Edit"].Value, closeAriaLabel: Loc["Close"].Value));
+
+            if (result is LookupCategoryResDTO)
+            {
+                await categoryGrid.Reload();
+            }
+        }
+
         protected async Task OpenAddValueAsync()
         {
             if (selectedLookupCategory is null)
@@ -225,6 +240,20 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 Loc["AddLookupValue"].Value,
                 new Dictionary<string, object?> { ["IsCreate"] = true, ["Model"] = model },
                 options);
+
+            if (result is LookupValueResDTO)
+            {
+                await valueGrid.Reload();
+            }
+        }
+
+        protected async Task OpenEditValueAsync(LookupValueResDTO source)
+        {
+            var model = CloneValue(source);
+            var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupValue>(
+                Loc["Edit"].Value,
+                new Dictionary<string, object?> { ["IsCreate"] = false, ["Model"] = model },
+                VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["Edit"].Value, closeAriaLabel: Loc["Close"].Value));
 
             if (result is LookupValueResDTO)
             {
@@ -398,6 +427,40 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             attributes["class"] = className;
         }
+
+        private static LookupCategoryResDTO CloneCategory(LookupCategoryResDTO source)
+            => new()
+            {
+                Id = source.Id,
+                Code = source.Code,
+                Name = source.Name,
+                ModuleName = source.ModuleName,
+                Description = source.Description,
+                IsDeleted = source.IsDeleted,
+                CreatedAtUtc = source.CreatedAtUtc,
+                CreatedByUserId = source.CreatedByUserId,
+                UpdatedAtUtc = source.UpdatedAtUtc,
+                UpdatedByUserId = source.UpdatedByUserId
+            };
+
+        private static LookupValueResDTO CloneValue(LookupValueResDTO source)
+            => new()
+            {
+                Id = source.Id,
+                LookupCategoryId = source.LookupCategoryId,
+                Code = source.Code,
+                Value = source.Value,
+                Sort = source.Sort,
+                ExtraField1 = source.ExtraField1,
+                ExtraField2 = source.ExtraField2,
+                ExtraField3 = source.ExtraField3,
+                Description = source.Description,
+                IsDeleted = source.IsDeleted,
+                CreatedAtUtc = source.CreatedAtUtc,
+                CreatedByUserId = source.CreatedByUserId,
+                UpdatedAtUtc = source.UpdatedAtUtc,
+                UpdatedByUserId = source.UpdatedByUserId
+            };
         #endregion
     }
 }

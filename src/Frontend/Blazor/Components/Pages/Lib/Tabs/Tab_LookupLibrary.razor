@@ -29,6 +29,7 @@
                                   ButtonStyle="ButtonStyle.Primary"
                                   Size="ButtonSize.Small"
                                   class="vpp-library-primary-action"
+                                  Disabled="@(!CanModifyLookup)"
                                   Click="@OpenAddCategoryAsync" />
                     <VppColumnPicker TItem="LookupCategoryResDTO" GridAccessor="@(() => categoryGrid)" />
                 </VppDataToolbar>
@@ -82,6 +83,7 @@
                                     <span class="vpp-class-module">@data.ModuleName</span>
                                     <span @onclick:stopPropagation="true">
                                         <RadzenSwitch @bind-Value="@data.IsDeleted"
+                                                      Disabled="@(!CanModifyLookup)"
                                                       Change="@(async (bool value) => await ToggleCategoryDeleted(data, value))"
                                                       class="isDeleteSwitch vpp-admin-switch-compact" />
                                     </span>
@@ -98,6 +100,11 @@
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="76px" MinWidth="76px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                        <Template Context="data">
+                            <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditCategoryAsync(data))" @onclick:stopPropagation="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
             </ChildContent>
@@ -117,7 +124,7 @@
                                   ButtonStyle="ButtonStyle.Primary"
                                   Size="ButtonSize.Small"
                                   class="vpp-library-primary-action"
-                                  Disabled="@(selectedLookupCategory is null)"
+                                  Disabled="@(selectedLookupCategory is null || !CanModifyLookup)"
                                   Click="@OpenAddValueAsync" />
                     <VppColumnPicker TItem="LookupValueResDTO" GridAccessor="@(() => valueGrid)" />
                 </VppDataToolbar>
@@ -162,6 +169,7 @@
                         <Template Context="data">
                             <div class="vpp-admin-is-deleted-cell">
                                 <RadzenSwitch @bind-Value="@data.IsDeleted"
+                                              Disabled="@(!CanModifyLookup)"
                                               Change="@(async (bool value) => await ToggleValueDeleted(data, value))"
                                               class="isDeleteSwitch vpp-admin-switch-compact" />
                             </div>
@@ -180,6 +188,11 @@
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="76px" MinWidth="76px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                        <Template Context="data">
+                            <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditValueAsync(data))" @onclick:stopPropagation="true" />
+                        </Template>
+                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
             </ChildContent>

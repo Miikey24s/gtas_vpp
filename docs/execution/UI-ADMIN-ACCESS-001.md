@@ -203,6 +203,7 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 
 - `/library?tab=1` không còn dùng `Component_ShareGrid` legacy. Route đã chuyển sang `Tab_CategoryLibrary` typed, full-width `VppCollectionWorkspace`, server paging/filter/sort trên toàn nguồn và column picker hiện hành.
 - Thêm/Sửa dùng `Dialog_CategoryEditor` compact adaptive; không còn inline row edit cho Danh mục. Permission hiện hành vẫn khóa Add/Edit/Status khi component không được enable.
+- Lookup ListDetail đã có Edit popup typed cho cả `LookupCategory` và `LookupValue`; Add/Edit dùng cùng `VppAdminDialogProfiles`, không mở inline cell editor. Dependency impact trước khi deactivate vẫn là phần backend kế tiếp, chưa giả vờ hoàn tất.
 - Consumer ledger được cập nhật thành `16 file / 21 DataGrid`; pattern test của Danh mục đổi từ ListDetail sang Collection.
 - Evidence: Release build `0 warning`; `203` unit/architecture tests pass; isolated Playwright category surface + typed dialog pass. Screenshot `1366×768` đã được kiểm bằng mắt, artifact thô giữ trong `tmp/` ignored.
 - AA2 còn Lookup dependency-aware deactivate và mutation CRUD an toàn; không được suy ra là toàn wave đã hoàn tất.
