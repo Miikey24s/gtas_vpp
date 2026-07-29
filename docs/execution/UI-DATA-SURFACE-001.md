@@ -228,6 +228,8 @@ Gate: board 4 route thật, console/network sạch và không document-level scr
 - Evidence T001: frontend Release build `0 warning/error`; focused isolated Playwright `MyOrders_UsesCompactPeriodSegmentedSelectorWithContextualAction` pass `1/1`; screenshot runtime `1920×1080` đã được kiểm bằng mắt tại `tmp/t001-my-orders-segmented/` (ignored). Full suite tiếp tục hoãn đến khi owner gỡ T001.
 - Owner correction T001: review đơn bổ sung không còn dùng warning toast khi thiếu lý do. Submit validation và prompt inline cùng mở modal form `Lý do bổ sung`, giữ draft riêng, khóa lưu ngoài khoảng `5–500` ký tự và cập nhật lại review sau khi lưu; business validation trước submit không đổi.
 - Evidence T001: frontend Release build `0 warning/error`; focused isolated Playwright Additional Order pass `1/1`, bao phủ mở form, nhập/lưu và xóa requirement warning; modal runtime đã kiểm bằng mắt tại `tmp/t001-supplement-reason-form/` (ignored). Full suite vẫn deferred.
+- Owner correction T001: segmented order selector + contextual CTA được tách khỏi card kỳ thành `vpp-orders-view-switchbar` riêng, nằm đúng thứ tự giữa period context và selected data table. Status line đi cùng switchbar; card kỳ chỉ còn calendar/period/deadline.
+- Evidence T001: build frontend `0 warning/error`; focused My Orders Playwright `1/1` khóa thứ tự geometry `period → switchbar → table`; ảnh runtime đã kiểm bằng mắt tại `tmp/t001-my-orders-switchbar/` (ignored). Full suite vẫn deferred.
 
 #### Department Summary parity record — 2026-07-29
 

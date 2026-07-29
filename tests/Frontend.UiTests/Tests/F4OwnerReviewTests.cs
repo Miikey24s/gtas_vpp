@@ -16,29 +16,38 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
 
         var story = Page.Locator(".vpp-orders-story");
+        var switchbar = Page.Locator(".vpp-orders-view-switchbar");
         await story.WaitForAsync();
-        var selector = story.Locator(".vpp-orders-summary-grid");
+        await switchbar.WaitForAsync();
+        var selector = switchbar.Locator(".vpp-orders-summary-grid");
         (await selector.Locator("button[aria-pressed]").CountAsync()).Should().Be(3);
-        (await story.Locator("[data-testid='create-supplement']").CountAsync()).Should().Be(0,
+        (await switchbar.Locator("[data-testid='create-supplement']").CountAsync()).Should().Be(0,
             "the supplement CTA belongs to the supplement segment instead of floating above the current order");
 
-        var compactGeometry = await story.EvaluateAsync<string>("""
+        var compactGeometry = await Page.Locator(".vpp-orders-workspace").EvaluateAsync<string>("""
             root => {
-                const selector = root.querySelector('.vpp-orders-summary-grid');
-                const controls = root.querySelector('.vpp-orders-story-controls');
-                const period = root.querySelector('.vpp-orders-period-row');
-                if (!selector || !controls || !period) return 'missing';
+                const story = root.querySelector('.vpp-orders-story');
+                const switchbar = root.querySelector('.vpp-orders-view-switchbar');
+                const selectedView = root.querySelector('.vpp-orders-selected-view');
+                const selector = switchbar?.querySelector('.vpp-orders-summary-grid');
+                if (!story || !switchbar || !selectedView || !selector) return 'missing';
                 const selectorRect = selector.getBoundingClientRect();
-                return `${selectorRect.height >= 34 && selectorRect.height <= 42 && root.getBoundingClientRect().height < 180}`
-                    + `|selector=${selectorRect.height}|story=${root.getBoundingClientRect().height}`;
+                const storyRect = story.getBoundingClientRect();
+                const switchbarRect = switchbar.getBoundingClientRect();
+                const selectedRect = selectedView.getBoundingClientRect();
+                const ordered = storyRect.bottom <= switchbarRect.top + .5
+                    && switchbarRect.bottom <= selectedRect.top + .5;
+                return `${selectorRect.height >= 34 && selectorRect.height <= 42 && ordered}`
+                    + `|selector=${selectorRect.height}|storyBottom=${storyRect.bottom}`
+                    + `|switch=${switchbarRect.top}-${switchbarRect.bottom}|tableTop=${selectedRect.top}`;
             }
             """);
-        compactGeometry.Should().StartWith("true", "period information and the three order views should form one compact overview");
+        compactGeometry.Should().StartWith("true", "the segmented selector must be a separate surface between period context and the data table");
 
         await selector.Locator("article").Nth(1).Locator("button").ClickAsync();
         await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
-        await story.Locator("[data-testid='create-supplement']").WaitForAsync();
-        (await story.Locator(".vpp-orders-selection-summary").InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
+        await switchbar.Locator("[data-testid='create-supplement']").WaitForAsync();
+        (await switchbar.Locator(".vpp-orders-selection-summary").InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
         await CaptureAsync("t001-my-orders-segmented-selector-1920x1080.png");
     }
 

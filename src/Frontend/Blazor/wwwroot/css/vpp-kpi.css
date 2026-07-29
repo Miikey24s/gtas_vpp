@@ -236,7 +236,16 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--vpp-space-3);
-    margin-top: var(--vpp-space-3);
+    margin-top: 0;
+}
+
+.vpp-orders-view-switchbar {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-card);
+    background: var(--vpp-bg-elevated);
 }
 
 .vpp-orders-story-actions .rz-button,
@@ -856,6 +865,10 @@
     .vpp-orders-story-controls {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vpp-orders-view-switchbar {
+        padding: var(--vpp-space-2);
     }
 
     .vpp-orders-summary-grid {
