@@ -42,7 +42,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isCorrectionDialogOpen;
     private string? alertMessage;
     private string periodScope = CurrentPeriodScope;
-    private string viewMode = ItemsView;
+    private string viewMode = DepartmentsView;
     private string searchText = string.Empty;
     private string selectedOrderType = string.Empty;
     private int? selectedStatus;
@@ -129,8 +129,8 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private IReadOnlyList<VppSegmentedOption<string>> ViewModeOptions =>
     [
-        new(ItemsView, Loc["SettlementByItem"]),
-        new(DepartmentsView, Loc["SettlementByDepartment"])
+        new(DepartmentsView, Loc["SettlementByDepartment"]),
+        new(ItemsView, Loc["SettlementByItem"])
     ];
 
     private IReadOnlyList<VppFilterOption<int>> YearOptions => Enumerable.Range(2024, 7)

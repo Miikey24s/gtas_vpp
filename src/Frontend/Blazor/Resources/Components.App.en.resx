@@ -990,8 +990,8 @@
   <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Select a supplier with sufficient coverage to continue.</value></data>
   <data name="SettlementCurrentPeriod" xml:space="preserve"><value>Current period</value></data>
   <data name="SettlementCustomPeriod" xml:space="preserve"><value>Custom</value></data>
-  <data name="SettlementByItem" xml:space="preserve"><value>By item</value></data>
-  <data name="SettlementByDepartment" xml:space="preserve"><value>By department</value></data>
+  <data name="SettlementByItem" xml:space="preserve"><value>Items</value></data>
+  <data name="SettlementByDepartment" xml:space="preserve"><value>Departments</value></data>
   <data name="SettlementNeedsReview" xml:space="preserve"><value>Needs review</value></data>
   <data name="ViewFullscreen" xml:space="preserve"><value>View fullscreen</value></data>
   <data name="ExitFullscreen" xml:space="preserve"><value>Exit fullscreen</value></data>

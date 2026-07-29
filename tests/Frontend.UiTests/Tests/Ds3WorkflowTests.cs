@@ -42,9 +42,10 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
 
         var toolbar = surface.Locator(".vpp-settlement-data-toolbar:visible");
         (await toolbar.Locator(".vpp-filter-search").CountAsync()).Should().Be(1);
-        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
+        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(3);
         (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
-        (await Page.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng" }).CountAsync()).Should().Be(1);
+        var viewSelector = Page.Locator(".vpp-settlement-selector-row");
+        (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Phòng ban", Exact = true }).CountAsync()).Should().Be(1);
         (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select").CountAsync()).Should().Be(2);
         (await Page.Locator(".vpp-settlement-decision-action .rz-button").CountAsync()).Should().Be(1);
         (await surface.Locator(".vpp-settlement-footer").CountAsync()).Should().Be(0);
@@ -56,13 +57,10 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             await CaptureAsync("ds3-period-settlement-items-1366x768.png");
         }
 
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban" }).ClickAsync();
-        await Page.WaitForFunctionAsync("""
-            () => document.querySelector("[data-testid='period-settlement-data-surface']")
-                ?.getAttribute("data-vpp-data-source-mode") === "client-snapshot-paged"
-            """);
+        await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Mặt hàng", Exact = true }).ClickAsync();
+        await Page.Locator(".vpp-period-filters.is-item-view").WaitForAsync();
         (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
-        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(3);
+        (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
 
         var viewportContract = await Page.EvaluateAsync<string>("""
             () => `${document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1}`

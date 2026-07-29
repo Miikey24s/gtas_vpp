@@ -990,8 +990,8 @@
   <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Chọn nhà cung cấp đủ độ phủ để tiếp tục.</value></data>
   <data name="SettlementCurrentPeriod" xml:space="preserve"><value>Kỳ này</value></data>
   <data name="SettlementCustomPeriod" xml:space="preserve"><value>Tùy chọn</value></data>
-  <data name="SettlementByItem" xml:space="preserve"><value>Theo mặt hàng</value></data>
-  <data name="SettlementByDepartment" xml:space="preserve"><value>Theo phòng ban</value></data>
+  <data name="SettlementByItem" xml:space="preserve"><value>Mặt hàng</value></data>
+  <data name="SettlementByDepartment" xml:space="preserve"><value>Phòng ban</value></data>
   <data name="SettlementNeedsReview" xml:space="preserve"><value>Cần rà soát</value></data>
   <data name="ViewFullscreen" xml:space="preserve"><value>Xem toàn màn hình</value></data>
   <data name="ExitFullscreen" xml:space="preserve"><value>Thoát toàn màn hình</value></data>
