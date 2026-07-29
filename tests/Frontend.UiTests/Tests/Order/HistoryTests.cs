@@ -1156,7 +1156,6 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                             const kpis = document.querySelector('.vpp-history-kpis');
                             const chart = document.querySelector('.vpp-history-chart-card');
                             const orders = document.querySelector('.vpp-history-orders-card');
-                            const list = document.querySelector('.vpp-history-scope');
                             const detail = document.querySelector('.vpp-history-drawer');
                             const grid = document.querySelector('.vpp-history-grid table');
                             const gridSurface = document.querySelector('.vpp-history-grid-wrap');
@@ -1164,7 +1163,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                             const page = document.querySelector('.vpp-history-page');
                             const orderScroll = document.querySelector('.vpp-history-grid .rz-data-grid-data');
                             const detailScroll = document.querySelector('.vpp-history-detail-grid .rz-data-grid-data');
-                            if (!kpis || !chart || !orders || !list || !detail || !grid || !gridSurface || !card || !page || !orderScroll || !detailScroll) return 'missing';
+                            if (!kpis || !chart || !orders || !detail || !grid || !gridSurface || !card || !page || !orderScroll || !detailScroll) return 'missing';
                             const gapA = chart.getBoundingClientRect().top - kpis.getBoundingClientRect().bottom;
                             const gapB = orders.getBoundingClientRect().top - chart.getBoundingClientRect().bottom;
                             const tableWidth = gridSurface.getBoundingClientRect().width;
@@ -1173,7 +1172,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                             const ordersBottomDelta = Math.abs(pageBottom - orders.getBoundingClientRect().bottom);
                             const detailBottomDelta = Math.abs(pageBottom - detail.getBoundingClientRect().bottom);
                             const sharedBottomDelta = Math.abs(orders.getBoundingClientRect().bottom - detail.getBoundingClientRect().bottom);
-                            const ok = Math.abs(list.getBoundingClientRect().top - detail.getBoundingClientRect().top) <= 1
+                            const ok = Math.abs(kpis.getBoundingClientRect().top - detail.getBoundingClientRect().top) <= 1
                                 && gapA >= 0 && gapA <= 20
                                 && gapB >= 0 && gapB <= 20
                                 && Math.abs(tableWidth - cardWidth) <= 2
@@ -1182,7 +1181,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                                 && sharedBottomDelta <= 2
                                 && ['auto', 'scroll'].includes(getComputedStyle(orderScroll).overflowY)
                                 && ['auto', 'scroll'].includes(getComputedStyle(detailScroll).overflowY);
-                            return `${ok}|top=${Math.round(list.getBoundingClientRect().top - detail.getBoundingClientRect().top)}|gapA=${Math.round(gapA)}|gapB=${Math.round(gapB)}|table=${Math.round(tableWidth)}|card=${Math.round(cardWidth)}|bottom=${Math.round(ordersBottomDelta)}/${Math.round(detailBottomDelta)}/${Math.round(sharedBottomDelta)}`;
+                            return `${ok}|top=${Math.round(kpis.getBoundingClientRect().top - detail.getBoundingClientRect().top)}|gapA=${Math.round(gapA)}|gapB=${Math.round(gapB)}|table=${Math.round(tableWidth)}|card=${Math.round(cardWidth)}|bottom=${Math.round(ordersBottomDelta)}/${Math.round(detailBottomDelta)}/${Math.round(sharedBottomDelta)}`;
                         }
                     """);
                     layoutGeometry.Should().StartWith("true", $"desktop history must keep compact left-column rhythm while both internal-scroll data surfaces share the viewport bottom at {viewport.Width}x{viewport.Height}");

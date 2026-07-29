@@ -38,6 +38,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private bool HasAnyAuthorizedDashboardTab => AuthorizedTabs.Count > 0;
 
+        private bool UsesHistoryWorkspace =>
+            IsActiveTab(1) || IsActiveTab(ManagementTabIndex);
+
         protected override async Task OnInitializedAsync()
         {
             NavigationManager.LocationChanged += OnLocationChanged;

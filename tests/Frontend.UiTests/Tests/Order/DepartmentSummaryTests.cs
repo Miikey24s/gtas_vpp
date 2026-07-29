@@ -44,6 +44,35 @@ public sealed class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
                 "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1");
             hasHorizontalOverflow.Should().BeFalse($"route must not overflow at {viewport.Width}x{viewport.Height}");
 
+            if (viewport.Width >= 1280)
+            {
+                var layoutGeometry = await Page.EvaluateAsync<string>("""
+                    () => {
+                        const page = document.querySelector('.vpp-history-page');
+                        const kpis = document.querySelector('.vpp-history-kpis');
+                        const orders = document.querySelector('.vpp-history-orders-card');
+                        const detail = document.querySelector('.vpp-history-drawer');
+                        const heading = document.querySelector('.vpp-history-sheet-heading');
+                        const header = document.querySelector('.vpp-history-drawer-header');
+                        if (!page || !kpis || !orders || !detail || !heading || !header) return 'missing';
+
+                        const pageRect = page.getBoundingClientRect();
+                        const kpiRect = kpis.getBoundingClientRect();
+                        const ordersRect = orders.getBoundingClientRect();
+                        const detailRect = detail.getBoundingClientRect();
+                        const headingRect = heading.getBoundingClientRect();
+                        const headerRect = header.getBoundingClientRect();
+                        const ok = Math.abs(kpiRect.top - detailRect.top) <= 1
+                            && Math.abs(pageRect.bottom - ordersRect.bottom) <= 2
+                            && Math.abs(pageRect.bottom - detailRect.bottom) <= 2
+                            && headingRect.top >= headerRect.top - 1
+                            && headingRect.bottom <= headerRect.bottom + 1;
+                        return `${ok}|top=${Math.round(kpiRect.top - detailRect.top)}|bottom=${Math.round(pageRect.bottom - ordersRect.bottom)}/${Math.round(pageRect.bottom - detailRect.bottom)}|heading=${Math.round(headingRect.top - headerRect.top)}/${Math.round(headerRect.bottom - headingRect.bottom)}`;
+                    }
+                """);
+                layoutGeometry.Should().StartWith("true", $"department summary must fill the viewport, align detail with KPI cards and keep heading text inside its header at {viewport.Width}x{viewport.Height}");
+            }
+
             if (!string.IsNullOrWhiteSpace(evidenceDirectory))
             {
                 Directory.CreateDirectory(evidenceDirectory);

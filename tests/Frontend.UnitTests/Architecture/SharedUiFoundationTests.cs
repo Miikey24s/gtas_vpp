@@ -127,6 +127,7 @@ public sealed class SharedUiFoundationTests
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
         var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
         var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
+        var componentVppRequest = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Component_VPPRequest.razor"));
         var libraryPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Page_Library.razor"));
         var permissionPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Page_Permission.razor"));
 
@@ -192,6 +193,7 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("padding: var(--rz-layout-body-padding-1) !important;", appCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-admin-tabs.vpp-history-shell > .rz-tabview-panels > .rz-tabview-panel", layoutCss, StringComparison.Ordinal);
         Assert.Contains("flex: 1 1 auto;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("UsesHistoryWorkspace", componentVppRequest, StringComparison.Ordinal);
         Assert.Contains("gap: 0 !important;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("width: calc(100% + var(--vpp-page-inset-inline-start) + var(--vpp-page-inset-inline-end));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-inline-start: calc(-1 * var(--vpp-page-inset-inline-start));", tabsCss, StringComparison.Ordinal);
@@ -825,7 +827,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("::deep .vpp-order-items-grid thead", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("position: sticky;", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("@media (min-width: 1600px)", historyStyles, StringComparison.Ordinal);
-        Assert.Contains("grid-row: 1 / 5;", historyStyles, StringComparison.Ordinal);
+        Assert.Contains("grid-row: 2 / 5;", historyStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("text-box: trim-both cap alphabetic;", historyStyles, StringComparison.Ordinal);
         Assert.Contains("overflow-x: hidden;", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("text-overflow: ellipsis;", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("new ResizeObserver(() => {", historyScript, StringComparison.Ordinal);

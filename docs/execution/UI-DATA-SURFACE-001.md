@@ -227,6 +227,7 @@ Gate: board 4 route thật, console/network sạch và không document-level scr
 - Backend thêm endpoint history-like theo phòng ban cho summary + server paging; server luôn lấy `DepartmentCode` và `MemberCompanyCode` từ claim, không tin scope do client gửi. API cũ được giữ cho consumer chưa migrate.
 - Consumer ledger giảm từ `19 file / 25 grid` còn `18 file / 24 grid` vì hai route dùng cùng một grid thật, không sao chép markup.
 - Evidence: solution Release build `0 warning / 0 error`; frontend unit/architecture `196/196`; backend unit `429/429`; isolated Department Summary Playwright `1/1`, không horizontal overflow tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; ảnh đã được kiểm bằng mắt tại `tmp/department-history-parity/` (ignored). `verify -Scope frontend` vẫn dừng ở `model-routing-eval` của nhóm AI-harness dirty ngoài scope (`62/63`).
+- Owner-review correction: dashboard shell phải áp cùng contract `vpp-history-shell` cho cả History và Department Summary để route chạm đáy viewport. Trên desktop, detail bắt đầu từ hàng KPI thay vì hàng scope toolbar và cùng kết thúc ở đáy với danh sách; local `text-box` trim bị gỡ khỏi nội dung History để không xén dấu/đỉnh chữ tiếng Việt. Frontend `196/196` và hai focused isolated Playwright route pass; ảnh 1366/1920 đã được kiểm bằng mắt tại `tmp/history-department-layout-fix/` và `%TEMP%/gtas-vpp-history-visual/` (đều không commit).
 
 ### DS4 — Library, admin và permission
 

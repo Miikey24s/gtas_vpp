@@ -8,7 +8,7 @@
 {
     <RadzenTabs Change="@TabOnChange"
                 TabPosition="@tabPosition"
-                class="@(IsActiveTab(0) ? "librariestab vpp-admin-tabs vpp-orders-shell" : IsActiveTab(1) ? "librariestab vpp-admin-tabs vpp-history-shell" : IsActiveTab(2) ? "librariestab vpp-admin-tabs vpp-bounded-shell" : "librariestab vpp-admin-tabs")"
+                class="@(IsActiveTab(0) ? "librariestab vpp-admin-tabs vpp-orders-shell" : UsesHistoryWorkspace ? "librariestab vpp-admin-tabs vpp-history-shell" : IsActiveTab(2) ? "librariestab vpp-admin-tabs vpp-bounded-shell" : "librariestab vpp-admin-tabs")"
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex="@SelectedIndex">
         <Tabs>
