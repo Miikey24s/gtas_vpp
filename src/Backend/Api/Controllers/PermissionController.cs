@@ -504,6 +504,9 @@ namespace gtas_vpp_be.Controllers
                     UserLogin = user.UserName,
                     FullName = user.FullName,
                     Email = user.Email,
+                    EmployeeCode = user.EmployeeCode,
+                    EmailConfirmed = user.EmailConfirmed,
+                    MustChangePassword = user.MustChangePassword,
                     GoogleEmail = null,
                     IsAdmin = userGroup != null
                               && userGroup.PermissionGroup != null

@@ -79,6 +79,18 @@ public interface IAccountLifecycleService
         AdminPasswordResetReqDTO request,
         CancellationToken cancellationToken = default);
 
+    Task<AccountLifecycleResult> AdminInviteAsync(
+        int actorAccountId,
+        AdminAccountInvitationReqDTO request,
+        CancellationToken cancellationToken = default);
+
+    Task<AccountLifecycleResult> AdminSendPasswordResetLinkAsync(
+        int actorAccountId,
+        AdminPasswordResetLinkReqDTO request,
+        CancellationToken cancellationToken = default);
+
+    AccountAdministrationCapabilitiesResDTO GetAdministrationCapabilities();
+
     Task<MembershipAdministrationResult> ActivateAsync(
         int actorAccountId,
         AdminAccountActivationReqDTO request,
@@ -380,6 +392,7 @@ public sealed class AccountLifecycleService(
                 "The password reset link is invalid or expired.");
         }
 
+        var acceptsInvitation = string.IsNullOrWhiteSpace(account.PasswordHash);
         var result = await _userManager.ResetPasswordAsync(account, request.Token, request.NewPassword);
         if (!result.Succeeded)
         {
@@ -397,15 +410,21 @@ public sealed class AccountLifecycleService(
         }
 
         account.MustChangePassword = false;
+        if (acceptsInvitation)
+        {
+            account.EmailConfirmed = true;
+        }
         account.UpdatedAtUtc = DateTime.UtcNow;
         InvalidateSessions(account);
         await _userManager.UpdateAsync(account);
         await RecordAuditAsync(
             null,
             account.Id,
-            "ACCOUNT_PASSWORD_RESET",
+            acceptsInvitation ? "ACCOUNT_INVITATION_ACCEPTED" : "ACCOUNT_PASSWORD_RESET",
             "Succeeded",
-            "The account password was reset through a valid recovery token.",
+            acceptsInvitation
+                ? "The invited account accepted its one-time link and created its first password."
+                : "The account password was reset through a valid recovery token.",
             null,
             cancellationToken);
         return AccountLifecycleResult.Success(
@@ -542,6 +561,188 @@ public sealed class AccountLifecycleService(
         return AccountLifecycleResult.Success(
             "PASSWORD_RESET",
             "The temporary password was set. The account must change it at next login.",
+            MapAccount(account));
+    }
+
+    public AccountAdministrationCapabilitiesResDTO GetAdministrationCapabilities() => new()
+    {
+        InvitationEnabled = _emailOptions.Enabled,
+        DeliveryMode = _emailOptions.Enabled ? "EmailOutbox" : "Disabled",
+        Message = _emailOptions.Enabled
+            ? "Invitation and password-reset links are delivered through the configured email outbox."
+            : "Email delivery is disabled; invitations cannot be created until an email adapter is enabled."
+    };
+
+    public async Task<AccountLifecycleResult> AdminInviteAsync(
+        int actorAccountId,
+        AdminAccountInvitationReqDTO request,
+        CancellationToken cancellationToken = default)
+    {
+        if (actorAccountId <= 0)
+        {
+            return AccountLifecycleResult.Unauthorized("ACTOR_REQUIRED", "An authenticated administrator is required.");
+        }
+
+        if (!_emailOptions.Enabled)
+        {
+            return AccountLifecycleResult.Conflict(
+                "INVITATION_EMAIL_DISABLED",
+                "Email delivery must be enabled before inviting an account.");
+        }
+
+        var username = request.Username.Trim();
+        var email = request.Email.Trim();
+        var fullName = request.FullName.Trim();
+        var employeeCode = NormalizeOptional(request.EmployeeCode);
+        if (string.IsNullOrWhiteSpace(username)
+            || string.IsNullOrWhiteSpace(email)
+            || string.IsNullOrWhiteSpace(fullName)
+            || request.GroupId == Guid.Empty
+            || request.PrimaryDepartmentId == Guid.Empty)
+        {
+            return AccountLifecycleResult.BadRequest(
+                "INVITATION_FIELDS_REQUIRED",
+                "Username, email, full name, group and primary department are required.");
+        }
+
+        var normalizedUsername = _userManager.NormalizeName(username);
+        var normalizedEmail = _userManager.NormalizeEmail(email);
+        var duplicate = await _context.Users.AsNoTracking().AnyAsync(
+            account => (normalizedUsername != null && account.NormalizedUserName == normalizedUsername)
+                || (normalizedEmail != null && account.NormalizedEmail == normalizedEmail)
+                || (employeeCode != null && account.EmployeeCode == employeeCode),
+            cancellationToken);
+        if (duplicate)
+        {
+            return AccountLifecycleResult.Conflict(
+                "INVITATION_DUPLICATE_ACCOUNT",
+                "Username, email or employee code is already assigned to another account.");
+        }
+
+        var now = DateTime.UtcNow;
+        var account = new AppUser
+        {
+            UserName = username,
+            Email = email,
+            FullName = fullName,
+            EmployeeCode = employeeCode,
+            MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
+            AccountStatus = AppAccountStatus.PendingApproval,
+            MustChangePassword = true,
+            EmailConfirmed = false,
+            LockoutEnabled = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            SessionVersion = 1
+        };
+
+        IdentityResult createResult;
+        try
+        {
+            createResult = await _userManager.CreateAsync(account);
+        }
+        catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception))
+        {
+            _context.Entry(account).State = EntityState.Detached;
+            return AccountLifecycleResult.Conflict(
+                "INVITATION_DUPLICATE_ACCOUNT",
+                "Username, email or employee code is already assigned to another account.");
+        }
+
+        if (!createResult.Succeeded)
+        {
+            return AccountLifecycleResult.BadRequest(
+                "INVITATION_INVALID",
+                "The invitation data does not satisfy the account policy.");
+        }
+
+        var membership = await _membershipAdministrationService.ActivateAndUpsertAsync(
+            actorAccountId,
+            new MembershipUpsertReqDTO
+            {
+                AccountId = account.Id,
+                GroupId = request.GroupId,
+                PrimaryDepartmentId = request.PrimaryDepartmentId,
+                Reason = request.Reason
+            },
+            cancellationToken);
+        if (!membership.Succeeded)
+        {
+            await _userManager.DeleteAsync(account);
+            return new AccountLifecycleResult(membership.StatusCode, membership.Code, membership.Message);
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(account);
+        var invitationUrl = BuildUrl(
+            "/Account/ResetPassword",
+            $"userId={account.Id}&token={Uri.EscapeDataString(token)}");
+        await TrySendAsync(
+            new AccountEmailMessage(
+                email,
+                "GTAS VPP - Account invitation",
+                $"You were invited to GTAS VPP. Create your password using this one-time link: {invitationUrl}"),
+            account.Id,
+            "ACCOUNT_INVITATION_EMAIL_FAILED",
+            cancellationToken);
+        await RecordAuditAsync(
+            actorAccountId,
+            account.Id,
+            "ACCOUNT_INVITED",
+            "Succeeded",
+            "An administrator created an account without a password and sent a one-time setup link.",
+            request.Reason,
+            cancellationToken);
+
+        var refreshed = await _userManager.FindByIdAsync(account.Id.ToString()) ?? account;
+        return AccountLifecycleResult.Success(
+            "ACCOUNT_INVITED",
+            "The account was created and a one-time password setup link was queued.",
+            MapAccount(refreshed),
+            StatusCodes.Status201Created);
+    }
+
+    public async Task<AccountLifecycleResult> AdminSendPasswordResetLinkAsync(
+        int actorAccountId,
+        AdminPasswordResetLinkReqDTO request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_emailOptions.Enabled)
+        {
+            return AccountLifecycleResult.Conflict(
+                "PASSWORD_RESET_EMAIL_DISABLED",
+                "Email delivery must be enabled before sending a password-reset link.");
+        }
+
+        var account = await _userManager.FindByIdAsync(request.AccountId.ToString());
+        if (account is null || string.IsNullOrWhiteSpace(account.Email))
+        {
+            return AccountLifecycleResult.NotFound("ACCOUNT_EMAIL_NOT_FOUND", "The account email was not found.");
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(account);
+        var resetUrl = BuildUrl(
+            "/Account/ResetPassword",
+            $"userId={account.Id}&token={Uri.EscapeDataString(token)}");
+        await TrySendAsync(
+            new AccountEmailMessage(
+                account.Email,
+                "GTAS VPP - Password setup link",
+                $"Create or reset your GTAS VPP password using this one-time link: {resetUrl}"),
+            account.Id,
+            "ACCOUNT_ADMIN_RESET_LINK_EMAIL_FAILED",
+            cancellationToken);
+        await RecordAuditAsync(
+            actorAccountId,
+            account.Id,
+            "ACCOUNT_ADMIN_RESET_LINK_SENT",
+            "Succeeded",
+            "An administrator queued a one-time password setup/reset link without seeing a password.",
+            request.Reason,
+            cancellationToken);
+
+        return AccountLifecycleResult.Success(
+            "PASSWORD_RESET_LINK_SENT",
+            "A one-time password setup/reset link was queued.",
             MapAccount(account));
     }
 

@@ -12,6 +12,9 @@ namespace gtas_vpp_fe.Helpers
         public const string ApiAccountChangePasswordEndpoint = "/api/account/password/change";
         public const string ApiAccountAdminActivateEndpoint = "/api/account/admin/activate";
         public const string ApiAccountAdminResetPasswordEndpoint = "/api/account/admin/reset-password";
+        public const string ApiAccountAdminInviteEndpoint = "/api/account/admin/invite";
+        public const string ApiAccountAdminCapabilitiesEndpoint = "/api/account/admin/capabilities";
+        public const string ApiAccountAdminSendPasswordResetLinkEndpoint = "/api/account/admin/send-password-reset-link";
         public const string ApiPermissionGroupsEndpoint = "/api/Permission/groups?getFullName=true";
         public const string ApiBase = "/api";
         public const string ApiLibraryBase = "/api/Library";

@@ -5,6 +5,7 @@ using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Account;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -180,6 +181,72 @@ public sealed class AccountLifecycleServiceTests
             audit => audit.Action == "ACCOUNT_EMAIL_CONFIRMED");
     }
 
+    [Fact]
+    public async Task AdminInviteCreatesPasswordlessAccountAndOneTimeSetupFlow()
+    {
+        await using var fixture = await LifecycleFixture.CreateAsync(emailEnabled: true, membershipSucceeds: true);
+        var groupId = Guid.NewGuid();
+        var departmentId = Guid.NewGuid();
+
+        var invited = await fixture.Service.AdminInviteAsync(
+            actorAccountId: 9001,
+            new AdminAccountInvitationReqDTO
+            {
+                Username = "invited.user",
+                Email = "invited.user@example.test",
+                FullName = "Invited User",
+                EmployeeCode = "INV-001",
+                GroupId = groupId,
+                PrimaryDepartmentId = departmentId,
+                Reason = "New employee"
+            });
+
+        Assert.Equal(StatusCodes.Status201Created, invited.StatusCode);
+        var account = Assert.Single(await fixture.Context.Users.ToListAsync());
+        Assert.Null(account.PasswordHash);
+        Assert.True(account.MustChangePassword);
+        Assert.False(account.EmailConfirmed);
+        Assert.Equal(AppAccountStatus.Active, account.AccountStatus);
+        Assert.Single(await fixture.Context.UserGroupMemberships.ToListAsync());
+        Assert.Single(fixture.EmailSender.Messages);
+        Assert.Contains("ResetPassword", fixture.EmailSender.Messages[0].TextBody, StringComparison.Ordinal);
+
+        var token = await fixture.UserManager.GeneratePasswordResetTokenAsync(account);
+        var accepted = await fixture.Service.ResetPasswordAsync(new PasswordResetReqDTO
+        {
+            UserId = account.Id,
+            Token = token,
+            NewPassword = ValidPassword,
+            ConfirmPassword = ValidPassword
+        });
+
+        Assert.True(accepted.Succeeded);
+        Assert.True(account.EmailConfirmed);
+        Assert.False(account.MustChangePassword);
+        Assert.True(await fixture.UserManager.CheckPasswordAsync(account, ValidPassword));
+        Assert.Contains(await fixture.Context.SecurityAudits.ToListAsync(), audit => audit.Action == "ACCOUNT_INVITED");
+        Assert.Contains(await fixture.Context.SecurityAudits.ToListAsync(), audit => audit.Action == "ACCOUNT_INVITATION_ACCEPTED");
+    }
+
+    [Fact]
+    public async Task AdminInviteIsBlockedBeforeCreatingAccountWhenEmailIsDisabled()
+    {
+        await using var fixture = await LifecycleFixture.CreateAsync(emailEnabled: false, membershipSucceeds: true);
+
+        var result = await fixture.Service.AdminInviteAsync(9001, new AdminAccountInvitationReqDTO
+        {
+            Username = "blocked.user",
+            Email = "blocked.user@example.test",
+            FullName = "Blocked User",
+            GroupId = Guid.NewGuid(),
+            PrimaryDepartmentId = Guid.NewGuid()
+        });
+
+        Assert.Equal(StatusCodes.Status409Conflict, result.StatusCode);
+        Assert.Equal("INVITATION_EMAIL_DISABLED", result.Code);
+        Assert.Empty(await fixture.Context.Users.ToListAsync());
+    }
+
     private sealed class LifecycleFixture : IAsyncDisposable
     {
         private readonly ServiceProvider _provider;
@@ -206,7 +273,7 @@ public sealed class AccountLifecycleServiceTests
 
         public RecordingEmailSender EmailSender { get; }
 
-        public static async Task<LifecycleFixture> CreateAsync(bool emailEnabled = false)
+        public static async Task<LifecycleFixture> CreateAsync(bool emailEnabled = false, bool membershipSucceeds = false)
         {
             var services = new ServiceCollection();
             services.AddLogging();
@@ -235,10 +302,13 @@ public sealed class AccountLifecycleServiceTests
                 RequireConfirmationWhenEnabled = true,
                 PublicBaseUrl = "https://example.test"
             });
+            IMembershipAdministrationService membershipService = membershipSucceeds
+                ? new InvitationMembershipAdministrationService(context)
+                : new NoopMembershipAdministrationService();
             var service = new AccountLifecycleService(
                 userManager,
                 context,
-                new NoopMembershipAdministrationService(),
+                membershipService,
                 new NoopNotificationService(),
                 emailSender,
                 options,
@@ -322,6 +392,53 @@ public sealed class AccountLifecycleServiceTests
             gtas_vpp_shared.DTOs.Req.Permission.MembershipUpsertReqDTO command,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(MembershipAdministrationResult.BadRequest("NOT_USED", "Not used in this fixture."));
+
+        public Task<MembershipAdministrationResult> DeactivateAsync(int actorAccountId,
+            gtas_vpp_shared.DTOs.Req.Permission.MembershipDeactivateReqDTO command,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(MembershipAdministrationResult.BadRequest("NOT_USED", "Not used in this fixture."));
+    }
+
+    private sealed class InvitationMembershipAdministrationService(VPPContext context) : IMembershipAdministrationService
+    {
+        public Task<MembershipAdministrationResult> UpsertAsync(int actorAccountId,
+            gtas_vpp_shared.DTOs.Req.Permission.MembershipUpsertReqDTO command,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(MembershipAdministrationResult.BadRequest("NOT_USED", "Not used in this fixture."));
+
+        public async Task<MembershipAdministrationResult> ActivateAndUpsertAsync(int actorAccountId,
+            gtas_vpp_shared.DTOs.Req.Permission.MembershipUpsertReqDTO command,
+            CancellationToken cancellationToken = default)
+        {
+            var account = await context.Users.SingleAsync(x => x.Id == command.AccountId, cancellationToken);
+            account.AccountStatus = AppAccountStatus.Active;
+            account.ActivatedAtUtc = DateTime.UtcNow;
+            account.UpdatedAtUtc = DateTime.UtcNow;
+            var membership = new UserGroupMembership
+            {
+                Id = Guid.NewGuid(),
+                UserId = account.Id,
+                AccountId = account.Id,
+                PermissionGroupId = command.GroupId,
+                DepartmentId = command.PrimaryDepartmentId,
+                CreatedByUserId = actorAccountId,
+                UpdatedByUserId = actorAccountId,
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                RowVersion = [1]
+            };
+            context.UserGroupMemberships.Add(membership);
+            await context.SaveChangesAsync(cancellationToken);
+            return MembershipAdministrationResult.Success(new gtas_vpp_shared.DTOs.Res.Permission.MembershipAdministrationResDTO
+            {
+                MembershipId = membership.Id,
+                AccountId = account.Id,
+                GroupId = command.GroupId,
+                PrimaryDepartmentId = command.PrimaryDepartmentId,
+                IsActive = true,
+                RowVersion = Convert.ToBase64String(membership.RowVersion)
+            });
+        }
 
         public Task<MembershipAdministrationResult> DeactivateAsync(int actorAccountId,
             gtas_vpp_shared.DTOs.Req.Permission.MembershipDeactivateReqDTO command,

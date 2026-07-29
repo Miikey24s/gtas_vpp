@@ -38,6 +38,8 @@ public sealed class AccountControllerTests
     [InlineData(nameof(AccountController.ResetPassword), "account-recovery")]
     [InlineData(nameof(AccountController.ChangePassword), "account-password")]
     [InlineData(nameof(AccountController.AdminResetPassword), "account-password")]
+    [InlineData(nameof(AccountController.Invite), "account-password")]
+    [InlineData(nameof(AccountController.SendPasswordResetLink), "account-password")]
     public void SensitiveEndpoint_HasNamedRateLimitPolicy(string methodName, string expectedPolicy)
     {
         var method = typeof(AccountController).GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
@@ -61,6 +63,9 @@ public sealed class AccountControllerTests
     [Theory]
     [InlineData(nameof(AccountController.Activate))]
     [InlineData(nameof(AccountController.AdminResetPassword))]
+    [InlineData(nameof(AccountController.Invite))]
+    [InlineData(nameof(AccountController.AdministrationCapabilities))]
+    [InlineData(nameof(AccountController.SendPasswordResetLink))]
     public void AdministrationEndpoint_RequiresPermissionManage(string methodName)
     {
         var method = typeof(AccountController).GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);

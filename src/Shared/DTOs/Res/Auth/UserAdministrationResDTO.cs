@@ -7,6 +7,9 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         public string? UserLogin { get; set; }
         public string? FullName { get; set; }
         public string? Email { get; set; }
+        public string? EmployeeCode { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public bool MustChangePassword { get; set; }
         public string? GoogleEmail { get; set; }
         public bool IsAdmin { get; set; }
         public Guid GroupId { get; set; }

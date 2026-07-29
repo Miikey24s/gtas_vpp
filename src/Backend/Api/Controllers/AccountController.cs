@@ -102,6 +102,35 @@ public sealed class AccountController(IAccountLifecycleService lifecycleService)
 
     [Authorize(Policy = Permissions.PermissionManage)]
     [EnableRateLimiting("account-password")]
+    [HttpPost("admin/invite")]
+    [ProducesResponseType(typeof(AccountLifecycleResDTO), StatusCodes.Status201Created)]
+    public async Task<IActionResult> Invite(
+        [FromBody] AdminAccountInvitationReqDTO request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetCurrentUserId(out var actorId)) return Unauthorized();
+        return ToActionResult(await _lifecycleService.AdminInviteAsync(actorId, request, cancellationToken));
+    }
+
+    [Authorize(Policy = Permissions.PermissionManage)]
+    [HttpGet("admin/capabilities")]
+    [ProducesResponseType(typeof(AccountAdministrationCapabilitiesResDTO), StatusCodes.Status200OK)]
+    public IActionResult AdministrationCapabilities() => Ok(_lifecycleService.GetAdministrationCapabilities());
+
+    [Authorize(Policy = Permissions.PermissionManage)]
+    [EnableRateLimiting("account-password")]
+    [HttpPost("admin/send-password-reset-link")]
+    [ProducesResponseType(typeof(AccountLifecycleResDTO), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SendPasswordResetLink(
+        [FromBody] AdminPasswordResetLinkReqDTO request,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetCurrentUserId(out var actorId)) return Unauthorized();
+        return ToActionResult(await _lifecycleService.AdminSendPasswordResetLinkAsync(actorId, request, cancellationToken));
+    }
+
+    [Authorize(Policy = Permissions.PermissionManage)]
+    [EnableRateLimiting("account-password")]
     [HttpPost("admin/reset-password")]
     [ProducesResponseType(typeof(AccountLifecycleResDTO), StatusCodes.Status200OK)]
     public async Task<IActionResult> AdminResetPassword(
