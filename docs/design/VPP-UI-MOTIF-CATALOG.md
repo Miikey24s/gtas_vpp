@@ -37,7 +37,7 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | `SELECTOR-PAGE-SIZE` | Chọn số dòng mỗi trang | Mọi server/client paged grid | Radzen pager bridge + page-size contract trong `vpp-datagrid.css` | 25/50/100/200 theo profile | custom popup/oval focus riêng |
 | `DATA-ROW` | Nhịp hàng và semantic cell | Mọi grid canonical | `vpp-datagrid.css` + route-owned typed columns | `Compact`, `RichTwoLine` | zebra tự bật, inline color/radius |
 | `DATA-COLUMN` | Column contract | `#`, code/name, note, amount, status, action | route-owned typed `RadzenDataGridColumn` theo [data-surface ledger](VPP-DATA-SURFACE-CONSUMER-LEDGER.md) | visible/pickable/frozen/filterable/sortable | reflection/string column config |
-| `DATA-FOOTER` | Summary, pager, page size, workflow action | Cuối data surface | `VppDataSummaryFooter` hoặc route action footer | summary/paged/virtualized/action | footer giả hoặc row đè footer |
+| `DATA-FOOTER` | Summary, pager, page size, workflow action | Cuối data surface | `VppDataSummaryFooter` hoặc Radzen pager bridge | summary/paged/virtualized/action | footer giả, row đè footer hoặc route tự đổi căn lề |
 | `CELL-VALUE` | Code/note dài và copy | Ô bị truncate | `VppCellValuePopover` | code/note/copy | popup route tự neo khác contract |
 | `CONTENT-STATE` | Loading/empty/filter-empty/error/denied/disabled/success | Mọi route có state | `VppContentState`, `VppContentStateKind` | typed state + semantic role | text state tự dựng bằng string switch |
 | `STATUS-BADGE` | Trạng thái ngắn, có màu semantic | Order/admin/permission state | `VppStatusBadge` + `VppStatusTone` | info/success/warning/danger/neutral | badge tự map string hoặc màu theo route |
@@ -66,6 +66,8 @@ Quy tắc vị trí lọc trong data grid:
 - Filter luôn áp trên toàn bộ tập dữ liệu được cấp quyền trước `paging`/`virtualization`, sau đó mới tính tổng và phân trang.
 
 Không gộp chúng thành một component string-configured. Dùng typed component/contract riêng, cùng token và popup bridge.
+
+Footer có paging dùng một thứ tự cố định trên desktop: summary ở trái; cụm điều hướng trang, page-size và nhãn page-size ở phải. Mọi `RadzenDataGrid` có paging dùng `PagerHorizontalAlign="HorizontalAlign.Right"`; standalone `RadzenPager` dùng `HorizontalAlign="HorizontalAlign.Right"`. Responsive dưới `768px` dùng grid mobile native của Radzen, không để route tự căn giữa hoặc căn trái riêng.
 
 ## 4. Quy tắc action
 

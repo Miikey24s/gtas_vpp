@@ -126,6 +126,56 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
+    public void PagedSurfaces_UseCanonicalRightAlignedFooterContract()
+    {
+        var root = GetFrontendRoot();
+        var componentRoot = Path.Combine(root, "Components");
+        var pagedGridCount = 0;
+        var standalonePagerCount = 0;
+
+        foreach (var file in Directory.EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories))
+        {
+            var source = File.ReadAllText(file);
+            var cursor = 0;
+
+            while (true)
+            {
+                var pagingIndex = source.IndexOf("AllowPaging=\"", cursor, StringComparison.Ordinal);
+                if (pagingIndex < 0) break;
+
+                cursor = pagingIndex + 1;
+                if (source.AsSpan(pagingIndex).StartsWith("AllowPaging=\"false\"", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var gridStart = source.LastIndexOf("<RadzenDataGrid", pagingIndex, StringComparison.Ordinal);
+                var columnsStart = source.IndexOf("<Columns>", pagingIndex, StringComparison.Ordinal);
+                Assert.True(gridStart >= 0 && columnsStart > pagingIndex,
+                    $"Không xác định được opening tag của paged grid trong {file}.");
+
+                var gridContract = source[gridStart..columnsStart];
+                Assert.Contains("PagerHorizontalAlign=\"HorizontalAlign.Right\"", gridContract, StringComparison.Ordinal);
+                pagedGridCount++;
+            }
+
+            foreach (Match pager in Regex.Matches(source, "<RadzenPager(?=\\s|>)"))
+            {
+                var tagEnd = source.IndexOf("/>", pager.Index, StringComparison.Ordinal);
+                Assert.True(tagEnd > pager.Index, $"Không xác định được standalone pager trong {file}.");
+                var pagerContract = source[pager.Index..(tagEnd + 2)];
+                Assert.Contains("HorizontalAlign=\"HorizontalAlign.Right\"", pagerContract, StringComparison.Ordinal);
+                standalonePagerCount++;
+            }
+        }
+
+        Assert.True(pagedGridCount >= 16,
+            $"Footer contract phải bao phủ toàn bộ paged grid hiện tại; chỉ tìm thấy {pagedGridCount} grid.");
+        Assert.True(standalonePagerCount >= 1,
+            "Footer contract phải bao phủ cả standalone pager trong data surface tùy biến.");
+    }
+
+    [Fact]
     public void RepresentativeConsumers_KeepServerAndClientPagingBehaviorDistinct()
     {
         var root = GetFrontendRoot();

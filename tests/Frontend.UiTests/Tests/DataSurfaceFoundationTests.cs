@@ -279,6 +279,56 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
         await CaptureAsync("ds4-report-static-1366x768.png");
     }
 
+    [Fact]
+    public async Task PagedFooters_KeepSummaryLeftAndNavigationRightAcrossWorkspacePatterns()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+
+        foreach (var route in new[]
+                 {
+                     (Path: "library?tab=0", Label: "lookup-split"),
+                     (Path: "library?tab=1", Label: "category"),
+                     (Path: "permission?tab=0", Label: "users")
+                 })
+        {
+            await Page.GotoAsync($"{BaseUrl}{route.Path}", new() { WaitUntil = WaitUntilState.Load });
+            await WaitForDataGridsToSettleAsync();
+
+            var pagers = Page.Locator("[data-vpp-data-surface='true'] .rz-pager:visible, [data-vpp-data-surface='true'] .rz-paginator:visible");
+            await pagers.First.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+            (await pagers.CountAsync()).Should().BeGreaterThan(0, route.Path);
+
+            for (var index = 0; index < await pagers.CountAsync(); index++)
+            {
+                var pager = pagers.Nth(index);
+                (await pager.GetAttributeAsync("class")).Should().Contain("rz-align-right",
+                    "mọi data footer có paging phải dùng cùng một contract căn lề");
+
+                var geometry = await pager.EvaluateAsync<double[]>("""
+                    element => {
+                        const summary = element.querySelector('.rz-pager-summary');
+                        const pages = element.querySelector('.rz-pager-pages');
+                        const pageSize = element.querySelector('.rz-dropdown');
+                        if (!summary || !pages || !pageSize) return [];
+                        const summaryRect = summary.getBoundingClientRect();
+                        const pagesRect = pages.getBoundingClientRect();
+                        const pageSizeRect = pageSize.getBoundingClientRect();
+                        return [summaryRect.left, summaryRect.right, pagesRect.left, pagesRect.right, pageSizeRect.left];
+                    }
+                    """);
+
+                if (geometry.Length > 0)
+                {
+                    geometry[0].Should().BeLessThan(geometry[2], "summary thuộc vùng trái của footer");
+                    geometry[3].Should().BeLessThanOrEqualTo(geometry[4] + 1, "page-size đứng sau cụm điều hướng ở vùng phải");
+                }
+            }
+
+            await CaptureAsync($"data-footer-canonical-{route.Label}-1366x768.png");
+        }
+    }
+
     private async Task AssertDesktopRhythmAsync()
     {
         var rhythm = await Page.EvaluateAsync<double[]>("""
