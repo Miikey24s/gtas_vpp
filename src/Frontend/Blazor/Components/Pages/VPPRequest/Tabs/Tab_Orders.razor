@@ -17,29 +17,27 @@
         {
             <section class="vpp-orders-story vpp-orders-overview" aria-labelledby="orders-story-title">
                 <header class="vpp-orders-story-header">
-                    <div class="vpp-orders-story-intro">
-                        <div class="vpp-orders-eyebrow">
+                    <div class="vpp-orders-period-summary">
+                        <div class="vpp-orders-period-icon" aria-hidden="true">
                             <VppIcon Name="@VppIcons.Calendar" />
-                            <span class="vpp-orders-period-label">@Loc["ActiveOrderPeriod"]</span>
                         </div>
-
                         <div class="vpp-orders-story-heading">
-                            <div class="vpp-orders-period-row">
-                                <h2 id="orders-story-title">@CurrentOrderPeriodText</h2>
-                                @if (PeriodInfo is not null)
-                                {
-                                    <span class="vpp-orders-deadline-inline">
-                                        <VppIcon Name="@VppIcons.Schedule" />
-                                        @RemainingDeadlineText · @Loc["SubmissionDeadline"] @CurrentDeadlineText
-                                    </span>
-                                }
-                            </div>
-                            @if (!string.IsNullOrWhiteSpace(OrdersStoryDescription))
-                            {
-                                <p>@OrdersStoryDescription</p>
-                            }
+                            <span class="vpp-orders-period-label">@Loc["ActiveOrderPeriod"]</span>
+                            <h2 id="orders-story-title">@CurrentOrderPeriodText</h2>
                         </div>
                     </div>
+
+                    @if (PeriodInfo is not null)
+                    {
+                        <div class="vpp-orders-deadline-card @(RemainingDeadlineDays <= 2 ? "is-urgent" : null)">
+                            <span class="vpp-orders-deadline-status">
+                                <VppIcon Name="@VppIcons.Schedule" />
+                                <strong>@RemainingDeadlineText</strong>
+                            </span>
+                            <span class="vpp-orders-deadline-label">@Loc["SubmissionDeadline"]</span>
+                            <time datetime="@CurrentDeadlineDate.ToString("O")">@CurrentDeadlineText</time>
+                        </div>
+                    }
                 </header>
             </section>
 

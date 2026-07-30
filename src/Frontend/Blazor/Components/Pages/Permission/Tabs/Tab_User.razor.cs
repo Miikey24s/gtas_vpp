@@ -1,7 +1,6 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
-using gtas_vpp_fe.Components.Pages.Permission.Models;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -35,6 +34,8 @@ public partial class Tab_User : IDisposable
     public RadzenDataGrid<UserAdministrationResDTO>? userGrid { get; set; }
     public List<PermissionGroupResDTO> permissionGroups { get; set; } = [];
     public List<DepartmentResDTO> departments { get; set; } = [];
+    private readonly Dictionary<int, Guid?> pendingGroupSelections = [];
+    private readonly Dictionary<int, Guid?> pendingDepartmentSelections = [];
 
     private int UserClaims { get; set; }
     private int userCount;
@@ -170,6 +171,8 @@ public partial class Tab_User : IDisposable
                 BuildUsersEndpoint(args.Skip, args.Top, args.OrderBy));
             users = result.Data ?? [];
             userCount = result.TotalCount;
+            pendingGroupSelections.Clear();
+            pendingDepartmentSelections.Clear();
         }
         catch (Exception ex)
         {
@@ -241,39 +244,62 @@ public partial class Tab_User : IDisposable
         }
     }
 
-    private async Task OpenMembershipEditorAsync(UserAdministrationResDTO user)
-    {
-        if (!CanEditMembership(user) && !CanPrepareActivation(user)) return;
-        var model = new UserMembershipEditModel
-        {
-            AccountId = user.UserId,
-            GroupId = user.GroupId,
-            PrimaryDepartmentId = user.DepartmentId ?? Guid.Empty,
-            ExpectedRowVersion = CanEditMembership(user) ? GetRowVersion(user) : null,
-            Reason = CanPrepareActivation(user)
-                ? Loc["MembershipInitialActivationReason"]
-                : Loc["MembershipUpdateReason"]
-        };
-        var result = await DialogService.OpenAsync<Dialog_UserMembershipEditor>(
-            CanPrepareActivation(user) ? Loc["ActivateAccount"].Value : Loc["PermissionGroup"].Value,
-            new Dictionary<string, object?>
-            {
-                [nameof(Dialog_UserMembershipEditor.Model)] = model,
-                [nameof(Dialog_UserMembershipEditor.Groups)] = permissionGroups,
-                [nameof(Dialog_UserMembershipEditor.Departments)] = departments
-            },
-            VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["PermissionGroup"].Value, closeAriaLabel: Loc["Close"].Value));
-        if (result is not UserMembershipEditModel request) return;
+    private Guid? GetSelectedGroupId(UserAdministrationResDTO user) =>
+        pendingGroupSelections.TryGetValue(user.UserId, out var value)
+            ? value
+            : user.GroupId == Guid.Empty ? null : user.GroupId;
 
-        if (CanPrepareActivation(user)) await ActivateAccountAsync(user, request);
-        else await PersistMembershipAsync(user, request);
+    private Guid? GetSelectedDepartmentId(UserAdministrationResDTO user) =>
+        pendingDepartmentSelections.TryGetValue(user.UserId, out var value)
+            ? value
+            : user.DepartmentId;
+
+    private static Guid? ConvertToNullableGuid(object? value) => value switch
+    {
+        Guid id => id,
+        string text when Guid.TryParse(text, out var id) => id,
+        _ => null
+    };
+
+    private async Task OnGroupAssignmentChangedAsync(UserAdministrationResDTO user, Guid? groupId)
+    {
+        pendingGroupSelections[user.UserId] = groupId;
+        await ApplyInlineMembershipAsync(user);
     }
 
-    private async Task ActivateAccountAsync(UserAdministrationResDTO user, UserMembershipEditModel assignment)
+    private async Task OnDepartmentAssignmentChangedAsync(UserAdministrationResDTO user, Guid? departmentId)
+    {
+        pendingDepartmentSelections[user.UserId] = departmentId;
+        await ApplyInlineMembershipAsync(user);
+    }
+
+    private async Task ApplyInlineMembershipAsync(UserAdministrationResDTO user)
+    {
+        var groupId = GetSelectedGroupId(user);
+        var departmentId = GetSelectedDepartmentId(user);
+        if (!groupId.HasValue || !departmentId.HasValue)
+        {
+            return;
+        }
+
+        if (CanPrepareActivation(user))
+        {
+            await ActivateAccountAsync(user, groupId.Value, departmentId.Value);
+            return;
+        }
+
+        if (CanEditMembership(user)
+            && (user.GroupId != groupId.Value || user.DepartmentId != departmentId.Value))
+        {
+            await PersistMembershipAsync(user, groupId.Value, departmentId.Value);
+        }
+    }
+
+    private async Task ActivateAccountAsync(UserAdministrationResDTO user, Guid groupId, Guid departmentId)
     {
         if (!CanPrepareActivation(user)
-            || assignment.GroupId == Guid.Empty
-            || assignment.PrimaryDepartmentId == Guid.Empty)
+            || groupId == Guid.Empty
+            || departmentId == Guid.Empty)
         {
             NotifyError(Loc["ActivateAccountRequiresAssignment"].Value);
             return;
@@ -297,9 +323,9 @@ public partial class Tab_User : IDisposable
                 new AdminAccountActivationReqDTO
                 {
                     AccountId = user.UserId,
-                    GroupId = assignment.GroupId,
-                    PrimaryDepartmentId = assignment.PrimaryDepartmentId,
-                    Reason = assignment.Reason
+                    GroupId = groupId,
+                    PrimaryDepartmentId = departmentId,
+                    Reason = Loc["MembershipInitialActivationReason"]
                 });
             Toast.Notify(new NotificationMessage
             {
@@ -448,11 +474,12 @@ public partial class Tab_User : IDisposable
 
     private async Task PersistMembershipAsync(
         UserAdministrationResDTO user,
-        UserMembershipEditModel model)
+        Guid groupId,
+        Guid departmentId)
     {
         if (!CanEditMembership(user)
-            || model.GroupId == Guid.Empty
-            || model.PrimaryDepartmentId == Guid.Empty)
+            || groupId == Guid.Empty
+            || departmentId == Guid.Empty)
         {
             await ReloadUsersAsync();
             return;
@@ -465,10 +492,10 @@ public partial class Tab_User : IDisposable
             var request = new MembershipUpsertReqDTO
             {
                 AccountId = user.UserId,
-                GroupId = model.GroupId,
-                PrimaryDepartmentId = model.PrimaryDepartmentId,
+                GroupId = groupId,
+                PrimaryDepartmentId = departmentId,
                 ExpectedRowVersion = user.IsActive ? GetRowVersion(user) : null,
-                Reason = model.Reason
+                Reason = Loc["MembershipUpdateReason"]
             };
             await _apiServices.PutFromApiAsync<MembershipAdministrationResDTO>(
                 "/api/Permission/memberships",

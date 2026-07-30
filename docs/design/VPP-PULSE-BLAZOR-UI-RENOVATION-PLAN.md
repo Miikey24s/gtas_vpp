@@ -1615,6 +1615,18 @@ Gate đang chờ hiện tại: owner duyệt F4 Wave Review Board gồm sáu wor
 
 > **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 
+### 14.2 Owner correction record — 2026-07-31
+
+| Contract | Trạng thái | Quyết định đã chốt |
+|---|---|---|
+| Select và page-size | `IMPLEMENTED — QA PASS` | Popup select không dùng vạch xanh dọc; option được chọn chỉ dùng nền nhẹ. Page-size dùng Radzen bridge canonical, không còn CSS riêng của trang quản trị. |
+| Lịch sử / Tổng hợp phòng ban | `IMPLEMENTED — QA PASS` | Khi danh sách có dữ liệu, đơn đầu tiên phải được chọn và tải chi tiết ngay; hàng được chọn hiện nền xanh trước mọi click của user. DataGrid chi tiết được re-key khi snapshot đổi để không giữ trang rỗng cũ. |
+| Chốt kỳ | `IMPLEMENTED — QA PASS` | Selector kỳ là `Kỳ trước · Kỳ này · Tùy chọn`; nhà cung cấp/bảng giá tự chọn mặc định giữ nền neutral, chỉ hiện active sau thao tác user; phòng ban hiển thị tên, giữ code làm giá trị lọc. Input hash dùng lựa chọn hiệu lực thực tế để preview tự chọn vẫn xác nhận được. |
+| Quản lý người dùng | `IMPLEMENTED — QA PASS` | Nhóm quyền và phòng ban chỉnh trực tiếp bằng dropdown tại đúng cột; bỏ action `manage_accounts`, dialog membership và model cũ để chỉ còn một luồng cập nhật. |
+| Kỳ đặt hàng hiện tại | `IMPLEMENTED — QA PASS` | Dùng summary compact gồm icon, kỳ hiện tại và deadline card; desktop phân vùng rõ, mobile xếp dọc, không tạo card trang trí dư thừa. |
+
+Evidence đóng record: solution Release build `0 warning`; frontend unit `202/202`; settlement confirmation `4/4`; route-real isolated History + Department Summary `2/2`, User Admin `1/1`, Chốt kỳ `1/1`, My Orders shell/period summary `1/1`. Screenshot đã được kiểm tra bằng mắt tại `390×844`, `1366×768`, `1920×1080`; artifact thô nằm trong thư mục temp ignored, không commit.
+
 ---
 
 ## 15. Research references

@@ -76,12 +76,40 @@
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["AccountStatus"]" Width="145px" Property="@nameof(UserAdministrationResDTO.AccountStatus)" Filterable="false"><Template Context="user"><VppStatusBadge Text="@GetAccountStatusLabel(user)" Tone="@GetAccountStatusTone(user)" /></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["User"]" Property="@nameof(UserAdministrationResDTO.FullName)" Width="220px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.FullName ?? "–")</strong><small>@(user.UserLogin ?? "–")</small></div></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Email"]" Property="@nameof(UserAdministrationResDTO.Email)" Width="250px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.Email ?? "–")</strong><small>@(user.EmployeeCode ?? "–")</small></div></Template></RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["PermissionGroup"]" Property="@nameof(UserAdministrationResDTO.GroupName)" Width="190px"><Template Context="user">@(string.IsNullOrWhiteSpace(user.GroupName) ? "–" : user.GroupName)</Template></RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Department"]" Property="@nameof(UserAdministrationResDTO.DepartmentName)" Width="200px"><Template Context="user">@(string.IsNullOrWhiteSpace(user.DepartmentName) ? "–" : user.DepartmentName)</Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["PermissionGroup"]" Property="@nameof(UserAdministrationResDTO.GroupName)" Width="210px">
+                            <Template Context="user">
+                                <RadzenDropDown TValue="Guid?"
+                                                Data="@permissionGroups"
+                                                TextProperty="GroupName"
+                                                ValueProperty="Id"
+                                                Value="@GetSelectedGroupId(user)"
+                                                Change="@((object value) => OnGroupAssignmentChangedAsync(user, ConvertToNullableGuid(value)))"
+                                                AllowFiltering="true"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                Placeholder="@Loc["PermissionGroup"]"
+                                                Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user))"
+                                                class="vpp-admin-inline-select" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Department"]" Property="@nameof(UserAdministrationResDTO.DepartmentName)" Width="220px">
+                            <Template Context="user">
+                                <RadzenDropDown TValue="Guid?"
+                                                Data="@departments"
+                                                TextProperty="Name"
+                                                ValueProperty="Id"
+                                                Value="@GetSelectedDepartmentId(user)"
+                                                Change="@((object value) => OnDepartmentAssignmentChangedAsync(user, ConvertToNullableGuid(value)))"
+                                                AllowFiltering="true"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                Placeholder="@Loc["Department"]"
+                                                Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user))"
+                                                class="vpp-admin-inline-select" />
+                            </Template>
+                        </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["InvitationStatus"]" Width="155px" Filterable="false" Sortable="false"><Template Context="user"><VppStatusBadge Text="@GetInvitationStatusLabel(user)" Tone="@GetInvitationTone(user)" /></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Admin"]" Property="@nameof(UserAdministrationResDTO.IsAdmin)" Width="82px" Filterable="false" TextAlign="TextAlign.Center"><Template Context="user">@if (user.IsAdmin) { <VppIcon Name="@VppIcons.Approved" /> }</Template></RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Actions"]" Width="170px" MinWidth="170px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center">
-                            <Template Context="user"><div class="vpp-admin-actions"><RadzenButton Icon="manage_accounts" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user))" Click="@(() => OpenMembershipEditorAsync(user))" title="@Loc["PermissionGroup"]" /><RadzenButton Icon="mark_email_unread" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="@(!CanSendPasswordLink(user))" Click="@(() => SendPasswordResetLinkAsync(user))" title="@Loc["SendPasswordLink"]" /><RadzenButton Icon="person_off" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(!CanDeactivateMembership(user))" Click="@(() => DeactivateMembershipAsync(user))" title="@Loc["DeactivateMembership"]" /></div></Template>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Actions"]" Width="118px" MinWidth="118px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center">
+                            <Template Context="user"><div class="vpp-admin-actions"><RadzenButton Icon="mark_email_unread" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="@(!CanSendPasswordLink(user))" Click="@(() => SendPasswordResetLinkAsync(user))" title="@Loc["SendPasswordLink"]" /><RadzenButton Icon="person_off" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(!CanDeactivateMembership(user))" Click="@(() => DeactivateMembershipAsync(user))" title="@Loc["DeactivateMembership"]" /></div></Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Description"]" Property="@nameof(UserAdministrationResDTO.Description)" Width="220px" Visible="false" Pickable="true" />
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["AccountIdLabel"]" Property="@nameof(UserAdministrationResDTO.UserId)" Width="110px" Visible="false" Pickable="true" />

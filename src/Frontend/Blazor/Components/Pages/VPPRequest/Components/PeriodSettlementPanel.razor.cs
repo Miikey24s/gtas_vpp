@@ -14,6 +14,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 public partial class PeriodSettlementPanel : IDisposable
 {
     private const string CurrentPeriodScope = "current";
+    private const string PreviousPeriodScope = "previous";
     private const string CustomPeriodScope = "custom";
     private const string ItemsView = "items";
     private const string DepartmentsView = "departments";
@@ -32,6 +33,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private CancellationTokenSource? searchDebounce;
     private List<VppRequestResDTO> periodOrdersSnapshot = [];
+    private List<DepartmentResDTO> departmentDirectory = [];
     private AggregatedVppResDTO? periodDemand;
     private PeriodSettlementResDTO? status;
     private bool isLoading = true;
@@ -42,6 +44,8 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool canCorrect;
     private bool isCorrectionDialogOpen;
     private bool showCustomPeriodPicker;
+    private bool hasExplicitSupplierSelection;
+    private bool hasExplicitPriceListSelection;
     private string? alertMessage;
     private string periodScope = CurrentPeriodScope;
     private string pendingCustomPeriod = string.Empty;
@@ -126,6 +130,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private IReadOnlyList<VppSegmentedOption<string>> PeriodScopeOptions =>
     [
+        new(PreviousPeriodScope, Loc["PreviousOrderPeriod"]),
         new(CurrentPeriodScope, Loc["SettlementCurrentPeriod"]),
         new(CustomPeriodScope, Loc["SettlementCustomPeriod"])
     ];
@@ -163,8 +168,8 @@ public partial class PeriodSettlementPanel : IDisposable
                 .Where(code => !string.IsNullOrWhiteSpace(code))
                 .Select(code => code!)
                 .Distinct(StringComparer.CurrentCultureIgnoreCase)
-                .OrderBy(code => code, StringComparer.CurrentCultureIgnoreCase)
-                .Select(code => new VppFilterOption<string>(code, code)))
+                .Select(code => new VppFilterOption<string>(code, GetDepartmentName(code)))
+                .OrderBy(option => option.Label, StringComparer.CurrentCultureIgnoreCase))
             .ToArray();
 
     private IReadOnlyList<VppFilterOption<string>> ItemCategoryOptions =>
@@ -197,7 +202,7 @@ public partial class PeriodSettlementPanel : IDisposable
         .Where(MatchesClientFilters)
         .GroupBy(order => DisplayDepartment(order.DepartmentCode), StringComparer.CurrentCultureIgnoreCase)
         .Select(group => CreateDepartmentRow(group.Key, group.ToList()))
-        .OrderBy(row => row.DepartmentCode, StringComparer.CurrentCultureIgnoreCase)
+        .OrderBy(row => row.DepartmentName, StringComparer.CurrentCultureIgnoreCase)
         .ToList();
 
     protected override void OnInitialized() => State.Changed += OnStateChanged;
@@ -211,7 +216,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
         loadedYear = Year;
         loadedMonth = Month;
-        periodScope = Year == DefaultYear && Month == DefaultMonth ? CurrentPeriodScope : CustomPeriodScope;
+        periodScope = ResolvePeriodScope(Year, Month);
         await ReloadPeriodAsync();
     }
 
@@ -222,12 +227,15 @@ public partial class PeriodSettlementPanel : IDisposable
         isLoading = true;
         isGridLoading = true;
         alertMessage = null;
+        hasExplicitSupplierSelection = false;
+        hasExplicitPriceListSelection = false;
 
         try
         {
             await LoadStatusAsync();
             await LoadPreviewAsync();
             await LoadPeriodDemandAsync();
+            await LoadDepartmentDirectoryAsync();
             await LoadAllPeriodOrdersAsync();
         }
         catch (Exception ex)
@@ -307,6 +315,12 @@ public partial class PeriodSettlementPanel : IDisposable
             $"{Config.VppApi.PeriodDemand}?year={Year}&month={Month}");
     }
 
+    private async Task LoadDepartmentDirectoryAsync()
+    {
+        departmentDirectory = await ApiServices.GetFromApiAsync<List<DepartmentResDTO>>(
+            $"{Config.LibraryApi.Departments}?top=1000&showDeleted=false&orderby=Name") ?? [];
+    }
+
     private bool MatchesClientFilters(VppRequestResDTO order)
     {
         var search = searchText.Trim();
@@ -314,7 +328,8 @@ public partial class PeriodSettlementPanel : IDisposable
                 || (order.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
                 || (order.RequesterName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
                 || (order.Description?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                || (order.DepartmentCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+                || (order.DepartmentCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
+                || GetDepartmentName(order.DepartmentCode).Contains(search, StringComparison.CurrentCultureIgnoreCase))
             && (selectedOrderType switch
             {
                 "regular" => !order.IsAdditionalOrder,
@@ -350,6 +365,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
         return new DepartmentSettlementRow(
             departmentCode,
+            GetDepartmentName(departmentCode),
             departmentOrders.Count,
             departmentOrders.Count(order => !order.IsAdditionalOrder),
             departmentOrders.Count(order => order.IsAdditionalOrder),
@@ -432,11 +448,16 @@ public partial class PeriodSettlementPanel : IDisposable
         }
 
         showCustomPeriodPicker = false;
-        periodScope = CurrentPeriodScope;
-        if (DefaultYear >= 2024 && DefaultMonth is >= 1 and <= 12)
+        periodScope = scope;
+        if (DefaultYear < 2024 || DefaultMonth is < 1 or > 12)
         {
-            await PeriodChanged.InvokeAsync(new PeriodTargetSelection(DefaultYear, DefaultMonth));
+            return;
         }
+
+        var target = scope == PreviousPeriodScope
+            ? new DateTime(DefaultYear, DefaultMonth, 1).AddMonths(-1)
+            : new DateTime(DefaultYear, DefaultMonth, 1);
+        await PeriodChanged.InvokeAsync(new PeriodTargetSelection(target.Year, target.Month));
     }
 
     private void OnCustomPeriodChanged(ChangeEventArgs args)
@@ -482,6 +503,8 @@ public partial class PeriodSettlementPanel : IDisposable
             .FirstOrDefault();
         if (quote is not null)
         {
+            hasExplicitSupplierSelection = true;
+            hasExplicitPriceListSelection = false;
             await ApplySupplierQuoteAsync(quote);
         }
     }
@@ -496,6 +519,7 @@ public partial class PeriodSettlementPanel : IDisposable
         var quote = SupplierQuotes.FirstOrDefault(item => item.PriceListId == priceListId.Value && item.IsEligible);
         if (quote is not null)
         {
+            hasExplicitPriceListSelection = true;
             await ApplySupplierQuoteAsync(quote);
         }
     }
@@ -632,6 +656,36 @@ public partial class PeriodSettlementPanel : IDisposable
     };
 
     private static string DisplayDepartment(string? value) => string.IsNullOrWhiteSpace(value) ? "–" : value;
+    private string GetDepartmentName(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return "–";
+        }
+
+        return departmentDirectory.FirstOrDefault(department =>
+                   string.Equals(department.Code, code, StringComparison.CurrentCultureIgnoreCase))?.Name
+               ?? code;
+    }
+
+    private string ResolvePeriodScope(int year, int month)
+    {
+        if (year == DefaultYear && month == DefaultMonth)
+        {
+            return CurrentPeriodScope;
+        }
+
+        if (DefaultYear >= 2024 && DefaultMonth is >= 1 and <= 12)
+        {
+            var previous = new DateTime(DefaultYear, DefaultMonth, 1).AddMonths(-1);
+            if (year == previous.Year && month == previous.Month)
+            {
+                return PreviousPeriodScope;
+            }
+        }
+
+        return CustomPeriodScope;
+    }
     private static string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
     private static string FormatMoney(long value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
 
@@ -644,6 +698,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private sealed record DepartmentSettlementRow(
         string DepartmentCode,
+        string DepartmentName,
         int OrderCount,
         int RegularOrderCount,
         int AdditionalOrderCount,

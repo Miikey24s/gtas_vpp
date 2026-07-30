@@ -38,7 +38,6 @@ public sealed class AtlasWave1ArchitectureTests
         var page = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor");
         var code = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor.cs");
         var invitation = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserInvitationEditor.razor");
-        var membership = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserMembershipEditor.razor");
 
         Assert.Contains("<VppCollectionWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppListDetailWorkspace", page, StringComparison.Ordinal);
@@ -49,7 +48,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("CreateTemporaryPassword", code, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", invitation, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UserInvitationPasswordlessHint\"]", invitation, StringComparison.Ordinal);
-        Assert.Contains("<VppAdaptiveDialogShell", membership, StringComparison.Ordinal);
+        Assert.Contains("class=\"vpp-admin-inline-select\"", page, StringComparison.Ordinal);
+        Assert.Contains("OnGroupAssignmentChangedAsync", page, StringComparison.Ordinal);
+        Assert.Contains("OnDepartmentAssignmentChangedAsync", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("manage_accounts", page, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -195,8 +197,7 @@ public sealed class AtlasWave1ArchitectureTests
         var users = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor");
         var userCode = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor.cs");
         var invitation = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserInvitationEditor.razor");
-        var membership = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserMembershipEditor.razor");
-        var renderedUserSources = string.Join('\n', users, userCode, invitation, membership);
+        var renderedUserSources = string.Join('\n', users, userCode, invitation);
 
         Assert.Contains("Loc[\"UserSearchPlaceholder\"]", users, StringComparison.Ordinal);
         Assert.Contains("Loc[\"AllAccountStatuses\"]", users, StringComparison.Ordinal);

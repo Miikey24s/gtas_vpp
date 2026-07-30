@@ -133,7 +133,8 @@
                 </div>
             </div>
 
-            <VppOrderItemsSurface @ref="_detailSurface"
+            <VppOrderItemsSurface @key="(SelectedOrder.Id, DetailRows.Count)"
+                                  @ref="_detailSurface"
                                   Variant="VppOrderItemsSurfaceVariant.HistoryDrawer"
                                   Items="@DetailRows"
                                   TotalItemCount="@(SelectedOrder.Items?.Count ?? 0)"

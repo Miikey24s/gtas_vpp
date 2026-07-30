@@ -22,6 +22,10 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Hidden,
             Timeout = 60_000
         });
+        var periodLabels = await Page.Locator(".vpp-settlement-period-scope-host .vpp-segmented-label")
+            .AllInnerTextsAsync();
+        periodLabels.Select(label => label.Trim()).Should().Equal("Kỳ trước", "Kỳ này", "Tùy chọn");
+        await CaptureAsync("ds3-period-settlement-default-1366x768.png");
 
         var customPeriodButton = Page.GetByRole(AriaRole.Button, new() { Name = "Tùy chọn", Exact = true });
         await customPeriodButton.ClickAsync();
@@ -60,6 +64,8 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         (await Page.Locator(".vpp-workflow-stepper:visible").CountAsync()).Should().Be(0);
         var settlementSelectors = Page.Locator(".vpp-settlement-selector-row .vpp-segmented-selector:visible");
         (await settlementSelectors.CountAsync()).Should().Be(2);
+        (await settlementSelectors.First.Locator(":scope > button").CountAsync()).Should().Be(3,
+            "the period selector exposes previous, current and custom periods");
         for (var index = 0; index < 2; index++)
         {
             var widths = await settlementSelectors.Nth(index).Locator(":scope > button").EvaluateAllAsync<double[]>(
@@ -77,6 +83,8 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         var viewSelector = Page.Locator(".vpp-settlement-selector-row");
         (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Phòng ban", Exact = true }).CountAsync()).Should().Be(1);
         (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select").CountAsync()).Should().Be(2);
+        (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select-trigger.is-active").CountAsync()).Should().Be(0,
+            "auto-selected supplier decisions stay neutral until the user actively changes them");
         (await Page.Locator(".vpp-settlement-decision-action .rz-button").CountAsync()).Should().Be(1);
         (await surface.Locator(".vpp-settlement-footer").CountAsync()).Should().Be(0);
         (await Page.GetByRole(AriaRole.Button, new() { Name = "Xem bản xem trước" }).CountAsync()).Should().Be(0);

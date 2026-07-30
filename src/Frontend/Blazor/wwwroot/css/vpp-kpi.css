@@ -34,7 +34,7 @@
     position: relative;
     display: block;
     flex: 0 0 auto;
-    padding: var(--vpp-space-3) var(--vpp-space-4);
+    padding: var(--vpp-space-3);
     overflow: hidden;
     border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-card);
@@ -46,11 +46,33 @@
 }
 
 .vpp-orders-story-header {
-    display: block;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-4);
 }
 
-.vpp-orders-story-intro {
+.vpp-orders-period-summary {
+    display: flex;
     min-width: 0;
+    align-items: center;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-orders-period-icon {
+    display: inline-grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    place-items: center;
+    border-radius: var(--vpp-radius-lg);
+    background: color-mix(in srgb, var(--vpp-primary-500) 9%, var(--vpp-bg-elevated));
+    color: var(--vpp-primary-600);
+}
+
+.vpp-orders-period-icon .vpp-icon {
+    font-size: 1.25rem;
 }
 
 .vpp-orders-story-commands {
@@ -60,52 +82,26 @@
     justify-content: flex-end;
 }
 
-.vpp-orders-eyebrow {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--vpp-space-2);
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-sm);
-    font-weight: var(--vpp-font-weight-semibold);
-    text-transform: none;
-}
-
-.vpp-orders-eyebrow .vpp-icon {
-    color: var(--vpp-text-secondary);
-    font-size: 1.1rem;
-}
-
 .vpp-orders-period-label {
-    letter-spacing: 0.02em;
+    display: block;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+    letter-spacing: .01em;
 }
 
 .vpp-orders-story-heading {
-    margin-top: var(--vpp-space-1);
-}
-
-.vpp-orders-period-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--vpp-space-2) var(--vpp-space-4);
+    min-width: 0;
 }
 
 .vpp-orders-story-heading h2 {
     margin: 0;
     color: var(--vpp-text-primary);
     font-family: var(--vpp-font-display);
-    font-size: clamp(1.5rem, 2vw, 1.875rem);
+    margin-top: 2px;
+    font-size: clamp(1.45rem, 2vw, 1.75rem);
     font-weight: var(--vpp-font-weight-bold);
     line-height: 1.2;
-}
-
-.vpp-orders-story-heading p {
-    max-width: 68ch;
-    margin: var(--vpp-space-1) 0 0;
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-sm);
-    line-height: 1.5;
 }
 
 .vpp-orders-overview-meta {
@@ -116,16 +112,45 @@
     margin-top: var(--vpp-space-2);
 }
 
-.vpp-orders-deadline-inline {
+.vpp-orders-deadline-card {
+    display: grid;
+    min-width: min(20rem, 42vw);
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 2px var(--vpp-space-3);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border-inline-start: var(--vpp-border-width) solid var(--vpp-border-default);
+}
+
+.vpp-orders-deadline-status {
     display: inline-flex;
+    grid-column: 1 / -1;
     align-items: center;
     gap: var(--vpp-space-1);
-    color: var(--vpp-text-secondary);
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-orders-deadline-status .vpp-icon {
+    color: var(--vpp-primary-600);
+    font-size: 1rem;
+}
+
+.vpp-orders-deadline-card.is-urgent .vpp-orders-deadline-status,
+.vpp-orders-deadline-card.is-urgent .vpp-orders-deadline-status .vpp-icon {
+    color: var(--vpp-warning);
+}
+
+.vpp-orders-deadline-label,
+.vpp-orders-deadline-card time {
+    color: var(--vpp-text-muted);
     font-size: var(--vpp-text-xs);
 }
 
-.vpp-orders-deadline-inline .vpp-icon {
-    font-size: 1rem;
+.vpp-orders-deadline-card time {
+    color: var(--vpp-text-secondary);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
 }
 
 .vpp-orders-story-actions {
@@ -617,6 +642,20 @@
 @media (max-width: 767px) {
     .vpp-orders-story {
         padding: var(--vpp-space-3);
+    }
+
+    .vpp-orders-story-header {
+        align-items: stretch;
+        flex-direction: column;
+        gap: var(--vpp-space-3);
+    }
+
+    .vpp-orders-deadline-card {
+        width: 100%;
+        min-width: 0;
+        padding: var(--vpp-space-2) 0 0;
+        border-block-start: var(--vpp-border-width) solid var(--vpp-border-default);
+        border-inline-start: 0;
     }
 
     .vpp-orders-story-commands,

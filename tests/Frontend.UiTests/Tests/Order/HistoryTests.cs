@@ -209,6 +209,11 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         });
         var rows = historyGrid.Locator("tbody tr");
         (await rows.CountAsync()).Should().BeGreaterThan(0);
+        var initiallySelectedRow = historyGrid.Locator("tbody tr.vpp-history-row-selected");
+        await initiallySelectedRow.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await initiallySelectedRow.CountAsync()).Should().Be(1, "history must select the first visible order without waiting for a click");
+        await Page.Locator(".vpp-history-drawer .vpp-history-drawer-code h2")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var chartScreenshotDirectory = Path.Combine(Path.GetTempPath(), "gtas-vpp-history-visual");
         Directory.CreateDirectory(chartScreenshotDirectory);
         var chartValueLabels = Page.Locator(".vpp-history-chart-value-label");

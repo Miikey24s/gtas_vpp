@@ -114,20 +114,9 @@
 }
 
 .vpp-filter-select-popover button[aria-selected="true"] {
-    padding-inline-start: calc(var(--vpp-space-3) + 5px);
     background: color-mix(in srgb, var(--vpp-primary-500) 9%, transparent);
     color: var(--vpp-text-primary);
     font-weight: var(--vpp-font-weight-medium);
-}
-
-.vpp-filter-select-popover button[aria-selected="true"]::before {
-    position: absolute;
-    inset-block: var(--vpp-space-2);
-    inset-inline-start: var(--vpp-space-1);
-    width: 3px;
-    border-radius: var(--vpp-radius-full);
-    background: var(--vpp-primary-500);
-    content: "";
 }
 
 .vpp-filter-select-popover button span {

@@ -23,10 +23,38 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
             "() => document.querySelectorAll('.permission-user-grid tbody tr').length > 1");
 
         (await Page.Locator(".vpp-record-inspector").CountAsync()).Should().Be(0);
-        (await Page.Locator(".permission-user-grid tbody .rz-dropdown").CountAsync()).Should().Be(0);
+        var firstUserRow = Page.Locator(".permission-user-grid tbody tr").First;
+        var assignmentSelects = firstUserRow.Locator(".vpp-admin-inline-select");
+        (await assignmentSelects.CountAsync()).Should().Be(2,
+            "group and department assignments belong in their own columns");
         (await Page.EvaluateAsync<bool>(
             "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
             .Should().BeFalse("the grid owns horizontal overflow instead of the document");
+
+        var pageSizeSelect = surface.Locator(".rz-paginator .rz-dropdown, .rz-pager .rz-dropdown").First;
+        var filterSelect = surface.Locator(".vpp-filter-select-trigger").First;
+        var selectChrome = await Page.EvaluateAsync<string>("""
+            () => {
+                const pageSize = document.querySelector('[data-testid="permission-users-data-surface"] .rz-paginator .rz-dropdown, [data-testid="permission-users-data-surface"] .rz-pager .rz-dropdown');
+                const filter = document.querySelector('[data-testid="permission-users-data-surface"] .vpp-filter-select-trigger');
+                if (!pageSize || !filter) return 'missing';
+                const pageStyle = getComputedStyle(pageSize);
+                const filterStyle = getComputedStyle(filter);
+                return `${pageStyle.height === filterStyle.height && pageStyle.borderRadius === filterStyle.borderRadius}`
+                    + `|height=${pageStyle.height}/${filterStyle.height}|radius=${pageStyle.borderRadius}/${filterStyle.borderRadius}`;
+            }
+        """);
+        selectChrome.Should().StartWith("true", "page-size and filter selects share one control motif");
+        await pageSizeSelect.ClickAsync();
+        var pageSizePopup = Page.Locator(".rz-dropdown-panel:visible").Last;
+        await pageSizePopup.WaitForAsync();
+        var selectedOption = pageSizePopup.Locator(".rz-state-highlight").First;
+        var selectedMarker = await selectedOption.EvaluateAsync<string>(
+            "option => getComputedStyle(option, '::before').content");
+        selectedMarker.Should().BeOneOf("none", "normal", "\"\"",
+            "selected options use a clean background without the retired vertical marker");
+        await Page.Locator(".vpp-collection-header").ClickAsync();
+        await pageSizePopup.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
 
         var invitationButton = Page.GetByRole(AriaRole.Button, new()
         {
@@ -41,19 +69,8 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
 
         await CaptureIfRequestedAsync("aa5-users-1366x768.png");
 
-        var membershipButton = Page.Locator(
-            ".permission-user-grid .vpp-admin-actions > button:first-child:not([disabled])").First;
-        await membershipButton.WaitForAsync();
-        await membershipButton.ClickAsync();
-        var editor = Page.Locator("[data-testid='user-membership-editor']");
-        await editor.WaitForAsync();
-        var dialogRect = await editor.BoundingBoxAsync();
-        dialogRect.Should().NotBeNull();
-        dialogRect!.Width.Should().BeLessThan(1366);
-        dialogRect.Height.Should().BeLessThan(768);
-        await CaptureIfRequestedAsync("aa5-users-membership-1366x768.png");
-        await Page.Keyboard.PressAsync("Escape");
-        await editor.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
+        (await Page.Locator("[data-testid='user-membership-editor']").CountAsync()).Should().Be(0,
+            "the retired membership dialog must not compete with inline assignments");
 
         await Page.SetViewportSizeAsync(390, 844);
         await Page.GotoAsync($"{BaseUrl}permission?tab=0", new PageGotoOptions
@@ -65,6 +82,8 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
             "() => document.querySelectorAll('.permission-user-grid tbody tr').length > 1");
         await Page.WaitForFunctionAsync(
             "() => !document.querySelector('.permission-user-grid')?.classList.contains('rz-datatable-loading')");
+        (await Page.Locator(".permission-user-grid tbody tr").First.Locator(".vpp-admin-inline-select").CountAsync())
+            .Should().Be(2);
         (await Page.EvaluateAsync<bool>(
             "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
             .Should().BeFalse("the user administration route must remain bounded on mobile");

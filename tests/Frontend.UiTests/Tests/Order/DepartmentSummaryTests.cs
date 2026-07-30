@@ -20,6 +20,11 @@ public sealed class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
         (await grid.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
         (await grid.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
         (await grid.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
+        var initiallySelectedRow = grid.Locator("tbody tr.vpp-history-row-selected");
+        await initiallySelectedRow.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await initiallySelectedRow.CountAsync()).Should().Be(1, "department summary must select the first visible order without waiting for a click");
+        await Page.Locator(".vpp-history-drawer .vpp-history-drawer-code h2")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var totalOrders = Page.Locator(".vpp-history-kpis:visible").Last
             .Locator(".vpp-history-kpi-trigger strong").Nth(1);
         await totalOrders.WaitForAsync();

@@ -42,8 +42,8 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
         await userSurface.WaitForAsync();
         (await Page.Locator(".vpp-record-inspector").CountAsync()).Should().Be(0,
             "user administration uses the full-width collection pattern instead of a fixed inspector");
-        (await Page.Locator(".permission-user-grid tbody .rz-dropdown").CountAsync()).Should().Be(0,
-            "membership changes belong in the adaptive editor rather than inline grid dropdowns");
+        (await Page.Locator(".permission-user-grid tbody .vpp-admin-inline-select").CountAsync()).Should().BeGreaterThan(0,
+            "membership group and department are edited directly in their table columns");
         var invitationButton = Page.GetByRole(AriaRole.Button, new() { Name = "Thêm người dùng", Exact = true });
         await invitationButton.WaitForAsync();
         (await invitationButton.GetAttributeAsync("title")).Should().NotBeNullOrWhiteSpace(
