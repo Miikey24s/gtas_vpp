@@ -112,6 +112,49 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         consoleErrors.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task Employee_CancelsSupplement_ReopensCreateActionWithoutReload()
+    {
+        const string cancellationProbeReason = "Kiểm tra tạo lại đơn bổ sung sau khi hủy";
+
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsAsync(TestAccounts.Employee);
+        await CreateSupplementAsync(cancellationProbeReason, verifyRequiredReason: false);
+
+        var orderPage = Page.Locator(".order-page:visible");
+        var supplementCard = orderPage.GetByTestId("supplement-order-panel").Last;
+        await supplementCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Hủy đơn ")
+        }).Last.ClickAsync();
+
+        var cancelDialog = Page.Locator(".rz-dialog:visible").Last;
+        await cancelDialog.GetByText("Xác nhận hủy đơn", new() { Exact = false }).WaitForAsync();
+        await cancelDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy đơn", Exact = true }).ClickAsync();
+        await Page.GetByText("Đã hủy đơn.", new() { Exact = false }).WaitForAsync();
+
+        await supplementCard.GetByText("Đã hủy", new() { Exact = false }).WaitForAsync();
+        var createSupplementButton = orderPage.GetByTestId("create-supplement");
+        await createSupplementButton.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible
+        });
+        (await createSupplementButton.IsEnabledAsync()).Should().BeTrue(
+            "hủy đơn bổ sung phải refresh policy kỳ và mở lại CTA nếu vẫn còn quota tạo đơn");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "supplement-cta-after-cancel-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+    }
+
     private async Task CreateSupplementAsync(string reason, bool verifyRequiredReason)
     {
         Exception? navigationFailure = null;
