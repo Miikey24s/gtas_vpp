@@ -28,7 +28,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool isLoading;
         private int count;
         private int currentSkip;
-        private string? currentFilterExpression;
         private string selectedStatus = string.Empty;
         private string searchText = string.Empty;
         private bool HasFilters => !string.IsNullOrWhiteSpace(selectedStatus) || !string.IsNullOrWhiteSpace(searchText);
@@ -68,10 +67,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             isLoading = true;
             currentSkip = args.Skip ?? 0;
-            currentFilterExpression = CombineStatusFilter(args.Filter);
             try
             {
-                var endpoint = BuildPriceListEndpoint(currentFilterExpression, args.Skip ?? 0, args.Top ?? 20, args.OrderBy);
+                var endpoint = BuildPriceListEndpoint(SelectedStatusFilter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy);
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
                 priceLists = result.Data ?? [];
                 count = result.TotalCount;
@@ -84,33 +82,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 isLoading = false;
                 StateHasChanged();
-            }
-        }
-
-        private async Task LoadColumnFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<PriceListResDTO> args)
-        {
-            if (args.Column is null)
-            {
-                return;
-            }
-
-            try
-            {
-                var property = args.Column.GetFilterProperty();
-                var endpoint = BuildPriceListEndpoint(
-                    currentFilterExpression,
-                    args.Skip,
-                    args.Top,
-                    distinct: property,
-                    distinctFilter: args.Filter);
-
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
-                args.Data = result.Data ?? [];
-                args.Count = result.TotalCount;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -233,18 +204,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             await grid.FirstPage(true);
         }
 
-        private string? CombineStatusFilter(string? gridFilter)
-        {
-            if (string.IsNullOrWhiteSpace(selectedStatus))
-            {
-                return gridFilter;
-            }
-
-            var statusFilter = $"Status == \"{selectedStatus}\"";
-            return string.IsNullOrWhiteSpace(gridFilter)
-                ? statusFilter
-                : $"({gridFilter}) && {statusFilter}";
-        }
+        private string? SelectedStatusFilter => string.IsNullOrWhiteSpace(selectedStatus)
+            ? null
+            : $"Status == \"{selectedStatus}\"";
 
         private void OnRowRenderPriceList(RowRenderEventArgs<PriceListResDTO> args)
         {
@@ -426,9 +388,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             string? filter = null,
             int? skip = null,
             int? top = null,
-            string? orderby = null,
-            string? distinct = null,
-            string? distinctFilter = null)
+            string? orderby = null)
         {
             var query = new List<string> { "showDeleted=true" };
 
@@ -450,16 +410,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             if (!string.IsNullOrWhiteSpace(orderby))
             {
                 query.Add($"orderby={Uri.EscapeDataString(orderby)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(distinct))
-            {
-                query.Add($"distinct={Uri.EscapeDataString(distinct)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(distinctFilter))
-            {
-                query.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
             }
 
             if (!string.IsNullOrWhiteSpace(searchText))

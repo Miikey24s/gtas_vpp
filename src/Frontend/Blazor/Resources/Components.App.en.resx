@@ -865,6 +865,7 @@
   <data name="LeadTimeCompact" xml:space="preserve"><value>Days</value></data>
   <data name="EffectiveRange" xml:space="preserve"><value>Effective</value></data>
   <data name="LibrarySearchClasses" xml:space="preserve"><value>Search type code or name</value></data>
+  <data name="LibrarySearchLookupValues" xml:space="preserve"><value>Search code or value</value></data>
   <data name="LibrarySearchCategories" xml:space="preserve"><value>Search category code or name</value></data>
   <data name="LibrarySearchItems" xml:space="preserve"><value>Search item code or name</value></data>
   <data name="LibrarySearchDepartments" xml:space="preserve"><value>Search department code or name</value></data>

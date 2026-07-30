@@ -25,7 +25,6 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
     private int totalCount;
     private int currentSkip;
     private string searchText = string.Empty;
-    private string? currentFilter;
     private bool isLoading;
     private CancellationTokenSource? searchDebounce;
 
@@ -38,11 +37,11 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
     {
         isLoading = true;
         currentSkip = args.Skip ?? 0;
-        currentFilter = CombineWithSearch(args.Filter);
+        var searchFilter = BuildSearchFilter();
 
         try
         {
-            var query = BuildQuery(currentFilter, args.Skip, args.Top, args.OrderBy);
+            var query = BuildQuery(searchFilter, args.Skip, args.Top, args.OrderBy);
             var result = await ApiServices.GetFromApiWithTotalCountAsync<List<VppCategoryResDTO>>(query);
             rows = result.Data ?? [];
             totalCount = result.TotalCount;
@@ -57,26 +56,6 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
         {
             isLoading = false;
             StateHasChanged();
-        }
-    }
-
-    private async Task LoadColumnFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<VppCategoryResDTO> args)
-    {
-        if (args.Column is null) return;
-
-        try
-        {
-            var property = args.Column.GetFilterProperty();
-            var query = BuildQuery(currentFilter, args.Skip, args.Top, null, property, args.Filter);
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<VppCategoryResDTO>>(query);
-            args.Data = result.Data ?? [];
-            args.Count = result.TotalCount;
-        }
-        catch (Exception ex)
-        {
-            args.Data = Array.Empty<VppCategoryResDTO>();
-            args.Count = 0;
-            ToastService.Error(ex, Loc, "LoadLibraryDataFailed");
         }
     }
 
@@ -155,25 +134,22 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
         await grid.FirstPage(true);
     }
 
-    private string? CombineWithSearch(string? gridFilter)
+    private string? BuildSearchFilter()
     {
         var search = searchText.Trim();
-        if (string.IsNullOrWhiteSpace(search)) return gridFilter;
+        if (string.IsNullOrWhiteSpace(search)) return null;
 
         var escaped = search.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal).ToLowerInvariant();
-        var clause = $"((VppCategoryCode ?? \"\").ToLower().Contains(\"{escaped}\") || (VppCategoryName ?? \"\").ToLower().Contains(\"{escaped}\"))";
-        return string.IsNullOrWhiteSpace(gridFilter) ? clause : $"({gridFilter}) && {clause}";
+        return $"((VppCategoryCode ?? \"\").ToLower().Contains(\"{escaped}\") || (VppCategoryName ?? \"\").ToLower().Contains(\"{escaped}\"))";
     }
 
-    private static string BuildQuery(string? filter, int? skip, int? top, string? orderby, string? distinct = null, string? distinctFilter = null)
+    private static string BuildQuery(string? filter, int? skip, int? top, string? orderby)
     {
         var query = new List<string> { "showDeleted=true" };
         if (!string.IsNullOrWhiteSpace(filter)) query.Add($"filter={Uri.EscapeDataString(filter)}");
         if (skip.HasValue) query.Add($"skip={skip.Value}");
         if (top.HasValue) query.Add($"top={top.Value}");
         if (!string.IsNullOrWhiteSpace(orderby)) query.Add($"orderby={Uri.EscapeDataString(orderby)}");
-        if (!string.IsNullOrWhiteSpace(distinct)) query.Add($"distinct={Uri.EscapeDataString(distinct)}");
-        if (!string.IsNullOrWhiteSpace(distinctFilter)) query.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
         return $"{Config.LibraryApi.VppCategories}?{string.Join("&", query)}";
     }
 

@@ -24,7 +24,6 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
     private int totalCount;
     private int currentSkip;
     private string searchText = string.Empty;
-    private string? currentFilter;
     private bool isLoading;
     private CancellationTokenSource? searchDebounce;
 
@@ -37,10 +36,10 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
     {
         isLoading = true;
         currentSkip = args.Skip ?? 0;
-        currentFilter = CombineWithSearch(args.Filter);
+        var searchFilter = BuildSearchFilter();
         try
         {
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<SupplierResDTO>>(BuildQuery(currentFilter, args.Skip, args.Top, args.OrderBy));
+            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<SupplierResDTO>>(BuildQuery(searchFilter, args.Skip, args.Top, args.OrderBy));
             rows = result.Data ?? [];
             totalCount = result.TotalCount;
         }
@@ -54,24 +53,6 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
         {
             isLoading = false;
             StateHasChanged();
-        }
-    }
-
-    private async Task LoadColumnFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<SupplierResDTO> args)
-    {
-        if (args.Column is null) return;
-        try
-        {
-            var property = args.Column.GetFilterProperty();
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<SupplierResDTO>>(BuildQuery(currentFilter, args.Skip, args.Top, null, property, args.Filter));
-            args.Data = result.Data ?? [];
-            args.Count = result.TotalCount;
-        }
-        catch (Exception ex)
-        {
-            args.Data = Array.Empty<SupplierResDTO>();
-            args.Count = 0;
-            ToastService.Error(ex, Loc, "LoadLibraryDataFailed");
         }
     }
 
@@ -141,24 +122,21 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
 
     private async Task ClearFiltersAsync() { searchText = string.Empty; await grid.FirstPage(true); }
 
-    private string? CombineWithSearch(string? gridFilter)
+    private string? BuildSearchFilter()
     {
         var search = searchText.Trim();
-        if (string.IsNullOrWhiteSpace(search)) return gridFilter;
+        if (string.IsNullOrWhiteSpace(search)) return null;
         var escaped = search.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal).ToLowerInvariant();
-        var clause = $"((SupplierShortName ?? \"\").ToLower().Contains(\"{escaped}\") || (SupplierName ?? \"\").ToLower().Contains(\"{escaped}\"))";
-        return string.IsNullOrWhiteSpace(gridFilter) ? clause : $"({gridFilter}) && {clause}";
+        return $"((SupplierShortName ?? \"\").ToLower().Contains(\"{escaped}\") || (SupplierName ?? \"\").ToLower().Contains(\"{escaped}\"))";
     }
 
-    private static string BuildQuery(string? filter, int? skip, int? top, string? orderby, string? distinct = null, string? distinctFilter = null)
+    private static string BuildQuery(string? filter, int? skip, int? top, string? orderby)
     {
         var query = new List<string> { "showDeleted=true" };
         if (!string.IsNullOrWhiteSpace(filter)) query.Add($"filter={Uri.EscapeDataString(filter)}");
         if (skip.HasValue) query.Add($"skip={skip.Value}");
         if (top.HasValue) query.Add($"top={top.Value}");
         if (!string.IsNullOrWhiteSpace(orderby)) query.Add($"orderby={Uri.EscapeDataString(orderby)}");
-        if (!string.IsNullOrWhiteSpace(distinct)) query.Add($"distinct={Uri.EscapeDataString(distinct)}");
-        if (!string.IsNullOrWhiteSpace(distinctFilter)) query.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
         return $"{Config.LibraryApi.Suppliers}?{string.Join("&", query)}";
     }
 

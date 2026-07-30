@@ -345,6 +345,8 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         var pickerTrigger = Page.Locator("[data-testid='lookup-categories-data-surface'] .vpp-column-picker-trigger");
         (await pickerTrigger.CountAsync()).Should().Be(1);
+        (await split.Locator(".vpp-filter-search").CountAsync()).Should().Be(2);
+        (await split.Locator(".rz-grid-filter-icon").CountAsync()).Should().Be(0);
         var masterChrome = await master.EvaluateAsync<string[]>("""
             element => {
                 const header = element.querySelector('thead');

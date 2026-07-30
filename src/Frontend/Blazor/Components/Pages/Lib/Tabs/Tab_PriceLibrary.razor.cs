@@ -34,7 +34,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool isLoading;
         private int priceCount;
         private int currentSkip;
-        private string? currentFilterExpression;
         private bool HasPriceLists => priceLists.Count > 0;
         private bool HasPriceListSelected => selectedPriceListId.HasValue;
         private bool IsSelectedPriceListDraft
@@ -127,13 +126,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             isLoading = true;
             currentSkip = args.Skip ?? 0;
-            currentFilterExpression = args.Filter;
             StateHasChanged();
 
             try
             {
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(
-                    BuildPriceRowsEndpoint(args.Filter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy));
+                    BuildPriceRowsEndpoint(args.Skip ?? 0, args.Top ?? 20, args.OrderBy));
 
                 displayItems = result.Data ?? [];
                 priceCount = result.TotalCount;
@@ -146,33 +144,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 isLoading = false;
                 StateHasChanged();
-            }
-        }
-
-        private async Task LoadPriceFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<VppItemPriceResDTO> args)
-        {
-            if (args.Column is null || !selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
-            {
-                return;
-            }
-
-            try
-            {
-                var endpoint = BuildPriceRowsEndpoint(
-                    currentFilterExpression,
-                    args.Skip,
-                    args.Top,
-                    null,
-                    args.Column.GetFilterProperty(),
-                    args.Filter);
-
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(endpoint);
-                args.Data = result.Data ?? [];
-                args.Count = result.TotalCount;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -436,13 +407,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             attributes["class"] = className;
         }
 
-        private string BuildPriceRowsEndpoint(
-            string? filter,
-            int? skip,
-            int? top,
-            string? orderBy,
-            string? distinct = null,
-            string? distinctFilter = null)
+        private string BuildPriceRowsEndpoint(int? skip, int? top, string? orderBy)
         {
             var queryParams = new List<string>
             {
@@ -454,11 +419,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             if (!string.IsNullOrWhiteSpace(searchText))
             {
                 queryParams.Add($"search={Uri.EscapeDataString(searchText.Trim())}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter))
-            {
-                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
             }
 
             if (skip.HasValue)
@@ -474,16 +434,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             if (!string.IsNullOrWhiteSpace(orderBy))
             {
                 queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(distinct))
-            {
-                queryParams.Add($"distinct={Uri.EscapeDataString(distinct)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(distinctFilter))
-            {
-                queryParams.Add($"distinctFilter={Uri.EscapeDataString(distinctFilter)}");
             }
 
             return $"{Config.LibraryApi.VPPPrice_ItemPrices}?{string.Join("&", queryParams)}";

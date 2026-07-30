@@ -39,7 +39,6 @@ public partial class Tab_User : IDisposable
     private int UserClaims { get; set; }
     private int userCount;
     private int currentUserSkip;
-    private string? currentUserFilterExpression;
     private bool isUserLoading;
     private bool isUserLookupLoading;
     private bool hasRequestedInitialUserGridLoad;
@@ -163,13 +162,12 @@ public partial class Tab_User : IDisposable
     {
         isUserLoading = true;
         currentUserSkip = args.Skip ?? 0;
-        currentUserFilterExpression = args.Filter;
         StateHasChanged();
 
         try
         {
             var result = await _apiServices.GetFromApiWithTotalCountAsync<List<UserAdministrationResDTO>>(
-                BuildUsersEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
+                BuildUsersEndpoint(args.Skip, args.Top, args.OrderBy));
             users = result.Data ?? [];
             userCount = result.TotalCount;
         }
@@ -183,66 +181,6 @@ public partial class Tab_User : IDisposable
         {
             isUserLoading = false;
             StateHasChanged();
-        }
-    }
-
-    protected async Task LoadUserFilterDataAsync(
-        DataGridLoadColumnFilterDataEventArgs<UserAdministrationResDTO> args)
-    {
-        if (args.Column is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var queryParams = new List<string>();
-            if (!string.IsNullOrWhiteSpace(SearchText))
-            {
-                queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
-            }
-            if (!string.IsNullOrWhiteSpace(SelectedAccountStatus))
-            {
-                queryParams.Add($"accountStatus={Uri.EscapeDataString(SelectedAccountStatus)}");
-            }
-            if (SelectedGroupId.HasValue)
-            {
-                queryParams.Add($"groupId={SelectedGroupId.Value}");
-            }
-            if (SelectedDepartmentId.HasValue)
-            {
-                queryParams.Add($"departmentId={SelectedDepartmentId.Value}");
-            }
-
-            queryParams.Add($"distinct={Uri.EscapeDataString(args.Column.GetFilterProperty())}");
-            if (!string.IsNullOrWhiteSpace(currentUserFilterExpression))
-            {
-                queryParams.Add($"filter={Uri.EscapeDataString(currentUserFilterExpression)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(args.Filter))
-            {
-                queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-            }
-
-            if (args.Skip.HasValue)
-            {
-                queryParams.Add($"skip={args.Skip.Value}");
-            }
-
-            if (args.Top.HasValue)
-            {
-                queryParams.Add($"top={args.Top.Value}");
-            }
-
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<UserAdministrationResDTO>>(
-                $"/api/Permission/users?{string.Join("&", queryParams)}");
-            args.Data = result.Data ?? [];
-            args.Count = result.TotalCount;
-        }
-        catch (Exception ex)
-        {
-            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
     }
 
@@ -608,7 +546,7 @@ public partial class Tab_User : IDisposable
         Duration = 10000
     });
 
-    private string BuildUsersEndpoint(string? filter, int? skip, int? top, string? orderBy)
+    private string BuildUsersEndpoint(int? skip, int? top, string? orderBy)
     {
         var queryParams = new List<string>();
         if (!string.IsNullOrWhiteSpace(SearchText))
@@ -629,11 +567,6 @@ public partial class Tab_User : IDisposable
         if (SelectedDepartmentId.HasValue)
         {
             queryParams.Add($"departmentId={SelectedDepartmentId.Value}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(filter))
-        {
-            queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
         }
 
         if (skip.HasValue)

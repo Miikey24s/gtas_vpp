@@ -25,8 +25,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         public RadzenDataGrid<LookupCategoryResDTO> categoryGrid { get; set; } = default!;
         private bool isCategoryLoading { get; set; } = false;
         private int categoryCount { get; set; } = 0;
-        private string? currentCategoryFilter { get; set; }
         private int currentCategorySkip { get; set; }
+        private string categorySearchText = string.Empty;
+        private string categoryStatusFilter = string.Empty;
         private bool hasAutoSelectedInitialCategory;
 
         // Giá trị lookup.
@@ -34,9 +35,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         public RadzenDataGrid<LookupValueResDTO> valueGrid { get; set; } = default!;
         private bool isValueLoading { get; set; } = false;
         private int valueCount { get; set; } = 0;
-        private string? currentValueFilter { get; set; }
         private int currentValueSkip { get; set; }
+        private string valueSearchText = string.Empty;
+        private string valueStatusFilter = string.Empty;
         private bool CanModifyLookup => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
+
+        private IReadOnlyList<VppFilterOption<string>> CategoryStatusOptions =>
+        [
+            new(string.Empty, Loc["LibraryAllStatuses"]),
+            new("active", Loc["Active"]),
+            new("inactive", Loc["Inactive"])
+        ];
+
+        private IReadOnlyList<VppFilterOption<string>> ValueStatusOptions => CategoryStatusOptions;
+        private bool HasCategoryFilters => !string.IsNullOrWhiteSpace(categorySearchText) || !string.IsNullOrWhiteSpace(categoryStatusFilter);
+        private bool HasValueFilters => !string.IsNullOrWhiteSpace(valueSearchText) || !string.IsNullOrWhiteSpace(valueStatusFilter);
 
         protected override async Task OnInitializedAsync()
         {
@@ -70,7 +83,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         protected async Task LoadCategories(LoadDataArgs args)
         {
             isCategoryLoading = true;
-            currentCategoryFilter = args.Filter;
             currentCategorySkip = args.Skip ?? 0;
             StateHasChanged();
             try
@@ -78,9 +90,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 // Dựng query parameter cho bộ lọc server-side.
                 var queryParams = new List<string> { "showDeleted=true" };
 
-                if (!string.IsNullOrEmpty(args.Filter))
+                var toolbarFilter = BuildLookupFilter(categorySearchText, categoryStatusFilter, "Code", "Name");
+                if (!string.IsNullOrWhiteSpace(toolbarFilter))
                 {
-                    queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
+                    queryParams.Add($"filter={Uri.EscapeDataString(toolbarFilter)}");
                 }
 
                 queryParams.Add($"skip={args.Skip ?? 0}");
@@ -121,57 +134,48 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        protected async Task LoadCategoryFilterData(DataGridLoadColumnFilterDataEventArgs<LookupCategoryResDTO> args)
-        {
-            try
-            {
-                if (args.Column == null) return;
-
-                var property = args.Column.GetFilterProperty();
-
-                // Yêu cầu giá trị distinct từ server.
-                var queryParams = new List<string>
-                {
-                    "showDeleted=true",
-                    $"distinct={Uri.EscapeDataString(property)}"
-                };
-
-                if (!string.IsNullOrWhiteSpace(currentCategoryFilter))
-                {
-                    queryParams.Add($"filter={Uri.EscapeDataString(currentCategoryFilter)}");
-                }
-
-                if (!string.IsNullOrWhiteSpace(args.Filter))
-                {
-                    queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-                }
-
-                if (args.Skip.HasValue)
-                {
-                    queryParams.Add($"skip={args.Skip.Value}");
-                }
-
-                if (args.Top.HasValue)
-                {
-                    queryParams.Add($"top={args.Top.Value}");
-                }
-
-                string apiUrl = $"{Config.LibraryApi.LookupCategories}?{string.Join("&", queryParams)}";
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupCategoryResDTO>>(apiUrl);
-
-                args.Data = result.Data ?? [];
-                args.Count = result.TotalCount;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
-            }
-        }
-
         protected async Task OnCategorySelected(LookupCategoryResDTO data)
         {
             selectedLookupCategories = new List<LookupCategoryResDTO> { data };
             await valueGrid.Reload();
+        }
+
+        private async Task OnCategorySearchInputAsync(ChangeEventArgs args)
+        {
+            categorySearchText = args.Value?.ToString() ?? string.Empty;
+            await categoryGrid.FirstPage(true);
+        }
+
+        private async Task OnCategoryStatusChangedAsync(string value)
+        {
+            categoryStatusFilter = value;
+            await categoryGrid.FirstPage(true);
+        }
+
+        private async Task ClearCategoryFiltersAsync()
+        {
+            categorySearchText = string.Empty;
+            categoryStatusFilter = string.Empty;
+            await categoryGrid.FirstPage(true);
+        }
+
+        private async Task OnValueSearchInputAsync(ChangeEventArgs args)
+        {
+            valueSearchText = args.Value?.ToString() ?? string.Empty;
+            await valueGrid.FirstPage(true);
+        }
+
+        private async Task OnValueStatusChangedAsync(string value)
+        {
+            valueStatusFilter = value;
+            await valueGrid.FirstPage(true);
+        }
+
+        private async Task ClearValueFiltersAsync()
+        {
+            valueSearchText = string.Empty;
+            valueStatusFilter = string.Empty;
+            await valueGrid.FirstPage(true);
         }
 
         protected async Task ToggleCategoryDeleted(LookupCategoryResDTO data, bool isDeleted)
@@ -287,13 +291,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 lookupValues = new List<LookupValueResDTO>();
                 valueCount = 0;
-                currentValueFilter = null;
                 currentValueSkip = 0;
                 return;
             }
 
             isValueLoading = true;
-            currentValueFilter = args.Filter;
             currentValueSkip = args.Skip ?? 0;
             StateHasChanged();
             try
@@ -305,9 +307,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     $"lookupCategoryId={selectedLookupCategory.Id}"
                 };
 
-                if (!string.IsNullOrEmpty(args.Filter))
+                var toolbarFilter = BuildLookupFilter(valueSearchText, valueStatusFilter, "Code", "Value");
+                if (!string.IsNullOrWhiteSpace(toolbarFilter))
                 {
-                    queryParams.Add($"filter={Uri.EscapeDataString(args.Filter)}");
+                    queryParams.Add($"filter={Uri.EscapeDataString(toolbarFilter)}");
                 }
 
                 queryParams.Add($"skip={args.Skip ?? 0}");
@@ -331,56 +334,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 isValueLoading = false;
                 StateHasChanged();
-            }
-        }
-
-        protected async Task LoadValueFilterData(DataGridLoadColumnFilterDataEventArgs<LookupValueResDTO> args)
-        {
-            if (selectedLookupCategory == null) return;
-
-            try
-            {
-                if (args.Column == null) return;
-
-                var property = args.Column.GetFilterProperty();
-
-                // Yêu cầu giá trị distinct từ server.
-                var queryParams = new List<string>
-                {
-                    "showDeleted=true",
-                    $"lookupCategoryId={selectedLookupCategory.Id}",
-                    $"distinct={Uri.EscapeDataString(property)}"
-                };
-
-                if (!string.IsNullOrWhiteSpace(currentValueFilter))
-                {
-                    queryParams.Add($"filter={Uri.EscapeDataString(currentValueFilter)}");
-                }
-
-                if (!string.IsNullOrWhiteSpace(args.Filter))
-                {
-                    queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-                }
-
-                if (args.Skip.HasValue)
-                {
-                    queryParams.Add($"skip={args.Skip.Value}");
-                }
-
-                if (args.Top.HasValue)
-                {
-                    queryParams.Add($"top={args.Top.Value}");
-                }
-
-                string apiUrl = $"{Config.LibraryApi.LookupValues}?{string.Join("&", queryParams)}";
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupValueResDTO>>(apiUrl);
-
-                args.Data = result.Data ?? [];
-                args.Count = result.TotalCount;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
         }
 
@@ -464,6 +417,31 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 UpdatedAtUtc = source.UpdatedAtUtc,
                 UpdatedByUserId = source.UpdatedByUserId
             };
+
+        private static string? BuildLookupFilter(string search, string status, string codeProperty, string nameProperty)
+        {
+            var clauses = new List<string>();
+            var normalizedSearch = search.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            {
+                var escaped = normalizedSearch
+                    .Replace("\\", "\\\\", StringComparison.Ordinal)
+                    .Replace("\"", "\\\"", StringComparison.Ordinal)
+                    .ToLowerInvariant();
+                clauses.Add($"(({codeProperty} ?? \"\").ToLower().Contains(\"{escaped}\") || ({nameProperty} ?? \"\").ToLower().Contains(\"{escaped}\"))");
+            }
+
+            if (string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
+            {
+                clauses.Add("IsDeleted == false");
+            }
+            else if (string.Equals(status, "inactive", StringComparison.OrdinalIgnoreCase))
+            {
+                clauses.Add("IsDeleted == true");
+            }
+
+            return clauses.Count == 0 ? null : string.Join(" && ", clauses);
+        }
 
         private static LookupValueResDTO CloneValue(LookupValueResDTO source)
             => new()

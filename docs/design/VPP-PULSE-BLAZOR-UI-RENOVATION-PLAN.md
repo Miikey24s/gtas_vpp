@@ -142,7 +142,11 @@ Rollout khung dùng chung:
 
 Definition of done của architecture này: agent mới xác định đúng authority bằng `AGENTS.md` gần nhất, dùng repo skill `.agents/skills/gtas-vpp-ui-system/`, không tạo abstraction trước nhu cầu, và chứng minh UI trên Blazor runtime thay vì chỉ dựa vào build/screenshot.
 
-### 3.1.2 Frontend React — ARCHIVED/DEFERRED (cập nhật 2026-07-27)
+### 3.1.2 Admin filtering contract — OWNER-APPROVED (2026-07-30)
+
+Phương án A được owner duyệt: admin và permission dùng toolbar-first filtering. `VppDataToolbar` là nguồn lọc chính; header cột chỉ dùng sort; điều kiện hiếm/nhiều trường mở từ `FILTER-ADVANCED`; `VppColumnPicker` chỉ điều chỉnh cột. Radzen `FilterMode.CheckBoxList` không còn là motif mặc định của admin grid. Migration đi theo slice `Class/Lookup → Library collections → Pricing → Permission`; backend distinct endpoints chỉ được retire sau khi consumer ledger xác nhận không còn route dùng.
+
+### 3.1.3 Frontend React — ARCHIVED/DEFERRED (cập nhật 2026-07-27)
 
 - React POC từng nằm tại `gtas_vpp_fe_react`; source lịch sử hiện được lưu ở tag `archive/react-poc-2026-07-27`.
 - Các nội dung bên dưới là hồ sơ kỹ thuật và bằng chứng đã làm, không phải phạm vi triển khai của giai đoạn deadline hiện tại.

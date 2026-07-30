@@ -33,7 +33,7 @@ public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiT
         {
             Name = "Cấu hình quyền UI",
             Exact = true
-        });
+        }).First;
         await configureButton.WaitForAsync();
         await configureButton.ClickAsync();
 

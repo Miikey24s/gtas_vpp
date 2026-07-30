@@ -39,6 +39,13 @@
                                              Class="vpp-admin-data-surface vpp-permission-group-surface">
                             <Toolbar>
                                 <VppDataToolbar AriaLabel="@Loc["GroupName"]" Class="vpp-admin-grid-toolbar">
+                                    <VppFilterSearch Value="@groupSearchText"
+                                                     Input="@OnGroupSearchInputAsync"
+                                                     Placeholder="@Loc["Search"]"
+                                                     AriaLabel="@Loc["Search"]" />
+                                    <VppClearFiltersButton Text="@Loc["ClearFilters"]"
+                                                           IsActive="@(!string.IsNullOrWhiteSpace(groupSearchText))"
+                                                           Clicked="@ClearGroupFiltersAsync" />
                                     <span class="vpp-permission-group-summary">@Loc["CanonicalRoleCount", groupCount]</span>
                                     <VppColumnPicker TItem="PermissionGroupDto" GridAccessor="@(() => grid)" />
                                 </VppDataToolbar>
@@ -51,11 +58,10 @@
                                                 Data="@list_Group"
                                                 Count="@groupCount"
                                                 LoadData="@LoadGroupsAsync"
-                                                LoadColumnFilterData="@LoadGroupFilterDataAsync"
                                                 IsLoading="@IsLoading"
                                                 @bind-Value="selected_Group"
                                                 RowSelect="@OnGroupSelectedAsync"
-                                                AllowFiltering="true"
+                                                AllowFiltering="false"
                                                 AllowColumnResize="true"
                                                 AllowMultiColumnSorting="false"
                                                 AllowSorting="true"
@@ -72,8 +78,6 @@
                                                 ShowMultiColumnSortingIndex="false"
                                                 PageSize="@VppPagingProfiles.SplitList.DefaultPageSize"
                                                 PageSizeOptions="@VppPagingProfiles.SplitList.PageSizeOptions"
-                                                FilterMode="FilterMode.CheckBoxList"
-                                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                                 Density="Density.Compact"
                                                 GridLines="DataGridGridLines.Horizontal"
@@ -155,7 +159,7 @@
                                                         aria-label="@Loc["ComponentName"]"
                                                         TItem="PermissionComponentAccessResDTO"
                                                         Data="@components"
-                                                        AllowFiltering="true"
+                                                        AllowFiltering="false"
                                                         AllowColumnResize="true"
                                                         AllowMultiColumnSorting="false"
                                                         AllowSorting="true"
@@ -169,8 +173,6 @@
                                                         ShowMultiColumnSortingIndex="false"
                                                         PageSize="@VppPagingProfiles.SmallStatic.DefaultPageSize"
                                                         PageSizeOptions="@VppPagingProfiles.SmallStatic.PageSizeOptions"
-                                                        FilterMode="FilterMode.CheckBoxList"
-                                                        FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                                         Density="Density.Compact"
                                                         GridLines="DataGridGridLines.Horizontal"
                                                         class="permission-component-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-permission-readonly-grid"

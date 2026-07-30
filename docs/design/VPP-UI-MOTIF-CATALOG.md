@@ -29,7 +29,8 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | `ANALYTICS` | KPI/chart/list/detail data story | History, department summary, report | `VppAnalyticsWorkspace` | chart/list/detail arrangement | KPI rhythm, chart empty state, detail alignment |
 | `DATA-FRAME` | Header/toolbar/grid/footer frame | Bảng/list có data surface | `VppDataSurfaceFrame` | `ServerPaging`, `ClientSnapshotPaged`, `ClientSnapshotVirtualized`, `Static` | border, overflow, footer anchor |
 | `COLLECTION-HEADER` | Identity + count + collection action | Add/import/export thuộc cả collection | `VppCollectionHeader` | add/secondary/disabled | CRUD trong toolbar hoặc header cột |
-| `FILTER-TOOLBAR` | Search, filter, clear, column picker | Tìm/lọc dữ liệu | `VppDataToolbar`, `VppFilterSearch`, `VppFilterSelect`, `VppClearFiltersButton`, `VppColumnPicker` | filter count/domain-specific options | popup chrome, control height, order |
+| `FILTER-TOOLBAR` | Search, filter, clear, column picker | Tìm/lọc dữ liệu thường xuyên | `VppDataToolbar`, `VppFilterSearch`, `VppFilterSelect`, `VppClearFiltersButton`, `VppColumnPicker` | filter count/domain-specific options | popup chrome, control height, order |
+| `FILTER-ADVANCED` | Bộ lọc ít dùng/nhiều điều kiện | Ngày, khoảng giá, metadata, audit/resource | typed route-owned filter panel anchored from the toolbar | compact/popover/workspace | không tạo filter icon riêng trong từng header |
 | `SELECTOR-FILTER` | Thay đổi tập dữ liệu hiển thị | Category/status/department/unit filters | `VppFilterSelect<T>` | active/inactive, option count | tự tạo dropdown khác visual |
 | `SELECTOR-DECISION` | Chọn mode/giải pháp nghiệp vụ | Kỳ, theo mặt hàng/phòng ban, supplier/price list | `VppSegmentedSelector<T>` hoặc typed Radzen select khi cần nhiều option | segmented/dropdown decision | gọi là filter nếu thực tế là decision |
 | `SELECTOR-PAGE-SIZE` | Chọn số dòng mỗi trang | Mọi server/client paged grid | Radzen pager bridge + page-size contract trong `vpp-datagrid.css` | 25/50/100/200 theo profile | custom popup/oval focus riêng |
@@ -54,6 +55,14 @@ Các selector có thể cùng visual foundation nhưng khác semantic:
 - `DECISION`: thay đổi mode/phương án nghiệp vụ.
 - `PAGE-SIZE`: chỉ thay đổi số dòng hiển thị.
 - `HEADER-TAB`: điều hướng route; không dùng `VppSegmentedSelector` thay thế.
+
+Quy tắc vị trí lọc trong data grid:
+
+- `FILTER-TOOLBAR` là lớp lọc hiển thị chính và phải nằm trước vùng dữ liệu.
+- Header cột mặc định chỉ sở hữu sort; admin grid không bật Radzen `FilterMode.CheckBoxList` theo mặc định.
+- Điều kiện hiếm hoặc nhiều trường dùng `FILTER-ADVANCED` từ toolbar, không rải popup nhỏ ở từng header.
+- `VppColumnPicker` chỉ điều chỉnh hiển thị cột, không thay thế bộ lọc.
+- Filter luôn áp trên toàn bộ tập dữ liệu được cấp quyền trước `paging`/`virtualization`, sau đó mới tính tổng và phân trang.
 
 Không gộp chúng thành một component string-configured. Dùng typed component/contract riêng, cùng token và popup bridge.
 

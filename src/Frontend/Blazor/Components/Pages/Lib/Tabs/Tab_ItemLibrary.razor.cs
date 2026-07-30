@@ -28,7 +28,6 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
     private string searchText = string.Empty;
     private string categoryFilter = string.Empty;
     private string uomFilter = string.Empty;
-    private string? currentFilter;
     private bool isLoading;
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(categoryFilter) || !string.IsNullOrWhiteSpace(uomFilter);
     private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
@@ -51,7 +50,7 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
 
     private async Task LoadDataAsync(LoadDataArgs args)
     {
-        isLoading = true; currentSkip = args.Skip ?? 0; currentFilter = args.Filter;
+        isLoading = true; currentSkip = args.Skip ?? 0;
         try
         {
             var query = new List<string> { $"skip={args.Skip ?? 0}", $"top={args.Top ?? VppPagingProfiles.Collection.DefaultPageSize}", "showDeleted=true" };
@@ -62,27 +61,12 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
                 var uomFilterExpression = $"UomId == \"{parsedUomId}\"";
                 query.Add($"filter={Uri.EscapeDataString(uomFilterExpression)}");
             }
-            if (!string.IsNullOrWhiteSpace(args.Filter)) query.Add($"filter={Uri.EscapeDataString(args.Filter)}");
             if (!string.IsNullOrWhiteSpace(args.OrderBy)) query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
             var result = await ApiServices.GetFromApiWithTotalCountAsync<List<VppItemResDTO>>($"{Config.ApiCatalogItems}?{string.Join("&", query)}");
             rows = result.Data ?? []; totalCount = result.TotalCount;
         }
         catch (Exception ex) { rows = []; totalCount = 0; ToastService.Error(ex, Loc, "LoadLibraryDataFailed"); }
         finally { isLoading = false; StateHasChanged(); }
-    }
-
-    private async Task LoadColumnFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<VppItemResDTO> args)
-    {
-        if (args.Column is null) return;
-        try
-        {
-            var property = args.Column.GetFilterProperty();
-            var query = $"{Config.ApiCatalogItems}?showDeleted=true&distinct={Uri.EscapeDataString(property)}&skip={args.Skip ?? 0}&top={args.Top ?? 50}";
-            if (!string.IsNullOrWhiteSpace(args.Filter)) query += $"&distinctFilter={Uri.EscapeDataString(args.Filter)}";
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<VppItemResDTO>>(query);
-            args.Data = result.Data ?? []; args.Count = result.TotalCount;
-        }
-        catch (Exception ex) { args.Data = Array.Empty<VppItemResDTO>(); args.Count = 0; ToastService.Error(ex, Loc, "LoadLibraryDataFailed"); }
     }
 
     private async Task OpenCreateAsync()

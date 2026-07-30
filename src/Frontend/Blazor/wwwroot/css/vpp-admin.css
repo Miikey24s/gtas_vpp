@@ -574,6 +574,23 @@
     color: var(--vpp-primary-600);
 }
 
+/*
+ * Lọc dữ liệu quản trị thuộc toolbar typed. Ẩn filter kiểu Excel của Radzen
+ * để không xuất hiện bề mặt lọc thứ hai cạnh tranh với toolbar chuẩn.
+ */
+.vpp-admin-grid .rz-grid-filter-icon {
+    display: none !important;
+    pointer-events: none;
+}
+
+.vpp-admin-grid .rz-grid-table thead th:has(.rz-grid-filter-icon) > div:not(.rz-cell-filter) {
+    padding-inline-end: var(--vpp-admin-grid-cell-x) !important;
+}
+
+.vpp-admin-grid .rz-cell-filter {
+    display: none !important;
+}
+
 .vpp-admin-grid .rz-paginator,
 .vpp-admin-grid .rz-pager {
     border-top: 1px solid var(--vpp-border-default);

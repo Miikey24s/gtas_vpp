@@ -68,7 +68,7 @@ Source hiện có **19 file / 23 DataGrid thật**. Generic type reference trong
 
 ## DS4 admin group
 
-- Categories, Items, Suppliers, Departments, Lookup, Price, Price List và Users dùng route-typed server-paged frame, compact density, canonical toolbar, column picker và native grid scroll/pager. `Component_ShareGrid<T>` reflection legacy đã hết consumer và được xóa.
+- Categories, Items, Suppliers, Departments, Lookup, Price, Price List và Users dùng route-typed server-paged frame, compact density, canonical toolbar, column picker và native grid scroll/pager. Theo quyết định owner 2026-07-30, toolbar là nguồn lọc chính; header chỉ sort và `FilterMode.CheckBoxList` không phải admin default. `Component_ShareGrid<T>` reflection legacy đã hết consumer và được xóa.
 - Library shell truyền chiều cao viewport xuống active panel; Lookup chia đôi desktop và xếp dọc tablet. List/detail admin cũng xếp dọc ở tablet để không cắt pane hoặc tạo horizontal document overflow.
 - Pricing tabs là navigation nội bộ trong flow, không còn sticky-offset đè lên toolbar.
 - Permission group/component grids opt-in cùng header/row/footer bridge; permission action matrix tiếp tục là ngoại lệ đúng nghiệp vụ.

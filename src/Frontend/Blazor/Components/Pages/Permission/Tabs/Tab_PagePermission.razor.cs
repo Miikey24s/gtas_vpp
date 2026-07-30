@@ -37,7 +37,7 @@ public partial class Tab_PagePermission
     private int selectedPermissionView;
     private int groupCount;
     private int currentGroupSkip;
-    private string? currentGroupFilterExpression;
+    private string groupSearchText = string.Empty;
     private bool hasRequestedInitialGroupGridLoad;
 
     private PermissionGroupDto? SelectedGroup => selected_Group.FirstOrDefault();
@@ -89,13 +89,12 @@ public partial class Tab_PagePermission
     {
         IsLoading = true;
         currentGroupSkip = args.Skip ?? 0;
-        currentGroupFilterExpression = args.Filter;
         StateHasChanged();
 
         try
         {
             var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupDto>>(
-                BuildGroupsEndpoint(args.Filter, args.Skip, args.Top, args.OrderBy));
+                BuildGroupsEndpoint(args.Skip, args.Top, args.OrderBy));
             list_Group = result.Data ?? [];
             groupCount = result.TotalCount;
 
@@ -130,43 +129,22 @@ public partial class Tab_PagePermission
         }
     }
 
-    protected async Task LoadGroupFilterDataAsync(DataGridLoadColumnFilterDataEventArgs<PermissionGroupDto> args)
-    {
-        if (args.Column is null) return;
-
-        try
-        {
-            var queryParams = new List<string>
-            {
-                "getFullName=true",
-                $"distinct={Uri.EscapeDataString(args.Column.GetFilterProperty())}"
-            };
-            if (!string.IsNullOrWhiteSpace(currentGroupFilterExpression))
-            {
-                queryParams.Add($"filter={Uri.EscapeDataString(currentGroupFilterExpression)}");
-            }
-            if (!string.IsNullOrWhiteSpace(args.Filter))
-            {
-                queryParams.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-            }
-            if (args.Skip.HasValue) queryParams.Add($"skip={args.Skip.Value}");
-            if (args.Top.HasValue) queryParams.Add($"top={args.Top.Value}");
-
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupDto>>(
-                $"/api/Permission/groups?{string.Join("&", queryParams)}");
-            args.Data = result.Data ?? [];
-            args.Count = result.TotalCount;
-        }
-        catch (Exception ex)
-        {
-            NotifyError(UiErrorMapper.GetMessage(ex, Loc));
-        }
-    }
-
     private async Task OnGroupSelectedAsync(PermissionGroupDto group)
     {
         selected_Group = [group];
         await LoadGroupPermissionsAsync(group.Id, notifyErrors: true);
+    }
+
+    private async Task OnGroupSearchInputAsync(ChangeEventArgs args)
+    {
+        groupSearchText = args.Value?.ToString() ?? string.Empty;
+        await grid.FirstPage(true);
+    }
+
+    private async Task ClearGroupFiltersAsync()
+    {
+        groupSearchText = string.Empty;
+        await grid.FirstPage(true);
     }
 
     private Task SelectPermissionPageAsync(int index)
@@ -298,14 +276,28 @@ public partial class Tab_PagePermission
         Duration = 10000
     });
 
-    private static string BuildGroupsEndpoint(string? filter, int? skip, int? top, string? orderBy)
+    private string BuildGroupsEndpoint(int? skip, int? top, string? orderBy)
     {
         var queryParams = new List<string> { "getFullName=true" };
-        if (!string.IsNullOrWhiteSpace(filter)) queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+        var searchFilter = BuildSearchFilter();
+        if (!string.IsNullOrWhiteSpace(searchFilter)) queryParams.Add($"filter={Uri.EscapeDataString(searchFilter)}");
         if (skip.HasValue) queryParams.Add($"skip={skip.Value}");
         if (top.HasValue) queryParams.Add($"top={top.Value}");
         if (!string.IsNullOrWhiteSpace(orderBy)) queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
         return $"/api/Permission/groups?{string.Join("&", queryParams)}";
+    }
+
+    private string? BuildSearchFilter()
+    {
+        var search = groupSearchText.Trim();
+        if (string.IsNullOrWhiteSpace(search)) return null;
+
+        var escaped = search
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal)
+            .ToLowerInvariant();
+        var clause = $"((GroupCode ?? \"\").ToLower().Contains(\"{escaped}\") || (GroupName ?? \"\").ToLower().Contains(\"{escaped}\"))";
+        return clause;
     }
 
     private bool IsDevPersona(RbacPersonaDefinition persona) =>

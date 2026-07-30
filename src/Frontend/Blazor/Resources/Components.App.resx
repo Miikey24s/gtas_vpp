@@ -865,6 +865,7 @@
   <data name="LeadTimeCompact" xml:space="preserve"><value>Ngày</value></data>
   <data name="EffectiveRange" xml:space="preserve"><value>Hiệu lực</value></data>
   <data name="LibrarySearchClasses" xml:space="preserve"><value>Tìm mã hoặc tên loại</value></data>
+  <data name="LibrarySearchLookupValues" xml:space="preserve"><value>Tìm mã hoặc giá trị</value></data>
   <data name="LibrarySearchCategories" xml:space="preserve"><value>Tìm mã hoặc tên danh mục</value></data>
   <data name="LibrarySearchItems" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
   <data name="LibrarySearchDepartments" xml:space="preserve"><value>Tìm mã hoặc tên phòng ban</value></data>

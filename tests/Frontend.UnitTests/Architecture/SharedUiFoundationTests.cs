@@ -1050,6 +1050,21 @@ public sealed class SharedUiFoundationTests
             Assert.Contains("VppDataDensity.Compact", source, StringComparison.Ordinal);
             Assert.Contains("<VppDataToolbar", source, StringComparison.Ordinal);
             Assert.Contains("vpp-data-grid vpp-data-density-compact", source, StringComparison.Ordinal);
+            Assert.Contains("AllowFiltering=\"false\"", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("FilterMode=\"FilterMode.CheckBoxList\"", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("LoadColumnFilterData=", source, StringComparison.Ordinal);
+        }
+
+        var adminCodeBehindSources = Directory
+            .EnumerateFiles(Path.Combine(root, "Components", "Pages"), "Tab_*.razor.cs", SearchOption.AllDirectories)
+            .Where(path => path.Contains($"{Path.DirectorySeparatorChar}Lib{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                           || path.Contains($"{Path.DirectorySeparatorChar}Permission{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Select(File.ReadAllText);
+        foreach (var source in adminCodeBehindSources)
+        {
+            Assert.DoesNotContain("DataGridLoadColumnFilterDataEventArgs", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("distinctFilter=", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("args.Filter", source, StringComparison.Ordinal);
         }
 
         Assert.Equal(2, lookup.Split("<VppDataSurfaceFrame", StringSplitOptions.None).Length - 1);

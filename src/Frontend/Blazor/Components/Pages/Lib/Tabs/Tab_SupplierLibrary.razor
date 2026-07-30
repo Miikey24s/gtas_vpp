@@ -25,13 +25,13 @@
         </Toolbar>
         <ChildContent>
             <RadzenDataGrid @ref="grid" TItem="SupplierResDTO" data-vpp-grid-region="true" aria-label="@Loc["Suppliers"]"
-                            Data="@rows" Count="@totalCount" LoadData="@LoadDataAsync" LoadColumnFilterData="@LoadColumnFilterDataAsync"
-                            IsLoading="@isLoading" AllowFiltering="true" AllowSorting="true" AllowMultiColumnSorting="false"
+                            Data="@rows" Count="@totalCount" LoadData="@LoadDataAsync"
+                            IsLoading="@isLoading" AllowFiltering="false" AllowSorting="true" AllowMultiColumnSorting="false"
                             AllowAlternatingRows="false"
                             ShowMultiColumnSortingIndex="false" AllowPaging="true" PagerAlwaysVisible="true" GotoFirstPageOnSort="true"
                             PageSize="@VppPagingProfiles.Collection.DefaultPageSize" PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
                             AllowColumnResize="true" AllowColumnPicking="false" AllowPickAllColumns="true" ColumnsPickerAllowFiltering="true"
-                            FilterMode="FilterMode.CheckBoxList" FilterPopupRenderMode="PopupRenderMode.OnDemand" Density="Density.Compact"
+                            Density="Density.Compact"
                             GridLines="DataGridGridLines.Horizontal" RowRender="@OnRowRender"
                             class="vpp-admin-grid vpp-data-grid vpp-data-density-compact" ColumnWidth="150px" Style="--vpp-admin-grid-min-width: 960px; --vpp-admin-actions-width: 140px;">
                 <Columns>

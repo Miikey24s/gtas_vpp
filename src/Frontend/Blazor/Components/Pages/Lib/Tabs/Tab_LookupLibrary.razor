@@ -32,6 +32,19 @@
             </Header>
             <Toolbar>
                 <VppDataToolbar AriaLabel="@Loc["ClassDefinitions"]" Class="vpp-admin-grid-toolbar">
+                    <VppFilterSearch Value="@categorySearchText"
+                                     Input="@OnCategorySearchInputAsync"
+                                     Placeholder="@Loc["LibrarySearchClasses"]"
+                                     AriaLabel="@Loc["LibrarySearchClasses"]" />
+                    <VppFilterSelect TValue="string"
+                                     Value="@categoryStatusFilter"
+                                     Options="@CategoryStatusOptions"
+                                     ValueChanged="@OnCategoryStatusChangedAsync"
+                                     Placeholder="@Loc["LibraryAllStatuses"]"
+                                     AriaLabel="@Loc["LibraryAllStatuses"]" />
+                    <VppClearFiltersButton Text="@Loc["ClearFilters"]"
+                                           IsActive="@HasCategoryFilters"
+                                           Clicked="@ClearCategoryFiltersAsync" />
                     <VppColumnPicker TItem="LookupCategoryResDTO" GridAccessor="@(() => categoryGrid)" />
                 </VppDataToolbar>
             </Toolbar>
@@ -42,15 +55,12 @@
                             Data="@lookupCategories"
                             Count="@categoryCount"
                             LoadData="@LoadCategories"
-                            LoadColumnFilterData="@LoadCategoryFilterData"
                             IsLoading="@isCategoryLoading"
-                            AllowFiltering="true"
+                            AllowFiltering="false"
                             AllowColumnResize="true"
                             AllowColumnPicking="false"
                             AllowPickAllColumns="true"
                             ColumnsPickerAllowFiltering="true"
-                            FilterMode="FilterMode.CheckBoxList"
-                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             AllowSorting="true"
                             AllowAlternatingRows="false"
                             AllowMultiColumnSorting="false"
@@ -131,6 +141,19 @@
             </Header>
             <Toolbar>
                 <VppDataToolbar AriaLabel="@Loc["Value"]" Class="vpp-admin-grid-toolbar">
+                    <VppFilterSearch Value="@valueSearchText"
+                                     Input="@OnValueSearchInputAsync"
+                                     Placeholder="@Loc["LibrarySearchLookupValues"]"
+                                     AriaLabel="@Loc["LibrarySearchLookupValues"]" />
+                    <VppFilterSelect TValue="string"
+                                     Value="@valueStatusFilter"
+                                     Options="@ValueStatusOptions"
+                                     ValueChanged="@OnValueStatusChangedAsync"
+                                     Placeholder="@Loc["LibraryAllStatuses"]"
+                                     AriaLabel="@Loc["LibraryAllStatuses"]" />
+                    <VppClearFiltersButton Text="@Loc["ClearFilters"]"
+                                           IsActive="@HasValueFilters"
+                                           Clicked="@ClearValueFiltersAsync" />
                     <VppColumnPicker TItem="LookupValueResDTO" GridAccessor="@(() => valueGrid)" />
                 </VppDataToolbar>
             </Toolbar>
@@ -141,15 +164,12 @@
                             Data="@lookupValues"
                             Count="@valueCount"
                             LoadData="@LoadValues"
-                            LoadColumnFilterData="@LoadValueFilterData"
                             IsLoading="@isValueLoading"
-                            AllowFiltering="true"
+                            AllowFiltering="false"
                             AllowColumnResize="true"
                             AllowColumnPicking="false"
                             AllowPickAllColumns="true"
                             ColumnsPickerAllowFiltering="true"
-                            FilterMode="FilterMode.CheckBoxList"
-                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             AllowSorting="true"
                             AllowAlternatingRows="false"
                             AllowMultiColumnSorting="false"
