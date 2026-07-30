@@ -247,7 +247,7 @@
     var navigationMotionEasing = rootMotionStyles
         .getPropertyValue("--vpp-navigation-motion-easing").trim()
         || "cubic-bezier(0.2, 0, 0, 1)";
-    var tabListSelector = ".rz-tabview-nav, .vpp-header-tabs";
+    var tabListSelector = ".rz-tabview-nav, .vpp-header-tabs, .vpp-local-header-tabs";
     var tabTargetSelector = ".rz-tabview-nav-link, .rz-tabs-item, [role='tab'], .vpp-header-tab";
     var activeTabSelector = ".rz-tabview-selected .rz-tabview-nav-link, "
         + ".rz-tabview-nav-link.rz-state-active, "

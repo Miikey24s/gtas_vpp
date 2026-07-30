@@ -54,33 +54,23 @@
                 <RadzenTabsItem Text="@Loc["Pricing"]">
                     @if (IsActiveTab(6))
                     {
-                        @if (CanShowPricingTabs)
+                        @if (ShowPricingNavigation)
                         {
-                            <div class="vpp-library-local-selector">
-                                <VppSegmentedSelector TValue="int"
-                                                      Value="@SelectedPricingTabId"
-                                                      Options="@PricingSelectorOptions"
-                                                      ValueChanged="@SelectPricingTabAsync"
-                                                      AriaLabel="@Loc["Pricing"]" />
-                            </div>
+                            <nav class="vpp-local-header-tabs"
+                                 aria-label="@Loc["Pricing"]">
+                                <VppHeaderTabGroup ParentLabel="@Loc["Pricing"]"
+                                                   ParentPath="@DefaultPricingPath"
+                                                   Tabs="@PricingHeaderTabs" />
+                            </nav>
 
-                            @if (IsActivePricingTab(PriceListTabIndex))
-                            {
-                                <Tab_PriceListLibrary claims="@claims"
-                                                      PagePermissionResDTO="@PagePermissionResDTO" />
-                            }
-                            else if (IsActivePricingTab(PriceTabIndex))
-                            {
-                                <Tab_PriceLibrary claims="@claims"
-                                                  PagePermissionResDTO="@PagePermissionResDTO" />
-                            }
                         }
-                        else if (CanShowPriceLists)
+
+                        @if (IsActivePricingTab(PriceListTabIndex))
                         {
                             <Tab_PriceListLibrary claims="@claims"
                                                   PagePermissionResDTO="@PagePermissionResDTO" />
                         }
-                        else if (CanShowPrices)
+                        else if (IsActivePricingTab(PriceTabIndex))
                         {
                             <Tab_PriceLibrary claims="@claims"
                                               PagePermissionResDTO="@PagePermissionResDTO" />

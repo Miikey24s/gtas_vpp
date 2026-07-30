@@ -23,11 +23,20 @@
             <nav class="vpp-header-tabs" aria-label="@Loc["SectionNavigation"]">
                 @foreach (var headerTab in HeaderTabs)
                 {
-                    <a class="vpp-header-tab @(headerTab.IsActive ? "is-active" : string.Empty)"
-                       href="@headerTab.Path"
-                       aria-current="@(headerTab.IsActive ? "page" : null)">
-                        @headerTab.Label
-                    </a>
+                    @if (headerTab.IsExpanded)
+                    {
+                        <VppHeaderTabGroup ParentLabel="@headerTab.Label"
+                                           ParentPath="@headerTab.Path"
+                                           Tabs="@(headerTab.Children!)" />
+                    }
+                    else
+                    {
+                        <a class="vpp-header-tab @(headerTab.IsActive ? "is-active" : string.Empty)"
+                           href="@headerTab.Path"
+                           aria-current="@(headerTab.IsActive ? "page" : null)">
+                            @headerTab.Label
+                        </a>
+                    }
                 }
             </nav>
         }

@@ -1,0 +1,32 @@
+<span class="vpp-header-tab-group @Class"
+      role="group"
+      aria-label="@EffectiveAriaLabel">
+    <span class="vpp-header-tab-group-divider" aria-hidden="true"></span>
+    <a class="vpp-header-tab vpp-header-tab-parent"
+       href="@ParentPath"
+       aria-label="@ParentLabel">
+        @ParentLabel
+    </a>
+    <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-tab-group-chevron" />
+    @foreach (var tab in Tabs)
+    {
+        <a class="vpp-header-tab vpp-header-sub-tab @(tab.IsActive ? "is-active" : string.Empty)"
+           href="@tab.Path"
+           aria-current="@(tab.IsActive ? "page" : null)">
+            @tab.Label
+        </a>
+    }
+    <span class="vpp-header-tab-group-divider" aria-hidden="true"></span>
+</span>
+
+@code {
+    [Parameter, EditorRequired] public string ParentLabel { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string ParentPath { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public IReadOnlyList<VppHeaderSubTab> Tabs { get; set; } = [];
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
+
+    private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel)
+        ? ParentLabel
+        : AriaLabel;
+}

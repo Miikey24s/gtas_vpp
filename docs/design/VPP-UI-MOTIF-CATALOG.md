@@ -21,6 +21,7 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | ID | Motif | Dùng khi | Component/authority | Variant typed | Route không được tự làm lại |
 |---|---|---|---|---|---|
 | `SHELL-NAV` | Shell, sidebar, header-tab, seam, page inset | Mọi authenticated page | `MainLayout`, `LeftSidebar`, `vpp-layout.css`, `vpp-sidebar.css`, `vpp-tabs.css`, page-inset tokens | expanded/collapsed, desktop/tablet/mobile | seam, active indicator, hover rhythm, outer inset |
+| `HEADER-TAB-GROUP` | Điều hướng cha–con cùng primary header | Nhóm route Quản lý kỳ, Bảng giá | `VppHeaderTabGroup`, `VppHeaderSubTab`, `LeftSidebar`, shared tab indicator | expanded desktop, local mobile fallback, permission-aware default | dùng selector decision/filter thay navigation; active line ở cả cha và con |
 | `ACCOUNT` | Account/auth form shell | Login, register, password, email flow | `VppAccountWorkspace` | artwork, compact, scrollable | brand/language/header layout |
 | `COLLECTION` | Danh sách một tập dữ liệu | Library, users, audit, catalog | `VppCollectionWorkspace` + `VppDataSurfaceFrame` | compact/rich, paged/static | frame, toolbar, footer geometry |
 | `LIST-DETAIL` | Danh sách + inspector/detail | History, permission, lookup | `VppListDetailWorkspace` | ratio + overlay detail | split seam, pane height, detail placement |

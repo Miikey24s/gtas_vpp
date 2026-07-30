@@ -103,8 +103,33 @@ leftsidebar {
     overflow-x: auto;
 }
 
+.vpp-header-tab-group {
+    display: inline-flex;
+    flex: 0 0 max-content;
+    align-items: stretch;
+    align-self: stretch;
+    gap: var(--vpp-navigation-surface-gap);
+    min-width: max-content;
+}
+
+.vpp-header-tab-group-divider {
+    align-self: center;
+    width: 1px;
+    height: var(--vpp-space-8);
+    margin-inline: var(--vpp-space-1);
+    background: var(--vpp-border-default);
+    pointer-events: none;
+}
+
+.vpp-header-tab-group-chevron {
+    align-self: center;
+    color: var(--vpp-text-tertiary);
+    pointer-events: none;
+}
+
 /* Scope qua header để thắng rule link mặc định của Radzen mà không cần !important. */
-.vpp-layout-header .vpp-header-tab {
+.vpp-layout-header .vpp-header-tab,
+.vpp-local-header-tabs .vpp-header-tab {
     display: inline-flex;
     align-items: center;
     gap: var(--vpp-space-1);
@@ -122,7 +147,8 @@ leftsidebar {
     text-decoration: none;
 }
 
-.vpp-layout-header .vpp-header-tab::before {
+.vpp-layout-header .vpp-header-tab::before,
+.vpp-local-header-tabs .vpp-header-tab::before {
     content: "";
     position: absolute;
     z-index: -1;
@@ -134,18 +160,45 @@ leftsidebar {
 }
 
 .vpp-layout-header .vpp-header-tab:hover,
-.vpp-layout-header .vpp-header-tab:focus-visible {
+.vpp-layout-header .vpp-header-tab:focus-visible,
+.vpp-local-header-tabs .vpp-header-tab:hover,
+.vpp-local-header-tabs .vpp-header-tab:focus-visible {
     color: var(--vpp-text-primary);
     text-decoration: none;
 }
 
 .vpp-layout-header .vpp-header-tab:hover::before,
-.vpp-layout-header .vpp-header-tab:focus-visible::before {
+.vpp-layout-header .vpp-header-tab:focus-visible::before,
+.vpp-local-header-tabs .vpp-header-tab:hover::before,
+.vpp-local-header-tabs .vpp-header-tab:focus-visible::before {
     background: var(--vpp-navigation-item-hover-bg);
 }
 
-.vpp-layout-header .vpp-header-tab.is-active {
+.vpp-layout-header .vpp-header-tab.is-active,
+.vpp-local-header-tabs .vpp-header-tab.is-active {
     color: var(--vpp-text-primary);
+}
+
+.vpp-local-header-tabs {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .vpp-local-header-tabs {
+        display: flex;
+        align-items: stretch;
+        min-width: 0;
+        min-height: var(--vpp-tabs-bar-height);
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-bottom: 1px solid var(--vpp-border-default);
+        background: var(--vpp-navigation-chrome-bg);
+    }
+
+    .vpp-local-header-tabs .vpp-header-tab,
+    .vpp-local-header-tabs .vpp-header-tab-group {
+        min-height: var(--vpp-tabs-bar-height);
+    }
 }
 
 .vpp-global-loader {

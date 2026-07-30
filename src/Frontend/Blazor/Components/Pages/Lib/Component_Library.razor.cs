@@ -71,14 +71,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         private bool CanShowPrices => CanViewLibraryTab(Permissions.LibraryPrice);
 
-        private bool CanShowPricingTabs => AuthorizedPricingTabs.Count > 1;
+        private bool ShowPricingNavigation => AuthorizedPricingTabs.Count > 0;
 
-        private int SelectedPricingTabId => AuthorizedPricingTabs.ElementAtOrDefault(PricingSelectedIndex);
+        private string DefaultPricingPath => BuildPricingUrl(AuthorizedPricingTabs.FirstOrDefault());
 
-        private IReadOnlyList<VppSegmentedOption<int>> PricingSelectorOptions => AuthorizedPricingTabs
-            .Select(tab => new VppSegmentedOption<int>(
-                tab,
-                tab == PriceTabIndex ? Loc["Prices"].Value : Loc["PriceLists"].Value))
+        private IReadOnlyList<VppHeaderSubTab> PricingHeaderTabs => AuthorizedPricingTabs
+            .Select(tab => new VppHeaderSubTab(
+                tab == PriceTabIndex ? Loc["Prices"].Value : Loc["PriceLists"].Value,
+                BuildPricingUrl(tab),
+                IsActivePricingTab(tab)))
             .ToArray();
 
         protected override async Task OnInitializedAsync()
@@ -121,25 +122,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
             SelectedIndex = index;
             NavigationManager.NavigateTo(tab.QueryIndex == PricingTabIndex
-                ? BuildPricingUrl()
+                ? DefaultPricingPath
                 : $"/library?tab={tab.QueryIndex}");
         }
 
         private bool IsActiveTab(int queryIndex)
         {
             return AuthorizedTabs.ElementAtOrDefault(SelectedIndex)?.QueryIndex == queryIndex;
-        }
-
-        private void PricingTabOnChange(int index)
-        {
-            var pricingTabs = AuthorizedPricingTabs;
-            if (index < 0 || index >= pricingTabs.Count)
-            {
-                return;
-            }
-
-            PricingSelectedIndex = index;
-            NavigationManager.NavigateTo(BuildPricingUrl());
         }
 
         private bool IsActivePricingTab(int queryIndex)
@@ -248,23 +237,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             };
         }
 
-        private string BuildPricingUrl()
+        private static string BuildPricingUrl(int pricingTab)
         {
-            var pricingTab = AuthorizedPricingTabs.ElementAtOrDefault(PricingSelectedIndex);
             var pricingTabQuery = pricingTab == PriceTabIndex ? "prices" : "price-lists";
 
             return $"/library?tab={PricingTabIndex}&pricingTab={pricingTabQuery}";
-        }
-
-        private Task SelectPricingTabAsync(int tabId)
-        {
-            var index = AuthorizedPricingTabs.ToList().FindIndex(tab => tab == tabId);
-            if (index >= 0)
-            {
-                PricingTabOnChange(index);
-            }
-
-            return Task.CompletedTask;
         }
 
         public void Dispose()

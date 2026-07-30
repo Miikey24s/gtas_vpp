@@ -9,6 +9,119 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task NestedHeaderGroups_KeepParentAsContextAndActiveLineOnTheCurrentChild()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=review", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+
+        var periodGroup = Page.Locator(".vpp-layout-header .vpp-header-tab-group");
+        await periodGroup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await periodGroup.Locator(".vpp-header-tab-group-divider").CountAsync()).Should().Be(2);
+        (await periodGroup.Locator(".vpp-header-tab-parent").InnerTextAsync()).Trim().Should().Be("Quản lý kỳ");
+        (await periodGroup.Locator(".vpp-header-tab-parent").GetAttributeAsync("aria-current")).Should().BeNull();
+        (await periodGroup.Locator(".vpp-header-tab-parent").GetAttributeAsync("href"))
+            .Should().Be("/dashboard?tab=5&periodTab=review");
+
+        var activePeriodTab = periodGroup.Locator(".vpp-header-sub-tab.is-active");
+        (await activePeriodTab.InnerTextAsync()).Trim().Should().Be("Chốt kỳ");
+        (await activePeriodTab.GetAttributeAsync("aria-current")).Should().Be("page");
+
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-header-tabs > .vpp-tab-shared-indicator')?.classList.contains('is-ready') === true");
+        var periodIndicator = Page.Locator(".vpp-header-tabs > .vpp-tab-shared-indicator");
+        var periodIndicatorAlignment = await Page.EvaluateAsync<double[]>(
+            """
+            () => {
+                const active = document.querySelector('.vpp-layout-header .vpp-header-sub-tab.is-active').getBoundingClientRect();
+                const indicator = document.querySelector('.vpp-header-tabs > .vpp-tab-shared-indicator').getBoundingClientRect();
+                return [active.left, active.right, indicator.left, indicator.right];
+            }
+            """);
+        periodIndicatorAlignment[2].Should().BeGreaterThanOrEqualTo(periodIndicatorAlignment[0]);
+        periodIndicatorAlignment[3].Should().BeLessThanOrEqualTo(periodIndicatorAlignment[1]);
+
+        var approvalTab = periodGroup.Locator(".vpp-header-sub-tab").Filter(new() { HasText = "Duyệt đơn bổ sung" });
+        await approvalTab.EvaluateAsync(
+            "element => element.addEventListener('click', event => event.preventDefault(), { once: true })");
+        var childIndicatorSamples = await SampleHorizontalIndicatorMotionAsync(periodIndicator, approvalTab);
+        AssertSmoothHorizontalMotion(childIndicatorSamples,
+            "the shared line must move directly between sibling header sub-tabs");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "header-tab-group-period-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=pending", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        var pendingPeriodGroup = Page.Locator(".vpp-layout-header .vpp-header-tab-group");
+        await pendingPeriodGroup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await pendingPeriodGroup.Locator(".vpp-header-sub-tab.is-active").InnerTextAsync()).Trim()
+            .Should().Be("Duyệt đơn bổ sung");
+
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+
+        var pricingGroup = Page.Locator(".vpp-layout-header .vpp-header-tab-group");
+        await pricingGroup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await pricingGroup.Locator(".vpp-header-tab-parent").InnerTextAsync()).Trim().Should().Be("Bảng giá");
+        (await pricingGroup.Locator(".vpp-header-sub-tab.is-active").InnerTextAsync()).Trim().Should().Be("Giá mặt hàng");
+        (await Page.Locator(".vpp-library-local-selector").CountAsync()).Should().Be(0,
+            "the retired decision selector must not remain in the pricing body");
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "header-tab-group-pricing-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+
+        var mobilePricingGroup = Page.Locator(".vpp-local-header-tabs .vpp-header-tab-group");
+        await mobilePricingGroup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await mobilePricingGroup.Locator(".vpp-header-sub-tab.is-active").InnerTextAsync()).Trim()
+            .Should().Be("Danh sách bảng giá");
+        await Page.Locator(".vpp-global-loader").WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        await WaitForRenderSettleAsync();
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "header-tab-group-pricing-390x844.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+    }
+
+    [Fact]
     public async Task CompactPrimaryTabs_KeepReadableHoverTextAndHeaderDoesNotRepeatRole()
     {
         await Page.SetViewportSizeAsync(700, 900);

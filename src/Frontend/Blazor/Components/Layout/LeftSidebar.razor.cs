@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Models;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -335,8 +336,14 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
-        // Primary header chỉ hiển thị một cấp; workflow con giữ context trong nội dung route.
-        public sealed record HeaderTab(string Label, string Path, bool IsActive);
+        public sealed record HeaderTab(
+            string Label,
+            string Path,
+            bool IsActive,
+            IReadOnlyList<VppHeaderSubTab>? Children = null)
+        {
+            public bool IsExpanded => IsActive && Children is { Count: > 0 };
+        }
 
         // Tab strip theo khu vực trong primary header desktop (Atlas: dashboard 5 tab,
         // library 6, permissions 2, reports 1). Điều hướng bằng URL nên các trang
@@ -349,6 +356,8 @@ namespace gtas_vpp_fe.Components.Layout
                 var path = url.Split('?', 2)[0].Trim('/').ToLowerInvariant();
                 var query = ParseQuery(url);
                 query.TryGetValue("tab", out var tab);
+                query.TryGetValue("periodTab", out var periodTab);
+                query.TryGetValue("pricingTab", out var pricingTab);
                 var tabs = new List<HeaderTab>();
 
                 switch (path)
@@ -383,7 +392,28 @@ namespace gtas_vpp_fe.Components.Layout
                             var periodPath = canSettle
                                 ? "/dashboard?tab=5&periodTab=review"
                                 : "/dashboard?tab=5&periodTab=pending";
-                            tabs.Add(new(Loc["PeriodOperations"], periodPath, tab == "5"));
+                            var periodChildren = new List<VppHeaderSubTab>();
+                            var pendingActive = tab == "5"
+                                && string.Equals(periodTab, "pending", StringComparison.OrdinalIgnoreCase)
+                                && canApproval;
+
+                            if (canSettle)
+                            {
+                                periodChildren.Add(new(
+                                    Loc["PeriodSettleStep"],
+                                    "/dashboard?tab=5&periodTab=review",
+                                    tab == "5" && !pendingActive));
+                            }
+
+                            if (canApproval)
+                            {
+                                periodChildren.Add(new(
+                                    Loc["AdminApproval"],
+                                    "/dashboard?tab=5&periodTab=pending",
+                                    tab == "5" && (pendingActive || !canSettle)));
+                            }
+
+                            tabs.Add(new(Loc["PeriodOperations"], periodPath, tab == "5", periodChildren));
                         }
 
                         break;
@@ -410,7 +440,34 @@ namespace gtas_vpp_fe.Components.Layout
 
                         if (CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice))
                         {
-                            tabs.Add(new(Loc["Pricing"], "/library?tab=6&pricingTab=price-lists", tab == "6"));
+                            var canViewPriceLists = CanViewLibraryItem(Permissions.LibraryPriceList);
+                            var canViewPrices = CanViewLibraryItem(Permissions.LibraryPrice);
+                            var pricingPath = canViewPriceLists
+                                ? "/library?tab=6&pricingTab=price-lists"
+                                : "/library?tab=6&pricingTab=prices";
+                            var pricingActive = tab is "4" or "6";
+                            var pricesActive = pricingActive
+                                && canViewPrices
+                                && (tab == "4" || string.Equals(pricingTab, "prices", StringComparison.OrdinalIgnoreCase));
+                            var pricingChildren = new List<VppHeaderSubTab>();
+
+                            if (canViewPriceLists)
+                            {
+                                pricingChildren.Add(new(
+                                    Loc["PriceLists"],
+                                    "/library?tab=6&pricingTab=price-lists",
+                                    pricingActive && !pricesActive));
+                            }
+
+                            if (canViewPrices)
+                            {
+                                pricingChildren.Add(new(
+                                    Loc["Prices"],
+                                    "/library?tab=6&pricingTab=prices",
+                                    pricingActive && (pricesActive || !canViewPriceLists)));
+                            }
+
+                            tabs.Add(new(Loc["Pricing"], pricingPath, pricingActive, pricingChildren));
                         }
 
                         if (CanViewLibraryItem(Permissions.LibraryDepartment))

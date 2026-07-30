@@ -811,11 +811,6 @@
     padding-inline: var(--vpp-space-3);
 }
 
-.vpp-library-local-selector {
-    flex: 0 0 auto;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
-}
-
 .permission-component-selector {
     padding-block-end: var(--vpp-space-3);
 }

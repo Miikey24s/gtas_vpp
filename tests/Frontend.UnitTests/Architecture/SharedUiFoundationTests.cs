@@ -109,10 +109,32 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<RadzenTabs", source, StringComparison.Ordinal);
         Assert.Contains("vpp-admin-tabs", source, StringComparison.Ordinal);
 
-        // Header-tab toàn cục vẫn là Radzen; selector lồng trong trang dùng primitive canonical.
+        // Header cấp hai là navigation typed, không dùng decision selector thay route navigation.
         var librarySource = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_Library.razor"));
-        Assert.Contains("<VppSegmentedSelector", librarySource, StringComparison.Ordinal);
+        Assert.Contains("<VppHeaderTabGroup", librarySource, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppSegmentedSelector", librarySource, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-secondary-tabs", librarySource, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NestedHeaderNavigation_UsesOneTypedGroupForPeriodAndPricingRoutes()
+    {
+        var root = GetFrontendRoot();
+        var group = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppHeaderTabGroup.razor"));
+        var model = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppHeaderSubTab.cs"));
+        var shell = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor"));
+        var shellCode = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor.cs"));
+        var period = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_AdminApproval.razor"));
+        var library = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_Library.razor"));
+
+        Assert.Contains("IReadOnlyList<VppHeaderSubTab>", group, StringComparison.Ordinal);
+        Assert.Contains("sealed record VppHeaderSubTab", model, StringComparison.Ordinal);
+        Assert.Contains("<VppHeaderTabGroup", shell, StringComparison.Ordinal);
+        Assert.Contains("periodChildren", shellCode, StringComparison.Ordinal);
+        Assert.Contains("pricingChildren", shellCode, StringComparison.Ordinal);
+        Assert.Contains("<VppHeaderTabGroup", period, StringComparison.Ordinal);
+        Assert.Contains("<VppHeaderTabGroup", library, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-library-local-selector", library, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -215,7 +237,7 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("function normalizePrimaryTabChrome(tabList, host)", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("host.style.setProperty(\"height\", headerHeight, \"important\")", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("tabList.style.setProperty(\"padding-block\", verticalInset, \"important\")", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("var tabListSelector = \".rz-tabview-nav, .vpp-header-tabs\";", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("var tabListSelector = \".rz-tabview-nav, .vpp-header-tabs, .vpp-local-header-tabs\";", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("return tabList.closest(\".rz-tabview-nav-container\") || tabList;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var scrollOffset = host === tabList ? tabList.scrollLeft : 0;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var currentScrollOffset = elements.host === tabList ? tabList.scrollLeft : 0;", interactionsJs, StringComparison.Ordinal);
@@ -319,13 +341,14 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("VppIcons.Search", source, StringComparison.Ordinal);
         Assert.Contains(".rz-layout.vpp-layout", layoutCss, StringComparison.Ordinal);
         // W-B.2b: MỘT primary header 72px theo Atlas — desktop chứa tab strip
-        // khu vực; group hiện ở sidebar identity thay vì lặp trong header.
-        // Nav RadzenTabs cấp cao nhất trong body chỉ còn
-        // phục vụ mobile; header chỉ còn một cấp tab, không render breadcrumb con/cháu.
+        // khu vực; nav RadzenTabs cấp cao nhất trong body chỉ còn phục vụ mobile.
+        // Nhóm route một cấp con dùng typed header group và local mobile fallback.
         Assert.DoesNotContain("grid-template-rows: 0 1fr;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("grid-template-rows: var(--vpp-header-height) 1fr;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-admin-tabs > .rz-tabview-nav-container,\n    .vpp-admin-tabs > .rz-tabview-nav {\n        display: none !important;\n    }", layoutCss.Replace("\r\n", "\n"), StringComparison.Ordinal);
         Assert.Contains(".vpp-header-tabs", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-tab-group", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-local-header-tabs", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab", layoutCss, StringComparison.Ordinal);
         Assert.Contains("color: var(--vpp-text-secondary);", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab::before", layoutCss, StringComparison.Ordinal);

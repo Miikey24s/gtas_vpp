@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -48,6 +49,38 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool ShowSettlementWorkspace => CanShowSettlement && ActivePeriodTab != PendingApprovalsTab;
 
         private bool ShowApprovalsContent => CanShowApprovals && ActivePeriodTab == PendingApprovalsTab;
+
+        private bool ShowPeriodNavigation => PeriodHeaderTabs.Count > 0;
+
+        private string DefaultPeriodPath => CanShowSettlement
+            ? "/dashboard?tab=5&periodTab=review"
+            : "/dashboard?tab=5&periodTab=pending";
+
+        private IReadOnlyList<VppHeaderSubTab> PeriodHeaderTabs
+        {
+            get
+            {
+                var tabs = new List<VppHeaderSubTab>();
+
+                if (CanShowSettlement)
+                {
+                    tabs.Add(new(
+                        Loc["PeriodSettleStep"],
+                        "/dashboard?tab=5&periodTab=review",
+                        ActivePeriodTab != PendingApprovalsTab));
+                }
+
+                if (CanShowApprovals)
+                {
+                    tabs.Add(new(
+                        Loc["AdminApproval"],
+                        "/dashboard?tab=5&periodTab=pending",
+                        ActivePeriodTab == PendingApprovalsTab));
+                }
+
+                return tabs;
+            }
+        }
 
         protected override async Task OnInitializedAsync()
         {

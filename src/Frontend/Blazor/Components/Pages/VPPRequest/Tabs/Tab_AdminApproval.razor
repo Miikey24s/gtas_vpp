@@ -3,6 +3,16 @@
 
 @if (CanView)
 {
+    @if (ShowPeriodNavigation)
+    {
+        <nav class="vpp-local-header-tabs"
+             aria-label="@Loc["PeriodOperations"]">
+            <VppHeaderTabGroup ParentLabel="@Loc["PeriodOperations"]"
+                               ParentPath="@DefaultPeriodPath"
+                               Tabs="@PeriodHeaderTabs" />
+        </nav>
+    }
+
     @if (ShowSettlementWorkspace)
     {
         <PeriodOperationsWorkspace Claims="@claims"
