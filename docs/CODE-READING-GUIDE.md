@@ -54,10 +54,10 @@ Các điểm cần biết sau đợt đồng bộ W-B.2 (2026-07-26):
   `glb.UserInfo.GroupId` sang 3 persona của `CanonicalRbac` rồi qua `Loc["RoleEmployee|RoleManager|RoleDev"]`
   (không in raw GroupName `"DEV"`); `HeaderPathSegments` dựng đường dẫn `cha › con` từ URL.
   W-B.2b đã hoàn tất: desktop dùng cùng hàng header 72px cho breadcrumb/tab chrome.
-- **Trạng thái dùng chung**: `Shared/VppStatePanel.razor` có 4 state `empty | loading | error | denied`;
-  `Shared/VppEmptyState.razor` là primitive rỗng compact. Loading dùng `role=status`, error dùng
-  `role=alert`, cả hai có `aria-live`/`aria-busy`; `denied` là trạng thái trung tính vì thiếu quyền không
-  phải sự cố hệ thống. `NotificationCenter.razor` đưa focus vào panel và trả focus về trigger khi đóng.
+- **Trạng thái dùng chung**: `DesignSystem/Primitives/VppContentState.razor` nhận
+  `VppContentStateKind` typed cho loading/empty/filter-empty/error/denied/disabled/success/warning.
+  Primitive tự gắn `role`, `aria-live` và `aria-busy` theo semantics; các adapter string cũ đã được xóa
+  sau khi consumer về 0. `NotificationCenter.razor` đưa focus vào panel và trả focus về trigger khi đóng.
 - **Icon điều hướng** đặt tên ngữ nghĩa trong `Shared/VppIcons.cs`; sibling tĩnh phải khác glyph
   (quyết định D13 — Atlas render động nên được phép trùng, Blazor thì không).
 - **Token quan trọng** trong `wwwroot/css/vpp-tokens.css`: nút chuẩn `--vpp-control-height: 36px`,
@@ -109,16 +109,17 @@ Luồng bốn bước: `Rà soát kỳ → Gom nhu cầu → Chọn nguồn cung
 
 ### M5A + M5B — Thư viện dữ liệu
 
-Tất cả nằm ở `/library?tab=N`, dùng chung `Pages/Lib/Component_ShareGrid.razor` +
-`Component_RecordInspector.razor`.
+Tất cả nằm ở `/library?tab=N`. Mỗi nghiệp vụ dùng tab typed riêng và cùng composition
+`VppCollectionWorkspace`/`VppSplitEditorWorkspace` + `VppDataSurfaceFrame`; generic reflection grid và
+record inspector cũ đã được xóa để tránh chồng CRUD, CSS và permission contract.
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
 | — | `classes` | `/library?tab=0` | `Pages/Lib/Tabs/Tab_LookupLibrary.razor` | `LibraryController /{tableCode}` | §2.3.1.6 |
-| — | `categories` | `/library?tab=1` | `Component_ShareGrid` (`VppCategoryResDTO`) | `LibraryController /{tableCode}` | §2.3.1.6 |
-| 3-38 | `items` | `/library?tab=2` | `Component_ShareGrid` (`VppItemResDTO`) | `VppCatalogController /items` | §2.3.1.6, §3.3.4.1 |
-| — | `suppliers` | `/library?tab=3` | `Component_ShareGrid` (`SupplierResDTO`) | `LibraryController /{tableCode}` | §2.3.1.7 |
-| — | `departments` | `/library?tab=5` | `Component_ShareGrid` | `LibraryController /{tableCode}` | — |
+| — | `categories` | `/library?tab=1` | `Pages/Lib/Tabs/Tab_CategoryLibrary.razor`, `Dialog_CategoryEditor.razor` | `LibraryController /{tableCode}` | §2.3.1.6 |
+| 3-38 | `items` | `/library?tab=2` | `Pages/Lib/Tabs/Tab_ItemLibrary.razor`, `Dialog_ItemEditor.razor` | `VppCatalogController /items` | §2.3.1.6, §3.3.4.1 |
+| — | `suppliers` | `/library?tab=3` | `Pages/Lib/Tabs/Tab_SupplierLibrary.razor`, `Dialog_SupplierEditor.razor` | `LibraryController /{tableCode}` | §2.3.1.7 |
+| — | `departments` | `/library?tab=5` | `Pages/Lib/Tabs/Tab_DepartmentLibrary.razor`, `Dialog_DepartmentEditor.razor` | `LibraryController /{tableCode}` | — |
 | 3-39 | `price-lists` | `/library?tab=6&pricingTab=price-lists` | `Pages/Lib/Tabs/Tab_PriceListLibrary.razor`, `Dialog_PriceListEditor.razor` | `VPPPriceListController` + `publish`, `expire`, `clone`, `compare` | §2.3.1.7, §3.3.4.2 |
 | — | `prices` | `/library?tab=6&pricingTab=prices` | `Pages/Lib/Tabs/Tab_PriceLibrary.razor`, `Dialog_PriceEditor.razor` | `VPPPriceController` + `resolve`, `item-prices` | §2.3.1.7 |
 
@@ -135,9 +136,9 @@ Tất cả nằm ở `/library?tab=N`, dùng chung `Pages/Lib/Component_ShareGri
 | 3-40 | `users` | `/permission` | `Pages/Permission/Tabs/Tab_User.razor` | `GET users` (search + `accountStatus`), `groups`; `POST admin/activate`, `admin/reset-password`; `PUT memberships`; `POST memberships/deactivate` | §3.3.4.3 |
 | 3-41 | `permissions` | `/permission` | `Pages/Permission/Tabs/Tab_PagePermission.razor` | `GET groups`, `groups/{id}/page-components`; `PUT groups/{id}` | §3.3.4.4 |
 
-`Tab_User` không tạo/sửa danh tính tài khoản: vòng đời thật là người dùng tự đăng ký → quản trị chọn
-nhóm quyền/phòng ban → kích hoạt. `Component_RecordInspector` chỉ hiển thị dữ liệu nghiệp vụ và audit;
-`SessionVersion`, password hash, security stamp và token bị loại trước khi reflection phân nhóm tab.
+`Tab_User` hỗ trợ lời mời passwordless, gán nhóm quyền/phòng ban, kích hoạt, gửi link đặt lại mật khẩu
+và vô hiệu hóa membership qua dialog typed. UI chỉ nhận DTO quản trị an toàn; `SessionVersion`, password
+hash, security stamp và token không được render hoặc đưa vào form.
 
 `Tab_PagePermission` có hai lớp cố ý tách biệt:
 
@@ -163,7 +164,7 @@ không cố render SVG suy biến.
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-43 | `system-states` | mọi route | `Layout/NotificationCenter.razor`, `Layout/ReconnectModal.razor`, `Shared/VppStatePanel.razor`, `Shared/VppEmptyState.razor`, `Shared/SkeletonGrid.razor` | `NotificationsController` | §3.3.5.2 |
+| 3-43 | `system-states` | mọi route | `DesignSystem/Primitives/VppContentState.razor`, `Layout/NotificationCenter.razor`, `Layout/ReconnectModal.razor`, `Shared/SkeletonGrid.razor` | `NotificationsController` | §3.3.5.2 |
 
 `Helpers/RouteCatalog.cs` là danh sách route/state dùng cho shell và test contract; bốn state vận hành kỳ
 `pending/review/demand/supply` cùng các route account anonymous đều được khai báo rõ. Với DataGrid đã

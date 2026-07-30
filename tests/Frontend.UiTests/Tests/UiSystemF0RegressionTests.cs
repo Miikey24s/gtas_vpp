@@ -21,7 +21,7 @@ public sealed class UiSystemF0RegressionTests : TestBase, IAuthenticatedUiTest
     private static readonly RouteArchetype[] AuthenticatedArchetypes =
     [
         new("history", "dashboard?tab=1", ".vpp-history-page", ".vpp-history-loading-state"),
-        new("library-departments", "library?tab=5", ".vpp-atlas-admin-workspace"),
+        new("library-departments", "library?tab=5", ".vpp-admin-data-surface"),
         new("permission", "permission?tab=1", ".vpp-permission-matrix")
     ];
 

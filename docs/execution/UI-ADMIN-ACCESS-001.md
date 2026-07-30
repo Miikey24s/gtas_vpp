@@ -267,3 +267,10 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - Browser evidence đã kiểm bằng mắt tại `1366×768` và `390×844`: audit desktop, filter popover, detail dialog, mobile và English; data load hoàn tất, không document overflow. Ma trận 28 màn × 4 viewport, representative dark/print/axe, Security Audit `3/3`, User `1/1`, Permission `2/2`, WorkspacePattern và AtlasWave1 đều pass trên Aspire/LocalDB cô lập.
 - Build/test: solution Release `0 warning / 0 error`; frontend `204/204`; backend `445/445`; integration mặc định `14 pass / 6 opt-in skip`; disposable LocalDB `20/20`, `0 skip`, không còn instance `GTASVPP_QA_*`; EF báo không có pending model changes.
 - Wire-contract manifest được cập nhật có chủ đích cho `SecurityAuditResDTO`. Baseline LocalDB cũ hardcode bốn role legacy đã được thay bằng `CanonicalRbac.Personas` hiện hành; không đổi schema/migration. Custom role/group inheritance vẫn `DEFERRED`.
+
+## 18. Post-plan smart cleanup — 2026-07-30
+
+- Xóa `Component_ShareGrid<T>`, `Component_RecordInspector<T>`, `Component_Loading` và `DialogProvider` sau source scan xác nhận zero-consumer. Radzen provider thật vẫn thuộc `MainLayout`/`LoginLayout` qua `RadzenComponents`.
+- `Component_Library` chỉ còn điều phối tab, permission và URL; preload, reflection CRUD, dropdown cache và toast/API helper legacy được gỡ để mỗi tab typed sở hữu data flow duy nhất.
+- Xóa CSS chỉ phục vụ generic list/detail inspector; giữ nguyên selector đang dùng cho Pricing, Permission và các collection typed. Test architecture đổi từ bảo vệ legacy sang khóa không cho legacy quay lại.
+- Đây là cleanup behavior-preserving, không đổi API, database, permission, route hay visual contract; refactor sâu file CSS lớn tiếp tục `DEFERRED` đến khi UI hoàn thiện.

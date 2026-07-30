@@ -63,11 +63,11 @@ Snapshot repository ngày 2026-07-28:
 Các điểm nóng cần xử lý có thứ tự:
 
 1. `Components/App.razor` đang khai báo project CSS trước `RadzenTheme`; trái contract “Radzen base trước project overrides” và có thể góp phần làm tăng `!important`.
-2. `Component_ShareGrid<TType>` trộn reflection, string `SearchFields`, optional `DataEndpoint`, CRUD, edit/render và các nhánh theo `typeof(TType)`. Đây là debt cần thay dần, không rewrite big-bang.
+2. `Component_ShareGrid<TType>` từng trộn reflection, string `SearchFields`, optional `DataEndpoint`, CRUD, edit/render và các nhánh theo `typeof(TType)`. Tất cả consumer đã chuyển sang tab typed; adapter được xóa ở smart-cleanup 2026-07-30.
 3. `EmptyState`, `VppEmptyState` và `VppStatePanel` đang chồng trách nhiệm; cần một primitive state canonical rồi mới xóa adapter không còn consumer.
 4. `VppOrderWorkspacePanel` và `HistoryOrderDetailSheet` có phần order-detail tương đồng, phù hợp làm composite dùng chung đầu tiên sau khi so sánh behavior thật.
 5. `RouteCatalog.NavigationQueryParams` chưa phản ánh đầy đủ query đang dùng như `periodTab` và `orderView`; F0 phải audit metadata trước khi mở rộng QA/navigation helper.
-6. Một số file lớn như `vpp-layout.css`, `Tab_History.razor.css`, `vpp-admin.css`, `Component_ShareGrid.razor.cs` và `Page_OrderCreate.razor.cs` cần tách theo responsibility, không theo quota dòng máy móc.
+6. Một số file lớn như `vpp-layout.css`, `Tab_History.razor.css`, `vpp-admin.css` và `Page_OrderCreate.razor.cs` cần tách theo responsibility, không theo quota dòng máy móc. `Component_ShareGrid.razor.cs` đã được xóa sau consumer migration, không còn là refactor target.
 
 ---
 
@@ -321,10 +321,10 @@ Evidence runtime đầy đủ tiếp tục nằm trong folder ignored. Sau owner
 1. CSS load order và architecture guard.
 2. Content state canonical.
 3. Order detail: My Orders + History.
-4. Collection workspace: Departments + Categories trước, rồi mới thay dần `Component_ShareGrid<TType>`.
+4. Collection workspace: Departments + Categories trước, sau đó Items + Suppliers; migration khỏi `Component_ShareGrid<TType>` đã hoàn tất.
 5. Shell, filters, KPI và các route M3–M8.
 
-Không xóa `Component_ShareGrid<TType>` cho đến khi từng consumer đã có replacement, regression pass và rollback commit rõ.
+Điều kiện xóa `Component_ShareGrid<TType>` đã đạt ngày 2026-07-30: mọi consumer có replacement typed, architecture regression và route smoke độc lập.
 
 ---
 
@@ -419,7 +419,7 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 |---|---|---|
 | Đổi CSS order làm lộ override phụ thuộc sai | F0.1 riêng, route matrix nhỏ, inspect computed style | Revert riêng F0.1; sửa từng bridge selector rồi chạy lại. |
 | Tạo design system quá lớn trước nhu cầu | Quy tắc 2 consumer, typed API, route sở hữu nghiệp vụ | Không promote abstraction; giữ local component đến khi đủ evidence. |
-| Big-bang thay `Component_ShareGrid` | Migrate Departments/Categories trước; consumer ledger | Giữ component cũ cho consumer chưa migrate. |
+| Generic admin grid quay lại gây chồng CRUD/CSS | Architecture guard khóa file legacy không được tái tạo; mỗi route dùng component typed | Revert riêng smart-cleanup nếu phát hiện consumer ẩn; không khôi phục reflection editor như mặc định. |
 | Shared component làm mất ngoại lệ route | Slot/typed parameter hẹp, contract state/action rõ | Hạ abstraction xuống composite/primitive thấp hơn. |
 | Build pass nhưng UI sai | Browser route thật là visual authority | Không mở wave tiếp theo, lưu evidence và sửa trong cùng slice. |
 | Trôi sang backend/RBAC/LVTN | Scope check + preflight + diff review | Tách proposal và xin approval riêng; không trộn commit. |

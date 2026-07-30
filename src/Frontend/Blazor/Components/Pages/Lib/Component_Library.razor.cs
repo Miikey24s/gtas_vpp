@@ -1,12 +1,8 @@
-using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
-using gtas_vpp_fe.Models;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
-using gtas_vpp_shared.DTOs.Res.Library;
-using gtas_vpp_shared.DTOs.Req.Library;
-using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
@@ -34,8 +30,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             new(DepartmentTabIndex, Permissions.LibraryDepartment)
         ];
 
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
-        [Inject] public IToastService _toastService { get; set; } = default!;
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
@@ -86,12 +80,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
                 tab,
                 tab == PriceTabIndex ? Loc["Prices"].Value : Loc["PriceLists"].Value))
             .ToArray();
-
-        public List<VppCategoryResDTO> operationCategories = new List<VppCategoryResDTO>();
-        public List<VppItemResDTO> operations = new List<VppItemResDTO>();
-        public List<SupplierResDTO> suppliers = new List<SupplierResDTO>();
-        public List<DepartmentResDTO> departments = new List<DepartmentResDTO>();
-        Dictionary<string, IList<DropdownModel>> CategoryDropdownDatas { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -177,11 +165,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
             SetPricingSelectedIndexFromUri(location, requestedTab);
 
-            var activeTab = authorizedTabs.ElementAtOrDefault(SelectedIndex);
-            if (activeTab != null)
-            {
-                _ = LoadTabRepositoryAsync(activeTab.QueryIndex);
-            }
         }
 
         private int? GetRequestedTabIndex(string location)
@@ -273,183 +256,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             return $"/library?tab={PricingTabIndex}&pricingTab={pricingTabQuery}";
         }
 
-        public async Task<List<string>> GetFormular()
-        {
-            List<string> result = new List<string>();
-            try
-            {
-                List<LookupValueResDTO> lookupValues = await _apiServices.GetFromApiAsync<List<LookupValueResDTO>>(Config.LibraryApi.LookupValues)
-             ?? new List<LookupValueResDTO>();
-                foreach (var item in lookupValues)
-                {
-                    result.Add(item.Value!);
-                }
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
-            }
-            finally
-            {
-                StateHasChanged();
-            }
-            return result;
-        }
-        private async Task LoadTabRepositoryAsync(int queryIndex)
-        {
-            try
-            {
-                if (queryIndex == 1) // Categories
-                {
-                    // Grid danh mục chính tải dữ liệu qua Radzen LoadData với skip/top/filter.
-                    // Không preload toàn bộ bảng vì sẽ xung đột paging server-side và tạo state cũ.
-                }
-                else if (queryIndex == 2) // Operations / Items
-                {
-                    if (CategoryDropdownDatas == null || CategoryDropdownDatas.Count == 0)
-                    {
-                        glb.isBusyPage = true;
-                        StateHasChanged();
-
-                        var categoriesTask = _apiServices.GetFromApiAsync<List<VppCategoryResDTO>>($"{Config.LibraryApi.VppCategories}?showDeleted=true");
-                        var uomListTask = _apiServices.GetFromApiAsync<List<LookupValueResDTO>>($"{Config.LibraryApi.LookupValues}?showDeleted=true");
-
-                        await Task.WhenAll(categoriesTask, uomListTask);
-
-                        var cats = await categoriesTask ?? new List<VppCategoryResDTO>();
-                        var uoms = await uomListTask ?? new List<LookupValueResDTO>();
-
-                        var formulaList = uoms.Select(x => x.Value).Where(v => v != null).Cast<string>().ToList();
-
-                        CategoryDropdownDatas = new Dictionary<string, IList<DropdownModel>>()
-                        {
-                            {
-                                nameof(VppItemResDTO.VppCategoryId),
-                                cats.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.VppCategoryName }).ToList()
-                            },
-                            {
-                                nameof(VppItemResDTO.UomId),
-                                uoms.Select(x => new DropdownModel { Code = x.Id.ToString(), Name = x.Value }).ToList()
-                            },
-                            {
-                                nameof(VppItemResDTO),
-                                formulaList.Select(x => new DropdownModel { Code = x, Name = x }).ToList()
-                            }
-                        };
-                    }
-                }
-                else if (queryIndex == 3) // Suppliers
-                {
-                    // Được Component_ShareGrid tải server-side.
-                }
-                else if (queryIndex == 5) // Departments
-                {
-                    // Được Component_ShareGrid tải server-side.
-                }
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
-            }
-            finally
-            {
-                glb.isBusyPage = false;
-                StateHasChanged();
-            }
-        }
-        async Task<T> ApiAddAsync<T>(T data) where T : BaseResDTO, new()
-        {
-            try
-            {
-                if (typeof(T) == typeof(VppItemResDTO))
-                {
-                    var source = (VppItemResDTO)(object)data;
-                    var created = await _apiServices.PostFromApiAsync<VppItemResDTO>(
-                        Config.ApiCatalogItems,
-                        new VppItemCreateRequest
-                        {
-                            VppCode = source.VppCode,
-                            VppName = source.VppName,
-                            Description = source.Description,
-                            UomId = source.UomId,
-                            VppCategoryId = source.VppCategoryId
-                        });
-                    if (created is null) throw new InvalidOperationException("Catalog item create returned no data.");
-                    _toastService.Success(Loc["Success"].Value, Loc["RecordAddedSuccess"].Value);
-                    return (T)(object)created;
-                }
-
-                string endpoint = LibraryEndpointResolver.Resolve<T>();
-                T result = await _apiServices.PostFromApiAsync<T>(endpoint, data) ?? new T();
-                if (result.Id != Guid.Empty)
-                    _toastService.Success(Loc["Success"].Value, Loc["RecordAddedSuccess"].Value);
-                else
-                    _toastService.Error(Loc["Error"].Value, Loc["CreateRecordFailed"].Value);
-                return result!;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "CreateRecordFailed");
-                return default!;
-            }
-        }
-        async Task<T> ApiUpdateAsync<T>(T data) where T : BaseResDTO, new()
-        {
-            try
-            {
-                if (typeof(T) == typeof(VppItemResDTO))
-                {
-                    var source = (VppItemResDTO)(object)data;
-                    var updated = await _apiServices.PutFromApiAsync<VppItemResDTO>(
-                        $"{Config.ApiCatalogItems}/{source.Id}",
-                        new VppItemUpdateRequest
-                        {
-                            Id = source.Id,
-                            VppCode = source.VppCode,
-                            VppName = source.VppName,
-                            Description = source.Description,
-                            UomId = source.UomId,
-                            VppCategoryId = source.VppCategoryId
-                        });
-                    if (updated is null) throw new InvalidOperationException("Catalog item update returned no data.");
-                    _toastService.Success(Loc["Success"].Value, Loc["RecordUpdatedSuccess"].Value);
-                    return (T)(object)updated;
-                }
-
-                string endpoint = $"{LibraryEndpointResolver.Resolve<T>()}/{data.Id}";
-                T result = await _apiServices.PatchFromApiAsync<T>(endpoint, data) ?? new T();
-                if (result != null)
-                    _toastService.Success(Loc["Success"].Value, Loc["RecordUpdatedSuccess"].Value);
-                else
-                    _toastService.Error(Loc["Error"].Value, Loc["UpdateRecordFailed"].Value);
-                return result!;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "UpdateRecordFailed");
-                return default!;
-            }
-        }
-        async Task<bool> ApiDeleteAsync<T>(T data) where T : BaseResDTO, new()
-        {
-            try
-            {
-                string endpoint = $"{LibraryEndpointResolver.Resolve<T>()}/{data.Id}";
-                var result = await _apiServices.DeleteFromApiAsync(endpoint);
-
-                if (result is true)
-                    _toastService.Success(Loc["Success"].Value, Loc["RecordDeletedSuccess"].Value);
-                else
-                    _toastService.Error(Loc["Error"].Value, Loc["DeleteRecordFailed"].Value);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "DeleteRecordFailed");
-                return false;
-            }
-        }
-
         private Task SelectPricingTabAsync(int tabId)
         {
             var index = AuthorizedPricingTabs.ToList().FindIndex(tab => tab == tabId);
@@ -459,31 +265,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             }
 
             return Task.CompletedTask;
-        }
-
-        async Task<T> ApiSetStatusAsync<T>(T data, bool isDeleted) where T : BaseResDTO, new()
-        {
-            if (typeof(T) != typeof(VppItemResDTO))
-            {
-                return await ApiUpdateAsync(data);
-            }
-
-            try
-            {
-                var result = await _apiServices.PatchFromApiAsync<VppItemResDTO>(
-                    $"{Config.ApiCatalogItems}/{data.Id}/status",
-                    new VppItemStatusRequest { IsDeleted = isDeleted });
-                if (result is null) throw new InvalidOperationException("Catalog item status update returned no data.");
-                _toastService.Success(
-                    Loc["Success"].Value,
-                    isDeleted ? Loc["RecordDisabledSuccess"].Value : Loc["RecordRestoredSuccess"].Value);
-                return (T)(object)result;
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
-                return default!;
-            }
         }
 
         public void Dispose()

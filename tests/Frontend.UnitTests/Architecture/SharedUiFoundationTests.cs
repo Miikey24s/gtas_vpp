@@ -630,7 +630,6 @@ public sealed class SharedUiFoundationTests
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_DepartmentLibrary.razor", "<VppCollectionWorkspace");
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor", "<VppCollectionWorkspace");
         AssertPatternConsumer(root, "Pages", "Permission", "Tabs", "Tab_User.razor", "<VppCollectionWorkspace");
-        AssertPatternConsumer(root, "Pages", "Lib", "Component_ShareGrid.razor", "<VppListDetailWorkspace");
         AssertPatternConsumer(root, "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor", "<VppSplitEditorWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "OrderCreateStep2.razor", "<VppSplitEditorWorkspace");
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor", "<HistoryWorkspaceShell");
@@ -1012,7 +1011,7 @@ public sealed class SharedUiFoundationTests
         var root = GetFrontendRoot();
         var script = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
-        var libraryGrid = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_ShareGrid.razor"));
+        var libraryGrid = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_ItemLibrary.razor"));
         var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
 
         Assert.Contains("data-vpp-grid-region=\"true\"", orderItemsSurface, StringComparison.Ordinal);
@@ -1032,7 +1031,10 @@ public sealed class SharedUiFoundationTests
     public void Ds4AdminConsumers_UseCanonicalServerPagedDataSurfaces()
     {
         var root = GetFrontendRoot();
-        var componentShareGrid = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Component_ShareGrid.razor"));
+        var categories = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_CategoryLibrary.razor"));
+        var items = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_ItemLibrary.razor"));
+        var suppliers = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_SupplierLibrary.razor"));
+        var departments = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_DepartmentLibrary.razor"));
         var lookup = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor"));
         var price = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor"));
         var priceList = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor"));
@@ -1041,7 +1043,7 @@ public sealed class SharedUiFoundationTests
         var securityAudit = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_SecurityAudit.razor"));
         var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
 
-        foreach (var source in new[] { componentShareGrid, lookup, price, priceList, users, permissions, securityAudit })
+        foreach (var source in new[] { categories, items, suppliers, departments, lookup, price, priceList, users, permissions, securityAudit })
         {
             Assert.Contains("VppDataSourceMode.ServerPaging", source, StringComparison.Ordinal);
             Assert.Contains("VppDataDensity.Compact", source, StringComparison.Ordinal);

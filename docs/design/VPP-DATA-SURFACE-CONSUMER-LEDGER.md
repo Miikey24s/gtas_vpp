@@ -1,17 +1,16 @@
 # VPP Data Surface Consumer Ledger
 
-> Snapshot: `2026-07-29` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 IMPLEMENTED; R1 IN PROGRESS`
+> Snapshot: `2026-07-30` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 IMPLEMENTED; R1 IN PROGRESS`
 
 Ledger này là bản đồ migration, không phải yêu cầu mọi bảng phải giống hệt nhau. Shared foundation chỉ sở hữu frame, toolbar, density, footer và transient cell value; route vẫn sở hữu dữ liệu, cột, API, permission và action.
 
 ## Radzen DataGrid inventory
 
-Source hiện có **21 file / 26 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
+Source hiện có **20 file / 25 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
 | `Components/DesignSystem/Composites/VppOrderItemsSurface.razor` | 1 | Detail items | `Static` hoặc `ClientSnapshotPaged` khi trên 100 dòng | `RichTwoLine` | DS2 reference + bounded paging retrofit |
-| `Components/Pages/Lib/Component_ShareGrid.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_CategoryLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA2 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_SupplierLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_ItemLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
@@ -70,7 +69,7 @@ Source hiện có **21 file / 26 DataGrid thật**. Generic type reference trong
 
 ## DS4 admin group
 
-- `Component_ShareGrid`, Lookup, Price, Price List và Users dùng typed server-paged frame, compact density, canonical toolbar, column picker và native grid scroll/pager.
+- Categories, Items, Suppliers, Departments, Lookup, Price, Price List và Users dùng route-typed server-paged frame, compact density, canonical toolbar, column picker và native grid scroll/pager. `Component_ShareGrid<T>` reflection legacy đã hết consumer và được xóa.
 - Library shell truyền chiều cao viewport xuống active panel; Lookup chia đôi desktop và xếp dọc tablet. List/detail admin cũng xếp dọc ở tablet để không cắt pane hoặc tạo horizontal document overflow.
 - Pricing tabs là navigation nội bộ trong flow, không còn sticky-offset đè lên toolbar.
 - Permission group/component grids opt-in cùng header/row/footer bridge; permission action matrix tiếp tục là ngoại lệ đúng nghiệp vụ.

@@ -5,30 +5,31 @@ namespace gtas_vpp_fe.Tests.Architecture;
 
 public sealed class AtlasWave1ArchitectureTests
 {
-    [Theory]
-    [InlineData("Components/Pages/Lib/Component_ShareGrid.razor")]
-    public void AdministrativeCollections_ExposeAResponsiveInspector(string relativePath)
-    {
-        var source = ReadFrontendSource(relativePath);
-
-        Assert.True(
-            source.Contains("<VppListDetailWorkspace", StringComparison.Ordinal)
-            || source.Contains("vpp-atlas-admin-workspace", StringComparison.Ordinal),
-            "F4 consumers use the typed list-detail pattern; routes not migrated until F5 keep the Atlas adapter.");
-        Assert.Contains("Component_RecordInspector", source, StringComparison.Ordinal);
-        Assert.Contains("DataGridSelectionMode.Single", source, StringComparison.Ordinal);
-    }
-
     [Fact]
-    public void ItemGrid_KeepsLocalizationAndPricingEvidenceInTheInspectorByDefault()
+    public void TypedAdministrativeCollections_RetireTheGenericReflectionGridAndInspector()
     {
-        var source = ReadFrontendSource("Components/Pages/Lib/Component_ShareGrid.razor.cs");
+        var libraryRoot = Path.Combine(FindRepositoryRoot(), "src", "Frontend", "Blazor", "Components", "Pages", "Lib");
 
-        Assert.Contains("IsInspectorFirstProperty", source, StringComparison.Ordinal);
-        Assert.Contains("OriginalLanguageCode", source, StringComparison.Ordinal);
-        Assert.Contains("DefaultSupplierName", source, StringComparison.Ordinal);
-        Assert.Contains("typeof(TType) == typeof(SupplierResDTO)", source, StringComparison.Ordinal);
-        Assert.Contains("nameof(SupplierResDTO.Address1)", source, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(libraryRoot, "Component_ShareGrid.razor")));
+        Assert.False(File.Exists(Path.Combine(libraryRoot, "Component_ShareGrid.razor.cs")));
+        Assert.False(File.Exists(Path.Combine(libraryRoot, "Component_RecordInspector.razor")));
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(), "src", "Frontend", "Blazor", "Components", "Pages", "Permission", "Tabs", "Component_Loading.razor")));
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(), "src", "Frontend", "Blazor", "Components", "Shared", "DialogProvider.razor")));
+
+        foreach (var tab in new[]
+                 {
+                     "Tab_CategoryLibrary.razor",
+                     "Tab_ItemLibrary.razor",
+                     "Tab_SupplierLibrary.razor",
+                     "Tab_DepartmentLibrary.razor"
+                 })
+        {
+            var source = ReadFrontendSource($"Components/Pages/Lib/Tabs/{tab}");
+            Assert.Contains("<VppCollectionWorkspace", source, StringComparison.Ordinal);
+            Assert.Contains("VppDataSourceMode.ServerPaging", source, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
@@ -70,19 +71,15 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
-    public void LibraryInspectors_ExposeInlineEditAndSoftDeleteWithoutHardDeleteActions()
+    public void TypedLibraryCollections_UseAdaptiveEditorsWithoutHardDeleteActions()
     {
-        var grid = ReadFrontendSource("Components/Pages/Lib/Component_ShareGrid.razor");
-        var gridCode = ReadFrontendSource("Components/Pages/Lib/Component_ShareGrid.razor.cs");
-        var inspector = ReadFrontendSource("Components/Pages/Lib/Component_RecordInspector.razor");
         var classes = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor");
         var priceLists = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
+        var categoryEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_CategoryEditor.razor");
+        var supplierEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_SupplierEditor.razor");
 
-        Assert.Contains("EditRequested", inspector, StringComparison.Ordinal);
-        Assert.Contains("ToggleStatusRequested", inspector, StringComparison.Ordinal);
-        Assert.Contains("ToggleSelectedStatusAsync", grid, StringComparison.Ordinal);
-        Assert.DoesNotContain("AllowHardDelete", gridCode, StringComparison.Ordinal);
-        Assert.DoesNotContain("HardDeleteRow", gridCode, StringComparison.Ordinal);
+        Assert.Contains("<VppAdaptiveDialogShell", categoryEditor, StringComparison.Ordinal);
+        Assert.Contains("<VppAdaptiveDialogShell", supplierEditor, StringComparison.Ordinal);
         Assert.DoesNotContain("delete_forever", classes, StringComparison.Ordinal);
         Assert.DoesNotContain("HardDeleteAsync", priceLists, StringComparison.Ordinal);
     }
@@ -185,7 +182,9 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var users = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor");
         var userCode = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor.cs");
-        var inspector = ReadFrontendSource("Components/Pages/Lib/Component_RecordInspector.razor");
+        var invitation = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserInvitationEditor.razor");
+        var membership = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserMembershipEditor.razor");
+        var renderedUserSources = string.Join('\n', users, userCode, invitation, membership);
 
         Assert.Contains("Loc[\"UserSearchPlaceholder\"]", users, StringComparison.Ordinal);
         Assert.Contains("Loc[\"AllAccountStatuses\"]", users, StringComparison.Ordinal);
@@ -195,9 +194,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("TemporaryPassword", userCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Membership updated", userCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Deactivate membership", userCode, StringComparison.Ordinal);
-        Assert.Contains("IsSensitiveProperty(prop.Name)", inspector, StringComparison.Ordinal);
-        Assert.Contains("name is \"SessionVersion\"", inspector, StringComparison.Ordinal);
-        Assert.DoesNotContain("name is \"Id\" or \"RowVersion\" or \"SessionVersion\"", inspector, StringComparison.Ordinal);
+        Assert.DoesNotContain("SessionVersion", renderedUserSources, StringComparison.Ordinal);
+        Assert.DoesNotContain("PasswordHash", renderedUserSources, StringComparison.Ordinal);
+        Assert.DoesNotContain("SecurityStamp", renderedUserSources, StringComparison.Ordinal);
+        Assert.DoesNotContain("AccessToken", renderedUserSources, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("RefreshToken", renderedUserSources, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("ConfirmationToken", renderedUserSources, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

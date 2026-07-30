@@ -180,7 +180,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         await CaptureRouteAsync(directory, "ui-period-demand.png", "dashboard?tab=5&periodTab=demand", "[data-testid='period-demand-data-surface']");
         await CaptureRouteAsync(directory, "ui-supply-allocation.png", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']");
         await CaptureRouteAsync(directory, "ui-settlement-flow.png", "dashboard?tab=5&periodTab=settle", "[data-testid='period-settlement-data-surface']");
-        await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2", ".vpp-atlas-admin-workspace");
+        await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2", ".vpp-admin-data-surface");
         await CaptureRouteAsync(directory, "ui-price-lists.png", "library?tab=6&pricingTab=price-lists", ".vpp-price-list-workspace");
 
         await SwitchUserAsync(TestAccounts.Employee);
