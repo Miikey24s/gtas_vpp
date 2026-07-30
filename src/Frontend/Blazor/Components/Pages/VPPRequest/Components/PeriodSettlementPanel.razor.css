@@ -1,6 +1,5 @@
 .vpp-period-settlement-root {
-    height: 100%;
-    min-height: 0;
+    display: contents;
 }
 
 .vpp-period-settlement-root ::deep .vpp-period-settlement-page {

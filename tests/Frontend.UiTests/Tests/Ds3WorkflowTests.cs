@@ -51,6 +51,8 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         (await surface.Locator(".vpp-settlement-footer").CountAsync()).Should().Be(0);
         (await Page.GetByRole(AriaRole.Button, new() { Name = "Xem bản xem trước" }).CountAsync()).Should().Be(0);
 
+        await AssertUnifiedWorkspaceRowsAsync(requireDesktopFilterRow: true);
+
         if (await surface.Locator(".rz-data-grid:visible").CountAsync() > 0)
         {
             (await surface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
@@ -103,7 +105,51 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
                 }
                 """);
             containment.Should().Be("true|true");
+
+            await AssertUnifiedWorkspaceRowsAsync(requireDesktopFilterRow: false);
             await CaptureAsync($"ds3-period-settlement-{legacyStep}-{width}x{height}.png");
+        }
+    }
+
+    private async Task AssertUnifiedWorkspaceRowsAsync(bool requireDesktopFilterRow)
+    {
+        var layout = await Page.EvaluateAsync<double[]>("""
+            () => {
+                const root = document.querySelector('.vpp-period-settlement-root');
+                const analytics = document.querySelector('.vpp-period-settlement-page > .vpp-analytics-workspace-pattern');
+                const selectors = document.querySelector('.vpp-settlement-selector-row');
+                const decision = document.querySelector('.vpp-settlement-decision-strip');
+                const surface = document.querySelector('[data-testid="period-settlement-data-surface"]');
+                const filters = document.querySelector('.vpp-period-filters');
+                const filterChildren = filters ? [...filters.children] : [];
+                if (!root || !analytics || !selectors || !decision || !surface || filterChildren.length === 0) {
+                    throw new Error('Unified settlement layout is incomplete.');
+                }
+
+                const analyticsRect = analytics.getBoundingClientRect();
+                const selectorRect = selectors.getBoundingClientRect();
+                const decisionRect = decision.getBoundingClientRect();
+                const surfaceRect = surface.getBoundingClientRect();
+                const filterTops = filterChildren.map(element => element.getBoundingClientRect().top);
+                return [
+                    Math.abs(analyticsRect.width - selectorRect.width),
+                    Math.abs(analyticsRect.width - decisionRect.width),
+                    Math.abs(analyticsRect.width - surfaceRect.width),
+                    decisionRect.top - selectorRect.bottom,
+                    surfaceRect.top - decisionRect.bottom,
+                    Math.max(...filterTops) - Math.min(...filterTops)
+                ];
+            }
+            """);
+
+        layout[0].Should().BeLessThanOrEqualTo(2, "the period selector owns a full workspace row");
+        layout[1].Should().BeLessThanOrEqualTo(2, "the supplier decision strip owns a full workspace row");
+        layout[2].Should().BeLessThanOrEqualTo(2, "the data surface cannot collapse into the left analytics column");
+        layout[3].Should().BeGreaterThanOrEqualTo(0, "the decision strip must render below the period selector");
+        layout[4].Should().BeGreaterThanOrEqualTo(0, "the data surface must render below the decision strip");
+        if (requireDesktopFilterRow)
+        {
+            layout[5].Should().BeLessThanOrEqualTo(2, "desktop filters stay on one aligned toolbar row");
         }
     }
 

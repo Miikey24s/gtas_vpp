@@ -5,6 +5,10 @@
     min-height: 0;
 }
 
+.vpp-operation-workspace-pattern.is-fill {
+    height: 100%;
+}
+
 .is-gap-compact { gap: var(--vpp-space-2); }
 .is-gap-standard { gap: var(--vpp-space-3); }
 .is-gap-comfortable { gap: var(--vpp-space-4); }
