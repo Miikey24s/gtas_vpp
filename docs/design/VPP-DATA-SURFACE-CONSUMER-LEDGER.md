@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **19 file / 24 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
+Source hiện có **20 file / 25 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -19,6 +19,7 @@ Source hiện có **19 file / 24 DataGrid thật**. Generic type reference trong
 | `Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor` | 2 | Master/detail admin | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Permission/Dialogs/Dialog_PermissionUiBatchEditor.razor` | 1 | Permission batch editor | `Static` | `Compact` | AA6 workspace editor |
 | `Components/Pages/Permission/Tabs/Tab_PagePermission.razor` | 2 | Permission collection | `ServerPaging` | `Compact` | DS4 complete; matrix exception retained |
 | `Components/Pages/Permission/Tabs/Tab_User.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Report.razor` | 2 | Static report | `Static` | `Compact` | DS4 static exception complete |

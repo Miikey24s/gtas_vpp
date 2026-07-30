@@ -49,11 +49,13 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
             "the invitation action explains why it is unavailable when email delivery is disabled");
 
         await GotoMainRouteAsync("permission?tab=1");
-        await Page.GetByText("Ba vai trò chuẩn", new() { Exact = false }).First.WaitForAsync(new LocatorWaitForOptions
+        await Page.Locator("[data-testid='permission-groups-data-surface']").WaitForAsync();
+        await Page.GetByRole(AriaRole.Button, new()
         {
-            State = WaitForSelectorState.Visible,
-            Timeout = 30_000
-        });
+            Name = "Quyền API (tham chiếu)",
+            Exact = true
+        }).ClickAsync();
+        await Page.Locator(".vpp-permission-matrix").WaitForAsync();
         (await Page.Locator(".vpp-permission-matrix tbody tr").CountAsync()).Should().Be(18);
         (await Page.Locator(".vpp-permission-matrix thead th").CountAsync()).Should().Be(4);
 

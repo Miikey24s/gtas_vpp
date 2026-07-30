@@ -999,4 +999,24 @@
   <data name="Apply" xml:space="preserve"><value>Áp dụng</value></data>
   <data name="View" xml:space="preserve"><value>Xem</value></data>
   <data name="Details" xml:space="preserve"><value>Chi tiết</value></data>
+  <data name="PermissionView" xml:space="preserve"><value>Chế độ xem quyền</value></data>
+  <data name="PermissionUiView" xml:space="preserve"><value>Quyền giao diện</value></data>
+  <data name="PermissionApiReference" xml:space="preserve"><value>Quyền API (tham chiếu)</value></data>
+  <data name="CanonicalRoleCount" xml:space="preserve"><value>{0} vai trò chuẩn</value></data>
+  <data name="SelectPermissionGroup" xml:space="preserve"><value>Chọn nhóm quyền để xem cấu hình</value></data>
+  <data name="ConfigureUiPermissions" xml:space="preserve"><value>Cấu hình quyền UI</value></data>
+  <data name="AccessState" xml:space="preserve"><value>Trạng thái truy cập</value></data>
+  <data name="AdministrationMode" xml:space="preserve"><value>Chế độ quản trị</value></data>
+  <data name="PermissionBatchChangeCount" xml:space="preserve"><value>{0} thay đổi</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Lưu thay đổi</value></data>
+  <data name="NoChanges" xml:space="preserve"><value>Chưa có thay đổi</value></data>
+  <data name="NoPermissionChanges" xml:space="preserve"><value>Hãy thay đổi ít nhất một quyền giao diện trước khi lưu.</value></data>
+  <data name="AccessHidden" xml:space="preserve"><value>Ẩn</value></data>
+  <data name="AccessReadOnly" xml:space="preserve"><value>Chỉ xem</value></data>
+  <data name="AccessEnabled" xml:space="preserve"><value>Cho phép thao tác</value></data>
+  <data name="CanonicalAction" xml:space="preserve"><value>Quyền API chuẩn</value></data>
+  <data name="RequiredAccess" xml:space="preserve"><value>Bắt buộc</value></data>
+  <data name="OutsideRoleCeiling" xml:space="preserve"><value>Ngoài phạm vi vai trò</value></data>
+  <data name="ConfigurableAccess" xml:space="preserve"><value>Có thể cấu hình</value></data>
+  <data name="PermissionBatchUpdated" xml:space="preserve"><value>Đã cập nhật {0} quyền giao diện.</value></data>
 </root>

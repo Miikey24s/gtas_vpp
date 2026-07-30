@@ -47,7 +47,7 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
         new("price-lists", "library?tab=6&pricingTab=price-lists", ".vpp-price-list-workspace"),
         new("prices", "library?tab=6&pricingTab=prices", ".vpp-price-workspace"),
         new("users", "permission?tab=0", "[data-testid='permission-users-data-surface']"),
-        new("permissions", "permission?tab=1", ".vpp-permission-matrix"),
+        new("permissions", "permission?tab=1", "[data-testid='permission-groups-data-surface']"),
         new("reports", "report", ".vpp-report-page"),
         new("system-states", "dashboard?tab=0", "#components-reconnect-modal")
     ];

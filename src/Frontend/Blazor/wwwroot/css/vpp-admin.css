@@ -1359,6 +1359,163 @@
     box-shadow: var(--vpp-shadow-xs);
 }
 
+.vpp-permission-admin-page,
+.vpp-permission-list-detail,
+.vpp-permission-group-list,
+.vpp-permission-group-detail,
+.vpp-permission-detail-shell {
+    min-width: 0;
+    min-height: 0;
+}
+
+.vpp-permission-admin-page {
+    overflow: hidden;
+}
+
+.vpp-permission-view-switcher {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.vpp-permission-list-detail,
+.vpp-permission-matrix-card {
+    flex: 1 1 auto;
+    height: 100%;
+}
+
+.vpp-permission-group-list,
+.vpp-permission-group-detail {
+    overflow: hidden;
+}
+
+.vpp-permission-group-surface,
+.vpp-permission-detail-shell {
+    height: 100%;
+}
+
+.vpp-permission-group-summary {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-permission-detail-shell {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-permission-detail-header,
+.vpp-permission-editor-intro,
+.vpp-permission-editor-page-copy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-permission-detail-header {
+    flex: 0 0 auto;
+    padding: var(--vpp-space-3);
+    border-bottom: 1px solid var(--vpp-border-default);
+}
+
+.vpp-permission-detail-header > div,
+.vpp-permission-editor-intro > div,
+.vpp-permission-editor-page-copy {
+    min-width: 0;
+}
+
+.vpp-permission-detail-header > div,
+.vpp-permission-editor-intro > div {
+    display: grid;
+    gap: 2px;
+}
+
+.vpp-permission-detail-header strong,
+.vpp-permission-editor-intro strong,
+.vpp-permission-editor-page-copy strong {
+    color: var(--vpp-text-primary);
+}
+
+.vpp-permission-detail-header span,
+.vpp-permission-editor-intro span,
+.vpp-permission-editor-page-copy span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-permission-detail-shell .permission-component-selector,
+.vpp-permission-detail-shell .permission-component-summary-row {
+    flex: 0 0 auto;
+}
+
+.vpp-permission-detail-shell .permission-component-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.vpp-permission-matrix-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.vpp-permission-batch-editor .vpp-adaptive-dialog-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vpp-space-3);
+    overflow: hidden;
+}
+
+.vpp-permission-editor-page-selector,
+.vpp-permission-editor-page-copy,
+.vpp-permission-editor-reason {
+    flex: 0 0 auto;
+}
+
+.vpp-permission-editor-page-selector {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.vpp-permission-editor-page-copy {
+    align-items: flex-start;
+}
+
+.vpp-permission-editor-page-copy {
+    display: grid;
+    gap: 2px;
+}
+
+.vpp-permission-editor-grid.permission-component-grid.rz-data-grid {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.vpp-permission-editor-grid.permission-component-grid.rz-data-grid .rz-data-grid-data {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.vpp-permission-access-select {
+    width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 1100px) {
+    .vpp-permission-list-detail {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(13rem, 0.45fr) minmax(18rem, 1fr);
+        overflow: hidden;
+    }
+}
+
 /* Bounded shell truyền đúng chiều cao còn lại; grid và inspector sở hữu vùng
    cuộn native, không để workspace bị cắt dưới viewport. */
 .vpp-admin-tabs.vpp-bounded-shell .vpp-atlas-admin-workspace,
@@ -1411,7 +1568,9 @@
 }
 
 .vpp-permission-matrix-scroll {
-    max-height: 32rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
     overflow: auto;
 }
 

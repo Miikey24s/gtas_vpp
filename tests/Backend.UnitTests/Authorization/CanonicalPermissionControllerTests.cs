@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Security.Claims;
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Controllers;
 using gtas_vpp_be.Model.Auth;
@@ -9,6 +10,7 @@ using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
 
@@ -33,6 +35,17 @@ public sealed class CanonicalPermissionControllerTests
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow
         });
+        context.UserGroupMemberships.Add(new UserGroupMembership
+        {
+            Id = Guid.NewGuid(),
+            AccountId = 1_000_001_006,
+            UserId = 1_000_001_006,
+            PermissionGroupId = CanonicalRbac.SystemAdmin.GroupId,
+            DepartmentId = Guid.NewGuid(),
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow,
+            IsDeleted = false
+        });
         await context.SaveChangesAsync();
         var controller = CreateController(context);
 
@@ -48,6 +61,7 @@ public sealed class CanonicalPermissionControllerTests
         Assert.Equal(
             CanonicalRbac.Personas.Select(persona => persona.GroupCode).Order(),
             groups.Select(group => group.GroupCode).Order());
+        Assert.Equal(1, groups.Single(group => group.Id == CanonicalRbac.SystemAdmin.GroupId).UserCount);
     }
 
     [Fact]
@@ -165,10 +179,108 @@ public sealed class CanonicalPermissionControllerTests
         VerifyNeverUpdated(mappings);
     }
 
+    [Fact]
+    public async Task PatchComponentMappingsBatch_UpdatesUiMappingsAtomicallyAndWritesAudit()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var uiComponents = CanonicalRbac.GetUiComponents(CanonicalRbac.Employee.GroupId).Take(2).ToArray();
+        Assert.Equal(2, uiComponents.Length);
+        var first = await CreateTrackedMappingAsync(context, CanonicalRbac.Employee.GroupId, uiComponents[0]);
+        var second = await CreateTrackedMappingAsync(context, CanonicalRbac.Employee.GroupId, uiComponents[1]);
+        var notifier = new Mock<IPermissionChangeNotifier>();
+        var controller = CreateController(context, permissionChangeNotifier: notifier);
+
+        var action = await controller.PatchComponentMappingsBatch(
+            new BatchPatchComponentMappingsReqDTO
+            {
+                PermissionGroupId = CanonicalRbac.Employee.GroupId,
+                Reason = "Batch editor test",
+                Items =
+                [
+                    new() { PageComponentMappingId = first.Mapping.PageComponentMappingId, IsVisible = true, IsEnable = false },
+                    new() { PageComponentMappingId = second.Mapping.PageComponentMappingId, IsVisible = false, IsEnable = false }
+                ]
+            },
+            CancellationToken.None);
+
+        var response = Assert.IsType<OkObjectResult>(action);
+        var result = Assert.IsType<BatchPatchComponentMappingsResDTO>(response.Value);
+        Assert.Equal(2, result.UpdatedCount);
+        Assert.True(first.Mapping.IsVisible);
+        Assert.False(first.Mapping.IsEnable);
+        Assert.False(second.Mapping.IsVisible);
+        Assert.False(second.Mapping.IsEnable);
+        Assert.Single(context.SecurityAudits, audit =>
+            audit.Action == "PERMISSION_UI_BATCH_UPDATED"
+            && audit.ResourceId == CanonicalRbac.Employee.GroupId.ToString());
+        notifier.Verify(
+            service => service.NotifyGroupChangedAsync(
+                CanonicalRbac.Employee.GroupId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task PatchComponentMappingsBatch_RejectsActionGrantWithoutMutatingValidItems()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var uiCode = CanonicalRbac.GetUiComponents(CanonicalRbac.Employee.GroupId).First();
+        var uiMapping = await CreateTrackedMappingAsync(context, CanonicalRbac.Employee.GroupId, uiCode);
+        var actionMapping = await CreateTrackedMappingAsync(
+            context,
+            CanonicalRbac.Employee.GroupId,
+            Permissions.RequestCreate);
+        var controller = CreateController(context);
+
+        var action = await controller.PatchComponentMappingsBatch(
+            new BatchPatchComponentMappingsReqDTO
+            {
+                PermissionGroupId = CanonicalRbac.Employee.GroupId,
+                Items =
+                [
+                    new() { PageComponentMappingId = uiMapping.Mapping.PageComponentMappingId, IsVisible = false, IsEnable = false },
+                    new() { PageComponentMappingId = actionMapping.Mapping.PageComponentMappingId, IsVisible = false, IsEnable = false }
+                ]
+            },
+            CancellationToken.None);
+
+        Assert.IsType<ConflictObjectResult>(action);
+        Assert.True(uiMapping.Mapping.IsVisible);
+        Assert.True(uiMapping.Mapping.IsEnable);
+        Assert.Empty(context.SecurityAudits);
+    }
+
+    [Fact]
+    public async Task PatchComponentMappingsBatch_CannotDisableProtectedSystemAdminNavigation()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var mapping = await CreateTrackedMappingAsync(
+            context,
+            CanonicalRbac.SystemAdmin.GroupId,
+            Permissions.MenuPermission);
+        var controller = CreateController(context);
+
+        var action = await controller.PatchComponentMappingsBatch(
+            new BatchPatchComponentMappingsReqDTO
+            {
+                PermissionGroupId = CanonicalRbac.SystemAdmin.GroupId,
+                Items =
+                [
+                    new() { PageComponentMappingId = mapping.Mapping.PageComponentMappingId, IsVisible = false, IsEnable = false }
+                ]
+            },
+            CancellationToken.None);
+
+        Assert.IsType<ConflictObjectResult>(action);
+        Assert.True(mapping.Mapping.IsVisible);
+        Assert.True(mapping.Mapping.IsEnable);
+    }
+
     private static PermissionController CreateController(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         Mock<IGenericRepository<PermissionGroup>>? groupRepository = null,
-        Mock<IGenericRepository<GroupPageComponentMapping>>? mappingRepository = null)
+        Mock<IGenericRepository<GroupPageComponentMapping>>? mappingRepository = null,
+        Mock<IPermissionChangeNotifier>? permissionChangeNotifier = null)
     {
         var controller = new PermissionController(
             (groupRepository ?? new Mock<IGenericRepository<PermissionGroup>>()).Object,
@@ -177,12 +289,18 @@ public sealed class CanonicalPermissionControllerTests
             Mock.Of<IUserNameResolver>(),
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
             new FakeDateTimeProvider(DateTime.UtcNow),
-            Mock.Of<IPermissionChangeNotifier>(),
+            (permissionChangeNotifier ?? new Mock<IPermissionChangeNotifier>()).Object,
             Mock.Of<IMembershipAdministrationService>())
         {
             ControllerContext = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext()
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(
+                    [
+                        new Claim("UserID", "1000001006")
+                    ], "test"))
+                }
             }
         };
 
@@ -233,6 +351,20 @@ public sealed class CanonicalPermissionControllerTests
         context.AddRange(component, pageMapping);
         await context.SaveChangesAsync();
         return new MappingFixture(mapping);
+    }
+
+    private static async Task<MappingFixture> CreateTrackedMappingAsync(
+        gtas_vpp_be.Service.Helpers.Context.VPPContext context,
+        Guid groupId,
+        string componentCode)
+    {
+        var fixture = await CreateMappingAsync(context, groupId, componentCode);
+        fixture.Mapping.PageComponentMapping = await context.PageComponentMappings
+            .Include(mapping => mapping.PermissionComponent)
+            .SingleAsync(mapping => mapping.Id == fixture.Mapping.PageComponentMappingId);
+        context.GroupPageComponentMappings.Add(fixture.Mapping);
+        await context.SaveChangesAsync();
+        return fixture;
     }
 
     private static Mock<IGenericRepository<GroupPageComponentMapping>> MappingRepository(

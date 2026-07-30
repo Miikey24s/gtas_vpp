@@ -12,6 +12,9 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
@@ -93,7 +96,10 @@ namespace gtas_vpp_be.Controllers
                     MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
                     GroupCode = group.GroupCode,
                     GroupName = group.GroupName,
-                    ParentGroupId = group.ParentGroupId
+                    ParentGroupId = group.ParentGroupId,
+                    UserCount = group.UserGroupMemberships == null
+                        ? 0
+                        : group.UserGroupMemberships.Count(membership => !membership.IsDeleted)
                 });
 
             if (!string.IsNullOrWhiteSpace(filter))
@@ -439,6 +445,190 @@ namespace gtas_vpp_be.Controllers
 
             await _permissionChangeNotifier.NotifyGroupChangedAsync(current.PermissionGroupId, HttpContext.RequestAborted);
             return Ok(rs);
+        }
+
+        [HttpPatch("component-mappings/batch")]
+        [Authorize(Policy = Permissions.PermissionManage)]
+        [ProducesResponseType(typeof(BatchPatchComponentMappingsResDTO), StatusCodes.Status200OK)]
+        public async Task<IActionResult> PatchComponentMappingsBatch(
+            [FromBody] BatchPatchComponentMappingsReqDTO req,
+            CancellationToken cancellationToken)
+        {
+            if (req.PermissionGroupId == Guid.Empty || req.Items.Count is 0 or > 500)
+            {
+                return BadRequest(new
+                {
+                    code = "INVALID_PERMISSION_BATCH",
+                    message = "A canonical group and between 1 and 500 mappings are required."
+                });
+            }
+
+            if (req.Items.Any(item => item.PageComponentMappingId == Guid.Empty)
+                || req.Items.Select(item => item.PageComponentMappingId).Distinct().Count() != req.Items.Count)
+            {
+                return BadRequest(new
+                {
+                    code = "DUPLICATE_PERMISSION_MAPPING",
+                    message = "Each permission mapping must appear exactly once."
+                });
+            }
+
+            if (!CanonicalRbac.Personas.Any(persona => persona.GroupId == req.PermissionGroupId))
+            {
+                return Conflict(new
+                {
+                    code = "NON_CANONICAL_ROLE_MAPPING",
+                    message = "Only canonical single-company role mappings can be administered."
+                });
+            }
+
+            IDbContextTransaction? transaction = null;
+            try
+            {
+                if (_unitOfWork.VPPContext.Database.IsRelational())
+                {
+                    transaction = await _unitOfWork.VPPContext.Database.BeginTransactionAsync(
+                        IsolationLevel.Serializable,
+                        cancellationToken);
+                }
+
+                var mappingIds = req.Items.Select(item => item.PageComponentMappingId).ToArray();
+                var mappings = await _unitOfWork.VPPContext.Set<GroupPageComponentMapping>()
+                    .Include(mapping => mapping.PageComponentMapping)!
+                    .ThenInclude(mapping => mapping!.PermissionComponent)
+                    .Where(mapping => mapping.PermissionGroupId == req.PermissionGroupId
+                                      && mapping.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
+                                      && mappingIds.Contains(mapping.PageComponentMappingId))
+                    .ToListAsync(cancellationToken);
+
+                if (mappings.Count != req.Items.Count)
+                {
+                    return NotFound(new
+                    {
+                        code = "PERMISSION_MAPPING_NOT_FOUND",
+                        message = "One or more permission mappings no longer exist. Reload before saving."
+                    });
+                }
+
+                var mappingById = mappings.ToDictionary(mapping => mapping.PageComponentMappingId);
+                var requestedMappings = new List<(GroupPageComponentMapping Mapping, BatchPatchComponentMappingItemReqDTO Item)>();
+                foreach (var item in req.Items)
+                {
+                    var mapping = mappingById[item.PageComponentMappingId];
+                    var componentCode = mapping.PageComponentMapping?.PermissionComponent?.ComponentCode ?? string.Empty;
+
+                    if (Permissions.IsActionCode(componentCode))
+                    {
+                        return Conflict(new
+                        {
+                            code = "ACTION_MATRIX_IMMUTABLE",
+                            message = "Backend action grants are fixed by the reviewed role matrix."
+                        });
+                    }
+
+                    if (!CanonicalRbac.GetUiComponents(req.PermissionGroupId)
+                            .Contains(componentCode, StringComparer.OrdinalIgnoreCase))
+                    {
+                        return Conflict(new
+                        {
+                            code = "COMPONENT_OUTSIDE_ROLE_CEILING",
+                            message = "A UI component is outside the canonical role ceiling."
+                        });
+                    }
+
+                    if (item.IsEnable && !item.IsVisible)
+                    {
+                        return BadRequest(new
+                        {
+                            code = "ENABLED_COMPONENT_MUST_BE_VISIBLE",
+                            message = "An enabled UI component must also be visible."
+                        });
+                    }
+
+                    var isProtectedSystemAdminNavigation = req.PermissionGroupId == CanonicalRbac.SystemAdmin.GroupId
+                        && (string.Equals(componentCode, Permissions.MenuPermission, StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(componentCode, Permissions.PermissionUser, StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(componentCode, Permissions.PermissionComponent, StringComparison.OrdinalIgnoreCase));
+                    if (isProtectedSystemAdminNavigation && (!item.IsVisible || !item.IsEnable))
+                    {
+                        return Conflict(new
+                        {
+                            code = "SYSTEM_ADMIN_NAVIGATION_REQUIRED",
+                            message = "System Admin access-administration navigation cannot be disabled."
+                        });
+                    }
+
+                    requestedMappings.Add((mapping, item));
+                }
+
+                var changed = requestedMappings
+                    .Where(request => request.Mapping.IsVisible != request.Item.IsVisible
+                                      || request.Mapping.IsEnable != request.Item.IsEnable)
+                    .ToList();
+
+                foreach (var request in changed)
+                {
+                    request.Mapping.IsVisible = request.Item.IsVisible;
+                    request.Mapping.IsEnable = request.Item.IsEnable;
+                    request.Mapping.UpdatedByUserId = CurrentUserId;
+                    request.Mapping.UpdatedAtUtc = _dateTimeProvider.Now;
+                }
+
+                if (changed.Count > 0)
+                {
+                    var reason = string.IsNullOrWhiteSpace(req.Reason)
+                        ? "Cập nhật quyền giao diện theo lô."
+                        : req.Reason.Trim();
+                    _unitOfWork.VPPContext.SecurityAudits.Add(new SecurityAudit
+                    {
+                        Id = Guid.NewGuid(),
+                        ActorUserId = CurrentUserId > 0 ? CurrentUserId : null,
+                        Action = "PERMISSION_UI_BATCH_UPDATED",
+                        ResourceType = "PermissionGroup",
+                        ResourceId = req.PermissionGroupId.ToString(),
+                        Outcome = "Succeeded",
+                        Summary = $"Updated {changed.Count} UI permission mapping(s).",
+                        Reason = reason.Length > 500 ? reason[..500] : reason,
+                        CorrelationId = Activity.Current?.TraceId.ToString(),
+                        OccurredAtUtc = _dateTimeProvider.Now
+                    });
+                    await _unitOfWork.VPPContext.SaveChangesAsync(cancellationToken);
+                }
+
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+
+                if (changed.Count > 0)
+                {
+                    await _permissionChangeNotifier.NotifyGroupChangedAsync(
+                        req.PermissionGroupId,
+                        cancellationToken);
+                }
+
+                return Ok(new BatchPatchComponentMappingsResDTO
+                {
+                    PermissionGroupId = req.PermissionGroupId,
+                    UpdatedCount = changed.Count
+                });
+            }
+            catch
+            {
+                if (transaction is not null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                throw;
+            }
+            finally
+            {
+                if (transaction is not null)
+                {
+                    await transaction.DisposeAsync();
+                }
+            }
         }
 
         [HttpGet("users")]

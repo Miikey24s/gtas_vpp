@@ -1,0 +1,232 @@
+@using gtas_vpp_fe.Components.Pages.Permission.Models
+@using gtas_vpp_shared.DTOs.Req.Permission
+@using gtas_vpp_shared.DTOs.Res.Auth
+@using PermissionGroupDto = gtas_vpp_shared.DTOs.Res.Permission.PermissionGroupResDTO
+@inject DialogService DialogService
+@inject IToastService ToastService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Workspace"
+                        TestId="permission-ui-batch-editor"
+                        Class="vpp-permission-batch-editor">
+    <Intro>
+        <div class="vpp-permission-editor-intro">
+            <div>
+                <strong>@GroupDisplayName</strong>
+                <span>@(Group.GroupCode ?? "—") · @Loc["UserCountSummary", Group.UserCount]</span>
+            </div>
+            <span>@Loc["PermissionBatchChangeCount", ChangedCount]</span>
+        </div>
+    </Intro>
+    <ChildContent>
+        @if (editorPages.Count == 0)
+        {
+            <VppContentState State="VppContentStateKind.Empty"
+                             Icon="rule"
+                             Title="@Loc["NoPermissionMappings"]" />
+        }
+        else
+        {
+            <div class="vpp-permission-editor-page-selector">
+                <VppSegmentedSelector TValue="Guid"
+                                      Value="@selectedPageId"
+                                      Options="@PageOptions"
+                                      ValueChanged="@SelectPageAsync"
+                                      AriaLabel="@Loc["Page"]" />
+            </div>
+
+            @if (SelectedPage is { } selectedPage)
+            {
+                <div class="vpp-permission-editor-page-copy">
+                    <strong>@selectedPage.PageName</strong>
+                    <span>@(!string.IsNullOrWhiteSpace(selectedPage.Description) ? selectedPage.Description : selectedPage.PageCode)</span>
+                </div>
+
+                <RadzenDataGrid TItem="PermissionUiMappingEditModel"
+                                Data="@selectedPage.Components"
+                                AllowFiltering="false"
+                                AllowSorting="false"
+                                AllowPaging="false"
+                                AllowColumnResize="true"
+                                AllowAlternatingRows="false"
+                                GridLines="DataGridGridLines.Horizontal"
+                                Density="Density.Compact"
+                                class="permission-component-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-permission-editor-grid"
+                                Style="--vpp-admin-grid-min-width: 920px;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="PermissionUiMappingEditModel" Title="#" Width="52px" Sortable="false" TextAlign="TextAlign.Center">
+                            <Template Context="component">@(selectedPage.Components.IndexOf(component) + 1)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="PermissionUiMappingEditModel" Title="@Loc["ComponentName"]" Width="250px">
+                            <Template Context="component">
+                                <div class="vpp-admin-two-line-cell">
+                                    <strong>@component.ComponentName</strong>
+                                    <small>@component.ComponentCode</small>
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="PermissionUiMappingEditModel" Title="@Loc["Description"]" Width="300px">
+                            <Template Context="component">@(string.IsNullOrWhiteSpace(component.Description) ? "—" : component.Description)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="PermissionUiMappingEditModel" Title="@Loc["PermissionType"]" Width="150px">
+                            <Template Context="component">@(component.IsActionGrant ? Loc["PermissionKindFixedApi"] : Loc["PermissionKindUiDisplay"])</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="PermissionUiMappingEditModel" Title="@Loc["AccessState"]" Width="210px">
+                            <Template Context="component">
+                                @if (component.CanConfigure)
+                                {
+                                    <VppFilterSelect TValue="PermissionUiAccessState"
+                                                     Value="@component.AccessState"
+                                                     Options="@AccessStateOptions"
+                                                     ValueChanged="@(value => SetAccessStateAsync(component, value))"
+                                                     Placeholder="@Loc["AccessState"]"
+                                                     AriaLabel="@($"{Loc["AccessState"]}: {component.ComponentName}")"
+                                                     Class="vpp-permission-access-select" />
+                                }
+                                else
+                                {
+                                    <RadzenBadge Text="@GetLockedStateLabel(component)"
+                                                 BadgeStyle="@GetLockedStateBadge(component)" />
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+
+            <RadzenFormField Text="@Loc["Reason"]" Variant="Variant.Outlined" class="vpp-permission-editor-reason">
+                <RadzenTextArea @bind-Value="Reason" Rows="2" Style="width:100%" />
+            </RadzenFormField>
+        }
+    </ChildContent>
+    <Footer>
+        <div class="vpp-adaptive-dialog-actions">
+            <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@CancelAsync" />
+            <RadzenButton Text="@Loc["SaveChanges"]"
+                          Icon="save"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Disabled="@(ChangedCount == 0)"
+                          Click="@SaveAsync" />
+        </div>
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter] public PermissionGroupDto Group { get; set; } = new();
+    [Parameter] public IReadOnlyList<PermissionPageComponentResDTO> Pages { get; set; } = [];
+
+    private Guid initializedGroupId;
+    private Guid selectedPageId;
+    private List<PermissionUiPageEditModel> editorPages = [];
+    private string Reason { get; set; } = "Cập nhật quyền giao diện bằng trình chỉnh sửa theo lô.";
+    private PermissionUiPageEditModel? SelectedPage => editorPages.FirstOrDefault(page => page.PageId == selectedPageId);
+    private int ChangedCount => editorPages.Sum(page => page.Components.Count(component => component.IsDirty));
+    private string GroupDisplayName => string.IsNullOrWhiteSpace(Group.GroupName) ? Group.GroupCode ?? "—" : Group.GroupName;
+    private IReadOnlyList<VppSegmentedOption<Guid>> PageOptions => editorPages
+        .Select(page => new VppSegmentedOption<Guid>(page.PageId, page.PageName))
+        .ToArray();
+    private IReadOnlyList<VppFilterOption<PermissionUiAccessState>> AccessStateOptions =>
+    [
+        new(PermissionUiAccessState.Hidden, Loc["AccessHidden"]),
+        new(PermissionUiAccessState.ReadOnly, Loc["AccessReadOnly"]),
+        new(PermissionUiAccessState.Enabled, Loc["AccessEnabled"])
+    ];
+
+    protected override void OnParametersSet()
+    {
+        if (initializedGroupId == Group.Id) return;
+        initializedGroupId = Group.Id;
+        editorPages = Pages.Select(page => new PermissionUiPageEditModel
+        {
+            PageId = page.PageId,
+            PageCode = page.PageCode ?? string.Empty,
+            PageName = string.IsNullOrWhiteSpace(page.PageName) ? page.PageCode ?? "—" : page.PageName,
+            Description = page.Description,
+            Components = (page.Components ?? []).Select(component =>
+            {
+                var state = ToAccessState(component.IsVisible, component.IsEnable);
+                return new PermissionUiMappingEditModel
+                {
+                    PageComponentMappingId = component.GroupPageComponentMappingId,
+                    ComponentCode = component.ComponentCode ?? string.Empty,
+                    ComponentName = string.IsNullOrWhiteSpace(component.ComponentName) ? component.ComponentCode ?? "—" : component.ComponentName,
+                    Description = component.Description,
+                    IsActionGrant = component.IsActionGrant,
+                    CanConfigure = component.CanConfigure,
+                    AdministrationMode = component.AdministrationMode,
+                    OriginalAccessState = state,
+                    AccessState = state
+                };
+            }).ToList()
+        }).ToList();
+        selectedPageId = editorPages.FirstOrDefault()?.PageId ?? Guid.Empty;
+    }
+
+    private Task SelectPageAsync(Guid pageId)
+    {
+        selectedPageId = pageId;
+        return Task.CompletedTask;
+    }
+
+    private Task SetAccessStateAsync(PermissionUiMappingEditModel component, PermissionUiAccessState state)
+    {
+        if (component.CanConfigure) component.AccessState = state;
+        return Task.CompletedTask;
+    }
+
+    private async Task SaveAsync()
+    {
+        var changed = editorPages.SelectMany(page => page.Components)
+            .Where(component => component.CanConfigure && component.IsDirty)
+            .ToList();
+        if (changed.Count == 0)
+        {
+            ToastService.Show(NotificationSeverity.Info, Loc["NoChanges"], Loc["NoPermissionChanges"], 3000, false);
+            return;
+        }
+
+        await DialogService.TryCloseAsync(new BatchPatchComponentMappingsReqDTO
+        {
+            PermissionGroupId = Group.Id,
+            Reason = Reason,
+            Items = changed.Select(component =>
+            {
+                var (isVisible, isEnable) = FromAccessState(component.AccessState);
+                return new BatchPatchComponentMappingItemReqDTO
+                {
+                    PageComponentMappingId = component.PageComponentMappingId,
+                    IsVisible = isVisible,
+                    IsEnable = isEnable
+                };
+            }).ToList()
+        });
+    }
+
+    private async Task CancelAsync() => await DialogService.TryCloseAsync(null);
+
+    private string GetLockedStateLabel(PermissionUiMappingEditModel component) => component.AdministrationMode switch
+    {
+        "ActionMatrix" => Loc["CanonicalAction"],
+        "Required" => Loc["RequiredAccess"],
+        "OutsideRoleCeiling" => Loc["OutsideRoleCeiling"],
+        _ => Loc["ReadOnlyReference"]
+    };
+
+    private static BadgeStyle GetLockedStateBadge(PermissionUiMappingEditModel component) => component.AdministrationMode switch
+    {
+        "Required" => BadgeStyle.Success,
+        "OutsideRoleCeiling" => BadgeStyle.Light,
+        _ => BadgeStyle.Info
+    };
+
+    private static PermissionUiAccessState ToAccessState(bool isVisible, bool isEnable) =>
+        !isVisible ? PermissionUiAccessState.Hidden
+        : isEnable ? PermissionUiAccessState.Enabled
+        : PermissionUiAccessState.ReadOnly;
+
+    private static (bool IsVisible, bool IsEnable) FromAccessState(PermissionUiAccessState state) => state switch
+    {
+        PermissionUiAccessState.Enabled => (true, true),
+        PermissionUiAccessState.ReadOnly => (true, false),
+        _ => (false, false)
+    };
+}

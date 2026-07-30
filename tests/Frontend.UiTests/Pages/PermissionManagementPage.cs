@@ -1,128 +1,114 @@
 using Microsoft.Playwright;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
-namespace gtas_vpp_fe.UITests.Pages
+namespace gtas_vpp_fe.UITests.Pages;
+
+public sealed class PermissionManagementPage
 {
-    public class PermissionManagementPage
+    private readonly IPage page;
+    private readonly ILocator sidebarReportLink;
+
+    public PermissionManagementPage(IPage page)
     {
-        private readonly IPage _page;
-        private readonly ILocator _sidebarReportLink;
+        this.page = page;
+        sidebarReportLink = page.Locator("a[href='/report']");
+    }
 
-        public PermissionManagementPage(IPage page)
+    public async Task GotoAsync(string baseUrl)
+    {
+        await page.GotoAsync($"{baseUrl}permission?tab=1");
+        await page.Locator("[data-testid='permission-groups-data-surface']").WaitForAsync();
+        await page.WaitForFunctionAsync(
+            "() => document.querySelectorAll('.permission-group-grid tbody tr').length > 0");
+    }
+
+    public async Task SetComponentVisibilityAsync(
+        string groupCode,
+        string pageTabName,
+        string componentCode,
+        bool isVisible)
+    {
+        await SelectGroupAsync(groupCode);
+        var configureButton = page.GetByRole(AriaRole.Button, new()
         {
-            _page = page;
-            _sidebarReportLink = _page.Locator("a[href='/report']");
+            Name = "Cấu hình quyền UI",
+            Exact = true
+        });
+        await configureButton.WaitForAsync();
+        await configureButton.ClickAsync();
+
+        var editor = page.Locator("[data-testid='permission-ui-batch-editor']");
+        await editor.WaitForAsync();
+        await SelectEditorPageAsync(editor, pageTabName);
+
+        var componentRow = await GetEditorComponentRowAsync(editor, componentCode);
+        var accessTrigger = componentRow.Locator(".vpp-filter-select-trigger").First;
+        await accessTrigger.WaitForAsync();
+        var desiredLabel = isVisible ? "Cho phép thao tác" : "Ẩn";
+        if (string.Equals(await accessTrigger.GetAttributeAsync("title"), desiredLabel, StringComparison.Ordinal))
+        {
+            await page.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).Last.ClickAsync();
+            await editor.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
+            return;
         }
 
-        public async Task GotoAsync(string baseUrl)
+        await accessTrigger.ClickAsync();
+        var option = page.GetByRole(AriaRole.Option, new() { Name = desiredLabel, Exact = true }).Last;
+        await option.WaitForAsync();
+        await option.ClickAsync();
+
+        var saveButton = page.GetByRole(AriaRole.Button, new() { Name = "Lưu thay đổi", Exact = true }).Last;
+        await saveButton.ClickAsync();
+        await editor.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
+        await page.GetByText("Đã cập nhật phân quyền", new PageGetByTextOptions { Exact = false }).Last.WaitForAsync();
+    }
+
+    public async Task WaitForReportMenuVisibleAsync()
+    {
+        await sidebarReportLink.First.WaitForAsync(new LocatorWaitForOptions
         {
-            await _page.GotoAsync($"{baseUrl}permission?tab=1");
-            await _page.Locator(".permission-group-grid").WaitForAsync();
-        }
+            State = WaitForSelectorState.Visible,
+            Timeout = 60_000
+        });
+    }
 
-        public async Task SetComponentVisibilityAsync(
-            string groupCode,
-            string pageTabName,
-            string componentCode,
-            bool isVisible)
+    public async Task WaitForReportMenuHiddenAsync()
+    {
+        await sidebarReportLink.First.WaitForAsync(new LocatorWaitForOptions
         {
-            await ExpandGroupAsync(groupCode, pageTabName);
-            await SelectGroupPageTabAsync(pageTabName);
+            State = WaitForSelectorState.Hidden,
+            Timeout = 60_000
+        });
+    }
 
-            var componentRow = await GetComponentRowAsync(componentCode);
-            // The grid renders Visible before Enable. Keep this page object on
-            // the visibility control because hiding the navigation item is the
-            // behavior asserted by this journey.
-            var visibleSwitch = componentRow.Locator(".rz-switch").Nth(0);
-            var switchInput = visibleSwitch.Locator("input[type='checkbox']").First;
+    private async Task SelectGroupAsync(string groupCode)
+    {
+        var groupCell = page
+            .Locator(".permission-group-grid .permission-group-identity small")
+            .GetByText(groupCode, new LocatorGetByTextOptions { Exact = true })
+            .First;
 
-            await visibleSwitch.WaitForAsync();
-            await switchInput.WaitForAsync(new LocatorWaitForOptions
-            {
-                State = WaitForSelectorState.Attached
-            });
-            if (await switchInput.IsCheckedAsync() == isVisible)
-            {
-                return;
-            }
+        await groupCell.WaitForAsync();
+        var groupRow = groupCell.Locator("xpath=ancestor::tr[contains(@class,'rz-data-row')]").First;
+        await groupRow.ClickAsync();
+        await page.Locator(".vpp-permission-detail-shell").WaitForAsync();
+    }
 
-            await visibleSwitch.ClickAsync();
-            await _page.GetByText("Đã cập nhật phân quyền", new PageGetByTextOptions { Exact = false }).Last.WaitForAsync();
-        }
-
-        public async Task WaitForReportMenuVisibleAsync()
+    private static async Task SelectEditorPageAsync(ILocator editor, string pageTabName)
+    {
+        var normalizedName = Regex.Replace(pageTabName, @"\s*\([^)]*\)\s*$", string.Empty);
+        var pageButton = editor.GetByRole(AriaRole.Button, new()
         {
-            await _sidebarReportLink.First.WaitForAsync(new LocatorWaitForOptions
-            {
-                State = WaitForSelectorState.Visible,
-                Timeout = 60000
-            });
-        }
+            NameRegex = new Regex(Regex.Escape(normalizedName), RegexOptions.IgnoreCase)
+        }).First;
+        await pageButton.WaitForAsync();
+        await pageButton.ClickAsync();
+    }
 
-        public async Task WaitForReportMenuHiddenAsync()
-        {
-            await _sidebarReportLink.First.WaitForAsync(new LocatorWaitForOptions
-            {
-                State = WaitForSelectorState.Hidden,
-                Timeout = 60000
-            });
-        }
-
-        private async Task ExpandGroupAsync(string groupCode, string pageTabName)
-        {
-            var pageTab = _page.GetByRole(AriaRole.Tab, new() { Name = pageTabName, Exact = true });
-            if (await pageTab.CountAsync() > 0 && await pageTab.First.IsVisibleAsync())
-            {
-                return;
-            }
-
-            var groupRow = await GetGroupRowAsync(groupCode);
-            var toggler = groupRow.Locator(".rz-row-toggler").First;
-
-            await toggler.WaitForAsync();
-            await toggler.ClickAsync();
-            await pageTab.First.WaitForAsync();
-        }
-
-        private async Task SelectGroupPageTabAsync(string pageTabName)
-        {
-            var pageTab = _page.GetByRole(AriaRole.Tab, new() { Name = pageTabName, Exact = true }).First;
-            await pageTab.WaitForAsync();
-            await pageTab.ClickAsync();
-        }
-
-        private async Task<ILocator> GetGroupRowAsync(string groupCode)
-        {
-            var groupCell = _page
-                .Locator(".permission-group-grid .permission-group-identity small")
-                .GetByText(groupCode, new LocatorGetByTextOptions { Exact = true })
-                .First;
-
-            try
-            {
-                await groupCell.WaitForAsync(new LocatorWaitForOptions { Timeout = 15000 });
-            }
-            catch (TimeoutException exception)
-            {
-                var pageText = await _page.Locator("body").InnerTextAsync();
-                var compactPageText = pageText.Length > 1500 ? pageText[..1500] + "..." : pageText;
-                throw new InvalidOperationException(
-                    $"Group code '{groupCode}' was not rendered. Page text: {compactPageText}",
-                    exception);
-            }
-            return groupCell.Locator("xpath=ancestor::tr[contains(@class,'rz-data-row')]").First;
-        }
-
-        private async Task<ILocator> GetComponentRowAsync(string componentCode)
-        {
-            var componentCell = _page
-                .Locator(".rz-expanded-row-content")
-                .First
-                .GetByText(componentCode, new LocatorGetByTextOptions { Exact = true })
-                .First;
-
-            await componentCell.WaitForAsync();
-            return componentCell.Locator("xpath=ancestor::tr[contains(@class,'rz-data-row')]").First;
-        }
+    private static async Task<ILocator> GetEditorComponentRowAsync(ILocator editor, string componentCode)
+    {
+        var componentCell = editor.GetByText(componentCode, new LocatorGetByTextOptions { Exact = true }).First;
+        await componentCell.WaitForAsync();
+        return componentCell.Locator("xpath=ancestor::tr[contains(@class,'rz-data-row')]").First;
     }
 }
