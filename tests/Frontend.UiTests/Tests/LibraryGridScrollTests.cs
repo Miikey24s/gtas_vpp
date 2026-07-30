@@ -645,9 +645,42 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 768);
         await Page.GotoAsync($"{BaseUrl}library?tab=0", new() { WaitUntil = WaitUntilState.Load });
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
 
         var surface = Page.Locator("[data-testid='lookup-categories-data-surface']");
         await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var categoryActions = surface.Locator("tbody .vpp-admin-actions").First;
+        await categoryActions.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await categoryActions.Locator(".rz-switch").CountAsync()).Should().Be(1,
+            "soft deactivation is a status switch rather than a delete-looking button");
+        (await categoryActions.Locator("button:has(.rzi:text-is('delete_forever'))").CountAsync()).Should().Be(1,
+            "hard delete is a separate explicit action");
+        await Page.WaitForFunctionAsync(
+            """
+            () => [...document.querySelectorAll('.vpp-admin-class-split .rz-datatable-loading')].every(element => {
+                const style = getComputedStyle(element);
+                const rect = element.getBoundingClientRect();
+                return style.display === 'none'
+                    || style.visibility === 'hidden'
+                    || Number.parseFloat(style.opacity || '1') === 0
+                    || rect.width === 0
+                    || rect.height === 0;
+            })
+            """,
+            null,
+            new() { Timeout = 60_000 });
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "aa1-lookup-actions-desktop.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
         await surface.Locator(".vpp-library-primary-action").ClickAsync();
 
         var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
@@ -655,6 +688,9 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         (await dialog.Locator(".vpp-adaptive-dialog-shell[data-vpp-admin-dialog-size='compact']").CountAsync()).Should().Be(1);
         (await dialog.Locator(".vpp-adaptive-dialog-body").CountAsync()).Should().Be(1);
         (await dialog.Locator(".vpp-adaptive-dialog-footer").CountAsync()).Should().Be(1);
+        var categoryPlaceholders = await dialog.Locator("input[placeholder], textarea[placeholder]").CountAsync();
+        categoryPlaceholders.Should().BeGreaterThanOrEqualTo(2,
+            "create fields use examples derived from the loaded database rows");
 
         var desktopBox = await dialog.BoundingBoxAsync();
         desktopBox.Should().NotBeNull();
@@ -685,7 +721,6 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         focusChrome[2].Should().Be("rgba(0, 0, 0, 0)");
         focusChrome[3].Should().Be("active");
 
-        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
             Directory.CreateDirectory(evidenceDirectory);
@@ -701,6 +736,28 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         await Page.Keyboard.PressAsync("Escape");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+
+        var valueSurface = Page.Locator("[data-testid='lookup-values-data-surface']");
+        await valueSurface.Locator(".vpp-library-primary-action").ClickAsync();
+        var valueDialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
+        await valueDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await valueDialog.Locator("[data-testid='lookup-value-editor']").CountAsync()).Should().Be(1);
+        (await valueDialog.GetByText("Trường bổ sung", new() { Exact = false }).CountAsync()).Should().Be(0);
+        (await valueDialog.Locator("input[placeholder], textarea[placeholder]").CountAsync())
+            .Should().BeGreaterThanOrEqualTo(2);
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "aa1-lookup-value-editor-desktop.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+        await Page.Keyboard.PressAsync("Escape");
+        await valueDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
 
         await Page.SetViewportSizeAsync(390, 844);
         var sidebarBackdrop = Page.Locator(".vpp-sidebar-backdrop:visible");

@@ -33,13 +33,10 @@ public static class GridColumnMetadataRegistry
                     Define<LookupValueResDTO>(nameof(LookupValueResDTO.LookupCategoryId), ignore: true, order: 2),
                     Define<LookupValueResDTO>(nameof(LookupValueResDTO.Code), "Code", "150px", order: 3),
                     Define<LookupValueResDTO>(nameof(LookupValueResDTO.Value), "Value", "200px", order: 4),
-                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.ExtraField1), "Extra 1", "120px", order: 5),
-                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.ExtraField2), "Extra 2", "120px", order: 6),
-                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.ExtraField3), "Extra 3", "120px", order: 7),
-                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.Sort), "Sort", "80px", order: 8),
-                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.VppItemsByUom), ignore: true, order: 9),
-                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.CreatedByUserName), ignore: true, order: 10),
-                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.UpdatedByUserName), ignore: true, order: 11)
+                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.Sort), "Sort", "80px", order: 5),
+                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.VppItemsByUom), ignore: true, order: 6),
+                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.CreatedByUserName), ignore: true, order: 7),
+                    Define<LookupValueResDTO>(nameof(LookupValueResDTO.UpdatedByUserName), ignore: true, order: 8)
                 }),
             [typeof(VppItemResDTO)] = Array.AsReadOnly(
                 new GridColumnMetadata[]

@@ -314,6 +314,14 @@ khỏi `Component_ShareGrid`, classes và price-lists; khóa `Address1` của su
 giữ thứ tự metadata items `Đơn vị → Danh mục`; filter trạng thái price-list dùng dropdown VI/EN và
 gửi lại Dynamic LINQ `Status` thay vì lộ giá trị CheckBoxList `Draft/Published/Expired`.
 
+**Owner correction 2026-07-31 — Lookup/Class:** loại danh mục và giá trị danh mục dùng hai hành động
+phân biệt rõ: switch `Hoạt động` để vô hiệu hóa/khôi phục (`IsDeleted`) và nút `Xóa vĩnh viễn` riêng.
+Xóa vĩnh viễn chỉ được bật sau khi bản ghi đã vô hiệu hóa; backend kiểm tra lại trạng thái, chặn mọi
+tham chiếu kể cả bản ghi phụ thuộc đã vô hiệu hóa, đồng thời xóa bản dịch sở hữu trong cùng transaction.
+Ba trường `ExtraField1–3` là dữ liệu legacy được giữ để tương thích nhưng không còn xuất hiện trong
+dialog/column picker; dialog tạo mới dùng placeholder lấy từ bản ghi database đang hiển thị. Quy tắc
+soft-delete-only của W-E.5 vẫn giữ cho các collection khác cho đến khi owner quyết định riêng.
+
 **Retrofit W-E hoàn thành 2026-07-27:** Atlas bỏ các cột đếm không có DTO, nguồn/updater giả,
 hiệu lực per-price và chiết khấu/phí cấp mức giá; suppliers dùng địa chỉ thật và copy `đang áp dụng`.
 Items theo thứ tự Đơn vị → Danh mục. Classes chuyển thành workspace hai bảng Loại danh mục ↔ Giá trị;

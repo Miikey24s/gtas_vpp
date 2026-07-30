@@ -44,7 +44,7 @@
   <data name="Save" xml:space="preserve"><value>Lưu</value></data>
   <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Delete" xml:space="preserve"><value>Xóa</value></data>
-  <data name="HardDelete" xml:space="preserve"><value>Xóa thật</value></data>
+  <data name="HardDelete" xml:space="preserve"><value>Xóa vĩnh viễn</value></data>
   <data name="Edit" xml:space="preserve"><value>Sửa</value></data>
   <data name="Create" xml:space="preserve"><value>Tạo mới</value></data>
   <data name="Search" xml:space="preserve"><value>Tìm kiếm</value></data>
@@ -907,9 +907,14 @@
   <data name="LookupCategoryDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa loại danh mục</value></data>
   <data name="LookupCategoryRestored" xml:space="preserve"><value>Đã khôi phục loại danh mục</value></data>
   <data name="LookupCategoryHardDeleteConfirm" xml:space="preserve"><value>Thao tác này sẽ xóa vĩnh viễn loại danh mục.</value></data>
+  <data name="LookupCategoryPermanentlyDeleted" xml:space="preserve"><value>Đã xóa vĩnh viễn loại danh mục</value></data>
   <data name="LookupValueDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa giá trị danh mục</value></data>
   <data name="LookupValueRestored" xml:space="preserve"><value>Đã khôi phục giá trị danh mục</value></data>
   <data name="LookupValueHardDeleteConfirm" xml:space="preserve"><value>Thao tác này sẽ xóa vĩnh viễn giá trị danh mục.</value></data>
+  <data name="LookupValuePermanentlyDeleted" xml:space="preserve"><value>Đã xóa vĩnh viễn giá trị danh mục</value></data>
+  <data name="HardDeleteRequiresDeactivation" xml:space="preserve"><value>Hãy vô hiệu hóa bản ghi trước khi xóa vĩnh viễn.</value></data>
+  <data name="HardDeleteBlockedByDependencies" xml:space="preserve"><value>Bản ghi vẫn đang được dữ liệu khác sử dụng nên chưa thể xóa vĩnh viễn.</value></data>
+  <data name="FieldExample" xml:space="preserve"><value>Ví dụ: {0}</value></data>
   <data name="LookupSelectCategoryPrompt" xml:space="preserve"><value>Chọn một loại danh mục ở khung bên trái.</value></data>
   <data name="LookupNoValues" xml:space="preserve"><value>Không có giá trị nào.</value></data>
   <data name="UserSearchPlaceholder" xml:space="preserve"><value>Tìm tài khoản, họ tên hoặc email</value></data>

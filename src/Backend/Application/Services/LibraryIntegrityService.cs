@@ -7,6 +7,7 @@ namespace gtas_vpp_be.Service.Services;
 public interface ILibraryIntegrityService
 {
     Task<LibraryDependencyImpactResDTO?> GetDependencyImpactAsync(string tableCode, Guid id, CancellationToken cancellationToken = default);
+    Task<LibraryHardDeleteResult?> HardDeleteLookupAsync(string tableCode, Guid id, CancellationToken cancellationToken = default);
     Task<LibraryIntegrityValidationResult> ValidateDepartmentParentAsync(Guid departmentId, Guid? parentDepartmentId, CancellationToken cancellationToken = default);
 }
 
@@ -46,6 +47,47 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
             ActiveReferenceCount = count,
             CanDeactivate = count == 0
         };
+    }
+
+    public async Task<LibraryHardDeleteResult?> HardDeleteLookupAsync(
+        string tableCode,
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedTableCode = tableCode.Trim().ToLowerInvariant();
+        if (normalizedTableCode is not ("lookup-categories" or "lookup-values"))
+        {
+            return null;
+        }
+
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var result = normalizedTableCode == "lookup-categories"
+                ? await PrepareLookupCategoryHardDeleteAsync(id, cancellationToken)
+                : await PrepareLookupValueHardDeleteAsync(id, cancellationToken);
+
+            if (result.Status == LibraryHardDeleteStatus.Deleted)
+            {
+                await _unitOfWork.CommitAsync();
+            }
+            else
+            {
+                await _unitOfWork.RollbackAsync();
+            }
+
+            return result;
+        }
+        catch (DbUpdateException)
+        {
+            await _unitOfWork.RollbackAsync();
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, 1);
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<LibraryIntegrityValidationResult> ValidateDepartmentParentAsync(
@@ -109,6 +151,66 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
         return childDepartments + memberships;
     }
 
+    private async Task<LibraryHardDeleteResult> PrepareLookupCategoryHardDeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var context = _unitOfWork.VPPContext;
+        var category = await context.LookupCategories.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (category is null)
+        {
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.NotFound, 0);
+        }
+
+        if (!category.IsDeleted)
+        {
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.MustDeactivate, 0);
+        }
+
+        var referenceCount = await context.LookupValues.CountAsync(x => x.LookupCategoryId == id, cancellationToken);
+        if (referenceCount > 0)
+        {
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
+        }
+
+        var translations = await context.LookupCategoryTranslations
+            .Where(x => x.LookupCategoryId == id)
+            .ToListAsync(cancellationToken);
+        context.LookupCategoryTranslations.RemoveRange(translations);
+        context.LookupCategories.Remove(category);
+        return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
+    }
+
+    private async Task<LibraryHardDeleteResult> PrepareLookupValueHardDeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var context = _unitOfWork.VPPContext;
+        var value = await context.LookupValues.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (value is null)
+        {
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.NotFound, 0);
+        }
+
+        if (!value.IsDeleted)
+        {
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.MustDeactivate, 0);
+        }
+
+        var referenceCount = await context.VppItems.CountAsync(x => x.UomId == id, cancellationToken);
+        if (referenceCount > 0)
+        {
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
+        }
+
+        var translations = await context.LookupValueTranslations
+            .Where(x => x.LookupValueId == id)
+            .ToListAsync(cancellationToken);
+        context.LookupValueTranslations.RemoveRange(translations);
+        context.LookupValues.Remove(value);
+        return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
+    }
+
     private sealed record DepartmentNode(Guid Id, Guid? ParentDepartmentId);
 }
 
@@ -118,3 +220,13 @@ public sealed record LibraryIntegrityValidationResult(bool IsValid, string? Mess
 
     public static LibraryIntegrityValidationResult Invalid(string message) => new(false, message);
 }
+
+public enum LibraryHardDeleteStatus
+{
+    Deleted,
+    NotFound,
+    MustDeactivate,
+    HasDependencies
+}
+
+public sealed record LibraryHardDeleteResult(LibraryHardDeleteStatus Status, int ReferenceCount);

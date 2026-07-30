@@ -907,9 +907,14 @@
   <data name="LookupCategoryDeactivated" xml:space="preserve"><value>Catalog type deactivated</value></data>
   <data name="LookupCategoryRestored" xml:space="preserve"><value>Catalog type restored</value></data>
   <data name="LookupCategoryHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the catalog type.</value></data>
+  <data name="LookupCategoryPermanentlyDeleted" xml:space="preserve"><value>Catalog type permanently deleted</value></data>
   <data name="LookupValueDeactivated" xml:space="preserve"><value>Lookup value deactivated</value></data>
   <data name="LookupValueRestored" xml:space="preserve"><value>Lookup value restored</value></data>
   <data name="LookupValueHardDeleteConfirm" xml:space="preserve"><value>This will permanently delete the lookup value.</value></data>
+  <data name="LookupValuePermanentlyDeleted" xml:space="preserve"><value>Lookup value permanently deleted</value></data>
+  <data name="HardDeleteRequiresDeactivation" xml:space="preserve"><value>Deactivate the record before permanently deleting it.</value></data>
+  <data name="HardDeleteBlockedByDependencies" xml:space="preserve"><value>The record is still referenced by other data and cannot be permanently deleted.</value></data>
+  <data name="FieldExample" xml:space="preserve"><value>Example: {0}</value></data>
   <data name="LookupSelectCategoryPrompt" xml:space="preserve"><value>Select a catalog type in the left panel.</value></data>
   <data name="LookupNoValues" xml:space="preserve"><value>No values found.</value></data>
   <data name="UserSearchPlaceholder" xml:space="preserve"><value>Search account, full name, or email</value></data>

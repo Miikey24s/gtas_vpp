@@ -71,16 +71,26 @@ public sealed class AtlasWave1ArchitectureTests
     }
 
     [Fact]
-    public void TypedLibraryCollections_UseAdaptiveEditorsWithoutHardDeleteActions()
+    public void TypedLibraryCollections_UseAdaptiveEditorsAndGuardedLookupHardDelete()
     {
         var classes = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor");
+        var classesCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor.cs");
+        var valueEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_AddLookupValue.razor");
         var priceLists = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
         var categoryEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_CategoryEditor.razor");
         var supplierEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_SupplierEditor.razor");
 
         Assert.Contains("<VppAdaptiveDialogShell", categoryEditor, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", supplierEditor, StringComparison.Ordinal);
-        Assert.DoesNotContain("delete_forever", classes, StringComparison.Ordinal);
+        Assert.Contains("<RadzenSwitch TValue=\"bool\"", classes, StringComparison.Ordinal);
+        Assert.Contains("delete_forever", classes, StringComparison.Ordinal);
+        Assert.Contains("!data.IsDeleted", classes, StringComparison.Ordinal);
+        Assert.Contains("HardDeleteCategoryAsync", classesCode, StringComparison.Ordinal);
+        Assert.Contains("HardDeleteValueAsync", classesCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Model.ExtraField1", valueEditor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Model.ExtraField2", valueEditor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Model.ExtraField3", valueEditor, StringComparison.Ordinal);
+        Assert.Contains("FieldExample", valueEditor, StringComparison.Ordinal);
         Assert.DoesNotContain("HardDeleteAsync", priceLists, StringComparison.Ordinal);
     }
 

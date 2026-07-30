@@ -32,13 +32,10 @@ public sealed class GridColumnMetadataRegistryTests
                 Define(nameof(LookupValueResDTO.LookupCategoryId), ignore: true, order: 2),
                 Define(nameof(LookupValueResDTO.Code), "Code", "150px", order: 3),
                 Define(nameof(LookupValueResDTO.Value), "Value", "200px", order: 4),
-                Define(nameof(LookupValueResDTO.ExtraField1), "Extra 1", "120px", order: 5),
-                Define(nameof(LookupValueResDTO.ExtraField2), "Extra 2", "120px", order: 6),
-                Define(nameof(LookupValueResDTO.ExtraField3), "Extra 3", "120px", order: 7),
-                Define(nameof(LookupValueResDTO.Sort), "Sort", "80px", order: 8),
-                Define(nameof(LookupValueResDTO.VppItemsByUom), ignore: true, order: 9),
-                Define(nameof(LookupValueResDTO.CreatedByUserName), ignore: true, order: 10),
-                Define(nameof(LookupValueResDTO.UpdatedByUserName), ignore: true, order: 11)
+                Define(nameof(LookupValueResDTO.Sort), "Sort", "80px", order: 5),
+                Define(nameof(LookupValueResDTO.VppItemsByUom), ignore: true, order: 6),
+                Define(nameof(LookupValueResDTO.CreatedByUserName), ignore: true, order: 7),
+                Define(nameof(LookupValueResDTO.UpdatedByUserName), ignore: true, order: 8)
             },
             GridColumnMetadataRegistry.GetAll(typeof(LookupValueResDTO)).ToArray());
     }
@@ -62,7 +59,7 @@ public sealed class GridColumnMetadataRegistryTests
     }
 
     [Fact]
-    public void Registry_ContainsExactlyTheTwentyFiveMigratedDefinitions()
+    public void Registry_ContainsExactlyTheTwentyTwoMigratedDefinitions()
     {
         var rowTypes = new[]
         {
@@ -75,7 +72,7 @@ public sealed class GridColumnMetadataRegistryTests
             .SelectMany(type => GridColumnMetadataRegistry.GetAll(type))
             .ToArray();
 
-        Assert.Equal(25, definitions.Length);
+        Assert.Equal(22, definitions.Length);
         Assert.All(
             rowTypes,
             rowType => Assert.All(

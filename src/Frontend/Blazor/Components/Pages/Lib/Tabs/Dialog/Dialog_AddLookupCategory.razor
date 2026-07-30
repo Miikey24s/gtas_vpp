@@ -11,32 +11,32 @@
 <RadzenStack Gap="1rem">
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="@Loc["LookupCategoryCode"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.Code" Style="width: 100%;" />
+            <RadzenFormField Text="@Loc["LookupCategoryCode"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="@Model.Code" Placeholder="@BuildExample(ExampleCode)" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
     </RadzenRow>
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="@Loc["LookupCategoryName"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.Name" Style="width: 100%;" />
+            <RadzenFormField Text="@Loc["LookupCategoryName"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="@Model.Name" Placeholder="@BuildExample(ExampleName)" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
     </RadzenRow>
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="@Loc["ModuleName"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.ModuleName" Style="width: 100%;" />
+            <RadzenFormField Text="@Loc["ModuleName"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="@Model.ModuleName" Placeholder="@BuildExample(ExampleModuleName)" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
     </RadzenRow>
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
-                <RadzenTextArea @bind-Value="@Model.Description" Style="width: 100%;" Rows="3" />
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenTextArea @bind-Value="@Model.Description" Placeholder="@BuildExample(ExampleDescription)" Style="width: 100%;" Rows="3" />
             </RadzenFormField>
         </RadzenColumn>
     </RadzenRow>
@@ -54,8 +54,17 @@
 @code {
     [Parameter] public LookupCategoryResDTO Model { get; set; } = new();
     [Parameter] public bool IsCreate { get; set; }
+    [Parameter] public string? ExampleCode { get; set; }
+    [Parameter] public string? ExampleName { get; set; }
+    [Parameter] public string? ExampleModuleName { get; set; }
+    [Parameter] public string? ExampleDescription { get; set; }
     
     private bool isBusy = false;
+
+    private string? BuildExample(string? value)
+        => IsCreate && !string.IsNullOrWhiteSpace(value)
+            ? string.Format(Loc["FieldExample"].Value, value)
+            : null;
 
     private async Task Cancel()
     {

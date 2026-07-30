@@ -190,11 +190,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         protected async Task ToggleCategoryDeleted(LookupCategoryResDTO data, bool isDeleted)
         {
+            var previous = data.IsDeleted;
             try
             {
                 if (isDeleted && !await CanDeactivateAsync(Config.LibraryApi.LookupCategories, data.Id))
                 {
-                    data.IsDeleted = false;
+                    data.IsDeleted = previous;
+                    StateHasChanged();
                     return;
                 }
 
@@ -210,30 +212,68 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.PatchFromApiAsync<LookupCategoryResDTO>($"{Config.LibraryApi.LookupCategories}/{data.Id}", patchData);
                 if (result != null)
                 {
+                    data.IsDeleted = result.IsDeleted;
                     string message = isDeleted ? Loc["LookupCategoryDeactivated"].Value : Loc["LookupCategoryRestored"].Value;
                     _toastService.Show(NotificationSeverity.Success, Loc["Success"], message, 3000, false);
                     await categoryGrid.Reload();
                 }
                 else
                 {
-                    data.IsDeleted = !isDeleted;
+                    data.IsDeleted = previous;
                     _toastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["ChangeRecordStatusFailed"], 5000, true);
                 }
             }
             catch (Exception ex)
             {
-                data.IsDeleted = !isDeleted;
+                data.IsDeleted = previous;
                 _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
+            }
+        }
+
+        protected async Task HardDeleteCategoryAsync(LookupCategoryResDTO data)
+        {
+            if (!data.IsDeleted || !CanModifyLookup) return;
+
+            var confirm = await DialogService.Confirm(
+                $"{Loc["LookupCategoryHardDeleteConfirm"]}\n\n{Loc["PermanentDeleteWarning"]}",
+                Loc["HardDelete"].Value,
+                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+
+            if (confirm != true) return;
+
+            try
+            {
+                await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.LookupCategories}/{data.Id}");
+                _toastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["LookupCategoryPermanentlyDeleted"], 3000, false);
+
+                selectedLookupCategories = [];
+                lookupValues = [];
+                valueCount = 0;
+                currentValueSkip = 0;
+                hasAutoSelectedInitialCategory = false;
+                await categoryGrid.FirstPage(true);
+            }
+            catch (Exception ex)
+            {
+                _toastService.Error(ex, Loc, "DeleteRecordFailed");
             }
         }
 
         // Nối lại 2 dialog thêm mới (trước đây mồ côi — Atlas yêu cầu primary action "Thêm ...").
         protected async Task OpenAddCategoryAsync()
         {
+            var example = lookupCategories.FirstOrDefault(x => !x.IsDeleted) ?? lookupCategories.FirstOrDefault();
             var options = VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["AddClass"].Value, closeAriaLabel: Loc["Close"].Value);
             var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupCategory>(
                 Loc["AddClass"].Value,
-                new Dictionary<string, object?> { ["IsCreate"] = true },
+                new Dictionary<string, object?>
+                {
+                    ["IsCreate"] = true,
+                    ["ExampleCode"] = example?.Code,
+                    ["ExampleName"] = example?.Name,
+                    ["ExampleModuleName"] = example?.ModuleName,
+                    ["ExampleDescription"] = example?.Description
+                },
                 options);
 
             if (result is LookupCategoryResDTO)
@@ -265,10 +305,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             // Dialog không tự gán LookupCategoryId — truyền model đã gắn category đang chọn.
             var model = new LookupValueResDTO { Code = "", Value = "", LookupCategoryId = selectedLookupCategory.Id };
+            var example = lookupValues.FirstOrDefault(x => !x.IsDeleted) ?? lookupValues.FirstOrDefault();
             var options = VppAdminDialogProfiles.Create(VppAdminDialogSize.Compact, Loc["AddLookupValue"].Value, closeAriaLabel: Loc["Close"].Value);
             var result = await DialogService.OpenAsync<Dialog.Dialog_AddLookupValue>(
                 Loc["AddLookupValue"].Value,
-                new Dictionary<string, object?> { ["IsCreate"] = true, ["Model"] = model },
+                new Dictionary<string, object?>
+                {
+                    ["IsCreate"] = true,
+                    ["Model"] = model,
+                    ["ExampleCode"] = example?.Code,
+                    ["ExampleValue"] = example?.Value,
+                    ["ExampleSort"] = example?.Sort,
+                    ["ExampleDescription"] = example?.Description
+                },
                 options);
 
             if (result is LookupValueResDTO)
@@ -359,11 +408,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         protected async Task ToggleValueDeleted(LookupValueResDTO data, bool isDeleted)
         {
+            var previous = data.IsDeleted;
             try
             {
                 if (isDeleted && !await CanDeactivateAsync(Config.LibraryApi.LookupValues, data.Id))
                 {
-                    data.IsDeleted = false;
+                    data.IsDeleted = previous;
+                    StateHasChanged();
                     return;
                 }
 
@@ -379,20 +430,44 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.PatchFromApiAsync<LookupValueResDTO>($"{Config.LibraryApi.LookupValues}/{data.Id}", patchData);
                 if (result != null)
                 {
+                    data.IsDeleted = result.IsDeleted;
                     string message = isDeleted ? Loc["LookupValueDeactivated"].Value : Loc["LookupValueRestored"].Value;
                     _toastService.Show(NotificationSeverity.Success, Loc["Success"], message, 3000, false);
                     await valueGrid.Reload();
                 }
                 else
                 {
-                    data.IsDeleted = !isDeleted;
+                    data.IsDeleted = previous;
                     _toastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["ChangeRecordStatusFailed"], 5000, true);
                 }
             }
             catch (Exception ex)
             {
-                data.IsDeleted = !isDeleted;
+                data.IsDeleted = previous;
                 _toastService.Error(ex, Loc, "ChangeRecordStatusFailed");
+            }
+        }
+
+        protected async Task HardDeleteValueAsync(LookupValueResDTO data)
+        {
+            if (!data.IsDeleted || !CanModifyLookup) return;
+
+            var confirm = await DialogService.Confirm(
+                $"{Loc["LookupValueHardDeleteConfirm"]}\n\n{Loc["PermanentDeleteWarning"]}",
+                Loc["HardDelete"].Value,
+                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+
+            if (confirm != true) return;
+
+            try
+            {
+                await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.LookupValues}/{data.Id}");
+                _toastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["LookupValuePermanentlyDeleted"], 3000, false);
+                await valueGrid.Reload();
+            }
+            catch (Exception ex)
+            {
+                _toastService.Error(ex, Loc, "DeleteRecordFailed");
             }
         }
 

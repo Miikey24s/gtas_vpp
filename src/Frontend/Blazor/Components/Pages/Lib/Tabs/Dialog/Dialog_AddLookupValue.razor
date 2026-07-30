@@ -11,47 +11,29 @@
 <RadzenStack Gap="1rem">
     <RadzenRow>
         <RadzenColumn Size="12" SizeMD="6">
-            <RadzenFormField Text="@Loc["Code"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.Code" Style="width: 100%;" />
+            <RadzenFormField Text="@Loc["Code"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="@Model.Code" Placeholder="@BuildExample(ExampleCode)" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
         <RadzenColumn Size="12" SizeMD="6">
-            <RadzenFormField Text="@Loc["Value"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.Value" Style="width: 100%;" />
-            </RadzenFormField>
-        </RadzenColumn>
-    </RadzenRow>
-    
-    <RadzenRow>
-        <RadzenColumn Size="12" SizeMD="4">
-            <RadzenFormField Text="@Loc["ExtraField1"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.ExtraField1" Style="width: 100%;" />
-            </RadzenFormField>
-        </RadzenColumn>
-        <RadzenColumn Size="12" SizeMD="4">
-            <RadzenFormField Text="@Loc["ExtraField2"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.ExtraField2" Style="width: 100%;" />
-            </RadzenFormField>
-        </RadzenColumn>
-        <RadzenColumn Size="12" SizeMD="4">
-            <RadzenFormField Text="@Loc["ExtraField3"]" Variant="Variant.Outlined">
-                <RadzenTextBox @bind-Value="@Model.ExtraField3" Style="width: 100%;" />
+            <RadzenFormField Text="@Loc["Value"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="@Model.Value" Placeholder="@BuildExample(ExampleValue)" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
     </RadzenRow>
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="@Loc["SortOrder"]" Variant="Variant.Outlined">
-                <RadzenNumeric @bind-Value="@Model.Sort" Style="width: 100%;" />
+            <RadzenFormField Text="@Loc["SortOrder"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenNumeric @bind-Value="@Model.Sort" Placeholder="@BuildExample(ExampleSort?.ToString())" Style="width: 100%;" />
             </RadzenFormField>
         </RadzenColumn>
     </RadzenRow>
     
     <RadzenRow>
         <RadzenColumn Size="12">
-            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
-                <RadzenTextArea @bind-Value="@Model.Description" Style="width: 100%;" Rows="3" />
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <RadzenTextArea @bind-Value="@Model.Description" Placeholder="@BuildExample(ExampleDescription)" Style="width: 100%;" Rows="3" />
             </RadzenFormField>
         </RadzenColumn>
     </RadzenRow>
@@ -69,8 +51,17 @@
 @code {
     [Parameter] public LookupValueResDTO Model { get; set; } = new() { Code = "", Value = "" };
     [Parameter] public bool IsCreate { get; set; }
+    [Parameter] public string? ExampleCode { get; set; }
+    [Parameter] public string? ExampleValue { get; set; }
+    [Parameter] public int? ExampleSort { get; set; }
+    [Parameter] public string? ExampleDescription { get; set; }
     
     private bool isBusy = false;
+
+    private string? BuildExample(string? value)
+        => IsCreate && !string.IsNullOrWhiteSpace(value)
+            ? string.Format(Loc["FieldExample"].Value, value)
+            : null;
 
     private async Task Cancel()
     {

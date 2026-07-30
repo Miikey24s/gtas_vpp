@@ -318,3 +318,11 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - Hai pane Lookup có collection header riêng, footer/pager luôn hiện kể cả một trang; tiêu đề cột **Thao tác** không còn chứa nút mutation.
 - Splitter desktop dùng đủ chiều cao workspace; grid value giữ footer ở đáy và scroll dọc trong `.rz-data-grid-data`, không kéo dài document hoặc cắt hàng cuối.
 - Library grids tắt `AllowAlternatingRows`; row dùng một nền neutral, chỉ hover/selected/status tạo khác biệt thị giác. Pane master thu gọn width sau khi bỏ nút Thêm để không phát sinh horizontal overflow ở `1366×768`.
+
+## 22. Lookup/Class lifecycle correction — 2026-07-31
+
+- Dialog Lookup Value bỏ hoàn toàn `ExtraField1–3`; metadata/column picker cũng không còn đưa ba field legacy ra UI. DTO và cột database vẫn được giữ để đọc/ghi tương thích dữ liệu cũ.
+- Dialog tạo loại/giá trị dùng label cố định và placeholder `Ví dụ: ...` lấy từ bản ghi database đang hiển thị; edit dialog vẫn hiển thị giá trị thật, không dùng placeholder thay dữ liệu.
+- Cột **Thao tác** tách ba hành động: sửa, switch `Hoạt động` (`ON = active`, `OFF = IsDeleted`) và `delete_forever`. Nút xóa vĩnh viễn bị khóa khi bản ghi còn active.
+- DELETE Lookup/Class đi qua `LibraryIntegrityService`: bắt buộc đã soft-delete, chặn mọi reference kể cả reference inactive, xóa translation sở hữu và entity trong một transaction; FK vẫn là guard cuối khi có race.
+- Evidence: frontend Release build `0 warning/error`; backend integrity `7/7`; frontend architecture `28/28`; isolated responsive dialog `1/1`; mutation tạo → vô hiệu hóa → xóa vĩnh viễn `1/1`. Ảnh desktop/mobile và action column đã kiểm bằng mắt trong `tmp/lookup-hard-delete-ui/` (ignored).
