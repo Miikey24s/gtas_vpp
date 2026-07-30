@@ -1,6 +1,7 @@
 const historyViewportObservers = new WeakMap();
 const historyChartLabelTimers = new WeakMap();
 const historyChartLabelConfigs = new WeakMap();
+const historyPositionFrames = new WeakMap();
 const transientSurfaceSelector = [
     '.vpp-history-kpi-popover'
 ].join(',');
@@ -91,37 +92,44 @@ export function renderHistoryChartLabels(root, regularValues, additionalValues, 
     scheduleHistoryChartLabels(root);
 }
 
-function positionHistoryTransientSurfaces(root) {
-    if (!root) return;
+function positionHistoryTransientSurfacesNow(root) {
+    if (!root?.isConnected) return;
 
-    window.requestAnimationFrame(() => {
-        root.querySelectorAll(transientSurfaceSelector).forEach(surface => {
-            const anchor = surface.parentElement;
-            if (!anchor) return;
+    root.querySelectorAll(transientSurfaceSelector).forEach(surface => {
+        const anchor = surface.parentElement;
+        if (!anchor) return;
 
-            surface.classList.remove('is-above', 'is-align-start', 'is-align-end');
-            const anchorRect = anchor.getBoundingClientRect();
-            let surfaceRect = surface.getBoundingClientRect();
-            const viewportGap = 8;
-            const spaceBelow = window.innerHeight - anchorRect.bottom - viewportGap;
-            const spaceAbove = anchorRect.top - viewportGap;
+        surface.classList.remove('is-above', 'is-align-start', 'is-align-end');
+        const anchorRect = anchor.getBoundingClientRect();
+        let surfaceRect = surface.getBoundingClientRect();
+        const viewportGap = 8;
+        const spaceBelow = window.innerHeight - anchorRect.bottom - viewportGap;
+        const spaceAbove = anchorRect.top - viewportGap;
 
-            if (surfaceRect.height > spaceBelow && spaceAbove > spaceBelow) {
-                surface.classList.add('is-above');
-                surfaceRect = surface.getBoundingClientRect();
-            }
+        if (surfaceRect.height > spaceBelow && spaceAbove > spaceBelow) {
+            surface.classList.add('is-above');
+            surfaceRect = surface.getBoundingClientRect();
+        }
 
-            if (surfaceRect.right > window.innerWidth - viewportGap) {
-                surface.classList.add('is-align-end');
-                surfaceRect = surface.getBoundingClientRect();
-            }
+        if (surfaceRect.right > window.innerWidth - viewportGap) {
+            surface.classList.add('is-align-end');
+            surfaceRect = surface.getBoundingClientRect();
+        }
 
-            if (surfaceRect.left < viewportGap) {
-                surface.classList.remove('is-align-end');
-                surface.classList.add('is-align-start');
-            }
-        });
+        if (surfaceRect.left < viewportGap) {
+            surface.classList.remove('is-align-end');
+            surface.classList.add('is-align-start');
+        }
     });
+}
+
+function scheduleHistoryTransientSurfaces(root) {
+    if (!root || historyPositionFrames.has(root)) return;
+    const frame = window.requestAnimationFrame(() => {
+        historyPositionFrames.delete(root);
+        positionHistoryTransientSurfacesNow(root);
+    });
+    historyPositionFrames.set(root, frame);
 }
 
 export function observeHistoryViewport(root, dotNetReference) {
@@ -131,11 +139,11 @@ export function observeHistoryViewport(root, dotNetReference) {
     const onResize = () => {
         window.clearTimeout(debounceId);
         debounceId = window.setTimeout(() => {
-            positionHistoryTransientSurfaces(root);
+            scheduleHistoryTransientSurfaces(root);
             scheduleHistoryChartLabels(root);
         }, 140);
     };
-    const onScroll = () => positionHistoryTransientSurfaces(root);
+    const onScroll = () => scheduleHistoryTransientSurfaces(root);
     const onDocumentPointerDown = event => {
         const target = event.target;
         if (target instanceof Element && target.closest('.vpp-segmented-selector, .vpp-period-picker-popover, .vpp-history-kpi-card, .vpp-cell-value-popover')) return;
@@ -151,10 +159,10 @@ export function observeHistoryViewport(root, dotNetReference) {
     document.addEventListener('pointerdown', onDocumentPointerDown, true);
     document.addEventListener('keydown', onDocumentKeyDown, true);
     const surfaceObserver = new MutationObserver(() => {
-        positionHistoryTransientSurfaces(root);
+        scheduleHistoryTransientSurfaces(root);
     });
     surfaceObserver.observe(root, { childList: true, subtree: true });
-    positionHistoryTransientSurfaces(root);
+    scheduleHistoryTransientSurfaces(root);
     historyViewportObservers.set(root, () => {
         window.clearTimeout(debounceId);
         window.removeEventListener('resize', onResize);
@@ -171,6 +179,9 @@ export function disposeHistoryViewport(root) {
     dispose();
     const chartLabelTimer = historyChartLabelTimers.get(root);
     if (chartLabelTimer) window.clearTimeout(chartLabelTimer);
+    const positionFrame = historyPositionFrames.get(root);
+    if (positionFrame) window.cancelAnimationFrame(positionFrame);
+    historyPositionFrames.delete(root);
     historyChartLabelTimers.delete(root);
     historyChartLabelConfigs.delete(root);
     historyViewportObservers.delete(root);

@@ -91,17 +91,6 @@
     normalizeGridRegions(document);
     normalizeRadzenAriaValues(document);
     scheduleRadzenDropdownDirection(document);
-    new MutationObserver(function (records) {
-        records.forEach(function (record) {
-            record.addedNodes.forEach(function (node) {
-                if (node instanceof Element) {
-                    normalizeGridRegions(node);
-                    normalizeRadzenAriaValues(node);
-                    scheduleRadzenDropdownDirection(node);
-                }
-            });
-        });
-    }).observe(document.documentElement, { childList: true, subtree: true });
 
     document.addEventListener("click", function (event) {
         var trigger = event.target instanceof Element
@@ -411,9 +400,7 @@
                     return;
                 }
 
-                window.requestAnimationFrame(function () {
-                    moveTabIndicator(tabList, findActiveTab(tabList), true);
-                });
+                scheduleTabIndicatorSync(tabList, true);
             });
             tabList.vppIndicatorObserver.observe(tabList, {
                 attributes: true,
@@ -422,19 +409,37 @@
                 subtree: true
             });
 
-            tabList.addEventListener("scroll", function () {
-                moveTabIndicator(tabList, findActiveTab(tabList), false);
-            }, { passive: true });
+            tabList.vppIndicatorScrollHandler = function () {
+                scheduleTabIndicatorSync(tabList, false);
+            };
+            tabList.addEventListener("scroll", tabList.vppIndicatorScrollHandler, { passive: true });
 
             if (window.ResizeObserver) {
                 tabList.vppIndicatorResizeObserver = new ResizeObserver(function () {
-                    moveTabIndicator(tabList, findActiveTab(tabList), false);
+                    scheduleTabIndicatorSync(tabList, false);
                 });
                 tabList.vppIndicatorResizeObserver.observe(tabList);
             }
         }
 
         return { host: host, indicator: indicator };
+    }
+
+    function scheduleTabIndicatorSync(tabList, shouldAnimate) {
+        tabList.vppIndicatorShouldAnimate = tabList.vppIndicatorShouldAnimate || shouldAnimate;
+        if (tabList.vppIndicatorSyncFrame) {
+            return;
+        }
+
+        tabList.vppIndicatorSyncFrame = window.requestAnimationFrame(function () {
+            var animate = tabList.vppIndicatorShouldAnimate;
+            tabList.vppIndicatorSyncFrame = null;
+            tabList.vppIndicatorShouldAnimate = false;
+            if (!tabList.isConnected) {
+                return;
+            }
+            moveTabIndicator(tabList, findActiveTab(tabList), animate);
+        });
     }
 
     function moveTabIndicator(tabList, target, shouldAnimate, forceTarget) {
@@ -520,6 +525,25 @@
         if (tabList.vppIndicatorResizeObserver) {
             tabList.vppIndicatorResizeObserver.disconnect();
             tabList.vppIndicatorResizeObserver = null;
+        }
+
+        if (tabList.vppIndicatorScrollHandler) {
+            tabList.removeEventListener("scroll", tabList.vppIndicatorScrollHandler);
+            tabList.vppIndicatorScrollHandler = null;
+        }
+
+        if (tabList.vppIndicatorSyncFrame) {
+            window.cancelAnimationFrame(tabList.vppIndicatorSyncFrame);
+            tabList.vppIndicatorSyncFrame = null;
+        }
+        tabList.vppIndicatorShouldAnimate = false;
+
+        var indicator = tabList.closest(".vpp-tab-indicator-host")
+            ?.querySelector(":scope > .vpp-tab-shared-indicator");
+        if (indicator?.vppAnimation) {
+            indicator.vppAnimation.cancel();
+            indicator.vppAnimation = null;
+            indicator.vppTarget = null;
         }
     }
 
@@ -795,9 +819,10 @@
                 subtree: true
             });
 
-            nav.addEventListener("scroll", function () {
-                moveSidebarIndicator(nav, findActiveSidebarTarget(nav), false);
-            }, { passive: true });
+            nav.vppSidebarScrollHandler = function () {
+                scheduleSidebarIndicatorSync(nav, false);
+            };
+            nav.addEventListener("scroll", nav.vppSidebarScrollHandler, { passive: true });
 
             if (window.ResizeObserver) {
                 nav.vppSidebarIndicatorResizeObserver = new ResizeObserver(function () {
@@ -819,9 +844,18 @@
     }
 
     function scheduleSidebarIndicatorSync(nav, shouldAnimate) {
-        window.requestAnimationFrame(function () {
-            moveSidebarIndicator(nav, findActiveSidebarTarget(nav), shouldAnimate, false);
-        });
+        nav.vppSidebarShouldAnimate = nav.vppSidebarShouldAnimate || shouldAnimate;
+        if (!nav.vppSidebarSyncFrame) {
+            nav.vppSidebarSyncFrame = window.requestAnimationFrame(function () {
+                var animate = nav.vppSidebarShouldAnimate;
+                nav.vppSidebarSyncFrame = null;
+                nav.vppSidebarShouldAnimate = false;
+                if (!nav.isConnected) {
+                    return;
+                }
+                moveSidebarIndicator(nav, findActiveSidebarTarget(nav), animate, false);
+            });
+        }
 
         if (nav.vppSidebarSettleTimer) {
             window.clearTimeout(nav.vppSidebarSettleTimer);
@@ -928,6 +962,11 @@
             nav.vppSidebarTransitionHandler = null;
         }
 
+        if (nav.vppSidebarScrollHandler) {
+            nav.removeEventListener("scroll", nav.vppSidebarScrollHandler);
+            nav.vppSidebarScrollHandler = null;
+        }
+
         if (nav.vppSidebarSettleTimer) {
             window.clearTimeout(nav.vppSidebarSettleTimer);
             nav.vppSidebarSettleTimer = null;
@@ -937,7 +976,21 @@
             window.cancelAnimationFrame(nav.vppSidebarLayoutFollowFrame);
             nav.vppSidebarLayoutFollowFrame = null;
         }
+        if (nav.vppSidebarSyncFrame) {
+            window.cancelAnimationFrame(nav.vppSidebarSyncFrame);
+            nav.vppSidebarSyncFrame = null;
+        }
+        nav.vppSidebarShouldAnimate = false;
         nav.vppSidebarLayoutFollowUntil = 0;
+
+        var indicator = Array.from(nav.children).find(function (child) {
+            return child.classList?.contains("vpp-sidebar-shared-indicator");
+        });
+        if (indicator?.vppAnimation) {
+            indicator.vppAnimation.cancel();
+            indicator.vppAnimation = null;
+            indicator.vppTarget = null;
+        }
     }
 
     function disposeSidebarIndicators(root) {
@@ -981,9 +1034,20 @@
     }, true);
 
     var interactionHostSelector = tabListSelector + ", " + sidebarNavSelector;
+    var normalizationTargetSelector = "[data-vpp-grid-region='true'], "
+        + "[aria-disabled*='ToString'], .rz-dropdown-panel";
+
+    function isDataRowMutationRoot(node) {
+        return node instanceof Element
+            && node.matches("tr, td, tbody, .rz-data-row, .vpp-order-builder-virtual-row");
+    }
 
     function containsInteractionHost(node) {
         if (!(node instanceof Element)) {
+            return false;
+        }
+
+        if (isDataRowMutationRoot(node)) {
             return false;
         }
 
@@ -991,31 +1055,88 @@
             || node.querySelector(interactionHostSelector) !== null;
     }
 
-    var tabTreeObserver = new MutationObserver(function (mutations) {
+    function containsNormalizationTarget(node) {
+        if (!(node instanceof Element)) {
+            return false;
+        }
+
+        if (node.matches(normalizationTargetSelector)) {
+            return true;
+        }
+
+        return !isDataRowMutationRoot(node)
+            && node.querySelector(normalizationTargetSelector) !== null;
+    }
+
+    function addMinimalMutationRoot(roots, node) {
+        if (!(node instanceof Element)) {
+            return;
+        }
+
+        for (var existing of roots) {
+            if (existing.contains(node)) {
+                return;
+            }
+            if (node.contains(existing)) {
+                roots.delete(existing);
+            }
+        }
+        roots.add(node);
+    }
+
+    var pendingAddedRoots = new Set();
+    var pendingRemovedRoots = new Set();
+    var mutationFlushFrame = null;
+
+    function flushInteractionTreeMutations() {
+        mutationFlushFrame = null;
+
+        pendingRemovedRoots.forEach(function (root) {
+            if (!containsInteractionHost(root)) {
+                return;
+            }
+            disposeTabIndicators(root);
+            disposeSidebarIndicators(root);
+        });
+        pendingRemovedRoots.clear();
+
+        pendingAddedRoots.forEach(function (root) {
+            if (containsNormalizationTarget(root)) {
+                normalizeGridRegions(root);
+                normalizeRadzenAriaValues(root);
+                scheduleRadzenDropdownDirection(root);
+            }
+            if (containsInteractionHost(root)) {
+                initializeTabIndicators(root);
+                initializeSidebarIndicators(root);
+            }
+        });
+        pendingAddedRoots.clear();
+    }
+
+    function scheduleInteractionTreeFlush() {
+        if (mutationFlushFrame !== null) {
+            return;
+        }
+        mutationFlushFrame = window.requestAnimationFrame(flushInteractionTreeMutations);
+    }
+
+    var interactionTreeObserver = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             mutation.removedNodes.forEach(function (node) {
-                if (!containsInteractionHost(node)) {
-                    return;
-                }
-
-                disposeTabIndicators(node);
-                disposeSidebarIndicators(node);
+                addMinimalMutationRoot(pendingRemovedRoots, node);
             });
             mutation.addedNodes.forEach(function (node) {
-                if (!containsInteractionHost(node)) {
-                    return;
-                }
-
-                initializeTabIndicators(node);
-                initializeSidebarIndicators(node);
+                addMinimalMutationRoot(pendingAddedRoots, node);
             });
         });
+        scheduleInteractionTreeFlush();
     });
 
     function startTabIndicators() {
         initializeTabIndicators(document);
         initializeSidebarIndicators(document);
-        tabTreeObserver.observe(document.body, {
+        interactionTreeObserver.observe(document.documentElement, {
             childList: true,
             subtree: true
         });

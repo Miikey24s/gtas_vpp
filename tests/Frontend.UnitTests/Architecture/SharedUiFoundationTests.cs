@@ -173,7 +173,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("vppInk", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("createElement(\"canvas\")", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("function containsInteractionHost(node)", interactionsJs, StringComparison.Ordinal);
-        Assert.Contains("if (!containsInteractionHost(node))", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("function isDataRowMutationRoot(node)", interactionsJs, StringComparison.Ordinal);
+        Assert.Contains("if (containsInteractionHost(root))", interactionsJs, StringComparison.Ordinal);
         Assert.DoesNotContain("characterData: true", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("var title = target.querySelector(\".rz-tabview-title\");", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("--vpp-primary-tab-indicator-preferred-width: 60px;", tabsCss, StringComparison.Ordinal);
@@ -1068,6 +1069,33 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("normalizeRadzenAriaValues", script, StringComparison.Ordinal);
         Assert.Contains("element.setAttribute(\"aria-disabled\", disabled ? \"true\" : \"false\")", script, StringComparison.Ordinal);
         Assert.Contains("new MutationObserver", script, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void InteractionRuntime_CoalescesHighFrequencyWorkAndDisposesRouteObservers()
+    {
+        var root = GetFrontendRoot();
+        var interactions = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
+        var history = File.ReadAllText(Path.Combine(
+            root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor.js"));
+        var cellPopover = File.ReadAllText(Path.Combine(
+            root, "Components", "DesignSystem", "Composites", "VppCellValuePopover.razor.js"));
+        var periodPicker = File.ReadAllText(Path.Combine(
+            root, "Components", "DesignSystem", "Composites", "VppPeriodPickerPopover.razor.js"));
+
+        Assert.Contains("scheduleTabIndicatorSync", interactions, StringComparison.Ordinal);
+        Assert.Contains("vppSidebarSyncFrame", interactions, StringComparison.Ordinal);
+        Assert.Contains("scheduleInteractionTreeFlush", interactions, StringComparison.Ordinal);
+        Assert.Contains("removeEventListener(\"scroll\", tabList.vppIndicatorScrollHandler)", interactions, StringComparison.Ordinal);
+        Assert.Contains("removeEventListener(\"scroll\", nav.vppSidebarScrollHandler)", interactions, StringComparison.Ordinal);
+        Assert.DoesNotContain("new MutationObserver(function (records)", interactions, StringComparison.Ordinal);
+
+        Assert.Contains("scheduleHistoryTransientSurfaces", history, StringComparison.Ordinal);
+        Assert.Contains("cancelAnimationFrame(positionFrame)", history, StringComparison.Ordinal);
+        Assert.Contains("schedulePositionPanel", cellPopover, StringComparison.Ordinal);
+        Assert.Contains("cancelAnimationFrame(frame)", cellPopover, StringComparison.Ordinal);
+        Assert.Contains("if (positionFrame) return;", periodPicker, StringComparison.Ordinal);
+        Assert.Contains("cancelAnimationFrame(positionFrame)", periodPicker, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 const observers = new WeakMap();
 
 function position(root) {
-    if (!(root instanceof HTMLElement)) return;
+    if (!(root instanceof HTMLElement) || !root.isConnected) return;
     const panel = root.querySelector('.vpp-period-picker-popover');
     const anchor = root.parentElement;
     if (!(panel instanceof HTMLElement) || !(anchor instanceof HTMLElement)) return;
@@ -33,7 +33,14 @@ export function observe(root, dotNetReference) {
         if (event.key !== 'Escape') return;
         dotNetReference.invokeMethodAsync('DismissFromJsAsync').catch(() => {});
     };
-    const refresh = () => window.requestAnimationFrame(() => position(root));
+    let positionFrame = 0;
+    const refresh = () => {
+        if (positionFrame) return;
+        positionFrame = window.requestAnimationFrame(() => {
+            positionFrame = 0;
+            position(root);
+        });
+    };
 
     document.addEventListener('pointerdown', onPointerDown, true);
     document.addEventListener('keydown', onKeyDown, true);
@@ -46,6 +53,7 @@ export function observe(root, dotNetReference) {
         document.removeEventListener('keydown', onKeyDown, true);
         window.removeEventListener('resize', refresh);
         window.removeEventListener('scroll', refresh, true);
+        if (positionFrame) window.cancelAnimationFrame(positionFrame);
     });
 }
 
