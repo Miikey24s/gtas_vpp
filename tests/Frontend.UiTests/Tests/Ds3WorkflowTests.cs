@@ -58,7 +58,15 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         }
 
         (await Page.Locator(".vpp-workflow-stepper:visible").CountAsync()).Should().Be(0);
-        (await Page.Locator(".vpp-settlement-selector-row .vpp-segmented-selector:visible").CountAsync()).Should().Be(2);
+        var settlementSelectors = Page.Locator(".vpp-settlement-selector-row .vpp-segmented-selector:visible");
+        (await settlementSelectors.CountAsync()).Should().Be(2);
+        for (var index = 0; index < 2; index++)
+        {
+            var widths = await settlementSelectors.Nth(index).Locator(":scope > button").EvaluateAllAsync<double[]>(
+                "buttons => buttons.map(button => button.getBoundingClientRect().width)");
+            (widths.Max() - widths.Min()).Should().BeLessThanOrEqualTo(1,
+                "every shared horizontal selector must size all segments from its longest label");
+        }
         (await Page.Locator(".vpp-settlement-decision-strip:visible").CountAsync()).Should().Be(1);
         (await Page.GetByText("Phương án chốt", new() { Exact = true }).CountAsync()).Should().Be(0);
 

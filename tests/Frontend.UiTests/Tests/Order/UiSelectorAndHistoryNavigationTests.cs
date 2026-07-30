@@ -96,5 +96,10 @@ public sealed class UiSelectorAndHistoryNavigationTests : TestBase, IAuthenticat
 
         await Page.Locator("#history-orders-title").ClickAsync();
         await periodPopover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+
+        await historySelector.Locator(":scope > button").Last.ClickAsync();
+        await periodPopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Page.Keyboard.PressAsync("Escape");
+        await periodPopover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
     }
 }
