@@ -1,6 +1,6 @@
 # UI-ADMIN-ACCESS-001 — Quản trị danh mục và phân quyền
 
-> Trạng thái: **COMPLETED — AA0–AA7 VERIFIED**
+> Trạng thái: **COMPLETED — AA0–AA7 + POST-AUDIT DATA LIFECYCLE VERIFIED**
 >
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md) và [`UI-DATA-SURFACE-001`](./UI-DATA-SURFACE-001.md)
 >
@@ -274,3 +274,32 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - `Component_Library` chỉ còn điều phối tab, permission và URL; preload, reflection CRUD, dropdown cache và toast/API helper legacy được gỡ để mỗi tab typed sở hữu data flow duy nhất.
 - Xóa CSS chỉ phục vụ generic list/detail inspector; giữ nguyên selector đang dùng cho Pricing, Permission và các collection typed. Test architecture đổi từ bảo vệ legacy sang khóa không cho legacy quay lại.
 - Đây là cleanup behavior-preserving, không đổi API, database, permission, route hay visual contract; refactor sâu file CSS lớn tiếp tục `DEFERRED` đến khi UI hoàn thiện.
+
+## 19. Post-audit Library data lifecycle và column ownership — 2026-07-30
+
+- DB/API không thiếu dữ liệu. Isolated contract xác nhận `X-Total-Count > 0` cho Category, Item, Supplier, Department và Price List; browser xác nhận thêm Lookup Value và Price rows.
+- Root cause grid trắng là Radzen `LoadData` không chạy lại khi tab đã prerender trước interactive circuit. Sáu collection tab dùng chung `VppServerGridComponentBase<T>` để reload một lần sau interactive handoff; Price chỉ reload khi đã có price-list/supplier context. Lookup auto-select category đầu tiên để detail pane có data ngay.
+- Column ownership được trả về route typed đúng mục 3: Category/Item/Supplier/Department full-width, Lookup list-detail và Pricing hai collection. Cột phụ/audit vẫn truy cập qua `Cột`, không ép tất cả vào viewport; toolbar/frame/pager/hover/focus tiếp tục do design system sở hữu.
+- Test cũ cho phép empty state đã được thay bằng API count + rendered row gate. Tablet assertion stale từng đòi Price List/User là list-detail được sửa thành collection workspace contract hiện hành; không còn test bảo vệ kiến trúc đã bị loại bỏ.
+
+### 19.1 Ma trận route → API → data state → component → CSS owner
+
+| Route | API/query authority | Data state đã khóa | Component/workspace owner | CSS owner hiện hành |
+|---|---|---|---|---|
+| `/library?tab=0` | `/api/Library/lookup-categories`; `/api/Library/lookup-values` theo category | Hai grid `ServerPaging`; category đầu được chọn một lần sau load; category và value đều phải có DOM row thật trong fixture | `Tab_LookupLibrary` + `VppListDetailWorkspace` | Geometry: `VppListDetailWorkspace.razor.css`; frame/toolbar: scoped design-system CSS; cell/grid: `vpp-admin.css` |
+| `/library?tab=1` | `/api/Library/vpp-categories` | `X-Total-Count > 0`; first interactive reload; server filter/sort/page | `Tab_CategoryLibrary` + `VppCollectionWorkspace` | `VppCollectionWorkspace.razor.css`, `VppDataSurfaceFrame.razor.css`, `VppDataToolbar.razor.css`, `vpp-admin.css` |
+| `/library?tab=2` | `/api/catalog/items`; category/UOM lookup cho toolbar | `X-Total-Count > 0`; first interactive reload; toolbar filter không phụ thuộc page hiện tại | `Tab_ItemLibrary` + `VppCollectionWorkspace` | Shared Collection/Frame/Toolbar CSS; `vpp-admin.css` chỉ sở hữu typed column rhythm/cell state |
+| `/library?tab=3` | `/api/Library/suppliers` | `X-Total-Count > 0`; first interactive reload; dependency impact trước deactivate | `Tab_SupplierLibrary` + `VppCollectionWorkspace` | Shared Collection/Frame/Toolbar CSS + `vpp-admin.css` |
+| `/library?tab=5` | `/api/Library/departments`; cùng endpoint active để resolve parent | `X-Total-Count > 0`; first interactive reload; parent label từ snapshot active | `Tab_DepartmentLibrary` + `VppCollectionWorkspace` | Shared Collection/Frame/Toolbar CSS + `vpp-admin.css` |
+| `/library?tab=6&pricingTab=price-lists` | `/api/vpppricelist`; `/api/Library/suppliers` | `X-Total-Count > 0`; first interactive reload; lifecycle Draft/Published/Expired giữ nguyên | `Tab_PriceListLibrary` + `VppCollectionWorkspace` | Shared Collection/Frame/Toolbar CSS + pricing selectors trong `vpp-admin.css` |
+| `/library?tab=6&pricingTab=prices` | `/api/vppprice/item-prices` theo `priceListId + supplierId`; lookup `/api/vpppricelist` và suppliers | Chỉ reload khi đủ hai context; DOM row thật bắt buộc; price/SKU/VAT/MOQ/lead thuộc route typed | `Tab_PriceLibrary` + `VppCollectionWorkspace` | Shared Collection/Frame/Toolbar CSS + pricing selectors trong `vpp-admin.css` |
+
+### 19.2 Phân loại code/CSS chồng chéo
+
+| Thành phần | Kết luận | Hành động |
+|---|---|---|
+| `Component_ShareGrid`, `Component_RecordInspector` và generic admin inspector CSS | `DELETE` đã hoàn tất ở smart cleanup trước; zero consumer | Không phục hồi; architecture/source scan bảo vệ |
+| `.vpp-admin-filterbar`, `.vpp-library-search`, selector toolbar trực tiếp cũ | `DELETE` trong post-audit; zero consumer sau khi mọi route dùng `VppDataToolbar` | Đã xóa khỏi `vpp-admin.css` |
+| `.vpp-admin-grid` và typed column classes | `KEEP` — vẫn là shared cell/header/pager contract của Library và Permission | Không xóa mù; route chỉ truyền width/profile qua CSS variables |
+| `VppCollectionWorkspace` / `VppListDetailWorkspace` scoped CSS | `KEEP` — authority geometry hiện hành | Test route + tablet khóa đúng pattern |
+| `vpp-layout.css` | `KEEP` — shell/header/sidebar/inset, không sở hữu cột Library | Không thêm override route-specific mới vào đây |

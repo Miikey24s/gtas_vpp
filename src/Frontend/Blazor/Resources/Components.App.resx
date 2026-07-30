@@ -239,6 +239,7 @@
   <data name="Address3" xml:space="preserve"><value>Địa chỉ 3</value></data>
   <data name="Ward" xml:space="preserve"><value>Phường/Xã</value></data>
   <data name="City" xml:space="preserve"><value>Tỉnh/Thành</value></data>
+  <data name="Location" xml:space="preserve"><value>Khu vực</value></data>
   <data name="Type" xml:space="preserve"><value>Loại</value></data>
   <data name="SetDefault" xml:space="preserve"><value>Đặt mặc định</value></data>
   <data name="PriceSaved" xml:space="preserve"><value>Đã lưu giá</value></data>
@@ -848,6 +849,19 @@
   <data name="PeriodStageSettleHint" xml:space="preserve"><value>Xem trước lần cuối và lưu dữ liệu bất biến khi xác nhận; nguồn cung chọn ở bước 3.</value></data>
   <data name="SupplierShortName" xml:space="preserve"><value>Tên viết tắt</value></data>
   <data name="VatRate" xml:space="preserve"><value>Thuế</value></data>
+  <data name="SupplierSku" xml:space="preserve"><value>Mã NCC</value></data>
+  <data name="MinimumOrderQuantity" xml:space="preserve"><value>SL tối thiểu</value></data>
+  <data name="LeadTimeDays" xml:space="preserve"><value>Ngày giao</value></data>
+  <data name="Version" xml:space="preserve"><value>Phiên bản</value></data>
+  <data name="Default" xml:space="preserve"><value>Mặc định</value></data>
+  <data name="UomCompact" xml:space="preserve"><value>ĐVT</value></data>
+  <data name="SupplierCompact" xml:space="preserve"><value>NCC</value></data>
+  <data name="VersionCompact" xml:space="preserve"><value>Bản</value></data>
+  <data name="DefaultCompact" xml:space="preserve"><value>MĐ</value></data>
+  <data name="ItemCountCompact" xml:space="preserve"><value>SL</value></data>
+  <data name="VatRateCompact" xml:space="preserve"><value>Thuế</value></data>
+  <data name="MinimumOrderQuantityCompact" xml:space="preserve"><value>SL min</value></data>
+  <data name="LeadTimeCompact" xml:space="preserve"><value>Ngày</value></data>
   <data name="EffectiveRange" xml:space="preserve"><value>Hiệu lực</value></data>
   <data name="LibrarySearchClasses" xml:space="preserve"><value>Tìm mã hoặc tên loại</value></data>
   <data name="LibrarySearchCategories" xml:space="preserve"><value>Tìm mã hoặc tên danh mục</value></data>

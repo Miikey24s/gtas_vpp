@@ -20,6 +20,10 @@ public sealed class SharedE2EAppFixture : IAsyncLifetime
         ?? throw new InvalidOperationException(
             "The shared E2E app has not been started; call GetOrStartAsync first.");
 
+    public string BackendBaseUrl => _stack?.BackendBaseUrl
+        ?? throw new InvalidOperationException(
+            "The shared E2E app has not been started; call GetOrStartAsync first.");
+
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
     /// <summary>

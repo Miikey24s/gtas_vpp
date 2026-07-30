@@ -11,7 +11,7 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs;
 
-public partial class Tab_DepartmentLibrary : IDisposable
+public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<DepartmentResDTO>, IDisposable
 {
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
     [Inject] public IAPIServices ApiServices { get; set; } = default!;
@@ -22,6 +22,7 @@ public partial class Tab_DepartmentLibrary : IDisposable
     private List<DepartmentResDTO> allDepartments = [];
     private RadzenDataGrid<DepartmentResDTO> grid = default!;
     private int totalCount; private int currentSkip; private bool isLoading; private string searchText = string.Empty; private string? currentFilter; private bool HasFilters => !string.IsNullOrWhiteSpace(searchText); private bool CanModify => PagePermissionResDTO.Components.Any(x => x.IsVisible && x.IsEnable);
+    protected override RadzenDataGrid<DepartmentResDTO>? InitialGrid => grid;
 
     protected override async Task OnInitializedAsync()
     {

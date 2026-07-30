@@ -15,7 +15,7 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
-    public partial class Tab_PriceLibrary : IDisposable
+    public partial class Tab_PriceLibrary : VppServerGridComponentBase<VppItemPriceResDTO>, IDisposable
     {
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
@@ -46,6 +46,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private string GridEmptyText => !HasPriceLists
             ? Loc["NoPriceListAvailable"].Value
             : selectedSupplierId.HasValue ? Loc["NoPricesFound"].Value : Loc["LoadPricesPrompt"].Value;
+        protected override RadzenDataGrid<VppItemPriceResDTO>? InitialGrid => grid;
+        protected override bool CanRequestInitialGridLoad => selectedSupplierId.HasValue && selectedPriceListId.HasValue;
 
         protected override async Task OnInitializedAsync()
         {

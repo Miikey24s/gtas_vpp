@@ -28,7 +28,7 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 | DS1 — Foundation | `DONE — OWNER APPROVED 2026-07-29` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Đã duyệt 2 route đại diện |
 | DS2 — Reference | `DONE — OWNER APPROVED 2026-07-29` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Đã duyệt và mở DS3 |
 | DS3 — Workflow | `IMPLEMENTED — OWNER REVIEW` | Create Order, Department Summary, Chốt kỳ hợp nhất | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Chốt kỳ đã có route-real board desktop/mobile; chờ owner review tổng thể |
-| DS4 — Admin | `IMPLEMENTED — FINAL REVIEW DEFERRED TO F7` | Library, Users, Permission và màn quản trị danh mục | Có column picker và paging chuẩn | **Terra · High**, **Sol · XHigh review** | Gộp vào final board theo yêu cầu owner |
+| DS4 — Admin | `IMPLEMENTED — POST-AUDIT CORRECTED 2026-07-30` | Library, Users, Permission và màn quản trị danh mục | Có column picker, paging chuẩn và data lifecycle được khóa bằng route thật | **Terra · High**, **Sol · XHigh review** | API có dữ liệu và mọi tab Library phải render row thật sau interactive handoff |
 | R1 — Refactor | `DONE — 2026-07-29` | Xóa adapter/CSS/state hết consumer; bỏ orchestration popup trùng | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Build/unit + popup/virtualization browser parity pass |
 
 ### Bốn quyết định owner đã duyệt
@@ -259,6 +259,13 @@ Gate: owner duyệt admin board và keyboard/accessibility trace.
 - Secondary Pricing tabs trở lại normal flow thay vì sticky-offset; toolbar không còn bị tab lồng đè. Loading screenshot gate chờ mọi Radzen overlay thật sự ẩn trước khi đo/chụp.
 - Visual runtime đã được xem bằng mắt ở desktop `1920×1080` và tablet `768×1024` cho Lookup, Categories, Items, Suppliers, Departments, Price Lists, Prices, Users, Permission và Report; evidence thô ở `tmp/ui-system-f6a-final3/` (ignored).
 - Evidence checkpoint: Release build `0 warning/error`; frontend unit/architecture `199/199`; isolated DS4 route matrix + workspace/Library regression `5/5`; Permission mutation/restore `1/1`. Owner yêu cầu làm hết UI trước rồi review một lượt, nên DS4 không giữ gate duyệt riêng và được chuyển vào final F7 board.
+
+#### DS4 post-audit correction — 2026-07-30
+
+- Owner review phát hiện đúng một lỗ hổng evidence: gate cũ chấp nhận cả row thật lẫn empty state, nên không chứng minh dữ liệu quản trị đã render. API/DB cô lập vẫn có Category, Item, Supplier, Department, Price List và Price; lỗi nằm ở vòng đời Blazor/Radzen sau prerender.
+- `Component_Library` chuyển sang server-rendered tab ownership; các collection tab dùng `VppServerGridComponentBase<T>` để reload đúng một lần ở interactive render đầu tiên. Lookup tự chọn loại đầu tiên và reload bảng giá trị, vì vậy route không còn tạo cảm giác “không có data”.
+- Profile cột được đối chiếu lại với `UI-ADMIN-ACCESS-001`: name + code dùng cell hai dòng, Supplier gộp city/ward, Category hiện updated time, Pricing hiện đúng SKU/price/VAT/MOQ/lead và cột phụ chuyển vào column picker. CSS filter/search legacy zero-consumer bị xóa; shared grid contract đang dùng được giữ nguyên.
+- Regression mới kiểm tra cả API `X-Total-Count > 0` và DOM row thật trên Lookup category/value, Category, Item, Supplier, Department, Price List và Price. Frontend unit/architecture `203/203`, route matrix `1920×1080 / 768×1024`, 9 Library dialog/layout tests và visual board `1366×768` đều pass; ảnh cuối đã được kiểm bằng mắt trong `tmp/ds4-audit-final5/` và `tmp/ds4-responsive-final/` (ignored). `verify -Scope frontend` vẫn bị chặn trước frontend gate bởi `model-routing-eval` trong nhóm AI-harness owner đang sửa ngoài scope (`62/63`), không sửa hoặc stage trong correction này.
 
 ### Owner correction — selector, paging và Quản lý kỳ (2026-07-29)
 

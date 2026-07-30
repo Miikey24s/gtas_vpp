@@ -1,6 +1,10 @@
 using System.Collections.Concurrent;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
+using gtas_vpp_shared.DTOs.Req;
+using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.Playwright;
 using Xunit;
 
@@ -9,6 +13,75 @@ namespace gtas_vpp_fe.UITests.Tests;
 [Collection(ReadOnlyE2ECollection.Name)]
 public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
 {
+    [Fact]
+    public async Task Ds4LibraryApi_ReturnsSeededRowsForEveryAdminCollection()
+    {
+        BackendBaseUrl.Should().NotBeNullOrWhiteSpace();
+        using var client = new HttpClient { BaseAddress = new Uri(BackendBaseUrl!) };
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/Auth/login",
+            new AuthenticationLoginRequest(TestAccounts.SystemAdmin.Username, TestAccounts.SystemAdmin.Password),
+            cancellationToken);
+        loginResponse.EnsureSuccessStatusCode();
+        var login = await loginResponse.Content.ReadFromJsonAsync<AuthenticationResultDTO>(cancellationToken);
+        login?.AccessToken.Should().NotBeNullOrWhiteSpace();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login!.AccessToken);
+
+        foreach (var endpoint in new[]
+                 {
+                     "/api/Library/vpp-categories?showDeleted=true&skip=0&top=50",
+                     "/api/catalog/items?showDeleted=true&skip=0&top=50",
+                     "/api/Library/suppliers?showDeleted=true&skip=0&top=50",
+                     "/api/Library/departments?showDeleted=true&skip=0&top=50",
+                     "/api/vpppricelist?showDeleted=true&skip=0&top=50"
+                 })
+        {
+            using var response = await client.GetAsync(endpoint, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            response.Headers.TryGetValues("X-Total-Count", out var values).Should().BeTrue(endpoint);
+            int.Parse(values!.Single()).Should().BeGreaterThan(0, endpoint);
+        }
+    }
+
+    [Fact]
+    public async Task Ds4LibraryRoutes_RenderSeededRowsAfterInteractiveTabSelection()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+
+        foreach (var route in new[]
+                 {
+                     (Path: "library?tab=0", TestId: "lookup-categories-data-surface", Label: "lookup"),
+                     (Path: "library?tab=0", TestId: "lookup-values-data-surface", Label: "lookup-values"),
+                     (Path: "library?tab=1", TestId: "category-admin-data-surface", Label: "categories"),
+                     (Path: "library?tab=2", TestId: "item-admin-data-surface", Label: "items"),
+                     (Path: "library?tab=3", TestId: "supplier-admin-data-surface", Label: "suppliers"),
+                     (Path: "library?tab=5", TestId: "department-admin-data-surface", Label: "departments"),
+                     (Path: "library?tab=6&pricingTab=price-lists", TestId: "price-lists-data-surface", Label: "price-lists"),
+                     (Path: "library?tab=6&pricingTab=prices", TestId: "prices-data-surface", Label: "prices")
+                 })
+        {
+            TestContext.Current.SendDiagnosticMessage($"Checking seeded rows for {route.Path}");
+            await Page.GotoAsync($"{BaseUrl}{route.Path}", new() { WaitUntil = WaitUntilState.Load });
+            var surface = Page.GetByTestId(route.TestId);
+            await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+            await Page.WaitForFunctionAsync(
+                """
+                testId => {
+                    const surface = document.querySelector(`[data-testid="${testId}"]`);
+                    return !!surface && [...surface.querySelectorAll('tbody > tr')].some(row =>
+                        !row.classList.contains('rz-datatable-emptymessage')
+                        && row.querySelectorAll('td').length > 1);
+                }
+                """,
+                route.TestId,
+                new() { Timeout = 60_000 });
+            (await surface.Locator("tbody > tr td").CountAsync()).Should().BeGreaterThan(1, route.Path);
+            await CaptureAsync($"ds4-live-{route.Label}-1366x768.png");
+        }
+    }
+
     [Fact]
     public async Task ServerAndClientPagedConsumers_ExposeTypedFoundationWithoutScrollRequests()
     {
@@ -149,10 +222,12 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
 
                 if (viewport.Width == 768 && route.Label is "price-lists" or "users")
                 {
-                    var responsiveWorkspace = Page.Locator(".vpp-list-detail-workspace").First;
-                    var columnCount = await responsiveWorkspace.EvaluateAsync<int>(
-                        "element => getComputedStyle(element).gridTemplateColumns.trim().split(/\\s+/).length");
-                    columnCount.Should().Be(1, "list/detail workspaces stack at tablet width instead of clipping either pane");
+                    var responsiveWorkspace = Page.Locator("[data-vpp-workspace-pattern='collection']").First;
+                    await responsiveWorkspace.WaitForAsync();
+                    var bounds = await responsiveWorkspace.BoundingBoxAsync();
+                    bounds.Should().NotBeNull();
+                    bounds!.Width.Should().BeLessThanOrEqualTo(viewport.Width,
+                        "collection workspaces stay inside the tablet viewport instead of inheriting a stale list/detail layout");
                 }
 
                 await AssertNoDocumentOverflowAsync(viewport.Width);

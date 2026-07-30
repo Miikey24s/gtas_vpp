@@ -11,7 +11,7 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs;
 
-public partial class Tab_CategoryLibrary : IDisposable
+public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategoryResDTO>, IDisposable
 {
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
 
@@ -31,6 +31,8 @@ public partial class Tab_CategoryLibrary : IDisposable
 
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText);
     private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
+
+    protected override RadzenDataGrid<VppCategoryResDTO>? InitialGrid => grid;
 
     private async Task LoadDataAsync(LoadDataArgs args)
     {

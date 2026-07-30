@@ -27,6 +27,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private int categoryCount { get; set; } = 0;
         private string? currentCategoryFilter { get; set; }
         private int currentCategorySkip { get; set; }
+        private bool hasAutoSelectedInitialCategory;
 
         // Giá trị lookup.
         public List<LookupValueResDTO> lookupValues { get; set; } = new List<LookupValueResDTO>();
@@ -99,6 +100,15 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupCategoryResDTO>>(apiUrl);
                 lookupCategories = result.Data ?? [];
                 categoryCount = result.TotalCount;
+
+                if (!hasAutoSelectedInitialCategory
+                    && selectedLookupCategory is null
+                    && lookupCategories.Count > 0)
+                {
+                    hasAutoSelectedInitialCategory = true;
+                    selectedLookupCategories = [lookupCategories[0]];
+                    await valueGrid.Reload();
+                }
             }
             catch (Exception ex)
             {

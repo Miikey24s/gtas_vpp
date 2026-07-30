@@ -18,6 +18,8 @@ public abstract class TestBase : IAsyncLifetime
 
     protected string BaseUrl { get; private set; } = null!;
 
+    protected string? BackendBaseUrl { get; private set; }
+
     protected string TestUsername => TestAccounts.SystemAdmin.Username;
 
     protected string TestPassword => TestAccounts.SystemAdmin.Password;
@@ -64,6 +66,7 @@ public abstract class TestBase : IAsyncLifetime
                         "with [Collection(ReadOnlyE2ECollection.Name)] (audit it as read-only " +
                         "first) or mark it as IMutatingUiTest.");
                 BaseUrl = await sharedApp.GetOrStartAsync(cancellationToken);
+                BackendBaseUrl = sharedApp.BackendBaseUrl;
                 _accounts = sharedApp.Accounts;
             }
             else

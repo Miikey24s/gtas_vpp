@@ -25,16 +25,20 @@ internal sealed class IsolatedE2EStack : IAsyncDisposable
     private IsolatedE2EStack(
         LocalDbQaFixture fixture,
         DistributedApplication app,
+        string backendBaseUrl,
         string baseUrl)
     {
         Fixture = fixture;
         App = app;
+        BackendBaseUrl = backendBaseUrl;
         BaseUrl = baseUrl;
     }
 
     public LocalDbQaFixture Fixture { get; }
 
     public DistributedApplication App { get; }
+
+    public string BackendBaseUrl { get; }
 
     public string BaseUrl { get; }
 
@@ -68,6 +72,8 @@ internal sealed class IsolatedE2EStack : IAsyncDisposable
                 backendClient.BaseAddress
                 ?? throw new InvalidOperationException("Aspire backend endpoint has no address."),
                 "Aspire backend endpoint");
+            var backendBaseUrl = NormalizeBaseUrl(backendClient.BaseAddress.ToString())
+                ?? throw new InvalidOperationException("Aspire backend endpoint has no address.");
             await WaitForConfirmedIdentityAsync(backendClient, fixture, cancellationToken);
 
             using var frontendClient = app.CreateHttpClient("frontend");
@@ -75,7 +81,7 @@ internal sealed class IsolatedE2EStack : IAsyncDisposable
                 ?? throw new InvalidOperationException("Aspire frontend endpoint has no address.");
             QaUiSafetyContract.EnsureLoopbackUrl(new Uri(frontendBaseUrl), "Aspire frontend endpoint");
             await WaitForBaseUrlReadyAsync(frontendBaseUrl, cancellationToken);
-            return new IsolatedE2EStack(fixture, app, frontendBaseUrl);
+            return new IsolatedE2EStack(fixture, app, backendBaseUrl, frontendBaseUrl);
         }
         catch
         {

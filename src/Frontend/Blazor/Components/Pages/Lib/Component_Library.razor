@@ -10,7 +10,7 @@
     <RadzenTabs Change="@TabOnChange"
                 TabPosition="@tabPosition"
                 class="librariestab vpp-admin-tabs vpp-bounded-shell"
-                RenderMode="TabRenderMode.Client"
+                RenderMode="TabRenderMode.Server"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
             @if (CanViewLibraryTab(Permissions.LibraryClass))

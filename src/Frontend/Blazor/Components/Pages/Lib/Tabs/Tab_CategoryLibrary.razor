@@ -1,6 +1,7 @@
 @using gtas_vpp_fe.Components.DesignSystem.Composites
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_shared.DTOs.Res.Library
+@inherits VppServerGridComponentBase<VppCategoryResDTO>
 
 <VppCollectionWorkspace FillAvailableSpace="true" IsBusy="@isLoading">
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
@@ -57,12 +58,12 @@
                             RowRender="@OnRowRender"
                             class="vpp-admin-grid vpp-data-grid vpp-data-density-compact"
                             ColumnWidth="150px"
-                            Style="--vpp-admin-grid-min-width: 980px;">
+                            Style="--vpp-admin-grid-min-width: 960px;">
                 <Columns>
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="row">@(currentSkip + rows.IndexOf(row) + 1)</Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="VppCategoryName" Title="@Loc["CategoryName"]" Width="300px" MinWidth="260px">
+                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="VppCategoryName" Title="@Loc["CategoryName"]" Width="260px" MinWidth="230px">
                         <Template Context="row">
                             <div class="vpp-admin-two-line-cell">
                                 <strong>@(row.VppCategoryName ?? "–")</strong>
@@ -77,10 +78,10 @@
                             </div>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="Description" Title="@Loc["Description"]" Width="360px" MinWidth="260px">
+                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="Description" Title="@Loc["Description"]" Width="260px" MinWidth="220px">
                         <Template Context="row"><span class="vpp-admin-truncate" title="@row.Description">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span></Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="170px" TextAlign="TextAlign.Center" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="150px" TextAlign="TextAlign.Center" FormatString="{0:dd/MM/yyyy HH:mm}" Pickable="true" />
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Title="@Loc["Actions"]" Width="100px" MinWidth="100px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                         <Template Context="row">
                             <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />

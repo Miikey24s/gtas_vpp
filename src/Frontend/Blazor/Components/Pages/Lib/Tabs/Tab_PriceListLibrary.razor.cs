@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
-    public partial class Tab_PriceListLibrary
+    public partial class Tab_PriceListLibrary : VppServerGridComponentBase<PriceListResDTO>
     {
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
@@ -32,6 +32,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private string searchText = string.Empty;
         private bool HasFilters => !string.IsNullOrWhiteSpace(selectedStatus) || !string.IsNullOrWhiteSpace(searchText);
         private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
+        protected override RadzenDataGrid<PriceListResDTO>? InitialGrid => grid;
 
         private IReadOnlyList<VppFilterOption<string>> PriceListStatusOptions =>
         [
