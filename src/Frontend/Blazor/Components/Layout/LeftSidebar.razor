@@ -26,7 +26,6 @@
                     @if (headerTab.IsExpanded)
                     {
                         <VppHeaderTabGroup ParentLabel="@headerTab.Label"
-                                           ParentPath="@headerTab.Path"
                                            Tabs="@(headerTab.Children!)" />
                     }
                     else

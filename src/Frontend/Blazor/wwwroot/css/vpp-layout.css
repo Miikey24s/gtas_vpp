@@ -137,6 +137,7 @@ leftsidebar {
     isolation: isolate;
     padding-inline: var(--vpp-space-3);
     color: var(--vpp-text-secondary);
+    -webkit-text-fill-color: currentColor;
     font-family: var(--vpp-font-sidebar);
     font-size: 14px;
     font-weight: var(--vpp-font-weight-semibold);
@@ -145,6 +146,19 @@ leftsidebar {
     text-box-edge: cap alphabetic;
     white-space: nowrap;
     text-decoration: none;
+}
+
+.vpp-layout-header .vpp-header-tab-parent,
+.vpp-local-header-tabs .vpp-header-tab-parent {
+    color: var(--vpp-text-secondary);
+    opacity: 1;
+    cursor: default;
+    pointer-events: none;
+}
+
+.vpp-layout-header .vpp-header-tab-parent::before,
+.vpp-local-header-tabs .vpp-header-tab-parent::before {
+    content: none;
 }
 
 .vpp-layout-header .vpp-header-tab::before,

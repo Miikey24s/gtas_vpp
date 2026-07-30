@@ -129,6 +129,8 @@ public sealed class SharedUiFoundationTests
 
         Assert.Contains("IReadOnlyList<VppHeaderSubTab>", group, StringComparison.Ordinal);
         Assert.Contains("sealed record VppHeaderSubTab", model, StringComparison.Ordinal);
+        Assert.Contains("<span class=\"vpp-header-tab vpp-header-tab-parent\">", group, StringComparison.Ordinal);
+        Assert.DoesNotContain("ParentPath", group, StringComparison.Ordinal);
         Assert.Contains("<VppHeaderTabGroup", shell, StringComparison.Ordinal);
         Assert.Contains("periodChildren", shellCode, StringComparison.Ordinal);
         Assert.Contains("pricingChildren", shellCode, StringComparison.Ordinal);
@@ -349,6 +351,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-header-tabs", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-header-tab-group", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-local-header-tabs", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("-webkit-text-fill-color: currentColor;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-layout-header .vpp-header-tab-parent", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("pointer-events: none;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab", layoutCss, StringComparison.Ordinal);
         Assert.Contains("color: var(--vpp-text-secondary);", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab::before", layoutCss, StringComparison.Ordinal);

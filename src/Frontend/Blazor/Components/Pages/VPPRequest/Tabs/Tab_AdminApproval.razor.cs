@@ -52,10 +52,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private bool ShowPeriodNavigation => PeriodHeaderTabs.Count > 0;
 
-        private string DefaultPeriodPath => CanShowSettlement
-            ? "/dashboard?tab=5&periodTab=review"
-            : "/dashboard?tab=5&periodTab=pending";
-
         private IReadOnlyList<VppHeaderSubTab> PeriodHeaderTabs
         {
             get

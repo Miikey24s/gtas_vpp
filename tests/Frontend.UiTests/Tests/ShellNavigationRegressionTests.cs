@@ -21,10 +21,11 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         var periodGroup = Page.Locator(".vpp-layout-header .vpp-header-tab-group");
         await periodGroup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await periodGroup.Locator(".vpp-header-tab-group-divider").CountAsync()).Should().Be(2);
-        (await periodGroup.Locator(".vpp-header-tab-parent").InnerTextAsync()).Trim().Should().Be("Quản lý kỳ");
-        (await periodGroup.Locator(".vpp-header-tab-parent").GetAttributeAsync("aria-current")).Should().BeNull();
-        (await periodGroup.Locator(".vpp-header-tab-parent").GetAttributeAsync("href"))
-            .Should().Be("/dashboard?tab=5&periodTab=review");
+        var periodContext = periodGroup.Locator(".vpp-header-tab-parent");
+        (await periodContext.InnerTextAsync()).Trim().Should().Be("Quản lý kỳ");
+        (await periodContext.EvaluateAsync<string>("element => element.tagName")).Should().Be("SPAN");
+        (await periodContext.GetAttributeAsync("href")).Should().BeNull();
+        await AssertHeaderContextReadableAsync(periodContext, "light");
 
         var activePeriodTab = periodGroup.Locator(".vpp-header-sub-tab.is-active");
         (await activePeriodTab.InnerTextAsync()).Trim().Should().Be("Chốt kỳ");
@@ -43,6 +44,8 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             """);
         periodIndicatorAlignment[2].Should().BeGreaterThanOrEqualTo(periodIndicatorAlignment[0]);
         periodIndicatorAlignment[3].Should().BeLessThanOrEqualTo(periodIndicatorAlignment[1]);
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-header-tabs > .vpp-tab-shared-indicator')?.getAnimations().length === 0");
 
         var approvalTab = periodGroup.Locator(".vpp-header-sub-tab").Filter(new() { HasText = "Duyệt đơn bổ sung" });
         await approvalTab.EvaluateAsync(
@@ -50,6 +53,10 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         var childIndicatorSamples = await SampleHorizontalIndicatorMotionAsync(periodIndicator, approvalTab);
         AssertSmoothHorizontalMotion(childIndicatorSamples,
             "the shared line must move directly between sibling header sub-tabs");
+
+        await SetThemeClassAsync(dark: true);
+        await AssertHeaderContextReadableAsync(periodContext, "dark");
+        await SetThemeClassAsync(dark: false);
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
@@ -81,6 +88,7 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         var pricingGroup = Page.Locator(".vpp-layout-header .vpp-header-tab-group");
         await pricingGroup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await pricingGroup.Locator(".vpp-header-tab-parent").InnerTextAsync()).Trim().Should().Be("Bảng giá");
+        await AssertHeaderContextReadableAsync(pricingGroup.Locator(".vpp-header-tab-parent"), "light");
         (await pricingGroup.Locator(".vpp-header-sub-tab.is-active").InnerTextAsync()).Trim().Should().Be("Giá mặt hàng");
         (await Page.Locator(".vpp-library-local-selector").CountAsync()).Should().Be(0,
             "the retired decision selector must not remain in the pricing body");
@@ -119,6 +127,43 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
                 Caret = ScreenshotCaret.Hide
             });
         }
+    }
+
+    private async Task SetThemeClassAsync(bool dark)
+    {
+        await Page.EvaluateAsync(
+            "dark => document.documentElement.classList.toggle('rz-theme-dark', dark)",
+            dark);
+        await WaitForRenderSettleAsync();
+    }
+
+    private static async Task AssertHeaderContextReadableAsync(ILocator context, string mode)
+    {
+        var visual = await context.EvaluateAsync<string[]>(
+            """
+            element => {
+                const probe = document.createElement('span');
+                probe.style.color = 'var(--vpp-text-secondary)';
+                document.body.appendChild(probe);
+                const expected = getComputedStyle(probe).color;
+                probe.remove();
+                const styles = getComputedStyle(element);
+                return [
+                    styles.color,
+                    styles.webkitTextFillColor,
+                    styles.opacity,
+                    styles.visibility,
+                    styles.pointerEvents,
+                    expected
+                ];
+            }
+            """);
+
+        visual[0].Should().Be(visual[5], $"the {mode} parent context must use the secondary text token");
+        visual[1].Should().Be(visual[0], $"the {mode} rendered text fill must follow its computed color");
+        visual[2].Should().Be("1", $"the {mode} parent context must not fade out");
+        visual[3].Should().Be("visible", $"the {mode} parent context must remain visible");
+        visual[4].Should().Be("none", $"the expanded parent is context, not a duplicate navigation target");
     }
 
     [Fact]
