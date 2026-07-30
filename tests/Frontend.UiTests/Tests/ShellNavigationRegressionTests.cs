@@ -21,6 +21,20 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
         var periodGroup = Page.Locator(".vpp-layout-header .vpp-header-tab-group");
         await periodGroup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await periodGroup.Locator(".vpp-header-tab-group-divider").CountAsync()).Should().Be(2);
+        var dividerGeometry = await periodGroup.EvaluateAsync<double[][]>(
+            """
+            group => {
+                const groupRect = group.getBoundingClientRect();
+                return [...group.querySelectorAll('.vpp-header-tab-group-divider')]
+                    .map(divider => {
+                        const rect = divider.getBoundingClientRect();
+                        return [groupRect.top, groupRect.bottom, rect.top, rect.bottom];
+                    });
+            }
+            """);
+        dividerGeometry.Should().OnlyContain(bounds =>
+            Math.Abs(bounds[0] - bounds[2]) < 0.75 && Math.Abs(bounds[1] - bounds[3]) < 0.75,
+            "both hierarchy dividers must span the full header-tab group height");
         var periodContext = periodGroup.Locator(".vpp-header-tab-parent");
         (await periodContext.InnerTextAsync()).Trim().Should().Be("Quản lý kỳ");
         (await periodContext.EvaluateAsync<string>("element => element.tagName")).Should().Be("SPAN");
@@ -122,6 +136,111 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             await Page.ScreenshotAsync(new()
             {
                 Path = Path.Combine(evidenceDirectory, "header-tab-group-pricing-390x844.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+    }
+
+    [Fact]
+    public async Task SidebarHeaderControls_AlignWithMenuRail_AndToggleAllGroups()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}library?tab=0", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+
+        var sidebar = Page.Locator(".vpp-sidebar[data-shell-ready='true']");
+        await sidebar.WaitForAsync();
+        if (await sidebar.EvaluateAsync<bool>("element => element.classList.contains('sidebar-collapsed')"))
+        {
+            await sidebar.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
+            await Page.WaitForFunctionAsync(
+                "() => !document.querySelector('.vpp-sidebar')?.classList.contains('sidebar-collapsed')");
+        }
+
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-sidebar-expanded-chrome')?.getAnimations({ subtree: true }).every(animation => animation.playState === 'finished' || animation.playState === 'idle') !== false");
+
+        var toggleAll = sidebar.Locator(".vpp-sidebar-tree-toggle");
+        var collapseSidebar = sidebar.Locator(".vpp-sidebar-toggle");
+        await toggleAll.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await toggleAll.GetAttributeAsync("aria-pressed")).Should().Be("true");
+        (await toggleAll.GetAttributeAsync("aria-label")).Should().Be("Thu gọn toàn bộ nhóm điều hướng");
+
+        var railAlignment = await Page.EvaluateAsync<double[]>(
+            """
+            () => {
+                const centerX = selector => {
+                    const rect = document.querySelector(selector).getBoundingClientRect();
+                    return rect.left + rect.width / 2;
+                };
+                return [
+                    centerX('.vpp-sidebar-toggle .vpp-icon'),
+                    centerX('.vpp-sidebar-nav .rz-navigation-item-icon-children')
+                ];
+            }
+            """);
+        Math.Abs(railAlignment[0] - railAlignment[1]).Should().BeLessThanOrEqualTo(1.5,
+            $"the collapse control ({railAlignment[0]:0.##}) must share the same visual rail as the menu chevrons ({railAlignment[1]:0.##})");
+
+        var dashboardChild = sidebar.Locator("a[href='/dashboard?tab=0']");
+        var libraryChild = sidebar.Locator("a[href='/library?tab=0']");
+        var permissionChild = sidebar.Locator("a[href='/permission?tab=0']");
+        (await dashboardChild.IsVisibleAsync()).Should().BeTrue();
+        (await libraryChild.IsVisibleAsync()).Should().BeTrue();
+        (await permissionChild.IsVisibleAsync()).Should().BeTrue();
+
+        await toggleAll.ClickAsync();
+        await Page.WaitForFunctionAsync(
+            "() => [...document.querySelectorAll('.vpp-sidebar-nav .rz-expander')].every(element => getComputedStyle(element).gridTemplateRows.startsWith('0px'))");
+        (await toggleAll.GetAttributeAsync("aria-pressed")).Should().Be("false");
+        (await toggleAll.GetAttributeAsync("aria-label")).Should().Be("Mở rộng toàn bộ nhóm điều hướng");
+        var collapsedHeights = await Page.EvaluateAsync<double[]>(
+            "() => [...document.querySelectorAll('.vpp-sidebar-nav .rz-expander')].map(element => element.getBoundingClientRect().height)");
+        collapsedHeights.Should().OnlyContain(height => height <= 0.75,
+            "every expandable menu region must be visually collapsed");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "sidebar-collapse-all-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide
+            });
+        }
+
+        await toggleAll.ClickAsync();
+        await Page.WaitForFunctionAsync(
+            "() => [...document.querySelectorAll('.vpp-sidebar-nav .rz-expander')].every(element => !getComputedStyle(element).gridTemplateRows.startsWith('0px'))");
+        (await toggleAll.GetAttributeAsync("aria-pressed")).Should().Be("true");
+        (await dashboardChild.IsVisibleAsync()).Should().BeTrue();
+        (await libraryChild.IsVisibleAsync()).Should().BeTrue();
+        (await permissionChild.IsVisibleAsync()).Should().BeTrue();
+
+        var controls = await Page.EvaluateAsync<double[][]>(
+            """
+            () => ['.vpp-sidebar-tree-toggle', '.vpp-sidebar-toggle'].map(selector => {
+                const rect = document.querySelector(selector).getBoundingClientRect();
+                return [rect.top, rect.bottom, rect.width, rect.height];
+            })
+            """);
+        controls[0].Should().Equal(controls[1], "both header actions must use the same aligned hitbox");
+        (await collapseSidebar.IsVisibleAsync()).Should().BeTrue();
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "sidebar-expand-collapse-all-1366x768.png"),
                 FullPage = false,
                 Animations = ScreenshotAnimations.Disabled,
                 Caret = ScreenshotCaret.Hide

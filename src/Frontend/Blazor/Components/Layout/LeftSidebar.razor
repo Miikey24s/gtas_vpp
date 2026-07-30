@@ -54,15 +54,29 @@
                 <VppBrandMark Class="vpp-sidebar-brand-mark vpp-sidebar-expanded-logo" />
                 <span class="vpp-sidebar-product">GTAS VPP</span>
             </div>
-            <button type="button"
-                    class="vpp-sidebar-toggle"
-                    title="@Loc["ToggleNavigation"]"
-                    aria-label="@Loc["ToggleNavigation"]"
-                    aria-expanded="true"
-                    tabindex="@(_sideBarExpanded ? "0" : "-1")"
-                    @onclick="@(() => SetSidebarExpandedAsync(false))">
-                <VppIcon Name="@VppIcons.SidebarCollapse" />
-            </button>
+            <div class="vpp-sidebar-header-actions">
+                @if (HasExpandableSidebarGroups)
+                {
+                    <button type="button"
+                            class="vpp-sidebar-tree-toggle"
+                            title="@SidebarTreeToggleLabel"
+                            aria-label="@SidebarTreeToggleLabel"
+                            aria-pressed="@(AreAllSidebarGroupsExpanded ? "true" : "false")"
+                            tabindex="@(_sideBarExpanded ? "0" : "-1")"
+                            @onclick="ToggleAllSidebarGroups">
+                        <VppIcon Name="@(AreAllSidebarGroupsExpanded ? VppIcons.CollapseAll : VppIcons.ExpandAll)" />
+                    </button>
+                }
+                <button type="button"
+                        class="vpp-sidebar-toggle"
+                        title="@Loc["ToggleNavigation"]"
+                        aria-label="@Loc["ToggleNavigation"]"
+                        aria-expanded="true"
+                        tabindex="@(_sideBarExpanded ? "0" : "-1")"
+                        @onclick="@(() => SetSidebarExpandedAsync(false))">
+                    <VppIcon Name="@VppIcons.SidebarCollapse" />
+                </button>
+            </div>
         </div>
         <button type="button"
                 class="vpp-sidebar-brand vpp-sidebar-collapsed-brand"
@@ -77,10 +91,10 @@
         </button>
     </div>
     <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
-        <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Click="@OnMenuItemClick">
+        <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Multiple="true" Click="@OnMenuItemClick">
         @if (CanViewDashboardMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="@VppIcons.Dashboard" class="ppjsidebarmenu" title="@Loc["Dashboard"]">
+            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="@VppIcons.Dashboard" class="ppjsidebarmenu" title="@Loc["Dashboard"]" @bind-Expanded="_dashboardMenuExpanded">
                 @if (CanViewDashboardItem(Permissions.RequestOrder))
                 {
                     <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavMyOrders" title="@Loc["MyOrders"]" />
@@ -100,7 +114,7 @@
                 }
                 @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]">
+                    <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]" @bind-Expanded="_periodMenuExpanded">
                         @if (CanViewDashboardItem(Permissions.PeriodSettle))
                         {
                             <RadzenPanelMenuItem Text="@Loc["PeriodSettleStep"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.Review" title="@Loc["PeriodSettleStep"]" />
@@ -115,7 +129,7 @@
         }
         @if (CanViewLibraryMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="@VppIcons.Folder" class="ppjsidebarmenu" title="@Loc["Library"]">
+            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="@VppIcons.Folder" class="ppjsidebarmenu" title="@Loc["Library"]" @bind-Expanded="_libraryMenuExpanded">
                 @if (CanViewLibraryItem(Permissions.LibraryClass))
                 {
                     <RadzenPanelMenuItem Text="@Loc["ClassDefinitions"]" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.Schema" title="@Loc["ClassDefinitions"]" />
@@ -134,7 +148,7 @@
                 }
                 @if (CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Pricing"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.Pricing" title="@Loc["Pricing"]">
+                    <RadzenPanelMenuItem Text="@Loc["Pricing"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.Pricing" title="@Loc["Pricing"]" @bind-Expanded="_pricingMenuExpanded">
                         @if (CanViewLibraryItem(Permissions.LibraryPriceList))
                         {
                             <RadzenPanelMenuItem Text="@Loc["PriceLists"]" Path="@("/library?tab=6&pricingTab=price-lists")" class="ppjsidebarmenu submenu" Icon="@VppIcons.PriceList" title="@Loc["PriceLists"]" />
@@ -157,7 +171,7 @@
         }
         @if (CanViewPermissionMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="@VppIcons.Permissions" class="ppjsidebarmenu" title="@Loc["Permissions"]">
+            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="@VppIcons.Permissions" class="ppjsidebarmenu" title="@Loc["Permissions"]" @bind-Expanded="_permissionMenuExpanded">
                 @if (CanViewPermissionItem(Permissions.PermissionUser))
                 {
                     <RadzenPanelMenuItem Text="@Loc["Users"]" Icon="@VppIcons.Group" class="ppjsidebarmenu submenu" Path="/permission?tab=0" title="@Loc["Users"]" />

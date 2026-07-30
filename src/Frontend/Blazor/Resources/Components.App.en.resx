@@ -500,6 +500,8 @@
   <data name="ScopeOwn" xml:space="preserve"><value>My data</value></data>
   <data name="ShowPassword" xml:space="preserve"><value>Show password</value></data>
   <data name="SkipToContent" xml:space="preserve"><value>Skip to main content</value></data>
+  <data name="CollapseAllNavigation" xml:space="preserve"><value>Collapse all navigation groups</value></data>
+  <data name="ExpandAllNavigation" xml:space="preserve"><value>Expand all navigation groups</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Toggle navigation</value></data>
   <data name="TopProducts" xml:space="preserve"><value>Most requested items</value></data>
   <data name="TopProductsDescription" xml:space="preserve"><value>Top 10 items by requested quantity.</value></data>

@@ -500,6 +500,8 @@
   <data name="ScopeOwn" xml:space="preserve"><value>Cá nhân</value></data>
   <data name="ShowPassword" xml:space="preserve"><value>Hiện mật khẩu</value></data>
   <data name="SkipToContent" xml:space="preserve"><value>Chuyển đến nội dung chính</value></data>
+  <data name="CollapseAllNavigation" xml:space="preserve"><value>Thu gọn toàn bộ nhóm điều hướng</value></data>
+  <data name="ExpandAllNavigation" xml:space="preserve"><value>Mở rộng toàn bộ nhóm điều hướng</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Đóng hoặc mở điều hướng</value></data>
   <data name="TopProducts" xml:space="preserve"><value>Mặt hàng được yêu cầu nhiều nhất</value></data>
   <data name="TopProductsDescription" xml:space="preserve"><value>10 mặt hàng có tổng số lượng yêu cầu cao nhất.</value></data>

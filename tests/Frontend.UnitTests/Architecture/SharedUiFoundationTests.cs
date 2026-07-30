@@ -310,6 +310,17 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-sidebar-collapsed-expand-icon", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-expanded-brand", source, StringComparison.Ordinal);
         Assert.Contains("vpp-sidebar-expanded-chrome", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-sidebar-header-actions", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-sidebar-tree-toggle", source, StringComparison.Ordinal);
+        Assert.Contains("Multiple=\"true\"", source, StringComparison.Ordinal);
+        Assert.Contains("@bind-Expanded=\"_dashboardMenuExpanded\"", source, StringComparison.Ordinal);
+        Assert.Contains("@bind-Expanded=\"_periodMenuExpanded\"", source, StringComparison.Ordinal);
+        Assert.Contains("@bind-Expanded=\"_libraryMenuExpanded\"", source, StringComparison.Ordinal);
+        Assert.Contains("@bind-Expanded=\"_pricingMenuExpanded\"", source, StringComparison.Ordinal);
+        Assert.Contains("@bind-Expanded=\"_permissionMenuExpanded\"", source, StringComparison.Ordinal);
+        Assert.Contains("ToggleAllSidebarGroups", sourceCode, StringComparison.Ordinal);
+        Assert.Contains("AreAllSidebarGroupsExpanded", sourceCode, StringComparison.Ordinal);
+        Assert.Contains("HasExpandableSidebarGroups", sourceCode, StringComparison.Ordinal);
         Assert.Contains("MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon", source, StringComparison.Ordinal);
         Assert.Contains("background: transparent;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".sidebar-collapsed .vpp-sidebar-user-footer", polishCss, StringComparison.Ordinal);
@@ -350,6 +361,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-admin-tabs > .rz-tabview-nav-container,\n    .vpp-admin-tabs > .rz-tabview-nav {\n        display: none !important;\n    }", layoutCss.Replace("\r\n", "\n"), StringComparison.Ordinal);
         Assert.Contains(".vpp-header-tabs", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-header-tab-group", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-sidebar-header-actions", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("flex-basis: var(--vpp-navigation-row-height);", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("align-self: stretch;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains("height: auto;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-local-header-tabs", layoutCss, StringComparison.Ordinal);
         Assert.Contains("-webkit-text-fill-color: currentColor;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab-parent", layoutCss, StringComparison.Ordinal);

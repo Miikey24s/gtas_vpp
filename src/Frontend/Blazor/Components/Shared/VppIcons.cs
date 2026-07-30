@@ -16,12 +16,14 @@ public static class VppIcons
     public const string Check = "check";
     public const string ChevronRight = "chevron_right";
     public const string Close = "close";
+    public const string CollapseAll = "keyboard_double_arrow_up";
     public const string Columns = "view_column";
     public const string Copy = "content_copy";
     public const string DarkMode = "dark_mode";
     public const string Dashboard = "space_dashboard";
     public const string Department = "table_view";
     public const string Error = "error";
+    public const string ExpandAll = "keyboard_double_arrow_down";
     public const string ExpandMore = "expand_more";
     public const string FilterOff = "filter_alt_off";
     public const string Folder = "folder_open";

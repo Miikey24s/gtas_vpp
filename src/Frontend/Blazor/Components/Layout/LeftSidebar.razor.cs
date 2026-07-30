@@ -56,6 +56,11 @@ namespace gtas_vpp_fe.Components.Layout
         // data-shell-ready thay vì tương tác giữa lúc shell còn đang mở/thu.
         public bool _shellStateReady { get; set; }
         private const string SidebarStorageKey = "VPP_SidebarExpanded";
+        private bool _dashboardMenuExpanded = true;
+        private bool _periodMenuExpanded = true;
+        private bool _libraryMenuExpanded = true;
+        private bool _pricingMenuExpanded = true;
+        private bool _permissionMenuExpanded = true;
         public bool LightTheme { get; set; } = true;
         public bool _userMenuOpen = false;
         private string? currentUrl { get; set; }
@@ -70,6 +75,19 @@ namespace gtas_vpp_fe.Components.Layout
         private bool CanViewLibraryMenu => HasSidebarMenu(Permissions.MenuLibrary) && LibraryMenuRoutes.Any(route => CanViewLibraryItem(route.Permission));
         private bool CanViewReportMenu => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
         private bool CanViewPermissionMenu => HasSidebarMenu(Permissions.MenuPermission) && PermissionMenuRoutes.Any(route => CanViewPermissionItem(route.Permission));
+        private bool CanViewPeriodMenu => CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle);
+        private bool CanViewPricingMenu => CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice);
+        private bool HasExpandableSidebarGroups => CanViewDashboardMenu || CanViewLibraryMenu || CanViewPermissionMenu;
+
+        private bool AreAllSidebarGroupsExpanded =>
+            (!CanViewDashboardMenu || _dashboardMenuExpanded)
+            && (!CanViewPeriodMenu || _periodMenuExpanded)
+            && (!CanViewLibraryMenu || _libraryMenuExpanded)
+            && (!CanViewPricingMenu || _pricingMenuExpanded)
+            && (!CanViewPermissionMenu || _permissionMenuExpanded);
+
+        private string SidebarTreeToggleLabel => Loc[
+            AreAllSidebarGroupsExpanded ? "CollapseAllNavigation" : "ExpandAllNavigation"];
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
@@ -343,6 +361,36 @@ namespace gtas_vpp_fe.Components.Layout
             IReadOnlyList<VppHeaderSubTab>? Children = null)
         {
             public bool IsExpanded => IsActive && Children is { Count: > 0 };
+        }
+
+        private void ToggleAllSidebarGroups()
+        {
+            var expanded = !AreAllSidebarGroupsExpanded;
+
+            if (CanViewDashboardMenu)
+            {
+                _dashboardMenuExpanded = expanded;
+            }
+
+            if (CanViewPeriodMenu)
+            {
+                _periodMenuExpanded = expanded;
+            }
+
+            if (CanViewLibraryMenu)
+            {
+                _libraryMenuExpanded = expanded;
+            }
+
+            if (CanViewPricingMenu)
+            {
+                _pricingMenuExpanded = expanded;
+            }
+
+            if (CanViewPermissionMenu)
+            {
+                _permissionMenuExpanded = expanded;
+            }
         }
 
         // Tab strip theo khu vực trong primary header desktop (Atlas: dashboard 5 tab,
