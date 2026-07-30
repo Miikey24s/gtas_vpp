@@ -663,6 +663,7 @@ public sealed class SharedUiFoundationTests
         var contracts = File.ReadAllText(Path.Combine(compositesRoot, "VppAdminDialogContracts.cs"));
         var shell = File.ReadAllText(Path.Combine(compositesRoot, "VppAdaptiveDialogShell.razor"));
         var adminStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
+        var accessibilityStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-a11y.css"));
         var lookupTab = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor.cs"));
         var lookupDialog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Dialog", "Dialog_AddLookupCategory.razor"));
 
@@ -682,6 +683,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("100dvh", adminStyles, StringComparison.Ordinal);
         Assert.Contains("VppAdminDialogProfiles.Create", lookupTab, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", lookupDialog, StringComparison.Ordinal);
+        Assert.Contains(".rz-form-field :is(.rz-textbox, .rz-inputtext, .rz-dropdown, .rz-numeric, .rz-datepicker, .rz-textarea):focus-visible", accessibilityStyles, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none !important;", accessibilityStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("border-radius: 2px;", accessibilityStyles, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1052,6 +1056,10 @@ public sealed class SharedUiFoundationTests
         }
 
         Assert.Equal(2, lookup.Split("<VppDataSurfaceFrame", StringSplitOptions.None).Length - 1);
+        Assert.Contains("Property=\"IsDeleted\"", lookup, StringComparison.Ordinal);
+        Assert.Equal(2, lookup.Split("HeaderCssClass=\"rz-col-isdeleted\"", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, lookup.Split("Filterable=\"false\" Sortable=\"false\" CssClass=\"rz-col-isdeleted\"", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, lookup.Split("vpp-admin-is-deleted-cell", StringSplitOptions.None).Length - 1);
         Assert.Contains("permission-users-data-surface", users, StringComparison.Ordinal);
         Assert.Contains("permission-groups-data-surface", permissions, StringComparison.Ordinal);
         Assert.Contains("security-audit-data-surface", securityAudit, StringComparison.Ordinal);

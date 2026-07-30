@@ -363,6 +363,48 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         masterChrome[0].Should().NotBe("none");
         masterChrome[1].Should().Be("grid");
 
+        var masterSemantics = await master.EvaluateAsync<double[]>("""
+            element => {
+                const row = element.querySelector('tbody > tr');
+                const nameCell = row?.querySelector('.vpp-class-master-cell');
+                const disabledHeader = element.querySelector('thead th.rz-col-isdeleted');
+                const disabledCell = row?.querySelector('td.rz-col-isdeleted');
+                const disabledSwitch = disabledCell?.querySelector('.isDeleteSwitch');
+                if (!row || !nameCell || !disabledHeader || !disabledCell || !disabledSwitch) {
+                    throw new Error('Lookup category columns do not match their semantic cells.');
+                }
+
+                const headerBox = disabledHeader.getBoundingClientRect();
+                const cellBox = disabledCell.getBoundingClientRect();
+                return [
+                    nameCell.querySelectorAll('.isDeleteSwitch').length,
+                    disabledCell.querySelectorAll('.isDeleteSwitch').length,
+                    disabledCell.textContent?.trim().length ?? -1,
+                    Math.abs(headerBox.left - cellBox.left),
+                    Math.abs(headerBox.width - cellBox.width)
+                ];
+            }
+            """);
+        masterSemantics[0].Should().Be(0);
+        masterSemantics[1].Should().Be(1);
+        masterSemantics[2].Should().Be(0);
+        masterSemantics[3].Should().BeLessThanOrEqualTo(1);
+        masterSemantics[4].Should().BeLessThanOrEqualTo(1);
+
+        var layoutEvidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(layoutEvidenceDirectory))
+        {
+            Directory.CreateDirectory(layoutEvidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(layoutEvidenceDirectory, "aa1-lookup-master-desktop.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
         var initialVisibleCount = int.Parse(await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync());
         initialVisibleCount.Should().BeGreaterThan(0);
         await pickerTrigger.ClickAsync();
@@ -535,6 +577,29 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         desktopBox!.Width.Should().BeLessThanOrEqualTo(640);
         desktopBox.X.Should().BeGreaterThan(0);
         desktopBox.X.Should().BeLessThan(1366 - desktopBox.Width);
+
+        var description = dialog.Locator("textarea.rz-textarea");
+        await description.FocusAsync();
+        var focusChrome = await description.EvaluateAsync<string[]>("""
+            element => {
+                const field = element.closest('.rz-form-field');
+                if (!field) {
+                    throw new Error('Lookup description is not owned by a RadzenFormField.');
+                }
+
+                const style = getComputedStyle(element);
+                return [
+                    style.outlineStyle,
+                    style.boxShadow,
+                    style.borderTopColor,
+                    document.activeElement === element ? 'active' : 'inactive'
+                ];
+            }
+            """);
+        focusChrome[0].Should().Be("none");
+        focusChrome[1].Should().Be("none");
+        focusChrome[2].Should().Be("rgba(0, 0, 0, 0)");
+        focusChrome[3].Should().Be("active");
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))

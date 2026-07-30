@@ -10,7 +10,6 @@
 :focus-visible {
     outline: 2px solid var(--vpp-primary-500) !important;
     outline-offset: 2px !important;
-    border-radius: 2px;
 }
 
 /* FocusOnNavigate chuyển accessibility focus đến heading của page. Thông báo
@@ -33,6 +32,16 @@ h1[tabindex="-1"]:focus-visible {
     outline-offset: 1px !important;
     border-color: var(--vpp-primary-400) !important;
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* FormField outlined sở hữu duy nhất đường viền focus. Control con vẫn nhận
+   keyboard focus nhưng không vẽ thêm outline/halo gây viền oval hai lớp. */
+.rz-form-field :is(.rz-textbox, .rz-inputtext, .rz-dropdown, .rz-numeric, .rz-datepicker, .rz-textarea):focus,
+.rz-form-field :is(.rz-textbox, .rz-inputtext, .rz-dropdown, .rz-numeric, .rz-datepicker, .rz-textarea):focus-visible {
+    border-color: transparent !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
 }
 
 /* Page-size select dùng focus inset như filter canonical; tránh cộng hai vòng
