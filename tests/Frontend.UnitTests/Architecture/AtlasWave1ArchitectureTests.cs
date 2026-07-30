@@ -273,11 +273,11 @@ public sealed class AtlasWave1ArchitectureTests
     [InlineData("Components/Pages/Authen/ResetPassword.razor")]
     [InlineData("Components/Pages/Authen/ChangePassword.razor")]
     [InlineData("Components/Pages/Authen/Logout.razor")]
-    public void M1_AccountRoutesShareTheCanonicalAccountShell(string relativePath)
+    public void M1_AccountRoutesUseTheCanonicalAccountWorkspaceDirectly(string relativePath)
     {
         var source = ReadFrontendSource(relativePath);
 
-        Assert.Contains("<VppAccountShell", source, StringComparison.Ordinal);
+        Assert.Contains("<VppAccountWorkspace", source, StringComparison.Ordinal);
         Assert.DoesNotContain("@rendermode", source, StringComparison.Ordinal);
     }
 

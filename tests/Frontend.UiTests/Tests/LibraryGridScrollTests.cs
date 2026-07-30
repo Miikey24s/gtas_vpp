@@ -71,7 +71,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         geometry[6].Should().BeLessThanOrEqualTo(geometry[5] + 1);
         geometry[8].Should().BeApproximately(0, 0.5);
 
-        var statusBadges = grid.Locator("tbody .rz-badge");
+        var statusBadges = grid.Locator("tbody .vpp-status-badge");
         var emptyState = grid.Locator(".rz-datatable-emptymessage");
         ((await statusBadges.CountAsync()) > 0 || (await emptyState.CountAsync()) > 0).Should().BeTrue(
             "the isolated fixture may be empty, but the typed grid must settle to rows or its empty state");
@@ -368,7 +368,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             element => {
                 const row = element.querySelector('tbody > tr');
                 const nameCell = row?.querySelector('.vpp-class-master-cell');
-                const statusBadge = row?.querySelector('.rz-badge');
+                const statusBadge = row?.querySelector('.vpp-status-badge');
                 const statusCell = statusBadge?.closest('td');
                 const statusIndex = statusCell ? [...row.children].indexOf(statusCell) : -1;
                 const statusHeader = statusIndex >= 0 ? element.querySelectorAll('thead th')[statusIndex] : null;
@@ -379,8 +379,8 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 const headerBox = statusHeader.getBoundingClientRect();
                 const cellBox = statusCell.getBoundingClientRect();
                 return [
-                    nameCell.querySelectorAll('.rz-badge').length,
-                    statusCell.querySelectorAll('.rz-badge').length,
+                    nameCell.querySelectorAll('.vpp-status-badge').length,
+                    statusCell.querySelectorAll('.vpp-status-badge').length,
                     statusCell.textContent?.trim().length ?? -1,
                     Math.abs(headerBox.left - cellBox.left),
                     Math.abs(headerBox.width - cellBox.width)

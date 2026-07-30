@@ -8,8 +8,7 @@ public sealed class SharedUiFoundationTests
     public void AuthoredStyles_DoNotForceUppercaseUiText()
     {
         var root = GetFrontendRoot();
-        var authoredStyles = Directory.EnumerateFiles(Path.Combine(root, "wwwroot", "css"), "*.css", SearchOption.AllDirectories)
-            .Append(Path.Combine(root, "wwwroot", "app.css"));
+        var authoredStyles = Directory.EnumerateFiles(Path.Combine(root, "wwwroot", "css"), "*.css", SearchOption.AllDirectories);
 
         var offenders = authoredStyles
             .Where(path => File.ReadAllText(path).Contains("text-transform: uppercase", StringComparison.OrdinalIgnoreCase))
@@ -125,7 +124,7 @@ public sealed class SharedUiFoundationTests
         var adminCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
-        var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
+        var appSource = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
         var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
         var componentVppRequest = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Component_VPPRequest.razor"));
         var libraryPage = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Page_Library.razor"));
@@ -189,8 +188,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("border-radius: 0;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("--vpp-layout-body-inset: var(--vpp-page-inset-inline-start);", layoutCss, StringComparison.Ordinal);
         Assert.DoesNotContain("--vpp-layout-body-inset: var(--vpp-space-5);", layoutCss, StringComparison.Ordinal);
-        Assert.Contains(".rz-body:not(.vpp-layout-body)", appCss, StringComparison.Ordinal);
-        Assert.DoesNotContain("padding: var(--rz-layout-body-padding-1) !important;", appCss, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "wwwroot", "app.css")));
+        Assert.DoesNotContain("app.css", appSource, StringComparison.Ordinal);
         Assert.Contains(".vpp-admin-tabs.vpp-history-shell > .rz-tabview-panels > .rz-tabview-panel", layoutCss, StringComparison.Ordinal);
         Assert.Contains("flex: 1 1 auto;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("UsesHistoryWorkspace", componentVppRequest, StringComparison.Ordinal);
@@ -200,7 +199,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("margin-inline-end: calc(-1 * var(--vpp-page-inset-inline-end));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-block-start: calc(-1 * var(--vpp-page-inset-block-start));", tabsCss, StringComparison.Ordinal);
         Assert.Contains("margin-block-end: var(--vpp-page-inset-block-start);", tabsCss, StringComparison.Ordinal);
-        Assert.Contains(".librariestab > .rz-tabview-panels", tabsCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("librariestab", tabsCss, StringComparison.Ordinal);
         Assert.Contains("border: 0 !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("box-shadow: none !important;", tabsCss, StringComparison.Ordinal);
         Assert.Contains("background: transparent !important;", tabsCss, StringComparison.Ordinal);
@@ -252,7 +251,6 @@ public sealed class SharedUiFoundationTests
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var responsiveCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
-        var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
         var a11yCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-a11y.css"));
 
         var sidebarStart = source.IndexOf("<RadzenSidebar", StringComparison.Ordinal);
@@ -301,8 +299,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("flex-basis: 24px;", layoutCss, StringComparison.Ordinal);
         Assert.Contains("width: 24px;", polishCss, StringComparison.Ordinal);
         Assert.Contains("flex: 0 0 24px;", polishCss, StringComparison.Ordinal);
-        Assert.Contains("width: 24px;", appCss, StringComparison.Ordinal);
-        Assert.Contains("font-size: 10px;", appCss, StringComparison.Ordinal);
+        Assert.Contains(".user-avatar {", polishCss, StringComparison.Ordinal);
+        Assert.Contains("font-size: 10px;", polishCss, StringComparison.Ordinal);
         Assert.Contains(".user-menu-trigger", a11yCss, StringComparison.Ordinal);
         Assert.DoesNotContain("    .user-avatar {", a11yCss, StringComparison.Ordinal);
         Assert.Contains("images/vpp-app-icon.svg", brandMarkSource, StringComparison.Ordinal);
@@ -354,7 +352,6 @@ public sealed class SharedUiFoundationTests
         var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
         var polishCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var tokensCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
-        var appCss = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
         var interactionsJs = File.ReadAllText(Path.Combine(root, "wwwroot", "js", "vpp-interactions.js"));
 
         Assert.Contains("--vpp-sidebar-item-hover-bg: var(--vpp-navigation-item-hover-bg);", sidebarCss, StringComparison.Ordinal);
@@ -454,7 +451,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("return hasVisibleAreaWithin(target, nav) ? target : null;", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("moveSidebarIndicator(nav, sidebarTargetFromLink(nav, link), true, true)", interactionsJs, StringComparison.Ordinal);
         Assert.Contains("initializeSidebarIndicators(document);", interactionsJs, StringComparison.Ordinal);
-        Assert.DoesNotContain(".ppjsidebarmenu.submenu", appCss, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "wwwroot", "app.css")));
         Assert.Contains("--vpp-sidebar-item-active-bg", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background-color: var(--vpp-sidebar-item-active-bg) !important;", sidebarCss, StringComparison.Ordinal);
         Assert.Contains("background: var(--vpp-nav-indicator-color);", sidebarCss, StringComparison.Ordinal);
@@ -615,11 +612,11 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("VppSplitEditorRatio", patternSource, StringComparison.Ordinal);
         Assert.Contains("RenderFragment", patternSource, StringComparison.Ordinal);
 
-        var accountShell = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppAccountShell.razor"));
+        var accountWorkspace = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Patterns", "VppAccountWorkspace.razor"));
         var authRoot = Path.Combine(root, "Components", "Pages", "Authen");
         var accountConsumerCount = Directory.GetFiles(authRoot, "*.razor", SearchOption.TopDirectoryOnly)
-            .Sum(path => File.ReadAllText(path).Split("<VppAccountShell", StringSplitOptions.None).Length - 1);
-        Assert.Contains("<VppAccountWorkspace", accountShell, StringComparison.Ordinal);
+            .Sum(path => File.ReadAllText(path).Split("<VppAccountWorkspace", StringSplitOptions.None).Length - 1);
+        Assert.Contains("data-vpp-workspace-pattern=\"account\"", accountWorkspace, StringComparison.Ordinal);
         Assert.True(accountConsumerCount >= 2, "Account pattern needs at least two real route consumers.");
 
         AssertPatternConsumer(root, "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor", "<VppCollectionWorkspace");
@@ -723,9 +720,7 @@ public sealed class SharedUiFoundationTests
     {
         var root = GetFrontendRoot();
         var cssRoot = Path.Combine(root, "wwwroot", "css");
-        var authoredCss = Directory.EnumerateFiles(cssRoot, "*.css", SearchOption.AllDirectories)
-            .Append(Path.Combine(root, "wwwroot", "app.css"))
-            .ToArray();
+        var authoredCss = Directory.EnumerateFiles(cssRoot, "*.css", SearchOption.AllDirectories).ToArray();
         var authoredJavaScript = Directory.EnumerateFiles(Path.Combine(root, "wwwroot", "js"), "*.js", SearchOption.AllDirectories)
             .ToArray();
 
@@ -1143,7 +1138,7 @@ public sealed class SharedUiFoundationTests
 
         Assert.Contains("VppContentStateKind.Loading", home, StringComparison.Ordinal);
         Assert.Contains("RedirectingToAllowedWorkspace", home, StringComparison.Ordinal);
-        Assert.Contains("<VppAccountShell", loginProcess, StringComparison.Ordinal);
+        Assert.Contains("<VppAccountWorkspace", loginProcess, StringComparison.Ordinal);
         Assert.Contains("LoginRedirectMessage", loginProcess, StringComparison.Ordinal);
         Assert.Contains("BackToLogin", loginProcess, StringComparison.Ordinal);
         Assert.Contains("VppContentStateKind.Error", error, StringComparison.Ordinal);

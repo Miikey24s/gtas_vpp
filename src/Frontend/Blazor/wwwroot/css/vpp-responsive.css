@@ -98,11 +98,6 @@
     .vpp-show-tablet,
     .vpp-show-desktop { display: none; }
 
-    .kpi-grid,
-    .vpp-kpi-grid {
-        grid-template-columns: 1fr !important;
-    }
-
     .rz-layout.vpp-layout > .rz-sidebar.vpp-sidebar {
         position: fixed;
         inset: 0 auto 0 0;
@@ -165,11 +160,6 @@
     .vpp-show-tablet { display: block; }
     .vpp-show-desktop { display: none; }
 
-    .kpi-grid,
-    .vpp-kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-
     .vpp-sidebar.sidebar-collapsed {
         width: var(--vpp-sidebar-collapsed-width) !important;
     }
@@ -195,10 +185,6 @@
     .vpp-show-mobile,
     .vpp-show-tablet { display: none; }
     .vpp-show-desktop { display: block; }
-    .kpi-grid,
-    .vpp-kpi-grid {
-        gap: var(--vpp-space-5);
-    }
 }
 
 /* ── Đăng nhập thích ứng màn hình ────────────────────────────── */

@@ -7,9 +7,9 @@
                         @bind-Value="_model.Reason"
                         Rows="5"
                         MaxLength="500"
-                        Style="width: 100%;"
+                        class="vpp-reject-reason-input"
                         aria-describedby="reject-reason-help" />
-        <span id="reject-reason-help" style="font-size: 0.82rem; color: var(--vpp-text-secondary);">
+        <span id="reject-reason-help" class="vpp-reject-reason-help">
             @Loc["RejectReasonHelp"]
         </span>
         <RadzenRequiredValidator Component="RejectReason" Text="@Loc["RejectReasonRequired"]" Popup="false" />

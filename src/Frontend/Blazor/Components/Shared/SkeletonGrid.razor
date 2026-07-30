@@ -1,25 +1,19 @@
-<RadzenStack Gap="0.75rem" class="skeleton-grid">
-    <RadzenRow Gap="0.5rem" AlignItems="AlignItems.Center" class="skeleton-header">
-        <RadzenColumn Size="3">
-            <div class="shimmer shimmer-bar shimmer-h-24 shimmer-w-50"></div>
-        </RadzenColumn>
-        <RadzenColumn Size="9" class="rz-text-align-right">
-            <div class="shimmer shimmer-bar shimmer-h-24 shimmer-w-30" style="margin-left: auto;"></div>
-        </RadzenColumn>
-    </RadzenRow>
+<div class="vpp-skeleton-grid" aria-hidden="true">
+    <div class="vpp-skeleton-grid-header">
+        <span class="vpp-skeleton vpp-skeleton-grid-heading"></span>
+        <span class="vpp-skeleton vpp-skeleton-grid-action"></span>
+    </div>
     @for (int i = 0; i < Rows; i++)
     {
-        <RadzenRow Gap="0.5rem" AlignItems="AlignItems.Center">
+        <div class="vpp-skeleton-grid-row">
             @for (int j = 0; j < Cols; j++)
             {
-                var w = j == 0 ? "90%" : (j == Cols - 1 ? "60%" : "75%");
-                <RadzenColumn Size="@(12 / Cols)">
-                    <div class="shimmer shimmer-bar shimmer-h-16" style="width: @w;"></div>
-                </RadzenColumn>
+                var widthClass = j == 0 ? "is-wide" : j == Cols - 1 ? "is-short" : "is-medium";
+                <span class="vpp-skeleton vpp-skeleton-grid-cell @widthClass"></span>
             }
-        </RadzenRow>
+        </div>
     }
-</RadzenStack>
+</div>
 
 @code {
     [Parameter] public int Rows { get; set; } = 5;

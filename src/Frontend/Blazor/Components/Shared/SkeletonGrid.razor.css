@@ -1,0 +1,44 @@
+.vpp-skeleton-grid {
+    display: grid;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-4);
+}
+
+.vpp-skeleton-grid-header,
+.vpp-skeleton-grid-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    align-items: center;
+    gap: var(--vpp-space-2);
+    min-width: 0;
+}
+
+.vpp-skeleton-grid-header {
+    grid-template-columns: minmax(120px, 1fr) minmax(80px, 0.35fr);
+}
+
+.vpp-skeleton-grid-heading,
+.vpp-skeleton-grid-action {
+    height: 24px;
+}
+
+.vpp-skeleton-grid-action {
+    justify-self: end;
+    width: 40%;
+}
+
+.vpp-skeleton-grid-cell {
+    height: 16px;
+}
+
+.vpp-skeleton-grid-cell.is-wide {
+    width: 90%;
+}
+
+.vpp-skeleton-grid-cell.is-medium {
+    width: 75%;
+}
+
+.vpp-skeleton-grid-cell.is-short {
+    width: 60%;
+}

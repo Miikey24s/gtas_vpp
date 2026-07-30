@@ -127,13 +127,13 @@ else
         }
         else
         {
-            <section class="vpp-report-kpis" aria-label="@Loc["ReportSummary"]">
-                @Kpi("receipt_long", Loc["TotalOrders"], Summary.TotalOrders.ToString("N0"))
-                @Kpi("format_list_numbered", Loc["TotalLineItems"], Summary.TotalLines.ToString("N0"))
-                @Kpi("inventory_2", Loc["TotalQuantity"], Summary.TotalQuantity.ToString("N0"))
-                @Kpi("payments", Loc["TotalAmount"], FormatAmount(Summary.TotalAmount))
-                @Kpi("groups", Loc["Requesters"], Summary.TotalRequesters.ToString("N0"))
-            </section>
+            <VppMetricGrid AriaLabel="@Loc["ReportSummary"]" Class="vpp-report-kpis">
+                <VppMetricCard Label="@Loc["TotalOrders"]" Value="@Summary.TotalOrders.ToString("N0")" Icon="receipt_long" Tone="VppMetricTone.Accent" />
+                <VppMetricCard Label="@Loc["TotalLineItems"]" Value="@Summary.TotalLines.ToString("N0")" Icon="format_list_numbered" />
+                <VppMetricCard Label="@Loc["TotalQuantity"]" Value="@Summary.TotalQuantity.ToString("N0")" Icon="inventory_2" />
+                <VppMetricCard Label="@Loc["TotalAmount"]" Value="@FormatAmount(Summary.TotalAmount)" Icon="payments" />
+                <VppMetricCard Label="@Loc["Requesters"]" Value="@Summary.TotalRequesters.ToString("N0")" Icon="groups" />
+            </VppMetricGrid>
 
             @if (Summary.SettlementId.HasValue)
             {

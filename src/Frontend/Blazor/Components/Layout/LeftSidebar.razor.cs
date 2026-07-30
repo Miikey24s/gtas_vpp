@@ -21,7 +21,6 @@ namespace gtas_vpp_fe.Components.Layout
             (Permissions.RequestHistory, "/dashboard?tab=1"),
             (Permissions.RequestProductCatalog, "/dashboard?tab=2"),
             (Permissions.RequestDepartmentSummary, "/dashboard?tab=3&managementTab=department"),
-            (Permissions.RequestAllOrdersSummary, "/dashboard?tab=3&managementTab=all"),
             (Permissions.PeriodSettle, "/dashboard?tab=5&periodTab=review"),
             (Permissions.RequestAdminApproval, "/dashboard?tab=5&periodTab=pending")
         ];

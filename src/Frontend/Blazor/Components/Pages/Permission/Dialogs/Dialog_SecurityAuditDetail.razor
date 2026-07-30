@@ -10,7 +10,7 @@
                 <strong>@ActionLabel</strong>
                 <span>@Audit.Action · @Audit.OccurredAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</span>
             </div>
-            <RadzenBadge Text="@OutcomeLabel" BadgeStyle="@OutcomeBadgeStyle" />
+            <VppStatusBadge Text="@OutcomeLabel" Tone="@OutcomeTone" />
         </div>
     </Intro>
     <ChildContent>
@@ -34,7 +34,7 @@
     [Parameter, EditorRequired] public SecurityAuditResDTO Audit { get; set; } = new();
     [Parameter, EditorRequired] public string ActionLabel { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string OutcomeLabel { get; set; } = string.Empty;
-    [Parameter] public BadgeStyle OutcomeBadgeStyle { get; set; } = BadgeStyle.Light;
+    [Parameter] public VppStatusTone OutcomeTone { get; set; } = VppStatusTone.Neutral;
     [Parameter] public string ActorLabel { get; set; } = "—";
     [Parameter] public string TargetLabel { get; set; } = "—";
     [Parameter] public string ResourceLabel { get; set; } = "—";

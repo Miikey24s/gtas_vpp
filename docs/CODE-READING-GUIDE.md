@@ -75,7 +75,7 @@ Các điểm cần biết sau đợt đồng bộ W-B.2 (2026-07-26):
 | — | `logout` | `/logoutprocess` | `Pages/Authen/Logout.razor` | `AuthController` | — |
 | — | `register` | `/Account/Register` | `Pages/Authen/Register.razor` | `AccountController` | — |
 
-Toàn bộ sáu màn dùng chung khung `Shared/VppAccountShell.razor`.
+Toàn bộ account route dùng trực tiếp pattern `DesignSystem/Patterns/VppAccountWorkspace.razor`; adapter `VppAccountShell` đã được retire sau khi consumer về 0.
 
 ### M2 — Vòng đời đơn của nhân viên
 

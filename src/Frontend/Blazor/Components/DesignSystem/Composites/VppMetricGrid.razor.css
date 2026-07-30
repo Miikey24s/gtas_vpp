@@ -1,0 +1,6 @@
+.vpp-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: var(--vpp-space-3);
+    min-width: 0;
+}

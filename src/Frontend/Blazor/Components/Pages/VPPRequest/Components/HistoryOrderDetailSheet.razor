@@ -20,7 +20,7 @@
                 {
                     <div class="vpp-history-drawer-code">
                         <h2 id="history-drawer-title">@SelectedOrder.VppCode</h2>
-                        <span class="vpp-badge @StatusDisplay.GetCssClass(SelectedOrder.Status)">@Loc[StatusDisplay.GetResourceKey(SelectedOrder.Status, SelectedOrder.IsDeadlinePassed, SelectedOrder.IsAdditionalOrder)]</span>
+                        <VppStatusBadge Tone="@StatusDisplay.GetTone(SelectedOrder.Status)" Text="@Loc[StatusDisplay.GetResourceKey(SelectedOrder.Status, SelectedOrder.IsDeadlinePassed, SelectedOrder.IsAdditionalOrder)]" />
                     </div>
                 }
             </div>

@@ -12,8 +12,18 @@ Before editing:
 1. Read the root and nearest `AGENTS.md`.
 2. Run `./scripts/gtas.cmd preflight -Scope frontend`.
 3. Read `docs/design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`, especially the authority order, current route ledger, retrofit queue, and AI-first architecture decision.
-4. Read `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` and `docs/execution/ATLAS-001.md` section 1.
-5. Inspect the real route, DTO/API, permission, fixture, related tests, and the closest existing implementation.
+4. Read `docs/design/VPP-UI-MOTIF-CATALOG.md` and resolve the target route in `Helpers/UiRouteCatalog.cs`; these two files are the canonical mapping from UI intent to component/pattern.
+5. Read `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` and `docs/execution/ATLAS-001.md` section 1.
+6. Inspect the real route, DTO/API, permission, fixture, related tests, and the closest existing implementation.
+
+## Resolve the motif before writing markup
+
+For every changed region, name its motif ID from `VPP-UI-MOTIF-CATALOG.md` before implementation. Use the route profile to determine workspace, data-source mode, density, toolbar, footer, responsive strategy, and required states.
+
+- Collection actions belong to `VppCollectionHeader`; query/display actions belong to `VppDataToolbar`; row actions belong to the row action column; workflow actions belong to the workflow footer.
+- Filter, decision, page-size, and header-tab selectors share tokens but keep different typed semantics. Never replace them with one string-configured universal selector.
+- A route may own columns, copy, API, permission, and business actions, but it may not redefine shared border, popup, focus, row rhythm, footer anchor, page inset, or motion.
+- When the catalog has no matching motif, keep the first implementation route-local and record `NEEDS MOTIF REVIEW`; extract only after two real consumers share behavior.
 
 ## Classify before extracting
 
@@ -26,6 +36,14 @@ Place each reusable concern in the smallest correct layer:
 5. Route: API calls, permissions, business state, orchestration, and route-specific copy.
 
 Use composition, not markup inheritance. Do not create `UniversalPage<T>`, `UniversalGrid<T>`, or a string-configured component framework. Extract an abstraction only after at least two real routes share the same layout and behavior.
+
+## Retire legacy without compatibility drift
+
+Classify touched legacy material as `KEEP`, `MERGE`, `MIGRATE`, or `DELETE` in the execution/consumer ledger.
+
+Delete an adapter, component, selector, CSS block, or JS module only after source scan proves zero consumers, the canonical replacement has real consumers, focused build/tests pass, and route-real behavior remains equivalent. Once those gates pass, remove the legacy implementation and its aliases entirely instead of keeping a second visual path “for safety”.
+
+Architecture tests must prevent retired names and files from returning. Do not mass-delete vendor CSS, persisted theme compatibility, or an external integration contract merely because repository source has no direct string reference.
 
 ## Divide Blazor and Radzen responsibilities
 

@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
@@ -133,7 +134,7 @@ public partial class Tab_SecurityAudit : IDisposable
             [nameof(Dialog_SecurityAuditDetail.Audit)] = audit,
             [nameof(Dialog_SecurityAuditDetail.ActionLabel)] = GetActionLabel(audit.Action),
             [nameof(Dialog_SecurityAuditDetail.OutcomeLabel)] = GetOutcomeLabel(audit.Outcome),
-            [nameof(Dialog_SecurityAuditDetail.OutcomeBadgeStyle)] = GetOutcomeBadgeStyle(audit.Outcome),
+            [nameof(Dialog_SecurityAuditDetail.OutcomeTone)] = GetOutcomeTone(audit.Outcome),
             [nameof(Dialog_SecurityAuditDetail.ActorLabel)] = GetActorLabel(audit),
             [nameof(Dialog_SecurityAuditDetail.TargetLabel)] = GetTargetLabel(audit),
             [nameof(Dialog_SecurityAuditDetail.ResourceLabel)] = $"{audit.ResourceType} · {audit.ResourceId ?? "—"}"
@@ -182,12 +183,12 @@ public partial class Tab_SecurityAudit : IDisposable
         _ => HumanizeCode(outcome)
     };
 
-    private static BadgeStyle GetOutcomeBadgeStyle(string outcome) => outcome switch
+    private static VppStatusTone GetOutcomeTone(string outcome) => outcome switch
     {
-        "Succeeded" => BadgeStyle.Success,
-        "Failed" => BadgeStyle.Danger,
-        "Rejected" => BadgeStyle.Warning,
-        _ => BadgeStyle.Light
+        "Succeeded" => VppStatusTone.Success,
+        "Failed" => VppStatusTone.Danger,
+        "Rejected" => VppStatusTone.Warning,
+        _ => VppStatusTone.Neutral
     };
 
     private string GetActorLabel(SecurityAuditResDTO audit) => DisplayUser(audit.ActorFullName, audit.ActorUserName, audit.ActorUserId, Loc["SystemActor"]);

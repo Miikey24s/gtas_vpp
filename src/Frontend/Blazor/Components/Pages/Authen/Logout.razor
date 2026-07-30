@@ -8,14 +8,14 @@
 
 <PageTitle>GTAS VPP - @Loc["Logout"]</PageTitle>
 
-<VppAccountShell Title="@Loc["SigningOut"]"
+<VppAccountWorkspace Title="@Loc["SigningOut"]"
                  TitleId="logout-title"
                  Compact="true">
     <div class="vpp-account-progress" role="status" aria-live="polite" aria-busy="true">
         <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
         <span>@Loc["LogoutRedirectMessage"]</span>
     </div>
-</VppAccountShell>
+</VppAccountWorkspace>
 
 @code {
     private bool _logoutStarted;

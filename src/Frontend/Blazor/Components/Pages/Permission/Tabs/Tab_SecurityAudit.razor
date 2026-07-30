@@ -53,7 +53,7 @@
                         <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.OccurredAtUtc)" Title="@Loc["AuditTime"]" Width="170px"><Template Context="audit">@audit.OccurredAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.ActorFullName)" Title="@Loc["AuditActor"]" Width="220px"><Template Context="audit"><div class="vpp-admin-two-line-cell"><strong>@GetActorLabel(audit)</strong><small>@GetActorSecondaryLabel(audit)</small></div></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.Action)" Title="@Loc["AuditAction"]" Width="230px"><Template Context="audit"><div class="vpp-admin-two-line-cell"><strong>@GetActionLabel(audit.Action)</strong><small>@audit.Action</small></div></Template></RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.Outcome)" Title="@Loc["AuditOutcome"]" Width="120px"><Template Context="audit"><RadzenBadge Text="@GetOutcomeLabel(audit.Outcome)" BadgeStyle="@GetOutcomeBadgeStyle(audit.Outcome)" /></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.Outcome)" Title="@Loc["AuditOutcome"]" Width="120px"><Template Context="audit"><VppStatusBadge Text="@GetOutcomeLabel(audit.Outcome)" Tone="@GetOutcomeTone(audit.Outcome)" /></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.TargetFullName)" Title="@Loc["AuditTarget"]" Width="220px"><Template Context="audit"><div class="vpp-admin-two-line-cell"><strong>@GetTargetLabel(audit)</strong><small>@GetTargetSecondaryLabel(audit)</small></div></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.ResourceType)" Title="@Loc["AuditResource"]" Width="220px"><Template Context="audit"><div class="vpp-admin-two-line-cell"><strong>@audit.ResourceType</strong><small>@(audit.ResourceId ?? "—")</small></div></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="SecurityAuditResDTO" Property="@nameof(SecurityAuditResDTO.Summary)" Title="@Loc["AuditSummary"]" Width="330px" />
@@ -68,5 +68,8 @@
 }
 else
 {
-    <RadzenAlert AlertStyle="AlertStyle.Warning" class="m-3" Text="@Loc["NoPermission"]" />
+    <VppContentState State="VppContentStateKind.Denied"
+                     Icon="@VppIcons.Lock"
+                     Title="@Loc["NoPermission"]"
+                     Class="m-3" />
 }

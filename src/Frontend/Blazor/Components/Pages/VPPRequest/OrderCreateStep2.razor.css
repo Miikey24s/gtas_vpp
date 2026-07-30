@@ -11,6 +11,14 @@
     overflow: hidden;
 }
 
+.vpp-wizard-row-selected {
+    background-color: color-mix(in srgb, var(--vpp-action-primary) 7%, transparent) !important;
+}
+
+.vpp-wizard-row-selected td {
+    color: var(--vpp-text-secondary) !important;
+}
+
 .vpp-order-builder {
     display: block;
 }

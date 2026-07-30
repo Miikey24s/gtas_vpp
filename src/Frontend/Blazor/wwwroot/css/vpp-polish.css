@@ -250,7 +250,7 @@ body,
 .rz-dropdown,
 .rz-inputtext,
 .rz-form-field,
-.vpp-kpi-card,
+.vpp-metric-card,
 .vpp-admin-grid,
 .vpp-order-card,
 .vpp-data-card,
@@ -306,7 +306,7 @@ html.vpp-culture-changing .vpp-content {
     .rz-dropdown,
     .rz-inputtext,
     .rz-form-field,
-    .vpp-kpi-card,
+    .vpp-metric-card,
     .vpp-admin-grid,
     .vpp-order-card,
     .vpp-data-card,
@@ -351,6 +351,77 @@ a:hover {
     width: 24px;
     height: 24px;
     user-select: none;
+}
+
+/* Account menu base. Geometry chung nằm ở đây; sidebar chỉ override anchor. */
+.vpp-user-menu {
+    position: relative;
+}
+
+.user-avatar,
+.user-avatar-lg {
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--vpp-text-on-surface);
+    background: var(--vpp-action-primary);
+    font-weight: 700;
+    user-select: none;
+}
+
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+    transition: box-shadow var(--vpp-transition-fast);
+}
+
+.user-avatar-lg {
+    width: 42px;
+    height: 42px;
+    font-size: 0.9rem;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    z-index: var(--vpp-z-dropdown);
+    width: min(310px, calc(100vw - 2rem));
+    padding: var(--vpp-space-2);
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+    box-shadow: var(--vpp-shadow-lg);
+}
+
+.user-dropdown-identity {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.user-dropdown-name {
+    overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-weight: var(--vpp-font-weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-dropdown-icon {
+    color: currentColor;
+}
+
+.user-dropdown-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--vpp-z-dropdown) - 1);
+    border: 0;
+    background: transparent;
 }
 
 .vpp-sidebar-nav {

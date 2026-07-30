@@ -1,4 +1,5 @@
 using System.Globalization;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_shared.Constants;
 
 namespace gtas_vpp_fe.Helpers;
@@ -21,23 +22,13 @@ public static class StatusDisplay
         CultureInfo? culture = null) =>
         VppStatusContract.GetText(status, isDeadlinePassed, isAdditionalOrder, culture);
 
-    public static string GetCssClass(int status) => status switch
+    public static VppStatusTone GetTone(int status) => status switch
     {
-        1 => "vpp-badge-submitted",
-        4 => "vpp-badge-cancelled",
-        6 => "vpp-badge-pending",
-        7 => "vpp-badge-approved",
-        8 => "vpp-badge-rejected",
-        _ => "vpp-badge-default"
-    };
-
-    public static string GetBadgeStyleName(int status) => status switch
-    {
-        1 => "Success",
-        4 => "Danger",
-        6 => "Warning",
-        7 => "Success",
-        8 => "Danger",
-        _ => "Light"
+        1 => VppStatusTone.Success,
+        4 => VppStatusTone.Danger,
+        6 => VppStatusTone.Warning,
+        7 => VppStatusTone.Success,
+        8 => VppStatusTone.Danger,
+        _ => VppStatusTone.Neutral
     };
 }

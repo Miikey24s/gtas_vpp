@@ -25,7 +25,7 @@
                     </div>
                     @if (Order.IsAdditionalOrder)
                     {
-                        <RadzenBadge Text="@Loc["Additional"]" BadgeStyle="BadgeStyle.Warning" IsPill="true" />
+                        <VppStatusBadge Text="@Loc["Additional"]" Tone="VppStatusTone.Warning" />
                     }
             </div>
             <span class="vpp-order-card-submitted">
@@ -50,14 +50,11 @@
 
         <div class="vpp-order-card-toolbar">
                 <div class="vpp-order-card-statuses">
-                    <span class="vpp-badge @StatusDisplay.GetCssClass(Order.Status)">
-                        @Loc[StatusDisplay.GetResourceKey(Order.Status, Order.IsDeadlinePassed, Order.IsAdditionalOrder)]
-                    </span>
+                    <VppStatusBadge Tone="@StatusDisplay.GetTone(Order.Status)"
+                                    Text="@Loc[StatusDisplay.GetResourceKey(Order.Status, Order.IsDeadlinePassed, Order.IsAdditionalOrder)]" />
                     @if (Order.SettledAt.HasValue)
                     {
-                        <span class="vpp-badge-settled" title="@($"{Loc["Settled"]}: {DateFormatter.Format(Order.SettledAt, DateFormatter.LongDate)} - {Order.SettledByPriceListName}")">
-                            @Loc["Settled"]
-                        </span>
+                        <VppStatusBadge Text="@Loc["Settled"]" Tone="VppStatusTone.Success" Title="@($"{Loc["Settled"]}: {DateFormatter.Format(Order.SettledAt, DateFormatter.LongDate)} - {Order.SettledByPriceListName}")" />
                     }
                     @if (ReadOnly)
                     {

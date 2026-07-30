@@ -84,8 +84,8 @@
                                 }
                                 else
                                 {
-                                    <RadzenBadge Text="@GetLockedStateLabel(component)"
-                                                 BadgeStyle="@GetLockedStateBadge(component)" />
+                                    <VppStatusBadge Text="@GetLockedStateLabel(component)"
+                                                    Tone="@GetLockedStateTone(component)" />
                                 }
                             </Template>
                         </RadzenDataGridColumn>
@@ -212,11 +212,11 @@
         _ => Loc["ReadOnlyReference"]
     };
 
-    private static BadgeStyle GetLockedStateBadge(PermissionUiMappingEditModel component) => component.AdministrationMode switch
+    private static VppStatusTone GetLockedStateTone(PermissionUiMappingEditModel component) => component.AdministrationMode switch
     {
-        "Required" => BadgeStyle.Success,
-        "OutsideRoleCeiling" => BadgeStyle.Light,
-        _ => BadgeStyle.Info
+        "Required" => VppStatusTone.Success,
+        "OutsideRoleCeiling" => VppStatusTone.Neutral,
+        _ => VppStatusTone.Info
     };
 
     private static PermissionUiAccessState ToAccessState(bool isVisible, bool isEnable) =>

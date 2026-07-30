@@ -79,7 +79,7 @@
 }
 
 /* ── Cột trạng thái ──────────────────────────────────────────── */
-.vpp-datagrid .rz-datatable-tbody td .vpp-badge {
+.vpp-datagrid .rz-datatable-tbody td .vpp-status-badge {
     white-space: nowrap;
 }
 
@@ -482,6 +482,9 @@
     word-break: normal;
     overflow-wrap: normal;
     line-height: 1.35;
+    text-decoration: underline dotted var(--vpp-border-strong);
+    cursor: pointer;
+    user-select: all;
 }
 
 .vpp-order-code-cell .vpp-order-code-link:focus-visible {

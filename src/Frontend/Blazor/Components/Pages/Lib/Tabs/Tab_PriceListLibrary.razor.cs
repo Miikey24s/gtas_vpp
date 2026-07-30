@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
@@ -397,13 +398,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             _ => status ?? "Chưa xác định"
         };
 
-        private static BadgeStyle GetStatusBadgeStyle(string? status) => status switch
+        private static VppStatusTone GetStatusTone(string? status) => status switch
         {
-            "Published" => BadgeStyle.Success,
-            "Draft" => BadgeStyle.Info,
+            "Published" => VppStatusTone.Success,
+            "Draft" => VppStatusTone.Info,
             // Atlas library-price-lists: "Hết hiệu lực" là badge amber (cảnh báo), không phải xám.
-            "Expired" => BadgeStyle.Warning,
-            _ => BadgeStyle.Light
+            "Expired" => VppStatusTone.Warning,
+            _ => VppStatusTone.Neutral
         };
 
         // Atlas cột "Hiệu lực": khoảng dd/MM–dd/MM (kèm năm khi khác năm hiện tại);

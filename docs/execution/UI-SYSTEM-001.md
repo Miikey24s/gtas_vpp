@@ -7,6 +7,7 @@
 - Visual contract: OpenAI/Codex-inspired minimal system; Atlas M0–M2 giữ vai trò reference bố cục/nghiệp vụ read-only
 - Liên quan: [`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`](../design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md)
 - CSS ownership: [`VPP-UI-CSS-OWNERSHIP.md`](../design/VPP-UI-CSS-OWNERSHIP.md)
+- Motif authority: [`VPP-UI-MOTIF-CATALOG.md`](../design/VPP-UI-MOTIF-CATALOG.md) + `Helpers/UiRouteCatalog.cs`
 
 > Owner đã gỡ pause và mở toàn bộ phần còn lại ngày 2026-07-29. F4 được chấp nhận làm nền để tiếp tục; F5–F7 phải chạy liên tục đến khi toàn bộ route, motion, refactor và QA hoàn tất rồi owner mới review tổng thể.
 >
@@ -220,7 +221,7 @@ Mốc dễ hiểu:
 
 - Owner duyệt F3 bằng yêu cầu mở F4; F3 chuyển `DONE — OWNER APPROVED`. F4 dừng ở review gate hiện tại và không tự mở F5.
 - Sáu pattern canonical nằm tại `Components/DesignSystem/Patterns/`: `VppAccountWorkspace`, `VppCollectionWorkspace`, `VppListDetailWorkspace`, `VppSplitEditorWorkspace`, `VppOperationWorkspace` và `VppAnalyticsWorkspace`. API dùng typed enum + `RenderFragment`; folder không chứa reflection, endpoint string hoặc CRUD generic.
-- Consumer thật: Account shell cho các account route; Product Catalog + Price Library; Library shared grid + Permission Users; Lookup Library + Order Create; Period Operations + Pending Approval; History + Department Summary. Adapter `VppAccountShell` được giữ để không big-bang bảy route account.
+- Consumer thật: account routes dùng trực tiếp `VppAccountWorkspace`; Product Catalog + Price Library; Library typed collections + Permission Users; Lookup Library + Order Create; Period Operations + Pending Approval; History + Department Summary. Adapter `VppAccountShell` đã retire sau khi toàn bộ consumer về 0.
 - Bốn token `--vpp-page-inset-block-start`, `--vpp-page-inset-inline-end`, `--vpp-page-inset-block-end`, `--vpp-page-inset-inline-start` là authority cho khoảng cách ngoài page. Mỗi cạnh nhất quán giữa route nhưng bốn cạnh vẫn độc lập để chỉnh theo shell.
 - Radzen MCP xác nhận contract `RadzenSplitter`/`RadzenSplitterPane` dùng `Size`, `Min`, `Max` theo px hoặc `%`; `VppSplitEditorWorkspace` chỉ bọc behavior này ở pattern có resize, route cố định dùng CSS grid responsive.
 - Regression F4 phát hiện pane master Lookup thiếu 5px sau composition và interaction test đọc màu giữa transition. Production constraint được hiệu chỉnh ở consumer; test tiếp tục so sánh tuyệt đối nhưng chờ transition ổn định trước khi đo.
@@ -388,7 +389,7 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 
 ### 7.1 — Kết quả thực thi F0
 
-- `Components/App.razor` tải Radzen base trước `app.css`, VPP tokens, Radzen bridge và các project override; runtime test xác nhận đúng thứ tự link thật.
+- `Components/App.razor` tải Radzen base trước VPP tokens, Radzen bridge và các project override; stylesheet compatibility trung tâm đã được retire sau khi consumer về 0.
 - Shell breakpoint đồng bộ với Radzen responsive: `<= 768px` là mobile/overlay, `>= 769px` là desktop/tablet grid. Quy tắc specificity cao không còn giữ cột sidebar 64px khi sidebar đã ẩn.
 - `RouteCatalog` bổ sung `periodTab`, `orderView`, mode order-create, selected price list, required password change và ConfirmEmail; architecture test đối chiếu mọi `@page` Razor.
 - Browser matrix dùng isolated TEST fixture trên Login, History, Library/Departments và Permission tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; kiểm tra geometry, hidden-sidebar gutter, navigation toggle, console, request failure và HTTP lỗi của document/stylesheet/script.
@@ -399,7 +400,7 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - `vpp-tokens.css` là authority duy nhất cho palette thô và semantic role Light/Dark: surface, content, action, border, navigation, DataGrid và elevation; alias `--vpp-bg-*` được giữ để migrate consumer dần thay vì big-bang.
 - `vpp-radzen-theme.css` giảm từ 305 xuống 144 dòng và chỉ ánh xạ `--rz-*` sang token VPP; architecture guard chặn màu literal và token tham chiếu chưa được định nghĩa.
 - [`VPP-UI-CSS-OWNERSHIP.md`](../design/VPP-UI-CSS-OWNERSHIP.md) phân loại foundation, Radzen bridge, shared, feature, cross-cutting, legacy và vendor CSS để agent biết đúng nơi sửa.
-- Retire ba debt không còn hợp đồng hợp lệ: global custom scrollbar, `.vpp-glass`/glass shadow không consumer và token PPJ logo trùng/không dùng. `app.css` chỉ giữ compatibility, không nhận design value mới.
+- Retire ba debt không còn hợp đồng hợp lệ: global custom scrollbar, `.vpp-glass`/glass shadow không consumer và token PPJ logo trùng/không dùng. Sau đợt motif consolidation, `app.css` cũng được xóa; form normalization, account menu và validation chuyển về đúng owner CSS.
 - Authored hex giảm `131 → 108`; F1 không thêm inline style và `!important` giữ nguyên `756`. Role badge dùng semantic foreground mạnh hơn để pass contrast trong Light mode.
 - Browser Theme Review chạy My Orders, History, Library/Departments và Permission ở `1366×768`, Light/Dark; xác nhận VPP token và Radzen variable resolve cùng giá trị, không overflow/console/network lỗi và representative axe không có violation critical/serious.
 
@@ -410,6 +411,15 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Duyệt đơn bổ sung chuyển sang split list-detail có thao tác. Paging profile được đưa vào shared contract; Create Order dùng page `100` trên full authorized snapshot để tránh flicker virtualization nhưng vẫn giới hạn DOM.
 - Chốt kỳ đã được owner duyệt concept và triển khai thành workspace hợp nhất: không còn workflow bốn bước, KPI/readiness card hoặc tiêu đề `Phương án chốt`; dùng hai selector ngang, decision strip nhà cung cấp, bảng Theo đơn/Theo phòng ban, supplier dialog và detail drawer overlay.
 - Verification: frontend `201/201`, Release build sạch và 7 focused isolated browser tests pass; visual evidence selector/Create Order/pending split đã được kiểm bằng mắt, không điều khiển host `dotnet watch` của owner.
+
+### 7.4 — Motif consolidation và retire legacy — 2026-07-30
+
+- [`VPP-UI-MOTIF-CATALOG.md`](../design/VPP-UI-MOTIF-CATALOG.md) trở thành từ điển canonical cho shell, workspace, data surface, selector, state, badge, metric, dialog và feedback. `UiRouteCatalog` ánh xạ mọi key trong `RouteCatalog` sang pattern/density/data-source/toolbar/footer/state typed để agent không tự suy luận visual theo từng route.
+- Bổ sung primitive/composite canonical `VppStatusBadge`, `VppInlineNotice`, `VppMetricCard` và `VppMetricGrid`; toàn bộ consumer `RadzenBadge`, `RadzenAlert`, KPI/status raw markup trong scope được migrate về contract semantic typed.
+- Account route dùng trực tiếp `VppAccountWorkspace`; adapter account/KPI/status/mobile, helper Radzen status, selector `librariestab`, stylesheet status riêng và standalone `Tab_AllOrdersSummary` đã về 0 consumer nên được xóa. URL quản lý cũ chỉ giữ redirect typed về Chốt kỳ, không giữ component/test authority thứ hai.
+- `app.css` và `vpp-wizard.css` đã xóa hẳn. Rule còn hợp lệ được chuyển về đúng owner (`vpp-radzen-theme`, `vpp-a11y`, `vpp-polish`, scoped CSS); khối CSS Period Management cũ có 59 class không consumer cũng bị xóa thay vì giữ compatibility layer.
+- Architecture gate khóa parity RouteCatalog/UiRouteCatalog, motif/state bắt buộc, file/identifier retired và ledger DataGrid. Inventory hiện còn `19` file chứa `23` DataGrid thật; không có shared/design-system Razor component 0-consumer sau khi tính cả routed layout và dialog generic.
+- Verification hiện tại: Release build `0 warning / 0 error`; frontend `201/201`; isolated browser smoke `14/14` cho Library grid, workspace pattern và data-surface foundation; My Orders visual inset/focus `1/1`, hai screenshot desktop đã được kiểm bằng mắt, không thấy overlay, focus oval kép hoặc lệch symmetric inset. `verify -Scope frontend` vẫn bị chặn trước UI gate bởi `model-routing-eval` thuộc AI-harness dirty có sẵn, không được sửa hoặc trộn vào change-set UI này.
 
 ---
 

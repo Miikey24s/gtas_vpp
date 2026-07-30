@@ -116,9 +116,10 @@ public static class RouteCatalog
         new(
             Key: "dashboard.management.all",
             Path: "/dashboard?tab=3&managementTab=all",
-            Title: "AllOrdersSummary",
+            Title: "LegacyAllOrdersRedirect",
             PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
-            AnyOfPermissions: [Permissions.RequestAllOrdersSummary]),
+            AnyOfPermissions: [Permissions.RequestAllOrdersSummary],
+            Notes: "Legacy URL only. Component_VPPRequest redirects to the unified period review workspace; no standalone UI consumer remains."),
 
         new(
             Key: "dashboard.period-operations",

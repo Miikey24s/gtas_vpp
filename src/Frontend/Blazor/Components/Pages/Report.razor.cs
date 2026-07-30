@@ -191,25 +191,6 @@ public abstract class ReportBase : ComponentBase, IDisposable
         await LoadAsync();
     }
 
-    protected RenderFragment Kpi(string icon, string label, string value) => builder =>
-    {
-        builder.OpenElement(0, "article");
-        builder.AddAttribute(1, "class", "vpp-report-kpi");
-        builder.OpenElement(2, "span");
-        builder.AddAttribute(3, "class", $"vpp-report-kpi-icon rzi rzi-{icon}");
-        builder.AddAttribute(4, "aria-hidden", "true");
-        builder.CloseElement();
-        builder.OpenElement(5, "div");
-        builder.OpenElement(6, "span");
-        builder.AddContent(7, label);
-        builder.CloseElement();
-        builder.OpenElement(8, "strong");
-        builder.AddContent(9, value);
-        builder.CloseElement();
-        builder.CloseElement();
-        builder.CloseElement();
-    };
-
     protected RenderFragment InsightList(string title, string icon, IReadOnlyList<string> items) => builder =>
     {
         builder.OpenElement(0, "article");

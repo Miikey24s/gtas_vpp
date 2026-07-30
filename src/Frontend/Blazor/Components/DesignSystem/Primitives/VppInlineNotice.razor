@@ -1,0 +1,33 @@
+<aside class="vpp-inline-notice vpp-inline-notice-@ToneCssClass @Class"
+       role="@SemanticRole"
+       aria-live="@LiveRegionMode">
+    <VppIcon Name="@EffectiveIcon" Class="vpp-inline-notice-icon" />
+    <div class="vpp-inline-notice-copy">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <strong>@Title</strong>
+        }
+        <div class="vpp-inline-notice-content">@ChildContent</div>
+    </div>
+</aside>
+
+@code {
+    [Parameter] public VppStatusTone Tone { get; set; } = VppStatusTone.Info;
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public string? Class { get; set; }
+
+    private bool IsError => Tone == VppStatusTone.Danger;
+    private string SemanticRole => IsError ? "alert" : "status";
+    private string LiveRegionMode => IsError ? "assertive" : "polite";
+    private string ToneCssClass => Tone.ToString().ToLowerInvariant();
+    private string EffectiveIcon => Icon ?? Tone switch
+    {
+        VppStatusTone.Success => VppIcons.Approved,
+        VppStatusTone.Warning => VppIcons.Warning,
+        VppStatusTone.Danger => VppIcons.Error,
+        VppStatusTone.Neutral => VppIcons.Info,
+        _ => VppIcons.Info
+    };
+}

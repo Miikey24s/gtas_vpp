@@ -1489,13 +1489,6 @@
     background: transparent;
 }
 
-.kpi-card-meta {
-    display: block;
-    margin-top: var(--vpp-space-1);
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-}
-
 /* Atlas orderDetailSheet: header kicker + mã/badge + meta + cặp nút xuất (D10). */
 .vpp-atlas-sheet-header {
     display: flex;

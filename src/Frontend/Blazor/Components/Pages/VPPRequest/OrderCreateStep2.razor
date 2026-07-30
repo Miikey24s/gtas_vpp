@@ -138,8 +138,8 @@
                     <p>@Loc["Period"] @TargetPeriodLabel</p>
                 </div>
                 <div class="vpp-order-draft-badges">
-                    <span class="vpp-badge status-info">@Loc["ItemsCount", Context.SelectedItems.Count]</span>
-                    <span class="vpp-badge status-warning">@Loc["Draft"]</span>
+                    <VppStatusBadge Text="@Loc["ItemsCount", Context.SelectedItems.Count]" Tone="VppStatusTone.Info" />
+                    <VppStatusBadge Text="@Loc["Draft"]" Tone="VppStatusTone.Warning" />
                 </div>
             </header>
 

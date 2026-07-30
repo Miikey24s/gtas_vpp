@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **20 file / 25 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance.
+Source hiện có **19 file / 23 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance. Màn `Tab_AllOrdersSummary` cũ (2 grid) đã về 0 consumer và được xóa; URL legacy chỉ còn redirect về Chốt kỳ.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -28,7 +28,6 @@ Source hiện có **20 file / 25 DataGrid thật**. Generic type reference trong
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Approval list; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `Compact` | Split list-detail retrofit |
 | `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 2 | Chốt kỳ theo đơn / theo phòng ban | `ServerPaging` + `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
-| `Components/Pages/VPPRequest/Tabs/Tab_AllOrdersSummary.razor` | 2 | Orders + detail | `ServerPaging` + `Static` | `Compact` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
 
 ## Custom list/table inventory

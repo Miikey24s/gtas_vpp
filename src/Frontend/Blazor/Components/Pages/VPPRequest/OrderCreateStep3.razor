@@ -6,10 +6,10 @@
                 <p>@Loc["ReviewOrderBeforeSubmitDescription"]</p>
             </div>
             <div class="vpp-order-draft-badges">
-                <span class="vpp-badge status-info">@Loc["ItemsCount", Context.SelectedItems.Count]</span>
+                <VppStatusBadge Text="@Loc["ItemsCount", Context.SelectedItems.Count]" Tone="VppStatusTone.Info" />
                 @if (Context.IsAdditional)
                 {
-                    <span class="vpp-badge status-warning">@Loc["AdditionalOrder"]</span>
+                    <VppStatusBadge Text="@Loc["AdditionalOrder"]" Tone="VppStatusTone.Warning" />
                 }
             </div>
         </header>

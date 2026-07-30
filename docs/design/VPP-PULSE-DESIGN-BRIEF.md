@@ -260,7 +260,7 @@ Audit nhanh hiện tại cho thấy nền tảng token, Radzen component và res
 
 | Slice | Phạm vi | Target chính | Gate |
 |---|---|---|---|
-| P0 | Token + shared component alignment | `vpp-tokens.css`, `vpp-layout.css`, `VppPageHeader`, `KpiCard`, `StatusBadge`, state components | Build + frontend tests + component visual QA |
+| P0 | Token + shared component alignment | `vpp-tokens.css`, `vpp-layout.css`, `VppPageHeader`, `VppMetricCard`, `VppStatusBadge`, state components | Build + frontend tests + component visual QA |
 | P1 | Shell + My Orders | `MainLayout`, `LeftSidebar`, `Tab_Orders`, desktop grid/mobile card | 3 viewport + permission/action + console/network |
 | P2 | Create Request | `Page_OrderCreate`, `OrderCreateStep2`, `OrderCreateStep3`, wizard CSS | draft/validation/submit + keyboard + stale-period/error |
 | P3 | Management + Reports | summary/approval/period/report routes | role matrix + dense data/overflow + export states |

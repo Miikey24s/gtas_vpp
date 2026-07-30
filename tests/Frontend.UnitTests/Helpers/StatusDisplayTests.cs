@@ -1,5 +1,5 @@
 using gtas_vpp_fe.Helpers;
-using Radzen;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using Xunit;
 
 namespace gtas_vpp_fe.Tests.Helpers;
@@ -7,31 +7,15 @@ namespace gtas_vpp_fe.Tests.Helpers;
 public sealed class StatusDisplayTests
 {
     [Theory]
-    [InlineData(1, "vpp-badge-submitted")]
-    [InlineData(4, "vpp-badge-cancelled")]
-    [InlineData(6, "vpp-badge-pending")]
-    [InlineData(7, "vpp-badge-approved")]
-    [InlineData(8, "vpp-badge-rejected")]
-    [InlineData(0, "vpp-badge-default")]
-    public void GetCssClass_ReturnsExpectedClass(int status, string expected)
+    [InlineData(1, VppStatusTone.Success)]
+    [InlineData(4, VppStatusTone.Danger)]
+    [InlineData(6, VppStatusTone.Warning)]
+    [InlineData(7, VppStatusTone.Success)]
+    [InlineData(8, VppStatusTone.Danger)]
+    [InlineData(0, VppStatusTone.Neutral)]
+    public void GetTone_ReturnsExpectedSemanticTone(int status, VppStatusTone expected)
     {
-        Assert.Equal(expected, StatusDisplay.GetCssClass(status));
-    }
-
-    [Theory]
-    [InlineData(1, "Success", BadgeStyle.Success)]
-    [InlineData(4, "Danger", BadgeStyle.Danger)]
-    [InlineData(6, "Warning", BadgeStyle.Warning)]
-    [InlineData(7, "Success", BadgeStyle.Success)]
-    [InlineData(8, "Danger", BadgeStyle.Danger)]
-    [InlineData(0, "Light", BadgeStyle.Light)]
-    public void BadgeMappings_ReturnExpectedPresentation(
-        int status,
-        string expectedName,
-        BadgeStyle expectedStyle)
-    {
-        Assert.Equal(expectedName, StatusDisplay.GetBadgeStyleName(status));
-        Assert.Equal(expectedStyle, StatusDisplayRadzen.BadgeStyleFor(status));
+        Assert.Equal(expected, StatusDisplay.GetTone(status));
     }
 
     [Fact]

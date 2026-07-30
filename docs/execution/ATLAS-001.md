@@ -487,7 +487,7 @@ Chỉ chụp ảnh không phải visual regression — chỉ gọi là regressio
 | # | Quyết định | Hệ quả |
 |---|---|---|
 | D7 | **Bổ sung endpoint `GET /api/VPPRequest/period-demand`** | Hiện thực hóa `AggregatedVppResDTO` đang mồ côi. Chỉ đọc, policy `Permissions.PeriodSettle`, phạm vi theo quyền phiên đăng nhập. Làm trong W-D |
-| D8 | **Giữ `Tổng hợp toàn công ty` làm chế độ xem trong `Gom nhu cầu`** | Không xóa `Tab_AllOrdersSummary`. Màn `period-demand` có hai chế độ: `Theo đơn` (nội dung tab cũ) và `Theo mặt hàng` (tổng nhu cầu gom). Tab riêng ở thanh điều hướng bị gỡ, code được tái dùng |
+| D8 | **SUPERSEDED 2026-07-30 — retire `Tab_AllOrdersSummary`** | Workspace Chốt kỳ hiện dùng hai mode canonical `Theo mặt hàng / Theo phòng ban`; component và test standalone cũ đã về 0 consumer nên được xóa. URL cũ chỉ giữ redirect tương thích. |
 | D9 | **Chưa đụng luận văn trong phạm vi ATLAS-001** | Không sửa bất kỳ file `.docx` nào trong wave Atlas. Từ 27/07/2026, nguồn hiện hành là `LVTN/NguyenAnNam_DH52201078.docx`; bản `working` và checkpoint cũ đã được loại bỏ. Sai lệch §3.3.5.1 chỉ được ghi vào mục 11 để owner xử lý sau |
 
 Điều chỉnh kéo theo: **W-H bỏ mục 4** (sửa câu chữ §3.3.5.1). Việc chụp lại 16 hình runtime vẫn giữ,

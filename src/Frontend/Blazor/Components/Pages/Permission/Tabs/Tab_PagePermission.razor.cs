@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
@@ -270,10 +271,10 @@ public partial class Tab_PagePermission
         : component.IsEnable ? Loc["AccessEnabled"]
         : Loc["AccessReadOnly"];
 
-    private static BadgeStyle GetAccessStateBadge(PermissionComponentAccessResDTO component) =>
-        !component.IsVisible ? BadgeStyle.Light
-        : component.IsEnable ? BadgeStyle.Success
-        : BadgeStyle.Info;
+    private static VppStatusTone GetAccessStateTone(PermissionComponentAccessResDTO component) =>
+        !component.IsVisible ? VppStatusTone.Neutral
+        : component.IsEnable ? VppStatusTone.Success
+        : VppStatusTone.Info;
 
     private string GetAdministrationModeLabel(PermissionComponentAccessResDTO component) => component.AdministrationMode switch
     {

@@ -1,0 +1,25 @@
+<article class="vpp-metric-card vpp-metric-card-@ToneCssClass @Class">
+    <header class="vpp-metric-card-header">
+        <span class="vpp-metric-card-label">@Label</span>
+        @if (!string.IsNullOrWhiteSpace(Icon))
+        {
+            <VppIcon Name="@Icon" Class="vpp-metric-card-icon" />
+        }
+    </header>
+    <strong class="vpp-metric-card-value">@Value</strong>
+    @if (!string.IsNullOrWhiteSpace(SupportingText))
+    {
+        <span class="vpp-metric-card-supporting">@SupportingText</span>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? SupportingText { get; set; }
+    [Parameter] public VppMetricTone Tone { get; set; } = VppMetricTone.Neutral;
+    [Parameter] public string? Class { get; set; }
+
+    private string ToneCssClass => Tone.ToString().ToLowerInvariant();
+}

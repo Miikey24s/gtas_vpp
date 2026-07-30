@@ -98,7 +98,7 @@
                         <Template Context="row"><span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
-                        <Template Context="row"><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span></Template>
+                        <Template Context="row"><VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" /></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="SubmittedDate" Title="@Loc["SubmittedDate"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-date vpp-history-col-center" HeaderCssClass="vpp-history-col-date vpp-history-col-center">
                         <Template Context="row"><span class="vpp-history-date">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</span></Template>
@@ -111,7 +111,7 @@
                     </RadzenDataGridColumn>
                 </Columns>
                 <MobileRow Context="row">
-                    <span class="vpp-history-mobile-topline"><strong>@row.VppCode</strong><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span></span>
+                    <span class="vpp-history-mobile-topline"><strong>@row.VppCode</strong><VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" /></span>
                     <span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@row.Period · @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span>
                     <span>@Loc["HistoryRequester"]: @(string.IsNullOrWhiteSpace(row.RequesterName) ? "–" : row.RequesterName)</span>
                     <span class="vpp-history-note">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>

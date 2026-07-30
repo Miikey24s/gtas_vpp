@@ -1,3 +1,14 @@
+.vpp-wizard {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    margin: 0;
+}
+
 .vpp-order-create-page {
     display: flex;
     flex-direction: column;

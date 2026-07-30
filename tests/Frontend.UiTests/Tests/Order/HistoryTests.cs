@@ -458,7 +458,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var drawerHeadingAlignment = await drawer.Locator(".vpp-history-drawer-code").EvaluateAsync<string>("""
             row => {
                 const code = row.querySelector('h2');
-                const badge = row.querySelector('.vpp-badge');
+                const badge = row.querySelector('.vpp-status-badge');
                 if (!code || !badge) return 'missing';
                 const rowRect = row.getBoundingClientRect();
                 const codeRect = code.getBoundingClientRect();
@@ -1015,7 +1015,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                             return { left, right, center: (left + right) / 2 };
                         };
                         const visualRect = element => {
-                            const surface = element.querySelector('.vpp-badge, .vpp-history-order-type');
+                            const surface = element.querySelector('.vpp-status-badge, .vpp-history-order-type');
                             if (surface) {
                                 const rect = surface.getBoundingClientRect();
                                 return { left: rect.left, right: rect.right, center: (rect.left + rect.right) / 2 };
@@ -1034,7 +1034,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                         });
                         const visualAligned = visualDeltas.every(delta => delta <= 2);
                         const categoricalVerticalDeltas = [3, 4].map(index => {
-                            const surface = cells[index]?.querySelector('.vpp-history-order-type, .vpp-badge');
+                            const surface = cells[index]?.querySelector('.vpp-history-order-type, .vpp-status-badge');
                             if (!surface) return 999;
                             const surfaceRect = surface.getBoundingClientRect();
                             const cellRect = cellRects[index];

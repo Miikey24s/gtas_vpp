@@ -71,11 +71,36 @@ a:focus-visible {
     text-decoration: underline;
 }
 
+/* Trạng thái validation do Blazor tự gắn class; dùng semantic token chung. */
+.valid.modified:not([type="checkbox"]) {
+    outline: 1px solid var(--vpp-success);
+}
+
+.invalid {
+    outline: 1px solid var(--vpp-danger);
+}
+
+.validation-message {
+    color: var(--vpp-danger);
+}
+
+.blazor-error-boundary {
+    padding: var(--vpp-space-4);
+    border: var(--vpp-border-width) solid var(--vpp-danger);
+    border-radius: var(--vpp-radius-md);
+    color: var(--vpp-text-on-surface);
+    background: var(--vpp-danger);
+}
+
+.blazor-error-boundary::after {
+    content: "Đã xảy ra lỗi.";
+}
+
 /* ── Giảm chuyển động ────────────────────────────────────────────
    W3C-recommended 0.01ms duration keeps event semantics intact while
    making motion imperceptible. The `animation: none` / `transition: none`
-   fallbacks (F-28 task spec) defeat decorative-only shimmer effects
-   (kpi-card-shine etc.) that don't fire end-events anyway. */
+   fallbacks defeat decorative-only loading effects that do not fire
+   end-events anyway. */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -84,7 +109,6 @@ a:focus-visible {
         scroll-behavior: auto !important;
     }
 
-    .kpi-card-shine,
     [data-tilt],
     .vpp-card-ai {
         animation: none !important;

@@ -6,6 +6,7 @@
 
 .rz-theme-dark,
 :root:not(.rz-theme-dark) {
+    --rz-root-font-size: var(--vpp-text-base);
     /* Brand và semantic status. */
     --rz-primary: var(--vpp-action-primary);
     --rz-primary-dark: var(--vpp-radzen-primary-dark);
@@ -49,6 +50,7 @@
     --rz-text-disabled-color: var(--vpp-text-disabled);
     --rz-border-color: var(--vpp-border-default);
     --rz-input-border-color: var(--vpp-border-strong);
+    --rz-input-disabled-border: var(--vpp-border-strong);
     --rz-panel-border: var(--vpp-border-width) solid var(--vpp-border-default);
 
     /* Shape, elevation và typography. */
@@ -118,6 +120,66 @@
     --rz-switch-checked-background-color: var(--vpp-action-primary);
     --rz-tooltip-background-color: var(--vpp-surface-tooltip);
     --rz-tooltip-color: var(--vpp-text-tooltip);
+}
+
+/* FormField outlined dùng một owner cho viền để không sinh viền kép hoặc
+   thay đổi kích thước khi hover/focus. Popup portal không nằm trong selector này. */
+.rz-form-field.rz-variant-outlined .rz-form-field-content {
+    border: 0 !important;
+    border-radius: var(--vpp-radius-input) !important;
+    background: transparent !important;
+    box-shadow: inset 0 0 0 1px var(--vpp-border-strong) !important;
+    transition: box-shadow var(--vpp-transition-fast) !important;
+}
+
+.rz-form-field.rz-variant-outlined .rz-form-field-content :is(
+    .rz-dropdown:not(.rz-dropdown-panel),
+    .rz-textbox,
+    .rz-password,
+    .rz-numeric,
+    .rz-colorpicker,
+    .rz-datepicker,
+    .rz-multiselect) {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.rz-form-field.rz-variant-outlined:hover .rz-form-field-content {
+    box-shadow: inset 0 0 0 1px var(--vpp-text-primary) !important;
+}
+
+.rz-form-field.rz-variant-outlined.rz-state-focused .rz-form-field-content,
+.rz-form-field.rz-variant-outlined:focus-within .rz-form-field-content {
+    outline: 0 !important;
+    box-shadow: inset 0 0 0 2px var(--vpp-action-primary) !important;
+}
+
+.rz-form-field.rz-variant-outlined.rz-state-disabled .rz-form-field-content,
+.rz-form-field.rz-variant-outlined .rz-form-field-content:has(:disabled),
+.rz-form-field.rz-variant-outlined .rz-form-field-content:has(.rz-state-disabled) {
+    background: var(--vpp-surface-control) !important;
+    box-shadow: inset 0 0 0 1px var(--vpp-border-strong) !important;
+}
+
+.rz-form-field.rz-variant-outlined .rz-form-field-label {
+    z-index: 1 !important;
+    padding-inline: var(--vpp-space-2) !important;
+    background: var(--vpp-surface-control) !important;
+}
+
+/* Variant.Text giữ cùng nhịp focus mà không làm thay đổi chiều cao control. */
+.rz-formfield.rz-variant-text :is(.rz-dropdown, .rz-textbox, .rz-password, .rz-numeric) {
+    box-sizing: border-box !important;
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-strong) !important;
+    transition: border-bottom-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast) !important;
+}
+
+.rz-formfield.rz-variant-text :is(.rz-dropdown:focus-within, .rz-textbox:focus, .rz-password:focus, .rz-numeric:focus) {
+    border-bottom-color: var(--vpp-action-primary) !important;
+    outline: 0 !important;
+    box-shadow: 0 1px 0 0 var(--vpp-action-primary) !important;
 }
 
 /* Radzen outlined label cần cùng surface với input trong dark mode. */

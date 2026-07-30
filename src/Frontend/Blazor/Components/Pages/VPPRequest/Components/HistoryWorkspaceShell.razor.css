@@ -1104,7 +1104,7 @@
     white-space: nowrap;
 }
 
-::deep .vpp-history-grid td.vpp-history-col-center .rz-cell-data > :is(.vpp-history-order-type, .vpp-badge) {
+::deep .vpp-history-grid td.vpp-history-col-center .rz-cell-data > :is(.vpp-history-order-type, .vpp-status-badge) {
     margin-inline: auto;
 }
 
@@ -1273,7 +1273,7 @@
     white-space: nowrap;
 }
 
-::deep .vpp-history-drawer-code .vpp-badge {
+::deep .vpp-history-drawer-code .vpp-status-badge {
     flex: 0 0 auto;
     align-self: center;
 }
@@ -1308,7 +1308,7 @@
     font-size: var(--vpp-text-xs);
 }
 
-::deep .vpp-history-items-heading .vpp-badge {
+::deep .vpp-history-items-heading .vpp-status-badge {
     flex: 0 0 auto;
 }
 

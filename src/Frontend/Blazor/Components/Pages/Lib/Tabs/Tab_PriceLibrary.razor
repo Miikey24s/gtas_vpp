@@ -21,9 +21,9 @@
 
     @if (!HasPriceLists)
     {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" Variant="Variant.Flat">
+        <VppInlineNotice Tone="VppStatusTone.Warning">
             @Loc["NoPriceListAvailable"]
-        </RadzenAlert>
+        </VppInlineNotice>
     }
 
     <RadzenDataGrid @ref="grid"

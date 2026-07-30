@@ -20,7 +20,7 @@
                 <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["Department"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Departments" TextProperty="Name" ValueProperty="Id" @bind-Value="Model.PrimaryDepartmentId" AllowFiltering="true" Style="width:100%" /></RadzenFormField></RadzenColumn>
             </RadzenRow>
             <RadzenFormField Text="@Loc["Reason"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Reason" Rows="3" Style="width:100%" /></RadzenFormField>
-            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" ShowIcon="true">@Loc["UserInvitationPasswordlessHint"]</RadzenAlert>
+            <VppInlineNotice Tone="VppStatusTone.Info">@Loc["UserInvitationPasswordlessHint"]</VppInlineNotice>
         </RadzenStack>
     </ChildContent>
     <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@CancelAsync" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="@Loc["SendInvitation"]" Icon="mail" Click="@SaveAsync" ButtonStyle="ButtonStyle.Primary" /></div></Footer>

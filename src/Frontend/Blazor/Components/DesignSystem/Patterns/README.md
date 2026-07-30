@@ -4,7 +4,7 @@ Pattern chỉ sở hữu bố cục và cách ghép các vùng nội dung. Route
 
 | Pattern | Dùng khi | Slot/contract chính | Consumer tham chiếu |
 |---|---|---|---|
-| `VppAccountWorkspace` | Luồng account ẩn danh có một form tập trung | brand, language switch, form content | Login, Forgot Password và các account route qua `VppAccountShell` |
+| `VppAccountWorkspace` | Luồng account có một form tập trung | brand, language switch, form content | Login, Register, Forgot/Reset/Change Password, ConfirmEmail và Logout dùng trực tiếp |
 | `VppCollectionWorkspace` | Danh sách/catalog có toolbar, summary và footer tùy chọn | `Header`, `Summary`, `Toolbar`, `ChildContent`, `Footer` | Product Catalog, Price Library |
 | `VppListDetailWorkspace` | Danh sách và inspector cùng hiện trên desktop | `List`, `Detail`, `VppListDetailRatio` | Library shared grid, Permission Users |
 | `VppSplitEditorWorkspace` | Hai vùng chỉnh sửa/chọn dữ liệu; có thể resize | `Primary`, `Secondary`, `VppSplitEditorRatio`, `Resizable` | Lookup Library, Order Create |

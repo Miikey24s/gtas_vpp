@@ -118,7 +118,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
                         @* Render trạng thái qua resx để badge và bộ lọc dùng chung một copy ("Đã từ chối"...). *@
-                        <Template Context="row"><span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span></Template>
+                        <Template Context="row"><VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" /></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalLines" Title="@Loc["HistoryItem"]" TextAlign="TextAlign.Right" CssClass="vpp-history-col-right" HeaderCssClass="vpp-history-col-right">
                         <Template Context="row"><span class="vpp-history-number">@FormatNumber(row.TotalLines)</span></Template>
@@ -171,7 +171,7 @@
                     {
                     <span class="vpp-history-mobile-topline">
                         <strong>@row.VppCode</strong>
-                        <span class="vpp-badge @StatusDisplay.GetCssClass(row.Status)">@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]</span>
+                        <VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" />
                     </span>
                     <span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@row.Period · @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span>
                     <span>@Loc["HistoryItem"]: @FormatNumber(row.TotalLines) · @Loc["Quantity"]: @FormatNumber(row.TotalQty)</span>

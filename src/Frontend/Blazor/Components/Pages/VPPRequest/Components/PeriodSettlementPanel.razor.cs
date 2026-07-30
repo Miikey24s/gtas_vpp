@@ -1,5 +1,6 @@
 using System.Globalization;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -343,12 +344,12 @@ public partial class PeriodSettlementPanel : IDisposable
     private DepartmentSettlementRow CreateDepartmentRow(string departmentCode, List<VppRequestResDTO> departmentOrders)
     {
         var statusValue = departmentOrders.Any(order => order.Status == 6)
-            ? (Loc["Pending"].Value, "vpp-badge-warning")
+            ? (Loc["Pending"].Value, VppStatusTone.Warning)
             : departmentOrders.All(order => order.Status == 7)
-                ? (Loc["Approved"].Value, "vpp-badge-success")
+                ? (Loc["Approved"].Value, VppStatusTone.Success)
                 : departmentOrders.Any(order => order.Status is 4 or 8)
-                    ? (Loc["SettlementNeedsReview"].Value, "vpp-badge-warning")
-                    : (Loc["Submitted"].Value, "vpp-badge-info");
+                    ? (Loc["SettlementNeedsReview"].Value, VppStatusTone.Warning)
+                    : (Loc["Submitted"].Value, VppStatusTone.Info);
 
         return new DepartmentSettlementRow(
             departmentCode,
@@ -633,7 +634,7 @@ public partial class PeriodSettlementPanel : IDisposable
         int TotalQuantity,
         long TotalAmount,
         string StatusText,
-        string StatusCss);
+        VppStatusTone StatusTone);
 }
 
 public sealed record PeriodTargetSelection(int Year, int Month);

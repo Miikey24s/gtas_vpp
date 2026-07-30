@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
 using gtas_vpp_fe.Components.Pages.Permission.Models;
 using gtas_vpp_fe.Helpers;
@@ -585,10 +586,19 @@ public partial class Tab_User : IDisposable
                 ? Loc["InvitationMustChangePassword"]
                 : user.EmailConfirmed ? Loc["InvitationConfirmed"] : Loc["InvitationUnconfirmed"];
 
-    private static BadgeStyle GetInvitationBadgeStyle(UserAdministrationResDTO user)
+    private static VppStatusTone GetAccountStatusTone(UserAdministrationResDTO user) => user.AccountStatus switch
+    {
+        "Active" when user.IsActive => VppStatusTone.Success,
+        "PendingApproval" => VppStatusTone.Warning,
+        "Disabled" => VppStatusTone.Neutral,
+        "Active" => VppStatusTone.Info,
+        _ => VppStatusTone.Neutral
+    };
+
+    private static VppStatusTone GetInvitationTone(UserAdministrationResDTO user)
         => !user.EmailConfirmed && user.MustChangePassword
-            ? BadgeStyle.Warning
-            : user.EmailConfirmed && !user.MustChangePassword ? BadgeStyle.Success : BadgeStyle.Info;
+            ? VppStatusTone.Warning
+            : user.EmailConfirmed && !user.MustChangePassword ? VppStatusTone.Success : VppStatusTone.Info;
 
     private void NotifyError(string detail) => Toast.Notify(new NotificationMessage
     {

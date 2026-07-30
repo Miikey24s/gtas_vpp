@@ -82,7 +82,6 @@ public sealed class UiSystemF1TokenArchitectureTests
         var root = GetFrontendRoot();
         var tokens = ReadCss("vpp-tokens.css");
         var polish = ReadCss("vpp-polish.css");
-        var app = File.ReadAllText(Path.Combine(root, "wwwroot", "app.css"));
         var appShell = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
         var authoredStyleOffenders = Directory
             .EnumerateFiles(root, "*.css", SearchOption.AllDirectories)
@@ -104,13 +103,13 @@ public sealed class UiSystemF1TokenArchitectureTests
         Assert.DoesNotContain(".vpp-glass", tokens, StringComparison.Ordinal);
         Assert.DoesNotContain("--vpp-shadow-glass", tokens, StringComparison.Ordinal);
         Assert.DoesNotContain("--ppj-logo-", tokens, StringComparison.Ordinal);
-        Assert.DoesNotContain("--ppj-logo-", app, StringComparison.Ordinal);
         Assert.DoesNotContain("::-webkit-scrollbar", tokens, StringComparison.Ordinal);
         Assert.DoesNotContain("::-webkit-scrollbar", polish, StringComparison.Ordinal);
         Assert.DoesNotContain("scrollbar-color:", polish, StringComparison.Ordinal);
         Assert.Empty(authoredStyleOffenders);
         Assert.Contains("<body class=\"rz-default-scrollbars\">", appShell, StringComparison.Ordinal);
-        Assert.Contains("LEGACY COMPATIBILITY", app, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "wwwroot", "app.css")));
+        Assert.DoesNotContain("app.css", appShell, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -120,7 +119,6 @@ public sealed class UiSystemF1TokenArchitectureTests
         var allowedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             Path.Combine("Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor.css"),
-            Path.Combine("wwwroot", "app.css"),
             Path.Combine("wwwroot", "css", "vpp-datagrid.css"),
             Path.Combine("wwwroot", "css", "vpp-tabs.css"),
             Path.Combine("wwwroot", "css", "vpp-tokens.css")
@@ -138,7 +136,6 @@ public sealed class UiSystemF1TokenArchitectureTests
 
         Assert.Empty(offenders);
         Assert.DoesNotContain("gradient(", ReadCss("vpp-login.css"), StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("gradient(", ReadCss("vpp-wizard.css"), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("gradient(", ReadCss("vpp-layout.css"), StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("gradient(", ReadCss("vpp-polish.css"), StringComparison.OrdinalIgnoreCase);
     }
@@ -149,7 +146,9 @@ public sealed class UiSystemF1TokenArchitectureTests
         var tokens = ReadCss("vpp-tokens.css");
         var layout = ReadCss("vpp-layout.css");
         var polish = ReadCss("vpp-polish.css");
-        var wizard = ReadCss("vpp-wizard.css");
+        var wizard = File.ReadAllText(Path.Combine(
+            GetFrontendRoot(),
+            "Components", "Pages", "VPPRequest", "Page_OrderCreate.razor.css"));
         var history = File.ReadAllText(Path.Combine(
             GetFrontendRoot(),
             "Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor.css"));
@@ -169,7 +168,7 @@ public sealed class UiSystemF1TokenArchitectureTests
 
         Assert.Contains("var(--vpp-motion-spinner-duration)", layout, StringComparison.Ordinal);
         Assert.Contains("var(--vpp-motion-skeleton-duration)", polish, StringComparison.Ordinal);
-        Assert.Contains("var(--vpp-motion-base-duration)", wizard, StringComparison.Ordinal);
+        Assert.Contains(".vpp-wizard", wizard, StringComparison.Ordinal);
         Assert.Contains("var(--vpp-motion-spinner-duration)", history, StringComparison.Ordinal);
         Assert.Contains("var(--vpp-motion-skeleton-duration)", history, StringComparison.Ordinal);
     }

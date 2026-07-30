@@ -193,7 +193,7 @@
                                                 </RadzenDataGridColumn>
                                                 <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Title="@Loc["AccessState"]" Width="160px" Filterable="false">
                                                     <Template Context="component">
-                                                        <RadzenBadge Text="@GetAccessStateLabel(component)" BadgeStyle="@GetAccessStateBadge(component)" />
+                                                        <VppStatusBadge Text="@GetAccessStateLabel(component)" Tone="@GetAccessStateTone(component)" />
                                                     </Template>
                                                 </RadzenDataGridColumn>
                                                 <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Title="@Loc["AdministrationMode"]" Width="170px" Filterable="false" Visible="false" Pickable="true">
@@ -267,5 +267,8 @@
 }
 else
 {
-    <RadzenAlert AlertStyle="AlertStyle.Warning" class="m-3" Text="@Loc["NoPermission"]" />
+    <VppContentState State="VppContentStateKind.Denied"
+                     Icon="@VppIcons.Lock"
+                     Title="@Loc["NoPermission"]"
+                     Class="m-3" />
 }

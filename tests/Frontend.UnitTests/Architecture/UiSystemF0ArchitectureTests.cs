@@ -19,7 +19,6 @@ public sealed class UiSystemF0ArchitectureTests
 
         foreach (var projectStylesheet in new[]
                  {
-                     "app.css",
                      "css/vpp-tokens.css",
                      "css/vpp-radzen-theme.css",
                      "css/vpp-layout.css",
@@ -35,6 +34,7 @@ public sealed class UiSystemF0ArchitectureTests
         var tokenIndex = app.IndexOf("css/vpp-tokens.css", StringComparison.Ordinal);
         var bridgeIndex = app.IndexOf("css/vpp-radzen-theme.css", StringComparison.Ordinal);
         Assert.True(tokenIndex < bridgeIndex, "Foundation tokens must load before the Radzen integration bridge.");
+        Assert.DoesNotContain("app.css", app, StringComparison.Ordinal);
     }
 
     [Fact]

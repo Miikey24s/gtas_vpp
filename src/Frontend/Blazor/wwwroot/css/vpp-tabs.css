@@ -148,37 +148,20 @@
     padding-top: var(--vpp-space-4);
 }
 
-.librariestab .rz-tabview-panel {
-    padding-bottom: 0;
-}
-
 /* Shell sở hữu outer inset; panel route chỉ truyền nguyên vùng khả dụng cho workspace. */
 .vpp-admin-tabs > .rz-tabview-panels > .rz-tabview-panel {
     padding: 0;
 }
 
-/* ── librariestab (class dùng chung) — bảo đảm đủ chiều rộng ── */
-.librariestab {
-    --vpp-library-primary-tabs-height: var(--vpp-header-height);
-    --vpp-library-secondary-tabs-height: var(--vpp-tabs-bar-height);
-    --vpp-tabs-sticky-top: 0px;
-    width: 100%;
-    min-width: 0;
-}
-
 .vpp-admin-tabs {
     --vpp-library-primary-tabs-height: var(--vpp-header-height);
+    --vpp-tabs-sticky-top: 0px;
     --vpp-primary-tab-row-height: var(--vpp-header-height);
     --vpp-primary-tab-inline-padding: 20px;
     --vpp-primary-tab-indicator-preferred-width: 60px;
 }
 
-.librariestab > .rz-tabview-nav-container > .rz-tabview-nav {
-    width: 100%;
-}
-
-.vpp-admin-tabs > .rz-tabview-panels,
-.librariestab > .rz-tabview-panels {
+.vpp-admin-tabs > .rz-tabview-panels {
     overflow: visible;
     border: 0 !important;
     border-radius: 0 !important;

@@ -1,0 +1,8 @@
+.vpp-reject-reason-input {
+    width: 100%;
+}
+
+.vpp-reject-reason-help {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}

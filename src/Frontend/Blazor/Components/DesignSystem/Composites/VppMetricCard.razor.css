@@ -1,0 +1,75 @@
+.vpp-metric-card {
+    display: grid;
+    align-content: start;
+    gap: var(--vpp-space-2);
+    min-width: 0;
+    min-height: 96px;
+    padding: var(--vpp-space-4);
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-bg-elevated);
+    box-shadow: var(--vpp-shadow-xs);
+    transition: border-color var(--vpp-motion-fast-duration) var(--vpp-motion-easing-standard),
+                box-shadow var(--vpp-motion-fast-duration) var(--vpp-motion-easing-standard);
+}
+
+.vpp-metric-card:hover {
+    border-color: color-mix(in srgb, var(--vpp-metric-accent) 28%, var(--vpp-border-default));
+    box-shadow: var(--vpp-shadow-sm);
+}
+
+.vpp-metric-card-neutral {
+    --vpp-metric-accent: var(--vpp-text-secondary);
+}
+
+.vpp-metric-card-accent {
+    --vpp-metric-accent: var(--vpp-primary-600);
+}
+
+.vpp-metric-card-success {
+    --vpp-metric-accent: var(--vpp-success);
+}
+
+.vpp-metric-card-warning {
+    --vpp-metric-accent: var(--vpp-warning);
+}
+
+.vpp-metric-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-2);
+    min-width: 0;
+}
+
+.vpp-metric-card-label,
+.vpp-metric-card-supporting {
+    overflow: hidden;
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-metric-card-icon {
+    flex: 0 0 auto;
+    color: var(--vpp-metric-accent);
+    font-size: var(--vpp-text-xl);
+}
+
+.vpp-metric-card-value {
+    overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-2xl);
+    font-weight: var(--vpp-font-weight-semibold);
+    line-height: var(--vpp-leading-tight);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .vpp-metric-card {
+        min-height: 84px;
+        padding: var(--vpp-space-3);
+    }
+}

@@ -1,0 +1,25 @@
+.vpp-skeleton-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: var(--vpp-space-3);
+}
+
+.vpp-skeleton-stat-card {
+    display: grid;
+    gap: var(--vpp-space-3);
+    min-height: 80px;
+    padding: var(--vpp-space-4);
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-skeleton-stat-label {
+    width: 60%;
+    height: 12px;
+}
+
+.vpp-skeleton-stat-value {
+    width: 40%;
+    height: 28px;
+}

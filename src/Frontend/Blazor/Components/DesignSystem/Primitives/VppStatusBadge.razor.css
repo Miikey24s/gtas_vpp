@@ -1,0 +1,48 @@
+.vpp-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 22px;
+    max-width: 100%;
+    padding: 2px var(--vpp-space-2);
+    border: var(--vpp-border-width) solid var(--vpp-status-border);
+    border-radius: var(--vpp-radius-badge);
+    color: var(--vpp-status-foreground);
+    background: var(--vpp-status-background);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-medium);
+    line-height: var(--vpp-leading-tight);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-status-badge-neutral {
+    --vpp-status-foreground: var(--vpp-text-secondary);
+    --vpp-status-background: color-mix(in srgb, var(--vpp-text-secondary) 8%, var(--vpp-bg-elevated));
+    --vpp-status-border: var(--vpp-border-default);
+}
+
+.vpp-status-badge-info {
+    --vpp-status-foreground: var(--vpp-info);
+    --vpp-status-background: var(--vpp-info-muted);
+    --vpp-status-border: color-mix(in srgb, var(--vpp-info) 18%, transparent);
+}
+
+.vpp-status-badge-success {
+    --vpp-status-foreground: var(--vpp-success);
+    --vpp-status-background: var(--vpp-success-muted);
+    --vpp-status-border: color-mix(in srgb, var(--vpp-success) 18%, transparent);
+}
+
+.vpp-status-badge-warning {
+    --vpp-status-foreground: var(--vpp-warning);
+    --vpp-status-background: var(--vpp-warning-muted);
+    --vpp-status-border: color-mix(in srgb, var(--vpp-warning) 18%, transparent);
+}
+
+.vpp-status-badge-danger {
+    --vpp-status-foreground: var(--vpp-danger);
+    --vpp-status-background: var(--vpp-danger-muted);
+    --vpp-status-border: color-mix(in srgb, var(--vpp-danger) 18%, transparent);
+}

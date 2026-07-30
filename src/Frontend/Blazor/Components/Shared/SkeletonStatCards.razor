@@ -1,14 +1,12 @@
-<RadzenRow Gap="1rem" AlignItems="AlignItems.Stretch" class="skeleton-stats">
+<div class="vpp-skeleton-stat-grid" aria-hidden="true">
     @for (int i = 0; i < Cards; i++)
     {
-        <RadzenColumn Size="12" SizeSM="6" SizeLG="3">
-            <RadzenCard class="rz-border-none rz-p-3 skeleton-stat-card">
-                <div class="shimmer shimmer-bar shimmer-h-12 shimmer-w-60" style="margin-bottom: 0.75rem;"></div>
-                <div class="shimmer shimmer-bar shimmer-h-28 shimmer-w-40"></div>
-            </RadzenCard>
-        </RadzenColumn>
+        <article class="vpp-skeleton-stat-card">
+            <span class="vpp-skeleton vpp-skeleton-stat-label"></span>
+            <span class="vpp-skeleton vpp-skeleton-stat-value"></span>
+        </article>
     }
-</RadzenRow>
+</div>
 
 @code {
     [Parameter] public int Cards { get; set; } = 4;

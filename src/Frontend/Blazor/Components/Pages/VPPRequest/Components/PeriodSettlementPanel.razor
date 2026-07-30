@@ -197,7 +197,7 @@
                                 <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.UomName)" Title="@Loc["UOM"]" Width="110px" TextAlign="TextAlign.Center" />
                                 <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["OrderCount"]" Width="100px" TextAlign="TextAlign.Right" Sortable="false"><Template Context="row">@row.Breakdown.Count</Template></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="124px" TextAlign="TextAlign.Right"><Template Context="row"><strong>@row.TotalQty</strong></Template></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["SettleQuoteCoverage"]" Width="148px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><span class="vpp-badge @(IsItemCovered(row) ? "vpp-badge-success" : "vpp-badge-warning")">@(IsItemCovered(row) ? Loc["SupplyCoverageFull"] : Loc["SupplyPriceMissing"])</span></Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["SettleQuoteCoverage"]" Width="148px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><VppStatusBadge Text="@(IsItemCovered(row) ? Loc["SupplyCoverageFull"] : Loc["SupplyPriceMissing"])" Tone="@(IsItemCovered(row) ? VppStatusTone.Success : VppStatusTone.Warning)" /></Template></RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -240,7 +240,7 @@
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalLines" Title="@Loc["TotalLineItems"]" Width="104px" TextAlign="TextAlign.Right" />
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="112px" TextAlign="TextAlign.Right" />
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalAmount" Title="@Loc["Amount"]" Width="156px" TextAlign="TextAlign.Right"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(row.TotalAmount)</strong></Template></RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="@Loc["Status"]" Width="130px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><span class="vpp-badge @row.StatusCss">@row.StatusText</span></Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="@Loc["Status"]" Width="130px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><VppStatusBadge Text="@row.StatusText" Tone="@row.StatusTone" /></Template></RadzenDataGridColumn>
                         </Columns>
                     </RadzenDataGrid>
                 </div>

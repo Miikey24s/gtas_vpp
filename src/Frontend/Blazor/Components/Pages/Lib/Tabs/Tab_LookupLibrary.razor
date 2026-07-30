@@ -90,7 +90,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="data">
-                            <RadzenBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" BadgeStyle="@(data.IsDeleted ? BadgeStyle.Light : BadgeStyle.Success)" />
+                            <VppStatusBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@(data.IsDeleted ? VppStatusTone.Neutral : VppStatusTone.Success)" />
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Code" Title="@Loc["LookupCategoryCode"]" Width="120px" Visible="false" Pickable="true" />
@@ -174,7 +174,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="data">
-                            <RadzenBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" BadgeStyle="@(data.IsDeleted ? BadgeStyle.Light : BadgeStyle.Success)" />
+                            <VppStatusBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@(data.IsDeleted ? VppStatusTone.Neutral : VppStatusTone.Success)" />
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Code" Title="@Loc["Code"]" Width="125px" />

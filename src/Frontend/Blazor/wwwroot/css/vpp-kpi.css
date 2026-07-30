@@ -1,105 +1,5 @@
-/* ═══════════════════════════════════════════════════════════════════════════
-   VPP KPI CARDS — F-30 (minimal flat redesign)
-   Previous state: 4 playful gradient variants (blue/purple/emerald/amber) +
-   shine animation + white text. Distracted from the data itself and did not
-   match the Linear/Vercel reference declared in vpp-tokens.css.
-   New state: one neutral flat card, accent via icon opacity only.
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-/* ── Thẻ KPI cơ sở ───────────────────────────────────────────── */
-/* .vpp-kpi-card là tên canonical; giữ .kpi-card làm alias để markup Razor hiện có
-   (class="kpi-card") tiếp tục hoạt động mà không cần đổi tên hàng loạt. */
-.vpp-kpi-card,
-.kpi-card {
-    position: relative;
-    background: var(--vpp-bg-elevated);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-card);
-    padding: var(--vpp-space-6);
-    overflow: hidden;
-    cursor: default;
-    transition: border-color var(--vpp-transition-fast),
-                box-shadow var(--vpp-transition-fast);
-}
-
-.vpp-kpi-card:hover,
-.kpi-card:hover {
-    border-color: var(--vpp-border-strong);
-    box-shadow: var(--vpp-shadow-sm);
-}
-
-.kpi-card-content {
-    position: relative;
-    z-index: 1;
-}
-
-/* Header — nhãn và icon. */
-.kpi-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--vpp-space-3);
-}
-
-.kpi-card-label {
-    font-family: var(--vpp-font-body);
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-medium);
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--vpp-text-secondary);
-}
-
-.kpi-card-icon {
-    font-size: 1.75rem;
-    opacity: 0.4;
-    color: var(--vpp-text-secondary);
-}
-
-/* Giá trị. */
-.kpi-card-value {
-    font-family: var(--vpp-font-display);
-    font-size: var(--vpp-text-3xl);
-    font-weight: var(--vpp-font-weight-bold);
-    color: var(--vpp-text-primary);
-    line-height: 1.1;
-    margin-bottom: var(--vpp-space-2);
-}
-
-/* Xu hướng. */
-.kpi-card-trend {
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-medium);
-    display: flex;
-    align-items: center;
-    gap: var(--vpp-space-1);
-    color: var(--vpp-text-secondary);
-}
-
-.kpi-card-trend-arrow {
-    font-weight: var(--vpp-font-weight-bold);
-}
-
-.trend-up   { color: var(--vpp-success); }
-.trend-down { color: var(--vpp-danger); }
-
-/* F-30: Đã gỡ các biến thể gradient (.kpi-blue/.kpi-purple/.kpi-emerald/.kpi-amber/.kpi-teal)
-   và overlay .kpi-card-shine. Nếu markup Razor legacy vẫn còn các class này thì
-   chúng là no-op; style base .vpp-kpi-card phẳng, trung tính được ưu tiên. */
-
-/* ── Lưới thẻ KPI ────────────────────────────────────────────── */
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--vpp-space-5);
-    margin-bottom: var(--vpp-space-5);
-}
-
-@media (min-width: 1200px) {
-    .kpi-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
+/* Order/data card rules còn consumer thật. Metric summary đã chuyển sang
+   VppMetricCard scoped CSS; không giữ selector KPI alias trong file global. */
 
 /* ── Card dữ liệu theo style card đơn hàng ───────────────────── */
 .vpp-data-card {
@@ -944,45 +844,6 @@
     border-top: 1px solid var(--vpp-border-default);
 }
 
-/* ── Khung xương KPI khi tải ─────────────────────────────────── */
-.kpi-card .vpp-skeleton {
-    border-radius: var(--vpp-radius-sm);
-}
-
-.kpi-card-skel-value {
-    height: 36px;
-    width: 60%;
-    margin-bottom: var(--vpp-space-2);
-}
-
-.kpi-card-skel-label {
-    height: 12px;
-    width: 40%;
-}
-
-/* ── Badge trạng thái ────────────────────────────────────────── */
-.vpp-badge {
-    box-sizing: border-box;
-    display: inline-flex;
-    height: 22px;
-    min-height: 22px;
-    align-items: center;
-    justify-content: center;
-    padding: 0 8px;
-    border-radius: var(--vpp-radius-full);
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-medium);
-    line-height: 1;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.vpp-badge-success { background: var(--vpp-success-muted); color: var(--vpp-success); }
-.vpp-badge-danger  { background: var(--vpp-danger-muted); color: var(--vpp-danger); }
-.vpp-badge-warning { background: var(--vpp-warning-muted); color: var(--vpp-warning); }
-.vpp-badge-info    { background: var(--vpp-info-muted); color: var(--vpp-info); }
-.vpp-badge-secondary { background: var(--vpp-bg-surface); color: var(--vpp-text-secondary); }
-
 /* ── Đường phân cách khu vực ─────────────────────────────────── */
 .vpp-section-divider {
     display: flex;
@@ -1073,20 +934,4 @@
 .vpp-link-text {
     font-weight: var(--vpp-font-weight-semibold);
     color: var(--vpp-primary-500);
-}
-
-/* ── Điều khiển cột lưới KPI ─────────────────────────────────── */
-.kpi-grid[style*="--kpi-cols: 2"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-}
-
-.kpi-grid[style*="--kpi-cols: 3"] {
-    grid-template-columns: repeat(3, 1fr) !important;
-}
-
-@media (max-width: 768px) {
-    .kpi-grid[style*="--kpi-cols: 2"],
-    .kpi-grid[style*="--kpi-cols: 3"] {
-        grid-template-columns: 1fr !important;
-    }
 }

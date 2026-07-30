@@ -17,7 +17,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     /// Base class dùng chung cho pattern "danh sách yêu cầu VPP có grid phân trang,
     /// bộ lọc và lazy-load phần chi tiết mở rộng" (F-24).
     ///
-    /// Logic trước đây bị lặp ở Tab_History, Tab_AllOrdersSummary,
+    /// Logic trước đây bị lặp ở các tab lịch sử và tổng hợp đơn,
     /// Tab_DepartmentSummary và Tab_AdminApproval. Mỗi tab hiện chỉ sở hữu state bộ lọc,
     /// cách dựng endpoint và kiểm tra quyền riêng; phần loading/paging/expand/debounce
     /// được tái sử dụng tại đây.

@@ -27,8 +27,8 @@
     {
         <RadzenStack Gap="1rem">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" Wrap="FlexWrap.Wrap">
-                <RadzenBadge Text="@Loc["RevisionCount", _history.Revisions.Count]" BadgeStyle="BadgeStyle.Info" IsPill="true" />
-                <RadzenBadge Text="@Loc["TimelineEventCount", _history.Timeline.Count]" BadgeStyle="BadgeStyle.Light" IsPill="true" />
+                <VppStatusBadge Text="@Loc["RevisionCount", _history.Revisions.Count]" Tone="VppStatusTone.Info" />
+                <VppStatusBadge Text="@Loc["TimelineEventCount", _history.Timeline.Count]" Tone="VppStatusTone.Neutral" />
             </RadzenStack>
 
             <section aria-labelledby="request-timeline-title">
@@ -39,16 +39,16 @@
                 }
                 else
                 {
-                    <ol style="margin: 0; padding-left: 1.25rem;">
+                    <ol class="vpp-request-history-timeline">
                         @foreach (var item in _history.Timeline.OrderByDescending(x => x.OccurredAt))
                         {
-                            <li style="padding: 0 0 0.75rem 0.25rem;">
+                            <li class="vpp-request-history-timeline-item">
                                 <strong>@GetActionLabel(item.Action)</strong>
                                 @if (item.RevisionNumber.HasValue)
                                 {
                                     <span> · @Loc["RevisionShort", item.RevisionNumber]</span>
                                 }
-                                <div style="color: var(--vpp-text-secondary); font-size: 0.85rem;">
+                                <div class="vpp-request-history-meta">
                                     @DateFormatter.Format(item.OccurredAt, DateFormatter.LongDate)
                                     @if (!string.IsNullOrWhiteSpace(item.ActorName))
                                     {

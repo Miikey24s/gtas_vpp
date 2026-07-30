@@ -438,7 +438,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         // P4/F-16: Nhãn trạng thái và style badge lấy từ helper dùng chung
-        // StatusDisplay/StatusDisplayRadzen; switch cục bộ đã được gỡ.
+        // StatusDisplay trả semantic tone typed; route không tự map class hoặc Radzen badge style.
 
         public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
 
