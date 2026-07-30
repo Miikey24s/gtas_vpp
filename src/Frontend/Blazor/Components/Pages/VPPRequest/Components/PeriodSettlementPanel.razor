@@ -2,7 +2,9 @@
 @using gtas_vpp_shared.DTOs.Res.Library
 @using gtas_vpp_shared.DTOs.Res.VPP
 
-<div class="vpp-period-settlement-root">
+<VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
+                       IsBusy="@(isLoading || isGridLoading)"
+                       Class="vpp-period-settlement-root">
 <HistoryWorkspaceShell IsBusy="@isLoading"
                        IsGridRefreshing="@isGridLoading"
                        Class="@SettlementPageClass">
@@ -270,4 +272,4 @@
         </section>
     }
 </HistoryWorkspaceShell>
-</div>
+</VppOperationWorkspace>

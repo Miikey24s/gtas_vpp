@@ -1019,4 +1019,63 @@
   <data name="OutsideRoleCeiling" xml:space="preserve"><value>Ngoài phạm vi vai trò</value></data>
   <data name="ConfigurableAccess" xml:space="preserve"><value>Có thể cấu hình</value></data>
   <data name="PermissionBatchUpdated" xml:space="preserve"><value>Đã cập nhật {0} quyền giao diện.</value></data>
+  <data name="SecurityAudit" xml:space="preserve"><value>Nhật ký bảo mật</value></data>
+  <data name="SecurityAuditFilters" xml:space="preserve"><value>Bộ lọc nhật ký bảo mật</value></data>
+  <data name="SecurityAuditSearchPlaceholder" xml:space="preserve"><value>Tìm người dùng, hành động, tài nguyên hoặc lý do</value></data>
+  <data name="AllAuditActions" xml:space="preserve"><value>Tất cả hành động</value></data>
+  <data name="AllAuditOutcomes" xml:space="preserve"><value>Tất cả kết quả</value></data>
+  <data name="AuditTime" xml:space="preserve"><value>Thời gian</value></data>
+  <data name="AuditActor" xml:space="preserve"><value>Người thao tác</value></data>
+  <data name="AuditTarget" xml:space="preserve"><value>Đối tượng</value></data>
+  <data name="AuditAction" xml:space="preserve"><value>Hành động</value></data>
+  <data name="AuditOutcome" xml:space="preserve"><value>Kết quả</value></data>
+  <data name="AuditResource" xml:space="preserve"><value>Tài nguyên</value></data>
+  <data name="AuditSummary" xml:space="preserve"><value>Tóm tắt</value></data>
+  <data name="AuditCorrelationId" xml:space="preserve"><value>Mã tương quan</value></data>
+  <data name="SecurityAuditDetail" xml:space="preserve"><value>Chi tiết nhật ký bảo mật</value></data>
+  <data name="SystemActor" xml:space="preserve"><value>Hệ thống</value></data>
+  <data name="NotApplicable" xml:space="preserve"><value>Không áp dụng</value></data>
+  <data name="AuditOutcomeSucceeded" xml:space="preserve"><value>Thành công</value></data>
+  <data name="AuditOutcomeFailed" xml:space="preserve"><value>Thất bại</value></data>
+  <data name="AuditOutcomeRejected" xml:space="preserve"><value>Bị từ chối</value></data>
+  <data name="AuditActionBootstrapOwner" xml:space="preserve"><value>Khởi tạo tài khoản quản trị</value></data>
+  <data name="AuditActionAccountInvited" xml:space="preserve"><value>Mời người dùng</value></data>
+  <data name="AuditActionInvitationAccepted" xml:space="preserve"><value>Chấp nhận lời mời</value></data>
+  <data name="AuditActionAccountActivated" xml:space="preserve"><value>Kích hoạt tài khoản</value></data>
+  <data name="AuditActionAccountRegistered" xml:space="preserve"><value>Đăng ký tài khoản</value></data>
+  <data name="AuditActionEmailConfirmed" xml:space="preserve"><value>Xác nhận email</value></data>
+  <data name="AuditActionPasswordChanged" xml:space="preserve"><value>Đổi mật khẩu</value></data>
+  <data name="AuditActionPasswordReset" xml:space="preserve"><value>Đặt lại mật khẩu</value></data>
+  <data name="AuditActionResetLinkSent" xml:space="preserve"><value>Gửi liên kết đặt lại mật khẩu</value></data>
+  <data name="AuditActionMembershipCreated" xml:space="preserve"><value>Tạo phân công quyền</value></data>
+  <data name="AuditActionMembershipUpdated" xml:space="preserve"><value>Cập nhật phân công quyền</value></data>
+  <data name="AuditActionMembershipDeactivated" xml:space="preserve"><value>Vô hiệu hóa phân công quyền</value></data>
+  <data name="AuditActionPermissionUpdated" xml:space="preserve"><value>Cập nhật quyền giao diện</value></data>
+  <data name="AuditActionSessionRevoked" xml:space="preserve"><value>Thu hồi phiên đăng nhập</value></data>
+  <data name="PermissionBatchDefaultReason" xml:space="preserve"><value>Cập nhật quyền giao diện bằng trình chỉnh sửa theo lô.</value></data>
+  <data name="AddUser" xml:space="preserve"><value>Thêm người dùng</value></data>
+  <data name="EmployeeCode" xml:space="preserve"><value>Mã nhân viên</value></data>
+  <data name="InvitationStatus" xml:space="preserve"><value>Trạng thái lời mời</value></data>
+  <data name="SendPasswordLink" xml:space="preserve"><value>Gửi liên kết đặt lại mật khẩu</value></data>
+  <data name="AccountIdLabel" xml:space="preserve"><value>Mã tài khoản</value></data>
+  <data name="RowVersionLabel" xml:space="preserve"><value>Phiên bản dữ liệu</value></data>
+  <data name="UserInvitationPasswordlessHint" xml:space="preserve"><value>Quản trị viên không tạo hoặc nhìn thấy mật khẩu. Người dùng sẽ nhận liên kết một lần để tự đặt mật khẩu.</value></data>
+  <data name="SendInvitation" xml:space="preserve"><value>Gửi lời mời</value></data>
+  <data name="RequiredFieldsValidation" xml:space="preserve"><value>Vui lòng nhập đủ thông tin bắt buộc.</value></data>
+  <data name="ChangeReason" xml:space="preserve"><value>Lý do thay đổi</value></data>
+  <data name="MembershipAssignmentValidation" xml:space="preserve"><value>Vui lòng chọn nhóm quyền và phòng ban.</value></data>
+  <data name="InvitationSentSummary" xml:space="preserve"><value>Đã gửi lời mời</value></data>
+  <data name="InvitationSentDetail" xml:space="preserve"><value>Tài khoản đã được tạo không có mật khẩu; liên kết thiết lập một lần đã được đưa vào email outbox.</value></data>
+  <data name="MembershipInitialActivationReason" xml:space="preserve"><value>Kích hoạt tài khoản lần đầu bởi quản trị viên phân quyền.</value></data>
+  <data name="MembershipUpdateReason" xml:space="preserve"><value>Cập nhật nhóm quyền hoặc phòng ban bởi quản trị viên phân quyền.</value></data>
+  <data name="ConfirmSendPasswordLink" xml:space="preserve"><value>Gửi liên kết thiết lập hoặc đặt lại mật khẩu tới {0}?</value></data>
+  <data name="SendOneTimeLink" xml:space="preserve"><value>Gửi liên kết một lần</value></data>
+  <data name="Send" xml:space="preserve"><value>Gửi</value></data>
+  <data name="PasswordLinkAuditReason" xml:space="preserve"><value>Quản trị viên phân quyền yêu cầu liên kết thiết lập hoặc đặt lại mật khẩu một lần.</value></data>
+  <data name="LinkSentSummary" xml:space="preserve"><value>Đã gửi liên kết</value></data>
+  <data name="LinkSentDetail" xml:space="preserve"><value>Quản trị viên không nhìn thấy mật khẩu; người dùng tự đặt mật khẩu qua liên kết một lần.</value></data>
+  <data name="InvitationPendingPassword" xml:space="preserve"><value>Chờ đặt mật khẩu</value></data>
+  <data name="InvitationMustChangePassword" xml:space="preserve"><value>Cần đổi mật khẩu</value></data>
+  <data name="InvitationConfirmed" xml:space="preserve"><value>Đã xác nhận</value></data>
+  <data name="InvitationUnconfirmed" xml:space="preserve"><value>Chưa xác nhận</value></data>
 </root>

@@ -276,6 +276,84 @@ public sealed class CanonicalPermissionControllerTests
         Assert.True(mapping.Mapping.IsEnable);
     }
 
+    [Fact]
+    public async Task GetSecurityAudits_FiltersAcrossFullQueryAndResolvesUsers()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        context.Users.AddRange(
+            new AppUser { Id = 101, UserName = "admin.audit", FullName = "Quản trị Audit" },
+            new AppUser { Id = 202, UserName = "target.audit", FullName = "Người dùng đích" });
+        context.SecurityAudits.AddRange(
+            new SecurityAudit
+            {
+                Id = Guid.NewGuid(),
+                ActorUserId = 101,
+                TargetUserId = 202,
+                Action = "MEMBERSHIP_CREATED",
+                ResourceType = "UserGroupMembership",
+                ResourceId = "membership-1",
+                Outcome = "Succeeded",
+                Summary = "Assigned canonical group",
+                Reason = "Test assignment",
+                OccurredAtUtc = new DateTime(2026, 7, 30, 1, 0, 0, DateTimeKind.Utc)
+            },
+            new SecurityAudit
+            {
+                Id = Guid.NewGuid(),
+                ActorUserId = 101,
+                Action = "ACCOUNT_DISABLED",
+                ResourceType = "AppUser",
+                ResourceId = "202",
+                Outcome = "Succeeded",
+                Summary = "Disabled account",
+                OccurredAtUtc = new DateTime(2026, 7, 29, 1, 0, 0, DateTimeKind.Utc)
+            });
+        await context.SaveChangesAsync();
+        var controller = CreateController(context);
+
+        var action = await controller.GetSecurityAudits(
+            search: "Người dùng đích",
+            action: "MEMBERSHIP_CREATED",
+            outcome: "Succeeded",
+            skip: 0,
+            top: 50,
+            orderby: "OccurredAtUtc desc");
+
+        var result = Assert.IsType<OkObjectResult>(action);
+        var rows = Assert.IsType<List<SecurityAuditResDTO>>(result.Value);
+        var row = Assert.Single(rows);
+        Assert.Equal("admin.audit", row.ActorUserName);
+        Assert.Equal("Người dùng đích", row.TargetFullName);
+        Assert.Equal("1", controller.Response.Headers["X-Total-Count"]);
+
+        var sortedAction = await controller.GetSecurityAudits(
+            skip: 0,
+            top: 50,
+            orderby: "TargetFullName desc");
+        var sortedRows = Assert.IsType<List<SecurityAuditResDTO>>(
+            Assert.IsType<OkObjectResult>(sortedAction).Value);
+        Assert.Equal("Người dùng đích", sortedRows.First().TargetFullName);
+    }
+
+    [Fact]
+    public async Task GetSecurityAuditFilterOptions_ReturnsDistinctSortedValues()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        context.SecurityAudits.AddRange(
+            new SecurityAudit { Id = Guid.NewGuid(), Action = "Z_ACTION", ResourceType = "Test", Outcome = "Succeeded" },
+            new SecurityAudit { Id = Guid.NewGuid(), Action = "A_ACTION", ResourceType = "Test", Outcome = "Failed" },
+            new SecurityAudit { Id = Guid.NewGuid(), Action = "A_ACTION", ResourceType = "Test", Outcome = "Succeeded" });
+        await context.SaveChangesAsync();
+        var controller = CreateController(context);
+
+        var action = await controller.GetSecurityAuditFilterOptions(CancellationToken.None);
+
+        var result = Assert.IsType<OkObjectResult>(action);
+        var options = Assert.IsType<SecurityAuditFilterOptionsResDTO>(result.Value);
+        Assert.Equal(["A_ACTION", "Z_ACTION"], options.Actions);
+        Assert.Equal(["Failed", "Succeeded"], options.Outcomes);
+    }
+
     private static PermissionController CreateController(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         Mock<IGenericRepository<PermissionGroup>>? groupRepository = null,

@@ -3,6 +3,7 @@ using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_shared.Constants;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -195,12 +196,14 @@ public sealed class LocalDbQaFixtureTests
         LocalDbQaFixture fixture,
         CancellationToken cancellationToken)
     {
+        var canonicalGroupIds = string.Join(", ", CanonicalRbac.Personas.Select(persona => $"'{persona.GroupId:D}'"));
+
         await fixture.EnsureIdentityAsync(cancellationToken);
         return new FixtureSnapshot(
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[__EFMigrationsHistory];", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [sys].[procedures] WHERE [name] = N'sp_Authen_Login';", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[AspNetUsers] WHERE [Id] BETWEEN 1000001001 AND 1000001006 AND [AccountStatus] = N'Active';", cancellationToken),
-            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[PermissionGroups] WHERE [GroupCode] IN (N'EMPLOYEE', N'DEPARTMENT_APPROVER', N'PROCUREMENT_ADMIN', N'SYSTEM_ADMIN') AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[PermissionGroups] WHERE [Id] IN ({canonicalGroupIds}) AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[UserGroupMemberships] WHERE [AccountId] BETWEEN 1000001001 AND 1000001006 AND [UserId] = [AccountId] AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Periods] WHERE [Id] = '20000000-0000-0000-0000-000000000001' AND [MemberCompanyCode] = N'77500' AND [State] = 0 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003');", cancellationToken),
@@ -215,7 +218,7 @@ public sealed class LocalDbQaFixtureTests
         Assert.True(snapshot.Migrations > 0);
         Assert.Equal(0, snapshot.LegacyLoginStoredProcedure);
         Assert.Equal(6, snapshot.Accounts);
-        Assert.Equal(4, snapshot.RequiredRoles);
+        Assert.Equal(CanonicalRbac.Personas.Count, snapshot.RequiredRoles);
         Assert.Equal(6, snapshot.UserRoleMappings);
         Assert.Equal(1, snapshot.CurrentPeriods);
         Assert.Equal(3, snapshot.ScopeRequests);

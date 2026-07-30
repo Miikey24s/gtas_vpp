@@ -197,7 +197,11 @@ public sealed class PermissionState
                 continue;
             }
 
-            if (HasVisibleComponent(route.PageCode, route.PermissionCode))
+            var canUseRoute = Permissions.IsActionCode(route.PermissionCode)
+                ? HasPermission(route.PermissionCode)
+                : HasVisibleComponent(route.PageCode, route.PermissionCode);
+
+            if (canUseRoute)
             {
                 return route.Path;
             }

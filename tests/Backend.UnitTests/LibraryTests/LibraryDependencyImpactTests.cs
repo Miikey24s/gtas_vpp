@@ -49,7 +49,10 @@ public sealed class LibraryDependencyImpactTests
         context.Set<PriceList>().Add(new PriceList { Id = priceListId, SupplierId = supplierId, PriceListName = "Default" });
         context.Set<SupplierProductMapping>().Add(new SupplierProductMapping
         {
-            Id = Guid.NewGuid(), SupplierId = supplierId, PriceListId = priceListId, VppItemId = Guid.NewGuid()
+            Id = Guid.NewGuid(),
+            SupplierId = supplierId,
+            PriceListId = priceListId,
+            VppItemId = Guid.NewGuid()
         });
         await context.SaveChangesAsync();
 
@@ -73,7 +76,10 @@ public sealed class LibraryDependencyImpactTests
             new Department { Id = Guid.NewGuid(), Code = "CHILD", Name = "Child", ParentDepartmentId = departmentId });
         context.Set<UserGroupMembership>().Add(new UserGroupMembership
         {
-            Id = Guid.NewGuid(), UserId = 7, PermissionGroupId = Guid.NewGuid(), DepartmentId = departmentId
+            Id = Guid.NewGuid(),
+            UserId = 7,
+            PermissionGroupId = Guid.NewGuid(),
+            DepartmentId = departmentId
         });
         await context.SaveChangesAsync();
 

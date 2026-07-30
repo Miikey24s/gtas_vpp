@@ -61,6 +61,7 @@ internal static class QaFixtureSeeder
         await EnsureCanonicalGroupsAsync(context, cancellationToken);
         await EnsureUsersAsync(context, accounts, secrets, cancellationToken);
         await EnsureUserGroupsAsync(context, accounts, cancellationToken);
+        await EnsureSecurityAuditsAsync(context, accounts, cancellationToken);
         var period = await EnsureCurrentPeriodAsync(context, cancellationToken);
         await EnsureScopeRequestsAsync(context, accounts, period, cancellationToken);
 
@@ -273,6 +274,81 @@ internal static class QaFixtureSeeder
             mapping.UpdatedByUserId = SeedUserId;
             mapping.UpdatedAtUtc = SeedTimestamp;
             mapping.IsDeleted = false;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task EnsureSecurityAuditsAsync(
+        VPPMigrationDbContext context,
+        QaTestAccounts accounts,
+        CancellationToken cancellationToken)
+    {
+        var definitions = new[]
+        {
+            new SecurityAudit
+            {
+                Id = Guid.Parse("31000000-0000-0000-0000-000000000001"),
+                TargetUserId = accounts.SystemAdmin.UserId,
+                Action = "AUTH_BOOTSTRAP_OWNER_CREATED",
+                ResourceType = "AppUser",
+                ResourceId = accounts.SystemAdmin.UserId.ToString(),
+                Outcome = "Succeeded",
+                Summary = "Fixture QA đã tạo tài khoản quản trị hệ thống chuẩn.",
+                Reason = "Dữ liệu trình duyệt cô lập có thể tái lập.",
+                CorrelationId = "qa-security-audit-001",
+                OccurredAtUtc = SeedTimestamp
+            },
+            new SecurityAudit
+            {
+                Id = Guid.Parse("31000000-0000-0000-0000-000000000002"),
+                ActorUserId = accounts.SystemAdmin.UserId,
+                TargetUserId = accounts.Employee.UserId,
+                Action = "MEMBERSHIP_CREATED",
+                ResourceType = "UserGroupMembership",
+                ResourceId = UserGroupMappingIds[accounts.Employee.UserId].ToString(),
+                Outcome = "Succeeded",
+                Summary = "Đã gán người dùng vào vai trò Nhân viên chuẩn.",
+                Reason = "Dữ liệu trình duyệt cô lập có thể tái lập.",
+                CorrelationId = "qa-security-audit-002",
+                OccurredAtUtc = SeedTimestamp.AddMinutes(1)
+            },
+            new SecurityAudit
+            {
+                Id = Guid.Parse("31000000-0000-0000-0000-000000000003"),
+                ActorUserId = accounts.SystemAdmin.UserId,
+                Action = "PERMISSION_UI_BATCH_UPDATED",
+                ResourceType = "PermissionGroup",
+                ResourceId = CanonicalRbac.Employee.GroupId.ToString(),
+                Outcome = "Succeeded",
+                Summary = "Đã cập nhật một quyền giao diện đại diện.",
+                Reason = "Dữ liệu trình duyệt cô lập có thể tái lập.",
+                CorrelationId = "qa-security-audit-003",
+                OccurredAtUtc = SeedTimestamp.AddMinutes(2)
+            }
+        };
+
+        foreach (var definition in definitions)
+        {
+            var audit = await context.SecurityAudits.SingleOrDefaultAsync(
+                item => item.Id == definition.Id,
+                cancellationToken);
+            if (audit is null)
+            {
+                context.SecurityAudits.Add(definition);
+                continue;
+            }
+
+            audit.ActorUserId = definition.ActorUserId;
+            audit.TargetUserId = definition.TargetUserId;
+            audit.Action = definition.Action;
+            audit.ResourceType = definition.ResourceType;
+            audit.ResourceId = definition.ResourceId;
+            audit.Outcome = definition.Outcome;
+            audit.Summary = definition.Summary;
+            audit.Reason = definition.Reason;
+            audit.CorrelationId = definition.CorrelationId;
+            audit.OccurredAtUtc = definition.OccurredAtUtc;
         }
 
         await context.SaveChangesAsync(cancellationToken);

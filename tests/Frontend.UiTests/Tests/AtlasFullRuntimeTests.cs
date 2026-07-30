@@ -34,10 +34,10 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
         new("history", "dashboard?tab=1", ".vpp-history-page"),
         new("catalog", "dashboard?tab=2", ".vpp-catalog-workspace"),
         new("department-summary", "dashboard?tab=3&managementTab=department", ".vpp-history-page"),
-        new("supplement-approval", "dashboard?tab=5&periodTab=pending", ".vpp-section"),
-        new("period-review", "dashboard?tab=5&periodTab=review", "[data-testid='period-review-data-surface']"),
-        new("period-demand", "dashboard?tab=5&periodTab=demand", "[data-testid='period-demand-data-surface']"),
-        new("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']"),
+        new("supplement-approval", "dashboard?tab=5&periodTab=pending", ".vpp-approval-operation-workspace"),
+        new("period-review", "dashboard?tab=5&periodTab=review", "[data-testid='period-settlement-data-surface']"),
+        new("period-demand", "dashboard?tab=5&periodTab=demand", "[data-testid='period-settlement-data-surface']"),
+        new("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-settlement-data-surface']"),
         new("settlement-flow", "dashboard?tab=5&periodTab=settle", "[data-testid='period-settlement-data-surface']"),
         new("classes", "library?tab=0", ".vpp-admin-class-split"),
         new("categories", "library?tab=1", ".vpp-admin-data-surface"),
@@ -115,8 +115,9 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
         foreach (var screen in new[]
                  {
                      new AtlasRuntimeScreen("my-orders", "dashboard?tab=0", ".vpp-orders-workspace"),
-                     new AtlasRuntimeScreen("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']"),
+                     new AtlasRuntimeScreen("supply-allocation", "dashboard?tab=5&periodTab=supply", "[data-testid='period-settlement-data-surface']"),
                      new AtlasRuntimeScreen("items", "library?tab=2", ".vpp-admin-data-surface"),
+                     new AtlasRuntimeScreen("security-audit", "permission?tab=2", "[data-testid='security-audit-data-surface']"),
                      new AtlasRuntimeScreen("reports", "report", ".vpp-report-page")
                  })
         {

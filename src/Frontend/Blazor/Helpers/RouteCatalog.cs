@@ -270,6 +270,14 @@ public static class RouteCatalog
             AnyOfPermissions: [Permissions.PermissionComponent],
             Notes: "Page-permission tab nests per-group expansion rows; each expanded row contains nested page-permission tabs."),
 
+        new(
+            Key: "permission.security-audit",
+            Path: "/permission?tab=2",
+            Title: "SecurityAudit",
+            PageCode: Config.Page_ComponentCode.PageCode.Permission,
+            AnyOfPermissions: [Permissions.PermissionManage],
+            Notes: "Read-only security audit workspace for access administrators."),
+
         // ── Báo cáo ────────────────────────────────────────────────
         new(
             Key: "report",

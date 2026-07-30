@@ -162,11 +162,20 @@ public partial class Tab_SupplierLibrary : IDisposable
 
     private static SupplierResDTO Clone(SupplierResDTO row) => new()
     {
-        Id = row.Id, SupplierShortName = row.SupplierShortName, SupplierName = row.SupplierName,
-        Address1 = row.Address1, Address2 = row.Address2, Address3 = row.Address3,
-        Ward = row.Ward, City = row.City, Description = row.Description, IsDeleted = row.IsDeleted,
-        CreatedAtUtc = row.CreatedAtUtc, CreatedByUserId = row.CreatedByUserId,
-        UpdatedAtUtc = row.UpdatedAtUtc, UpdatedByUserId = row.UpdatedByUserId
+        Id = row.Id,
+        SupplierShortName = row.SupplierShortName,
+        SupplierName = row.SupplierName,
+        Address1 = row.Address1,
+        Address2 = row.Address2,
+        Address3 = row.Address3,
+        Ward = row.Ward,
+        City = row.City,
+        Description = row.Description,
+        IsDeleted = row.IsDeleted,
+        CreatedAtUtc = row.CreatedAtUtc,
+        CreatedByUserId = row.CreatedByUserId,
+        UpdatedAtUtc = row.UpdatedAtUtc,
+        UpdatedByUserId = row.UpdatedByUserId
     };
 
     private static void OnRowRender(RowRenderEventArgs<SupplierResDTO> args)

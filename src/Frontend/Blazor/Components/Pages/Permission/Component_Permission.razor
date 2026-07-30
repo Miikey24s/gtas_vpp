@@ -8,7 +8,7 @@
 {
     <RadzenTabs Change="@TabOnChange"
                 TabPosition="@tabPosition"
-                class="@(IsActiveTab(0) ? "librariestab vpp-admin-tabs vpp-bounded-shell" : "librariestab vpp-admin-tabs")"
+                class="librariestab vpp-admin-tabs vpp-bounded-shell"
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
@@ -27,6 +27,15 @@
                     @if (IsActiveTab(1))
                     {
                         <Tab_PagePermission claims="@claims" PagePermissionResDTO="@PagePermissionResDTO" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewPermissionTab(Permissions.PermissionManage))
+            {
+                <RadzenTabsItem Text="@Loc["SecurityAudit"]">
+                    @if (IsActiveTab(2))
+                    {
+                        <Tab_SecurityAudit />
                     }
                 </RadzenTabsItem>
             }

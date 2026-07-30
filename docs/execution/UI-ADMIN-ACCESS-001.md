@@ -1,6 +1,6 @@
 # UI-ADMIN-ACCESS-001 — Quản trị danh mục và phân quyền
 
-> Trạng thái: **IMPLEMENTING — AA0–AA6 COMPLETE, AA7 ACTIVE**
+> Trạng thái: **COMPLETED — AA0–AA7 VERIFIED**
 >
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md) và [`UI-DATA-SURFACE-001`](./UI-DATA-SURFACE-001.md)
 >
@@ -42,7 +42,7 @@ Thêm / Sửa
 | Phòng ban | `Department` self parent-child; `Department 1-n UserGroupMembership`; code unique active | `/api/Library/departments` | Form phải chống chọn chính nó/con cháu làm parent; không vô hiệu hóa khi còn user hoặc child active. |
 | Người dùng | `AppUser 1-1 active UserGroupMembership`; membership bắt buộc group + department; Identity token và email outbox đã có | `/api/Permission/users`, `/memberships`, Account lifecycle endpoints | Thêm admin-create dạng invitation; admin không nhập, nhìn thấy hoặc gửi mật khẩu tạm. |
 | Phân quyền | Runtime hiện chỉ chấp nhận đúng ba canonical group; mapping dùng `IsVisible` + `IsEnable` | `/api/Permission/groups`, `/page-components`, `/component-mapping` | Current scope giữ canonical RBAC, đổi editor thành batch modal và một access-state selector dễ hiểu. |
-| Audit bảo mật | `SecurityAudit` đã ghi một số sự kiện registration, activation, membership và session | Chưa có route query quản trị hoàn chỉnh | Bổ sung màn immutable read-only và ghi mọi thay đổi user/role/permission vào audit. |
+| Audit bảo mật | `SecurityAudit` ghi registration, activation, membership, session và permission batch | `GET /api/Permission/security-audits`, `/filter-options`; `/permission?tab=2` | Màn immutable read-only, server filter/sort/paging trên toàn nguồn; không có Thêm/Sửa/Xóa và không trả secret/token. |
 
 EF model đã được đối chiếu với migration snapshot hiện tại và không có pending model changes tại thời điểm lập plan.
 
@@ -59,7 +59,7 @@ EF model đã được đối chiếu với migration snapshot hiện tại và 
 | **Phòng ban** | Full-width Collection; hierarchy thể hiện bằng cột parent, không dùng tree làm bảng chính | `#`, Phòng ban (tên + mã), Phòng ban cha, Trạng thái, Mô tả, Thao tác | Số phòng con/user active khi API có projection, localization, audit | Modal vừa 640–720px: mã, tên, parent, mô tả; selector parent loại chính nó và toàn bộ descendants. |
 | **Người dùng** | Full-width Collection; bỏ inspector cố định để lấy lại chiều ngang | `#`, Người dùng (họ tên + login/email), Trạng thái tài khoản, Nhóm quyền, Phòng ban, Trạng thái lời mời/membership, Thao tác | Employee code, email confirmed, must-change-password, user type, cập nhật; account id chỉ dành DEV inspector | Có **Thêm người dùng**. Modal 760–840px: username, email, họ tên, employee code, group, department, lý do, gửi lời mời. Admin không nhập password; invite one-time để user tự đặt password. |
 | **Nhóm quyền và permission** | `VppListDetailWorkspace`: canonical group gọn bên trái, quyền theo trang bên phải; nút **Cấu hình** mở workspace dialog | Group: `#`, Tên + code, mô tả, số user. Permission: tên, code, loại, trạng thái truy cập, trạng thái khóa | Audit và mapping id kỹ thuật không hiện mặc định | Permission editor dùng workspace dialog `90vw × 85vh`, selector trang ngang và một access-state control; lưu batch một lần. Ba canonical group immutable; không có Thêm role trong current scope. |
-| **Nhật ký bảo mật** *(khuyến nghị)* | Full-width Collection read-only | `#`, Thời gian, Người thao tác, Đối tượng, Hành động, Kết quả, Tài nguyên, Tóm tắt | Reason, correlation id, resource id | Không có editor; chỉ filter và xem chi tiết. Cần API read-only mới, không đổi schema. |
+| **Nhật ký bảo mật** | Full-width Collection read-only | `#`, Thời gian, Người thao tác, Đối tượng, Hành động, Kết quả, Tài nguyên, Tóm tắt | Reason, correlation id, resource id | Không có editor; chỉ filter và xem chi tiết. API read-only đã triển khai, không đổi schema. |
 
 ## 4. Contract adaptive editor dialog
 
@@ -178,7 +178,7 @@ Nếu email local bị tắt, account vẫn ở `InvitationPending`; chỉ DEV/n
 | **AA4 — Pricing** | **COMPLETED — FULL-WIDTH + ADAPTIVE EDITORS** | **Sol · XHigh** | Bảng giá + Giá mặt hàng; lifecycle actions; optimistic concurrency; modal thương mại | Hai Collection đồng bộ filter; Bảng giá không còn inspector chật; editor giá/bảng giá dùng adaptive shell | 19 pricing backend tests, 203 frontend tests, Release build 0 warning, 2 isolated pricing browser tests; mutation E2E vẫn cần opt-in |
 | **AA5 — Admin user invitation** | **COMPLETED — PASSWORDLESS + FULL-WIDTH USER ADMIN** | **Sol · XHigh** | Full-width user grid; add-user invitation editor; membership/status actions; bỏ inline dropdown | Admin tạo user mà không biết password; email-disabled state giải thích rõ | 26 focused backend tests, 203 frontend tests, Release build 0 warning, isolated desktop/mobile + editor pass |
 | **AA6 — Canonical permission editor** | **COMPLETED — BATCH + LIVE SESSION VERIFIED** | **Sol · XHigh implement; Sol · Max review** | Group list-detail, workspace batch modal, unified access-state selector, canonical action/UI separation, realtime refresh | Owner xem và lưu UI permission một lần; action matrix vẫn read-only | 9 backend permission tests, 203 frontend tests, desktop/mobile visual pass ở hai lượt isolated riêng, mutation + restore pass |
-| **AA7 — Security audit & hardening** | **ACTIVE — AA6 COMPLETE** | **Sol · XHigh** | Audit read-only, full visual/motion/accessibility/VI-EN review, refactor duplicate code | Toàn bộ quản trị + phân quyền đồng bộ và có truy vết | Full frontend/backend/integration verify, authenticated browser matrix |
+| **AA7 — Security audit & hardening** | **COMPLETED — VERIFIED** | **Sol · XHigh** | Audit read-only, full visual/motion/accessibility/VI-EN review, refactor duplicate code | Toàn bộ quản trị + phân quyền đồng bộ, truy cập được từ header/sidebar và có truy vết | Solution 0 warning; frontend 204/204; backend 445/445; LocalDB 20/20; 28×4 runtime + dark/print/axe + admin route-real pass |
 | **AA-RBAC — Custom role inheritance** | **DEFERRED BY OWNER** | **Sol · Max** | Plan/database task riêng khi owner mở lại | Không ảnh hưởng current UI execution | Chưa được phép tạo migration/code |
 
 Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến trúc, pricing và security-critical review; Terra cho các migration route lặp lại có contract đã khóa. Không thay model theo từng file.
@@ -189,7 +189,7 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - **APPROVED:** admin user invitation, security audit read-only, API hardening, batch permission và count projection.
 - **APPROVED:** UI dùng một access-state selector cho canonical UI mapping; backend action matrix vẫn read-only.
 - **APPROVED:** chỉ `Loại danh mục → Giá trị` và `Nhóm quyền → Permission` dùng ListDetail; các trang còn lại full-width Collection.
-- **EXECUTION STARTED:** AA0 → AA1; sau mỗi wave có route representative và owner review artifact trước khi mở wave kế tiếp.
+- **EXECUTION COMPLETED:** AA0 → AA7 đã có code, test, route-real visual evidence và commit theo wave; custom role/group inheritance vẫn để plan riêng.
 
 ## 9. Execution record — AA0/AA1 foundation slice — 2026-07-30
 
@@ -258,3 +258,12 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - Consumer ledger tăng thành `20 file / 25 DataGrid`; browser/page object cũ đã chuyển từ inline switch sang batch editor.
 - Evidence: frontend/backend Release build `0 warning`; frontend `203/203`; backend canonical permission `9/9`; Playwright desktop và mobile pass ở hai lượt isolated riêng; mutation hide/show Report permission và restore `1/1`. Một lượt gộp từng gặp negotiation SignalR tạm thời giữa fixture, desktop rerun độc lập pass. Ảnh desktop, workspace editor, API matrix và mobile đã được kiểm bằng mắt trong `tmp/aa6-ui-evidence/` (ignored).
 - Custom role/group inheritance vẫn `DEFERRED`; AA6 không đổi schema hoặc canonical RBAC.
+
+## 17. Execution record — AA7 security audit & final hardening — 2026-07-30
+
+- Bổ sung `GET /api/Permission/security-audits` và `/filter-options` dưới policy `PERMISSION_MANAGE`: search/action/outcome/date filter, allowlisted sort, server paging và `X-Total-Count` đều chạy trên toàn query. Response typed không chứa password, token hoặc browser/session secret.
+- `/permission?tab=2` dùng full-width `VppCollectionWorkspace`, filter/search/column picker canonical và adaptive read-only detail dialog; không có mutation action. Route được đăng ký trong `RouteCatalog`, header-tab và sidebar; action permission được route/navigation xử lý đúng bằng `PermissionState.HasPermission`.
+- User invitation/membership/permission editor đã được hoàn tất resource VI/EN; admin cell hai dòng dùng chung `vpp-admin-two-line-cell`, CSS permission legacy không còn consumer đã được xóa. Chốt kỳ trở lại canonical `VppOperationWorkspace` mà không đổi behavior.
+- Browser evidence đã kiểm bằng mắt tại `1366×768` và `390×844`: audit desktop, filter popover, detail dialog, mobile và English; data load hoàn tất, không document overflow. Ma trận 28 màn × 4 viewport, representative dark/print/axe, Security Audit `3/3`, User `1/1`, Permission `2/2`, WorkspacePattern và AtlasWave1 đều pass trên Aspire/LocalDB cô lập.
+- Build/test: solution Release `0 warning / 0 error`; frontend `204/204`; backend `445/445`; integration mặc định `14 pass / 6 opt-in skip`; disposable LocalDB `20/20`, `0 skip`, không còn instance `GTASVPP_QA_*`; EF báo không có pending model changes.
+- Wire-contract manifest được cập nhật có chủ đích cho `SecurityAuditResDTO`. Baseline LocalDB cũ hardcode bốn role legacy đã được thay bằng `CanonicalRbac.Personas` hiện hành; không đổi schema/migration. Custom role/group inheritance vẫn `DEFERRED`.

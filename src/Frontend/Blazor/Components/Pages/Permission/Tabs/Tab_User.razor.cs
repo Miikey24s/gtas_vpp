@@ -268,14 +268,14 @@ public partial class Tab_User : IDisposable
     {
         if (!CanInviteUsers) return;
         var result = await DialogService.OpenAsync<Dialog_UserInvitationEditor>(
-            "Thêm người dùng",
+            Loc["AddUser"],
             new Dictionary<string, object?>
             {
                 [nameof(Dialog_UserInvitationEditor.Model)] = new AdminAccountInvitationReqDTO(),
                 [nameof(Dialog_UserInvitationEditor.Groups)] = permissionGroups,
                 [nameof(Dialog_UserInvitationEditor.Departments)] = departments
             },
-            VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard, "Thêm người dùng", closeAriaLabel: Loc["Close"].Value));
+            VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard, Loc["AddUser"], closeAriaLabel: Loc["Close"].Value));
         if (result is not AdminAccountInvitationReqDTO request) return;
 
         isUserLoading = true;
@@ -285,8 +285,8 @@ public partial class Tab_User : IDisposable
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Đã gửi lời mời",
-                Detail = "Tài khoản đã được tạo mà không có mật khẩu; liên kết thiết lập một lần đã được đưa vào email outbox.",
+                Summary = Loc["InvitationSentSummary"],
+                Detail = Loc["InvitationSentDetail"],
                 Duration = 6000
             });
             await ReloadUsersAsync();
@@ -312,8 +312,8 @@ public partial class Tab_User : IDisposable
             PrimaryDepartmentId = user.DepartmentId ?? Guid.Empty,
             ExpectedRowVersion = CanEditMembership(user) ? GetRowVersion(user) : null,
             Reason = CanPrepareActivation(user)
-                ? "Kích hoạt tài khoản lần đầu bởi quản trị viên phân quyền."
-                : "Cập nhật nhóm quyền hoặc phòng ban bởi quản trị viên phân quyền."
+                ? Loc["MembershipInitialActivationReason"]
+                : Loc["MembershipUpdateReason"]
         };
         var result = await DialogService.OpenAsync<Dialog_UserMembershipEditor>(
             CanPrepareActivation(user) ? Loc["ActivateAccount"].Value : Loc["PermissionGroup"].Value,
@@ -391,9 +391,9 @@ public partial class Tab_User : IDisposable
         }
 
         var confirmed = await DialogService.Confirm(
-            $"Gửi liên kết thiết lập/đặt lại mật khẩu tới {user.Email}?",
-            "Gửi liên kết một lần",
-            new ConfirmOptions { OkButtonText = "Gửi", CancelButtonText = Loc["Cancel"].Value });
+            Loc["ConfirmSendPasswordLink", user.Email ?? string.Empty],
+            Loc["SendOneTimeLink"],
+            new ConfirmOptions { OkButtonText = Loc["Send"].Value, CancelButtonText = Loc["Cancel"].Value });
         if (confirmed != true)
         {
             return;
@@ -408,13 +408,13 @@ public partial class Tab_User : IDisposable
                 new AdminPasswordResetLinkReqDTO
                 {
                     AccountId = user.UserId,
-                    Reason = "One-time password setup/reset link requested by permission administrator."
+                    Reason = Loc["PasswordLinkAuditReason"]
                 });
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Đã gửi liên kết",
-                Detail = "Quản trị viên không nhìn thấy mật khẩu; người dùng tự đặt mật khẩu qua liên kết một lần.",
+                Summary = Loc["LinkSentSummary"],
+                Detail = Loc["LinkSentDetail"],
                 Duration = 6000
             });
         }
@@ -578,12 +578,12 @@ public partial class Tab_User : IDisposable
             _ => user.AccountStatus ?? Loc["StatusUnknown"].Value
         };
 
-    private static string GetInvitationStatusLabel(UserAdministrationResDTO user)
+    private string GetInvitationStatusLabel(UserAdministrationResDTO user)
         => !user.EmailConfirmed && user.MustChangePassword
-            ? "Chờ đặt mật khẩu"
+            ? Loc["InvitationPendingPassword"]
             : user.EmailConfirmed && user.MustChangePassword
-                ? "Cần đổi mật khẩu"
-                : user.EmailConfirmed ? "Đã xác nhận" : "Chưa xác nhận";
+                ? Loc["InvitationMustChangePassword"]
+                : user.EmailConfirmed ? Loc["InvitationConfirmed"] : Loc["InvitationUnconfirmed"];
 
     private static BadgeStyle GetInvitationBadgeStyle(UserAdministrationResDTO user)
         => !user.EmailConfirmed && user.MustChangePassword

@@ -40,7 +40,8 @@ namespace gtas_vpp_fe.Components.Layout
         private static readonly (string Permission, string Path)[] PermissionMenuRoutes =
         [
             (Permissions.PermissionUser, "/permission?tab=0"),
-            (Permissions.PermissionComponent, "/permission?tab=1")
+            (Permissions.PermissionComponent, "/permission?tab=1"),
+            (Permissions.PermissionManage, "/permission?tab=2")
         ];
 
         [Inject] public ThemeService ThemeService { get; set; } = default!;
@@ -430,6 +431,11 @@ namespace gtas_vpp_fe.Components.Layout
                             tabs.Add(new(Loc["GroupsAndPermissions"], "/permission?tab=1", tab == "1"));
                         }
 
+                        if (CanViewPermissionItem(Permissions.PermissionManage))
+                        {
+                            tabs.Add(new(Loc["SecurityAudit"], "/permission?tab=2", tab == "2"));
+                        }
+
                         break;
                     case "report":
                         if (CanViewReportMenu)
@@ -489,7 +495,9 @@ namespace gtas_vpp_fe.Components.Layout
             => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission);
 
         private bool CanViewPermissionItem(string permission)
-            => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Permission, permission);
+            => Permissions.IsActionCode(permission)
+                ? PermissionState.HasPermission(permission)
+                : PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Permission, permission);
 
         private bool HasSidebarMenu(string permission)
         {

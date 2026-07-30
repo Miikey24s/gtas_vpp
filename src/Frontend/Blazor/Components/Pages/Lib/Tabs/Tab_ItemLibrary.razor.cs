@@ -32,8 +32,8 @@ public partial class Tab_ItemLibrary : IDisposable
     private bool isLoading;
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText) || !string.IsNullOrWhiteSpace(categoryFilter) || !string.IsNullOrWhiteSpace(uomFilter);
     private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
-    private IReadOnlyList<VppFilterOption<string>> categoryOptions => [new(string.Empty, Loc["AllCategories"]), ..categories.Where(x => !x.IsDeleted).Select(x => new VppFilterOption<string>(x.Id.ToString(), x.VppCategoryName ?? x.VppCategoryCode ?? string.Empty))];
-    private IReadOnlyList<VppFilterOption<string>> uomOptions => [new(string.Empty, Loc["AllUnits"]), ..uoms.Where(x => !x.IsDeleted).Select(x => new VppFilterOption<string>(x.Id.ToString(), x.Value ?? x.Code ?? string.Empty))];
+    private IReadOnlyList<VppFilterOption<string>> categoryOptions => [new(string.Empty, Loc["AllCategories"]), .. categories.Where(x => !x.IsDeleted).Select(x => new VppFilterOption<string>(x.Id.ToString(), x.VppCategoryName ?? x.VppCategoryCode ?? string.Empty))];
+    private IReadOnlyList<VppFilterOption<string>> uomOptions => [new(string.Empty, Loc["AllUnits"]), .. uoms.Where(x => !x.IsDeleted).Select(x => new VppFilterOption<string>(x.Id.ToString(), x.Value ?? x.Code ?? string.Empty))];
 
     protected override async Task OnInitializedAsync()
     {

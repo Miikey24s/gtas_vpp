@@ -17,7 +17,8 @@ namespace gtas_vpp_fe.Components.Pages.Permission
         private static readonly PermissionTabDefinition[] PermissionTabs =
         [
             new(0, Permissions.PermissionUser),
-            new(1, Permissions.PermissionComponent)
+            new(1, Permissions.PermissionComponent),
+            new(2, Permissions.PermissionManage)
         ];
 
         [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
@@ -119,7 +120,9 @@ namespace gtas_vpp_fe.Components.Pages.Permission
 
         private bool CanViewPermissionTab(string permission)
         {
-            return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Permission, permission);
+            return Permissions.IsActionCode(permission)
+                ? PermissionState.HasPermission(permission)
+                : PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Permission, permission);
         }
 
         public void Dispose()

@@ -1,0 +1,43 @@
+@using gtas_vpp_shared.DTOs.Res.Permission
+@inject DialogService DialogService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard"
+                        TestId="security-audit-detail"
+                        Class="vpp-security-audit-detail">
+    <Intro>
+        <div class="vpp-security-audit-detail-heading">
+            <div>
+                <strong>@ActionLabel</strong>
+                <span>@Audit.Action · @Audit.OccurredAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</span>
+            </div>
+            <RadzenBadge Text="@OutcomeLabel" BadgeStyle="@OutcomeBadgeStyle" />
+        </div>
+    </Intro>
+    <ChildContent>
+        <dl class="vpp-security-audit-detail-grid">
+            <div><dt>@Loc["AuditActor"]</dt><dd>@ActorLabel</dd></div>
+            <div><dt>@Loc["AuditTarget"]</dt><dd>@TargetLabel</dd></div>
+            <div><dt>@Loc["AuditResource"]</dt><dd>@ResourceLabel</dd></div>
+            <div><dt>@Loc["AuditCorrelationId"]</dt><dd>@(Audit.CorrelationId ?? "—")</dd></div>
+            <div class="is-wide"><dt>@Loc["AuditSummary"]</dt><dd>@(Audit.Summary ?? "—")</dd></div>
+            <div class="is-wide"><dt>@Loc["Reason"]</dt><dd>@(Audit.Reason ?? "—")</dd></div>
+        </dl>
+    </ChildContent>
+    <Footer>
+        <div class="vpp-adaptive-dialog-actions">
+            <RadzenButton Text="@Loc["Close"]" ButtonStyle="ButtonStyle.Light" Click="@CloseAsync" />
+        </div>
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter, EditorRequired] public SecurityAuditResDTO Audit { get; set; } = new();
+    [Parameter, EditorRequired] public string ActionLabel { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string OutcomeLabel { get; set; } = string.Empty;
+    [Parameter] public BadgeStyle OutcomeBadgeStyle { get; set; } = BadgeStyle.Light;
+    [Parameter] public string ActorLabel { get; set; } = "—";
+    [Parameter] public string TargetLabel { get; set; } = "—";
+    [Parameter] public string ResourceLabel { get; set; } = "—";
+
+    private Task CloseAsync() => DialogService.TryCloseAsync(null);
+}

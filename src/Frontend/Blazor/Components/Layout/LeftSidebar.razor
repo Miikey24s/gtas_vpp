@@ -158,6 +158,10 @@
                 {
                     <RadzenPanelMenuItem Text="@Loc["GroupsAndPermissions"]" Icon="@VppIcons.Rule" class="ppjsidebarmenu submenu" Path="/permission?tab=1" title="@Loc["GroupsAndPermissions"]" />
                 }
+                @if (CanViewPermissionItem(Permissions.PermissionManage))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["SecurityAudit"]" Icon="@VppIcons.History" class="ppjsidebarmenu submenu" Path="/permission?tab=2" title="@Loc["SecurityAudit"]" />
+                }
             </RadzenPanelMenuItem>
         }
         </RadzenPanelMenu>

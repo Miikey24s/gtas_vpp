@@ -8,22 +8,22 @@
     <ChildContent>
         <RadzenStack Gap="1rem">
             <RadzenRow>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Tên đăng nhập" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Username" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["Username"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Username" Style="width:100%" /></RadzenFormField></RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Email" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Email" Style="width:100%" /></RadzenFormField></RadzenColumn>
             </RadzenRow>
             <RadzenRow>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Họ và tên" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.FullName" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Mã nhân viên" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.EmployeeCode" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["FullNameLong"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.FullName" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["EmployeeCode"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.EmployeeCode" Style="width:100%" /></RadzenFormField></RadzenColumn>
             </RadzenRow>
             <RadzenRow>
                 <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PermissionGroup"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Groups" TextProperty="GroupName" ValueProperty="Id" @bind-Value="Model.GroupId" AllowFiltering="true" Style="width:100%" /></RadzenFormField></RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["Department"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Departments" TextProperty="Name" ValueProperty="Id" @bind-Value="Model.PrimaryDepartmentId" AllowFiltering="true" Style="width:100%" /></RadzenFormField></RadzenColumn>
             </RadzenRow>
-            <RadzenFormField Text="Lý do" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Reason" Rows="3" Style="width:100%" /></RadzenFormField>
-            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" ShowIcon="true">Quản trị viên không tạo hoặc nhìn thấy mật khẩu. Người dùng sẽ nhận liên kết một lần để tự đặt mật khẩu.</RadzenAlert>
+            <RadzenFormField Text="@Loc["Reason"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Reason" Rows="3" Style="width:100%" /></RadzenFormField>
+            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" ShowIcon="true">@Loc["UserInvitationPasswordlessHint"]</RadzenAlert>
         </RadzenStack>
     </ChildContent>
-    <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@CancelAsync" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="Gửi lời mời" Icon="mail" Click="@SaveAsync" ButtonStyle="ButtonStyle.Primary" /></div></Footer>
+    <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@CancelAsync" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="@Loc["SendInvitation"]" Icon="mail" Click="@SaveAsync" ButtonStyle="ButtonStyle.Primary" /></div></Footer>
 </VppAdaptiveDialogShell>
 
 @code {
@@ -38,7 +38,7 @@
             || string.IsNullOrWhiteSpace(Model.FullName) || Model.GroupId == Guid.Empty
             || Model.PrimaryDepartmentId == Guid.Empty)
         {
-            ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], "Vui lòng nhập đủ thông tin bắt buộc.", 4000, false);
+            ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["RequiredFieldsValidation"], 4000, false);
             return;
         }
 

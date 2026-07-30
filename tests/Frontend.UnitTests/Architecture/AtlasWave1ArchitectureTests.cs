@@ -42,12 +42,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("<VppCollectionWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppListDetailWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Component_RecordInspector", page, StringComparison.Ordinal);
-        Assert.Contains("Thêm người dùng", page, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"AddUser\"]", page, StringComparison.Ordinal);
         Assert.Contains("Config.ApiAccountAdminInviteEndpoint", code, StringComparison.Ordinal);
         Assert.Contains("Config.ApiAccountAdminSendPasswordResetLinkEndpoint", code, StringComparison.Ordinal);
         Assert.DoesNotContain("CreateTemporaryPassword", code, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", invitation, StringComparison.Ordinal);
-        Assert.Contains("không tạo hoặc nhìn thấy mật khẩu", invitation, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"UserInvitationPasswordlessHint\"]", invitation, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", membership, StringComparison.Ordinal);
     }
 
@@ -218,6 +218,32 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("group.GroupName switch", code, StringComparison.Ordinal);
         Assert.DoesNotContain("Permission updated", code, StringComparison.Ordinal);
         Assert.DoesNotContain("Lưu ma trận quyền", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void M6_SecurityAudit_IsTypedReadOnlyAndUsesAdaptiveDetail()
+    {
+        var page = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_SecurityAudit.razor");
+        var code = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_SecurityAudit.razor.cs");
+        var dialog = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_SecurityAuditDetail.razor");
+        var sidebar = ReadFrontendSource("Components/Layout/LeftSidebar.razor");
+        var sidebarCode = ReadFrontendSource("Components/Layout/LeftSidebar.razor.cs");
+        var routeCatalog = ReadFrontendSource("Helpers/RouteCatalog.cs");
+
+        Assert.Contains("security-audit-data-surface", page, StringComparison.Ordinal);
+        Assert.Contains("VppDataSourceMode.ServerPaging", page, StringComparison.Ordinal);
+        Assert.Contains("SecurityAuditResDTO", page, StringComparison.Ordinal);
+        Assert.Contains("/api/Permission/security-audits", code, StringComparison.Ordinal);
+        Assert.Contains("Dialog_SecurityAuditDetail", code, StringComparison.Ordinal);
+        Assert.Contains("VppAdaptiveDialogShell", dialog, StringComparison.Ordinal);
+        Assert.Contains("/permission?tab=2", sidebar, StringComparison.Ordinal);
+        Assert.Contains("Permissions.PermissionManage", sidebarCode, StringComparison.Ordinal);
+        Assert.Contains("permission.security-audit", routeCatalog, StringComparison.Ordinal);
+        Assert.DoesNotContain("PostFromApi", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("PatchFromApi", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("DeleteFromApi", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("Password", page, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Token", page, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

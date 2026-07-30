@@ -14,13 +14,14 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
         await Page.SetViewportSizeAsync(1920, 1080);
 
         await GotoMainRouteAsync("library?tab=2");
-        await Page.Locator(".vpp-atlas-admin-workspace").WaitForAsync();
-        await Page.Locator(".vpp-record-inspector").WaitForAsync();
-        var visibleItemColumns = await Page.Locator(".library-share-grid thead th:visible").CountAsync();
-        visibleItemColumns.Should().BeLessThanOrEqualTo(8, "technical and translation fields belong in the inspector by default");
+        await Page.Locator("[data-testid='item-admin-data-surface']").WaitForAsync();
+        (await Page.Locator(".vpp-record-inspector").CountAsync()).Should().Be(0,
+            "item administration now uses the full-width collection pattern and adaptive dialogs");
+        var visibleItemColumns = await Page.Locator("[data-testid='item-admin-data-surface'] .vpp-admin-grid thead th:visible").CountAsync();
+        visibleItemColumns.Should().BeLessThanOrEqualTo(8, "the default table should stay scannable while extra fields remain in the column picker or editor");
 
         await GotoMainRouteAsync("library?tab=6&pricingTab=price-lists");
-        await Page.Locator(".vpp-atlas-admin-workspace").WaitForAsync();
+        await Page.Locator("[data-testid='price-lists-data-surface']").WaitForAsync();
         // Positive signal first: the price-list grid finished loading with rows or the empty state.
         await Page.WaitForFunctionAsync("""
             () => {

@@ -117,7 +117,7 @@
     private Guid initializedGroupId;
     private Guid selectedPageId;
     private List<PermissionUiPageEditModel> editorPages = [];
-    private string Reason { get; set; } = "Cập nhật quyền giao diện bằng trình chỉnh sửa theo lô.";
+    private string Reason { get; set; } = string.Empty;
     private PermissionUiPageEditModel? SelectedPage => editorPages.FirstOrDefault(page => page.PageId == selectedPageId);
     private int ChangedCount => editorPages.Sum(page => page.Components.Count(component => component.IsDirty));
     private string GroupDisplayName => string.IsNullOrWhiteSpace(Group.GroupName) ? Group.GroupCode ?? "—" : Group.GroupName;
@@ -133,6 +133,7 @@
 
     protected override void OnParametersSet()
     {
+        if (string.IsNullOrWhiteSpace(Reason)) Reason = Loc["PermissionBatchDefaultReason"];
         if (initializedGroupId == Group.Id) return;
         initializedGroupId = Group.Id;
         editorPages = Pages.Select(page => new PermissionUiPageEditModel
