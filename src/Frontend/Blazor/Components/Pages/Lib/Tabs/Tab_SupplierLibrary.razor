@@ -8,6 +8,14 @@
                          AriaLabel="@Loc["Suppliers"]"
                          TestId="supplier-admin-data-surface"
                          Class="vpp-admin-data-surface vpp-admin-collection-surface">
+        <Header>
+            <VppCollectionHeader Title="@Loc["Suppliers"]"
+                                 Summary="@Loc["RecordsCount", totalCount]"
+                                 AddText="@Loc["AddSupplier"]"
+                                 CompactAddText="@Loc["Add"]"
+                                 Disabled="@(!CanModify)"
+                                 AddClicked="@OpenCreateAsync" />
+        </Header>
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["Suppliers"]" Class="vpp-admin-grid-toolbar">
                 <VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchSuppliers"]" AriaLabel="@Loc["LibrarySearchSuppliers"]" />
@@ -19,6 +27,7 @@
             <RadzenDataGrid @ref="grid" TItem="SupplierResDTO" data-vpp-grid-region="true" aria-label="@Loc["Suppliers"]"
                             Data="@rows" Count="@totalCount" LoadData="@LoadDataAsync" LoadColumnFilterData="@LoadColumnFilterDataAsync"
                             IsLoading="@isLoading" AllowFiltering="true" AllowSorting="true" AllowMultiColumnSorting="false"
+                            AllowAlternatingRows="false"
                             ShowMultiColumnSortingIndex="false" AllowPaging="true" PagerAlwaysVisible="true" GotoFirstPageOnSort="true"
                             PageSize="@VppPagingProfiles.Collection.DefaultPageSize" PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
                             AllowColumnResize="true" AllowColumnPicking="false" AllowPickAllColumns="true" ColumnsPickerAllowFiltering="true"
@@ -47,7 +56,6 @@
                         <Template Context="row"><RadzenBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" BadgeStyle="@(row.IsDeleted ? BadgeStyle.Light : BadgeStyle.Success)" /></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="SupplierResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
-                        <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddSupplier"]" Disabled="@(!CanModify)" AddClicked="@OpenCreateAsync" /></HeaderTemplate>
                         <Template Context="row"><div class="vpp-admin-actions"><RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModify)" title="@Loc["Edit"]" Click="@(() => OpenEditAsync(row))" /><RadzenButton Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")" Size="ButtonSize.Small" ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" Disabled="@(!CanModify)" title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Click="@(() => ToggleDeletedAsync(row, !row.IsDeleted))" /></div></Template>
                     </RadzenDataGridColumn>
                 </Columns>

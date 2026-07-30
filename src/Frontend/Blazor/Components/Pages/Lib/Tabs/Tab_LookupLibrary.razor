@@ -22,6 +22,14 @@
                                  AriaLabel="@Loc["ClassDefinitions"]"
                                  TestId="lookup-categories-data-surface"
                                  Class="vpp-admin-data-surface">
+            <Header>
+                <VppCollectionHeader Title="@Loc["ClassDefinitions"]"
+                                     Summary="@Loc["RecordsCount", categoryCount]"
+                                     AddText="@Loc["AddClass"]"
+                                     CompactAddText="@Loc["Add"]"
+                                     Disabled="@(!CanModifyLookup)"
+                                     AddClicked="@OpenAddCategoryAsync" />
+            </Header>
             <Toolbar>
                 <VppDataToolbar AriaLabel="@Loc["ClassDefinitions"]" Class="vpp-admin-grid-toolbar">
                     <VppColumnPicker TItem="LookupCategoryResDTO" GridAccessor="@(() => categoryGrid)" />
@@ -44,9 +52,11 @@
                             FilterMode="FilterMode.CheckBoxList"
                             FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             AllowSorting="true"
+                            AllowAlternatingRows="false"
                             AllowMultiColumnSorting="false"
                             ShowMultiColumnSortingIndex="false"
                             AllowPaging="true"
+                            PagerAlwaysVisible="true"
                             GotoFirstPageOnSort="true"
                             PageSize="@VppPagingProfiles.SplitList.DefaultPageSize"
                             PageSizeOptions="@VppPagingProfiles.SplitList.PageSizeOptions"
@@ -56,16 +66,16 @@
                             RowSelect="@OnCategorySelected"
                             RowRender="@OnCategoryRowRender"
                             GridLines="DataGridGridLines.Horizontal"
-                            class="@($"auto-fit-grid vpp-admin-grid vpp-class-master-grid vpp-data-grid vpp-data-density-compact {(categoryCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                            class="auto-fit-grid vpp-admin-grid vpp-class-master-grid vpp-data-grid vpp-data-density-compact"
                             ColumnWidth="150px"
-                            Style="--vpp-admin-grid-min-width: 440px; --vpp-admin-actions-width: 132px;">
+                            Style="--vpp-admin-grid-min-width: 388px; --vpp-admin-actions-width: 96px;">
                 <Columns>
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="#" Width="42px" MinWidth="42px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
                             @(currentCategorySkip + lookupCategories.IndexOf(data) + 1)
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Name" Title="@Loc["LookupCategoryName"]" Width="190px">
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Name" Title="@Loc["LookupCategoryName"]" Width="160px">
                         <Template Context="data">
                             <div class="vpp-class-master-cell">
                                 <div class="vpp-class-master-primary">
@@ -78,7 +88,7 @@
                             </div>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="96px" MinWidth="96px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="data">
                             <RadzenBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" BadgeStyle="@(data.IsDeleted ? BadgeStyle.Light : BadgeStyle.Success)" />
                         </Template>
@@ -91,8 +101,7 @@
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="132px" MinWidth="132px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
-                        <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddClass"]" Disabled="@(!CanModifyLookup)" AddClicked="@OpenAddCategoryAsync" /></HeaderTemplate>
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="96px" MinWidth="96px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                         <Template Context="data">
                             <div class="vpp-admin-actions">
                                 <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditCategoryAsync(data))" @onclick:stopPropagation="true" />
@@ -112,6 +121,14 @@
                                  AriaLabel="@Loc["Value"]"
                                  TestId="lookup-values-data-surface"
                                  Class="vpp-admin-data-surface">
+            <Header>
+                <VppCollectionHeader Title="@Loc["Value"]"
+                                     Summary="@Loc["RecordsCount", valueCount]"
+                                     AddText="@Loc["AddLookupValue"]"
+                                     CompactAddText="@Loc["Add"]"
+                                     Disabled="@(selectedLookupCategory is null || !CanModifyLookup)"
+                                     AddClicked="@OpenAddValueAsync" />
+            </Header>
             <Toolbar>
                 <VppDataToolbar AriaLabel="@Loc["Value"]" Class="vpp-admin-grid-toolbar">
                     <VppColumnPicker TItem="LookupValueResDTO" GridAccessor="@(() => valueGrid)" />
@@ -134,9 +151,11 @@
                             FilterMode="FilterMode.CheckBoxList"
                             FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             AllowSorting="true"
+                            AllowAlternatingRows="false"
                             AllowMultiColumnSorting="false"
                             ShowMultiColumnSortingIndex="false"
                             AllowPaging="true"
+                            PagerAlwaysVisible="true"
                             GotoFirstPageOnSort="true"
                             PageSize="@VppPagingProfiles.SplitList.DefaultPageSize"
                             PageSizeOptions="@VppPagingProfiles.SplitList.PageSizeOptions"
@@ -144,9 +163,9 @@
                             EmptyText="@(selectedLookupCategory == null ? Loc["LookupSelectCategoryPrompt"].Value : Loc["LookupNoValues"].Value)"
                             RowRender="@OnValueRowRender"
                             GridLines="DataGridGridLines.Horizontal"
-                            class="@($"auto-fit-grid vpp-admin-grid vpp-class-detail-grid vpp-data-grid vpp-data-density-compact {(valueCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
+                            class="auto-fit-grid vpp-admin-grid vpp-class-detail-grid vpp-data-grid vpp-data-density-compact"
                             ColumnWidth="150px"
-                            Style="--vpp-admin-grid-min-width: 800px; --vpp-admin-actions-width: 132px;">
+                            Style="--vpp-admin-grid-min-width: 760px; --vpp-admin-actions-width: 96px;">
                 <Columns>
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
@@ -171,8 +190,7 @@
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="132px" MinWidth="132px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
-                        <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddLookupValue"]" Disabled="@(selectedLookupCategory is null || !CanModifyLookup)" AddClicked="@OpenAddValueAsync" /></HeaderTemplate>
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="96px" MinWidth="96px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                         <Template Context="data">
                             <div class="vpp-admin-actions">
                                 <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditValueAsync(data))" @onclick:stopPropagation="true" />

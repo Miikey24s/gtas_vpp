@@ -1045,7 +1045,8 @@ public sealed class SharedUiFoundationTests
         var users = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_User.razor"));
         var permissions = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_PagePermission.razor"));
         var securityAudit = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_SecurityAudit.razor"));
-        var actionColumnHeader = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppActionColumnHeader.razor"));
+        var collectionHeader = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppCollectionHeader.razor"));
+        var dataSurfaceFrame = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppDataSurfaceFrame.razor"));
         var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
 
         foreach (var source in new[] { categories, items, suppliers, departments, lookup, price, priceList, users, permissions, securityAudit })
@@ -1058,10 +1059,12 @@ public sealed class SharedUiFoundationTests
 
         Assert.Equal(2, lookup.Split("<VppDataSurfaceFrame", StringSplitOptions.None).Length - 1);
         Assert.Contains("Property=\"IsDeleted\"", lookup, StringComparison.Ordinal);
-        Assert.Equal(2, lookup.Split("<VppActionColumnHeader", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, lookup.Split("<VppCollectionHeader", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("vpp-admin-is-deleted-cell", lookup, StringComparison.Ordinal);
-        Assert.Contains("vpp-action-column-header", actionColumnHeader, StringComparison.Ordinal);
-        Assert.Contains("vpp-library-primary-action vpp-action-column-add", actionColumnHeader, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-collection-header", collectionHeader, StringComparison.Ordinal);
+        Assert.Contains("vpp-collection-header-add", collectionHeader, StringComparison.Ordinal);
+        Assert.Contains("RenderFragment? Header", dataSurfaceFrame, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppActionColumnHeader.razor")));
 
         foreach (var source in new[] { categories, items, suppliers, departments, lookup, price, priceList, users, permissions, securityAudit })
         {
@@ -1078,7 +1081,13 @@ public sealed class SharedUiFoundationTests
 
         foreach (var createConsumer in new[] { categories, items, suppliers, departments, lookup, priceList, users })
         {
-            Assert.Contains("<VppActionColumnHeader", createConsumer, StringComparison.Ordinal);
+            Assert.Contains("<VppCollectionHeader", createConsumer, StringComparison.Ordinal);
+            Assert.DoesNotContain("<VppActionColumnHeader", createConsumer, StringComparison.Ordinal);
+        }
+
+        foreach (var libraryGrid in new[] { categories, items, suppliers, departments, lookup, price, priceList })
+        {
+            Assert.Contains("AllowAlternatingRows=\"false\"", libraryGrid, StringComparison.Ordinal);
         }
 
         Assert.Contains("OpenPermissionEditorForGroupAsync", permissions, StringComparison.Ordinal);

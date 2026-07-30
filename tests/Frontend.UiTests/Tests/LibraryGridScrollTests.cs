@@ -53,7 +53,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                     workspace.getBoundingClientRect().left - panel.getBoundingClientRect().left,
                     panel.getBoundingClientRect().right - workspace.getBoundingClientRect().right,
                     toolbar.getBoundingClientRect().height,
-                    create.closest('th.rz-col-actions') ? 1 : 0,
+                    create.closest('[data-vpp-collection-header="true"]') ? 1 : 0,
                     body.scrollHeight - body.clientHeight,
                     element.getBoundingClientRect().bottom,
                     pager.getBoundingClientRect().bottom,
@@ -65,7 +65,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         geometry[0].Should().BeApproximately(0, 0.5);
         geometry[1].Should().BeApproximately(0, 0.5);
         geometry[2].Should().BeApproximately(42, 2);
-        geometry[3].Should().Be(1, "the create action belongs to the Actions column header");
+        geometry[3].Should().Be(1, "the create action belongs to the collection header");
         geometry[4].Should().BeLessThanOrEqualTo(1, "the route uses a bounded grid viewport instead of document scrolling");
         geometry[5].Should().BeLessThanOrEqualTo(geometry[7] + 1);
         geometry[6].Should().BeLessThanOrEqualTo(geometry[5] + 1);
@@ -76,6 +76,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         ((await statusBadges.CountAsync()) > 0 || (await emptyState.CountAsync()) > 0).Should().BeTrue(
             "the isolated fixture may be empty, but the typed grid must settle to rows or its empty state");
         (await surface.Locator(".vpp-data-toolbar .vpp-library-primary-action").CountAsync()).Should().Be(0);
+        (await surface.Locator("th.rz-col-actions .vpp-library-primary-action").CountAsync()).Should().Be(0);
     }
 
     [Fact]
@@ -316,6 +317,9 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await detail.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await master.Locator(".rz-data-grid-data").WaitForAsync();
         await master.Locator(".vpp-class-master-cell").First.WaitForAsync();
+        await detail.Locator("tbody > tr").First.WaitForAsync();
+        await master.Locator(".rz-paginator, .rz-pager").WaitForAsync();
+        await detail.Locator(".rz-paginator, .rz-pager").WaitForAsync();
 
         var layout = await Page.EvaluateAsync<double[]>("""
             () => {
@@ -364,19 +368,20 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             element => {
                 const row = element.querySelector('tbody > tr');
                 const nameCell = row?.querySelector('.vpp-class-master-cell');
-                const disabledHeader = element.querySelector('thead th.rz-col-isdeleted');
-                const disabledCell = row?.querySelector('td.rz-col-isdeleted');
-                const disabledSwitch = disabledCell?.querySelector('.isDeleteSwitch');
-                if (!row || !nameCell || !disabledHeader || !disabledCell || !disabledSwitch) {
+                const statusBadge = row?.querySelector('.rz-badge');
+                const statusCell = statusBadge?.closest('td');
+                const statusIndex = statusCell ? [...row.children].indexOf(statusCell) : -1;
+                const statusHeader = statusIndex >= 0 ? element.querySelectorAll('thead th')[statusIndex] : null;
+                if (!row || !nameCell || !statusHeader || !statusCell || !statusBadge) {
                     throw new Error('Lookup category columns do not match their semantic cells.');
                 }
 
-                const headerBox = disabledHeader.getBoundingClientRect();
-                const cellBox = disabledCell.getBoundingClientRect();
+                const headerBox = statusHeader.getBoundingClientRect();
+                const cellBox = statusCell.getBoundingClientRect();
                 return [
-                    nameCell.querySelectorAll('.isDeleteSwitch').length,
-                    disabledCell.querySelectorAll('.isDeleteSwitch').length,
-                    disabledCell.textContent?.trim().length ?? -1,
+                    nameCell.querySelectorAll('.rz-badge').length,
+                    statusCell.querySelectorAll('.rz-badge').length,
+                    statusCell.textContent?.trim().length ?? -1,
                     Math.abs(headerBox.left - cellBox.left),
                     Math.abs(headerBox.width - cellBox.width)
                 ];
@@ -384,9 +389,45 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             """);
         masterSemantics[0].Should().Be(0);
         masterSemantics[1].Should().Be(1);
-        masterSemantics[2].Should().Be(0);
+        masterSemantics[2].Should().BeGreaterThan(0);
         masterSemantics[3].Should().BeLessThanOrEqualTo(1);
         masterSemantics[4].Should().BeLessThanOrEqualTo(1);
+
+        var surfaceGeometry = await Page.EvaluateAsync<double[]>("""
+            () => {
+                const body = document.querySelector('.vpp-layout-body');
+                const masterSurface = document.querySelector('[data-testid="lookup-categories-data-surface"]');
+                const detailSurface = document.querySelector('[data-testid="lookup-values-data-surface"]');
+                const detailData = detailSurface?.querySelector('.rz-data-grid-data');
+                const masterPager = masterSurface?.querySelector('.rz-paginator, .rz-pager');
+                const detailPager = detailSurface?.querySelector('.rz-paginator, .rz-pager');
+                const detailRows = detailSurface?.querySelectorAll('tbody > tr');
+                const firstCell = detailRows?.[0]?.querySelector('td');
+                const secondCell = detailRows?.[1]?.querySelector('td');
+                if (!body || !masterSurface || !detailSurface || !detailData || !masterPager || !detailPager || !firstCell || !secondCell) {
+                    throw new Error('Lookup surfaces did not render their bounded body and footer.');
+                }
+
+                return [
+                    body.scrollHeight - body.clientHeight,
+                    Math.abs(masterSurface.getBoundingClientRect().top - detailSurface.getBoundingClientRect().top),
+                    Math.abs(masterSurface.getBoundingClientRect().bottom - detailSurface.getBoundingClientRect().bottom),
+                    masterSurface.getBoundingClientRect().bottom - masterPager.getBoundingClientRect().bottom,
+                    detailSurface.getBoundingClientRect().bottom - detailPager.getBoundingClientRect().bottom,
+                    detailData.scrollHeight - detailData.clientHeight,
+                    getComputedStyle(detailData).overflowY === 'auto' || getComputedStyle(detailData).overflowY === 'scroll' ? 1 : 0,
+                    getComputedStyle(firstCell).backgroundColor === getComputedStyle(secondCell).backgroundColor ? 1 : 0
+                ];
+            }
+            """);
+        surfaceGeometry[0].Should().BeLessThanOrEqualTo(1, "Lookup keeps scrolling inside each data surface");
+        surfaceGeometry[1].Should().BeLessThanOrEqualTo(1);
+        surfaceGeometry[2].Should().BeLessThanOrEqualTo(1);
+        surfaceGeometry[3].Should().BeApproximately(0, 1);
+        surfaceGeometry[4].Should().BeApproximately(0, 1);
+        surfaceGeometry[5].Should().BeGreaterThan(1, "the value grid owns a real vertical scroll region");
+        surfaceGeometry[6].Should().Be(1);
+        surfaceGeometry[7].Should().Be(1, "admin rows use one neutral background instead of zebra striping");
 
         var layoutEvidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(layoutEvidenceDirectory))

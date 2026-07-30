@@ -333,6 +333,7 @@
   <data name="FailedToSaveOrderFormat" xml:space="preserve"><value>Failed to save order: {0}</value></data>
   <data name="InvalidProductOrQuantity" xml:space="preserve"><value>Invalid item or quantity.</value></data>
   <data name="ItemsCountFormat" xml:space="preserve"><value>{0} item(s)</value></data>
+  <data name="RecordsCount" xml:space="preserve"><value>{0} record(s)</value></data>
   <data name="LastSavedAtFormat" xml:space="preserve"><value>Last saved at {0}</value></data>
   <data name="Lines" xml:space="preserve"><value>Lines</value></data>
   <data name="LiveUpdate" xml:space="preserve"><value>Live update</value></data>

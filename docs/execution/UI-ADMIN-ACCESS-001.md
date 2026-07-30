@@ -10,7 +10,7 @@
 
 - Dùng **full-width Collection grid** cho bảng phẳng để dành chiều ngang cho nhiều cột.
 - Chỉ dùng **ListDetail** khi hai tập dữ liệu có quan hệ cha–con cần quan sát đồng thời.
-- Mọi thao tác CRUD nằm trong cột **Thao tác**: nút **Thêm** ở header cột; **Xem/Sửa/Xóa hoặc Khôi phục** ở từng dòng. Toolbar không chứa CRUD. Thêm/Sửa mở adaptive editor dialog theo độ phức tạp; không còn inline row edit hoặc dropdown sửa trực tiếp trong cell.
+- Phân biệt đúng cấp độ thao tác: **Thêm** là action của toàn collection nên nằm ở collection header; **Xem/Sửa/Xóa hoặc Khôi phục** là action của một bản ghi nên nằm trong cột **Thao tác**. Toolbar chỉ chứa query/display controls. Thêm/Sửa mở adaptive editor dialog theo độ phức tạp; không còn inline row edit hoặc dropdown sửa trực tiếp trong cell.
 - Bảng chỉ hiện cột nghiệp vụ quan trọng; audit, localization và thông tin ít dùng nằm trong **Cột hiển thị** hoặc modal chi tiết.
 - Filter/sort/paging chạy trên **toàn bộ dữ liệu server**, không chỉ trang hiện tại.
 - Không tạo `UniversalAdminGrid<T>` hoặc form bằng reflection. Tái dùng frame/composite; mỗi domain có typed columns, typed editor và validation riêng.
@@ -20,8 +20,9 @@
 ```text
 Header-tab
 └─ Main content
+   ├─ Collection header: Tên + tổng bản ghi | + Thêm
    ├─ Toolbar: Tìm kiếm | Bộ lọc... | Xóa lọc | Cột
-   ├─ Header cột: ... | Thao tác [+]
+   ├─ Header cột: ... | Thao tác
    ├─ Dòng dữ liệu 1..n
    └─ Footer: tổng kết | pager | page-size
 
@@ -140,7 +141,7 @@ Nếu email local bị tắt, account vẫn ở `InvitationPending`; chỉ DEV/n
 ## 5. Contract bảng và nhiều cột
 
 - Toolbar desktop chỉ chứa điều khiển truy vấn/hiển thị: `Tìm kiếm → filter nghiệp vụ → Xóa bộ lọc → Cột`; không chứa CRUD.
-- Header cột **Thao tác** chứa nút **Thêm** khi route cho phép tạo mới. Cell cùng cột chứa toàn bộ **Xem/Sửa/Xóa-Khôi phục** và action vòng đời liên quan; không đặt action button trong cột dữ liệu khác.
+- Collection header chứa identity/tổng bản ghi và nút **Thêm** khi route cho phép tạo mới. Cell cột **Thao tác** chứa toàn bộ **Xem/Sửa/Xóa-Khôi phục** và action vòng đời liên quan; header cột giữ text thuần, không đặt action button trong cột dữ liệu khác.
 - Tất cả filter/sort/distinct query chạy server-side trên toàn DB; paging không giới hạn dữ liệu bộ lọc vào page hiện tại.
 - Các grid lớn (`Mặt hàng`, `Giá mặt hàng`) mặc định 100 dòng; options `50 / 100 / 200`. Grid quản trị còn lại mặc định 50; options `25 / 50 / 100`.
 - Footer luôn có top border, tổng số bản ghi, pager và page-size; không để row cuối đè lên footer.
@@ -308,6 +309,12 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 ## 20. CRUD placement và action-column hardening — 2026-07-30
 
 - Toolbar của toàn bộ Library/Permission chỉ còn tìm kiếm, bộ lọc, xóa lọc và chọn cột; không còn nút CRUD.
-- Route có quyền tạo mới dùng `VppActionColumnHeader`: nút **Thêm** nằm trong header cột **Thao tác**; **Xem/Sửa/Xóa-Khôi phục** và action vòng đời nằm trong cell cùng cột.
+- Owner visual review đã thay quyết định ban đầu: `VppActionColumnHeader` bị xóa. Route có quyền tạo mới dùng `VppCollectionHeader`, đặt **Thêm** ở collection header; **Xem/Sửa/Xóa-Khôi phục** và action vòng đời vẫn nằm trong cell cột **Thao tác**.
 - Cột **Thao tác** không tham gia sort/filter/reorder/column picker và được ghim bên phải để vẫn nhìn thấy ở tablet hoặc bảng nhiều cột. Trạng thái active/inactive là badge chỉ đọc, mutation chuyển về action rõ nghĩa.
-- Evidence: frontend Release build `0 warning / 0 error`; frontend unit/architecture `203/203`; isolated Playwright admin matrix + Category geometry `2/2` ở desktop/tablet. Ảnh route thật đã được kiểm bằng mắt, artifact thô nằm trong `tmp/admin-crud-action-evidence-frozen/` và không commit.
+- Evidence hiện hành: frontend Release build `0 warning / 0 error`; frontend unit/architecture `203/203`; isolated admin route matrix, Lookup geometry, Category/Lookup editor đều pass. Ảnh desktop/tablet đã được kiểm bằng mắt; artifact thô nằm trong `tmp/lookup-header-scroll-evidence-final/` và không commit.
+
+## 21. Lookup bounded surface correction — 2026-07-30
+
+- Hai pane Lookup có collection header riêng, footer/pager luôn hiện kể cả một trang; tiêu đề cột **Thao tác** không còn chứa nút mutation.
+- Splitter desktop dùng đủ chiều cao workspace; grid value giữ footer ở đáy và scroll dọc trong `.rz-data-grid-data`, không kéo dài document hoặc cắt hàng cuối.
+- Library grids tắt `AllowAlternatingRows`; row dùng một nền neutral, chỉ hover/selected/status tạo khác biệt thị giác. Pane master thu gọn width sau khi bỏ nút Thêm để không phát sinh horizontal overflow ở `1366×768`.

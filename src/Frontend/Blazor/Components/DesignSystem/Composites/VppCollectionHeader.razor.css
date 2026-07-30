@@ -1,0 +1,89 @@
+.vpp-collection-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    min-width: 0;
+    min-height: var(--vpp-data-footer-height);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-collection-header-copy {
+    display: flex;
+    align-items: baseline;
+    gap: var(--vpp-space-2);
+    min-width: 0;
+}
+
+.vpp-collection-header-copy strong {
+    overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-collection-header-copy span {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-xs);
+    white-space: nowrap;
+}
+
+.vpp-collection-header-add {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-1);
+    min-height: var(--vpp-control-height-compact);
+    padding: 0 var(--vpp-space-3);
+    border: var(--vpp-border-width) solid var(--vpp-action-primary);
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-action-primary);
+    color: var(--vpp-text-on-surface);
+    font: inherit;
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    cursor: pointer;
+    transition: background-color var(--vpp-transition-fast),
+                border-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
+}
+
+.vpp-collection-header-add:hover:not(:disabled) {
+    border-color: var(--vpp-action-primary-hover);
+    background: var(--vpp-action-primary-hover);
+}
+
+.vpp-collection-header-add:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--vpp-primary-500) 20%, transparent);
+}
+
+.vpp-collection-header-add:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.vpp-collection-header-add-compact {
+    display: none;
+}
+
+@media (max-width: 520px) {
+    .vpp-collection-header-add {
+        padding-inline: var(--vpp-space-2);
+    }
+
+    .vpp-collection-header-add-full {
+        display: none;
+    }
+
+    .vpp-collection-header-add-compact {
+        display: inline;
+    }
+}

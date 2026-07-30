@@ -19,6 +19,14 @@
                              AriaLabel="@Loc["UserManagementTitle"]"
                              TestId="permission-users-data-surface"
                              Class="vpp-admin-data-surface">
+            <Header>
+                <VppCollectionHeader Title="@Loc["UserManagementTitle"]"
+                                     Summary="@Loc["RecordsCount", userCount]"
+                                     AddText="@Loc["AddUser"]"
+                                     CompactAddText="@Loc["Add"]"
+                                     Disabled="@(!CanInviteUsers)"
+                                     AddClicked="@OpenInvitationAsync" />
+            </Header>
             <Toolbar>
                 <VppDataToolbar AriaLabel="@Loc["UserFilters"]" Class="vpp-admin-grid-toolbar vpp-permission-user-filters">
                     <VppFilterSearch Value="@SearchText" Input="@SearchTextOnInput" Placeholder="@Loc["UserSearchPlaceholder"]" AriaLabel="@Loc["UserSearchPlaceholder"]" />
@@ -76,7 +84,6 @@
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["InvitationStatus"]" Width="155px" Filterable="false" Sortable="false"><Template Context="user"><RadzenBadge Text="@GetInvitationStatusLabel(user)" BadgeStyle="@GetInvitationBadgeStyle(user)" /></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Admin"]" Property="@nameof(UserAdministrationResDTO.IsAdmin)" Width="82px" Filterable="false" TextAlign="TextAlign.Center"><Template Context="user">@if (user.IsAdmin) { <VppIcon Name="@VppIcons.Approved" /> }</Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Actions"]" Width="170px" MinWidth="170px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center">
-                            <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddUser"]" Disabled="@(!CanInviteUsers)" AddClicked="@OpenInvitationAsync" /></HeaderTemplate>
                             <Template Context="user"><div class="vpp-admin-actions"><RadzenButton Icon="manage_accounts" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="@(!CanEditMembership(user) && !CanPrepareActivation(user))" Click="@(() => OpenMembershipEditorAsync(user))" title="@Loc["PermissionGroup"]" /><RadzenButton Icon="mark_email_unread" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="@(!CanSendPasswordLink(user))" Click="@(() => SendPasswordResetLinkAsync(user))" title="@Loc["SendPasswordLink"]" /><RadzenButton Icon="person_off" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(!CanDeactivateMembership(user))" Click="@(() => DeactivateMembershipAsync(user))" title="@Loc["DeactivateMembership"]" /></div></Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Description"]" Property="@nameof(UserAdministrationResDTO.Description)" Width="220px" Visible="false" Pickable="true" />

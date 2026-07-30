@@ -7,6 +7,14 @@
                          AriaLabel="@Loc["PriceLists"]"
                          TestId="price-lists-data-surface"
                          Class="vpp-admin-data-surface">
+        <Header>
+            <VppCollectionHeader Title="@Loc["PriceLists"]"
+                                 Summary="@Loc["RecordsCount", count]"
+                                 AddText="@Loc["AddPriceList"]"
+                                 CompactAddText="@Loc["Add"]"
+                                 Disabled="@(!CanModify)"
+                                 AddClicked="@AddAsync" />
+        </Header>
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["PriceLists"]" Class="vpp-admin-grid-toolbar">
                 <VppFilterSearch Value="@searchText"
@@ -33,6 +41,7 @@
                             LoadData="@LoadDataAsync"
                             LoadColumnFilterData="@LoadColumnFilterDataAsync"
                             IsLoading="@isLoading"
+                            AllowAlternatingRows="false"
                             AllowSorting="true"
                             AllowMultiColumnSorting="false"
                             ShowMultiColumnSortingIndex="false"
@@ -68,7 +77,6 @@
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" Width="130px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Title="@Loc["Actions"]" Width="232px" MinWidth="232px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-xwide" HeaderCssClass="rz-col-actions rz-col-actions-xwide">
-                        <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddPriceList"]" Disabled="@(!CanModify)" AddClicked="@AddAsync" /></HeaderTemplate>
                         <Template Context="row"><div class="vpp-admin-actions"><RadzenButton Icon="payments" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="@Loc["EditPrice"]" Disabled="@(row.IsDeleted || !CanModify)" Click="@(() => OpenPricesAsync(row))" /><RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@(row.IsDeleted || row.Status != "Draft" || !CanModify)" Click="@(() => EditAsync(row))" /><RadzenButton Icon="publish" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" title="Công bố" Disabled="@(row.IsDeleted || row.Status != "Draft" || !CanModify)" Click="@(() => PublishAsync(row))" /><RadzenButton Icon="timer_off" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" title="Đánh dấu hết hiệu lực" Disabled="@(row.IsDeleted || row.Status != "Published" || !CanModify)" Click="@(() => ExpireAsync(row))" /><RadzenButton Icon="star" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" title="@Loc["SetAsDefault"]" Disabled="@(row.IsDefault || row.IsDeleted || !CanModify)" Click="@(() => SetDefaultAsync(row))" /><RadzenButton Icon="content_copy" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" title="@Loc["Clone"]" Disabled="@(!CanModify)" Click="@(() => CloneAsync(row))" /><RadzenButton Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")" Size="ButtonSize.Small" ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Disabled="@(row.Status == "Published" || !CanModify)" Click="@(() => SetDeletedAsync(row, !row.IsDeleted))" /></div></Template>
                     </RadzenDataGridColumn>
                 </Columns>

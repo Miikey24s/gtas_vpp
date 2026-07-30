@@ -9,6 +9,14 @@
                          AriaLabel="@Loc["OperationCategories"]"
                          TestId="category-admin-data-surface"
                          Class="vpp-admin-data-surface vpp-admin-collection-surface">
+        <Header>
+            <VppCollectionHeader Title="@Loc["OperationCategories"]"
+                                 Summary="@Loc["RecordsCount", totalCount]"
+                                 AddText="@Loc["AddCategory"]"
+                                 CompactAddText="@Loc["Add"]"
+                                 Disabled="@(!CanModify)"
+                                 AddClicked="@OpenCreateAsync" />
+        </Header>
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["OperationCategories"]" Class="vpp-admin-grid-toolbar">
                 <VppFilterSearch Value="@searchText"
@@ -33,6 +41,7 @@
                             IsLoading="@isLoading"
                             AllowFiltering="true"
                             AllowSorting="true"
+                            AllowAlternatingRows="false"
                             AllowMultiColumnSorting="false"
                             ShowMultiColumnSortingIndex="false"
                             AllowPaging="true"
@@ -72,7 +81,6 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="150px" TextAlign="TextAlign.Center" FormatString="{0:dd/MM/yyyy HH:mm}" Pickable="true" />
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
-                        <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddCategory"]" Disabled="@(!CanModify)" AddClicked="@OpenCreateAsync" /></HeaderTemplate>
                         <Template Context="row">
                             <div class="vpp-admin-actions">
                                 <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />

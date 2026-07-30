@@ -5,6 +5,13 @@
          data-testid="@TestId"
          aria-label="@AriaLabel"
          aria-labelledby="@AriaLabelledBy">
+    @if (Header is not null)
+    {
+        <div class="vpp-data-surface-header-slot">
+            @Header
+        </div>
+    }
+
     @if (Toolbar is not null)
     {
         <div class="vpp-data-surface-toolbar-slot">
@@ -26,6 +33,7 @@
 
 @code {
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public RenderFragment? Header { get; set; }
     [Parameter] public RenderFragment? Toolbar { get; set; }
     [Parameter] public RenderFragment? Footer { get; set; }
     [Parameter] public VppDataSourceMode DataSourceMode { get; set; } = VppDataSourceMode.Static;

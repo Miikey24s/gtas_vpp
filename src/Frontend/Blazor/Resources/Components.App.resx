@@ -331,6 +331,7 @@
   <data name="FailedToSaveOrderFormat" xml:space="preserve"><value>Lưu đơn thất bại: {0}</value></data>
   <data name="InvalidProductOrQuantity" xml:space="preserve"><value>Mặt hàng hoặc số lượng chưa hợp lệ.</value></data>
   <data name="ItemsCountFormat" xml:space="preserve"><value>{0} mục</value></data>
+  <data name="RecordsCount" xml:space="preserve"><value>{0} bản ghi</value></data>
   <data name="LastSavedAtFormat" xml:space="preserve"><value>Lưu gần nhất lúc {0}</value></data>
   <data name="Lines" xml:space="preserve"><value>Dòng</value></data>
   <data name="LiveUpdate" xml:space="preserve"><value>Cập nhật trực tiếp</value></data>
