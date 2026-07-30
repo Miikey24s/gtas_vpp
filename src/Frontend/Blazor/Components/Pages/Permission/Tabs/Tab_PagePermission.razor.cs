@@ -231,6 +231,12 @@ public partial class Tab_PagePermission
         }
     }
 
+    private async Task OpenPermissionEditorForGroupAsync(PermissionGroupDto group)
+    {
+        await OnGroupSelectedAsync(group);
+        await OpenPermissionEditorAsync();
+    }
+
     private async Task LoadGroupPermissionsAsync(Guid groupId, bool notifyErrors)
     {
         glb.isBusyPage = true;

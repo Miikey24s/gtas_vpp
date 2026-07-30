@@ -178,15 +178,15 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
         await LoginAsDefaultUserAsync();
         var routes = new[]
         {
-            (Path: "library?tab=0", MinimumSurfaces: 2, Label: "lookup"),
-            (Path: "library?tab=1", MinimumSurfaces: 1, Label: "categories"),
-            (Path: "library?tab=2", MinimumSurfaces: 1, Label: "items"),
-            (Path: "library?tab=3", MinimumSurfaces: 1, Label: "suppliers"),
-            (Path: "library?tab=5", MinimumSurfaces: 1, Label: "departments"),
-            (Path: "library?tab=6&pricingTab=price-lists", MinimumSurfaces: 1, Label: "price-lists"),
-            (Path: "library?tab=6&pricingTab=prices", MinimumSurfaces: 1, Label: "prices"),
-            (Path: "permission?tab=0", MinimumSurfaces: 1, Label: "users"),
-            (Path: "permission?tab=1", MinimumSurfaces: 1, Label: "permissions")
+            (Path: "library?tab=0", MinimumSurfaces: 2, CreateHeaders: 2, Label: "lookup"),
+            (Path: "library?tab=1", MinimumSurfaces: 1, CreateHeaders: 1, Label: "categories"),
+            (Path: "library?tab=2", MinimumSurfaces: 1, CreateHeaders: 1, Label: "items"),
+            (Path: "library?tab=3", MinimumSurfaces: 1, CreateHeaders: 1, Label: "suppliers"),
+            (Path: "library?tab=5", MinimumSurfaces: 1, CreateHeaders: 1, Label: "departments"),
+            (Path: "library?tab=6&pricingTab=price-lists", MinimumSurfaces: 1, CreateHeaders: 1, Label: "price-lists"),
+            (Path: "library?tab=6&pricingTab=prices", MinimumSurfaces: 1, CreateHeaders: 0, Label: "prices"),
+            (Path: "permission?tab=0", MinimumSurfaces: 1, CreateHeaders: 1, Label: "users"),
+            (Path: "permission?tab=1", MinimumSurfaces: 1, CreateHeaders: 0, Label: "permissions")
         };
 
         foreach (var viewport in new[]
@@ -217,8 +217,13 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                     (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
                     (await surface.GetAttributeAsync("data-vpp-data-density")).Should().Be("compact");
                     (await surface.Locator(".vpp-data-toolbar").CountAsync()).Should().Be(1);
+                    (await surface.Locator(".vpp-data-toolbar .vpp-library-primary-action").CountAsync()).Should().Be(0,
+                        "admin toolbars contain query/display controls only");
                     (await surface.Locator(".vpp-data-grid").CountAsync()).Should().BeGreaterThanOrEqualTo(1);
                 }
+
+                (await Page.Locator(".vpp-action-column-header .vpp-library-primary-action:visible").CountAsync())
+                    .Should().Be(route.CreateHeaders, "create actions belong to Actions column headers");
 
                 if (viewport.Width == 768 && route.Label is "price-lists" or "users")
                 {

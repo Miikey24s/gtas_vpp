@@ -1729,6 +1729,35 @@
     display: none;
 }
 
+.vpp-action-column-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-2);
+    min-width: 0;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.vpp-action-column-header > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vpp-action-column-header .vpp-action-column-add {
+    flex: 0 0 auto;
+    width: 1.65rem;
+    height: 1.65rem;
+    min-width: 1.65rem;
+    min-height: 1.65rem;
+    padding: 0;
+    box-shadow: var(--vpp-shadow-xs);
+}
+
+.vpp-action-column-header .vpp-action-column-add .rz-button-text {
+    display: none;
+}
+
 .vpp-admin-split {
     border: 1px solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-md);
@@ -1796,6 +1825,11 @@
 .vpp-admin-grid .rz-grid-table th.rz-col-actions-wide,
 .vpp-admin-grid .rz-grid-table td.rz-col-actions-wide {
     --vpp-admin-actions-width: 190px;
+}
+
+.vpp-admin-grid .rz-grid-table th.rz-col-actions-xwide,
+.vpp-admin-grid .rz-grid-table td.rz-col-actions-xwide {
+    --vpp-admin-actions-width: 232px;
 }
 
 .vpp-admin-grid .rz-grid-table td.rz-col-actions .rz-cell-data,

@@ -10,7 +10,7 @@
 
 - Dùng **full-width Collection grid** cho bảng phẳng để dành chiều ngang cho nhiều cột.
 - Chỉ dùng **ListDetail** khi hai tập dữ liệu có quan hệ cha–con cần quan sát đồng thời.
-- Mọi thao tác **Thêm/Sửa mở adaptive editor dialog** theo độ phức tạp; form nhỏ dùng modal giữa màn hình, form lớn dùng workspace dialog gần full-screen. Không còn inline row edit hoặc dropdown sửa trực tiếp trong cell.
+- Mọi thao tác CRUD nằm trong cột **Thao tác**: nút **Thêm** ở header cột; **Xem/Sửa/Xóa hoặc Khôi phục** ở từng dòng. Toolbar không chứa CRUD. Thêm/Sửa mở adaptive editor dialog theo độ phức tạp; không còn inline row edit hoặc dropdown sửa trực tiếp trong cell.
 - Bảng chỉ hiện cột nghiệp vụ quan trọng; audit, localization và thông tin ít dùng nằm trong **Cột hiển thị** hoặc modal chi tiết.
 - Filter/sort/paging chạy trên **toàn bộ dữ liệu server**, không chỉ trang hiện tại.
 - Không tạo `UniversalAdminGrid<T>` hoặc form bằng reflection. Tái dùng frame/composite; mỗi domain có typed columns, typed editor và validation riêng.
@@ -20,8 +20,8 @@
 ```text
 Header-tab
 └─ Main content
-   ├─ Toolbar: Tìm kiếm | Bộ lọc... | Xóa lọc | Cột | + Thêm
-   ├─ Header cột
+   ├─ Toolbar: Tìm kiếm | Bộ lọc... | Xóa lọc | Cột
+   ├─ Header cột: ... | Thao tác [+]
    ├─ Dòng dữ liệu 1..n
    └─ Footer: tổng kết | pager | page-size
 
@@ -139,7 +139,8 @@ Nếu email local bị tắt, account vẫn ở `InvitationPending`; chỉ DEV/n
 
 ## 5. Contract bảng và nhiều cột
 
-- Toolbar desktop: `Tìm kiếm → filter nghiệp vụ → Xóa bộ lọc → Cột → + Thêm`.
+- Toolbar desktop chỉ chứa điều khiển truy vấn/hiển thị: `Tìm kiếm → filter nghiệp vụ → Xóa bộ lọc → Cột`; không chứa CRUD.
+- Header cột **Thao tác** chứa nút **Thêm** khi route cho phép tạo mới. Cell cùng cột chứa toàn bộ **Xem/Sửa/Xóa-Khôi phục** và action vòng đời liên quan; không đặt action button trong cột dữ liệu khác.
 - Tất cả filter/sort/distinct query chạy server-side trên toàn DB; paging không giới hạn dữ liệu bộ lọc vào page hiện tại.
 - Các grid lớn (`Mặt hàng`, `Giá mặt hàng`) mặc định 100 dòng; options `50 / 100 / 200`. Grid quản trị còn lại mặc định 50; options `25 / 50 / 100`.
 - Footer luôn có top border, tổng số bản ghi, pager và page-size; không để row cuối đè lên footer.
@@ -303,3 +304,10 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 | `.vpp-admin-grid` và typed column classes | `KEEP` — vẫn là shared cell/header/pager contract của Library và Permission | Không xóa mù; route chỉ truyền width/profile qua CSS variables |
 | `VppCollectionWorkspace` / `VppListDetailWorkspace` scoped CSS | `KEEP` — authority geometry hiện hành | Test route + tablet khóa đúng pattern |
 | `vpp-layout.css` | `KEEP` — shell/header/sidebar/inset, không sở hữu cột Library | Không thêm override route-specific mới vào đây |
+
+## 20. CRUD placement và action-column hardening — 2026-07-30
+
+- Toolbar của toàn bộ Library/Permission chỉ còn tìm kiếm, bộ lọc, xóa lọc và chọn cột; không còn nút CRUD.
+- Route có quyền tạo mới dùng `VppActionColumnHeader`: nút **Thêm** nằm trong header cột **Thao tác**; **Xem/Sửa/Xóa-Khôi phục** và action vòng đời nằm trong cell cùng cột.
+- Cột **Thao tác** không tham gia sort/filter/reorder/column picker và được ghim bên phải để vẫn nhìn thấy ở tablet hoặc bảng nhiều cột. Trạng thái active/inactive là badge chỉ đọc, mutation chuyển về action rõ nghĩa.
+- Evidence: frontend Release build `0 warning / 0 error`; frontend unit/architecture `203/203`; isolated Playwright admin matrix + Category geometry `2/2` ở desktop/tablet. Ảnh route thật đã được kiểm bằng mắt, artifact thô nằm trong `tmp/admin-crud-action-evidence-frozen/` và không commit.

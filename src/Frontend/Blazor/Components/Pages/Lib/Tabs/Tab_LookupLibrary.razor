@@ -24,13 +24,6 @@
                                  Class="vpp-admin-data-surface">
             <Toolbar>
                 <VppDataToolbar AriaLabel="@Loc["ClassDefinitions"]" Class="vpp-admin-grid-toolbar">
-                    <RadzenButton Icon="add"
-                                  Text="@Loc["AddClass"]"
-                                  ButtonStyle="ButtonStyle.Primary"
-                                  Size="ButtonSize.Small"
-                                  class="vpp-library-primary-action"
-                                  Disabled="@(!CanModifyLookup)"
-                                  Click="@OpenAddCategoryAsync" />
                     <VppColumnPicker TItem="LookupCategoryResDTO" GridAccessor="@(() => categoryGrid)" />
                 </VppDataToolbar>
             </Toolbar>
@@ -65,7 +58,7 @@
                             GridLines="DataGridGridLines.Horizontal"
                             class="@($"auto-fit-grid vpp-admin-grid vpp-class-master-grid vpp-data-grid vpp-data-density-compact {(categoryCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                             ColumnWidth="150px"
-                            Style="--vpp-admin-grid-min-width: 380px;">
+                            Style="--vpp-admin-grid-min-width: 440px; --vpp-admin-actions-width: 132px;">
                 <Columns>
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="#" Width="42px" MinWidth="42px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
@@ -85,14 +78,9 @@
                             </div>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="96px" MinWidth="96px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="96px" MinWidth="96px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="data">
-                            <div class="vpp-admin-is-deleted-cell" @onclick:stopPropagation="true">
-                                <RadzenSwitch @bind-Value="@data.IsDeleted"
-                                              Disabled="@(!CanModifyLookup)"
-                                              Change="@(async (bool value) => await ToggleCategoryDeleted(data, value))"
-                                              class="isDeleteSwitch vpp-admin-switch-compact" />
-                            </div>
+                            <RadzenBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" BadgeStyle="@(data.IsDeleted ? BadgeStyle.Light : BadgeStyle.Success)" />
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Code" Title="@Loc["LookupCategoryCode"]" Width="120px" Visible="false" Pickable="true" />
@@ -103,9 +91,13 @@
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="60px" MinWidth="60px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="132px" MinWidth="132px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                        <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddClass"]" Disabled="@(!CanModifyLookup)" AddClicked="@OpenAddCategoryAsync" /></HeaderTemplate>
                         <Template Context="data">
-                            <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditCategoryAsync(data))" @onclick:stopPropagation="true" />
+                            <div class="vpp-admin-actions">
+                                <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditCategoryAsync(data))" @onclick:stopPropagation="true" />
+                                <RadzenButton Icon="@(data.IsDeleted ? "restore_from_trash" : "delete")" Size="ButtonSize.Small" ButtonStyle="@(data.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" Disabled="@(!CanModifyLookup)" title="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Click="@(() => ToggleCategoryDeleted(data, !data.IsDeleted))" @onclick:stopPropagation="true" />
+                            </div>
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>
@@ -122,13 +114,6 @@
                                  Class="vpp-admin-data-surface">
             <Toolbar>
                 <VppDataToolbar AriaLabel="@Loc["Value"]" Class="vpp-admin-grid-toolbar">
-                    <RadzenButton Icon="add"
-                                  Text="@Loc["AddLookupValue"]"
-                                  ButtonStyle="ButtonStyle.Primary"
-                                  Size="ButtonSize.Small"
-                                  class="vpp-library-primary-action"
-                                  Disabled="@(selectedLookupCategory is null || !CanModifyLookup)"
-                                  Click="@OpenAddValueAsync" />
                     <VppColumnPicker TItem="LookupValueResDTO" GridAccessor="@(() => valueGrid)" />
                 </VppDataToolbar>
             </Toolbar>
@@ -161,21 +146,16 @@
                             GridLines="DataGridGridLines.Horizontal"
                             class="@($"auto-fit-grid vpp-admin-grid vpp-class-detail-grid vpp-data-grid vpp-data-density-compact {(valueCount <= 20 ? "vpp-admin-grid-single-page" : string.Empty)}")"
                             ColumnWidth="150px"
-                            Style="--vpp-admin-grid-min-width: 800px; --vpp-admin-isdeleted-width: 90px;">
+                            Style="--vpp-admin-grid-min-width: 800px; --vpp-admin-actions-width: 132px;">
                 <Columns>
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
                             @(currentValueSkip + lookupValues.IndexOf(data) + 1)
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted">
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="data">
-                            <div class="vpp-admin-is-deleted-cell">
-                                <RadzenSwitch @bind-Value="@data.IsDeleted"
-                                              Disabled="@(!CanModifyLookup)"
-                                              Change="@(async (bool value) => await ToggleValueDeleted(data, value))"
-                                              class="isDeleteSwitch vpp-admin-switch-compact" />
-                            </div>
+                            <RadzenBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" BadgeStyle="@(data.IsDeleted ? BadgeStyle.Light : BadgeStyle.Success)" />
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Code" Title="@Loc["Code"]" Width="125px" />
@@ -191,9 +171,13 @@
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="76px" MinWidth="76px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="132px" MinWidth="132px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                        <HeaderTemplate><VppActionColumnHeader Text="@Loc["Actions"]" AddText="@Loc["AddLookupValue"]" Disabled="@(selectedLookupCategory is null || !CanModifyLookup)" AddClicked="@OpenAddValueAsync" /></HeaderTemplate>
                         <Template Context="data">
-                            <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditValueAsync(data))" @onclick:stopPropagation="true" />
+                            <div class="vpp-admin-actions">
+                                <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditValueAsync(data))" @onclick:stopPropagation="true" />
+                                <RadzenButton Icon="@(data.IsDeleted ? "restore_from_trash" : "delete")" Size="ButtonSize.Small" ButtonStyle="@(data.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" Disabled="@(!CanModifyLookup)" title="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Click="@(() => ToggleValueDeleted(data, !data.IsDeleted))" @onclick:stopPropagation="true" />
+                            </div>
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>

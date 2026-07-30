@@ -42,21 +42,18 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 const panel = element.closest('.rz-tabview-panel');
                 const toolbar = element.querySelector('.vpp-data-toolbar');
                 const create = element.querySelector('.vpp-library-primary-action');
-                const picker = element.querySelector('.vpp-column-picker-trigger');
                 const grid = element.querySelector('.vpp-data-grid');
                 const header = grid?.querySelector('thead');
                 const firstRow = grid?.querySelector('tbody > tr');
                 const pager = grid?.querySelector('.rz-paginator, .rz-pager');
-                if (!body || !workspace || !panel || !toolbar || !create || !picker || !grid || !header || !firstRow || !pager) {
+                if (!body || !workspace || !panel || !toolbar || !create || !grid || !header || !firstRow || !pager) {
                     throw new Error('Canonical category data surface was not rendered.');
                 }
-                const createRect = create.getBoundingClientRect();
-                const pickerRect = picker.getBoundingClientRect();
                 return [
                     workspace.getBoundingClientRect().left - panel.getBoundingClientRect().left,
                     panel.getBoundingClientRect().right - workspace.getBoundingClientRect().right,
                     toolbar.getBoundingClientRect().height,
-                    Math.abs((createRect.top + createRect.height / 2) - (pickerRect.top + pickerRect.height / 2)),
+                    create.closest('th.rz-col-actions') ? 1 : 0,
                     body.scrollHeight - body.clientHeight,
                     element.getBoundingClientRect().bottom,
                     pager.getBoundingClientRect().bottom,
@@ -68,17 +65,17 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         geometry[0].Should().BeApproximately(0, 0.5);
         geometry[1].Should().BeApproximately(0, 0.5);
         geometry[2].Should().BeApproximately(42, 2);
-        geometry[3].Should().BeLessThan(5);
+        geometry[3].Should().Be(1, "the create action belongs to the Actions column header");
         geometry[4].Should().BeLessThanOrEqualTo(1, "the route uses a bounded grid viewport instead of document scrolling");
         geometry[5].Should().BeLessThanOrEqualTo(geometry[7] + 1);
         geometry[6].Should().BeLessThanOrEqualTo(geometry[5] + 1);
         geometry[8].Should().BeApproximately(0, 0.5);
 
-        var deletedCells = grid.Locator(".vpp-admin-is-deleted-cell");
+        var statusBadges = grid.Locator("tbody .rz-badge");
         var emptyState = grid.Locator(".rz-datatable-emptymessage");
-        ((await deletedCells.CountAsync()) > 0 || (await emptyState.CountAsync()) > 0).Should().BeTrue(
+        ((await statusBadges.CountAsync()) > 0 || (await emptyState.CountAsync()) > 0).Should().BeTrue(
             "the isolated fixture may be empty, but the typed grid must settle to rows or its empty state");
-        (await deletedCells.Locator(".vpp-admin-status-badge").CountAsync()).Should().Be(0);
+        (await surface.Locator(".vpp-data-toolbar .vpp-library-primary-action").CountAsync()).Should().Be(0);
     }
 
     [Fact]

@@ -100,27 +100,9 @@
                     <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" class="vpp-admin-switch-readonly" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDeleted" Title="@Loc["IsDeleted"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-isdeleted" HeaderCssClass="rz-col-isdeleted" Visible="false" Pickable="true">
-                <Template Context="row">
-                    @if (row.PriceMappingId.HasValue)
-                    {
-                        <div class="vpp-admin-is-deleted-cell">
-                            <RadzenSwitch TValue="bool"
-                            Value="@row.IsDeleted"
-                            Disabled="@(!IsSelectedPriceListDraft)"
-                                          Change="@(async (bool value) => await SetDeletedPriceAsync(row, value))"
-                                          class="isDeleteSwitch vpp-admin-switch-compact" />
-                        </div>
-                    }
-                    else
-                    {
-                        <span class="vpp-admin-inline-note">--</span>
-                    }
-                </Template>
-            </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppCode" Title="@Loc["ProductCode"]" Width="124px" Visible="false" Pickable="true" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
                 <Template Context="row">
                     <div class="vpp-admin-actions">
                         <RadzenButton Icon="edit"
@@ -135,6 +117,12 @@
                                       title="@Loc["SetDefault"]"
                                       Disabled="@(!row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted)"
                                       Click="@(() => SetDefaultAsync(row))" />
+                        <RadzenButton Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)"
+                                      title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])"
+                                      Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)"
+                                      Click="@(() => SetDeletedPriceAsync(row, !row.IsDeleted))" />
                         <RadzenButton Icon="delete_forever"
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Danger"

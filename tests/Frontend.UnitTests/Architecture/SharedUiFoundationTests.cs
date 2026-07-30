@@ -1045,6 +1045,7 @@ public sealed class SharedUiFoundationTests
         var users = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_User.razor"));
         var permissions = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_PagePermission.razor"));
         var securityAudit = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_SecurityAudit.razor"));
+        var actionColumnHeader = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppActionColumnHeader.razor"));
         var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
 
         foreach (var source in new[] { categories, items, suppliers, departments, lookup, price, priceList, users, permissions, securityAudit })
@@ -1057,9 +1058,31 @@ public sealed class SharedUiFoundationTests
 
         Assert.Equal(2, lookup.Split("<VppDataSurfaceFrame", StringSplitOptions.None).Length - 1);
         Assert.Contains("Property=\"IsDeleted\"", lookup, StringComparison.Ordinal);
-        Assert.Equal(2, lookup.Split("HeaderCssClass=\"rz-col-isdeleted\"", StringSplitOptions.None).Length - 1);
-        Assert.Equal(2, lookup.Split("Filterable=\"false\" Sortable=\"false\" CssClass=\"rz-col-isdeleted\"", StringSplitOptions.None).Length - 1);
-        Assert.Equal(2, lookup.Split("vpp-admin-is-deleted-cell", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, lookup.Split("<VppActionColumnHeader", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("vpp-admin-is-deleted-cell", lookup, StringComparison.Ordinal);
+        Assert.Contains("vpp-action-column-header", actionColumnHeader, StringComparison.Ordinal);
+        Assert.Contains("vpp-library-primary-action vpp-action-column-add", actionColumnHeader, StringComparison.Ordinal);
+
+        foreach (var source in new[] { categories, items, suppliers, departments, lookup, price, priceList, users, permissions, securityAudit })
+        {
+            var toolbarStart = source.IndexOf("<Toolbar>", StringComparison.Ordinal);
+            while (toolbarStart >= 0)
+            {
+                var toolbarEnd = source.IndexOf("</Toolbar>", toolbarStart, StringComparison.Ordinal);
+                Assert.True(toolbarEnd > toolbarStart, "Admin toolbar markup must be balanced.");
+                var toolbar = source[toolbarStart..toolbarEnd];
+                Assert.DoesNotContain("<RadzenButton", toolbar, StringComparison.Ordinal);
+                toolbarStart = source.IndexOf("<Toolbar>", toolbarEnd, StringComparison.Ordinal);
+            }
+        }
+
+        foreach (var createConsumer in new[] { categories, items, suppliers, departments, lookup, priceList, users })
+        {
+            Assert.Contains("<VppActionColumnHeader", createConsumer, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("OpenPermissionEditorForGroupAsync", permissions, StringComparison.Ordinal);
+        Assert.DoesNotContain("class=\"vpp-library-primary-action\"", permissions, StringComparison.Ordinal);
         Assert.Contains("permission-users-data-surface", users, StringComparison.Ordinal);
         Assert.Contains("permission-groups-data-surface", permissions, StringComparison.Ordinal);
         Assert.Contains("security-audit-data-surface", securityAudit, StringComparison.Ordinal);
