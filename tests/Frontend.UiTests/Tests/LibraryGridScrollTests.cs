@@ -10,6 +10,62 @@ namespace gtas_vpp_fe.UITests.Tests.Library;
 public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task LookupActiveSwitch_UsesSemanticSuccessTrackAndWhiteThumb()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=0", new() { WaitUntil = WaitUntilState.Load });
+
+        var surface = Page.GetByTestId("lookup-categories-data-surface");
+        await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var activeSwitch = surface.Locator(".vpp-admin-active-switch .rz-switch.rz-switch-checked").First;
+        await activeSwitch.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await Page.WaitForFunctionAsync(
+            """
+            () => [...document.querySelectorAll('.rz-datatable-loading')].every(element => {
+                const style = getComputedStyle(element);
+                const rect = element.getBoundingClientRect();
+                return style.display === 'none'
+                    || style.visibility === 'hidden'
+                    || Number.parseFloat(style.opacity || '1') === 0
+                    || rect.width === 0
+                    || rect.height === 0;
+            })
+            """,
+            null,
+            new() { Timeout = 60_000 });
+        await WaitForRenderSettleAsync();
+
+        var colors = await activeSwitch.EvaluateAsync<string[]>("""
+            element => {
+                const circle = element.querySelector('.rz-switch-circle');
+                if (!circle) throw new Error('Active switch circle is missing.');
+                return [
+                    getComputedStyle(circle).backgroundColor,
+                    getComputedStyle(circle, '::before').backgroundColor
+                ];
+            }
+            """);
+
+        colors[0].Should().NotBe(colors[1], "track và thumb phải có độ tương phản rõ");
+        colors[1].Should().Be("rgb(255, 255, 255)", "thumb active dùng màu trắng trung tính");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "admin-active-switch-success-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+    }
+
+    [Fact]
     public async Task Category_Grid_Uses_Bounded_Data_Surface_Without_Header_Overlap()
     {
         await LoginAsDefaultUserAsync();

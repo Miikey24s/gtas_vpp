@@ -731,6 +731,19 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void AdminActiveSwitch_UsesSemanticSuccessTrackAndNeutralThumb()
+    {
+        var root = GetFrontendRoot();
+        var adminStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
+        var lookup = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor"));
+
+        Assert.Contains(".vpp-admin-active-switch .rz-switch", adminStyles, StringComparison.Ordinal);
+        Assert.Contains("--rz-switch-checked-background-color: color-mix(in srgb, var(--vpp-success) 82%, var(--vpp-bg-elevated));", adminStyles, StringComparison.Ordinal);
+        Assert.Contains("--rz-switch-checked-circle-background-color: var(--vpp-color-white);", adminStyles, StringComparison.Ordinal);
+        Assert.Equal(2, lookup.Split("class=\"vpp-admin-active-switch\"", StringSplitOptions.None).Length - 1);
+    }
+
+    [Fact]
     public void TransientSurfaces_UseOneDirectionalMotionContract()
     {
         var root = GetFrontendRoot();
