@@ -411,6 +411,7 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Duyệt đơn bổ sung chuyển sang split list-detail có thao tác. Paging profile được đưa vào shared contract; Create Order dùng page `100` trên full authorized snapshot để tránh flicker virtualization nhưng vẫn giới hạn DOM.
 - Chốt kỳ đã được owner duyệt concept và triển khai thành workspace hợp nhất: không còn workflow bốn bước, KPI/readiness card hoặc tiêu đề `Phương án chốt`; dùng hai selector ngang, decision strip nhà cung cấp, bảng Theo đơn/Theo phòng ban, supplier dialog và detail drawer overlay.
 - Verification: frontend `201/201`, Release build sạch và 7 focused isolated browser tests pass; visual evidence selector/Create Order/pending split đã được kiểm bằng mắt, không điều khiển host `dotnet watch` của owner.
+- Correction 2026-07-30: `PendingApprovalWorkspace` bật `FillAvailableSpace` theo contract `OPERATION`, để split list-detail và workflow footer lấp đầy main content thay vì co theo số dòng hiện có. Geometry test khóa cả mép trên/dưới và visual populated route đã được kiểm bằng mắt.
 
 ### 7.4 — Motif consolidation và retire legacy — 2026-07-30
 

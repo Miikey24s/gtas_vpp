@@ -3,6 +3,7 @@
 @using Radzen
 
 <VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
+                       FillAvailableSpace="true"
                        IsBusy="@(IsLoading || IsGridLoading)"
                        Class="vpp-approval-operation-workspace">
     @if (IsLoading)

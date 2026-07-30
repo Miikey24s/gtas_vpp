@@ -133,6 +133,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PendingApprovalWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("RadzenDataGrid TItem=\"VppRequestResDTO\"", approvals, StringComparison.Ordinal);
+        Assert.Contains("FillAvailableSpace=\"true\"", approvals, StringComparison.Ordinal);
         Assert.DoesNotContain("RadzenDataGrid", host, StringComparison.Ordinal);
         Assert.True(host.Split('\n').Length < 100);
     }

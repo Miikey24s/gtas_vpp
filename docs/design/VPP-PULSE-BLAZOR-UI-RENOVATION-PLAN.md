@@ -637,7 +637,7 @@ quyền và dữ liệu. Frontend hiện tại được giữ khi đã tốt hơ
 | 04 Lịch sử | `/dashboard?tab=1` | ISOLATED_QA_PASS — OWNER_REVIEW | Summary/chart/list/detail; chart suy biến dùng empty state thay SVG `NaN` |
 | 05 Danh mục mặt hàng | `/dashboard?tab=2` | ISOLATED_QA_PASS — OWNER_REVIEW | Toolbar/state theo Atlas, không lộ giá cho nhân viên |
 | 06 Tổng hợp phòng ban | `/dashboard?tab=3&managementTab=department` | ISOLATED_QA_PASS — OWNER_REVIEW | Dùng chung History workspace; chỉ khác 8 cột danh sách và scope dữ liệu phòng ban |
-| 07 Duyệt đơn bổ sung | `/dashboard?tab=5&periodTab=pending` | ISOLATED_QA_PASS — OWNER_REVIEW | `Tab_AdminApproval` coordinator + workspace con; mutation approve/reject pass |
+| 07 Duyệt đơn bổ sung | `/dashboard?tab=5&periodTab=pending` | ISOLATED_QA_PASS — OWNER_REVIEW | `Tab_AdminApproval` coordinator + split list-detail lấp đầy main content; mutation approve/reject pass |
 | 08 Rà soát kỳ | `/dashboard?tab=5&periodTab=review` | ISOLATED_QA_PASS — OWNER_REVIEW | Trạng thái, blocker chốt kỳ và bằng chứng nguồn |
 | 09 Gom nhu cầu | `/dashboard?tab=5&periodTab=demand` | ISOLATED_QA_PASS — OWNER_REVIEW | Hai chế độ Theo đơn/Theo mặt hàng, dữ liệu thật từ period-demand |
 | 10 Chọn nguồn cung | `/dashboard?tab=5&periodTab=supply` | ISOLATED_QA_PASS — OWNER_REVIEW | Nhà cung cấp trước bảng giá; preview và đối chiếu giá thật |

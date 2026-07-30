@@ -9,6 +9,46 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task PendingApproval_OperationWorkspaceFillsMainContentHeight()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=pending");
+
+        var workspace = Page.Locator(".vpp-approval-operation-workspace");
+        await workspace.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await WaitForPatternContentAsync(workspace);
+        var skeleton = workspace.Locator(".vpp-skeleton-page");
+        if (await skeleton.CountAsync() > 0)
+        {
+            await skeleton.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 60_000 });
+        }
+
+        var gaps = await Page.EvaluateAsync<double[]>("""
+            () => {
+                const content = document.querySelector('.vpp-content').getBoundingClientRect();
+                const workspace = document.querySelector('.vpp-approval-operation-workspace').getBoundingClientRect();
+                return [workspace.top - content.top, content.bottom - workspace.bottom];
+            }
+            """);
+
+        gaps[0].Should().BeApproximately(0, 1, "workspace phải bắt đầu cùng mép trên main content");
+        gaps[1].Should().BeApproximately(0, 1, "workspace phải lấp đầy main content đến sát mép dưới");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "pending-approval-fill-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+    }
+
+    [Fact]
     public async Task F4Patterns_RenderOnRealRoutesWithOneSharedPageInsetContract()
     {
         await Page.SetViewportSizeAsync(1366, 768);
