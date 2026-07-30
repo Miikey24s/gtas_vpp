@@ -65,11 +65,14 @@
     {
         <div class="vpp-history-grid-wrap">
             <RadzenDataGrid TItem="VppRequestResDTO"
-                            @key="PageSize"
+                            @key="(PageSize, SelectedOrderId)"
                             Data="@Orders"
                             Count="@TotalCount"
                             LoadData="@LoadRequested"
                             RowSelect="@OrderSelected"
+                            RowRender="@OnRowRender"
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value="selectedOrders"
                             AllowPaging="true"
                             PageSize="@PageSize"
                             PagerAlwaysVisible="true"
@@ -190,6 +193,7 @@
     [Parameter] public int TotalCount { get; set; }
     [Parameter] public int PageSize { get; set; }
     [Parameter] public int CurrentSkip { get; set; }
+    [Parameter] public Guid? SelectedOrderId { get; set; }
     [Parameter] public bool IsGridLoading { get; set; }
     [Parameter] public bool HasGridLoadError { get; set; }
     [Parameter] public string Search { get; set; } = string.Empty;
@@ -214,6 +218,33 @@
     [Parameter] public EventCallback<Guid> CodeToggled { get; set; }
     [Parameter] public EventCallback<Guid> NoteToggled { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
+
+    private IList<VppRequestResDTO> selectedOrders = [];
+
+    protected override void OnParametersSet()
+    {
+        selectedOrders = SelectedOrderId.HasValue
+            ? Orders.Where(order => order.Id == SelectedOrderId.Value).Take(1).ToList()
+            : [];
+    }
+
+    private void OnRowRender(RowRenderEventArgs<VppRequestResDTO> args)
+    {
+        if (!SelectedOrderId.HasValue || args.Data is null || args.Data.Id != SelectedOrderId.Value)
+        {
+            return;
+        }
+
+        args.Attributes["aria-selected"] = "true";
+        if (args.Attributes.TryGetValue("class", out var value) && value is not null)
+        {
+            args.Attributes["class"] = $"{value} rz-state-highlight vpp-history-row-selected";
+        }
+        else
+        {
+            args.Attributes["class"] = "rz-state-highlight vpp-history-row-selected";
+        }
+    }
 
     private IReadOnlyList<VppFilterOption<string>> OrderTypeOptions =>
     [

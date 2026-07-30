@@ -238,13 +238,15 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             Animations = ScreenshotAnimations.Disabled
         });
 
-        var scopeLabels = await Page.Locator(".vpp-history-scope-selector > button").AllTextContentsAsync();
+        var scopeLabels = await Page.Locator(".vpp-history-scope-selector .vpp-segmented-label").AllTextContentsAsync();
         var normalizedScopeLabels = scopeLabels.Select(label => label.Trim()).ToArray();
         normalizedScopeLabels.Take(5).Should().Equal("Tất cả kỳ", "Kỳ này", "3 tháng", "6 tháng", "12 tháng");
         normalizedScopeLabels[5].Should().StartWith("Tùy chọn");
         (await Page.Locator(".vpp-history-scope-selector > button").Nth(1).GetAttributeAsync("class")).Should().Contain("is-active");
         (await Page.Locator(".vpp-history-scope-selector > button").First.GetAttributeAsync("class")).Should().NotContain("is-active");
-        (await Page.Locator(".vpp-history-drawer-close").CountAsync()).Should().Be(0);
+        var desktopDrawerClose = Page.Locator(".vpp-history-drawer-close");
+        (await desktopDrawerClose.CountAsync()).Should().Be(1);
+        (await desktopDrawerClose.IsVisibleAsync()).Should().BeFalse("desktop detail is persistent and must not show a close affordance");
         await Page.Locator(".vpp-history-scope-selector > button").Nth(1).ClickAsync();
         // Cửa sổ im lặng có chủ đích: chờ cố định để chứng minh loading-line KHÔNG xuất hiện ở assertion ngay dưới.
         await Page.WaitForTimeoutAsync(60);

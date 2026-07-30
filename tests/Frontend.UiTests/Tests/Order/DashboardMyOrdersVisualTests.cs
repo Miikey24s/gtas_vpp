@@ -219,7 +219,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         const workspaceRect = workspace?.getBoundingClientRect();
                         const contentRect = workspace?.parentElement?.getBoundingClientRect();
                         const storyTitle = document.querySelector('.vpp-orders-story-heading h2');
-                        const summaryLabel = document.querySelector('.vpp-orders-summary-label');
+                        const summaryLabel = document.querySelector('.vpp-orders-period-label');
                         const summaryCard = document.querySelector('.vpp-orders-view-selector');
                         const exportAction = [...document.querySelectorAll('.order-page button')]
                             .find(button => /Xuất PDF|Xuất Excel|Export PDF|Export Excel/i.test(button.textContent ?? ''));

@@ -19,6 +19,8 @@
 }
 
 .vpp-settlement-selector-row {
+    position: relative;
+    z-index: var(--vpp-z-dropdown);
     display: flex;
     min-width: 0;
     align-items: center;
@@ -34,6 +36,12 @@
     gap: var(--vpp-space-2);
 }
 
+.vpp-settlement-period-scope-host {
+    position: relative;
+    display: inline-flex;
+    min-width: 0;
+}
+
 .vpp-settlement-period-target {
     flex: 0 0 auto;
     color: var(--vpp-text-secondary);
@@ -44,14 +52,6 @@
 .vpp-settlement-period-target strong {
     color: var(--vpp-text-primary);
     font-weight: var(--vpp-font-weight-semibold);
-}
-
-.vpp-settlement-period-target ::deep .vpp-filter-select {
-    width: 104px;
-}
-
-.vpp-settlement-period-target ::deep .vpp-filter-select:nth-of-type(2) {
-    width: 84px;
 }
 
 .vpp-settlement-decision-strip {

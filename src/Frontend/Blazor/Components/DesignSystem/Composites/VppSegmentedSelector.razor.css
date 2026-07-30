@@ -1,6 +1,8 @@
 .vpp-segmented-selector {
     position: relative;
-    display: inline-flex;
+    display: inline-grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
     width: max-content;
     max-width: 100%;
     min-width: 0;
@@ -37,7 +39,7 @@
     z-index: 1;
     display: inline-flex;
     min-height: 30px;
-    flex: 0 0 auto;
+    width: 100%;
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-2);
@@ -76,10 +78,6 @@
     background: var(--vpp-primary-500);
     color: var(--vpp-text-inverse);
     font-weight: var(--vpp-font-weight-semibold);
-}
-
-.vpp-segmented-selector[data-vpp-indicator-ready="true"] button.is-active {
-    background: transparent;
 }
 
 .vpp-segmented-label {

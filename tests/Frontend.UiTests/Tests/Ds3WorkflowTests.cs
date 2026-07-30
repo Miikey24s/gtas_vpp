@@ -23,16 +23,38 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             Timeout = 60_000
         });
 
+        var customPeriodButton = Page.GetByRole(AriaRole.Button, new() { Name = "Tùy chọn", Exact = true });
+        await customPeriodButton.ClickAsync();
+        var periodPicker = Page.Locator(".vpp-settlement-period-scope-host .vpp-period-picker-popover");
+        await periodPicker.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await WaitForRenderSettleAsync();
+        await CaptureAsync("ds3-period-picker-open-1366x768.png");
+        var periodPickerGeometry = await periodPicker.EvaluateAsync<double[]>(
+            """
+            element => {
+                const rect = element.getBoundingClientRect();
+                const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                return [rect.width, rect.height, center && (center === element || element.contains(center)) ? 1 : 0];
+            }
+            """);
+        periodPickerGeometry[0].Should().BeGreaterThan(240);
+        periodPickerGeometry[1].Should().BeGreaterThan(120);
+        periodPickerGeometry[2].Should().Be(1,
+            "the settlement period picker must stay above the supplier decision strip");
         if (await surface.Locator(".vpp-content-state:visible").CountAsync() > 0)
         {
-            await Page.GetByRole(AriaRole.Button, new() { Name = "Tùy chọn" }).ClickAsync();
-            await Page.Locator(".vpp-settlement-period-target .vpp-filter-select-trigger[aria-label='Tháng']").ClickAsync();
-            await Page.Locator(".vpp-filter-select-popover:popover-open [role='option']", new() { HasText = "06" }).ClickAsync();
+            await periodPicker.Locator("input[type='month']").FillAsync("2026-06");
+            await periodPicker.GetByRole(AriaRole.Button, new() { Name = "Áp dụng", Exact = true }).ClickAsync();
             await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
             {
                 State = WaitForSelectorState.Hidden,
                 Timeout = 60_000
             });
+        }
+        else
+        {
+            await periodPicker.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
+            await periodPicker.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
         }
 
         (await Page.Locator(".vpp-workflow-stepper:visible").CountAsync()).Should().Be(0);

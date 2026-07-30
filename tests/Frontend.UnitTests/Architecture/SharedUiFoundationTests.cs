@@ -571,7 +571,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("SelectedSupplementLineCount", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("PreviousOrderLineCount", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-native-tab-list", source, StringComparison.Ordinal);
-        Assert.Contains("vpp-order-card-statuses", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-code-static", orderPanel, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-card-statuses", orderPanel, StringComparison.Ordinal);
         Assert.Contains("vpp-data-card-actions", orderPanel, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", orderPanel, StringComparison.Ordinal);
         Assert.Contains("Property=\"Quantity\"", orderItemsSurface, StringComparison.Ordinal);

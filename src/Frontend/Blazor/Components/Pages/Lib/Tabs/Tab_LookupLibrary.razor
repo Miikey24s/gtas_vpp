@@ -13,9 +13,9 @@
 @inject IJSRuntime js
 
 
-<VppSplitEditorWorkspace Resizable="true"
+<VppSplitEditorWorkspace Resizable="false"
                          Ratio="VppSplitEditorRatio.CompactPrimary"
-                         SplitterClass="vpp-admin-split vpp-admin-class-split">
+                         Class="vpp-admin-class-split">
     <Primary>
         <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                                  Density="VppDataDensity.Compact"
@@ -78,32 +78,24 @@
                             GridLines="DataGridGridLines.Horizontal"
                             class="auto-fit-grid vpp-admin-grid vpp-class-master-grid vpp-data-grid vpp-data-density-compact"
                             ColumnWidth="150px"
-                            Style="--vpp-admin-grid-min-width: 388px; --vpp-admin-actions-width: 96px;">
+                            Style="--vpp-admin-grid-min-width: 500px; --vpp-admin-actions-width: 96px;">
                 <Columns>
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="#" Width="42px" MinWidth="42px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="data">
                             @(currentCategorySkip + lookupCategories.IndexOf(data) + 1)
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Name" Title="@Loc["LookupCategoryName"]" Width="160px">
-                        <Template Context="data">
-                            <div class="vpp-class-master-cell">
-                                <div class="vpp-class-master-primary">
-                                    <strong>@data.Code</strong>
-                                    <span>@data.Name</span>
-                                </div>
-                                <div class="vpp-class-master-meta">
-                                    <span class="vpp-class-module">@data.ModuleName</span>
-                                </div>
-                            </div>
-                        </Template>
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Code" Title="@Loc["LookupCategoryCode"]" Width="105px" MinWidth="105px" CssClass="vpp-class-code-column" HeaderCssClass="vpp-class-code-column">
+                        <Template Context="data"><span class="vpp-class-code-value">@data.Code</span></Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Name" Title="@Loc["LookupCategoryName"]" Width="170px" MinWidth="150px" CssClass="vpp-class-name-column" HeaderCssClass="vpp-class-name-column">
+                        <Template Context="data"><span class="vpp-class-name-value">@data.Name</span></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="vpp-class-status-column" HeaderCssClass="vpp-class-status-column">
                         <Template Context="data">
                             <VppStatusBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@(data.IsDeleted ? VppStatusTone.Neutral : VppStatusTone.Success)" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Code" Title="@Loc["LookupCategoryCode"]" Width="120px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="ModuleName" Title="@Loc["ModuleName"]" Width="120px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Id" Title="ID" Width="250px" CssClass="col-tight" Visible="false" Pickable="true" />

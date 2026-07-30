@@ -470,92 +470,9 @@
     max-width: 100%;
 }
 
-.vpp-order-code-cell .vpp-order-code-link {
-    display: inline-flex;
-    align-items: center;
-    flex: 0 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    word-break: normal;
-    overflow-wrap: normal;
-    line-height: 1.35;
-    text-decoration: underline dotted var(--vpp-border-strong);
-    cursor: pointer;
-    user-select: all;
-}
-
-.vpp-order-code-cell .vpp-order-code-link:focus-visible {
-    outline: 2px solid var(--vpp-border-focus);
-    outline-offset: 2px;
-    border-radius: var(--vpp-radius-sm);
-}
-
 .vpp-order-code-cell .rz-button,
 .vpp-order-code-cell .rz-badge {
     flex: 0 0 auto;
-}
-
-.vpp-order-code-popover {
-    display: none;
-    position: absolute;
-    inset-inline-start: 0;
-    top: calc(100% + var(--vpp-space-1));
-    z-index: 20;
-    align-items: center;
-    gap: var(--vpp-space-2);
-    width: max-content;
-    max-width: min(42rem, calc(100vw - 8rem));
-    padding: var(--vpp-space-2) var(--vpp-space-3);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-md);
-    background: var(--vpp-bg-elevated);
-    box-shadow: var(--vpp-shadow-md);
-    color: var(--vpp-text-primary);
-}
-
-.vpp-order-grid .rz-grid-table tbody > tr:nth-last-child(-n + 2) .vpp-order-code-popover {
-    top: auto;
-    bottom: calc(100% + var(--vpp-space-1));
-}
-
-@media (max-width: 768px) {
-    .vpp-order-code-popover {
-        max-width: calc(100vw - 2rem);
-    }
-}
-
-.vpp-order-code-popover-text {
-    min-width: 0;
-    font-family: var(--vpp-font-mono);
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-medium);
-    line-height: 1.45;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    user-select: all;
-}
-
-.vpp-order-code-popover .rz-button {
-    flex: 0 0 auto;
-    color: var(--vpp-text-link) !important;
-    opacity: 1;
-}
-
-.vpp-order-code-cell.is-open .vpp-order-code-popover {
-    display: flex;
-}
-
-.vpp-order-grid .rz-grid-table tr:has(.vpp-order-code-cell.is-open) {
-    position: relative;
-    z-index: 3;
-}
-
-.vpp-data-card:has(.vpp-order-code-cell.is-open) {
-    position: relative;
-    z-index: 3;
 }
 
 .vpp-order-grid .rz-grid-table td:has(.vpp-order-code-cell),

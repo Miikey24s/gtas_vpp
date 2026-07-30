@@ -392,6 +392,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     Detail = Loc["OrderCancelledSuccess"],
                     Duration = 3000
                 });
+                await LoadPeriodInfoAsync();
                 await LoadOrdersAsync();
             }
             catch (Exception ex)
@@ -413,12 +414,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected bool IsCancelling(Guid orderId) => _cancellingOrderIds.Contains(orderId);
 
-        protected async Task OpenHistoryAsync(VppRequestResDTO row)
+        protected Task OpenHistoryAsync(VppRequestResDTO row)
         {
-            await DialogService.OpenAsync<Dialog_RequestHistory>(
-                Loc["RequestLifecycle"],
-                new Dictionary<string, object?> { [nameof(Dialog_RequestHistory.RequestId)] = row.Id },
-                new DialogOptions { Width = "min(760px, 96vw)", Resizable = true, Draggable = true });
+            NavigationManager.NavigateTo($"/dashboard?tab=1&orderId={row.Id:D}");
+            return Task.CompletedTask;
         }
 
         protected bool IsSubmitted(VppRequestResDTO row) => row.Status == 1;
@@ -439,32 +438,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         // P4/F-16: Nhãn trạng thái và style badge lấy từ helper dùng chung
         // StatusDisplay trả semantic tone typed; route không tự map class hoặc Radzen badge style.
-
-        public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
-
-        public void ToggleOrderCode(Guid orderId)
-        {
-            if (ExpandedOrderIds.Contains(orderId))
-                ExpandedOrderIds.Remove(orderId);
-            else
-                ExpandedOrderIds.Add(orderId);
-        }
-
-        public string GetShortCode(VppRequestResDTO order)
-        {
-            var code = order.VppCode;
-            if (string.IsNullOrEmpty(code)) return "";
-            var parts = code.Split('-');
-            if (parts.Length >= 2)
-            {
-                if (order.IsAdditionalOrder)
-                {
-                    return $"{parts[0]}-ADD-{parts[1]}";
-                }
-                return $"{parts[0]}-{parts[1]}";
-            }
-            return code.Length > 10 ? code.Substring(0, 10) : code;
-        }
 
         public async Task CopyToClipboard(string? text)
         {

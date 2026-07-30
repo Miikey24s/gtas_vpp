@@ -41,8 +41,10 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isCorrecting;
     private bool canCorrect;
     private bool isCorrectionDialogOpen;
+    private bool showCustomPeriodPicker;
     private string? alertMessage;
     private string periodScope = CurrentPeriodScope;
+    private string pendingCustomPeriod = string.Empty;
     private string viewMode = DepartmentsView;
     private string searchText = string.Empty;
     private string selectedOrderType = string.Empty;
@@ -128,19 +130,14 @@ public partial class PeriodSettlementPanel : IDisposable
         new(CustomPeriodScope, Loc["SettlementCustomPeriod"])
     ];
 
+    private string DisplayedPeriodScope => showCustomPeriodPicker ? CustomPeriodScope : periodScope;
+    private string CustomPeriodSummary => $"{Loc["Period"]} {Month:00}/{Year}";
+
     private IReadOnlyList<VppSegmentedOption<string>> ViewModeOptions =>
     [
         new(DepartmentsView, Loc["SettlementByDepartment"]),
         new(ItemsView, Loc["SettlementByItem"])
     ];
-
-    private IReadOnlyList<VppFilterOption<int>> YearOptions => Enumerable.Range(2024, 7)
-        .Select(year => new VppFilterOption<int>(year, year.ToString(CultureInfo.InvariantCulture)))
-        .ToArray();
-
-    private IReadOnlyList<VppFilterOption<int>> MonthOptions => Enumerable.Range(1, 12)
-        .Select(month => new VppFilterOption<int>(month, month.ToString("00", CultureInfo.InvariantCulture)))
-        .ToArray();
 
     private IReadOnlyList<VppFilterOption<string>> OrderTypeOptions =>
     [
@@ -427,24 +424,44 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task OnPeriodScopeChangedAsync(string scope)
     {
-        periodScope = scope;
-        if (scope == CurrentPeriodScope && DefaultYear >= 2024 && DefaultMonth is >= 1 and <= 12)
+        if (scope == CustomPeriodScope)
+        {
+            pendingCustomPeriod = $"{Year:0000}-{Month:00}";
+            showCustomPeriodPicker = true;
+            return;
+        }
+
+        showCustomPeriodPicker = false;
+        periodScope = CurrentPeriodScope;
+        if (DefaultYear >= 2024 && DefaultMonth is >= 1 and <= 12)
         {
             await PeriodChanged.InvokeAsync(new PeriodTargetSelection(DefaultYear, DefaultMonth));
         }
     }
 
-    private Task OnYearChangedAsync(int year)
+    private void OnCustomPeriodChanged(ChangeEventArgs args)
     {
-        periodScope = CustomPeriodScope;
-        return PeriodChanged.InvokeAsync(new PeriodTargetSelection(year, Month));
+        pendingCustomPeriod = args.Value?.ToString() ?? string.Empty;
     }
 
-    private Task OnMonthChangedAsync(int month)
+    private async Task ApplyCustomPeriodAsync()
     {
+        if (!DateTime.TryParseExact(
+                pendingCustomPeriod,
+                "yyyy-MM",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var period))
+        {
+            return;
+        }
+
         periodScope = CustomPeriodScope;
-        return PeriodChanged.InvokeAsync(new PeriodTargetSelection(Year, month));
+        showCustomPeriodPicker = false;
+        await PeriodChanged.InvokeAsync(new PeriodTargetSelection(period.Year, period.Month));
     }
+
+    private void DismissCustomPeriod() => showCustomPeriodPicker = false;
 
     private async Task OnViewModeChangedAsync(string mode)
     {

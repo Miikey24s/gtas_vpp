@@ -135,11 +135,19 @@
 }
 
 .vpp-orders-story-controls {
-    display: flex;
+    display: grid;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--vpp-space-3);
+    gap: var(--vpp-space-2);
+    grid-template-columns: minmax(0, 1fr);
     margin-top: 0;
+}
+
+.vpp-orders-story-controls > .vpp-segmented-selector {
+    justify-self: start;
+}
+
+.vpp-orders-story-commands {
+    justify-self: end;
 }
 
 .vpp-orders-view-switchbar {
@@ -226,11 +234,10 @@
 }
 
 .vpp-order-view-identity {
-    display: flex;
+    display: grid;
     flex: 1 1 280px;
-    flex-wrap: wrap;
     align-items: center;
-    gap: var(--vpp-space-1) var(--vpp-space-3);
+    gap: var(--vpp-space-1);
     min-width: 0;
 }
 
@@ -594,6 +601,7 @@
     }
 
     .vpp-orders-story-commands {
+        justify-self: start;
         justify-content: flex-start;
     }
 
@@ -769,10 +777,14 @@
     font-family: var(--vpp-font-mono);
 }
 
-.vpp-order-code-link {
-    white-space: nowrap;
-    word-break: normal;
-    overflow-wrap: normal;
+.vpp-order-code-static {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--vpp-primary-700);
+    font-family: var(--vpp-font-mono);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    line-height: var(--vpp-leading-tight);
 }
 
 .vpp-data-card-actions {
@@ -792,16 +804,9 @@
     gap: var(--vpp-space-3);
 }
 
-.vpp-order-card-statuses {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--vpp-space-2);
-}
-
 .vpp-order-card-toolbar .vpp-data-card-actions {
-    padding-inline-start: var(--vpp-space-3);
-    border-inline-start: 1px solid var(--vpp-border-default);
+    padding-inline-start: 0;
+    border-inline-start: 0;
 }
 
 .vpp-order-card-toolbar .vpp-data-card-actions .rz-button {

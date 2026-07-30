@@ -11,11 +11,27 @@
                        Class="@SettlementPageClass">
     <div class="vpp-settlement-selector-row">
         <div class="vpp-settlement-selector-groups">
-            <VppSegmentedSelector TValue="string"
-                                  Value="@periodScope"
-                                  Options="@PeriodScopeOptions"
-                                  ValueChanged="@OnPeriodScopeChangedAsync"
-                                  AriaLabel="@Loc["TargetPeriod"]" />
+            <div class="vpp-settlement-period-scope-host" @onclick:stopPropagation>
+                <VppSegmentedSelector TValue="string"
+                                      Value="@DisplayedPeriodScope"
+                                      Options="@PeriodScopeOptions"
+                                      ValueChanged="@OnPeriodScopeChangedAsync"
+                                      AriaLabel="@Loc["TargetPeriod"]" />
+                @if (showCustomPeriodPicker)
+                {
+                    <VppPeriodPickerPopover IsOpen="true"
+                                            IsRange="false"
+                                            Title="@Loc["SettlementCustomPeriod"]"
+                                            Summary="@CustomPeriodSummary"
+                                            StartLabel="@Loc["TargetPeriod"]"
+                                            StartValue="@pendingCustomPeriod"
+                                            StartChanged="@OnCustomPeriodChanged"
+                                            ApplyText="@Loc["ApplyFilters"]"
+                                            CancelText="@Loc["Cancel"]"
+                                            Applied="@ApplyCustomPeriodAsync"
+                                            Dismissed="@DismissCustomPeriod" />
+                }
+            </div>
             <VppSegmentedSelector TValue="string"
                                   Value="@viewMode"
                                   Options="@ViewModeOptions"
@@ -24,21 +40,6 @@
         </div>
 
         <div class="vpp-settlement-period-target">
-            @if (periodScope == CustomPeriodScope)
-            {
-                <VppFilterSelect TValue="int"
-                                 Value="@Year"
-                                 Options="@YearOptions"
-                                 ValueChanged="@OnYearChangedAsync"
-                                 Placeholder="@Loc["Year"]"
-                                 AriaLabel="@Loc["Year"]" />
-                <VppFilterSelect TValue="int"
-                                 Value="@Month"
-                                 Options="@MonthOptions"
-                                 ValueChanged="@OnMonthChangedAsync"
-                                 Placeholder="@Loc["Month"]"
-                                 AriaLabel="@Loc["Month"]" />
-            }
             <span>@Loc["Period"] <strong>@Month.ToString("00")/@Year</strong></span>
         </div>
     </div>

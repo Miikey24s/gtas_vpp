@@ -2,7 +2,6 @@ const historyViewportObservers = new WeakMap();
 const historyChartLabelTimers = new WeakMap();
 const historyChartLabelConfigs = new WeakMap();
 const transientSurfaceSelector = [
-    '.vpp-history-range-popover',
     '.vpp-history-kpi-popover'
 ].join(',');
 
@@ -139,7 +138,7 @@ export function observeHistoryViewport(root, dotNetReference) {
     const onScroll = () => positionHistoryTransientSurfaces(root);
     const onDocumentPointerDown = event => {
         const target = event.target;
-        if (target instanceof Element && target.closest('.vpp-segmented-selector, .vpp-history-range-popover, .vpp-history-kpi-card, .vpp-cell-value-popover')) return;
+        if (target instanceof Element && target.closest('.vpp-segmented-selector, .vpp-period-picker-popover, .vpp-history-kpi-card, .vpp-cell-value-popover')) return;
         dotNetReference.invokeMethodAsync('CloseHistoryFilterMenuAsync').catch(() => {});
     };
     const onDocumentKeyDown = event => {

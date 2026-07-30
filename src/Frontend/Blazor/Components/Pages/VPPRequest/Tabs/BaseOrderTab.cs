@@ -362,16 +362,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             return PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission);
         }
 
-        public HashSet<Guid> ExpandedOrderIds { get; set; } = new();
-
-        public void ToggleOrderCode(Guid orderId)
-        {
-            if (ExpandedOrderIds.Contains(orderId))
-                ExpandedOrderIds.Remove(orderId);
-            else
-                ExpandedOrderIds.Add(orderId);
-        }
-
         public string GetShortCode(VppRequestResDTO order)
         {
             var code = order.VppCode;

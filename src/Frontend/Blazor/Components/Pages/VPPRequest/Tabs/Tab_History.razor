@@ -42,7 +42,8 @@
                          CustomScopeRequested="@(() => SelectScopeAsync(CustomScope))"
                          CustomFromChanged="@OnCustomFromChanged"
                          CustomToChanged="@OnCustomToChanged"
-                         CustomRangeApplied="@ApplyCustomRangeAsync" />
+                         CustomRangeApplied="@ApplyCustomRangeAsync"
+                         CustomRangeDismissed="@CloseTransientSurfaces" />
 
         @if (_summaryError)
         {
@@ -86,6 +87,7 @@
                                SeriesToggled="@ToggleChartSeries" />
 
             <HistoryOrderList Orders="@Orders"
+                              SelectedOrderId="@_selectedOrder?.Id"
                               TotalCount="@TotalCount"
                               PageSize="@PageSize"
                               CurrentSkip="@CurrentSkip"

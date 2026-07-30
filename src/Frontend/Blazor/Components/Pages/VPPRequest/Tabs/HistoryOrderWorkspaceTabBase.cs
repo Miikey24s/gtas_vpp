@@ -5,6 +5,7 @@ using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Localization;
 using Microsoft.JSInterop;
 using Radzen;
@@ -17,6 +18,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
 public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposable
 {
     [Inject] protected IStringLocalizer<App> HistoryLoc { get; set; } = default!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
     protected HistoryWorkspaceShell? _workspaceShell;
     protected IJSObjectReference? _module;
@@ -56,6 +58,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     protected int? _activeDetailNoteNumber;
     protected bool _showRegularSeries = true;
     protected bool _showAdditionalSeries = true;
+    private VppRequestResDTO? _requestedOrder;
 
     protected bool IsRefreshing => _isSummaryLoading || IsGridLoading || _isDetailLoading;
 
@@ -78,13 +81,60 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
         try
         {
             await LoadCurrentPeriodAsync();
+            await PrepareRequestedOrderAsync();
             await base.OnInitializedAsync();
+            if (_requestedOrder is not null && Orders.All(order => order.Id != _requestedOrder.Id))
+            {
+                Orders.Insert(0, _requestedOrder);
+                TotalCount = Math.Max(TotalCount + 1, Orders.Count);
+            }
             await LoadSummaryAsync();
-            await SelectFirstOrderAsync();
+            if (_requestedOrder is not null)
+            {
+                var requestedOrder = Orders.FirstOrDefault(order => order.Id == _requestedOrder.Id) ?? _requestedOrder;
+                await OpenOrderAsync(requestedOrder, focusPanel: true);
+            }
+            else
+            {
+                await SelectFirstOrderAsync();
+            }
         }
         finally
         {
             _isInitialLoading = false;
+        }
+    }
+
+    private async Task PrepareRequestedOrderAsync()
+    {
+        var query = QueryHelpers.ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query);
+        if (!query.TryGetValue("orderId", out var values)
+            || !Guid.TryParse(values.FirstOrDefault(), out var orderId))
+        {
+            return;
+        }
+
+        try
+        {
+            _requestedOrder = await _apiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{orderId}");
+            if (_requestedOrder is null)
+            {
+                return;
+            }
+
+            var period = (_requestedOrder.Year * 100) + _requestedOrder.Month;
+            _scope = CustomScope;
+            _fromPeriod = period;
+            _toPeriod = period;
+            _customFrom = $"{_requestedOrder.Year:D4}-{_requestedOrder.Month:D2}";
+            _customTo = _customFrom;
+            _search = _requestedOrder.VppCode ?? string.Empty;
+            CurrentSkip = 0;
+        }
+        catch
+        {
+            // Deep-link chỉ là hỗ trợ điều hướng; danh sách lịch sử vẫn tải bình thường nếu chi tiết không còn truy cập được.
+            _requestedOrder = null;
         }
     }
 

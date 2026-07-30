@@ -1,0 +1,208 @@
+.vpp-period-picker-host {
+    display: contents;
+}
+
+.vpp-period-picker-popover {
+    position: absolute;
+    z-index: var(--vpp-z-dropdown);
+    inset-block-start: calc(100% + var(--vpp-space-2));
+    inset-inline-start: 0;
+    display: grid;
+    width: min(460px, calc(100vw - 16px));
+    overflow: hidden;
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-card);
+    background: var(--vpp-bg-elevated);
+    color: var(--vpp-text-primary);
+    box-shadow: var(--vpp-shadow-lg);
+}
+
+.vpp-period-picker-popover.is-single {
+    width: min(300px, calc(100vw - 16px));
+}
+
+.vpp-period-picker-popover.is-above {
+    inset-block: auto calc(100% + var(--vpp-space-2));
+}
+
+.vpp-period-picker-popover.is-align-end {
+    inset-inline: auto 0;
+}
+
+.vpp-period-picker-popover > header,
+.vpp-period-picker-popover > footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-3);
+}
+
+.vpp-period-picker-popover > header {
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default);
+}
+
+.vpp-period-picker-popover h2,
+.vpp-period-picker-popover p {
+    margin: 0;
+}
+
+.vpp-period-picker-popover h2 {
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-period-picker-popover p {
+    margin-block-start: 2px;
+    color: var(--vpp-text-muted);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-period-picker-close,
+.vpp-period-picker-secondary,
+.vpp-period-picker-primary {
+    min-height: 32px;
+    border: 0;
+    border-radius: var(--vpp-radius-md);
+    font: inherit;
+    cursor: pointer;
+}
+
+.vpp-period-picker-close {
+    display: grid;
+    width: 32px;
+    flex: 0 0 32px;
+    padding: 0;
+    place-items: center;
+    background: transparent;
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-period-picker-close:hover,
+.vpp-period-picker-secondary:hover {
+    background: var(--vpp-navigation-item-hover-bg);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-period-picker-fields {
+    display: grid;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    padding: var(--vpp-space-3);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.vpp-period-picker-popover.is-single .vpp-period-picker-fields {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.vpp-period-picker-field {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    min-height: 58px;
+    align-content: center;
+    gap: 3px;
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    overflow: hidden;
+    border-radius: var(--vpp-radius-lg);
+    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
+    cursor: pointer;
+    transition: background-color var(--vpp-transition-fast), box-shadow var(--vpp-transition-fast);
+}
+
+.vpp-period-picker-field:hover {
+    background: color-mix(in srgb, var(--vpp-text-primary) 8%, var(--vpp-bg-elevated));
+}
+
+.vpp-period-picker-field:focus-within {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 52%, var(--vpp-border-default)),
+                var(--vpp-shadow-xs);
+}
+
+.vpp-period-picker-label {
+    color: var(--vpp-text-muted);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-period-picker-value {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-period-picker-value ::deep .vpp-icon {
+    color: var(--vpp-primary-600);
+}
+
+.vpp-period-picker-field input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.vpp-period-picker-separator {
+    color: var(--vpp-text-muted);
+}
+
+.vpp-period-picker-popover > footer {
+    justify-content: flex-end;
+    border-top: var(--vpp-border-width) solid var(--vpp-border-default);
+    padding-block: var(--vpp-space-2);
+}
+
+.vpp-period-picker-secondary,
+.vpp-period-picker-primary {
+    padding-inline: var(--vpp-space-3);
+}
+
+.vpp-period-picker-secondary {
+    background: transparent;
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-period-picker-primary {
+    background: var(--vpp-primary-600);
+    color: var(--vpp-text-inverse);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-period-picker-primary:hover:not(:disabled) {
+    background: var(--vpp-primary-700);
+}
+
+.vpp-period-picker-primary:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+@media (max-width: 520px) {
+    .vpp-period-picker-popover {
+        inset-inline-start: 0;
+        width: min(320px, calc(100vw - 16px));
+    }
+
+    .vpp-period-picker-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .vpp-period-picker-separator {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-period-picker-field {
+        transition-duration: .01ms;
+    }
+}

@@ -83,7 +83,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         protected async Task LoadCategories(LoadDataArgs args)
         {
             isCategoryLoading = true;
-            currentCategorySkip = args.Skip ?? 0;
+            var skip = Math.Max(0, args.Skip ?? 0);
+            var top = args.Top is > 0 ? args.Top.Value : VppPagingProfiles.SplitList.DefaultPageSize;
+            currentCategorySkip = skip;
             StateHasChanged();
             try
             {
@@ -96,8 +98,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     queryParams.Add($"filter={Uri.EscapeDataString(toolbarFilter)}");
                 }
 
-                queryParams.Add($"skip={args.Skip ?? 0}");
-                queryParams.Add($"top={args.Top ?? 20}");
+                queryParams.Add($"skip={skip}");
+                queryParams.Add($"top={top}");
 
                 if (!string.IsNullOrEmpty(args.OrderBy))
                 {
@@ -111,6 +113,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 }
 
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupCategoryResDTO>>(apiUrl);
+                if (result.TotalCount > 0 && (result.Data?.Count ?? 0) == 0 && skip > 0)
+                {
+                    queryParams.RemoveAll(parameter => parameter.StartsWith("skip=", StringComparison.Ordinal));
+                    queryParams.Add("skip=0");
+                    apiUrl = $"{Config.LibraryApi.LookupCategories}?{string.Join("&", queryParams)}";
+                    result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupCategoryResDTO>>(apiUrl);
+                    currentCategorySkip = 0;
+                }
                 lookupCategories = result.Data ?? [];
                 categoryCount = result.TotalCount;
 
@@ -296,7 +306,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
 
             isValueLoading = true;
-            currentValueSkip = args.Skip ?? 0;
+            var skip = Math.Max(0, args.Skip ?? 0);
+            var top = args.Top is > 0 ? args.Top.Value : VppPagingProfiles.SplitList.DefaultPageSize;
+            currentValueSkip = skip;
             StateHasChanged();
             try
             {
@@ -313,8 +325,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     queryParams.Add($"filter={Uri.EscapeDataString(toolbarFilter)}");
                 }
 
-                queryParams.Add($"skip={args.Skip ?? 0}");
-                queryParams.Add($"top={args.Top ?? 20}");
+                queryParams.Add($"skip={skip}");
+                queryParams.Add($"top={top}");
 
                 if (!string.IsNullOrEmpty(args.OrderBy))
                 {
@@ -323,6 +335,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
                 string apiUrl = $"{Config.LibraryApi.LookupValues}?{string.Join("&", queryParams)}";
                 var result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupValueResDTO>>(apiUrl);
+                if (result.TotalCount > 0 && (result.Data?.Count ?? 0) == 0 && skip > 0)
+                {
+                    queryParams.RemoveAll(parameter => parameter.StartsWith("skip=", StringComparison.Ordinal));
+                    queryParams.Add("skip=0");
+                    apiUrl = $"{Config.LibraryApi.LookupValues}?{string.Join("&", queryParams)}";
+                    result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupValueResDTO>>(apiUrl);
+                    currentValueSkip = 0;
+                }
                 lookupValues = result.Data ?? [];
                 valueCount = result.TotalCount;
             }

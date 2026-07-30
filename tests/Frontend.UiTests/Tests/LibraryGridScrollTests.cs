@@ -316,10 +316,53 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await master.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await detail.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         await master.Locator(".rz-data-grid-data").WaitForAsync();
-        await master.Locator(".vpp-class-master-cell").First.WaitForAsync();
+        await master.Locator("tbody > tr").First.WaitForAsync();
         await detail.Locator("tbody > tr").First.WaitForAsync();
         await master.Locator(".rz-paginator, .rz-pager").WaitForAsync();
         await detail.Locator(".rz-paginator, .rz-pager").WaitForAsync();
+
+        var masterPageSize = master.Locator(".rz-paginator .rz-dropdown, .rz-pager .rz-dropdown").Last;
+        await masterPageSize.ClickAsync();
+        var masterPageSizePanel = Page.Locator(".rz-dropdown-panel:visible").Last;
+        await masterPageSizePanel.WaitForAsync();
+        await detail.Locator("thead th").First.ClickAsync();
+        await masterPageSizePanel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        await Page.WaitForFunctionAsync(
+            """
+            () => [...document.querySelectorAll('.vpp-admin-class-split .rz-datatable-loading')].every(element => {
+                const style = getComputedStyle(element);
+                const rect = element.getBoundingClientRect();
+                return style.display === 'none'
+                    || style.visibility === 'hidden'
+                    || Number.parseFloat(style.opacity || '1') === 0
+                    || rect.width === 0
+                    || rect.height === 0;
+            })
+            """,
+            null,
+            new() { Timeout = 60_000 });
+        await master.Locator(".vpp-class-code-value").First.WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible
+        });
+        await detail.Locator("tbody > tr").First.WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible
+        });
+
+        var quickEvidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(quickEvidenceDirectory))
+        {
+            Directory.CreateDirectory(quickEvidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(quickEvidenceDirectory, "class-fixed-master-detail.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
 
         var layout = await Page.EvaluateAsync<double[]>("""
             () => {
@@ -333,7 +376,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 }
 
                 return [
-                    getComputedStyle(split).flexDirection === 'row' ? 1 : 0,
+                    getComputedStyle(split).display === 'grid' ? 1 : 0,
                     master.getBoundingClientRect().right <= detail.getBoundingClientRect().left ? 1 : 0,
                     masterTable.scrollWidth - masterData.clientWidth
                 ];
@@ -350,38 +393,39 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var masterChrome = await master.EvaluateAsync<string[]>("""
             element => {
                 const header = element.querySelector('thead');
-                const row = element.querySelector('tbody > tr');
-                const cell = element.querySelector('.vpp-class-master-cell');
-                if (!header || !row || !cell) {
+                const codeCell = element.querySelector('.vpp-class-code-value');
+                const nameCell = element.querySelector('.vpp-class-name-value');
+                if (!header || !codeCell || !nameCell) {
                     throw new Error('Class master list chrome was not rendered.');
                 }
 
                 return [
                     getComputedStyle(header).display,
-                    getComputedStyle(cell).display,
-                    getComputedStyle(cell).gap
+                    codeCell.textContent?.trim() ?? '',
+                    nameCell.textContent?.trim() ?? ''
                 ];
             }
             """);
         masterChrome[0].Should().NotBe("none");
-        masterChrome[1].Should().Be("grid");
+        masterChrome[1].Should().NotBeNullOrWhiteSpace("the class code must own a dedicated column");
+        masterChrome[2].Should().NotBeNullOrWhiteSpace("the class name must own a dedicated column");
+        masterChrome[1].Should().NotBe(masterChrome[2], "code and name must not be merged into one visual cell");
 
         var masterSemantics = await master.EvaluateAsync<double[]>("""
             element => {
-                const row = element.querySelector('tbody > tr');
-                const nameCell = row?.querySelector('.vpp-class-master-cell');
-                const statusBadge = row?.querySelector('.vpp-status-badge');
+                const codeCell = element.querySelector('.vpp-class-code-value');
+                const nameCell = element.querySelector('.vpp-class-name-value');
+                const statusBadge = element.querySelector('tbody .vpp-status-badge');
                 const statusCell = statusBadge?.closest('td');
-                const statusIndex = statusCell ? [...row.children].indexOf(statusCell) : -1;
-                const statusHeader = statusIndex >= 0 ? element.querySelectorAll('thead th')[statusIndex] : null;
-                if (!row || !nameCell || !statusHeader || !statusCell || !statusBadge) {
+                const statusHeader = element.querySelector('thead th.vpp-class-status-column');
+                if (!codeCell || !nameCell || !statusHeader || !statusCell || !statusBadge) {
                     throw new Error('Lookup category columns do not match their semantic cells.');
                 }
 
                 const headerBox = statusHeader.getBoundingClientRect();
                 const cellBox = statusCell.getBoundingClientRect();
                 return [
-                    nameCell.querySelectorAll('.vpp-status-badge').length,
+                    codeCell.querySelectorAll('.vpp-status-badge').length + nameCell.querySelectorAll('.vpp-status-badge').length,
                     statusCell.querySelectorAll('.vpp-status-badge').length,
                     statusCell.textContent?.trim().length ?? -1,
                     Math.abs(headerBox.left - cellBox.left),
@@ -583,16 +627,16 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         int.Parse(await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync()).Should().Be(initialVisibleCount);
         await targetHeader.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 
-        await Page.SetViewportSizeAsync(1200, 768);
-        // Chờ layout compact áp dụng: flexDirection chuyển sang 'column' đúng như assertion bên dưới.
+        await Page.SetViewportSizeAsync(1024, 768);
+        // Dưới breakpoint compact, fixed split chuyển thành một cột; không còn splitter kéo.
         await Page.WaitForFunctionAsync("""
             () => {
                 const split = document.querySelector('.vpp-admin-class-split');
-                return !!split && getComputedStyle(split).flexDirection === 'column';
+                return !!split && getComputedStyle(split).gridTemplateColumns.split(' ').length === 1;
             }
             """);
-        var compactDirection = await split.EvaluateAsync<string>("element => getComputedStyle(element).flexDirection");
-        compactDirection.Should().Be("column");
+        var compactColumnCount = await split.EvaluateAsync<int>("element => getComputedStyle(element).gridTemplateColumns.split(' ').length");
+        compactColumnCount.Should().Be(1);
     }
 
     [Fact]

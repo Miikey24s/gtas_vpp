@@ -6,26 +6,20 @@
     <header class="vpp-order-view-meta">
         <div class="vpp-order-view-identity">
             <div class="vpp-data-card-value-row vpp-order-code-cell">
-                    <span class="vpp-data-card-value vpp-link-text vpp-order-code-link vpp-order-code-trigger"
-                          role="button"
-                          tabindex="0"
-                          aria-haspopup="dialog"
-                          aria-expanded="false"
-                          title="@Order.VppCode">
-                        @GetShortCode(Order)
-                    </span>
-                    <div class="vpp-order-code-popover vpp-transient-surface">
-                        <span class="vpp-order-code-popover-text">@Order.VppCode</span>
-                        <RadzenButton Icon="@VppIcons.Copy"
-                                      Size="ButtonSize.ExtraSmall"
-                                      Variant="Variant.Text"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      Click="@(async _ => await CopyCodeRequested.InvokeAsync(Order.VppCode))"
-                                      Title="@Loc["Copy"]" />
-                    </div>
+                    <span class="vpp-data-card-value vpp-order-code-static" title="@Order.VppCode">@Order.VppCode</span>
                     @if (Order.IsAdditionalOrder)
                     {
                         <VppStatusBadge Text="@Loc["Additional"]" Tone="VppStatusTone.Warning" />
+                    }
+                    <VppStatusBadge Tone="@StatusDisplay.GetTone(Order.Status)"
+                                    Text="@Loc[StatusDisplay.GetResourceKey(Order.Status, Order.IsDeadlinePassed, Order.IsAdditionalOrder)]" />
+                    @if (Order.SettledAt.HasValue)
+                    {
+                        <VppStatusBadge Text="@Loc["Settled"]" Tone="VppStatusTone.Success" Title="@($"{Loc["Settled"]}: {DateFormatter.Format(Order.SettledAt, DateFormatter.LongDate)} - {Order.SettledByPriceListName}")" />
+                    }
+                    @if (ReadOnly)
+                    {
+                        <span class="vpp-order-read-only"><VppIcon Name="@VppIcons.Lock" /> @Loc["ReadOnly"]</span>
                     }
             </div>
             <span class="vpp-order-card-submitted">
@@ -49,19 +43,6 @@
         }
 
         <div class="vpp-order-card-toolbar">
-                <div class="vpp-order-card-statuses">
-                    <VppStatusBadge Tone="@StatusDisplay.GetTone(Order.Status)"
-                                    Text="@Loc[StatusDisplay.GetResourceKey(Order.Status, Order.IsDeadlinePassed, Order.IsAdditionalOrder)]" />
-                    @if (Order.SettledAt.HasValue)
-                    {
-                        <VppStatusBadge Text="@Loc["Settled"]" Tone="VppStatusTone.Success" Title="@($"{Loc["Settled"]}: {DateFormatter.Format(Order.SettledAt, DateFormatter.LongDate)} - {Order.SettledByPriceListName}")" />
-                    }
-                    @if (ReadOnly)
-                    {
-                        <span class="vpp-order-read-only"><VppIcon Name="@VppIcons.Lock" /> @Loc["ReadOnly"]</span>
-                    }
-                </div>
-
                 <div class="vpp-data-card-actions">
                     @if (!ReadOnly && (CanEdit || CanReplace))
                     {
@@ -315,20 +296,4 @@
                 : value;
     }
 
-    private static string GetShortCode(VppRequestResDTO order)
-    {
-        var code = order.VppCode;
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            return string.Empty;
-        }
-
-        var parts = code.Split('-');
-        if (parts.Length < 2)
-        {
-            return code;
-        }
-
-        return order.IsAdditionalOrder ? $"{parts[0]}-ADD-{parts[1]}" : $"{parts[0]}-{parts[1]}";
-    }
 }

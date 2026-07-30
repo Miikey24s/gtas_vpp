@@ -1,0 +1,144 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+@using System.Globalization
+
+<span @ref="root" class="vpp-period-picker-host">
+    @if (IsOpen)
+    {
+        <section class="vpp-period-picker-popover vpp-transient-surface @(IsRange ? "is-range" : "is-single")"
+                 role="dialog"
+                 aria-label="@Title"
+                 @onclick:stopPropagation>
+            <header>
+                <div>
+                    <h2>@Title</h2>
+                    @if (!string.IsNullOrWhiteSpace(Summary))
+                    {
+                        <p>@Summary</p>
+                    }
+                </div>
+                <button type="button"
+                        class="vpp-period-picker-close"
+                        title="@CancelText"
+                        aria-label="@CancelText"
+                        @onclick="CancelAsync">
+                    <VppIcon Name="@VppIcons.Close" />
+                </button>
+            </header>
+
+            <div class="vpp-period-picker-fields">
+                <label class="vpp-period-picker-field">
+                    <span class="vpp-period-picker-label">@StartLabel</span>
+                    <span class="vpp-period-picker-value">
+                        <VppIcon Name="@VppIcons.Calendar" />
+                        @FormatPeriod(StartValue)
+                    </span>
+                    <input type="month"
+                           value="@StartValue"
+                           aria-label="@StartLabel"
+                           @onchange="StartChanged" />
+                </label>
+
+                @if (IsRange)
+                {
+                    <span class="vpp-period-picker-separator" aria-hidden="true">→</span>
+                    <label class="vpp-period-picker-field">
+                        <span class="vpp-period-picker-label">@EndLabel</span>
+                        <span class="vpp-period-picker-value">
+                            <VppIcon Name="@VppIcons.Calendar" />
+                            @FormatPeriod(EndValue)
+                        </span>
+                        <input type="month"
+                               value="@EndValue"
+                               aria-label="@EndLabel"
+                               @onchange="EndChanged" />
+                    </label>
+                }
+            </div>
+
+            <footer>
+                <button type="button" class="vpp-period-picker-secondary" @onclick="CancelAsync">@CancelText</button>
+                <button type="button" class="vpp-period-picker-primary" disabled="@(!CanApply)" @onclick="ApplyAsync">@ApplyText</button>
+            </footer>
+        </section>
+    }
+</span>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool IsRange { get; set; } = true;
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Summary { get; set; }
+    [Parameter, EditorRequired] public string StartLabel { get; set; } = string.Empty;
+    [Parameter] public string EndLabel { get; set; } = string.Empty;
+    [Parameter] public string StartValue { get; set; } = string.Empty;
+    [Parameter] public string EndValue { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string ApplyText { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string CancelText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<ChangeEventArgs> StartChanged { get; set; }
+    [Parameter] public EventCallback<ChangeEventArgs> EndChanged { get; set; }
+    [Parameter] public EventCallback Applied { get; set; }
+    [Parameter] public EventCallback Dismissed { get; set; }
+
+    private ElementReference root;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<VppPeriodPickerPopover>? dotNetReference;
+    private bool isObserving;
+
+    private bool CanApply => IsValidMonth(StartValue)
+        && (!IsRange || (IsValidMonth(EndValue) && string.CompareOrdinal(StartValue, EndValue) <= 0));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsOpen && !isObserving)
+        {
+            module ??= await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./Components/DesignSystem/Composites/VppPeriodPickerPopover.razor.js");
+            dotNetReference ??= DotNetObjectReference.Create(this);
+            await module.InvokeVoidAsync("observe", root, dotNetReference);
+            isObserving = true;
+        }
+        else if (!IsOpen && isObserving && module is not null)
+        {
+            await module.InvokeVoidAsync("dispose", root);
+            isObserving = false;
+        }
+    }
+
+    [JSInvokable]
+    public Task DismissFromJsAsync() => Dismissed.InvokeAsync();
+
+    private Task ApplyAsync() => CanApply ? Applied.InvokeAsync() : Task.CompletedTask;
+
+    private Task CancelAsync() => Dismissed.InvokeAsync();
+
+    private static bool IsValidMonth(string value)
+        => DateTime.TryParseExact(value, "yyyy-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+
+    private static string FormatPeriod(string value)
+        => DateTime.TryParseExact(value, "yyyy-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out var period)
+            ? period.ToString("MM/yyyy", CultureInfo.InvariantCulture)
+            : "–";
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (module is not null)
+            {
+                if (isObserving)
+                {
+                    await module.InvokeVoidAsync("dispose", root);
+                }
+
+                await module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+
+        dotNetReference?.Dispose();
+    }
+}

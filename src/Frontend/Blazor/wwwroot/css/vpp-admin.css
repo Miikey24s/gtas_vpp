@@ -1729,21 +1729,6 @@
     display: none;
 }
 
-.vpp-admin-split {
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-md);
-    overflow: hidden;
-    background: var(--vpp-bg-elevated);
-    box-shadow: var(--vpp-shadow-xs);
-}
-
-.vpp-admin-split .rz-splitter-pane {
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    background: var(--vpp-bg-elevated);
-}
-
 .vpp-admin-grid .rz-datatable-scrollable-header,
 .vpp-admin-grid .rz-datatable-scrollable-body {
     min-width: 0;
@@ -1808,53 +1793,12 @@
     overflow: hidden;
 }
 
-.vpp-admin-split .rz-splitter-pane > * {
-    min-width: 0;
-    max-width: 100%;
-}
-
-.vpp-admin-split .rz-splitter-bar {
-    background: var(--vpp-border-default);
-}
-
 .vpp-admin-class-split {
     min-width: 0;
-    height: 100% !important;
-    min-height: 0;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-}
-
-.vpp-admin-class-split .rz-splitter-pane {
-    min-height: 0;
-    overflow: hidden;
-    background: transparent;
-}
-
-.vpp-admin-class-split .rz-splitter-pane > .vpp-data-surface {
     height: 100%;
-}
-
-.vpp-admin-class-split .rz-splitter-pane:first-child {
-    border-right: 1px solid var(--vpp-border-default);
-}
-
-/* D12: sidebar desktop mặc định mở rộng (286px) nên pane trái 31% ở 1366px chỉ
-   còn ~319px — dưới min-width thật của master grid (# 48 + Tên 260 + Thao tác
-   72) → bảng tràn ngang bị cắt. Kìm pane theo min-width grid + chrome thật của
-   vùng dữ liệu: 384px (bảng + border pane) chỉ hết tràn phần bảng; đo E2E ở
-   1366×768 vẫn dư 7px vì scrollbar/gutter dọc của .rz-data-grid-data chiếm chỗ
-   trong clientWidth → cột cuối bị cắt đúng 7px. Workspace pattern F4 thêm một
-   container typed quanh splitter và làm phần content box khả dụng giảm 5px;
-   397px giữ nguyên contract không tràn của master grid sau composition mới.
-   Chỉ áp ở layout hai cột (>1280px). E2E:
-   LibraryGridScrollTests.Class_Definitions_Use_Compact_Master_Detail_Layout. */
-@media (min-width: 1281px) {
-    .vpp-admin-class-split .rz-splitter-pane:first-child {
-        min-width: 397px;
-    }
+    min-height: 0;
+    grid-template-columns: minmax(512px, 0.82fr) minmax(0, 1.8fr) !important;
+    gap: var(--vpp-space-2);
 }
 
 @media (max-width: 1199px) {
@@ -1915,57 +1859,6 @@
 
 .vpp-class-master-grid .rz-grid-table tbody > tr > td {
     vertical-align: middle;
-}
-
-.vpp-class-master-cell {
-    display: grid;
-    gap: 0.35rem;
-    min-width: 0;
-    padding-block: 0.2rem;
-}
-
-.vpp-class-master-primary,
-.vpp-class-master-meta {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-}
-
-.vpp-class-master-primary {
-    gap: 0.5rem;
-}
-
-.vpp-class-master-primary strong {
-    flex: 0 0 auto;
-    color: var(--vpp-primary-700);
-    font-size: var(--vpp-text-sm);
-}
-
-.vpp-class-master-primary span {
-    overflow: hidden;
-    color: var(--vpp-text-primary);
-    font-weight: var(--vpp-font-weight-medium);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.vpp-class-master-meta {
-    gap: 0;
-}
-
-.vpp-class-module {
-    overflow: hidden;
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.vpp-admin-split .vpp-admin-grid.rz-data-grid,
-.vpp-admin-split .vpp-admin-grid.rz-datatable {
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
 }
 
 .vpp-admin-section-title {
@@ -2094,29 +1987,10 @@
     }
 }
 
-@media (max-width: 1280px) {
-    .vpp-admin-class-split.rz-splitter {
-        display: flex !important;
-        flex-direction: column !important;
-        height: 100% !important;
-        min-height: 0;
-    }
-
-    .vpp-admin-class-split .rz-splitter-pane {
-        flex: 1 1 0 !important;
-        width: 100% !important;
-        min-width: 0 !important;
-        min-height: 0;
-        border-right: 0;
-        overflow: hidden;
-    }
-
-    .vpp-admin-class-split .rz-splitter-bar {
-        display: none !important;
-    }
-
-    .vpp-admin-class-split .rz-splitter-pane + .rz-splitter-pane {
-        border-top: 1px solid var(--vpp-border-default);
+@media (max-width: 1100px) {
+    .vpp-admin-class-split {
+        grid-template-columns: 1fr !important;
+        height: auto;
     }
 }
 
