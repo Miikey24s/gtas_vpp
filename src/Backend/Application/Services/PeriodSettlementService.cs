@@ -181,7 +181,12 @@ namespace gtas_vpp_be.Service.Services
                 }
             }
 
-            response.InputHash = ComputeInputHash(req, asOfUtc, totals);
+            response.InputHash = ComputeInputHash(
+                req,
+                asOfUtc,
+                totals,
+                response.PrimarySupplierId,
+                response.PrimaryPriceListId);
             return response;
         }
 
@@ -348,7 +353,12 @@ namespace gtas_vpp_be.Service.Services
                 var totals = headers.SelectMany(x => x.RequestDetails)
                     .GroupBy(x => x.VppId)
                     .ToDictionary(x => x.Key, x => x.Sum(detail => (decimal)detail.Qty));
-                var transactionHash = ComputeInputHash(previewReq, asOfUtc, totals);
+                var transactionHash = ComputeInputHash(
+                    previewReq,
+                    asOfUtc,
+                    totals,
+                    preview.PrimarySupplierId,
+                    preview.PrimaryPriceListId);
                 if (!string.Equals(transactionHash, req.InputHash, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new ConflictException("Settlement request lines changed during confirmation.");
@@ -1226,15 +1236,17 @@ namespace gtas_vpp_be.Service.Services
         private static string ComputeInputHash(
             SettlementPreviewReqDTO req,
             DateTime asOfUtc,
-            IReadOnlyDictionary<Guid, decimal> totals)
+            IReadOnlyDictionary<Guid, decimal> totals,
+            Guid? effectiveSupplierId,
+            Guid? effectivePriceListId)
         {
             var canonical = JsonSerializer.Serialize(new
             {
                 req.Year,
                 req.Month,
                 PriceAsOfUtc = asOfUtc,
-                req.PriceListId,
-                req.PrimarySupplierId,
+                PriceListId = effectivePriceListId ?? req.PriceListId,
+                PrimarySupplierId = effectiveSupplierId ?? req.PrimarySupplierId,
                 Items = totals.OrderBy(x => x.Key).Select(x => new { VppId = x.Key, Quantity = x.Value }),
                 Exceptions = (req.Exceptions ?? []).OrderBy(x => x.VppId).ThenBy(x => x.SupplierId)
                     .Select(x => new { x.VppId, x.SupplierId, Reason = x.Reason?.Trim() })

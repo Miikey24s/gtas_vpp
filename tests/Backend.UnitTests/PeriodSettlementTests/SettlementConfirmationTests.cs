@@ -62,6 +62,30 @@ public sealed class SettlementConfirmationTests
     }
 
     [Fact]
+    public async Task Confirm_AcceptsQuoteAutoSelectedByPreview()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context, netPrice: 100m, vatRate: 10m);
+        var service = CreateService(context);
+        var preview = await service.PreviewAsync(new SettlementPreviewReqDTO
+        {
+            Year = 2026,
+            Month = 7,
+            PriceAsOfUtc = AsOfUtc
+        });
+
+        Assert.Equal(seed.SupplierId, preview.PrimarySupplierId);
+        Assert.Equal(seed.BookId, preview.PrimaryPriceListId);
+
+        var result = await service.ConfirmAsync(
+            ConfirmRequest(seed, preview.InputHash, "confirm-202607-auto-selected"),
+            5615);
+
+        Assert.Equal(seed.SupplierId, result.PrimarySupplierId);
+        Assert.Equal(seed.BookId, result.PriceListId);
+    }
+
+    [Fact]
     public async Task Correct_RequiresFourEyes_AndCreatesNewRevisionWithoutOverwritingPriorSnapshot()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
