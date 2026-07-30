@@ -57,6 +57,8 @@ namespace gtas_vpp_be.Service.Services
         Task<VppRequestResDTO> CreateOrderAsync(VppRequestCreateReqDTO req, int createdByUserId, string departmentCode, string memberCompanyCode);
         Task<VppRequestResDTO> UpdateOrderAsync(VppRequestUpdateReqDTO req);
         Task CancelOrderAsync(Guid id, int userId, VppRequestCancelReqDTO req);
+        Task<VppRequestResDTO> RestoreCancelledOrderAsync(Guid id, int userId, VppRequestRestoreReqDTO req);
+        Task<VppRequestResDTO> RecreateCancelledOrderAsync(Guid id, int userId, VppRequestRecreateReqDTO req);
         Task<VppRequestResDTO?> GetPreviousOrderItemsAsync(int userId);
         Task<VppPeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId);
         Task<VppRequestHistoryResDTO?> GetOrderHistoryAsync(Guid id);
@@ -791,12 +793,9 @@ namespace gtas_vpp_be.Service.Services
                     || nowUtc >= deadline || header.SettledAt is not null)
                     throw new ConflictException("This request is immutable because its period is closed or settled.");
 
-                var replacingCancelledRegular = !header.IsAdditionalOrder
-                    && header.Status == (int)VPPStatus.Cancelled;
-                if (!replacingCancelledRegular
-                    && (header.IsAdditionalOrder
+                if (header.IsAdditionalOrder
                         ? header.Status != (int)VPPStatus.Pending
-                        : header.Status != (int)VPPStatus.Submitted))
+                        : header.Status != (int)VPPStatus.Submitted)
                     throw new BusinessException("This request cannot be edited in its current status.");
 
                 var supplementReason = header.IsAdditionalOrder
@@ -853,8 +852,8 @@ namespace gtas_vpp_be.Service.Services
                 {
                     Id = Guid.NewGuid(),
                     RequestId = replacement.Id,
-                    LogTitle = replacingCancelledRegular ? "REPLACE" : "UPDATE",
-                    Action = replacingCancelledRegular ? "REPLACE" : "UPDATE",
+                    LogTitle = "UPDATE",
+                    Action = "UPDATE",
                     ActorUserId = req.UpdatedByUserId,
                     MemberCompanyCode = replacement.MemberCompanyCode,
                     RevisionNumber = replacement.RevisionNumber,
@@ -1032,6 +1031,222 @@ namespace gtas_vpp_be.Service.Services
                 await _scopedUow.RollbackAsync();
                 throw;
             }
+        }
+
+        public Task<VppRequestResDTO> RestoreCancelledOrderAsync(
+            Guid id,
+            int userId,
+            VppRequestRestoreReqDTO req)
+            => CreateCancelledRevisionAsync(
+                id,
+                userId,
+                req.RowVersion,
+                req.IdempotencyKey,
+                ComputeRestoreHash(id),
+                CancelledOrderRecoveryMode.Restore,
+                null,
+                null,
+                null);
+
+        public Task<VppRequestResDTO> RecreateCancelledOrderAsync(
+            Guid id,
+            int userId,
+            VppRequestRecreateReqDTO req)
+        {
+            ValidateItems(req.Items);
+            return CreateCancelledRevisionAsync(
+                id,
+                userId,
+                req.RowVersion,
+                req.IdempotencyKey,
+                ComputeRecreateHash(id, req),
+                CancelledOrderRecoveryMode.Recreate,
+                req.Description,
+                req.SupplementReason,
+                req.Items);
+        }
+
+        private async Task<VppRequestResDTO> CreateCancelledRevisionAsync(
+            Guid id,
+            int userId,
+            byte[]? rowVersion,
+            string? idempotencyKey,
+            string payloadHash,
+            CancelledOrderRecoveryMode mode,
+            string? description,
+            string? supplementReason,
+            IReadOnlyList<VppRequestDetailItemReqDTO>? items)
+        {
+            await _scopedUow.BeginTransactionAsync();
+            try
+            {
+                var requestSet = _scopedUow.VPPContext.Set<VppRequest>();
+                var key = NormalizeIdempotencyKey(idempotencyKey);
+                if (!string.IsNullOrWhiteSpace(key))
+                {
+                    var replay = await requestSet.AsNoTracking()
+                        .Where(x => x.CreatedByUserId == userId
+                                 && x.IdempotencyKey == key
+                                 && !x.IsDeleted)
+                        .OrderByDescending(x => x.RevisionNumber)
+                        .FirstOrDefaultAsync();
+                    if (replay is not null)
+                    {
+                        if (!string.Equals(replay.CommandPayloadHash, payloadHash, StringComparison.Ordinal))
+                            throw new ConflictException(
+                                "The idempotency key was already used for a different recovery command.");
+                        await _scopedUow.RollbackAsync();
+                        return (await GetOrderByIdAsync(replay.Id))!;
+                    }
+                }
+
+                var header = await requestSet
+                    .Include(x => x.RequestDetails)
+                    .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted && x.IsCurrentRevision);
+                if (header is null)
+                {
+                    var superseded = await requestSet.AsNoTracking()
+                        .AnyAsync(x => x.Id == id && !x.IsDeleted);
+                    if (superseded)
+                        throw new ConflictException(
+                            "The request changed while you were recovering it. Refresh and try again.");
+
+                    throw new KeyNotFoundException("Order not found.");
+                }
+                if (header.CreatedByUserId != userId)
+                    throw new UnauthorizedAccessException("Cannot recover another user's order.");
+                EnsureExpectedRowVersion(header.RowVersion, rowVersion);
+                if (header.Status != (int)VPPStatus.Cancelled)
+                    throw new BusinessException("Only a cancelled request can be recovered.");
+
+                var period = await EnsurePeriodAsync(
+                    header.MemberCompanyCode ?? string.Empty,
+                    new Period(header.Year, header.Month));
+                var now = _dateTimeProvider.Now;
+                var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
+                var deadline = header.IsAdditionalOrder
+                    ? period.SupplementApprovalDeadlineUtc
+                    : period.SubmissionDeadlineUtc;
+                var stateBlocksMutation = header.IsAdditionalOrder
+                    ? period.State is VppPeriodState.Pricing or VppPeriodState.Settled
+                    : period.State != VppPeriodState.Open;
+                if (stateBlocksMutation
+                    || nowUtc >= deadline
+                    || header.SettledAt is not null)
+                    throw new ConflictException(
+                        "This request is immutable because its period is closed or settled.");
+
+                var recreatedSupplementReason = header.IsAdditionalOrder
+                    ? supplementReason?.Trim()
+                    : null;
+                if (mode == CancelledOrderRecoveryMode.Recreate
+                    && header.IsAdditionalOrder
+                    && (string.IsNullOrWhiteSpace(recreatedSupplementReason)
+                        || recreatedSupplementReason.Length < 5
+                        || recreatedSupplementReason.Length > 500))
+                {
+                    throw new BusinessException(
+                        "A supplement reason of 5 to 500 characters is required.");
+                }
+
+                var recovery = CloneHeaderForLifecycle(
+                    header,
+                    Guid.NewGuid(),
+                    now,
+                    userId,
+                    header.IsAdditionalOrder
+                        ? (int)VPPStatus.Pending
+                        : (int)VPPStatus.Submitted);
+                recovery.Description = mode == CancelledOrderRecoveryMode.Restore
+                    ? header.Description
+                    : header.IsAdditionalOrder
+                        ? recreatedSupplementReason
+                        : description;
+                recovery.SupplementReason = mode == CancelledOrderRecoveryMode.Restore
+                    ? header.SupplementReason
+                    : recreatedSupplementReason;
+                recovery.SubmittedDate = now;
+                recovery.IdempotencyKey = key;
+                recovery.CommandPayloadHash = payloadHash;
+
+                header.IsCurrentRevision = false;
+                header.SupersededByRequestId = recovery.Id;
+                header.UpdatedByUserId = userId;
+                header.UpdatedAtUtc = now;
+
+                if (mode == CancelledOrderRecoveryMode.Restore)
+                {
+                    var restoredItems = header.RequestDetails
+                        .Where(x => !x.IsDeleted)
+                        .Select(x => new VppRequestDetailItemReqDTO
+                        {
+                            VppId = x.VppId,
+                            Qty = x.Qty,
+                            Description = x.Description
+                        })
+                        .ToList();
+                    ValidateItems(restoredItems);
+                    await ValidateActiveProductsAsync(restoredItems);
+                    recovery.RequestDetails = CloneDetails(
+                        header.RequestDetails,
+                        recovery.Id,
+                        userId,
+                        now);
+                }
+                else
+                {
+                    var recreatedItems = items ?? Array.Empty<VppRequestDetailItemReqDTO>();
+                    await ValidateActiveProductsAsync(recreatedItems);
+                    recovery.RequestDetails = await BuildRequestDetailsAsync(
+                        recreatedItems,
+                        userId,
+                        recovery.Id,
+                        now);
+                }
+
+                requestSet.Add(recovery);
+                var action = mode == CancelledOrderRecoveryMode.Restore
+                    ? "RESTORE"
+                    : "RECREATE";
+                _scopedUow.VPPContext.Set<RequestLog>().Add(new RequestLog
+                {
+                    Id = Guid.NewGuid(),
+                    RequestId = recovery.Id,
+                    LogTitle = action,
+                    Action = action,
+                    ActorUserId = userId,
+                    MemberCompanyCode = recovery.MemberCompanyCode,
+                    RevisionNumber = recovery.RevisionNumber,
+                    LogDate = now,
+                    LogJS = JsonSerializer.Serialize(BuildLogPayload(
+                        recovery,
+                        recovery.RequestDetails))
+                });
+                await _scopedUow.CommitAsync();
+                return (await GetOrderByIdAsync(recovery.Id))!;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await _scopedUow.RollbackAsync();
+                throw new ConflictException(
+                    "The request changed while you were recovering it. Refresh and try again.", ex);
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                await _scopedUow.RollbackAsync();
+                throw new ConflictException("Another recovery command won this request.", ex);
+            }
+            catch
+            {
+                await _scopedUow.RollbackAsync();
+                throw;
+            }
+        }
+
+        private enum CancelledOrderRecoveryMode
+        {
+            Restore,
+            Recreate
         }
 
         private Task CancelOrderLegacyAsync(Guid id, int userId)
@@ -1994,6 +2209,21 @@ namespace gtas_vpp_be.Service.Services
         private static string ComputeCancellationHash(VppRequestCancelReqDTO? request)
             => ComputeHash(new { Reason = request?.Reason?.Trim() });
 
+        private static string ComputeRestoreHash(Guid id)
+            => ComputeHash(new { Command = "RESTORE", Id = id });
+
+        private static string ComputeRecreateHash(Guid id, VppRequestRecreateReqDTO request)
+            => ComputeHash(new
+            {
+                Command = "RECREATE",
+                Id = id,
+                request.Description,
+                request.SupplementReason,
+                Items = request.Items
+                    .OrderBy(x => x.VppId)
+                    .Select(x => new { x.VppId, x.Qty, x.Description })
+            });
+
         private static string? NormalizeIdempotencyKey(string? value)
         {
             var normalized = value?.Trim();
@@ -2173,10 +2403,14 @@ namespace gtas_vpp_be.Service.Services
                         && !regularDeadlinePassed
                         && order.SettledAt is null);
                 order.CanCancel = order.IsCurrentRevision && order.CanEdit;
-                order.CanReplace = order.IsCurrentRevision && !order.IsAdditionalOrder
+                var canRecoverCancelled = order.IsCurrentRevision
                     && order.Status == (int)VPPStatus.Cancelled
-                    && !regularDeadlinePassed
+                    && (order.IsAdditionalOrder
+                        ? !supplementDeadlinePassed
+                        : !regularDeadlinePassed)
                     && order.SettledAt is null;
+                order.CanRestore = canRecoverCancelled;
+                order.CanRecreate = canRecoverCancelled;
             }
         }
 

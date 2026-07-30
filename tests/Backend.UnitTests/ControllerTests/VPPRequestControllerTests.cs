@@ -294,6 +294,90 @@ public class VPPRequestControllerTests
     }
 
     [Fact]
+    public async Task RestoreCancelledOrder_MissingRowVersion_ReturnsBadRequest()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var controller = CreateController(service.Object, new Claim("UserID", "5615"));
+
+        var result = await controller.RestoreCancelledOrder(
+            Guid.NewGuid(),
+            new VppRequestRestoreReqDTO());
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        service.Verify(x => x.RestoreCancelledOrderAsync(
+            It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<VppRequestRestoreReqDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RestoreCancelledOrder_Owner_ForwardsRecoveryCommand()
+    {
+        var orderId = Guid.NewGuid();
+        var request = new VppRequestRestoreReqDTO
+        {
+            RowVersion = new byte[] { 1, 2, 3 },
+            IdempotencyKey = "restore-controller-1"
+        };
+        var expected = new VppRequestResDTO { Id = Guid.NewGuid() };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetOrderByIdAsync(orderId))
+            .ReturnsAsync(new VppRequestResDTO
+            {
+                Id = orderId,
+                CreatedByUserId = 5615,
+                DepartmentCode = "IT",
+                MemberCompanyCode = "77500"
+            });
+        service.Setup(x => x.RestoreCancelledOrderAsync(orderId, 5615, request))
+            .ReturnsAsync(expected);
+        var controller = CreateController(
+            service.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.RestoreCancelledOrder(orderId, request);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expected, ok.Value);
+        service.Verify(x => x.RestoreCancelledOrderAsync(orderId, 5615, request), Times.Once);
+    }
+
+    [Fact]
+    public async Task RecreateCancelledOrder_Owner_ForwardsNewContents()
+    {
+        var orderId = Guid.NewGuid();
+        var request = new VppRequestRecreateReqDTO
+        {
+            RowVersion = new byte[] { 1, 2, 3 },
+            IdempotencyKey = "recreate-controller-1",
+            Items = [new VppRequestDetailItemReqDTO { VppId = Guid.NewGuid(), Qty = 2 }]
+        };
+        var expected = new VppRequestResDTO { Id = Guid.NewGuid() };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(x => x.GetOrderByIdAsync(orderId))
+            .ReturnsAsync(new VppRequestResDTO
+            {
+                Id = orderId,
+                CreatedByUserId = 5615,
+                DepartmentCode = "IT",
+                MemberCompanyCode = "77500"
+            });
+        service.Setup(x => x.RecreateCancelledOrderAsync(orderId, 5615, request))
+            .ReturnsAsync(expected);
+        var controller = CreateController(
+            service.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.RecreateCancelledOrder(orderId, request);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expected, ok.Value);
+        service.Verify(x => x.RecreateCancelledOrderAsync(orderId, 5615, request), Times.Once);
+    }
+
+    [Fact]
     public async Task ApproveAdditionalOrder_MissingRowVersion_ReturnsBadRequest()
     {
         var service = new Mock<IVPPRequestService>();

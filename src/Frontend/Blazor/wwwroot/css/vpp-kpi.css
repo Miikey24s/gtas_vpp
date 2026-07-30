@@ -689,6 +689,15 @@
         width: 100%;
     }
 
+    .vpp-order-card-toolbar {
+        justify-content: flex-start !important;
+    }
+
+    .vpp-order-card-toolbar .vpp-data-card-actions {
+        justify-content: flex-start !important;
+        width: 100%;
+    }
+
     .vpp-order-attempt-picker {
         align-items: flex-start;
         flex-direction: column;

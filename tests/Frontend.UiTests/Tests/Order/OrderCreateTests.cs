@@ -9,7 +9,7 @@ namespace gtas_vpp_fe.UITests.Tests.Order;
 public sealed class OrderCreateTests : TestBase, IMutatingUiTest
 {
     [Fact]
-    public async Task Employee_CanEditCancelAndInspectRegularLifecycle()
+    public async Task Employee_CanEditCancelAndRestoreRegularLifecycle()
     {
         await Page.SetViewportSizeAsync(1366, 768);
         var consoleErrors = new List<string>();
@@ -52,7 +52,6 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
         var orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
         await orderCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
-        await Page.GetByText("Đơn đã gửi", new() { Exact = true }).WaitForAsync();
         await orderCard.Locator(".vpp-order-items-grid tbody tr").First.WaitForAsync(
             new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
         // Canonical order-items column order: # · Mặt hàng · Danh mục · Đơn vị · Số lượng · Ghi chú.
@@ -140,15 +139,8 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
             new System.Text.RegularExpressions.Regex(".*/dashboard\\?tab=0.*"),
             TimeSpan.FromSeconds(30));
         orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
-        await orderCard.GetByRole(AriaRole.Button, new()
-        {
-            NameRegex = new Regex("^Xem lịch sử phiên bản của đơn ")
-        }).Last.ClickAsync();
-        var historyDialog = Page.Locator(".rz-dialog:visible").Last;
-        await historyDialog.GetByText("Vòng đời đơn yêu cầu", new() { Exact = false }).WaitForAsync();
-        await historyDialog.GetByText("Phiên bản 2", new() { Exact = false }).WaitForAsync();
-        await historyDialog.GetByText("Cập nhật đơn", new() { Exact = false }).WaitForAsync();
-        await historyDialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
+        var updatedQuantity = orderCard.Locator(".vpp-order-items-grid tbody tr").First.Locator("td").Nth(4);
+        (await updatedQuantity.InnerTextAsync()).Trim().Should().Be("4");
 
         orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
         await orderCard.GetByRole(AriaRole.Button, new()
@@ -165,19 +157,115 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         await orderCard.GetByText("Đã hủy", new() { Exact = false }).WaitForAsync();
         await orderCard.GetByRole(AriaRole.Button, new()
         {
-            NameRegex = new Regex("^Tạo phiên bản thay thế cho đơn ")
+            NameRegex = new Regex("^Hoàn tác trạng thái hủy của đơn ")
         }).WaitForAsync();
         await orderCard.GetByRole(AriaRole.Button, new()
         {
-            NameRegex = new Regex("^Xem lịch sử phiên bản của đơn ")
-        }).Last.ClickAsync();
-        historyDialog = Page.Locator(".rz-dialog:visible").Last;
-        await historyDialog.GetByText("Phiên bản 3", new() { Exact = false }).WaitForAsync();
-        await historyDialog.GetByText("Hủy đơn", new() { Exact = false }).WaitForAsync();
-        await historyDialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
+            NameRegex = new Regex("^Tạo lại nội dung mới cho đơn đã hủy ")
+        }).WaitForAsync();
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "my-orders-cancelled-recovery-actions-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+        await Page.SetViewportSizeAsync(390, 844);
+        await WaitForRenderSettleAsync();
+        var mobileOverflow = await Page.EvaluateAsync<double>(
+            "() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)");
+        mobileOverflow.Should().BeLessThanOrEqualTo(1);
+        await orderCard.GetByText("Hoàn tác hủy", new() { Exact = true }).WaitForAsync();
+        await orderCard.GetByText("Tạo lại đơn", new() { Exact = true }).WaitForAsync();
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "my-orders-cancelled-recovery-actions-390x844.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+        await Page.SetViewportSizeAsync(1366, 768);
+        await WaitForRenderSettleAsync();
+        await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Hoàn tác trạng thái hủy của đơn ")
+        }).ClickAsync();
+        var restoreDialog = Page.Locator(".rz-dialog:visible").Last;
+        await restoreDialog.GetByText("Xác nhận hoàn tác hủy", new() { Exact = false }).WaitForAsync();
+        await restoreDialog.GetByRole(AriaRole.Button, new() { Name = "Hoàn tác hủy", Exact = true }).ClickAsync();
+        await Page.GetByText("Đã hoàn tác hủy", new() { Exact = false }).WaitForAsync();
+
+        orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
+        await orderCard.GetByText("Đã gửi", new() { Exact = true }).WaitForAsync();
+        var restoredQuantity = orderCard.Locator(".vpp-order-items-grid tbody tr").First.Locator("td").Nth(4);
+        (await restoredQuantity.InnerTextAsync()).Trim().Should().Be("4",
+            "hoàn tác hủy phải khôi phục đúng snapshot vừa bị hủy");
+        (await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Hoàn tác trạng thái hủy của đơn ")
+        }).CountAsync())
+            .Should().Be(0, "đơn đã khôi phục không còn là revision bị hủy");
 
         failedRequests.Should().BeEmpty();
         consoleErrors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Employee_CanRecreateCancelledRegularFromBlankWizard()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsAsync(TestAccounts.Employee);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
+        var orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
+        await orderCard.WaitForAsync();
+
+        await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Hủy đơn ")
+        }).ClickAsync();
+        var cancelDialog = Page.Locator(".rz-dialog:visible").Last;
+        await cancelDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy đơn", Exact = true }).ClickAsync();
+        await orderCard.GetByText("Đã hủy", new() { Exact = false }).WaitForAsync();
+
+        await orderCard.GetByRole(AriaRole.Button, new()
+        {
+            NameRegex = new Regex("^Tạo lại nội dung mới cho đơn đã hủy ")
+        }).ClickAsync();
+        await WaitForUrlMatchAsync(
+            new Regex(".*/dashboard/order-create.*mode=recreate.*", RegexOptions.IgnoreCase),
+            TimeSpan.FromSeconds(30));
+
+        var wizard = Page.Locator(".vpp-wizard:visible");
+        await wizard.WaitForAsync();
+        (await wizard.Locator(".vpp-order-draft-item").CountAsync()).Should().Be(0,
+            "tạo lại đơn phải bắt đầu bằng form rỗng thay vì copy snapshot đã hủy");
+        await wizard.GetByRole(AriaRole.Button, new() { Name = "Thêm mặt hàng vào đơn", Exact = false }).First.ClickAsync();
+        await wizard.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục", Exact = true }).ClickAsync();
+        await wizard.GetByRole(AriaRole.Button, new() { Name = "Tạo lại đơn", Exact = true }).ClickAsync();
+
+        await WaitForUrlMatchAsync(
+            new Regex(".*/dashboard\\?tab=0.*", RegexOptions.IgnoreCase),
+            TimeSpan.FromSeconds(30));
+        orderCard = Page.Locator("[data-testid='current-order-panel']:visible").Last;
+        await orderCard.GetByText("Đã gửi", new() { Exact = true }).WaitForAsync();
+        (await orderCard.Locator(".vpp-order-items-grid tbody tr").CountAsync()).Should().Be(1,
+            "wizard tạo lại rỗng chỉ phải lưu mặt hàng người dùng vừa chọn");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "my-orders-recreated-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
     }
 
     private async Task WaitForUrlMatchAsync(Regex expectedUrl, TimeSpan timeout)

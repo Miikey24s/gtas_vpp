@@ -63,6 +63,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public VppRequestResDTO? ViewingOrder { get; set; }
         public VppPeriodInfoResDTO? PeriodInfo { get; set; }
         private readonly HashSet<Guid> _cancellingOrderIds = new();
+        private readonly HashSet<Guid> _restoringOrderIds = new();
         private Guid? _selectedSupplementOrderId;
         protected int OrderViewSelectedIndex { get; set; }
 
@@ -211,10 +212,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             => order.Items?.Any(item => GetBusinessNote(item.Description) is not null) == true;
         private bool CanUpdate(VppRequestResDTO row) =>
             row.CanEdit && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
-        private bool CanReplace(VppRequestResDTO row) =>
-            row.CanReplace && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
+        private bool CanRestore(VppRequestResDTO row) =>
+            row.CanRestore && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
+        private bool CanRecreate(VppRequestResDTO row) =>
+            row.CanRecreate && PermissionState.HasPermission(Permissions.RequestUpdateOwn);
         private bool CanCancel(VppRequestResDTO row) =>
             row.CanCancel && PermissionState.HasPermission(Permissions.RequestCancelOwn);
+        private bool IsRestoring(Guid orderId) => _restoringOrderIds.Contains(orderId);
 
         protected override async Task OnInitializedAsync()
         {
@@ -320,6 +324,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await Task.CompletedTask;
         }
 
+        protected async Task GoToRecreatePage(VppRequestResDTO row)
+        {
+            NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}&mode=recreate");
+            await Task.CompletedTask;
+        }
+
         protected bool IsExportingOrder { get; private set; }
 
         protected Task ExportOrderPdfAsync(VppRequestResDTO row) => ExportOrderAsync(row, "export.pdf");
@@ -418,6 +428,60 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             NavigationManager.NavigateTo($"/dashboard?tab=1&orderId={row.Id:D}");
             return Task.CompletedTask;
+        }
+
+        protected async Task RestoreCancelledOrderAsync(VppRequestResDTO row)
+        {
+            if (!CanRestore(row) || !_restoringOrderIds.Add(row.Id)) return;
+
+            var confirm = await DialogService.Confirm(
+                string.Format(Loc["RestoreOrderConfirm"], row.VppCode),
+                Loc["RestoreOrderTitle"],
+                new ConfirmOptions
+                {
+                    OkButtonText = Loc["RestoreOrder"],
+                    CancelButtonText = Loc["KeepCancelledOrder"]
+                });
+            if (confirm != true)
+            {
+                _restoringOrderIds.Remove(row.Id);
+                return;
+            }
+
+            try
+            {
+                var request = new VppRequestRestoreReqDTO
+                {
+                    RowVersion = row.RowVersion,
+                    IdempotencyKey = Guid.NewGuid().ToString("N")
+                };
+                await _apiServices.PostFromApiAsync<VppRequestResDTO>(
+                    $"{Config.VppApi.Orders}/{row.Id}/restore",
+                    request);
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = Loc["Order"],
+                    Detail = Loc["OrderRestoredSuccess"],
+                    Duration = 3000
+                });
+                await LoadPeriodInfoAsync();
+                await LoadOrdersAsync();
+            }
+            catch (Exception ex)
+            {
+                Toast.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = Loc["Order"],
+                    Detail = UiErrorMapper.GetMessage(ex, Loc, "RestoreFailed"),
+                    Duration = 6000
+                });
+            }
+            finally
+            {
+                _restoringOrderIds.Remove(row.Id);
+            }
         }
 
         protected bool IsSubmitted(VppRequestResDTO row) => row.Status == 1;

@@ -543,6 +543,7 @@ public sealed class SharedUiFoundationTests
         var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
         var codeBehind = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
         var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
+        var orderCreate = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Page_OrderCreate.razor.cs"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
         var orderItemsStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.css"));
         var kpiStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-kpi.css"));
@@ -575,6 +576,19 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-order-code-static", orderPanel, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-card-statuses", orderPanel, StringComparison.Ordinal);
         Assert.Contains("vpp-data-card-actions", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("CanRestore", source, StringComparison.Ordinal);
+        Assert.Contains("CanRecreate", source, StringComparison.Ordinal);
+        Assert.Equal(2, source.Split("RestoreRequested=\"@RestoreCancelledOrderAsync\"", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, source.Split("RecreateRequested=\"@GoToRecreatePage\"", StringSplitOptions.None).Length - 1);
+        Assert.Contains("RestoreRequested", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("RecreateRequested", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("RestoreOrder", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("RecreateOrder", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("VppRequestRecreateReqDTO", orderCreate, StringComparison.Ordinal);
+        Assert.Contains("mode=recreate", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("CanReplace", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("CanReplace", orderPanel, StringComparison.Ordinal);
+        Assert.DoesNotContain("ReplaceOrder", orderPanel, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", orderPanel, StringComparison.Ordinal);
         Assert.Contains("Property=\"Quantity\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("Property=\"UomName\"", orderItemsSurface, StringComparison.Ordinal);

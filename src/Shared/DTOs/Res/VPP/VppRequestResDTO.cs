@@ -56,7 +56,8 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public bool IsDeadlinePassed { get; set; }
         public bool CanEdit { get; set; }
         public bool CanCancel { get; set; }
-        public bool CanReplace { get; set; }
+        public bool CanRestore { get; set; }
+        public bool CanRecreate { get; set; }
 
         public List<VppRequestDetailResDTO> Items { get; set; } = new();
     }

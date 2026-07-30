@@ -605,11 +605,22 @@
   <data name="RejectReasonHelp" xml:space="preserve"><value>Give a specific reason so the requester can correct and resubmit.</value></data>
   <data name="RejectReasonRequired" xml:space="preserve"><value>Enter a rejection reason.</value></data>
   <data name="RejectReasonLength" xml:space="preserve"><value>The reason must contain 5 to 500 characters.</value></data>
-  <data name="ReplaceOrder" xml:space="preserve"><value>Create replacement request</value></data>
-  <data name="ReplaceOrderAria" xml:space="preserve"><value>Create a replacement revision for request {0}</value></data>
+  <data name="RestoreOrder" xml:space="preserve"><value>Undo cancellation</value></data>
+  <data name="RestoreOrderAria" xml:space="preserve"><value>Undo cancellation for request {0}</value></data>
+  <data name="RestoreOrderTitle" xml:space="preserve"><value>Confirm undo cancellation</value></data>
+  <data name="RestoreOrderConfirm" xml:space="preserve"><value>Restore the exact contents of request {0}? A new revision will be created while the cancelled revision remains in history.</value></data>
+  <data name="KeepCancelledOrder" xml:space="preserve"><value>Keep cancelled</value></data>
+  <data name="OrderRestoredSuccess" xml:space="preserve"><value>The cancellation was undone and the request contents were restored.</value></data>
+  <data name="RestoreFailed" xml:space="preserve"><value>The request cancellation could not be undone.</value></data>
+  <data name="RecreateOrder" xml:space="preserve"><value>Recreate request</value></data>
+  <data name="RecreateOrderAria" xml:space="preserve"><value>Create new contents for cancelled request {0}</value></data>
+  <data name="OrderRecreatedSuccess" xml:space="preserve"><value>The request was recreated with new contents.</value></data>
+  <data name="WizardRecreatingCancelledRequest" xml:space="preserve"><value>Recreating a cancelled request</value></data>
+  <data name="WizardOrderModeSummaryRecreate" xml:space="preserve"><value>Select new items and quantities; the request stays in the same revision history.</value></data>
   <data name="RequestAction_CREATE" xml:space="preserve"><value>Request created</value></data>
   <data name="RequestAction_UPDATE" xml:space="preserve"><value>Request updated</value></data>
-  <data name="RequestAction_REPLACE" xml:space="preserve"><value>Replacement created</value></data>
+  <data name="RequestAction_RESTORE" xml:space="preserve"><value>Cancellation undone</value></data>
+  <data name="RequestAction_RECREATE" xml:space="preserve"><value>Request recreated</value></data>
   <data name="RequestAction_CANCEL" xml:space="preserve"><value>Request cancelled</value></data>
   <data name="RequestAction_APPROVE" xml:space="preserve"><value>Request approved</value></data>
   <data name="RequestAction_REJECT" xml:space="preserve"><value>Request rejected</value></data>

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using gtas_vpp_shared.DTOs;
 using gtas_vpp_shared.DTOs.Req;
+using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.Notifications;
@@ -137,7 +138,8 @@ public sealed class SharedContractSerializationTests
             "baseRequestSeriesId",
             "canCancel",
             "canEdit",
-            "canReplace",
+            "canRecreate",
+            "canRestore",
             "cancelReason",
             "cancelledAt",
             "cancelledById",
@@ -183,6 +185,18 @@ public sealed class SharedContractSerializationTests
             "updatedByUserId",
             "vppCode",
             "year");
+    }
+
+    [Fact]
+    public void RecreateRequest_PreservesRegularAndSupplementRecoveryFields()
+    {
+        AssertJsonProperties(
+            new VppRequestRecreateReqDTO(),
+            "description",
+            "idempotencyKey",
+            "items",
+            "rowVersion",
+            "supplementReason");
     }
 
     [Fact]

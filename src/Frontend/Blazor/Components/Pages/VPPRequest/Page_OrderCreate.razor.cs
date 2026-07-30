@@ -26,6 +26,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [SupplyParameterFromQuery] public Guid? OrderId { get; set; }
         [SupplyParameterFromQuery(Name = "isAdditional")] public string? IsAdditionalParam { get; set; }
         [SupplyParameterFromQuery(Name = "copyFrom")] public string? CopyFromParam { get; set; }
+        [SupplyParameterFromQuery(Name = "mode")] public string? ModeParam { get; set; }
 
         private bool _isAdditionalOverride;
         private bool _hasLoadedOrder;
@@ -44,7 +45,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public bool IsSaving { get; set; }
         public bool IsPageLoading { get; set; } = true;
-        public bool IsEdit => OrderId.HasValue;
+        public bool IsRecreate => OrderId.HasValue
+            && string.Equals(ModeParam, "recreate", StringComparison.OrdinalIgnoreCase);
+        public bool IsEdit => OrderId.HasValue && !IsRecreate;
         public bool IsCopyFromPrevious => !string.IsNullOrWhiteSpace(CopyFromParam) && CopyFromParam.Equals("previous", StringComparison.OrdinalIgnoreCase);
         public DateTime? LastDraftSavedAt { get; set; }
         public bool DraftRecovered { get; set; }
@@ -125,7 +128,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             Context.TotalQty);
         public string DraftRecoveredText => Loc["DraftRestored"].Value.ToLower();
 
-        public string OrderModeTitle => IsEdit
+        public string OrderModeTitle => IsRecreate
+            ? Loc["RecreateOrder"].Value
+            : IsEdit
             ? Loc["EditOrder"].Value
             : IsCopyFromPrevious
                 ? Loc["CopyOrder"].Value
@@ -133,7 +138,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     ? Loc["AdditionalOrder"].Value
                     : Loc["CreateOrder"].Value;
 
-        public string OrderModeBadgeText => IsEdit
+        public string OrderModeBadgeText => IsRecreate
+            ? Loc["WizardRecreatingCancelledRequest"].Value
+            : IsEdit
             ? Loc["WizardEditingExistingRequest"].Value
             : IsCopyFromPrevious
                 ? Loc["WizardCopiedFromPreviousOrder"].Value
@@ -141,7 +148,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     ? Loc["WizardModeAdditionalFlow"].Value
                     : Loc["WizardRegularRequest"].Value;
 
-        public string OrderModeSummary => IsEdit
+        public string OrderModeSummary => IsRecreate
+            ? Loc["WizardOrderModeSummaryRecreate"].Value
+            : IsEdit
             ? Loc["WizardOrderModeSummaryEdit"].Value
             : IsCopyFromPrevious
                 ? Loc["WizardOrderModeSummaryCopy"].Value
@@ -160,12 +169,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public string TargetPeriodText => DateFormatter.Format(TargetPeriodDate, DateFormatter.MonthYear);
         public string TargetWindowText => $"{DateFormatter.Format(TargetPeriodStartDate, DateFormatter.ShortDate)} - {DateFormatter.Format(TargetPeriodEndDate, DateFormatter.ShortDate)}";
 
-        public bool CanSubmitForPeriod => IsEdit
+        public bool CanSubmitForPeriod => IsEdit || IsRecreate
             ? _editingAllowed
             : PeriodInfo is not null
               && (Context.IsAdditional ? PeriodInfo.CanCreateAdditional : PeriodInfo.CanCreateOrder);
 
-        public string PeriodActionReason => IsEdit
+        public string PeriodActionReason => IsEdit || IsRecreate
             ? Loc["OrderNoLongerEditable"].Value
             : Context.IsAdditional
                 ? PeriodInfo?.CanCreateAdditionalReason ?? Loc["SupplementUnavailable"].Value
@@ -204,8 +213,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 : string.Format(Loc["ReadyToSubmitItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty)
         };
 
-        public string PrimaryActionText => Context.IsAdditional
-            ? Loc["SubmitForApproval"].Value
+        public string PrimaryActionText => IsRecreate
+                ? Loc["RecreateOrder"].Value
+            : Context.IsAdditional
+                ? Loc["SubmitForApproval"].Value
             : IsEdit
                 ? Loc["UpdateOrder"].Value
                 : Loc["CreateOrder"].Value;
@@ -233,7 +244,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     Claims = PermissionState.IdentityClaims;
                 }
 
-                var requiredPermission = IsEdit
+                var requiredPermission = IsEdit || IsRecreate
                     ? Permissions.RequestUpdateOwn
                     : Permissions.RequestCreate;
                 if (!PermissionState.HasPermission(requiredPermission))
@@ -253,13 +264,17 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 await LoadPeriodInfoAsync();
 
                 // Khởi tạo context.
-                Context.Mode = IsEdit ? "edit" : (IsCopyFromPrevious ? "copy" : (IsAdditional ? "additional" : "new"));
+                Context.Mode = IsRecreate
+                    ? "recreate"
+                    : IsEdit
+                        ? "edit"
+                        : (IsCopyFromPrevious ? "copy" : (IsAdditional ? "additional" : "new"));
                 Context.EditOrderId = OrderId;
                 Context.IsAdditional = IsAdditional;
                 Context.BaseRequestId = PeriodInfo?.BaseRequestId;
                 Context.BaseRequestCode = PeriodInfo?.BaseRequestCode;
 
-                if (IsEdit && OrderId.HasValue)
+                if ((IsEdit || IsRecreate) && OrderId.HasValue)
                 {
                     await LoadOrderForEditAsync();
                 }
@@ -425,26 +440,33 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     return;
                 }
 
-                Context.Description = editingOrder.Description;
-                Context.SupplementReason = editingOrder.SupplementReason;
-                Context.BaseRequestId = editingOrder.BaseRequestId;
                 Context.RowVersion = editingOrder.RowVersion;
-                _editingAllowed = editingOrder.CanEdit || editingOrder.CanReplace;
+                _editingAllowed = IsRecreate
+                    ? editingOrder.CanRecreate
+                    : editingOrder.CanEdit;
                 _isAdditionalOverride = editingOrder.IsAdditionalOrder;
                 _hasLoadedOrder = true;
-                Context.IsAdditional = editingOrder.IsAdditionalOrder;
-                Context.SelectedItems = (editingOrder.Items ?? new())
-                    .Select(x => new OrderCreateContext.SelectedItem
-                    {
-                        VppId = x.VppId,
-                        VppCode = x.VppCode,
-                        VppName = x.VppName,
-                        UomCode = x.UomCode,
-                        UomName = x.UomName,
-                        Qty = x.Qty,
-                        Description = x.Description
-                    })
-                    .ToList();
+                Context.IsAdditional = _isAdditionalOverride;
+                Context.BaseRequestId = editingOrder.BaseRequestId;
+
+                if (!IsRecreate)
+                {
+                    Context.Description = editingOrder.Description;
+                    Context.SupplementReason = editingOrder.SupplementReason;
+                    Context.BaseRequestId = editingOrder.BaseRequestId;
+                    Context.SelectedItems = (editingOrder.Items ?? new())
+                        .Select(x => new OrderCreateContext.SelectedItem
+                        {
+                            VppId = x.VppId,
+                            VppCode = x.VppCode,
+                            VppName = x.VppName,
+                            UomCode = x.UomCode,
+                            UomName = x.UomName,
+                            Qty = x.Qty,
+                            Description = x.Description
+                        })
+                        .ToList();
+                }
             }
             catch (Exception ex)
             {
@@ -698,7 +720,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     Description = x.Description
                 }).ToList();
 
-                if (IsEdit)
+                if (IsRecreate)
+                {
+                    var recreateReq = new VppRequestRecreateReqDTO
+                    {
+                        Description = Context.Description,
+                        SupplementReason = Context.IsAdditional
+                            ? Context.SupplementReason?.Trim()
+                            : null,
+                        RowVersion = Context.RowVersion,
+                        IdempotencyKey = _submissionIdempotencyKey,
+                        Items = requestItems
+                    };
+
+                    await _apiServices.PostFromApiAsync<VppRequestResDTO>(
+                        $"{Config.VppApi.Orders}/{OrderId}/recreate",
+                        recreateReq);
+                }
+                else if (IsEdit)
                 {
                     var updateReq = new VppRequestUpdateReqDTO
                     {
@@ -738,7 +777,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = Loc["Order"],
-                    Detail = IsEdit ? Loc["OrderUpdatedSuccessfully"] : Loc["OrderCreatedSuccessfully"],
+                    Detail = IsRecreate
+                        ? Loc["OrderRecreatedSuccess"]
+                        : IsEdit
+                            ? Loc["OrderUpdatedSuccessfully"]
+                            : Loc["OrderCreatedSuccessfully"],
                     Duration = 3000
                 });
 

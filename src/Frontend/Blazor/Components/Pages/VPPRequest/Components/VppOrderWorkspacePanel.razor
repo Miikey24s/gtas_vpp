@@ -44,17 +44,39 @@
 
         <div class="vpp-order-card-toolbar">
                 <div class="vpp-data-card-actions">
-                    @if (!ReadOnly && (CanEdit || CanReplace))
+                    @if (!ReadOnly && CanEdit)
                     {
-                        @* Atlas my-orders: action bar toàn quiet, chỉ "Hủy" là danger — không tô primary cho "Sửa". *@
-                        <RadzenButton Icon="@(CanReplace ? "restart_alt" : "edit")"
-                                      Text="@(CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
+                        <RadzenButton Icon="edit"
+                                      Text="@Loc["Edit"]"
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Base"
                                       Variant="Variant.Text"
                                       Click="@(async _ => await EditRequested.InvokeAsync(Order))"
-                                      Title="@(CanReplace ? Loc["ReplaceOrder"] : Loc["Edit"])"
-                                      aria-label="@string.Format(CanReplace ? Loc["ReplaceOrderAria"] : Loc["EditOrderAria"], Order.VppCode)" />
+                                      Title="@Loc["Edit"]"
+                                      aria-label="@string.Format(Loc["EditOrderAria"], Order.VppCode)" />
+                    }
+                    @if (!ReadOnly && CanRestore)
+                    {
+                        <RadzenButton Icon="undo"
+                                      Text="@Loc["RestoreOrder"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await RestoreRequested.InvokeAsync(Order))"
+                                      Title="@Loc["RestoreOrder"]"
+                                      aria-label="@string.Format(Loc["RestoreOrderAria"], Order.VppCode)"
+                                      Disabled="@IsRestoring"
+                                      IsBusy="@IsRestoring" />
+                    }
+                    @if (!ReadOnly && CanRecreate)
+                    {
+                        <RadzenButton Icon="@VppIcons.Add"
+                                      Text="@Loc["RecreateOrder"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(async _ => await RecreateRequested.InvokeAsync(Order))"
+                                      Title="@Loc["RecreateOrder"]"
+                                      aria-label="@string.Format(Loc["RecreateOrderAria"], Order.VppCode)" />
                     }
                     <RadzenButton Icon="@VppIcons.History"
                                   Text="@Loc["History"]"
@@ -151,15 +173,19 @@
     [Parameter] public EventCallback<Guid> SelectedOrderIdChanged { get; set; }
     [Parameter] public bool ReadOnly { get; set; }
     [Parameter] public bool CanEdit { get; set; }
-    [Parameter] public bool CanReplace { get; set; }
+    [Parameter] public bool CanRestore { get; set; }
+    [Parameter] public bool CanRecreate { get; set; }
     [Parameter] public bool CanCancel { get; set; }
     [Parameter] public bool IsCancelling { get; set; }
+    [Parameter] public bool IsRestoring { get; set; }
     [Parameter, EditorRequired] public string EmptyIcon { get; set; } = VppIcons.Orders;
     [Parameter, EditorRequired] public string EmptyTitle { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string EmptyDescription { get; set; } = string.Empty;
     [Parameter] public string? EmptyActionText { get; set; }
     [Parameter] public EventCallback EmptyActionClick { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> EditRequested { get; set; }
+    [Parameter] public EventCallback<VppRequestResDTO> RestoreRequested { get; set; }
+    [Parameter] public EventCallback<VppRequestResDTO> RecreateRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> HistoryRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> CancelRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> ExportPdfRequested { get; set; }

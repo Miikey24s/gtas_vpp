@@ -64,6 +64,7 @@ public sealed class RouteCatalogConsistencyTests
             "orderId",
             "isAdditional",
             "copyFrom",
+            "mode",
             "priceListId",
             "required"
         };
@@ -86,6 +87,10 @@ public sealed class RouteCatalogConsistencyTests
             RouteCatalog.Authenticated,
             route => route.Key == "dashboard.order-create.copy-previous"
                 && route.Path == "/dashboard/order-create?copyFrom=previous");
+        Assert.Contains(
+            RouteCatalog.Authenticated,
+            route => route.Key == "dashboard.order-create.recreate"
+                && route.Path.Contains("mode=recreate", StringComparison.Ordinal));
         Assert.Contains(
             RouteCatalog.Authenticated,
             route => route.Key == "library.pricing.prices.selected-list"

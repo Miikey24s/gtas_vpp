@@ -195,6 +195,15 @@ public static class RouteCatalog
             IsDynamic: true,
             Notes: "Replace {SAMPLE_ORDER_ID} with the first editable order id available to the test user."),
 
+        new(
+            Key: "dashboard.order-create.recreate",
+            Path: "/dashboard/order-create?orderId={SAMPLE_CANCELLED_ORDER_ID}&mode=recreate",
+            Title: "RecreateOrder",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.RequestOrder],
+            IsDynamic: true,
+            Notes: "Replace {SAMPLE_CANCELLED_ORDER_ID} with a current cancelled order owned by the test user."),
+
         // ── Danh mục ───────────────────────────────────────────────
         new(
             Key: "library.classes",
@@ -391,6 +400,7 @@ public static class RouteCatalog
         "orderId",
         "isAdditional",
         "copyFrom",
+        "mode",
         "priceListId",
         "required"
     ];

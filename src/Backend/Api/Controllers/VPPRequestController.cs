@@ -358,6 +358,52 @@ namespace gtas_vpp_be.Controllers
             return Ok();
         }
 
+        [HttpPost("orders/{id:guid}/restore")]
+        [Authorize(Policy = Permissions.RequestUpdateOwn)]
+        [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RestoreCancelledOrder(
+            Guid id,
+            [FromBody] VppRequestRestoreReqDTO req)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (req.RowVersion is not { Length: > 0 })
+                return BadRequest(new { Message = "RowVersion is required. Refresh the request and try again." });
+
+            var current = await _vppService.GetOrderByIdAsync(id);
+            if (current == null) return NotFound();
+            if (!IsOwnedByCurrentUser(current) || !IsInCurrentCompany(current)) return Forbid();
+
+            var result = await _vppService.RestoreCancelledOrderAsync(id, CurrentUserId.Value, req);
+            return Ok(result);
+        }
+
+        [HttpPost("orders/{id:guid}/recreate")]
+        [Authorize(Policy = Permissions.RequestUpdateOwn)]
+        [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RecreateCancelledOrder(
+            Guid id,
+            [FromBody] VppRequestRecreateReqDTO req)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (req.RowVersion is not { Length: > 0 })
+                return BadRequest(new { Message = "RowVersion is required. Refresh the request and try again." });
+
+            var current = await _vppService.GetOrderByIdAsync(id);
+            if (current == null) return NotFound();
+            if (!IsOwnedByCurrentUser(current) || !IsInCurrentCompany(current)) return Forbid();
+
+            var result = await _vppService.RecreateCancelledOrderAsync(id, CurrentUserId.Value, req);
+            return Ok(result);
+        }
+
         [HttpGet("orders/previous-items")]
         [Authorize(Policy = Permissions.RequestViewOwn)]
         [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]

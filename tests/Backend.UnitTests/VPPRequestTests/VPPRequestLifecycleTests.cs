@@ -64,7 +64,7 @@ public sealed class VPPRequestLifecycleTests
     }
 
     [Fact]
-    public async Task Cancel_PreservesHistory_AndCancelledCurrentRevisionCanBeReplaced()
+    public async Task Cancel_PreservesHistory_AndRestoreCreatesSubmittedRevision()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
@@ -95,21 +95,32 @@ public sealed class VPPRequestLifecycleTests
         Assert.Equal(2, cancelledHistory.Revisions.Count);
         Assert.False(cancelledHistory.Revisions[0].CanEdit);
         Assert.False(cancelledHistory.Revisions[0].CanCancel);
-        Assert.True(cancelledHistory.Revisions[1].CanReplace);
+        Assert.True(cancelledHistory.Revisions[1].CanRestore);
+        Assert.True(cancelledHistory.Revisions[1].CanRecreate);
         Assert.Equal(new[] { "CREATE", "CANCEL" }, cancelledHistory.Timeline.Select(x => x.Action));
 
         var cancelledRowVersion = await SetRowVersionAsync(context, cancelled.Id);
-        var replacementCommand = CreateUpdate(
-            cancelled.Id, vppId, qty: 3, description: "Replacement request");
-        replacementCommand.RowVersion = cancelledRowVersion;
-        var replacement = await service.UpdateOrderAsync(replacementCommand);
+        var restored = await service.RestoreCancelledOrderAsync(
+            cancelled.Id,
+            RequesterId,
+            new VppRequestRestoreReqDTO
+            {
+                RowVersion = cancelledRowVersion,
+                IdempotencyKey = "restore-lifecycle-1"
+            });
         var finalHistory = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
             await service.GetOrderHistoryAsync(original.Id));
-        Assert.Equal(replacement.Id, finalHistory.CurrentRequestId);
+        Assert.Equal(restored.Id, finalHistory.CurrentRequestId);
         Assert.Equal(3, finalHistory.Revisions.Count);
-        Assert.False(finalHistory.Revisions.Single(x => x.RevisionNumber == 2).CanReplace);
+        Assert.False(finalHistory.Revisions.Single(x => x.RevisionNumber == 2).CanRestore);
+        Assert.False(finalHistory.Revisions.Single(x => x.RevisionNumber == 2).CanRecreate);
         Assert.True(finalHistory.Revisions.Single(x => x.RevisionNumber == 3).CanEdit);
-        Assert.Equal(new[] { "CREATE", "CANCEL", "REPLACE" }, finalHistory.Timeline.Select(x => x.Action));
+        var restoredDetail = await context.Set<VppRequestDetail>()
+            .SingleAsync(x => x.RequestId == restored.Id && !x.IsDeleted);
+        Assert.Equal(2, restoredDetail.Qty);
+        Assert.Equal("Regular request", restored.Description);
+        Assert.Equal(original.RequestSeriesId, restored.RequestSeriesId);
+        Assert.Equal(new[] { "CREATE", "CANCEL", "RESTORE" }, finalHistory.Timeline.Select(x => x.Action));
     }
 
     [Fact]
@@ -152,9 +163,279 @@ public sealed class VPPRequestLifecycleTests
             await service.GetOrderHistoryAsync(original.Id));
         var cancelled = Assert.Single(history.Revisions, x => x.IsCurrentRevision);
         Assert.Equal((int)VPPStatus.Cancelled, cancelled.Status);
-        Assert.True(cancelled.CanReplace);
+        Assert.True(cancelled.CanRestore);
+        Assert.True(cancelled.CanRecreate);
         Assert.False(cancelled.CanEdit);
         Assert.False(cancelled.CanCancel);
+    }
+
+    [Fact]
+    public async Task RecreateCancelledRegular_CreatesNewContentInSameSeries()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var firstVppId = Guid.NewGuid();
+        var secondVppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, firstVppId);
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, secondVppId);
+        var service = CreateService(context);
+        var original = await CreateRegularAsync(service, firstVppId, qty: 2);
+        var originalRowVersion = await SetRowVersionAsync(context, original.Id);
+
+        await service.CancelOrderAsync(original.Id, RequesterId, new VppRequestCancelReqDTO
+        {
+            RowVersion = originalRowVersion,
+            IdempotencyKey = "cancel-before-recreate"
+        });
+        var cancelled = await context.Set<VppRequest>().SingleAsync(x => x.IsCurrentRevision);
+        var cancelledRowVersion = await SetRowVersionAsync(context, cancelled.Id);
+
+        var recreated = await service.RecreateCancelledOrderAsync(
+            cancelled.Id,
+            RequesterId,
+            new VppRequestRecreateReqDTO
+            {
+                Description = "New request contents",
+                RowVersion = cancelledRowVersion,
+                IdempotencyKey = "recreate-lifecycle-1",
+                Items =
+                [
+                    new VppRequestDetailItemReqDTO
+                    {
+                        VppId = secondVppId,
+                        Qty = 5,
+                        Description = "Recreated item"
+                    }
+                ]
+            });
+
+        Assert.Equal(original.RequestSeriesId, recreated.RequestSeriesId);
+        Assert.Equal(3, recreated.RevisionNumber);
+        Assert.Equal((int)VPPStatus.Submitted, recreated.Status);
+        Assert.Equal("New request contents", recreated.Description);
+        var item = await context.Set<VppRequestDetail>()
+            .SingleAsync(x => x.RequestId == recreated.Id && !x.IsDeleted);
+        Assert.Equal(secondVppId, item.VppId);
+        Assert.Equal(5, item.Qty);
+
+        var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
+            await service.GetOrderHistoryAsync(original.Id));
+        Assert.Equal(new[] { "CREATE", "CANCEL", "RECREATE" }, history.Timeline.Select(x => x.Action));
+    }
+
+    [Fact]
+    public async Task RestoreCancelledSupplement_KeepsAttemptAndReturnsToPending()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var service = CreateService(context);
+        var supplement = await CreateSupplementAsync(service, vppId);
+        var originalVersion = await SetRowVersionAsync(context, supplement.Id);
+
+        await service.CancelOrderAsync(supplement.Id, RequesterId, new VppRequestCancelReqDTO
+        {
+            RowVersion = originalVersion,
+            IdempotencyKey = "cancel-supplement-before-restore"
+        });
+
+        var cancelled = await context.Set<VppRequest>()
+            .SingleAsync(x => x.IsAdditionalOrder && x.IsCurrentRevision);
+        var cancelledVersion = await SetRowVersionAsync(context, cancelled.Id);
+        var cancelledDto = await service.GetOrderByIdAsync(cancelled.Id);
+        Assert.NotNull(cancelledDto);
+        Assert.True(cancelledDto.CanRestore);
+        Assert.True(cancelledDto.CanRecreate);
+
+        var restored = await service.RestoreCancelledOrderAsync(
+            cancelled.Id,
+            RequesterId,
+            new VppRequestRestoreReqDTO
+            {
+                RowVersion = cancelledVersion,
+                IdempotencyKey = "restore-supplement"
+            });
+
+        Assert.True(restored.IsAdditionalOrder);
+        Assert.Equal((int)VPPStatus.Pending, restored.Status);
+        Assert.Equal(supplement.RequestSeriesId, restored.RequestSeriesId);
+        Assert.Equal(supplement.BaseRequestSeriesId, restored.BaseRequestSeriesId);
+        Assert.Equal(supplement.SupplementSequence, restored.SupplementSequence);
+        Assert.Equal(supplement.SupplementAttemptNumber, restored.SupplementAttemptNumber);
+        Assert.Equal(supplement.SupplementReason, restored.SupplementReason);
+        Assert.Equal(1, await context.Set<VppRequest>()
+            .CountAsync(x => x.IsAdditionalOrder && x.IsCurrentRevision));
+
+        var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
+            await service.GetOrderHistoryAsync(supplement.Id));
+        Assert.Equal(new[] { "CREATE", "CANCEL", "RESTORE" }, history.Timeline.Select(x => x.Action));
+    }
+
+    [Fact]
+    public async Task RecreateCancelledSupplement_ReusesAttemptAndRequiresNewReason()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var originalVppId = Guid.NewGuid();
+        var recreatedVppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, originalVppId);
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, recreatedVppId);
+        var service = CreateService(context);
+        var supplement = await CreateSupplementAsync(service, originalVppId);
+        var originalVersion = await SetRowVersionAsync(context, supplement.Id);
+
+        await service.CancelOrderAsync(supplement.Id, RequesterId, new VppRequestCancelReqDTO
+        {
+            RowVersion = originalVersion,
+            IdempotencyKey = "cancel-supplement-before-recreate"
+        });
+        var cancelled = await context.Set<VppRequest>()
+            .SingleAsync(x => x.IsAdditionalOrder && x.IsCurrentRevision);
+        var cancelledVersion = await SetRowVersionAsync(context, cancelled.Id);
+
+        var invalid = await Assert.ThrowsAsync<BusinessException>(() =>
+            service.RecreateCancelledOrderAsync(
+                cancelled.Id,
+                RequesterId,
+                new VppRequestRecreateReqDTO
+                {
+                    RowVersion = cancelledVersion,
+                    SupplementReason = "bad",
+                    Items = [new() { VppId = recreatedVppId, Qty = 3 }]
+                }));
+        Assert.Contains("5 to 500", invalid.Message);
+
+        var recreated = await service.RecreateCancelledOrderAsync(
+            cancelled.Id,
+            RequesterId,
+            new VppRequestRecreateReqDTO
+            {
+                RowVersion = cancelledVersion,
+                IdempotencyKey = "recreate-supplement",
+                SupplementReason = "New items required after cancellation",
+                Items =
+                [
+                    new VppRequestDetailItemReqDTO
+                    {
+                        VppId = recreatedVppId,
+                        Qty = 3,
+                        Description = "Replacement supplement item"
+                    }
+                ]
+            });
+
+        Assert.True(recreated.IsAdditionalOrder);
+        Assert.Equal((int)VPPStatus.Pending, recreated.Status);
+        Assert.Equal(supplement.RequestSeriesId, recreated.RequestSeriesId);
+        Assert.Equal(supplement.SupplementSequence, recreated.SupplementSequence);
+        Assert.Equal(supplement.SupplementAttemptNumber, recreated.SupplementAttemptNumber);
+        Assert.Equal("New items required after cancellation", recreated.SupplementReason);
+        var item = await context.Set<VppRequestDetail>()
+            .SingleAsync(x => x.RequestId == recreated.Id && !x.IsDeleted);
+        Assert.Equal(recreatedVppId, item.VppId);
+        Assert.Equal(3, item.Qty);
+    }
+
+    [Fact]
+    public async Task CancelledRegular_CannotUseGenericUpdateCommand()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var service = CreateService(context);
+        var original = await CreateRegularAsync(service, vppId);
+        var originalRowVersion = await SetRowVersionAsync(context, original.Id);
+        await service.CancelOrderAsync(original.Id, RequesterId, new VppRequestCancelReqDTO
+        {
+            RowVersion = originalRowVersion
+        });
+        var cancelled = await context.Set<VppRequest>().SingleAsync(x => x.IsCurrentRevision);
+        var cancelledRowVersion = await SetRowVersionAsync(context, cancelled.Id);
+        var update = CreateUpdate(cancelled.Id, vppId, 3, "Old replacement path");
+        update.RowVersion = cancelledRowVersion;
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+            service.UpdateOrderAsync(update));
+
+        Assert.Contains("cannot be edited", exception.Message);
+        Assert.Equal(2, await context.Set<VppRequest>().CountAsync());
+        Assert.Empty(context.Set<RequestLog>().Where(x => x.Action == "REPLACE"));
+    }
+
+    [Fact]
+    public async Task RestoreAndRecreate_RespectIdempotencyAndRowVersion()
+    {
+        using var restoreContext = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var restoreVppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(restoreContext, restoreVppId);
+        var restoreService = CreateService(restoreContext);
+        var restoreOriginal = await CreateRegularAsync(restoreService, restoreVppId);
+        var restoreOriginalVersion = await SetRowVersionAsync(restoreContext, restoreOriginal.Id);
+        await restoreService.CancelOrderAsync(restoreOriginal.Id, RequesterId, new VppRequestCancelReqDTO
+        {
+            RowVersion = restoreOriginalVersion
+        });
+        var restoreCancelled = await restoreContext.Set<VppRequest>().SingleAsync(x => x.IsCurrentRevision);
+        var restoreCancelledVersion = await SetRowVersionAsync(restoreContext, restoreCancelled.Id);
+        var restoreCommand = new VppRequestRestoreReqDTO
+        {
+            RowVersion = restoreCancelledVersion,
+            IdempotencyKey = "restore-retry-1"
+        };
+
+        var restored = await restoreService.RestoreCancelledOrderAsync(
+            restoreCancelled.Id, RequesterId, restoreCommand);
+        var restoreReplay = await restoreService.RestoreCancelledOrderAsync(
+            restoreCancelled.Id, RequesterId, restoreCommand);
+
+        Assert.Equal(restored.Id, restoreReplay.Id);
+        Assert.Single(restoreContext.Set<RequestLog>(), x => x.Action == "RESTORE");
+
+        using var recreateContext = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var recreateVppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(recreateContext, recreateVppId);
+        var recreateService = CreateService(recreateContext);
+        var recreateOriginal = await CreateRegularAsync(recreateService, recreateVppId);
+        var recreateOriginalVersion = await SetRowVersionAsync(recreateContext, recreateOriginal.Id);
+        await recreateService.CancelOrderAsync(recreateOriginal.Id, RequesterId, new VppRequestCancelReqDTO
+        {
+            RowVersion = recreateOriginalVersion
+        });
+        var recreateCancelled = await recreateContext.Set<VppRequest>().SingleAsync(x => x.IsCurrentRevision);
+        var recreateVersion = await SetRowVersionAsync(recreateContext, recreateCancelled.Id);
+
+        var stale = await Assert.ThrowsAsync<ConflictException>(() =>
+            recreateService.RecreateCancelledOrderAsync(
+                recreateCancelled.Id,
+                RequesterId,
+                new VppRequestRecreateReqDTO
+                {
+                    RowVersion = new byte[] { 9, 9, 9 },
+                    Items = [new VppRequestDetailItemReqDTO { VppId = recreateVppId, Qty = 2 }]
+                }));
+        Assert.Contains("changed while you were editing", stale.Message);
+
+        var recreateCommand = new VppRequestRecreateReqDTO
+        {
+            RowVersion = recreateVersion,
+            IdempotencyKey = "recreate-retry-1",
+            Items = [new VppRequestDetailItemReqDTO { VppId = recreateVppId, Qty = 2 }]
+        };
+        var recreated = await recreateService.RecreateCancelledOrderAsync(
+            recreateCancelled.Id, RequesterId, recreateCommand);
+        var recreateReplay = await recreateService.RecreateCancelledOrderAsync(
+            recreateCancelled.Id, RequesterId, recreateCommand);
+        Assert.Equal(recreated.Id, recreateReplay.Id);
+
+        var changedPayload = new VppRequestRecreateReqDTO
+        {
+            RowVersion = recreateVersion,
+            IdempotencyKey = recreateCommand.IdempotencyKey,
+            Items = [new VppRequestDetailItemReqDTO { VppId = recreateVppId, Qty = 3 }]
+        };
+        var conflict = await Assert.ThrowsAsync<ConflictException>(() =>
+            recreateService.RecreateCancelledOrderAsync(
+                recreateCancelled.Id, RequesterId, changedPayload));
+        Assert.Contains("different recovery command", conflict.Message);
+        Assert.Single(recreateContext.Set<RequestLog>(), x => x.Action == "RECREATE");
     }
 
     [Fact]
