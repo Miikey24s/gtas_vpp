@@ -27,8 +27,10 @@ public partial class PeriodSettlementPanel : IDisposable
 
     [Parameter] public int Year { get; set; }
     [Parameter] public int Month { get; set; }
-    [Parameter] public int DefaultYear { get; set; }
-    [Parameter] public int DefaultMonth { get; set; }
+    [Parameter] public int CurrentPeriodYear { get; set; }
+    [Parameter] public int CurrentPeriodMonth { get; set; }
+    [Parameter] public int PreviousPeriodYear { get; set; }
+    [Parameter] public int PreviousPeriodMonth { get; set; }
     [Parameter] public EventCallback<PeriodTargetSelection> PeriodChanged { get; set; }
     [Parameter] public EventCallback OnSettled { get; set; }
 
@@ -452,15 +454,15 @@ public partial class PeriodSettlementPanel : IDisposable
 
         showCustomPeriodPicker = false;
         periodScope = scope;
-        if (DefaultYear < 2024 || DefaultMonth is < 1 or > 12)
+        var target = scope == PreviousPeriodScope
+            ? new PeriodTargetSelection(PreviousPeriodYear, PreviousPeriodMonth)
+            : new PeriodTargetSelection(CurrentPeriodYear, CurrentPeriodMonth);
+        if (target.Year < 2024 || target.Month is < 1 or > 12)
         {
             return;
         }
 
-        var target = scope == PreviousPeriodScope
-            ? new DateTime(DefaultYear, DefaultMonth, 1).AddMonths(-1)
-            : new DateTime(DefaultYear, DefaultMonth, 1);
-        await PeriodChanged.InvokeAsync(new PeriodTargetSelection(target.Year, target.Month));
+        await PeriodChanged.InvokeAsync(target);
     }
 
     private void OnCustomPeriodChanged(ChangeEventArgs args)
@@ -705,18 +707,14 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private string ResolvePeriodScope(int year, int month)
     {
-        if (year == DefaultYear && month == DefaultMonth)
+        if (year == CurrentPeriodYear && month == CurrentPeriodMonth)
         {
             return CurrentPeriodScope;
         }
 
-        if (DefaultYear >= 2024 && DefaultMonth is >= 1 and <= 12)
+        if (year == PreviousPeriodYear && month == PreviousPeriodMonth)
         {
-            var previous = new DateTime(DefaultYear, DefaultMonth, 1).AddMonths(-1);
-            if (year == previous.Year && month == previous.Month)
-            {
-                return PreviousPeriodScope;
-            }
+            return PreviousPeriodScope;
         }
 
         return CustomPeriodScope;

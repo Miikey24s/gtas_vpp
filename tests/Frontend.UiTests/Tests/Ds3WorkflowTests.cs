@@ -25,6 +25,49 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         var periodLabels = await Page.Locator(".vpp-settlement-period-scope-host .vpp-segmented-label")
             .AllInnerTextsAsync();
         periodLabels.Select(label => label.Trim()).Should().Equal("Kỳ trước", "Kỳ này", "Tùy chọn");
+
+        var periodSelector = Page.Locator(".vpp-settlement-period-scope-host .vpp-segmented-selector");
+        var previousPeriodButton = periodSelector.GetByRole(AriaRole.Button, new() { Name = "Kỳ trước", Exact = true });
+        var currentPeriodButton = periodSelector.GetByRole(AriaRole.Button, new() { Name = "Kỳ này", Exact = true });
+        (await previousPeriodButton.GetAttributeAsync("aria-pressed")).Should().Be("true",
+            "Chốt kỳ phải mở mặc định ở kỳ liền trước");
+        await surface.GetByText("Kỳ 06/2026", new() { Exact = true }).WaitForAsync();
+
+        await currentPeriodButton.ClickAsync();
+        await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Hidden,
+            Timeout = 60_000
+        });
+        await Page.WaitForFunctionAsync(
+            """
+            () => [...document.querySelectorAll('.vpp-settlement-period-scope-host button')]
+                .some(button => button.textContent?.trim() === 'Kỳ này'
+                    && button.getAttribute('aria-pressed') === 'true')
+            """);
+        (await currentPeriodButton.GetAttributeAsync("aria-pressed")).Should().Be("true");
+        await surface.GetByText("Kỳ 07/2026", new() { Exact = true }).WaitForAsync();
+        await WaitForRenderSettleAsync();
+        await CaptureAsync("ds3-period-settlement-current-1366x768.png");
+
+        await previousPeriodButton.ClickAsync();
+        await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Hidden,
+            Timeout = 60_000
+        });
+        await Page.WaitForFunctionAsync(
+            """
+            () => [...document.querySelectorAll('.vpp-settlement-period-scope-host button')]
+                .some(button => button.textContent?.trim() === 'Kỳ trước'
+                    && button.getAttribute('aria-pressed') === 'true')
+            """);
+        var activePeriodButtons = periodSelector.Locator("button[aria-pressed='true']");
+        (await activePeriodButtons.CountAsync()).Should().Be(1);
+        (await activePeriodButtons.First.InnerTextAsync()).Trim().Should().Be("Kỳ trước");
+        (await currentPeriodButton.GetAttributeAsync("aria-pressed")).Should().Be("false");
+        await surface.GetByText("Kỳ 06/2026", new() { Exact = true }).WaitForAsync();
+        await WaitForRenderSettleAsync();
         await CaptureAsync("ds3-period-settlement-default-1366x768.png");
 
         var customPeriodButton = Page.GetByRole(AriaRole.Button, new() { Name = "Tùy chọn", Exact = true });

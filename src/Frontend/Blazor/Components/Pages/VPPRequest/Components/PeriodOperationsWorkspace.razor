@@ -12,8 +12,10 @@ else
 {
     <PeriodSettlementPanel Year="@State.Year"
                            Month="@State.Month"
-                           DefaultYear="@defaultYear"
-                           DefaultMonth="@defaultMonth"
+                           CurrentPeriodYear="@currentPeriodYear"
+                           CurrentPeriodMonth="@currentPeriodMonth"
+                           PreviousPeriodYear="@previousPeriodYear"
+                           PreviousPeriodMonth="@previousPeriodMonth"
                            PeriodChanged="@ChangePeriodAsync"
                            OnSettled="@Settled" />
 }
@@ -25,8 +27,10 @@ else
     [Parameter] public EventCallback Settled { get; set; }
 
     private bool isLoadingPeriod = true;
-    private int defaultYear;
-    private int defaultMonth;
+    private int currentPeriodYear;
+    private int currentPeriodMonth;
+    private int previousPeriodYear;
+    private int previousPeriodMonth;
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,12 +39,13 @@ else
             var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
             if (period is not null)
             {
-                defaultYear = period.PreviousPeriodYear;
-                defaultMonth = period.PreviousPeriodMonth;
-                if (!State.HasPeriod)
-                {
-                    State.SetPeriod(defaultYear, defaultMonth);
-                }
+                currentPeriodYear = period.CurrentPeriodYear;
+                currentPeriodMonth = period.CurrentPeriodMonth;
+                previousPeriodYear = period.PreviousPeriodYear;
+                previousPeriodMonth = period.PreviousPeriodMonth;
+
+                // Chốt kỳ mở ở kỳ trước, nhưng nhãn "Kỳ này" luôn trỏ tới kỳ đặt hàng hiện tại.
+                State.SetPeriod(previousPeriodYear, previousPeriodMonth);
             }
         }
         finally

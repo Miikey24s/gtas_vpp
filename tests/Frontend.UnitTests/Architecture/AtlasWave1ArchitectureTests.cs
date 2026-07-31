@@ -142,6 +142,10 @@ public sealed class AtlasWave1ArchitectureTests
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PeriodSettlementPanel", workspace, StringComparison.Ordinal);
+        Assert.Contains("CurrentPeriodYear=\"@currentPeriodYear\"", workspace, StringComparison.Ordinal);
+        Assert.Contains("PreviousPeriodYear=\"@previousPeriodYear\"", workspace, StringComparison.Ordinal);
+        Assert.Contains("State.SetPeriod(previousPeriodYear, previousPeriodMonth)", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("DefaultYear", settlementCode, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppWorkflowStepper", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-period-workspace-header", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<h1", workspace, StringComparison.Ordinal);
