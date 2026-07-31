@@ -386,7 +386,7 @@ Configuration catalog:
   Connection string : ConnectionStrings__TestEnv / ConnectionStrings__LiveEnv
   TEST or LIVE      : DatabaseSettings__DefaultEnvironment = TestEnv | LiveEnv
   Migration mode   : DatabaseInitialization__Mode
-  Demo owner       : DatabaseInitialization__DemoOwnerUsername (active username; MigrateAndDemo only)
+  Demo owner       : DatabaseInitialization__DemoOwnerUsername (optional; otherwise exactly one active DEV is selected)
   Admin bootstrap  : AuthBootstrap__* (one-shot RunOnly; this script supplies it)
   JWT key          : JwtSettings__Key
   SMTP password    : EmailNotifications__Password
@@ -400,7 +400,7 @@ Examples:
   .\scripts\gtas.cmd doctor -Scope frontend
   .\scripts\gtas.cmd agent-check
   .\scripts\gtas.cmd configure
-  .\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
+  .\scripts\gtas.cmd init-db -Mode MigrateAndDemo -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
   .\scripts\gtas.cmd bootstrap-admin -ConnectionString "..." -DepartmentCode IT -DepartmentName "Information Technology"
   .\scripts\gtas.cmd run
   .\scripts\gtas.cmd test
@@ -456,8 +456,7 @@ try {
             $ConnectionString = Read-RequiredValue 'TEST/DEMO database connection string' $ConnectionString
             $databaseName = Assert-LocalDatabase $ConnectionString
             $additionalVariables = @{}
-            if ($Mode -eq 'MigrateAndDemo') {
-                $Username = Read-RequiredValue 'Existing active account that owns the demo orders' $Username
+            if ($Mode -eq 'MigrateAndDemo' -and -not [string]::IsNullOrWhiteSpace($Username)) {
                 $additionalVariables['DatabaseInitialization__DemoOwnerUsername'] = $Username
             }
 

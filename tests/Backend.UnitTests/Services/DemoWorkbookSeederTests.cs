@@ -1,4 +1,5 @@
 using System.Text.Json;
+using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Services;
 using Xunit;
@@ -27,6 +28,38 @@ public sealed class DemoWorkbookSeederTests
     }
 
     [Fact]
+    public void BuildRequestCode_LooksLikeARegularApplicationOrder()
+    {
+        var code = DemoWorkbookSeeder.BuildRequestCode(2026, 7, "IT");
+
+        Assert.StartsWith("VPP-202607-", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("DEMO", code, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(code, DemoWorkbookSeeder.BuildRequestCode(2026, 7, "IT"));
+    }
+
+    [Fact]
+    public void ResolvePeriodState_LeavesCurrentOpenAndMakesPastPeriodReadyForPricing()
+    {
+        var calculator = new PeriodCalculator();
+        var nowUtc = new DateTime(2026, 7, 31, 5, 0, 0, DateTimeKind.Utc);
+
+        Assert.Equal(
+            VppPeriodState.Open,
+            DemoWorkbookSeeder.ResolvePeriodState(
+                new Period(2026, 7),
+                isCurrent: true,
+                calculator,
+                nowUtc));
+        Assert.Equal(
+            VppPeriodState.Pricing,
+            DemoWorkbookSeeder.ResolvePeriodState(
+                new Period(2026, 6),
+                isCurrent: false,
+                calculator,
+                nowUtc));
+    }
+
+    [Fact]
     public void NormalizedDataset_HasReviewedCountsAndNoPersonalNotes()
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "Helpers", "Data", "Demo");
@@ -51,5 +84,29 @@ public sealed class DemoWorkbookSeederTests
         Assert.Equal(2829, orderLines.Length);
         Assert.DoesNotContain("Note", orderLines[0], StringComparison.OrdinalIgnoreCase);
         Assert.All(userLines.Skip(1), line => Assert.Contains("@demo.gtas.local", line));
+
+        var seederSource = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Backend",
+            "Application",
+            "Services",
+            "DemoWorkbookSeeder.cs"));
+        Assert.Contains("request.Status = (int)VPPStatus.Submitted;", seederSource, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "isCurrent ? VPPStatus.Submitted : VPPStatus.Approved",
+            seederSource,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("item.Description = $\"{DemoDescription}", seederSource, StringComparison.Ordinal);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "gtas_vpp.slnx")))
+            directory = directory.Parent;
+
+        return directory?.FullName
+            ?? throw new DirectoryNotFoundException("Repository root was not found from the test output directory.");
     }
 }

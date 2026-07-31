@@ -479,11 +479,6 @@ DatabaseInitializationModeParser.ValidateForEnvironment(
 DeploymentConfigurationContract.ValidateDemoDatabaseTarget(
     databaseInitializationMode,
     databaseBinding);
-if (shouldSeedDemo && string.IsNullOrWhiteSpace(demoOwnerUsername))
-{
-    throw new InvalidOperationException(
-        "MigrateAndDemo requires DatabaseInitialization:DemoOwnerUsername so workbook orders can be bound to an active account and primary department.");
-}
 var databaseInitializationOnly = Configuration.GetValue<bool>("DatabaseInitialization:RunOnly");
 var authBootstrapEnabled = Configuration.GetValue<bool>($"{AuthBootstrapOptions.SectionName}:Enabled");
 
@@ -507,7 +502,9 @@ if (shouldMigrate)
         databaseInitializationMode,
         shouldSeedReference,
         shouldSeedDemo,
-        shouldSeedDemo ? new DemoWorkbookSeedOptions(demoOwnerUsername) : null);
+        shouldSeedDemo
+            ? new DemoWorkbookSeedOptions(demoOwnerUsername, AutoResolveOwner: true)
+            : null);
 }
 
 if (authBootstrapEnabled)

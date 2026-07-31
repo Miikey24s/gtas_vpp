@@ -21,7 +21,7 @@ namespace gtas_vpp_be.Service.Services
         // là đã áp dụng, và bootstrap reference production không được phụ thuộc
         // vào demo fixture tùy chọn.
         private const string ReferenceSeedVersion = "2026-07-15-reference-2-flat-rbac";
-        private const string DemoSeedVersion = "2026-07-19-demo-2-workbook-orders";
+        private const string DemoSeedVersion = "2026-07-31-demo-3-normal-workflows";
         private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
 
         // ── Mã định danh trang ─────────────────────────────────────

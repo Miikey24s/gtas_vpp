@@ -18,8 +18,9 @@ Chạy từ thư mục gốc repository:
 # 3. Tạo System Admin đầu tiên; script sẽ hỏi thông tin còn thiếu và mật khẩu ẩn
 .\scripts\gtas.cmd bootstrap-admin -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_01;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True" -DepartmentCode IT -DepartmentName "Information Technology"
 
-# 4. Tuỳ chọn: nạp catalog + đơn hàng Demo từ workbook đã chuẩn hoá
-.\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_01;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
+# 4. Tuỳ chọn: nạp catalog + đơn hàng từ workbook đã chuẩn hoá
+# Nếu TEST có đúng một DEV đang hoạt động, owner được chọn tự động.
+.\scripts\gtas.cmd init-db -Mode MigrateAndDemo -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_01;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
 
 # 5. Chạy backend và frontend bằng Aspire + Hot Reload
 .\scripts\gtas.cmd run
@@ -31,7 +32,7 @@ Mật khẩu admin phải có ít nhất 10 ký tự, gồm chữ thường, ch�
 
 `run` dùng `dotnet watch`: thay đổi hỗ trợ Hot Reload được áp dụng ngay, thay đổi lớn sẽ tự restart AppHost. Trang ứng dụng là `https://localhost:7009/Account/Login`; URL có token `?t=...` chỉ dùng để đăng nhập Aspire Dashboard. Trong Dashboard cũng có link **frontend → GTAS Login**.
 
-Những lần sau chỉ cần `run`. `init-db` và `bootstrap-admin` có thể chạy lại an toàn: migration/seed idempotent và admin không bị tạo trùng. Mode `MigrateAndDemo` cần một username đang hoạt động; đơn phòng ban của username đó sẽ bind vào tài khoản thật, các phòng ban còn lại dùng tài khoản demo bị khóa đăng nhập.
+Những lần sau chỉ cần `run`. `init-db` và `bootstrap-admin` có thể chạy lại an toàn: migration/seed idempotent và admin không bị tạo trùng. Mode `MigrateAndDemo` tự chọn owner khi TEST có đúng một DEV đang hoạt động; vẫn có thể truyền `-Username` để chọn tường minh. Đơn phòng ban của owner bind vào tài khoản thật, các phòng ban còn lại dùng tài khoản fixture bị khóa đăng nhập.
 
 Các lệnh khác:
 

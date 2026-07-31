@@ -7,3 +7,4 @@
 - `demo-source-audit.json`: fingerprint và kết quả kiểm tra nguồn.
 
 Không sửa TSV bằng tay. Hãy chạy `scripts/data/normalize-vpp-demo-source.py`, review audit rồi chạy `MigrateAndDemo`.
+Thông tin provenance chỉ nằm trong audit/seed history; các trường người dùng nhìn thấy được seed như dữ liệu nghiệp vụ bình thường, không chứa nhãn `demo fixture`.

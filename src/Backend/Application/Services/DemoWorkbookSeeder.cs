@@ -18,7 +18,8 @@ namespace gtas_vpp_be.Service.Services;
 /// </summary>
 public sealed record DemoWorkbookSeedOptions(
     string? OwnerUsername = null,
-    DateTime? NowUtc = null);
+    DateTime? NowUtc = null,
+    bool AutoResolveOwner = false);
 
 /// <summary>
 /// Đối soát projection đã chuẩn hóa, không nhạy cảm của workbook PPJ VPP.
@@ -34,7 +35,7 @@ public static class DemoWorkbookSeeder
     private const int ExpectedOrderLines = 2828;
     private const int LatestSourceMonth = 3;
     private const string DemoEmailSuffix = "@demo.gtas.local";
-    private const string DemoDescription = "Normalized PPJ workbook demo fixture";
+    private const string LegacyDemoDescription = "Normalized PPJ workbook demo fixture";
 
     private static readonly Guid DefaultPriceListId =
         Guid.Parse("00000000-0000-0000-0000-000000000700");
@@ -53,7 +54,7 @@ public static class DemoWorkbookSeeder
         var orderRows = ReadOrderRows();
         ValidateDataset(catalogRows, departmentRows, userRows, orderRows);
 
-        var owner = await ResolveOwnerAsync(context, options.OwnerUsername, cancellationToken);
+        var owner = await ResolveOwnerAsync(context, options, cancellationToken);
         var actorUserId = owner?.User.Id ?? FallbackAuditUserId;
         var nowUtc = NormalizeUtc(options.NowUtc ?? DateTime.UtcNow);
 
@@ -143,7 +144,7 @@ public static class DemoWorkbookSeeder
 
             category.VppCategoryCode = group.Key.CategoryCode;
             category.VppCategoryName = group.Key.CategoryName;
-            category.Description = DemoDescription;
+            category.Description = null;
             category.UpdatedByUserId = actorUserId;
             category.UpdatedAtUtc = nowUtc;
             category.IsDeleted = false;
@@ -160,7 +161,7 @@ public static class DemoWorkbookSeeder
                 Code = "Uom",
                 Name = "Đơn vị tính",
                 ModuleName = "VPP",
-                Description = DemoDescription,
+                Description = null,
                 CreatedByUserId = actorUserId,
                 CreatedAtUtc = nowUtc,
                 UpdatedByUserId = actorUserId,
@@ -200,7 +201,7 @@ public static class DemoWorkbookSeeder
             uom.Code = group.Key.UomCode;
             uom.Value = group.Key.UomName;
             uom.Sort = sort;
-            uom.Description = DemoDescription;
+            uom.Description = null;
             uom.UpdatedByUserId = actorUserId;
             uom.UpdatedAtUtc = nowUtc;
             uom.IsDeleted = false;
@@ -246,7 +247,7 @@ public static class DemoWorkbookSeeder
             item.VppName = row.ItemName;
             item.VppCategoryId = targetCategory.Id;
             item.UomId = targetUom.Id;
-            item.Description = $"{DemoDescription}; resolution={row.Resolution}";
+            item.Description = null;
             item.UpdatedByUserId = actorUserId;
             item.UpdatedAtUtc = nowUtc;
             item.IsDeleted = false;
@@ -283,7 +284,7 @@ public static class DemoWorkbookSeeder
                 SupplierShortName = VppPricingDefaults.DefaultSupplierShortName,
                 SupplierName = "VPP Gia Định",
                 City = "Hồ Chí Minh",
-                Description = DemoDescription,
+                Description = null,
                 CreatedByUserId = actorUserId,
                 CreatedAtUtc = nowUtc,
                 UpdatedByUserId = actorUserId,
@@ -317,7 +318,7 @@ public static class DemoWorkbookSeeder
         priceList.VatPolicy = "item-rate";
         priceList.PublishedAtUtc ??= nowUtc;
         priceList.PublishedByUserId ??= actorUserId;
-        priceList.Description = DemoDescription;
+        priceList.Description = null;
         priceList.UpdatedByUserId = actorUserId;
         priceList.UpdatedAtUtc = nowUtc;
         priceList.IsDeleted = false;
@@ -365,7 +366,7 @@ public static class DemoWorkbookSeeder
             mapping.LeadTimeDays = 2;
             mapping.SupplierSku = row.ItemCode;
             mapping.IsDefault = true;
-            mapping.Description = DemoDescription;
+            mapping.Description = null;
             mapping.UpdatedByUserId = actorUserId;
             mapping.UpdatedAtUtc = nowUtc;
             mapping.IsDeleted = false;
@@ -410,7 +411,7 @@ public static class DemoWorkbookSeeder
 
             department.Code = row.DepartmentCode;
             department.Name = row.DepartmentName;
-            department.Description = $"{DemoDescription}; sheets={string.Join(',', row.SourceSheets)}";
+            department.Description = null;
             department.UpdatedByUserId = actorUserId;
             department.UpdatedAtUtc = nowUtc;
             department.IsDeleted = false;
@@ -419,6 +420,292 @@ public static class DemoWorkbookSeeder
 
         await context.SaveChangesAsync(cancellationToken);
         return result;
+    }
+
+    private static async Task ReconcileActiveInteractiveMembershipsAsync(
+        VPPMigrationDbContext context,
+        DemoOwner owner,
+        IReadOnlyDictionary<string, Department> departmentByCode,
+        DateTime nowUtc,
+        CancellationToken cancellationToken)
+    {
+        var activeInteractiveUsers = await context.Users
+            .Where(user => user.AccountStatus == AppAccountStatus.Active)
+            .ToListAsync(cancellationToken);
+        activeInteractiveUsers = activeInteractiveUsers
+            .Where(user => !IsOwnedDemoUser(user))
+            .OrderBy(user => user.Id)
+            .ToList();
+
+        var memberships = await context.UserGroupMemberships
+            .Where(membership => membership.AccountId != null)
+            .ToListAsync(cancellationToken);
+        var activeUserIds = activeInteractiveUsers.Select(user => user.Id).ToHashSet();
+        var hasActiveManager = memberships.Any(membership =>
+            !membership.IsDeleted
+            && membership.AccountId.HasValue
+            && activeUserIds.Contains(membership.AccountId.Value)
+            && membership.PermissionGroupId == CanonicalRbac.Manager.GroupId);
+        var ownerDepartment = departmentByCode[owner.DepartmentCode];
+
+        foreach (var user in activeInteractiveUsers.Where(user =>
+                     user.Id != owner.User.Id
+                     && memberships.All(membership =>
+                         membership.AccountId != user.Id || membership.IsDeleted)))
+        {
+            var membership = memberships.FirstOrDefault(item => item.AccountId == user.Id);
+            if (membership is null)
+            {
+                membership = new UserGroupMembership
+                {
+                    Id = StableGuid($"workbook-interactive-membership|{user.Id}"),
+                    UserId = user.Id,
+                    AccountId = user.Id,
+                    CreatedByUserId = owner.User.Id,
+                    CreatedAtUtc = nowUtc
+                };
+                context.UserGroupMemberships.Add(membership);
+                memberships.Add(membership);
+            }
+
+            var groupId = hasActiveManager
+                ? CanonicalRbac.Employee.GroupId
+                : CanonicalRbac.Manager.GroupId;
+            membership.UserId = user.Id;
+            membership.AccountId = user.Id;
+            membership.PermissionGroupId = groupId;
+            membership.DepartmentId = ownerDepartment.Id;
+            membership.Description = null;
+            membership.UpdatedByUserId = owner.User.Id;
+            membership.UpdatedAtUtc = nowUtc;
+            membership.IsDeleted = false;
+            hasActiveManager |= groupId == CanonicalRbac.Manager.GroupId;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task ReconcileSupplementScenariosAsync(
+        VPPMigrationDbContext context,
+        DemoOwner owner,
+        IReadOnlyList<VppRequest> regularRequests,
+        Period currentPeriod,
+        DateTime nowUtc,
+        CancellationToken cancellationToken)
+    {
+        var previousAnchor = new DateTime(currentPeriod.Year, currentPeriod.Month, 1).AddMonths(-1);
+        var previousPeriod = new Period(previousAnchor.Year, previousAnchor.Month);
+        var currentOwnerRequest = regularRequests.FirstOrDefault(request =>
+            request.Year == currentPeriod.Year
+            && request.Month == currentPeriod.Month
+            && request.CreatedByUserId == owner.User.Id);
+        var currentPeerRequest = regularRequests.FirstOrDefault(request =>
+            request.Year == currentPeriod.Year
+            && request.Month == currentPeriod.Month
+            && request.CreatedByUserId != owner.User.Id);
+        var previousRequest = regularRequests.FirstOrDefault(request =>
+                request.Year == previousPeriod.Year
+                && request.Month == previousPeriod.Month
+                && request.CreatedByUserId == owner.User.Id)
+            ?? regularRequests.FirstOrDefault(request =>
+                request.Year == previousPeriod.Year
+                && request.Month == previousPeriod.Month);
+
+        if (currentOwnerRequest is not null)
+        {
+            await UpsertSupplementScenarioAsync(
+                context,
+                currentOwnerRequest,
+                "current-owner-cancelled",
+                VPPStatus.Cancelled,
+                "Không còn nhu cầu bổ sung.",
+                owner.User.Id,
+                nowUtc.AddHours(-4),
+                nowUtc.AddHours(-1),
+                cancellationToken);
+        }
+
+        if (currentPeerRequest is not null)
+        {
+            await UpsertSupplementScenarioAsync(
+                context,
+                currentPeerRequest,
+                "current-peer-pending",
+                VPPStatus.Pending,
+                "Bổ sung vật tư phát sinh trong kỳ.",
+                owner.User.Id,
+                nowUtc.AddHours(-3),
+                null,
+                cancellationToken);
+        }
+
+        if (previousRequest is not null)
+        {
+            var submittedAtUtc = previousRequest.SubmittedDate
+                ?? previousRequest.CreatedAtUtc;
+            await UpsertSupplementScenarioAsync(
+                context,
+                previousRequest,
+                "previous-approved",
+                VPPStatus.Approved,
+                "Bổ sung theo nhu cầu đã xác nhận.",
+                owner.User.Id,
+                submittedAtUtc.AddHours(2),
+                submittedAtUtc.AddDays(1),
+                cancellationToken);
+        }
+    }
+
+    private static async Task UpsertSupplementScenarioAsync(
+        VPPMigrationDbContext context,
+        VppRequest baseRequest,
+        string scenarioKey,
+        VPPStatus status,
+        string reason,
+        int workflowActorUserId,
+        DateTime submittedAtUtc,
+        DateTime? resolvedAtUtc,
+        CancellationToken cancellationToken)
+    {
+        var requestId = StableGuid($"workbook-supplement|{scenarioKey}");
+        var request = await context.Requests
+            .Include(item => item.RequestDetails)
+            .FirstOrDefaultAsync(item => item.Id == requestId, cancellationToken);
+        if (request is null)
+        {
+            request = new VppRequest
+            {
+                Id = requestId,
+                RequestSeriesId = StableGuid($"workbook-supplement-series|{scenarioKey}"),
+                RevisionNumber = 1,
+                IsCurrentRevision = true,
+                IsAdditionalOrder = true,
+                CreatedByUserId = baseRequest.CreatedByUserId,
+                CreatedAtUtc = submittedAtUtc
+            };
+            context.Requests.Add(request);
+        }
+
+        request.VppCode = BuildScenarioRequestCode(baseRequest.Year, baseRequest.Month, scenarioKey);
+        request.Year = baseRequest.Year;
+        request.Month = baseRequest.Month;
+        request.PeriodId = baseRequest.PeriodId;
+        request.BaseRequestId = baseRequest.Id;
+        request.BaseRequestSeriesId = baseRequest.RequestSeriesId;
+        request.SupplementSequence = 1;
+        request.SupplementAttemptNumber = 1;
+        request.SupplementReason = reason;
+        request.Status = (int)status;
+        request.DepartmentCode = baseRequest.DepartmentCode;
+        request.MemberCompanyCode = baseRequest.MemberCompanyCode;
+        request.SubmittedDate = submittedAtUtc;
+        request.Description = reason;
+        request.ApprovedById = status == VPPStatus.Approved ? workflowActorUserId : null;
+        request.ApprovedAt = status == VPPStatus.Approved ? resolvedAtUtc : null;
+        request.RejectedById = null;
+        request.RejectedAt = null;
+        request.RejectReason = null;
+        request.CancelledById = status == VPPStatus.Cancelled ? workflowActorUserId : null;
+        request.CancelledAt = status == VPPStatus.Cancelled ? resolvedAtUtc : null;
+        request.CancelReason = status == VPPStatus.Cancelled ? reason : null;
+        request.IdempotencyKey = $"workbook-supplement-{scenarioKey}";
+        request.CommandPayloadHash = Sha256Hex(request.IdempotencyKey);
+        request.UpdatedByUserId = workflowActorUserId;
+        request.UpdatedAtUtc = resolvedAtUtc ?? submittedAtUtc;
+        request.IsDeleted = false;
+
+        var sourceDetails = baseRequest.RequestDetails
+            .Where(detail => !detail.IsDeleted)
+            .OrderBy(detail => detail.Id)
+            .Take(2)
+            .ToList();
+        var desiredIds = new HashSet<Guid>();
+        foreach (var source in sourceDetails)
+        {
+            var detailId = StableGuid($"workbook-supplement-detail|{scenarioKey}|{source.VppId}");
+            desiredIds.Add(detailId);
+            var detail = request.RequestDetails.FirstOrDefault(item => item.Id == detailId);
+            if (detail is null)
+            {
+                detail = new VppRequestDetail
+                {
+                    Id = detailId,
+                    RequestId = request.Id,
+                    VppId = source.VppId,
+                    CreatedByUserId = request.CreatedByUserId,
+                    CreatedAtUtc = submittedAtUtc
+                };
+                request.RequestDetails.Add(detail);
+            }
+
+            detail.Qty = 1;
+            detail.CurrentSinglePrice = source.CurrentSinglePrice;
+            detail.Description = null;
+            detail.UpdatedByUserId = workflowActorUserId;
+            detail.UpdatedAtUtc = resolvedAtUtc ?? submittedAtUtc;
+            detail.IsDeleted = false;
+        }
+
+        foreach (var obsolete in request.RequestDetails.Where(detail =>
+                     !detail.IsDeleted && !desiredIds.Contains(detail.Id)))
+        {
+            obsolete.IsDeleted = true;
+            obsolete.UpdatedByUserId = workflowActorUserId;
+            obsolete.UpdatedAtUtc = resolvedAtUtc ?? submittedAtUtc;
+        }
+
+        await ReconcileSupplementLogsAsync(
+            context,
+            request,
+            status,
+            reason,
+            workflowActorUserId,
+            submittedAtUtc,
+            resolvedAtUtc,
+            cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task ReconcileSupplementLogsAsync(
+        VPPMigrationDbContext context,
+        VppRequest request,
+        VPPStatus status,
+        string reason,
+        int workflowActorUserId,
+        DateTime submittedAtUtc,
+        DateTime? resolvedAtUtc,
+        CancellationToken cancellationToken)
+    {
+        var existing = await context.RequestLogs
+            .Where(item => item.RequestId == request.Id)
+            .ToListAsync(cancellationToken);
+        Upsert("SUBMITTED", "Đã gửi đơn bổ sung", request.CreatedByUserId, submittedAtUtc, reason);
+        if (status == VPPStatus.Approved && resolvedAtUtc.HasValue)
+            Upsert("APPROVED", "Đã duyệt đơn bổ sung", workflowActorUserId, resolvedAtUtc.Value, reason);
+        if (status == VPPStatus.Cancelled && resolvedAtUtc.HasValue)
+            Upsert("CANCELLED", "Đã hủy đơn bổ sung", workflowActorUserId, resolvedAtUtc.Value, reason);
+
+        void Upsert(string action, string title, int actorUserId, DateTime occurredAtUtc, string? logReason)
+        {
+            var id = StableGuid($"workbook-supplement-log|{request.Id}|{action}");
+            var log = existing.FirstOrDefault(item => item.Id == id);
+            if (log is null)
+            {
+                log = new RequestLog { Id = id, RequestId = request.Id };
+                context.RequestLogs.Add(log);
+                existing.Add(log);
+            }
+
+            log.LogDate = occurredAtUtc;
+            log.LogTitle = title;
+            log.ActorUserId = actorUserId;
+            log.MemberCompanyCode = request.MemberCompanyCode;
+            log.Action = action;
+            log.RevisionNumber = request.RevisionNumber;
+            log.CorrelationId = $"workbook-{request.Id:N}";
+            log.Reason = logReason;
+            log.LogJS = null;
+        }
     }
 
     private static async Task ReconcileOperationalDataAsync(
@@ -444,6 +731,12 @@ public static class DemoWorkbookSeeder
             userRows,
             nowUtc,
             cancellationToken);
+        await ReconcileActiveInteractiveMembershipsAsync(
+            context,
+            owner,
+            departmentByCode,
+            nowUtc,
+            cancellationToken);
 
         var calculator = new PeriodCalculator();
         var localNow = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, PeriodCalculator.BusinessTimeZone);
@@ -465,11 +758,15 @@ public static class DemoWorkbookSeeder
 
         var existingDemoRequests = await context.Requests
             .Include(x => x.RequestDetails)
-            .Where(x => x.VppCode != null && x.VppCode.StartsWith("DEMO-PPJ-") && !x.IsDeleted)
+            .Where(x => !x.IsDeleted
+                && !x.IsAdditionalOrder
+                && ((x.VppCode != null && x.VppCode.StartsWith("DEMO-PPJ-"))
+                    || (x.IdempotencyKey != null && x.IdempotencyKey.StartsWith("workbook-fixture-"))
+                    || x.Description == LegacyDemoDescription))
             .ToListAsync(cancellationToken);
-        var existingDemoByCode = existingDemoRequests.ToDictionary(
-            x => x.VppCode!,
-            StringComparer.OrdinalIgnoreCase);
+        var existingDemoByPeriodDepartment = existingDemoRequests
+            .GroupBy(x => (x.Year, x.Month, DepartmentCode: x.DepartmentCode ?? string.Empty))
+            .ToDictionary(x => x.Key, x => x.OrderByDescending(request => request.UpdatedAtUtc).First());
 
         var occupiedRequests = await context.Requests
             .Where(x => !x.IsDeleted && x.IsCurrentRevision && !x.IsAdditionalOrder)
@@ -478,6 +775,7 @@ public static class DemoWorkbookSeeder
 
         var requestCount = 0;
         var detailCount = 0;
+        var seededRegularRequests = new List<VppRequest>();
         foreach (var departmentMonth in orderRows
                      .GroupBy(x => new { x.DepartmentCode, x.SourceMonth })
                      .OrderBy(x => x.Key.SourceMonth)
@@ -491,7 +789,9 @@ public static class DemoWorkbookSeeder
 
             var period = periodBySourceMonth[departmentMonth.Key.SourceMonth];
             var requestCode = BuildRequestCode(period.Year, period.Month, departmentMonth.Key.DepartmentCode);
-            existingDemoByCode.TryGetValue(requestCode, out var request);
+            existingDemoByPeriodDepartment.TryGetValue(
+                (period.Year, period.Month, departmentMonth.Key.DepartmentCode),
+                out var request);
 
             var occupied = occupiedRequests.FirstOrDefault(x =>
                 x.CreatedByUserId == requester.Id
@@ -507,18 +807,19 @@ public static class DemoWorkbookSeeder
                 continue;
             }
 
-            var isCurrent = period.Year == currentPeriod.Year && period.Month == currentPeriod.Month;
             var submittedAtUtc = period.StartAtUtc.AddDays(2).AddHours(2);
             if (submittedAtUtc > nowUtc)
                 submittedAtUtc = nowUtc.AddMinutes(-5);
 
             if (request is null)
             {
-                var requestId = StableGuid($"demo-request|{requestCode}");
+                var requestId = StableGuid(
+                    $"workbook-request|{period.Year:D4}{period.Month:D2}|{departmentMonth.Key.DepartmentCode}");
                 request = new VppRequest
                 {
                     Id = requestId,
-                    RequestSeriesId = StableGuid($"demo-request-series|{requestCode}"),
+                    RequestSeriesId = StableGuid(
+                        $"workbook-request-series|{period.Year:D4}{period.Month:D2}|{departmentMonth.Key.DepartmentCode}"),
                     RevisionNumber = 1,
                     IsCurrentRevision = true,
                     IsAdditionalOrder = false,
@@ -526,7 +827,6 @@ public static class DemoWorkbookSeeder
                     CreatedAtUtc = submittedAtUtc
                 };
                 context.Requests.Add(request);
-                existingDemoByCode[requestCode] = request;
                 occupiedRequests.Add(new
                 {
                     request.Id,
@@ -540,15 +840,22 @@ public static class DemoWorkbookSeeder
             request.Year = period.Year;
             request.Month = period.Month;
             request.PeriodId = period.Id;
-            request.Status = (int)(isCurrent ? VPPStatus.Submitted : VPPStatus.Approved);
+            request.Status = (int)VPPStatus.Submitted;
             request.DepartmentCode = departmentMonth.Key.DepartmentCode;
             request.MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode.ToString(CultureInfo.InvariantCulture);
             request.SubmittedDate = submittedAtUtc;
-            request.ApprovedById = isCurrent ? null : owner.User.Id;
-            request.ApprovedAt = isCurrent ? null : submittedAtUtc.AddDays(1);
-            request.IdempotencyKey = $"demo-ppj-{period.Year:D4}{period.Month:D2}-{departmentMonth.Key.DepartmentCode}";
+            request.ApprovedById = null;
+            request.ApprovedAt = null;
+            request.RejectedById = null;
+            request.RejectedAt = null;
+            request.RejectReason = null;
+            request.CancelledById = null;
+            request.CancelledAt = null;
+            request.CancelReason = null;
+            request.IdempotencyKey =
+                $"workbook-fixture-{period.Year:D4}{period.Month:D2}-{departmentMonth.Key.DepartmentCode}";
             request.CommandPayloadHash = Sha256Hex(request.IdempotencyKey);
-            request.Description = DemoDescription;
+            request.Description = null;
             request.UpdatedByUserId = owner.User.Id;
             request.UpdatedAtUtc = nowUtc;
             request.IsDeleted = false;
@@ -597,12 +904,19 @@ public static class DemoWorkbookSeeder
             await ReconcileRequestLogsAsync(
                 context,
                 request,
-                owner.User.Id,
                 submittedAtUtc,
-                isCurrent,
                 cancellationToken);
+            seededRegularRequests.Add(request);
             requestCount++;
         }
+
+        await ReconcileSupplementScenariosAsync(
+            context,
+            owner,
+            seededRegularRequests,
+            currentPeriod,
+            nowUtc,
+            cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
         Log.Information(
@@ -703,7 +1017,7 @@ public static class DemoWorkbookSeeder
                     AccountId = user.Id,
                     PermissionGroupId = CanonicalRbac.Employee.GroupId,
                     DepartmentId = department.Id,
-                    Description = DemoDescription,
+                    Description = null,
                     CreatedByUserId = owner.User.Id,
                     CreatedAtUtc = nowUtc,
                     UpdatedByUserId = owner.User.Id,
@@ -719,7 +1033,7 @@ public static class DemoWorkbookSeeder
                 membership.AccountId = user.Id;
                 membership.PermissionGroupId = CanonicalRbac.Employee.GroupId;
                 membership.DepartmentId = department.Id;
-                membership.Description = DemoDescription;
+                membership.Description = null;
                 membership.UpdatedByUserId = owner.User.Id;
                 membership.UpdatedAtUtc = nowUtc;
                 membership.IsDeleted = false;
@@ -755,7 +1069,7 @@ public static class DemoWorkbookSeeder
                 MemberCompanyCode = memberCompanyCode,
                 Year = periodValue.Year,
                 Month = periodValue.Month,
-                State = isCurrent ? VppPeriodState.Open : VppPeriodState.SubmissionClosed,
+                State = ResolvePeriodState(periodValue, isCurrent, calculator, nowUtc),
                 CreatedByUserId = actorUserId,
                 CreatedAtUtc = nowUtc
             };
@@ -768,7 +1082,8 @@ public static class DemoWorkbookSeeder
         period.SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
             periodValue,
             TimeSpan.FromDays(VppRequestPolicy.DefaultSupplementApprovalGraceDays));
-        period.Description = DemoDescription;
+        period.State = ResolvePeriodState(periodValue, isCurrent, calculator, nowUtc);
+        period.Description = null;
         period.UpdatedByUserId = actorUserId;
         period.UpdatedAtUtc = nowUtc;
         period.IsDeleted = false;
@@ -780,19 +1095,17 @@ public static class DemoWorkbookSeeder
     private static async Task ReconcileRequestLogsAsync(
         VPPMigrationDbContext context,
         VppRequest request,
-        int approverUserId,
         DateTime submittedAtUtc,
-        bool isCurrent,
         CancellationToken cancellationToken)
     {
         var existing = await context.RequestLogs
             .Where(x => x.RequestId == request.Id)
             .ToListAsync(cancellationToken);
         UpsertLog("SUBMITTED", "Đã gửi đơn văn phòng phẩm", request.CreatedByUserId, submittedAtUtc);
-        if (!isCurrent)
-        {
-            UpsertLog("APPROVED", "Đơn đã được duyệt", approverUserId, submittedAtUtc.AddDays(1));
-        }
+        var obsoleteApprovedId = StableGuid($"demo-request-log|{request.Id}|APPROVED");
+        var obsoleteApproved = existing.FirstOrDefault(x => x.Id == obsoleteApprovedId);
+        if (obsoleteApproved is not null)
+            context.RequestLogs.Remove(obsoleteApproved);
 
         void UpsertLog(string action, string title, int actorUserId, DateTime occurredAtUtc)
         {
@@ -811,28 +1124,77 @@ public static class DemoWorkbookSeeder
             log.MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode.ToString(CultureInfo.InvariantCulture);
             log.Action = action;
             log.RevisionNumber = 1;
-            log.CorrelationId = $"demo-{request.Id:N}";
-            log.Reason = "Dữ liệu demo đã được chuẩn hoá từ bảng đăng ký VPP.";
-            log.LogJS = "{\"source\":\"normalized-workbook-demo\"}";
+            log.CorrelationId = $"workbook-{request.Id:N}";
+            log.Reason = null;
+            log.LogJS = null;
         }
+    }
+
+    public static VppPeriodState ResolvePeriodState(
+        Period period,
+        bool isCurrent,
+        PeriodCalculator calculator,
+        DateTime nowUtc)
+    {
+        if (!isCurrent)
+            return VppPeriodState.Pricing;
+
+        if (nowUtc >= calculator.SupplementApprovalDeadlineUtc(
+                period,
+                TimeSpan.FromDays(VppRequestPolicy.DefaultSupplementApprovalGraceDays)))
+        {
+            return VppPeriodState.Pricing;
+        }
+
+        return nowUtc >= calculator.SubmissionDeadlineUtc(period)
+            ? VppPeriodState.SubmissionClosed
+            : VppPeriodState.Open;
     }
 
     private static async Task<DemoOwner?> ResolveOwnerAsync(
         VPPMigrationDbContext context,
-        string? ownerUsername,
+        DemoWorkbookSeedOptions options,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(ownerUsername))
+        if (string.IsNullOrWhiteSpace(options.OwnerUsername) && !options.AutoResolveOwner)
             return null;
 
-        var normalizedUsername = ownerUsername.Trim().ToUpperInvariant();
-        var owner = await context.Users.FirstOrDefaultAsync(
-            x => x.NormalizedUserName == normalizedUsername,
-            cancellationToken);
+        AppUser? owner;
+        if (!string.IsNullOrWhiteSpace(options.OwnerUsername))
+        {
+            var normalizedUsername = options.OwnerUsername.Trim().ToUpperInvariant();
+            owner = await context.Users.FirstOrDefaultAsync(
+                x => x.NormalizedUserName == normalizedUsername,
+                cancellationToken);
+        }
+        else
+        {
+            var devGroupId = CanonicalRbac.Dev.GroupId;
+            var ownerIds = await context.UserGroupMemberships
+                .Where(membership => !membership.IsDeleted
+                    && membership.AccountId.HasValue
+                    && membership.PermissionGroupId == devGroupId)
+                .Select(membership => membership.AccountId!.Value)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+            var activeOwners = await context.Users
+                .Where(user => ownerIds.Contains(user.Id)
+                    && user.AccountStatus == AppAccountStatus.Active)
+                .OrderBy(user => user.Id)
+                .ToListAsync(cancellationToken);
+            if (activeOwners.Count != 1)
+            {
+                throw new InvalidOperationException(
+                    "Automatic demo owner resolution requires exactly one active DEV account in the TEST database.");
+            }
+
+            owner = activeOwners[0];
+        }
+
         if (owner is null)
-            throw new InvalidOperationException($"Demo owner account '{ownerUsername}' does not exist.");
+            throw new InvalidOperationException("The configured demo owner account does not exist.");
         if (owner.AccountStatus != AppAccountStatus.Active)
-            throw new InvalidOperationException($"Demo owner account '{ownerUsername}' is not active.");
+            throw new InvalidOperationException("The configured demo owner account is not active.");
 
         var membership = await context.UserGroupMemberships
             .Include(x => x.Department)
@@ -841,7 +1203,7 @@ public static class DemoWorkbookSeeder
         if (string.IsNullOrWhiteSpace(departmentCode))
         {
             throw new InvalidOperationException(
-                $"Demo owner account '{ownerUsername}' does not have an active primary department.");
+                "The configured demo owner account does not have an active primary department.");
         }
 
         return new DemoOwner(owner, departmentCode);
@@ -1011,14 +1373,19 @@ public static class DemoWorkbookSeeder
     private static string[] SplitList(string value) =>
         value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-    private static string BuildRequestCode(int year, int month, string departmentCode)
+    public static string BuildRequestCode(int year, int month, string departmentCode)
     {
         var safeCode = new string(departmentCode
             .Where(character => char.IsLetterOrDigit(character) || character is '+' or '-')
             .ToArray())
             .ToUpperInvariant();
-        return $"DEMO-PPJ-{year:D4}{month:D2}-{safeCode}";
+        var suffix = StableGuid($"workbook-request-code|{year:D4}{month:D2}|{safeCode}")
+            .ToString("N");
+        return $"VPP-{year:D4}{month:D2}-{suffix}";
     }
+
+    private static string BuildScenarioRequestCode(int year, int month, string scenarioKey) =>
+        $"VPP-{year:D4}{month:D2}-{StableGuid($"workbook-scenario-code|{scenarioKey}"):N}";
 
     private static bool IsOwnedDemoUser(AppUser user) =>
         user.Email?.EndsWith(DemoEmailSuffix, StringComparison.OrdinalIgnoreCase) == true;

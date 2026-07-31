@@ -7,7 +7,7 @@
 .\scripts\gtas.cmd configure
 .\scripts\gtas.cmd init-db -ConnectionString "Server=localhost;Database=GTAS_VPP_TEST_02;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True"
 .\scripts\gtas.cmd bootstrap-admin -ConnectionString "..." -DepartmentCode IT -DepartmentName "Information Technology"
-.\scripts\gtas.cmd init-db -Mode MigrateAndDemo -Username "your-admin" -ConnectionString "..."
+.\scripts\gtas.cmd init-db -Mode MigrateAndDemo -ConnectionString "..."
 .\scripts\gtas.cmd run
 ```
 
@@ -22,7 +22,7 @@
 | Chọn TEST/LIVE | `DatabaseSettings__DefaultEnvironment` | `TestEnv` hoặc `LiveEnv`. |
 | Migration mode | `DatabaseInitialization__Mode` | Một trong bốn mode ở dưới. |
 | Chạy migration rồi thoát | `DatabaseInitialization__RunOnly=true` | Dùng cho CI/CD và script bootstrap. |
-| Owner dữ liệu Demo | `DatabaseInitialization__DemoOwnerUsername` | Username active nhận đơn của phòng ban chính; script tự truyền khi dùng `-Mode MigrateAndDemo -Username ...`. |
+| Owner dữ liệu Demo | `DatabaseInitialization__DemoOwnerUsername` | Tùy chọn. Nếu bỏ trống, TEST phải có đúng một DEV đang hoạt động; vẫn có thể truyền `-Username` để chọn tường minh. |
 | JWT key | `JwtSettings__Key` | Secret server-side, nên là chuỗi ngẫu nhiên dài. |
 | Admin bootstrap | `AuthBootstrap__*` | One-shot, chỉ chạy cùng `RunOnly` + reference seed. |
 | SMTP password | `EmailNotifications__Password` | Chỉ cần khi bật gửi email. |
