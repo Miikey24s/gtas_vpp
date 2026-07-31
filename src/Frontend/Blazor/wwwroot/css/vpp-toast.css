@@ -101,12 +101,16 @@ html:root {
     width: 28px;
     height: 28px;
     margin: -4px -4px 0 0 !important;
-    border-radius: var(--vpp-radius-sm) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
     color: var(--vpp-text-secondary) !important;
     opacity: 0.8 !important;
     transition: background-color var(--vpp-transition-fast),
                 color var(--vpp-transition-fast),
-                opacity var(--vpp-transition-fast);
+                opacity var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
 }
 
 .rz-notification-close:hover,
@@ -114,8 +118,8 @@ html:root {
     color: var(--vpp-text-primary) !important;
     background: var(--vpp-bg-subtle) !important;
     opacity: 1 !important;
-    outline: 2px solid var(--vpp-border-focus);
-    outline-offset: 1px;
+    outline: 0 !important;
+    box-shadow: inset 0 -2px 0 var(--vpp-border-focus) !important;
 }
 
 @keyframes vpp-toast-in {

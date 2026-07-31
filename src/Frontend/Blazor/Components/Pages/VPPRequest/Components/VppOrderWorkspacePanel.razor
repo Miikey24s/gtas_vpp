@@ -44,40 +44,6 @@
 
         <div class="vpp-order-card-toolbar">
                 <div class="vpp-data-card-actions">
-                    @if (!ReadOnly && CanEdit)
-                    {
-                        <RadzenButton Icon="edit"
-                                      Text="@Loc["Edit"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Base"
-                                      Variant="Variant.Text"
-                                      Click="@(async _ => await EditRequested.InvokeAsync(Order))"
-                                      Title="@Loc["Edit"]"
-                                      aria-label="@string.Format(Loc["EditOrderAria"], Order.VppCode)" />
-                    }
-                    @if (!ReadOnly && CanRestore)
-                    {
-                        <RadzenButton Icon="undo"
-                                      Text="@Loc["RestoreOrder"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Base"
-                                      Variant="Variant.Text"
-                                      Click="@(async _ => await RestoreRequested.InvokeAsync(Order))"
-                                      Title="@Loc["RestoreOrder"]"
-                                      aria-label="@string.Format(Loc["RestoreOrderAria"], Order.VppCode)"
-                                      Disabled="@IsRestoring"
-                                      IsBusy="@IsRestoring" />
-                    }
-                    @if (!ReadOnly && CanRecreate)
-                    {
-                        <RadzenButton Icon="@VppIcons.Add"
-                                      Text="@Loc["RecreateOrder"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@(async _ => await RecreateRequested.InvokeAsync(Order))"
-                                      Title="@Loc["RecreateOrder"]"
-                                      aria-label="@string.Format(Loc["RecreateOrderAria"], Order.VppCode)" />
-                    }
                     <RadzenButton Icon="@VppIcons.History"
                                   Text="@Loc["History"]"
                                   Size="ButtonSize.Small"
@@ -110,6 +76,17 @@
                                       aria-label="@string.Format(Loc["ExportOrderExcelAria"], Order.VppCode)"
                                       Disabled="@IsExporting" />
                     }
+                    @if (!ReadOnly && CanEdit)
+                    {
+                        <RadzenButton Icon="edit"
+                                      Text="@Loc["Edit"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await EditRequested.InvokeAsync(Order))"
+                                      Title="@Loc["Edit"]"
+                                      aria-label="@string.Format(Loc["EditOrderAria"], Order.VppCode)" />
+                    }
                     @if (!ReadOnly && CanCancel)
                     {
                         <RadzenButton Icon="@VppIcons.Rejected"
@@ -122,6 +99,30 @@
                                       aria-label="@string.Format(Loc["CancelOrderAria"], Order.VppCode)"
                                       Disabled="@IsCancelling"
                                       IsBusy="@IsCancelling" />
+                    }
+                    @if (!ReadOnly && CanRestore)
+                    {
+                        <RadzenButton Icon="undo"
+                                      Text="@Loc["RestoreOrder"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await RestoreRequested.InvokeAsync(Order))"
+                                      Title="@Loc["RestoreOrder"]"
+                                      aria-label="@string.Format(Loc["RestoreOrderAria"], Order.VppCode)"
+                                      Disabled="@IsRestoring"
+                                      IsBusy="@IsRestoring" />
+                    }
+                    @if (!ReadOnly && CanRecreate)
+                    {
+                        <RadzenButton Icon="@VppIcons.Add"
+                                      Text="@Loc["RecreateOrder"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="@(HasPrimaryAction ? ButtonStyle.Base : ButtonStyle.Primary)"
+                                      Variant="@(HasPrimaryAction ? Variant.Text : Variant.Filled)"
+                                      Click="@(async _ => await RecreateRequested.InvokeAsync(Order))"
+                                      Title="@Loc["RecreateOrder"]"
+                                      aria-label="@string.Format(Loc["RecreateOrderAria"], Order.VppCode)" />
                     }
                     @if (!string.IsNullOrWhiteSpace(PrimaryActionText) && PrimaryActionRequested.HasDelegate)
                     {
@@ -229,6 +230,8 @@
     private bool HasItemFilters => !string.IsNullOrWhiteSpace(ItemSearch)
         || !string.IsNullOrEmpty(CategoryFilter)
         || !string.IsNullOrEmpty(UnitFilter);
+    private bool HasPrimaryAction => !string.IsNullOrWhiteSpace(PrimaryActionText)
+        && PrimaryActionRequested.HasDelegate;
 
     protected override void OnParametersSet() => RebuildFilteredItems();
 

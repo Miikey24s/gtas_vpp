@@ -862,6 +862,14 @@ public sealed class SharedUiFoundationTests
         var historyDrawer = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderDetailSheet.razor"));
 
         Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", orderPanel, StringComparison.Ordinal);
+        Assert.True(
+            orderPanel.IndexOf("Loc[\"History\"]", StringComparison.Ordinal)
+            < orderPanel.IndexOf("Loc[\"Edit\"]", StringComparison.Ordinal),
+            "Các hành động xem/xuất phải đứng trước thao tác thay đổi đơn.");
+        Assert.True(
+            orderPanel.IndexOf("Loc[\"RestoreOrder\"]", StringComparison.Ordinal)
+            < orderPanel.IndexOf("PrimaryActionText", StringComparison.Ordinal),
+            "Primary action phải nằm cuối cụm hành động của đơn.");
         Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("Workspace", variant, StringComparison.Ordinal);
         Assert.Contains("HistoryDrawer", variant, StringComparison.Ordinal);
