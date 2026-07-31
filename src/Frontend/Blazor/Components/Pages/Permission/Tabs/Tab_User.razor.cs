@@ -51,9 +51,9 @@ public partial class Tab_User : IDisposable
                                    || SelectedDepartmentId.HasValue;
     private bool CanManageUsers => PermissionState.HasPermission(Permissions.PermissionManage);
     private bool CanInviteUsers => CanManageUsers && accountCapabilities.InvitationEnabled;
-    private string InvitationCapabilityMessage => string.IsNullOrWhiteSpace(accountCapabilities.Message)
-        ? "Email invitation capability is not available."
-        : accountCapabilities.Message;
+    private string InvitationCapabilityMessage => accountCapabilities.InvitationEnabled
+        ? Loc["AddUser"].Value
+        : Loc["EmailInvitationUnavailable"].Value;
     private IReadOnlyList<VppFilterOption<string>> AccountStatusOptions =>
     [
         new(string.Empty, Loc["AllAccountStatuses"].Value),
@@ -632,6 +632,35 @@ public partial class Tab_User : IDisposable
 
     private bool IsPendingApproval(UserAdministrationResDTO user) =>
         string.Equals(user.AccountStatus, "PendingApproval", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsCurrentUser(UserAdministrationResDTO user) => user.UserId == UserClaims;
+
+    private string GetAssignmentTitle(UserAdministrationResDTO user) =>
+        IsCurrentUser(user)
+            ? Loc["SelfMembershipChangeBlocked"].Value
+            : CanAssignMembership(user)
+                ? IsPendingApproval(user)
+                    ? Loc["SelectGroupAndDepartmentBeforeApproval"].Value
+                    : Loc["EditMembershipAssignment"].Value
+                : Loc["MembershipChangeUnavailable"].Value;
+
+    private string GetApprovalActionTitle(UserAdministrationResDTO user)
+    {
+        if (IsCurrentUser(user)) return Loc["SelfMembershipChangeBlocked"].Value;
+        if (!GetSelectedGroupId(user).HasValue && !GetSelectedDepartmentId(user).HasValue)
+        {
+            return Loc["SelectGroupAndDepartmentBeforeApproval"].Value;
+        }
+
+        if (!GetSelectedGroupId(user).HasValue) return Loc["SelectPermissionGroupBeforeApproval"].Value;
+        if (!GetSelectedDepartmentId(user).HasValue) return Loc["SelectDepartmentBeforeApproval"].Value;
+        return Loc["ApproveAccount"].Value;
+    }
+
+    private string GetPasswordLinkTitle(UserAdministrationResDTO user) =>
+        IsCurrentUser(user)
+            ? Loc["SelfPasswordLinkBlocked"].Value
+            : Loc["SendPasswordLink"].Value;
 
     private string GetAccessToggleTitle(UserAdministrationResDTO user) =>
         user.IsActive ? Loc["DisableUserAccess"].Value

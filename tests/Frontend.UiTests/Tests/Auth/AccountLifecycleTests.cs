@@ -93,5 +93,73 @@ public sealed class AccountLifecycleTests : TestBase, IMutatingUiTest
             });
 
         Page.Url.Should().Contain("/Account/Login");
+
+        await loginPage.LoginAsync(TestUsername, TestPassword);
+        await loginPage.WaitForDashboardAsync();
+        await Page.GotoAsync(
+            $"{BaseUrl}permission?tab=0",
+            new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+
+        var search = Page.GetByPlaceholder("Tìm tài khoản, họ tên hoặc email");
+        await search.WaitForAsync();
+        await search.FillAsync(username);
+        var pendingRow = Page.Locator(".permission-user-grid tbody tr")
+            .Filter(new LocatorFilterOptions { HasText = username });
+        await pendingRow.WaitForAsync();
+        await Page.WaitForFunctionAsync(
+            "() => !document.querySelector('.permission-user-grid')?.classList.contains('rz-datatable-loading')");
+
+        var approveButton = pendingRow.GetByRole(AriaRole.Button, new()
+        {
+            Name = "Chọn nhóm quyền và phòng ban, sau đó nhấn Duyệt.",
+            Exact = true
+        });
+        (await approveButton.IsDisabledAsync()).Should().BeTrue(
+            "a pending account must receive both assignments before approval");
+        (await pendingRow.Locator(".vpp-admin-user-access-switch").CountAsync()).Should().Be(0,
+            "the access switch is not an actionable control before account approval");
+        await CaptureIfRequestedAsync("user-pending-approval.png");
+
+        var assignmentSelects = pendingRow.Locator(".vpp-admin-inline-select");
+        await assignmentSelects.Nth(0).ClickAsync();
+        var groupPopup = Page.Locator(".rz-dropdown-panel:visible").Last;
+        await groupPopup.GetByText("Nhân viên", new() { Exact = true }).ClickAsync();
+
+        await assignmentSelects.Nth(1).ClickAsync();
+        var departmentPopup = Page.Locator(".rz-dropdown-panel:visible").Last;
+        await departmentPopup.GetByText("QA Department Alpha", new() { Exact = true }).ClickAsync();
+
+        approveButton = pendingRow.GetByRole(AriaRole.Button, new()
+        {
+            Name = "Duyệt tài khoản",
+            Exact = true
+        });
+        await approveButton.WaitForAsync();
+        (await approveButton.IsEnabledAsync()).Should().BeTrue();
+        await CaptureIfRequestedAsync("user-ready-to-approve.png");
+        await approveButton.ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Kích hoạt", Exact = true }).ClickAsync();
+
+        await pendingRow.GetByText("Hoạt động", new() { Exact = true })
+            .WaitForAsync(new LocatorWaitForOptions { Timeout = 30_000 });
+        (await pendingRow.Locator(".vpp-admin-user-access-switch").CountAsync()).Should().Be(1,
+            "the two-way access switch becomes available only after activation");
+        await CaptureIfRequestedAsync("user-approved.png");
+    }
+
+    private async Task CaptureIfRequestedAsync(string fileName)
+    {
+        var directory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (string.IsNullOrWhiteSpace(directory)) return;
+
+        Directory.CreateDirectory(directory);
+        await WaitForRenderSettleAsync();
+        await Page.ScreenshotAsync(new PageScreenshotOptions
+        {
+            Path = Path.Combine(directory, fileName),
+            FullPage = false,
+            Animations = ScreenshotAnimations.Disabled,
+            Caret = ScreenshotCaret.Hide
+        });
     }
 }

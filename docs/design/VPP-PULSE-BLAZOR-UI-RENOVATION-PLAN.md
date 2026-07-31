@@ -1629,6 +1629,8 @@ Gate đang chờ hiện tại: owner duyệt F4 Wave Review Board gồm sáu wor
 | Kỳ đặt hàng hiện tại | `IMPLEMENTED — QA PASS` | Dùng summary compact gồm icon, kỳ hiện tại và deadline card; desktop phân vùng rõ, mobile xếp dọc, không tạo card trang trí dư thừa. |
 | Hiệu năng phiên dài | `IMPLEMENTED — SOAK QA PASS` | Scroll/resize/mutation của header, sidebar, History, period picker và cell popover được gộp tối đa một việc mỗi animation frame; hai observer DOM toàn cục được hợp nhất thành một hàng đợi lọc theo motif, observer/listener/animation cục bộ được hủy khi route rời DOM. Regression dùng CDP xác nhận sau 8 vòng enhanced navigation: document/node/listener không tăng tuyến tính, 250 scroll event chỉ xếp 5 frame và nửa sau không chậm hơn nửa đầu. |
 
+Correction runtime ngày 2026-07-31 cho Quản lý người dùng: account `PendingApproval` chỉ hiển thị action `Duyệt` có nhãn; nút bật sau khi chọn đủ nhóm quyền và phòng ban, còn access switch chỉ xuất hiện sau kích hoạt. Mọi trạng thái khóa phải có lý do đọc được; guard chống tự sửa membership vẫn giữ nguyên ở UI và backend.
+
 Evidence đóng record: solution Release build `0 warning`; frontend unit `202/202`; settlement confirmation `4/4`; route-real isolated History + Department Summary `2/2`, User Admin `1/1`, Chốt kỳ `1/1`, My Orders shell/period summary `1/1`. Screenshot đã được kiểm tra bằng mắt tại `390×844`, `1366×768`, `1920×1080`; artifact thô nằm trong thư mục temp ignored, không commit.
 
 ---

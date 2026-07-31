@@ -12,7 +12,7 @@
         <button type="button"
                 class="vpp-collection-header-add vpp-library-primary-action"
                 disabled="@Disabled"
-                title="@AddText"
+                title="@EffectiveAddTitle"
                 aria-label="@AddText"
                 @onclick="AddClicked">
             <VppIcon Name="@VppIcons.Add" />
@@ -28,6 +28,11 @@
     [Parameter] public string AddText { get; set; } = string.Empty;
     [Parameter] public string CompactAddText { get; set; } = string.Empty;
     [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? DisabledReason { get; set; }
     [Parameter] public EventCallback AddClicked { get; set; }
     [Parameter] public string? Class { get; set; }
+
+    private string EffectiveAddTitle => Disabled && !string.IsNullOrWhiteSpace(DisabledReason)
+        ? DisabledReason
+        : AddText;
 }

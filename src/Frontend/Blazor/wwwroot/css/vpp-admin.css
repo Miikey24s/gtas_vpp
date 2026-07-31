@@ -1601,6 +1601,35 @@
     display: none;
 }
 
+.vpp-admin-inline-select-shell,
+.vpp-admin-action-shell {
+    display: inline-flex;
+    width: 100%;
+    min-width: 0;
+}
+
+.vpp-admin-action-shell {
+    justify-content: center;
+}
+
+.vpp-admin-actions .rz-button.vpp-admin-action-label {
+    width: auto !important;
+    min-width: 4.5rem !important;
+    padding-inline: var(--vpp-space-2) !important;
+}
+
+.vpp-admin-actions .rz-button.vpp-admin-action-label .rz-button-text {
+    display: inline;
+}
+
+.vpp-admin-current-account {
+    display: inline-flex;
+    margin-inline-start: var(--vpp-space-1);
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-font-size-xs);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
 .vpp-admin-active-switch {
     display: inline-flex;
     align-items: center;

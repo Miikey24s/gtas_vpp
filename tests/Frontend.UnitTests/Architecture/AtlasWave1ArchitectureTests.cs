@@ -225,6 +225,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("Loc[\"UserSearchPlaceholder\"]", users, StringComparison.Ordinal);
         Assert.Contains("Loc[\"AllAccountStatuses\"]", users, StringComparison.Ordinal);
         Assert.Contains("Loc[\"PermissionGroup\"]", users, StringComparison.Ordinal);
+        Assert.Contains("Text=\"@Loc[\"Approve\"]\"", users, StringComparison.Ordinal);
+        Assert.Contains("GetApprovalActionTitle(user)", users, StringComparison.Ordinal);
+        Assert.Contains("vpp-admin-action-label", users, StringComparison.Ordinal);
+        Assert.Contains("SelfMembershipChangeBlocked", userCode, StringComparison.Ordinal);
         Assert.Contains("accountStatus=", userCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Reset mật khẩu", users, StringComparison.Ordinal);
         Assert.DoesNotContain("TemporaryPassword", userCode, StringComparison.Ordinal);

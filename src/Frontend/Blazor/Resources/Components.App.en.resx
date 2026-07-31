@@ -1134,4 +1134,13 @@
   <data name="InvitationMustChangePassword" xml:space="preserve"><value>Password change required</value></data>
   <data name="InvitationConfirmed" xml:space="preserve"><value>Confirmed</value></data>
   <data name="InvitationUnconfirmed" xml:space="preserve"><value>Unconfirmed</value></data>
+  <data name="CurrentAccount" xml:space="preserve"><value>You</value></data>
+  <data name="EmailInvitationUnavailable" xml:space="preserve"><value>Users cannot be invited until the local email service is enabled.</value></data>
+  <data name="SelfMembershipChangeBlocked" xml:space="preserve"><value>You cannot change the permission group or department of the account currently signed in.</value></data>
+  <data name="SelectGroupAndDepartmentBeforeApproval" xml:space="preserve"><value>Select a permission group and department, then choose Approve.</value></data>
+  <data name="SelectPermissionGroupBeforeApproval" xml:space="preserve"><value>Select a permission group before approving the account.</value></data>
+  <data name="SelectDepartmentBeforeApproval" xml:space="preserve"><value>Select a department before approving the account.</value></data>
+  <data name="EditMembershipAssignment" xml:space="preserve"><value>Change the account permission group or department.</value></data>
+  <data name="MembershipChangeUnavailable" xml:space="preserve"><value>This account assignment cannot be changed in its current state.</value></data>
+  <data name="SelfPasswordLinkBlocked" xml:space="preserve"><value>You cannot send a password reset link to the account currently signed in from here.</value></data>
 </root>
