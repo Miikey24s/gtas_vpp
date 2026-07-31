@@ -70,6 +70,21 @@ public partial class PeriodSettlementPanel : IDisposable
         && Preview is { PrimaryQuote: { IsEligible: true }, Blockers.Count: 0 }
         && !string.IsNullOrWhiteSpace(State.IdempotencyKey);
 
+    private bool CanExportSettlement => status is { IsSettled: true, SettlementId: not null };
+    private string SettlementStatusText => status?.IsSettled == true
+        ? Loc["Settled"].Value
+        : Loc["NotSettled"].Value;
+    private VppStatusTone SettlementStatusTone => status?.IsSettled == true
+        ? VppStatusTone.Success
+        : VppStatusTone.Neutral;
+    private string SettlementStatusTitle => status?.IsSettled == true
+        ? string.Format(
+            Loc["Info_AlreadySettled"].Value,
+            DateFormatter.Format(status.SettledAt, DateFormatter.LongDate),
+            status.SettledByUserName ?? "-",
+            status.PriceListName ?? "-")
+        : Loc["NotSettled"].Value;
+
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
         || (viewMode == ItemsView
             ? !string.IsNullOrWhiteSpace(selectedItemCategory) || !string.IsNullOrWhiteSpace(selectedItemUom)
@@ -603,17 +618,18 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task ExportSettlementAsync(string format)
     {
-        if (isExportingSettlement || status?.SettlementId is null)
+        if (isExportingSettlement || !CanExportSettlement)
         {
             return;
         }
 
+        var settlementId = status!.SettlementId!.Value;
         isExportingSettlement = true;
         try
         {
             var endpoint = format == "export.pdf"
-                ? string.Format(Config.RequestApi.PeriodSettlement.ExportPdf, status.SettlementId.Value)
-                : string.Format(Config.RequestApi.PeriodSettlement.ExportExcel, status.SettlementId.Value);
+                ? string.Format(Config.RequestApi.PeriodSettlement.ExportPdf, settlementId)
+                : string.Format(Config.RequestApi.PeriodSettlement.ExportExcel, settlementId);
             await FileDownloads.DownloadFromApiAsync(endpoint);
             Toast.Success(Loc["PeriodSettlement"], Loc["SettlementExported"]);
         }

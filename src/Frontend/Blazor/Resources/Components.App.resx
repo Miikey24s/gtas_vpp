@@ -444,6 +444,7 @@
   <data name="PriceList_UseDefault" xml:space="preserve"><value>(Mặc định)</value></data>
   <data name="SettlePeriod" xml:space="preserve"><value>Chốt kỳ</value></data>
   <data name="Settled" xml:space="preserve"><value>Đã chốt kỳ</value></data>
+  <data name="NotSettled" xml:space="preserve"><value>Chưa chốt kỳ</value></data>
   <data name="Warning_PendingAdditional" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt. Vui lòng duyệt trước khi chốt kỳ.</value></data>
   <data name="Info_AlreadySettled" xml:space="preserve"><value>Kỳ đã chốt lúc {0} bởi {1} với bảng giá {2}.</value></data>
   <data name="Confirm_Settle" xml:space="preserve"><value>Chốt kỳ {0}/{1} với bảng giá {2}?</value></data>

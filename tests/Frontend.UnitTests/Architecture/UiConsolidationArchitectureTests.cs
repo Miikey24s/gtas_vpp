@@ -132,8 +132,13 @@ public sealed class UiConsolidationArchitectureTests
 
         Assert.Contains("<VppCollectionHeader", settlement, StringComparison.Ordinal);
         Assert.Contains("<Actions>", settlement, StringComparison.Ordinal);
+        Assert.Contains("<VppStatusBadge", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementStatusText", settlement, StringComparison.Ordinal);
+        Assert.Contains("@if (CanExportSettlement)", settlement, StringComparison.Ordinal);
         Assert.Contains("ExportPdf", settlement, StringComparison.Ordinal);
         Assert.Contains("ExportExcel", settlement, StringComparison.Ordinal);
+        Assert.Contains("status is { IsSettled: true, SettlementId: not null }", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("isExportingSettlement || !CanExportSettlement", settlementCode, StringComparison.Ordinal);
         Assert.Contains("IBrowserFileDownloadService", settlementCode, StringComparison.Ordinal);
         Assert.Contains("export.pdf", config, StringComparison.Ordinal);
         Assert.Contains("export.xlsx", config, StringComparison.Ordinal);

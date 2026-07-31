@@ -68,6 +68,9 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         (await currentPeriodButton.GetAttributeAsync("aria-pressed")).Should().Be("false");
         await surface.GetByText("Kỳ 06/2026", new() { Exact = true }).WaitForAsync();
         await WaitForRenderSettleAsync();
+        await surface.GetByText("Chưa chốt kỳ", new() { Exact = true }).WaitForAsync();
+        (await surface.GetByRole(AriaRole.Button, new() { Name = "Xuất PDF", Exact = true }).CountAsync()).Should().Be(0);
+        (await surface.GetByRole(AriaRole.Button, new() { Name = "Xuất Excel", Exact = true }).CountAsync()).Should().Be(0);
         await CaptureAsync("ds3-period-settlement-default-1366x768.png");
 
         var customPeriodButton = Page.GetByRole(AriaRole.Button, new() { Name = "Tùy chọn", Exact = true });

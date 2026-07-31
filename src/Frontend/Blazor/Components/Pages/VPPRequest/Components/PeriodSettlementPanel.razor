@@ -97,7 +97,14 @@
             <VppCollectionHeader Title="@($"{Loc["Period"]} {Month:00}/{Year}")"
                                  Summary="@CurrentViewLabel">
                 <Actions>
-                    @if (status?.SettlementId is not null)
+                    @if (status is not null)
+                    {
+                        <VppStatusBadge Text="@SettlementStatusText"
+                                        Tone="@SettlementStatusTone"
+                                        Title="@SettlementStatusTitle"
+                                        Class="vpp-settlement-period-status" />
+                    }
+                    @if (CanExportSettlement)
                     {
                         <RadzenButton Icon="picture_as_pdf"
                                       Text="@Loc["ExportPdf"]"
