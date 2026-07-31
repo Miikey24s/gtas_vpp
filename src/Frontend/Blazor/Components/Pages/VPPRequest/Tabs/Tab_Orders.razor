@@ -49,51 +49,6 @@
                                           ValueChanged="@SelectOrderViewAsync"
                                           AriaLabel="@Loc["OrderCycleSummary"]"
                                           Class="vpp-orders-view-selector" />
-
-                    <div class="vpp-orders-story-commands">
-                        @if (OrderViewSelectedIndex == CurrentOrderViewIndex)
-                        {
-                            <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
-                                @if (CanCreateRegular)
-                                {
-                                    <RadzenButton Icon="@VppIcons.Add"
-                                                  Text="@Loc["CreateOrderThisCycle"]"
-                                                  ButtonStyle="ButtonStyle.Primary"
-                                                  Click="@(async _ => await GoToCreatePage(false))" />
-                                }
-                                else if (CanCopyPrevious)
-                                {
-                                    <RadzenButton Icon="@VppIcons.Copy"
-                                                  Text="@Loc["CopyPreviousOrder"]"
-                                                  ButtonStyle="ButtonStyle.Light"
-                                                  Variant="Variant.Outlined"
-                                                  Click="@(async _ => await CopyPreviousAsync())" />
-                                }
-                            </div>
-                        }
-                        else if (OrderViewSelectedIndex == SupplementOrderViewIndex && ShowSupplementAction)
-                        {
-                            <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
-                                <RadzenButton Icon="@VppIcons.Add"
-                                              Text="@Loc["RequestAdditional"]"
-                                              ButtonStyle="ButtonStyle.Primary"
-                                              Click="@(async _ => await GoToCreatePage(true))"
-                                              Disabled="@(!CanCreateSupplement)"
-                                              Title="@SupplementActionHint"
-                                              data-testid="create-supplement" />
-                            </div>
-                        }
-                        else if (OrderViewSelectedIndex == PreviousOrderViewIndex && CanCopyPrevious)
-                        {
-                            <div class="vpp-orders-story-actions" aria-label="@Loc["Actions"]">
-                                <RadzenButton Icon="@VppIcons.Copy"
-                                              Text="@Loc["CopyPreviousOrder"]"
-                                              ButtonStyle="ButtonStyle.Light"
-                                              Variant="Variant.Outlined"
-                                              Click="@(async _ => await CopyPreviousAsync())" />
-                            </div>
-                        }
-                    </div>
                 </div>
 
             </section>
@@ -115,6 +70,11 @@
                                             EmptyIcon="@VppIcons.Orders"
                                             EmptyTitle="@Loc["NoCurrentRegularOrders"]"
                                             EmptyDescription="@EmptyCurrentOrdersDescription"
+                                            EmptyActionText="@CurrentEmptyActionText"
+                                            EmptyActionClick="@CurrentEmptyActionRequested"
+                                            PrimaryActionText="@CurrentPrimaryActionText"
+                                            PrimaryActionIcon="@CurrentPrimaryActionIcon"
+                                            PrimaryActionRequested="@CurrentPrimaryActionRequested"
                                             EditRequested="@GoToEditPage"
                                             RestoreRequested="@RestoreCancelledOrderAsync"
                                             RecreateRequested="@GoToRecreatePage"
@@ -143,6 +103,14 @@
                                             EmptyIcon="@VppIcons.Supplement"
                                             EmptyTitle="@Loc["NoAdditionalOrdersYet"]"
                                             EmptyDescription="@SupplementSectionDescription"
+                                            EmptyActionText="@SupplementEmptyActionText"
+                                            EmptyActionClick="@CreateSupplementOrderAsync"
+                                            PrimaryActionText="@SupplementPrimaryActionText"
+                                            PrimaryActionIcon="@VppIcons.Add"
+                                            PrimaryActionRequested="@CreateSupplementOrderAsync"
+                                            PrimaryActionDisabled="@(!CanCreateSupplement)"
+                                            PrimaryActionTitle="@SupplementActionHint"
+                                            PrimaryActionTestId="create-supplement"
                                             EditRequested="@GoToEditPage"
                                             RestoreRequested="@RestoreCancelledOrderAsync"
                                             RecreateRequested="@GoToRecreatePage"
@@ -164,6 +132,9 @@
                                             EmptyIcon="@VppIcons.History"
                                             EmptyTitle="@Loc["NoPreviousOrderYet"]"
                                             EmptyDescription="@Loc["NoRegularOrdersFoundPreviousCycle"]"
+                                            PrimaryActionText="@PreviousPrimaryActionText"
+                                            PrimaryActionIcon="@VppIcons.Copy"
+                                            PrimaryActionRequested="@CopyPreviousAsync"
                                             HistoryRequested="@OpenHistoryAsync"
                                             ExportPdfRequested="@ExportOrderPdfAsync"
                                             ExportExcelRequested="@ExportOrderExcelAsync"

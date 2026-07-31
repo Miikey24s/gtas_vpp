@@ -7,6 +7,8 @@ public sealed class VppOrderHistorySummaryResDTO
     public int TotalLines { get; set; }
     public int TotalQuantity { get; set; }
     public int? LatestPeriod { get; set; }
+    public int? AvailableFromPeriod { get; set; }
+    public int? AvailableToPeriod { get; set; }
     public List<VppOrderHistoryPeriodResDTO> Periods { get; set; } = [];
 }
 

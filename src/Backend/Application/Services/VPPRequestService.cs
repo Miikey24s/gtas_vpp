@@ -134,7 +134,8 @@ namespace gtas_vpp_be.Service.Services
             int? toPeriod)
         {
             var query = BuildMyOrderHistoryQuery(userId, fromPeriod, toPeriod);
-            return await BuildOrderHistorySummaryAsync(query, fromPeriod);
+            var availabilityQuery = BuildMyOrderHistoryQuery(userId, null, null);
+            return await BuildOrderHistorySummaryAsync(query, availabilityQuery, fromPeriod);
         }
 
         public async Task<VppOrderHistorySummaryResDTO> GetDepartmentOrderHistorySummaryAsync(
@@ -148,11 +149,17 @@ namespace gtas_vpp_be.Service.Services
                 memberCompanyCode,
                 fromPeriod,
                 toPeriod);
-            return await BuildOrderHistorySummaryAsync(query, fromPeriod);
+            var availabilityQuery = BuildDepartmentOrderHistoryQuery(
+                departmentCode,
+                memberCompanyCode,
+                null,
+                null);
+            return await BuildOrderHistorySummaryAsync(query, availabilityQuery, fromPeriod);
         }
 
         private static async Task<VppOrderHistorySummaryResDTO> BuildOrderHistorySummaryAsync(
             IQueryable<VppRequest> query,
+            IQueryable<VppRequest> availabilityQuery,
             int? fromPeriod)
         {
             var stats = await query
@@ -180,6 +187,14 @@ namespace gtas_vpp_be.Service.Services
                 .OrderByDescending(order => order.Year)
                 .ThenByDescending(order => order.Month)
                 .Select(order => (int?)((order.Year * 100) + order.Month))
+                .FirstOrDefaultAsync();
+            var availableRange = await availabilityQuery
+                .GroupBy(_ => 1)
+                .Select(group => new
+                {
+                    From = group.Min(order => (order.Year * 100) + order.Month),
+                    To = group.Max(order => (order.Year * 100) + order.Month)
+                })
                 .FirstOrDefaultAsync();
 
             var periods = new List<VppOrderHistoryPeriodResDTO>();
@@ -238,6 +253,8 @@ namespace gtas_vpp_be.Service.Services
                 TotalLines = stats?.TotalLines ?? 0,
                 TotalQuantity = stats?.TotalQuantity ?? 0,
                 LatestPeriod = latestPeriod,
+                AvailableFromPeriod = availableRange?.From,
+                AvailableToPeriod = availableRange?.To,
                 Periods = periods
             };
         }

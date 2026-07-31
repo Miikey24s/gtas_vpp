@@ -21,8 +21,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [
             new(0, Permissions.RequestOrder),
             new(1, Permissions.RequestHistory),
-            new(2, Permissions.RequestProductCatalog),
             new(ManagementTabIndex, Permissions.RequestDepartmentSummary),
+            new(2, Permissions.RequestProductCatalog),
             new(5, Permissions.RequestAdminApproval, Permissions.PeriodSettle)
         ];
 

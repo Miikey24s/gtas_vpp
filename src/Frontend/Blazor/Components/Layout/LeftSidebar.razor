@@ -103,14 +103,14 @@
                 {
                     <RadzenPanelMenuItem Text="@Loc["History"]" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="@VppIcons.History" title="@Loc["History"]" />
                 }
-                @if (CanViewDashboardItem(Permissions.RequestProductCatalog))
-                {
-                    <RadzenPanelMenuItem Text="@Loc["Catalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="@VppIcons.Catalog" title="@Loc["Catalog"]" />
-                }
                 @* Tổng hợp toàn công ty nằm trong dữ liệu quản lý kỳ, không tạo thêm mục điều hướng. *@
                 @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
                 {
                     <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Department" title="@Loc["DepartmentSummary"]" />
+                }
+                @if (CanViewDashboardItem(Permissions.RequestProductCatalog))
+                {
+                    <RadzenPanelMenuItem Text="@Loc["Catalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="@VppIcons.Catalog" title="@Loc["Catalog"]" />
                 }
                 @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
                 {

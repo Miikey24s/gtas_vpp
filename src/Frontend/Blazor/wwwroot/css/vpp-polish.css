@@ -159,7 +159,7 @@
     padding-bottom: 0 !important;
 }
 
-.rz-dropdown .rz-dropdown-trigger {
+.rz-dropdown:not(.rz-paginator .rz-dropdown, .rz-pager .rz-dropdown) .rz-dropdown-trigger {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;

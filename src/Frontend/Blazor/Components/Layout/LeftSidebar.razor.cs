@@ -423,14 +423,14 @@ namespace gtas_vpp_fe.Components.Layout
                             tabs.Add(new(Loc["History"], "/dashboard?tab=1", tab == "1"));
                         }
 
-                        if (CanViewDashboardItem(Permissions.RequestProductCatalog))
-                        {
-                            tabs.Add(new(Loc["Catalog"], "/dashboard?tab=2", tab == "2"));
-                        }
-
                         if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
                         {
                             tabs.Add(new(Loc["DepartmentSummary"], "/dashboard?tab=3&managementTab=department", tab == "3"));
+                        }
+
+                        if (CanViewDashboardItem(Permissions.RequestProductCatalog))
+                        {
+                            tabs.Add(new(Loc["Catalog"], "/dashboard?tab=2", tab == "2"));
                         }
 
                         var canSettle = CanViewDashboardItem(Permissions.PeriodSettle);

@@ -137,6 +137,9 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private string DisplayedPeriodScope => showCustomPeriodPicker ? CustomPeriodScope : periodScope;
     private string CustomPeriodSummary => $"{Loc["Period"]} {Month:00}/{Year}";
+    private string CurrentViewLabel => ViewModeOptions
+        .First(option => string.Equals(option.Value, viewMode, StringComparison.Ordinal))
+        .Label;
 
     private IReadOnlyList<VppSegmentedOption<string>> ViewModeOptions =>
     [

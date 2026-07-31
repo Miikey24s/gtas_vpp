@@ -147,6 +147,28 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private string SupplementActionHint => CanCreateSupplement
             ? Loc["RequestAdditional"].Value
             : Loc["SupplementUnavailable"].Value;
+        private string? CurrentEmptyActionText => CanCreateRegular
+            ? Loc["CreateOrderThisCycle"].Value
+            : CanCopyPrevious
+                ? Loc["CopyPreviousOrder"].Value
+                : null;
+        private string? CurrentPrimaryActionText => CurrentRegularOrder is not null && CanCreateRegular
+            ? Loc["CreateOrderThisCycle"].Value
+            : null;
+        private string CurrentPrimaryActionIcon => VppIcons.Add;
+        private EventCallback CurrentPrimaryActionRequested => EventCallback.Factory.Create(this, CreateRegularOrderAsync);
+        private EventCallback CurrentEmptyActionRequested => EventCallback.Factory.Create(
+            this,
+            CanCreateRegular ? CreateRegularOrderAsync : CopyPreviousAsync);
+        private string? SupplementEmptyActionText => ShowSupplementAction
+            ? Loc["RequestAdditional"].Value
+            : null;
+        private string? SupplementPrimaryActionText => SelectedSupplementOrder is not null && ShowSupplementAction
+            ? Loc["RequestAdditional"].Value
+            : null;
+        private string? PreviousPrimaryActionText => PreviousRegularOrder is not null && CanCopyPrevious
+            ? Loc["CopyPreviousOrder"].Value
+            : null;
 
         protected override void OnParametersSet()
         {
@@ -323,6 +345,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}");
             await Task.CompletedTask;
         }
+
+        private Task CreateRegularOrderAsync() => GoToCreatePage(false);
+
+        private Task CreateSupplementOrderAsync() => GoToCreatePage(true);
 
         protected async Task GoToRecreatePage(VppRequestResDTO row)
         {

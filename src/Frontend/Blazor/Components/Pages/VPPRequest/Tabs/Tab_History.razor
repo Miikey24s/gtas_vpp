@@ -38,6 +38,8 @@
                          ShowCustomRange="@_showCustomRange"
                          CustomFrom="@_customFrom"
                          CustomTo="@_customTo"
+                         MinYear="@PeriodPickerMinYear"
+                         MaxYear="@PeriodPickerMaxYear"
                          PresetScopeSelected="@SelectPresetScopeAsync"
                          CustomScopeRequested="@(() => SelectScopeAsync(CustomScope))"
                          CustomFromChanged="@OnCustomFromChanged"

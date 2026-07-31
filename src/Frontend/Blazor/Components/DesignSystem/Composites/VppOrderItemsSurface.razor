@@ -98,7 +98,7 @@
                                           Icon="@VppIcons.Add"
                                           ButtonStyle="ButtonStyle.Primary"
                                           Click="@(async _ => await EmptyActionClick.InvokeAsync())"
-                                          data-testid="@($"{TestId}-empty-action")" />
+                                          data-testid="@EffectiveEmptyActionTestId" />
                         }
                     }
                 </div>
@@ -226,6 +226,7 @@
     [Parameter] public string EmptyDescription { get; set; } = string.Empty;
     [Parameter] public string? EmptyActionText { get; set; }
     [Parameter] public EventCallback EmptyActionClick { get; set; }
+    [Parameter] public string? EmptyActionTestId { get; set; }
     [Parameter] public int? ActiveCodeNumber { get; set; }
     [Parameter] public int? ActiveNoteNumber { get; set; }
     [Parameter] public EventCallback<int> CodeToggled { get; set; }
@@ -253,6 +254,9 @@
     private RadzenDataGrid<VppOrderDetailItem>? _grid;
     private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
+    private string EffectiveEmptyActionTestId => string.IsNullOrWhiteSpace(EmptyActionTestId)
+        ? $"{TestId}-empty-action"
+        : EmptyActionTestId;
     private bool ShowNoteColumn => true;
     private bool HasOpenTransientSurface => ActiveCodeNumber.HasValue || ActiveNoteNumber.HasValue;
     private bool UsePaging => Items.Count > VppPagingProfiles.SmallStatic.PagingThreshold;

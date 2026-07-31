@@ -27,6 +27,11 @@ export function observe(root, dotNetReference) {
 
     const onPointerDown = event => {
         if (event.target instanceof Node && root.parentElement?.contains(event.target)) return;
+        if (event.target instanceof Element) {
+            const filterPopover = event.target.closest('.vpp-filter-select-popover');
+            const popoverId = filterPopover?.id;
+            if (popoverId && root.querySelector(`[popovertarget="${CSS.escape(popoverId)}"]`)) return;
+        }
         dotNetReference.invokeMethodAsync('DismissFromJsAsync').catch(() => {});
     };
     const onKeyDown = event => {

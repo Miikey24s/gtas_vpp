@@ -39,9 +39,6 @@
                                   AriaLabel="@Loc["SettlementViewMode"]" />
         </div>
 
-        <div class="vpp-settlement-period-target">
-            <span>@Loc["Period"] <strong>@Month.ToString("00")/@Year</strong></span>
-        </div>
     </div>
 
     <section class="vpp-settlement-decision-strip" aria-label="@Loc["SettlementSupplierDecision"]">
@@ -96,6 +93,10 @@
                          AriaLabel="@Loc["PeriodSettlement"]"
                          TestId="period-settlement-data-surface"
                          Class="vpp-period-data-frame vpp-settlement-orders-frame">
+        <Header>
+            <VppCollectionHeader Title="@($"{Loc["Period"]} {Month:00}/{Year}")"
+                                 Summary="@CurrentViewLabel" />
+        </Header>
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["PeriodSettlement"]" Class="vpp-period-data-toolbar vpp-settlement-data-toolbar">
                 <div class="vpp-period-filters @(viewMode == ItemsView ? "is-item-view" : "is-department-view")">

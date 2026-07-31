@@ -382,6 +382,12 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("vpp-header-tabs", source, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-header-breadcrumb", source, StringComparison.Ordinal);
         Assert.Contains("new(Loc[\"DepartmentSummary\"], \"/dashboard?tab=3&managementTab=department\", tab == \"3\")", sourceCode, StringComparison.Ordinal);
+        Assert.True(
+            sourceCode.IndexOf("new(Loc[\"History\"]", StringComparison.Ordinal)
+            < sourceCode.IndexOf("new(Loc[\"DepartmentSummary\"]", StringComparison.Ordinal));
+        Assert.True(
+            sourceCode.IndexOf("new(Loc[\"DepartmentSummary\"]", StringComparison.Ordinal)
+            < sourceCode.IndexOf("new(Loc[\"Catalog\"]", StringComparison.Ordinal));
         Assert.DoesNotContain("vpp-header-role-badge", source, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-header-role-badge", layoutCss, StringComparison.Ordinal);
         Assert.Contains("\"rz-sidebar rz-header\"", layoutCss, StringComparison.Ordinal);
@@ -554,7 +560,10 @@ public sealed class SharedUiFoundationTests
         var segmentedSelector = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppSegmentedSelector.razor"));
         Assert.Contains("vpp-orders-view-selector", source, StringComparison.Ordinal);
         Assert.Contains("<VppSegmentedSelector", source, StringComparison.Ordinal);
-        Assert.Contains("vpp-orders-story-commands", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-orders-story-commands", source, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionText=\"@SupplementPrimaryActionText\"", source, StringComparison.Ordinal);
+        Assert.Contains("data-testid=\"@PrimaryActionTestId\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionTestId=\"create-supplement\"", source, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", source, StringComparison.Ordinal);
         Assert.DoesNotContain("export-excel-coming-soon", source, StringComparison.Ordinal);
         Assert.DoesNotContain("PdfExportText", codeBehind, StringComparison.Ordinal);
@@ -607,7 +616,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<EmptyTemplate>", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("EmptyActionText", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("EmptyActionClick", orderItemsSurface, StringComparison.Ordinal);
-        Assert.Contains("CreateOrderThisCycle", source, StringComparison.Ordinal);
+        Assert.Contains("CreateOrderThisCycle", codeBehind, StringComparison.Ordinal);
         Assert.Contains("AvailableOrders.Count > 1", orderPanel, StringComparison.Ordinal);
         Assert.DoesNotContain("max-width: 1760px;", kpiStyles, StringComparison.Ordinal);
         Assert.DoesNotContain("margin-inline: auto;", kpiStyles, StringComparison.Ordinal);

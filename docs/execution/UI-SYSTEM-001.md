@@ -422,6 +422,14 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Architecture gate khóa parity RouteCatalog/UiRouteCatalog, motif/state bắt buộc, file/identifier retired và ledger DataGrid. Inventory hiện còn `19` file chứa `23` DataGrid thật; không có shared/design-system Razor component 0-consumer sau khi tính cả routed layout và dialog generic.
 - Verification hiện tại: Release build `0 warning / 0 error`; frontend `201/201`; isolated browser smoke `14/14` cho Library grid, workspace pattern và data-surface foundation; My Orders visual inset/focus `1/1`, hai screenshot desktop đã được kiểm bằng mắt, không thấy overlay, focus oval kép hoặc lệch symmetric inset. `verify -Scope frontend` vẫn bị chặn trước UI gate bởi `model-routing-eval` thuộc AI-harness dirty có sẵn, không được sửa hoặc trộn vào change-set UI này.
 
+### 7.5 — Owner correction: navigation, order action và period picker — 2026-07-31
+
+- Header/sidebar route người dùng theo thứ tự `Đơn hàng của tôi → Lịch sử đơn → Tổng hợp phòng ban → Danh mục mặt hàng → Quản lý kỳ`; header-tab nhóm vẫn giữ contract cấp cha/cấp con riêng.
+- My Orders chỉ giữ selector trong switchbar. Nút tạo/sao chép chuyển vào hàng hành động của phiếu cùng Lịch sử/PDF/Excel; khi chưa có phiếu, cùng callback được trình bày trong empty-state thay vì tạo một toolbar CRUD thứ hai.
+- Page-size dùng popup/hover/selected state của filter nhưng trigger là label-only, không chevron; rule polish dropdown chung không còn ghi đè pager bridge.
+- Picker `Tùy chọn` dùng hai selector Tháng/Năm. Biên năm History/Department lấy bằng aggregate `MIN/MAX` trên đúng authorization scope, không tải toàn bộ đơn; Chốt kỳ đưa `Kỳ MM/YYYY` vào header của data surface.
+- Evidence hẹp: Release build `0 warning/error`; architecture `35/35`; backend history aggregate `2/2`; Product Catalog + My Orders browser `2/2`; supplement create/cancel/no-reload `1/1`; Chốt kỳ picker/browser `1/1`. Screenshot page-size, My Orders và picker đã được kiểm bằng mắt.
+
 ---
 
 ## 8. Rủi ro và recovery

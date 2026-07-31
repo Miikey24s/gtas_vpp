@@ -47,7 +47,15 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             "the settlement period picker must stay above the supplier decision strip");
         if (await surface.Locator(".vpp-content-state:visible").CountAsync() > 0)
         {
-            await periodPicker.Locator("input[type='month']").FillAsync("2026-06");
+            var periodSelectors = periodPicker.Locator(".vpp-filter-select-trigger");
+            await periodSelectors.Nth(0).ClickAsync();
+            await Page.Locator(".vpp-filter-select-popover:popover-open")
+                .GetByRole(AriaRole.Option, new() { Name = "Tháng 06", Exact = true })
+                .ClickAsync();
+            await periodSelectors.Nth(1).ClickAsync();
+            await Page.Locator(".vpp-filter-select-popover:popover-open")
+                .GetByRole(AriaRole.Option, new() { Name = "2026", Exact = true })
+                .ClickAsync();
             await periodPicker.GetByRole(AriaRole.Button, new() { Name = "Áp dụng", Exact = true }).ClickAsync();
             await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
             {

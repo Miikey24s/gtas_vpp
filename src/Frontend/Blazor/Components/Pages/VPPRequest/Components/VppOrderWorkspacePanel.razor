@@ -123,6 +123,18 @@
                                       Disabled="@IsCancelling"
                                       IsBusy="@IsCancelling" />
                     }
+                    @if (!string.IsNullOrWhiteSpace(PrimaryActionText) && PrimaryActionRequested.HasDelegate)
+                    {
+                        <RadzenButton Icon="@PrimaryActionIcon"
+                                      Text="@PrimaryActionText"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(async _ => await PrimaryActionRequested.InvokeAsync())"
+                                      Title="@PrimaryActionTitle"
+                                      aria-label="@PrimaryActionText"
+                                      Disabled="@PrimaryActionDisabled"
+                                      data-testid="@PrimaryActionTestId" />
+                    }
                 </div>
         </div>
     </header>
@@ -140,6 +152,7 @@
                           EmptyDescription="@EmptyDescription"
                           EmptyActionText="@EmptyActionText"
                           EmptyActionClick="@EmptyActionClick"
+                          EmptyActionTestId="@PrimaryActionTestId"
                           Categories="@CategoryFilterOptions"
                           Units="@UnitFilterOptions"
                           SearchText="@(ItemSearch ?? string.Empty)"
@@ -192,6 +205,12 @@
     [Parameter] public EventCallback<VppRequestResDTO> ExportExcelRequested { get; set; }
     [Parameter] public bool IsExporting { get; set; }
     [Parameter] public EventCallback<string?> CopyCodeRequested { get; set; }
+    [Parameter] public string? PrimaryActionText { get; set; }
+    [Parameter] public string PrimaryActionIcon { get; set; } = VppIcons.Add;
+    [Parameter] public EventCallback PrimaryActionRequested { get; set; }
+    [Parameter] public bool PrimaryActionDisabled { get; set; }
+    [Parameter] public string? PrimaryActionTitle { get; set; }
+    [Parameter] public string PrimaryActionTestId { get; set; } = "order-primary-action";
 
     private VppOrderItemsSurface? _itemsSurface;
     private readonly List<VppOrderDetailItem> _filteredItems = [];

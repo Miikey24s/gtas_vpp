@@ -242,6 +242,8 @@ public class VPPRequestServiceTests
         Assert.Equal(2, result.TotalLines);
         Assert.Equal(14, result.TotalQuantity);
         Assert.Equal(202607, result.LatestPeriod);
+        Assert.Equal(202606, result.AvailableFromPeriod);
+        Assert.Equal(202607, result.AvailableToPeriod);
         Assert.Equal(12, result.Periods.Count);
         Assert.Equal(202508, result.Periods[0].PeriodKey);
         Assert.Equal(10, result.Periods.Single(point => point.PeriodKey == 202606).RegularQuantity);
@@ -298,6 +300,8 @@ public class VPPRequestServiceTests
 
         Assert.Equal(1, summary.TotalOrders);
         Assert.Equal(12, summary.TotalQuantity);
+        Assert.Equal(202607, summary.AvailableFromPeriod);
+        Assert.Equal(202607, summary.AvailableToPeriod);
         var order = Assert.Single(data);
         Assert.Equal(1, totalCount);
         Assert.Equal(matching.Id, order.Id);

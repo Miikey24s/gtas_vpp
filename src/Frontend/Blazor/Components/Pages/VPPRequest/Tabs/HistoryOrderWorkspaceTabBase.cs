@@ -61,6 +61,9 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     private VppRequestResDTO? _requestedOrder;
 
     protected bool IsRefreshing => _isSummaryLoading || IsGridLoading || _isDetailLoading;
+    protected int PeriodPickerMinYear => (_summary?.AvailableFromPeriod ?? _currentPeriod ?? CurrentCalendarPeriod) / 100;
+    protected int PeriodPickerMaxYear => (_summary?.AvailableToPeriod ?? _currentPeriod ?? CurrentCalendarPeriod) / 100;
+    private static int CurrentCalendarPeriod => (DateTime.Today.Year * 100) + DateTime.Today.Month;
 
     protected abstract string HistoryPermission { get; }
     protected abstract string HistoryErrorSummary { get; }

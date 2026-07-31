@@ -343,15 +343,16 @@ public sealed class AtlasWave1ArchitectureTests
     public void M2_OrderAndHistoryCollectionsKeepTheirDistinctDataContracts()
     {
         var orders = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_Orders.razor");
+        var ordersCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_Orders.razor.cs");
         // Sau C-7, hai grid của màn Lịch sử nằm trong hai component con thay vì Tab_History.razor.
         var historyOrders = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderList.razor");
         var historyDetail = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderDetailSheet.razor");
         var detail = ReadFrontendSource("Components/Pages/VPPRequest/Components/VppOrderWorkspacePanel.razor");
         var orderItemsSurface = ReadFrontendSource("Components/DesignSystem/Composites/VppOrderItemsSurface.razor");
 
-        Assert.Contains("CurrentOrderViewIndex", orders, StringComparison.Ordinal);
-        Assert.Contains("SupplementOrderViewIndex", orders, StringComparison.Ordinal);
-        Assert.Contains("PreviousOrderViewIndex", orders, StringComparison.Ordinal);
+        Assert.Contains("CurrentOrderViewIndex", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("SupplementOrderViewIndex", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("PreviousOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", orders, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"true\"", historyOrders, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDetail, StringComparison.Ordinal);

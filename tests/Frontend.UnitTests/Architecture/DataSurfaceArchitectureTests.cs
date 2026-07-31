@@ -77,6 +77,8 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("--vpp-data-grid-min-width", bridge, StringComparison.Ordinal);
         Assert.Contains("overflow: auto;", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-paginator .rz-dropdown", bridge, StringComparison.Ordinal);
+        Assert.Contains(".rz-pager .rz-dropdown .rz-dropdown-trigger", bridge, StringComparison.Ordinal);
+        Assert.Contains("display: none;", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li).rz-state-highlight", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-rich-two-line", bridge, StringComparison.Ordinal);
@@ -262,6 +264,16 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("<VppDataToolbar", settlement, StringComparison.Ordinal);
         Assert.Equal(7, Regex.Matches(settlement, "<VppFilterSelect\\b").Count);
         Assert.Contains("<VppPeriodPickerPopover", settlement, StringComparison.Ordinal);
+        Assert.Contains("<VppCollectionHeader", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-settlement-period-target", settlement, StringComparison.Ordinal);
+        var periodPicker = File.ReadAllText(Path.Combine(
+            GetFrontendRoot(),
+            "Components",
+            "DesignSystem",
+            "Composites",
+            "VppPeriodPickerPopover.razor"));
+        Assert.Equal(4, periodPicker.Split("<VppFilterSelect TValue=\"int\"", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("input type=\"month\"", periodPicker, StringComparison.Ordinal);
         Assert.Equal(2, Regex.Matches(settlement, "<RadzenDataGrid(?=\\s|>)").Count);
         Assert.Contains("AggregatedVppItemResDTO", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", settlement, StringComparison.Ordinal);

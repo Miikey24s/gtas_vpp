@@ -18,6 +18,8 @@
                                     EndLabel="@Loc["HistoryToPeriod"]"
                                     StartValue="@CustomFrom"
                                     EndValue="@CustomTo"
+                                    MinYear="@MinYear"
+                                    MaxYear="@MaxYear"
                                     StartChanged="@CustomFromChanged"
                                     EndChanged="@CustomToChanged"
                                     ApplyText="@Loc["ApplyFilters"]"
@@ -33,6 +35,8 @@
     [Parameter] public bool ShowCustomRange { get; set; }
     [Parameter] public string CustomFrom { get; set; } = string.Empty;
     [Parameter] public string CustomTo { get; set; } = string.Empty;
+    [Parameter] public int? MinYear { get; set; }
+    [Parameter] public int? MaxYear { get; set; }
     [Parameter] public EventCallback<string> PresetScopeSelected { get; set; }
     [Parameter] public EventCallback CustomScopeRequested { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> CustomFromChanged { get; set; }

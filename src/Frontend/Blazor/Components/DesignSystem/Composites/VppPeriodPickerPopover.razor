@@ -27,32 +27,48 @@
             </header>
 
             <div class="vpp-period-picker-fields">
-                <label class="vpp-period-picker-field">
+                <div class="vpp-period-picker-field" role="group" aria-label="@StartLabel">
                     <span class="vpp-period-picker-label">@StartLabel</span>
-                    <span class="vpp-period-picker-value">
-                        <VppIcon Name="@VppIcons.Calendar" />
-                        @FormatPeriod(StartValue)
-                    </span>
-                    <input type="month"
-                           value="@StartValue"
-                           aria-label="@StartLabel"
-                           @onchange="StartChanged" />
-                </label>
+                    <div class="vpp-period-picker-selects">
+                        <VppFilterSelect TValue="int"
+                                         Value="@StartMonth"
+                                         Options="@MonthOptions"
+                                         ValueChanged="@OnStartMonthChangedAsync"
+                                         Active="false"
+                                         Placeholder="@Loc["Month"]"
+                                         AriaLabel="@($"{StartLabel} · {Loc["Month"]}")" />
+                        <VppFilterSelect TValue="int"
+                                         Value="@StartYear"
+                                         Options="@YearOptions"
+                                         ValueChanged="@OnStartYearChangedAsync"
+                                         Active="false"
+                                         Placeholder="@Loc["Year"]"
+                                         AriaLabel="@($"{StartLabel} · {Loc["Year"]}")" />
+                    </div>
+                </div>
 
                 @if (IsRange)
                 {
                     <span class="vpp-period-picker-separator" aria-hidden="true">→</span>
-                    <label class="vpp-period-picker-field">
+                    <div class="vpp-period-picker-field" role="group" aria-label="@EndLabel">
                         <span class="vpp-period-picker-label">@EndLabel</span>
-                        <span class="vpp-period-picker-value">
-                            <VppIcon Name="@VppIcons.Calendar" />
-                            @FormatPeriod(EndValue)
-                        </span>
-                        <input type="month"
-                               value="@EndValue"
-                               aria-label="@EndLabel"
-                               @onchange="EndChanged" />
-                    </label>
+                        <div class="vpp-period-picker-selects">
+                            <VppFilterSelect TValue="int"
+                                             Value="@EndMonth"
+                                             Options="@MonthOptions"
+                                             ValueChanged="@OnEndMonthChangedAsync"
+                                             Active="false"
+                                             Placeholder="@Loc["Month"]"
+                                             AriaLabel="@($"{EndLabel} · {Loc["Month"]}")" />
+                            <VppFilterSelect TValue="int"
+                                             Value="@EndYear"
+                                             Options="@YearOptions"
+                                             ValueChanged="@OnEndYearChangedAsync"
+                                             Active="false"
+                                             Placeholder="@Loc["Year"]"
+                                             AriaLabel="@($"{EndLabel} · {Loc["Year"]}")" />
+                        </div>
+                    </div>
                 }
             </div>
 
@@ -79,6 +95,8 @@
     [Parameter] public EventCallback<ChangeEventArgs> EndChanged { get; set; }
     [Parameter] public EventCallback Applied { get; set; }
     [Parameter] public EventCallback Dismissed { get; set; }
+    [Parameter] public int? MinYear { get; set; }
+    [Parameter] public int? MaxYear { get; set; }
 
     private ElementReference root;
     private IJSObjectReference? module;
@@ -87,6 +105,21 @@
 
     private bool CanApply => IsValidMonth(StartValue)
         && (!IsRange || (IsValidMonth(EndValue) && string.CompareOrdinal(StartValue, EndValue) <= 0));
+    private int StartMonth => ParsePeriod(StartValue).Month;
+    private int StartYear => ParsePeriod(StartValue).Year;
+    private int EndMonth => ParsePeriod(EndValue).Month;
+    private int EndYear => ParsePeriod(EndValue).Year;
+    private int EffectiveMinYear => Math.Min(MinYear ?? (DateTime.Today.Year - 10), EffectiveMaxYear);
+    private int EffectiveMaxYear => Math.Max(MaxYear ?? (DateTime.Today.Year + 1), DateTime.Today.Year);
+    private IReadOnlyList<VppFilterOption<int>> MonthOptions => Enumerable.Range(1, 12)
+        .Select(month => new VppFilterOption<int>(month, $"{Loc["Month"]} {month:00}"))
+        .ToArray();
+    private IReadOnlyList<VppFilterOption<int>> YearOptions => Enumerable.Range(
+            EffectiveMinYear,
+            (EffectiveMaxYear - EffectiveMinYear) + 1)
+        .Reverse()
+        .Select(year => new VppFilterOption<int>(year, year.ToString(CultureInfo.InvariantCulture)))
+        .ToArray();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -113,13 +146,27 @@
 
     private Task CancelAsync() => Dismissed.InvokeAsync();
 
+    private Task OnStartMonthChangedAsync(int month) => PublishPeriodAsync(StartChanged, StartYear, month);
+
+    private Task OnStartYearChangedAsync(int year) => PublishPeriodAsync(StartChanged, year, StartMonth);
+
+    private Task OnEndMonthChangedAsync(int month) => PublishPeriodAsync(EndChanged, EndYear, month);
+
+    private Task OnEndYearChangedAsync(int year) => PublishPeriodAsync(EndChanged, year, EndMonth);
+
+    private static Task PublishPeriodAsync(EventCallback<ChangeEventArgs> callback, int year, int month)
+        => callback.InvokeAsync(new ChangeEventArgs
+        {
+            Value = $"{year:0000}-{month:00}"
+        });
+
     private static bool IsValidMonth(string value)
         => DateTime.TryParseExact(value, "yyyy-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
 
-    private static string FormatPeriod(string value)
+    private static (int Year, int Month) ParsePeriod(string value)
         => DateTime.TryParseExact(value, "yyyy-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out var period)
-            ? period.ToString("MM/yyyy", CultureInfo.InvariantCulture)
-            : "–";
+            ? (period.Year, period.Month)
+            : (DateTime.Today.Year, DateTime.Today.Month);
 
     public async ValueTask DisposeAsync()
     {

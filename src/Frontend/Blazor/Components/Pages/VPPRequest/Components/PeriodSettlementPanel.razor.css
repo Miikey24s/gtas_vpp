@@ -28,8 +28,7 @@
     gap: var(--vpp-space-3);
 }
 
-.vpp-settlement-selector-groups,
-.vpp-settlement-period-target {
+.vpp-settlement-selector-groups {
     display: flex;
     min-width: 0;
     align-items: center;
@@ -40,18 +39,6 @@
     position: relative;
     display: inline-flex;
     min-width: 0;
-}
-
-.vpp-settlement-period-target {
-    flex: 0 0 auto;
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-sm);
-    white-space: nowrap;
-}
-
-.vpp-settlement-period-target strong {
-    color: var(--vpp-text-primary);
-    font-weight: var(--vpp-font-weight-semibold);
 }
 
 .vpp-settlement-decision-strip {
@@ -253,8 +240,7 @@
         justify-content: flex-end;
     }
 
-    .vpp-settlement-selector-groups,
-    .vpp-settlement-period-target {
+    .vpp-settlement-selector-groups {
         justify-content: space-between;
     }
 
@@ -272,8 +258,7 @@
 }
 
 @media (max-width: 720px) {
-    .vpp-settlement-selector-groups,
-    .vpp-settlement-period-target {
+    .vpp-settlement-selector-groups {
         align-items: stretch;
         flex-direction: column;
     }

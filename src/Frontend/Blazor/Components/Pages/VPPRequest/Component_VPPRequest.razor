@@ -30,15 +30,6 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewDashboardTab(Permissions.RequestProductCatalog))
-            {
-                <RadzenTabsItem Text="@Loc["Catalog"]">
-                    @if (IsActiveTab(2))
-                    {
-                        <Tab_ProductCatalog claims="@claims" />
-                    }
-                </RadzenTabsItem>
-            }
             @* D2/D8: tab "Tổng hợp toàn công ty" đã gỡ; URL cũ managementTab=all
                được chuyển sang màn Chốt kỳ hợp nhất. *@
             @if (CanViewDashboardTab(Permissions.RequestDepartmentSummary))
@@ -47,6 +38,15 @@
                     @if (IsActiveTab(3))
                     {
                         <Tab_DepartmentSummary claims="@claims" />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewDashboardTab(Permissions.RequestProductCatalog))
+            {
+                <RadzenTabsItem Text="@Loc["Catalog"]">
+                    @if (IsActiveTab(2))
+                    {
+                        <Tab_ProductCatalog claims="@claims" />
                     }
                 </RadzenTabsItem>
             }
