@@ -92,6 +92,23 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
         catch (Exception ex) { row.IsDeleted = !value; ToastService.Error(ex, Loc, "ChangeRecordStatusFailed"); }
     }
 
+    private async Task HardDeleteAsync(VppItemResDTO row)
+    {
+        if (!CanModify || !row.IsDeleted) return;
+        var confirm = await DialogService.Confirm(
+            $"{row.VppName ?? row.VppCode}\n\n{Loc["PermanentDeleteWarning"]}",
+            Loc["HardDelete"].Value,
+            new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+        if (confirm != true) return;
+        try
+        {
+            await ApiServices.DeleteFromApiAsync($"{Config.ApiCatalogItems}/{row.Id}");
+            ToastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["RecordPermanentlyDeleted"], 3000, false);
+            await grid.Reload();
+        }
+        catch (Exception ex) { ToastService.Error(ex, Loc, "DeleteRecordFailed"); }
+    }
+
     private async Task OnSearchInputAsync(ChangeEventArgs args) { searchText = args.Value?.ToString() ?? string.Empty; await ReloadAsync(); }
     private async Task OnCategoryChangedAsync(string value) { categoryFilter = value; await ReloadAsync(); }
     private async Task OnUomChangedAsync(string value) { uomFilter = value; await ReloadAsync(); }

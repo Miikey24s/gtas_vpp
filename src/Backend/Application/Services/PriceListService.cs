@@ -341,11 +341,38 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price list not found.");
                 }
 
+                if (!entity.IsDeleted)
+                {
+                    throw new BusinessException("The price list must be deactivated before permanent deletion.");
+                }
+
+                if (entity.IsDefault)
+                {
+                    throw new BusinessException("The default price list cannot be hard-deleted.");
+                }
+
                 if (entity.Status == PriceListStatus.Published)
                 {
                     throw new BusinessException("Published price books cannot be hard-deleted.");
                 }
 
+                var referenceCount = await _scopedUow.VPPContext.Set<SupplierProductMapping>()
+                    .CountAsync(x => x.PriceListId == id)
+                    + await _scopedUow.VPPContext.Set<gtas_vpp_be.Model.VPP.VppRequest>()
+                        .CountAsync(x => x.SettledByPriceListId == id)
+                    + await _scopedUow.VPPContext.Set<gtas_vpp_be.Model.VPP.Settlement>()
+                        .CountAsync(x => x.PriceListId == id)
+                    + await _scopedUow.VPPContext.Set<gtas_vpp_be.Model.VPP.SettlementItem>()
+                        .CountAsync(x => x.PriceListId == id);
+                if (referenceCount > 0)
+                {
+                    throw new BusinessException($"Price list is still referenced by {referenceCount} records.");
+                }
+
+                var translations = await _scopedUow.VPPContext.Set<PriceListTranslation>()
+                    .Where(x => x.PriceListId == id)
+                    .ToListAsync();
+                _scopedUow.VPPContext.Set<PriceListTranslation>().RemoveRange(translations);
                 _scopedUow.VPPContext.Set<PriceList>().Remove(entity);
                 await _scopedUow.CommitAsync();
             }

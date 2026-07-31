@@ -59,7 +59,7 @@ EF model đã được đối chiếu với migration snapshot hiện tại và 
 | **Giá mặt hàng** | Collection theo bảng giá và NCC đã chọn; không split màn hình | `#`, Mặt hàng (tên + mã), Danh mục, Đơn vị, Supplier SKU, Đơn giá, VAT, MOQ, Lead time, Mặc định, Thao tác | Net price nếu sau này tách khác giá, mô tả, trạng thái, audit | Modal vừa 720–820px; price list + supplier khóa theo context, chọn item active chưa có trong bảng giá, một ô đơn giá, VAT, MOQ, lead, SKU, default, mô tả. |
 | **Phòng ban** | Full-width Collection; hierarchy thể hiện bằng cột parent, không dùng tree làm bảng chính | `#`, Phòng ban (tên + mã), Phòng ban cha, Trạng thái, Mô tả, Thao tác | Số phòng con/user active khi API có projection, localization, audit | Modal vừa 640–720px: mã, tên, parent, mô tả; selector parent loại chính nó và toàn bộ descendants. |
 | **Người dùng** | Full-width Collection; bỏ inspector cố định để lấy lại chiều ngang | `#`, Người dùng (họ tên + login/email), Trạng thái tài khoản, Nhóm quyền, Phòng ban, Trạng thái lời mời/membership, Thao tác | Employee code, email confirmed, must-change-password, user type, cập nhật; account id chỉ dành DEV inspector | Có **Thêm người dùng**. Modal 760–840px: username, email, họ tên, employee code, group, department, lý do, gửi lời mời. Admin không nhập password; invite one-time để user tự đặt password. |
-| **Nhóm quyền và permission** | `VppListDetailWorkspace`: canonical group gọn bên trái, quyền theo trang bên phải; nút **Cấu hình** mở workspace dialog | Group: `#`, Tên + code, mô tả, số user. Permission: tên, code, loại, trạng thái truy cập, trạng thái khóa | Audit và mapping id kỹ thuật không hiện mặc định | Permission editor dùng workspace dialog `90vw × 85vh`, selector trang ngang và một access-state control; lưu batch một lần. Ba canonical group immutable; không có Thêm role trong current scope. |
+| **Nhóm quyền và permission** | Bảng nhóm quyền full-width; nút **Cấu hình** ở từng dòng mới tải permission và mở workspace dialog | Group: `#`, Tên + code, mô tả, số user, thao tác. Permission chỉ xuất hiện trong editor theo trang | Audit và mapping id kỹ thuật không hiện mặc định | Tránh tải/duy trì khung detail khi chưa dùng; permission editor dùng workspace dialog, selector trang ngang và một access-state control; lưu batch một lần. Ba canonical group immutable; không có Thêm role trong current scope. |
 | **Nhật ký bảo mật** | Full-width Collection read-only | `#`, Thời gian, Người thao tác, Đối tượng, Hành động, Kết quả, Tài nguyên, Tóm tắt | Reason, correlation id, resource id | Không có editor; chỉ filter và xem chi tiết. API read-only đã triển khai, không đổi schema. |
 
 ## 4. Contract adaptive editor dialog
@@ -190,7 +190,7 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - **DEFERRED:** custom role và group inheritance; không code/migration trong current execution.
 - **APPROVED:** admin user invitation, security audit read-only, API hardening, batch permission và count projection.
 - **APPROVED:** UI dùng một access-state selector cho canonical UI mapping; backend action matrix vẫn read-only.
-- **APPROVED:** chỉ `Loại danh mục → Giá trị` và `Nhóm quyền → Permission` dùng ListDetail; các trang còn lại full-width Collection.
+- **OWNER CORRECTION 2026-07-31:** chỉ `Loại danh mục → Giá trị` dùng ListDetail. Nhóm quyền dùng bảng full-width; permission tải theo yêu cầu trong batch editor để giao diện gọn và giảm tải ban đầu.
 - **EXECUTION COMPLETED:** AA0 → AA7 đã có code, test, route-real visual evidence và commit theo wave; custom role/group inheritance vẫn để plan riêng.
 
 ## 9. Execution record — AA0/AA1 foundation slice — 2026-07-30
@@ -235,7 +235,7 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 
 ## 14. Execution record — AA4 pricing — 2026-07-30
 
-- Bảng giá đã đổi từ ListDetail + inspector sang full-width `VppCollectionWorkspace`, đúng decision chỉ Lookup và Permission còn dùng ListDetail.
+- Bảng giá đã đổi từ ListDetail + inspector sang full-width `VppCollectionWorkspace`; sau owner correction, Permission cũng dùng full-width collection và chỉ Lookup còn ListDetail.
 - Toolbar Bảng giá dùng search + status selector + clear-filter canonical; Giá mặt hàng dùng cùng `VppFilterSelect` cho bảng giá/NCC và `VppFilterSearch`, bỏ reload thủ công.
 - `Dialog_PriceListEditor` dùng Workspace adaptive; `Dialog_PriceEditor` dùng Standard adaptive. Publish/expire/set-default/clone vẫn là action lifecycle riêng, không trộn vào form.
 - Lỗi overlay loading do reload lần hai đã được phát hiện bằng screenshot và loại bỏ; ảnh runtime sau sửa đã được kiểm bằng mắt ở `1366×420`.
@@ -256,7 +256,7 @@ Model routing dựa trên hướng dẫn GPT-5.6 hiện hành: Sol cho kiến tr
 - `/permission?tab=1` mặc định là ListDetail: ba canonical group ở trái, quyền UI theo trang ở phải; API action matrix tách sang selector `Quyền API (tham chiếu)` và hoàn toàn read-only.
 - Workspace `Dialog_PermissionUiBatchEditor` thay hai switch rời bằng một `Trạng thái truy cập`: `Ẩn / Chỉ xem / Cho phép thao tác`. Action grant, mapping bắt buộc và mapping ngoài role ceiling chỉ hiển thị trạng thái khóa.
 - Backend có `PATCH /api/Permission/component-mappings/batch`: validate toàn batch trước mutation, chặn action grant và recovery navigation của DEV, dùng transaction relational, ghi một `PERMISSION_UI_BATCH_UPDATED` audit và notify session sau commit.
-- `GET /api/Permission/groups` trả `UserCount` bằng projection; group grid không hiện pager thừa khi chỉ có ba canonical role. Dialog grid sở hữu native scroll và không tràn xuống vùng lý do/footer.
+- `GET /api/Permission/groups` trả `UserCount` bằng projection; group grid dùng footer/pager canonical như các collection quản trị khác. Dialog grid sở hữu native scroll và không tràn xuống vùng lý do/footer.
 - Consumer ledger tăng thành `20 file / 25 DataGrid`; browser/page object cũ đã chuyển từ inline switch sang batch editor.
 - Evidence: frontend/backend Release build `0 warning`; frontend `203/203`; backend canonical permission `9/9`; Playwright desktop và mobile pass ở hai lượt isolated riêng; mutation hide/show Report permission và restore `1/1`. Một lượt gộp từng gặp negotiation SignalR tạm thời giữa fixture, desktop rerun độc lập pass. Ảnh desktop, workspace editor, API matrix và mobile đã được kiểm bằng mắt trong `tmp/aa6-ui-evidence/` (ignored).
 - Custom role/group inheritance vẫn `DEFERRED`; AA6 không đổi schema hoặc canonical RBAC.

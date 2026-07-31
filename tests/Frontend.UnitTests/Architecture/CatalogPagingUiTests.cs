@@ -24,7 +24,7 @@ public sealed class CatalogPagingUiTests
     }
 
     [Fact]
-    public void LibraryItemGrid_UsesTypedCatalogEndpointWithoutHardDelete()
+    public void LibraryItemGrid_UsesTypedCatalogEndpointWithGuardedHardDelete()
     {
         var source = ReadSource("Components", "Pages", "Lib", "Component_Library.razor");
         var grid = ReadSource("Components", "Pages", "Lib", "Tabs", "Tab_ItemLibrary.razor.cs");
@@ -36,7 +36,8 @@ public sealed class CatalogPagingUiTests
         Assert.Contains("VppItemCreateRequest", editor, StringComparison.Ordinal);
         Assert.Contains("VppItemUpdateRequest", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("AllowHardDelete", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("DeleteFromApi", grid, StringComparison.Ordinal);
+        Assert.Contains("DeleteFromApiAsync", grid, StringComparison.Ordinal);
+        Assert.Contains("PermanentDeleteWarning", grid, StringComparison.Ordinal);
     }
 
     private static string ReadSource(params string[] relativeSegments)

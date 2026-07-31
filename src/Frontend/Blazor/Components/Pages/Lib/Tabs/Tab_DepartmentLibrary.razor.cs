@@ -41,6 +41,14 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
     { var result = await DialogService.OpenAsync<Dialog.Dialog_DepartmentEditor>(Loc["Edit"].Value, new Dictionary<string, object?> { ["IsCreate"] = false, ["Model"] = Clone(row), ["Departments"] = allDepartments }, VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard, Loc["Edit"].Value, closeAriaLabel: Loc["Close"].Value)); if (result is DepartmentResDTO) await grid.Reload(); }
     private async Task ToggleDeletedAsync(DepartmentResDTO row, bool value)
     { if (value && !await CanDeactivateAsync(Config.LibraryApi.Departments, row.Id)) return; try { var result = await ApiServices.PatchFromApiAsync<DepartmentResDTO>($"{Config.LibraryApi.Departments}/{row.Id}", new { IsDeleted = value, UpdatedAtUtc = DateTime.Now, UpdatedByUserId = Global.UserInfo.UserID }); if (result is null) { row.IsDeleted = !value; ToastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["ChangeRecordStatusFailed"], 5000, true); return; } row.IsDeleted = result.IsDeleted; await grid.Reload(); } catch (Exception ex) { row.IsDeleted = !value; ToastService.Error(ex, Loc, "ChangeRecordStatusFailed"); } }
+    private async Task HardDeleteAsync(DepartmentResDTO row)
+    {
+        if (!CanModify || !row.IsDeleted) return;
+        var confirm = await DialogService.Confirm($"{row.Name ?? row.Code}\n\n{Loc["PermanentDeleteWarning"]}", Loc["HardDelete"].Value, new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+        if (confirm != true) return;
+        try { await ApiServices.DeleteFromApiAsync($"{Config.LibraryApi.Departments}/{row.Id}"); ToastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["RecordPermanentlyDeleted"], 3000, false); await grid.Reload(); }
+        catch (Exception ex) { ToastService.Error(ex, Loc, "DeleteRecordFailed"); }
+    }
     private async Task<bool> CanDeactivateAsync(string endpoint, Guid id) { var impact = await ApiServices.GetFromApiAsync<LibraryDependencyImpactResDTO>($"{endpoint}/{id}/dependency-impact"); if (impact is null || impact.CanDeactivate) return true; ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], string.Format(Loc["DependencyDeactivateBlocked"].Value, impact.ActiveReferenceCount), 5000, false); return false; }
     private async Task OnSearchInputAsync(ChangeEventArgs args) { searchText = args.Value?.ToString() ?? string.Empty; await grid.FirstPage(true); }
     private async Task ClearFiltersAsync() { searchText = string.Empty; await grid.FirstPage(true); }

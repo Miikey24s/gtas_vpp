@@ -935,20 +935,19 @@ namespace gtas_vpp_be.Controllers
 
             return tableCode.ToLower() switch
             {
-                "lookup-categories" => await HardDeleteLookupAsync(tableCode, id),
-                "lookup-values" => await HardDeleteLookupAsync(tableCode, id),
-                "vpp-categories" => await DeleteAsync<VppCategory>(id),
-                "vpp-items" => await DeleteAsync<VppItem>(id),
-                "suppliers" => await DeleteAsync<Supplier>(id),
-                "supplier-product-mappings" => await DeleteAsync<SupplierProductMapping>(id),
-                "departments" => await DeleteAsync<Department>(id),
+                "lookup-categories" => await HardDeleteLibraryRecordAsync(tableCode, id),
+                "lookup-values" => await HardDeleteLibraryRecordAsync(tableCode, id),
+                "vpp-categories" => await HardDeleteLibraryRecordAsync(tableCode, id),
+                "suppliers" => await HardDeleteLibraryRecordAsync(tableCode, id),
+                "supplier-product-mappings" => await HardDeleteLibraryRecordAsync(tableCode, id),
+                "departments" => await HardDeleteLibraryRecordAsync(tableCode, id),
                 _ => BadRequest(new { Message = $"Delete for Table Code '{tableCode}' is not supported." })
             };
         }
 
-        private async Task<IActionResult> HardDeleteLookupAsync(string tableCode, Guid id)
+        private async Task<IActionResult> HardDeleteLibraryRecordAsync(string tableCode, Guid id)
         {
-            var result = await _libraryIntegrityService.HardDeleteLookupAsync(tableCode, id);
+            var result = await _libraryIntegrityService.HardDeleteAsync(tableCode, id);
             return result?.Status switch
             {
                 LibraryHardDeleteStatus.Deleted => Ok(new { Id = id }),

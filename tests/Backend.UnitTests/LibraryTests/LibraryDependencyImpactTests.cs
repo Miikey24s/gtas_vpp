@@ -206,6 +206,68 @@ public sealed class LibraryDependencyImpactTests
         Assert.Empty(context.LookupValueTranslations.Where(x => x.LookupValueId == valueId));
     }
 
+    [Fact]
+    public async Task VppCategoryHardDelete_BlocksInactiveChildrenAndPreservesCategory()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var categoryId = Guid.NewGuid();
+        context.VppCategories.Add(new VppCategory
+        {
+            Id = categoryId,
+            VppCategoryCode = "OFFICE",
+            VppCategoryName = "Office",
+            IsDeleted = true
+        });
+        context.VppItems.Add(new VppItem
+        {
+            Id = Guid.NewGuid(),
+            VppCategoryId = categoryId,
+            UomId = Guid.NewGuid(),
+            VppCode = "VPP-001",
+            VppName = "Pen",
+            IsDeleted = true
+        });
+        await context.SaveChangesAsync();
+
+        var service = new LibraryIntegrityService(ServiceTestHelpers.CreateUnitOfWorkMock(context).Object);
+        var result = await service.HardDeleteAsync("vpp-categories", categoryId);
+
+        Assert.NotNull(result);
+        Assert.Equal(LibraryHardDeleteStatus.HasDependencies, result!.Status);
+        Assert.Equal(1, result.ReferenceCount);
+        Assert.NotNull(await context.VppCategories.FindAsync(categoryId));
+    }
+
+    [Fact]
+    public async Task DepartmentHardDelete_RemovesInactiveRecordAndOwnedTranslations()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var departmentId = Guid.NewGuid();
+        context.Departments.Add(new Department
+        {
+            Id = departmentId,
+            Code = "ARCHIVE",
+            Name = "Archive",
+            IsDeleted = true
+        });
+        context.DepartmentTranslations.Add(new DepartmentTranslation
+        {
+            Id = Guid.NewGuid(),
+            DepartmentId = departmentId,
+            LanguageCode = "en",
+            Name = "Archive"
+        });
+        await context.SaveChangesAsync();
+
+        var service = new LibraryIntegrityService(ServiceTestHelpers.CreateUnitOfWorkMock(context).Object);
+        var result = await service.HardDeleteAsync("departments", departmentId);
+
+        Assert.NotNull(result);
+        Assert.Equal(LibraryHardDeleteStatus.Deleted, result!.Status);
+        Assert.Null(await context.Departments.FindAsync(departmentId));
+        Assert.Empty(context.DepartmentTranslations.Where(x => x.DepartmentId == departmentId));
+    }
+
     private static LibraryController CreateController(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);

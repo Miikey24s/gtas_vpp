@@ -100,6 +100,23 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
         }
     }
 
+    private async Task HardDeleteAsync(SupplierResDTO row)
+    {
+        if (!CanModify || !row.IsDeleted) return;
+        var confirm = await DialogService.Confirm(
+            $"{row.SupplierName ?? row.SupplierShortName}\n\n{Loc["PermanentDeleteWarning"]}",
+            Loc["HardDelete"].Value,
+            new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+        if (confirm != true) return;
+        try
+        {
+            await ApiServices.DeleteFromApiAsync($"{Config.LibraryApi.Suppliers}/{row.Id}");
+            ToastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["RecordPermanentlyDeleted"], 3000, false);
+            await grid.Reload();
+        }
+        catch (Exception ex) { ToastService.Error(ex, Loc, "DeleteRecordFailed"); }
+    }
+
     private async Task<bool> CanDeactivateAsync(string endpoint, Guid id)
     {
         var impact = await ApiServices.GetFromApiAsync<LibraryDependencyImpactResDTO>($"{endpoint}/{id}/dependency-impact");

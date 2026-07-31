@@ -82,7 +82,10 @@
                         <Template Context="row">
                             <div class="vpp-admin-actions">
                                 <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />
-                                <RadzenButton Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")" Size="ButtonSize.Small" ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" Disabled="@(!CanModify)" title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Click="@(() => ToggleDeletedAsync(row, !row.IsDeleted))" />
+                                <span class="vpp-admin-active-switch" title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" @onclick:stopPropagation="true">
+                                    <RadzenSwitch TValue="bool" Value="@(!row.IsDeleted)" Change="@((bool isActive) => ToggleDeletedAsync(row, !isActive))" aria-label="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Disabled="@(!CanModify)" />
+                                </span>
+                                <RadzenButton Icon="delete_forever" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Disabled="@(!CanModify || !row.IsDeleted)" title="@Loc["HardDelete"]" Click="@(() => HardDeleteAsync(row))" />
                             </div>
                         </Template>
                     </RadzenDataGridColumn>

@@ -294,7 +294,7 @@ public sealed class DataSurfaceArchitectureTests
             .ToArray();
 
         Assert.Equal(19, consumers.Length);
-        Assert.Equal(23, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(22, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

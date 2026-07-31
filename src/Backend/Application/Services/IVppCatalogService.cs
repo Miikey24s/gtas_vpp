@@ -37,4 +37,8 @@ public interface IVppCatalogService
         VppItemStatusRequest request,
         int userId,
         CancellationToken cancellationToken = default);
+
+    Task<LibraryHardDeleteResult> HardDeleteItemAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
 }

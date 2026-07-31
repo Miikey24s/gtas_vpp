@@ -93,7 +93,21 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("Model.ExtraField2", valueEditor, StringComparison.Ordinal);
         Assert.DoesNotContain("Model.ExtraField3", valueEditor, StringComparison.Ordinal);
         Assert.Contains("FieldExample", valueEditor, StringComparison.Ordinal);
-        Assert.DoesNotContain("HardDeleteAsync", priceLists, StringComparison.Ordinal);
+        Assert.Contains("HardDeleteAsync", priceLists, StringComparison.Ordinal);
+        Assert.Contains("delete_forever", priceLists, StringComparison.Ordinal);
+
+        foreach (var tab in new[]
+                 {
+                     "Tab_CategoryLibrary.razor",
+                     "Tab_ItemLibrary.razor",
+                     "Tab_SupplierLibrary.razor",
+                     "Tab_DepartmentLibrary.razor"
+                 })
+        {
+            var source = ReadFrontendSource($"Components/Pages/Lib/Tabs/{tab}");
+            Assert.Contains("<RadzenSwitch TValue=\"bool\"", source, StringComparison.Ordinal);
+            Assert.Contains("delete_forever", source, StringComparison.Ordinal);
+        }
     }
 
     [Fact]

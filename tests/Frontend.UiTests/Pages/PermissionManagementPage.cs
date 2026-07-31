@@ -19,7 +19,7 @@ public sealed class PermissionManagementPage
         await page.GotoAsync($"{baseUrl}permission?tab=1");
         await page.Locator("[data-testid='permission-groups-data-surface']").WaitForAsync();
         await page.WaitForFunctionAsync(
-            "() => document.querySelectorAll('.permission-group-grid tbody tr').length > 0");
+            "() => document.querySelectorAll('.permission-group-grid .permission-group-identity').length > 0");
     }
 
     public async Task SetComponentVisibilityAsync(
@@ -28,14 +28,7 @@ public sealed class PermissionManagementPage
         string componentCode,
         bool isVisible)
     {
-        await SelectGroupAsync(groupCode);
-        var configureButton = page.GetByRole(AriaRole.Button, new()
-        {
-            Name = "Cấu hình quyền UI",
-            Exact = true
-        });
-        await configureButton.WaitForAsync();
-        await configureButton.ClickAsync();
+        await OpenGroupEditorAsync(groupCode);
 
         var editor = page.Locator("[data-testid='permission-ui-batch-editor']");
         await editor.WaitForAsync();
@@ -81,7 +74,7 @@ public sealed class PermissionManagementPage
         });
     }
 
-    private async Task SelectGroupAsync(string groupCode)
+    private async Task OpenGroupEditorAsync(string groupCode)
     {
         var groupCell = page
             .Locator(".permission-group-grid .permission-group-identity small")
@@ -90,8 +83,13 @@ public sealed class PermissionManagementPage
 
         await groupCell.WaitForAsync();
         var groupRow = groupCell.Locator("xpath=ancestor::tr[contains(@class,'rz-data-row')]").First;
-        await groupRow.ClickAsync();
-        await page.Locator(".vpp-permission-detail-shell").WaitForAsync();
+        var configureButton = groupRow.GetByRole(AriaRole.Button, new()
+        {
+            Name = "Cấu hình quyền UI",
+            Exact = true
+        });
+        await configureButton.WaitForAsync();
+        await configureButton.ClickAsync();
     }
 
     private static async Task SelectEditorPageAsync(ILocator editor, string pageTabName)

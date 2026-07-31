@@ -54,26 +54,27 @@
                 <RadzenTabsItem Text="@Loc["Pricing"]">
                     @if (IsActiveTab(6))
                     {
-                        @if (ShowPricingNavigation)
-                        {
-                            <nav class="vpp-local-header-tabs"
-                                 aria-label="@Loc["Pricing"]">
-                                <VppHeaderTabGroup ParentLabel="@Loc["Pricing"]"
-                                                   Tabs="@PricingHeaderTabs" />
-                            </nav>
+                        <div class="vpp-pricing-workspace">
+                            @if (ShowPricingNavigation)
+                            {
+                                <nav class="vpp-local-header-tabs"
+                                     aria-label="@Loc["Pricing"]">
+                                    <VppHeaderTabGroup ParentLabel="@Loc["Pricing"]"
+                                                       Tabs="@PricingHeaderTabs" />
+                                </nav>
+                            }
 
-                        }
-
-                        @if (IsActivePricingTab(PriceListTabIndex))
-                        {
-                            <Tab_PriceListLibrary claims="@claims"
+                            @if (IsActivePricingTab(PriceListTabIndex))
+                            {
+                                <Tab_PriceListLibrary claims="@claims"
+                                                      PagePermissionResDTO="@PagePermissionResDTO" />
+                            }
+                            else if (IsActivePricingTab(PriceTabIndex))
+                            {
+                                <Tab_PriceLibrary claims="@claims"
                                                   PagePermissionResDTO="@PagePermissionResDTO" />
-                        }
-                        else if (IsActivePricingTab(PriceTabIndex))
-                        {
-                            <Tab_PriceLibrary claims="@claims"
-                                              PagePermissionResDTO="@PagePermissionResDTO" />
-                        }
+                            }
+                        </div>
                     }
                 </RadzenTabsItem>
             }

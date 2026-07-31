@@ -24,7 +24,15 @@
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="DefaultSupplierName" Title="@Loc["Supplier"]" Width="140px" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="DefaultPrice" Title="@Loc["Price"]" Width="105px" TextAlign="TextAlign.Right" FormatString="{0:N0}" Filterable="false" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false"><Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@(row.IsDeleted ? VppStatusTone.Neutral : VppStatusTone.Success)" /></Template></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppItemResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions"><Template Context="row"><div class="vpp-admin-actions"><RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModify)" title="@Loc["Edit"]" Click="@(() => OpenEditAsync(row))" /><RadzenButton Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")" Size="ButtonSize.Small" ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" Disabled="@(!CanModify)" title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Click="@(() => ToggleDeletedAsync(row, !row.IsDeleted))" /></div></Template></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppItemResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                        <Template Context="row">
+                            <div class="vpp-admin-actions">
+                                <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModify)" title="@Loc["Edit"]" Click="@(() => OpenEditAsync(row))" />
+                                <span class="vpp-admin-active-switch" title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" @onclick:stopPropagation="true"><RadzenSwitch TValue="bool" Value="@(!row.IsDeleted)" Change="@((bool isActive) => ToggleDeletedAsync(row, !isActive))" aria-label="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Disabled="@(!CanModify)" /></span>
+                                <RadzenButton Icon="delete_forever" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Disabled="@(!CanModify || !row.IsDeleted)" title="@Loc["HardDelete"]" Click="@(() => HardDeleteAsync(row))" />
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
         </ChildContent>

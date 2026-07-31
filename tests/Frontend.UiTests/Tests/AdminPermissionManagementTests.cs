@@ -8,12 +8,15 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task PermissionAdministration_UsesCanonicalListDetailAndAdaptiveBatchEditor()
+    public async Task PermissionAdministration_UsesFullWidthGroupTableAndAdaptiveBatchEditor()
     {
         var consoleErrors = new List<string>();
         Page.Console += (_, message) =>
         {
-            if (message.Type == "error") consoleErrors.Add(message.Text);
+            var expectedNavigationAbort = message.Text.Contains(
+                "Failed to complete negotiation with the server",
+                StringComparison.OrdinalIgnoreCase);
+            if (message.Type == "error" && !expectedNavigationAbort) consoleErrors.Add(message.Text);
         };
 
         await Page.SetViewportSizeAsync(1366, 768);
@@ -23,10 +26,10 @@ public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiT
         var groupSurface = Page.Locator("[data-testid='permission-groups-data-surface']");
         await groupSurface.WaitForAsync();
         await Page.WaitForFunctionAsync(
-            "() => document.querySelectorAll('.permission-group-grid tbody tr').length > 0");
-        await Page.Locator(".vpp-permission-detail-shell").WaitForAsync();
+            "() => document.querySelectorAll('.permission-group-grid .permission-group-identity').length > 0");
+        (await Page.Locator(".vpp-permission-detail-shell").CountAsync()).Should().Be(0);
         (await Page.Locator(".permission-group-grid .rz-switch").CountAsync()).Should().Be(0);
-        await AssertNoDocumentOverflowAsync("desktop permission list-detail");
+        await AssertNoDocumentOverflowAsync("desktop permission group table");
         await CaptureIfRequestedAsync("aa6-permissions-1366x768.png");
 
         var configureButton = Page.GetByRole(AriaRole.Button, new()
@@ -61,7 +64,7 @@ public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiT
     }
 
     [Fact]
-    public async Task PermissionAdministration_FitsMobileAndKeepsBothPanesUsable()
+    public async Task PermissionAdministration_FitsMobileAndKeepsGroupTableUsable()
     {
         await Page.SetViewportSizeAsync(390, 844);
         await LoginAsDefaultUserAsync();
@@ -72,44 +75,14 @@ public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiT
             """
             () => {
                 const grid = document.querySelector('.permission-group-grid');
-                const summary = document.querySelector('.vpp-permission-group-summary');
                 return grid
                     && !grid.classList.contains('rz-datatable-loading')
-                    && document.querySelectorAll('.permission-group-grid tbody tr').length > 0
-                    && summary
-                    && !summary.textContent.trim().startsWith('0 ');
+                    && document.querySelectorAll('.permission-group-grid .permission-group-identity').length > 0;
             }
             """);
-        try
-        {
-            await Page.WaitForFunctionAsync(
-                """
-                () => {
-                    const detail = document.querySelector('.vpp-permission-detail-shell');
-                    return detail
-                        && detail.getAttribute('aria-busy') !== 'true'
-                        && document.querySelectorAll('.permission-component-grid tbody tr').length > 0;
-                }
-                """,
-                null,
-                new PageWaitForFunctionOptions { Timeout = 15_000 });
-        }
-        catch (TimeoutException exception)
-        {
-            await CaptureIfRequestedAsync("aa6-permissions-mobile-stalled-390x844.png");
-            var state = await Page.EvaluateAsync<string>(
-                """
-                () => JSON.stringify({
-                    busy: document.querySelector('.vpp-permission-detail-shell')?.getAttribute('aria-busy'),
-                    componentRows: document.querySelectorAll('.permission-component-grid tbody tr').length,
-                    skeletons: document.querySelectorAll('.vpp-permission-detail-shell .rz-skeleton').length,
-                    alerts: Array.from(document.querySelectorAll('.rz-notification, .rz-alert')).map(node => node.textContent.trim()),
-                    text: document.querySelector('.vpp-permission-group-detail')?.innerText.slice(0, 1000)
-                })
-                """);
-            throw new InvalidOperationException($"Mobile permission detail did not settle: {state}", exception);
-        }
-        await AssertNoDocumentOverflowAsync("mobile permission list-detail");
+        (await Page.GetByRole(AriaRole.Button, new() { Name = "Cấu hình quyền UI", Exact = true }).CountAsync())
+            .Should().BeGreaterThan(0);
+        await AssertNoDocumentOverflowAsync("mobile permission group table");
         await CaptureIfRequestedAsync("aa6-permissions-mobile-390x844.png");
     }
 

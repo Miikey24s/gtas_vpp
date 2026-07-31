@@ -164,6 +164,35 @@ public sealed class VppCatalogServiceTests
         Assert.False(restored.IsDeleted);
     }
 
+    [Fact]
+    public async Task HardDeleteItem_RequiresDeactivationAndDeletesOwnedTranslations()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var (uomId, categoryId) = await SeedReferencesAsync(context);
+        var item = CreateItem("VPP-DELETE", "Delete me", uomId, categoryId);
+        context.VppItems.Add(item);
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var activeResult = await service.HardDeleteItemAsync(item.Id);
+        Assert.Equal(LibraryHardDeleteStatus.MustDeactivate, activeResult.Status);
+
+        item.IsDeleted = true;
+        context.VppItemTranslations.Add(new VppItemTranslation
+        {
+            Id = Guid.NewGuid(),
+            VppItemId = item.Id,
+            LanguageCode = "en",
+            Name = "Delete me"
+        });
+        await context.SaveChangesAsync();
+
+        var deletedResult = await service.HardDeleteItemAsync(item.Id);
+        Assert.Equal(LibraryHardDeleteStatus.Deleted, deletedResult.Status);
+        Assert.Null(await context.VppItems.FindAsync(item.Id));
+        Assert.Empty(context.VppItemTranslations.Where(x => x.VppItemId == item.Id));
+    }
+
     private static VppCatalogService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
         => new(
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Linq.Dynamic.Core;
 using System.Text.RegularExpressions;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.Library;
@@ -189,6 +190,54 @@ public sealed class VppCatalogService : IVppCatalogService
         await SaveChangesAsync(cancellationToken);
         return await GetItemDtoAsync(entity.Id, cancellationToken, includeDeleted: true)
             ?? throw new KeyNotFoundException($"Catalog item {entity.Id} was not found after status change.");
+    }
+
+    public async Task<LibraryHardDeleteResult> HardDeleteItemAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        await _unitOfWork.BeginTransactionAsync();
+        try
+        {
+            var context = _unitOfWork.VPPContext;
+            var entity = await context.VppItems.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (entity is null)
+            {
+                await _unitOfWork.RollbackAsync();
+                return new LibraryHardDeleteResult(LibraryHardDeleteStatus.NotFound, 0);
+            }
+
+            if (!entity.IsDeleted)
+            {
+                await _unitOfWork.RollbackAsync();
+                return new LibraryHardDeleteResult(LibraryHardDeleteStatus.MustDeactivate, 0);
+            }
+
+            var referenceCount = await context.SupplierProductMappings.CountAsync(x => x.VppItemId == id, cancellationToken)
+                + await context.RequestDetails.CountAsync(x => x.VppId == id, cancellationToken)
+                + await context.SettlementItems.CountAsync(x => x.VppId == id, cancellationToken);
+            if (referenceCount > 0)
+            {
+                await _unitOfWork.RollbackAsync();
+                return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
+            }
+
+            var translations = await context.VppItemTranslations.Where(x => x.VppItemId == id).ToListAsync(cancellationToken);
+            context.VppItemTranslations.RemoveRange(translations);
+            context.VppItems.Remove(entity);
+            await _unitOfWork.CommitAsync();
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
+        }
+        catch (DbUpdateException)
+        {
+            await _unitOfWork.RollbackAsync();
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, 1);
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
     }
 
     private async Task<Guid?> GetDefaultPriceListIdAsync(CancellationToken cancellationToken)

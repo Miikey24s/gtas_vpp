@@ -82,5 +82,32 @@ public sealed class VppCatalogController : ControllerBase
         CancellationToken cancellationToken = default)
         => Ok(await _catalogService.SetItemStatusAsync(id, request, CurrentUserId, cancellationToken));
 
+    [HttpDelete("items/{id:guid}")]
+    [Authorize(Policy = Permissions.LibraryManage)]
+    public async Task<IActionResult> HardDeleteItem(Guid id, CancellationToken cancellationToken = default)
+    {
+        var result = await _catalogService.HardDeleteItemAsync(id, cancellationToken);
+        return result.Status switch
+        {
+            LibraryHardDeleteStatus.Deleted => NoContent(),
+            LibraryHardDeleteStatus.NotFound => NotFound(),
+            LibraryHardDeleteStatus.MustDeactivate => Problem(
+                title: "Hard delete blocked",
+                detail: "The record must be deactivated before permanent deletion.",
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?> { ["errorCode"] = "HardDeleteRequiresDeactivation" }),
+            LibraryHardDeleteStatus.HasDependencies => Problem(
+                title: "Hard delete blocked",
+                detail: "The record is still referenced and cannot be permanently deleted.",
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["errorCode"] = "HardDeleteBlockedByDependencies",
+                    ["referenceCount"] = result.ReferenceCount
+                }),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
     private int CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var userId) ? userId : 0;
 }

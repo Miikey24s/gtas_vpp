@@ -111,6 +111,24 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
         }
     }
 
+    private async Task HardDeleteAsync(VppCategoryResDTO row)
+    {
+        if (!CanModify || !row.IsDeleted) return;
+        var confirm = await DialogService.Confirm(
+            $"{row.VppCategoryName ?? row.VppCategoryCode}\n\n{Loc["PermanentDeleteWarning"]}",
+            Loc["HardDelete"].Value,
+            new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+        if (confirm != true) return;
+
+        try
+        {
+            await ApiServices.DeleteFromApiAsync($"{Config.LibraryApi.VppCategories}/{row.Id}");
+            ToastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["RecordPermanentlyDeleted"], 3000, false);
+            await grid.Reload();
+        }
+        catch (Exception ex) { ToastService.Error(ex, Loc, "DeleteRecordFailed"); }
+    }
+
     private async Task OnSearchInputAsync(ChangeEventArgs args)
     {
         searchText = args.Value?.ToString() ?? string.Empty;

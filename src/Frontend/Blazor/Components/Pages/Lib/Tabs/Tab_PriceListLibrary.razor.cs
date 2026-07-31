@@ -185,6 +185,24 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
+        private async Task HardDeleteAsync(PriceListResDTO row)
+        {
+            if (!CanModify || !row.IsDeleted || row.Status == "Published") return;
+            var confirm = await DialogService.Confirm(
+                $"{Loc["PriceListHardDeleteConfirm"]}\n\n{Loc["PermanentDeleteWarning"]}",
+                Loc["HardDelete"].Value,
+                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
+            if (confirm != true) return;
+
+            try
+            {
+                await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.PriceList}/{row.Id}/hard");
+                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["RecordPermanentlyDeleted"].Value);
+                await LoadAsync();
+            }
+            catch (Exception ex) { _toastService.Error(ex, Loc, "DeleteRecordFailed"); }
+        }
+
         private async Task OnStatusChangedAsync(string value)
         {
             selectedStatus = value ?? string.Empty;

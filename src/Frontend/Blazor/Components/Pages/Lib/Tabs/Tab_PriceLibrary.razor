@@ -2,7 +2,7 @@
 @inherits VppServerGridComponentBase<VppItemPriceResDTO>
 
 
-<VppCollectionWorkspace Class="vpp-admin-workspace vpp-price-workspace">
+<VppCollectionWorkspace FillAvailableSpace="true" IsBusy="@isLoading" Class="vpp-admin-workspace vpp-price-workspace">
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                          Density="VppDataDensity.Compact"
                          AriaLabel="@Loc["Prices"]"

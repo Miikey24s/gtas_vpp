@@ -1,4 +1,5 @@
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.VPP;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace gtas_vpp_be.Service.Services;
 public interface ILibraryIntegrityService
 {
     Task<LibraryDependencyImpactResDTO?> GetDependencyImpactAsync(string tableCode, Guid id, CancellationToken cancellationToken = default);
+    Task<LibraryHardDeleteResult?> HardDeleteAsync(string tableCode, Guid id, CancellationToken cancellationToken = default);
     Task<LibraryHardDeleteResult?> HardDeleteLookupAsync(string tableCode, Guid id, CancellationToken cancellationToken = default);
     Task<LibraryIntegrityValidationResult> ValidateDepartmentParentAsync(Guid departmentId, Guid? parentDepartmentId, CancellationToken cancellationToken = default);
 }
@@ -53,9 +55,21 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
         string tableCode,
         Guid id,
         CancellationToken cancellationToken = default)
+        => await HardDeleteAsync(tableCode, id, cancellationToken);
+
+    public async Task<LibraryHardDeleteResult?> HardDeleteAsync(
+        string tableCode,
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
         var normalizedTableCode = tableCode.Trim().ToLowerInvariant();
-        if (normalizedTableCode is not ("lookup-categories" or "lookup-values"))
+        if (normalizedTableCode is not (
+            "lookup-categories" or
+            "lookup-values" or
+            "vpp-categories" or
+            "suppliers" or
+            "supplier-product-mappings" or
+            "departments"))
         {
             return null;
         }
@@ -63,9 +77,16 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
         await _unitOfWork.BeginTransactionAsync();
         try
         {
-            var result = normalizedTableCode == "lookup-categories"
-                ? await PrepareLookupCategoryHardDeleteAsync(id, cancellationToken)
-                : await PrepareLookupValueHardDeleteAsync(id, cancellationToken);
+            var result = normalizedTableCode switch
+            {
+                "lookup-categories" => await PrepareLookupCategoryHardDeleteAsync(id, cancellationToken),
+                "lookup-values" => await PrepareLookupValueHardDeleteAsync(id, cancellationToken),
+                "vpp-categories" => await PrepareVppCategoryHardDeleteAsync(id, cancellationToken),
+                "suppliers" => await PrepareSupplierHardDeleteAsync(id, cancellationToken),
+                "supplier-product-mappings" => await PrepareSupplierProductMappingHardDeleteAsync(id, cancellationToken),
+                "departments" => await PrepareDepartmentHardDeleteAsync(id, cancellationToken),
+                _ => throw new InvalidOperationException($"Unsupported hard-delete table '{normalizedTableCode}'.")
+            };
 
             if (result.Status == LibraryHardDeleteStatus.Deleted)
             {
@@ -208,6 +229,83 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
             .ToListAsync(cancellationToken);
         context.LookupValueTranslations.RemoveRange(translations);
         context.LookupValues.Remove(value);
+        return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
+    }
+
+    private async Task<LibraryHardDeleteResult> PrepareVppCategoryHardDeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var context = _unitOfWork.VPPContext;
+        var category = await context.VppCategories.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (category is null) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.NotFound, 0);
+        if (!category.IsDeleted) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.MustDeactivate, 0);
+
+        var referenceCount = await context.VppItems.CountAsync(x => x.VppCategoryId == id, cancellationToken);
+        if (referenceCount > 0) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
+
+        var translations = await context.VppCategoryTranslations.Where(x => x.VppCategoryId == id).ToListAsync(cancellationToken);
+        context.VppCategoryTranslations.RemoveRange(translations);
+        context.VppCategories.Remove(category);
+        return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
+    }
+
+    private async Task<LibraryHardDeleteResult> PrepareSupplierHardDeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var context = _unitOfWork.VPPContext;
+        var supplier = await context.Suppliers.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (supplier is null) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.NotFound, 0);
+        if (!supplier.IsDeleted) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.MustDeactivate, 0);
+
+        var referenceCount = await context.SupplierProductMappings.CountAsync(x => x.SupplierId == id, cancellationToken)
+            + await context.PriceLists.CountAsync(x => x.SupplierId == id, cancellationToken)
+            + await context.Settlements.CountAsync(x => x.PrimarySupplierId == id, cancellationToken)
+            + await context.SettlementItems.CountAsync(x => x.SupplierId == id, cancellationToken);
+        if (referenceCount > 0) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
+
+        var translations = await context.SupplierTranslations.Where(x => x.SupplierId == id).ToListAsync(cancellationToken);
+        context.SupplierTranslations.RemoveRange(translations);
+        context.Suppliers.Remove(supplier);
+        return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
+    }
+
+    private async Task<LibraryHardDeleteResult> PrepareSupplierProductMappingHardDeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var context = _unitOfWork.VPPContext;
+        var mapping = await context.SupplierProductMappings.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (mapping is null) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.NotFound, 0);
+        if (!mapping.IsDeleted) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.MustDeactivate, 0);
+
+        var settlementReferenceCount = await context.SettlementItems.CountAsync(x => x.PriceBookItemId == id, cancellationToken);
+        if (settlementReferenceCount > 0)
+        {
+            return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, settlementReferenceCount);
+        }
+
+        context.SupplierProductMappings.Remove(mapping);
+        return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
+    }
+
+    private async Task<LibraryHardDeleteResult> PrepareDepartmentHardDeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var context = _unitOfWork.VPPContext;
+        var department = await context.Departments.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (department is null) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.NotFound, 0);
+        if (!department.IsDeleted) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.MustDeactivate, 0);
+
+        var referenceCount = await context.Departments.CountAsync(x => x.ParentDepartmentId == id, cancellationToken)
+            + await context.UserGroupMemberships.CountAsync(x => x.DepartmentId == id, cancellationToken);
+        if (referenceCount > 0) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
+
+        var translations = await context.DepartmentTranslations.Where(x => x.DepartmentId == id).ToListAsync(cancellationToken);
+        context.DepartmentTranslations.RemoveRange(translations);
+        context.Departments.Remove(department);
         return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
     }
 

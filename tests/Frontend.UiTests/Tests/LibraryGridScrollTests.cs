@@ -238,7 +238,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         var priceListSurface = Page.Locator("[data-testid='price-lists-data-surface']");
         var priceListGrid = priceListSurface.Locator(".vpp-admin-page-grid");
-        var secondaryTabs = Page.Locator(".vpp-library-local-selector .vpp-segmented-selector");
+        var secondaryTabs = Page.Locator(".vpp-layout-header .vpp-header-tab-group");
         await priceListSurface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await priceListGrid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await secondaryTabs.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -254,14 +254,14 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var priceListMetrics = await priceListSurface.EvaluateAsync<double[]>("""
             element => {
                 const body = document.querySelector('.vpp-layout-body');
-                const tabs = document.querySelector('.vpp-library-local-selector .vpp-segmented-selector');
+                const tabs = document.querySelector('.vpp-layout-header .vpp-header-tab-group');
                 const grid = element.querySelector('.vpp-admin-page-grid');
                 const pager = element.querySelector('.rz-paginator, .rz-pager');
                 if (!body || !tabs || !grid || !pager) {
                     throw new Error('Canonical price-list surface was not rendered.');
                 }
                 return [
-                    getComputedStyle(tabs).position === 'relative' ? 1 : 0,
+                    getComputedStyle(tabs).display === 'flex' ? 1 : 0,
                     tabs.getBoundingClientRect().bottom,
                     element.getBoundingClientRect().top,
                     parseFloat(getComputedStyle(grid).borderTopWidth),

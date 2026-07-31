@@ -130,6 +130,7 @@
   <data name="Confirm" xml:space="preserve"><value>Xác nhận</value></data>
   <data name="ConfirmDelete" xml:space="preserve"><value>Bạn có chắc muốn xóa?</value></data>
   <data name="PermanentDeleteWarning" xml:space="preserve"><value>Bản ghi sẽ bị xóa vĩnh viễn và không thể khôi phục.</value></data>
+  <data name="RecordPermanentlyDeleted" xml:space="preserve"><value>Đã xóa vĩnh viễn bản ghi.</value></data>
   <data name="GroupPermanentlyDeleted" xml:space="preserve"><value>Đã xóa vĩnh viễn nhóm.</value></data>
   <data name="PleaseWait" xml:space="preserve"><value>Vui lòng đợi...</value></data>
   <data name="ServerError" xml:space="preserve"><value>Lỗi máy chủ</value></data>

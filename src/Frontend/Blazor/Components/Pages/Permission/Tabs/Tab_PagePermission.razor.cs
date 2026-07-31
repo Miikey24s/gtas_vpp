@@ -26,11 +26,7 @@ public partial class Tab_PagePermission
 
     public List<PermissionGroupDto> list_Group { get; set; } = [];
     public RadzenDataGrid<PermissionGroupDto> grid { get; set; } = default!;
-    public IList<PermissionGroupDto> selected_Group { get; set; } = [];
     public List<PermissionPageComponentResDTO> groupPermissions { get; set; } = [];
-    public RadzenDataGrid<PermissionComponentAccessResDTO> componentGrid { get; set; } = default!;
-
-    public int selectedTab { get; set; }
     public bool IsLoading { get; set; }
     public bool IsLoading_Child { get; set; }
 
@@ -40,22 +36,11 @@ public partial class Tab_PagePermission
     private string groupSearchText = string.Empty;
     private bool hasRequestedInitialGroupGridLoad;
 
-    private PermissionGroupDto? SelectedGroup => selected_Group.FirstOrDefault();
-    private PermissionPageComponentResDTO? SelectedPermissionPage => groupPermissions.ElementAtOrDefault(selectedTab);
-    private bool CanConfigureSelectedGroup =>
-        PermissionState.HasPermission(Permissions.PermissionManage)
-        && SelectedGroup is not null
-        && groupPermissions.SelectMany(page => page.Components ?? []).Any(component => component.CanConfigure);
-
     private IReadOnlyList<VppSegmentedOption<int>> PermissionViewOptions =>
     [
         new(0, Loc["PermissionUiView"]),
         new(1, Loc["PermissionApiReference"])
     ];
-
-    private IReadOnlyList<VppSegmentedOption<int>> PermissionPageOptions => groupPermissions
-        .Select((page, index) => new VppSegmentedOption<int>(index, string.IsNullOrWhiteSpace(page.PageName) ? page.PageCode ?? "—" : page.PageName))
-        .ToArray();
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,26 +83,10 @@ public partial class Tab_PagePermission
             list_Group = result.Data ?? [];
             groupCount = result.TotalCount;
 
-            var selectedId = SelectedGroup?.Id;
-            var nextSelection = selectedId.HasValue
-                ? list_Group.FirstOrDefault(group => group.Id == selectedId.Value)
-                : list_Group.FirstOrDefault();
-            if (nextSelection is not null
-                && (SelectedGroup is null || SelectedGroup.Id != nextSelection.Id))
-            {
-                selected_Group = [nextSelection];
-                await LoadGroupPermissionsAsync(nextSelection.Id, notifyErrors: false);
-            }
-            else if (nextSelection is null)
-            {
-                selected_Group = [];
-                groupPermissions = [];
-            }
         }
         catch (Exception ex)
         {
             list_Group = [];
-            selected_Group = [];
             groupPermissions = [];
             groupCount = 0;
             NotifyError(UiErrorMapper.GetMessage(ex, Loc));
@@ -127,12 +96,6 @@ public partial class Tab_PagePermission
             IsLoading = false;
             StateHasChanged();
         }
-    }
-
-    private async Task OnGroupSelectedAsync(PermissionGroupDto group)
-    {
-        selected_Group = [group];
-        await LoadGroupPermissionsAsync(group.Id, notifyErrors: true);
     }
 
     private async Task OnGroupSearchInputAsync(ChangeEventArgs args)
@@ -147,21 +110,19 @@ public partial class Tab_PagePermission
         await grid.FirstPage(true);
     }
 
-    private Task SelectPermissionPageAsync(int index)
+    private async Task OpenPermissionEditorAsync(PermissionGroupDto group)
     {
-        selectedTab = index;
-        return Task.CompletedTask;
-    }
-
-    private async Task OpenPermissionEditorAsync()
-    {
-        if (!CanConfigureSelectedGroup || SelectedGroup is null) return;
+        if (!PermissionState.HasPermission(Permissions.PermissionManage)
+            || !groupPermissions.SelectMany(page => page.Components ?? []).Any(component => component.CanConfigure))
+        {
+            return;
+        }
 
         var result = await DialogService.OpenAsync<Dialog_PermissionUiBatchEditor>(
             Loc["ConfigureUiPermissions"],
             new Dictionary<string, object?>
             {
-                [nameof(Dialog_PermissionUiBatchEditor.Group)] = SelectedGroup,
+                [nameof(Dialog_PermissionUiBatchEditor.Group)] = group,
                 [nameof(Dialog_PermissionUiBatchEditor.Pages)] = groupPermissions
             },
             VppAdminDialogProfiles.Create(
@@ -212,8 +173,8 @@ public partial class Tab_PagePermission
 
     private async Task OpenPermissionEditorForGroupAsync(PermissionGroupDto group)
     {
-        await OnGroupSelectedAsync(group);
-        await OpenPermissionEditorAsync();
+        await LoadGroupPermissionsAsync(group.Id, notifyErrors: true);
+        await OpenPermissionEditorAsync(group);
     }
 
     private async Task LoadGroupPermissionsAsync(Guid groupId, bool notifyErrors)
@@ -225,12 +186,10 @@ public partial class Tab_PagePermission
         {
             groupPermissions = await _apiServices.GetFromApiAsync<List<PermissionPageComponentResDTO>>(
                 $"/api/Permission/groups/{groupId}/page-components") ?? [];
-            selectedTab = Math.Clamp(selectedTab, 0, Math.Max(0, groupPermissions.Count - 1));
         }
         catch (Exception ex)
         {
             groupPermissions = [];
-            selectedTab = 0;
             if (notifyErrors) NotifyError(UiErrorMapper.GetMessage(ex, Loc));
         }
         finally

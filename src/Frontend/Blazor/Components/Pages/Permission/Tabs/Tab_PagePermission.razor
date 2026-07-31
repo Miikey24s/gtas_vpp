@@ -26,191 +26,75 @@
         <ChildContent>
             @if (selectedPermissionView == 0)
             {
-                <VppListDetailWorkspace Ratio="VppListDetailRatio.WideDetail"
-                                        Class="vpp-permission-list-detail"
-                                        ListClass="vpp-permission-group-list"
-                                        DetailClass="vpp-permission-group-detail"
-                                        DetailLabel="@Loc["PermissionUiAdministrationTitle"]">
-                    <List>
-                        <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
-                                             Density="VppDataDensity.Compact"
-                                             AriaLabel="@Loc["GroupName"]"
-                                             TestId="permission-groups-data-surface"
-                                             Class="vpp-admin-data-surface vpp-permission-group-surface">
-                            <Toolbar>
-                                <VppDataToolbar AriaLabel="@Loc["GroupName"]" Class="vpp-admin-grid-toolbar">
-                                    <VppFilterSearch Value="@groupSearchText"
-                                                     Input="@OnGroupSearchInputAsync"
-                                                     Placeholder="@Loc["Search"]"
-                                                     AriaLabel="@Loc["Search"]" />
-                                    <VppClearFiltersButton Text="@Loc["ClearFilters"]"
-                                                           IsActive="@(!string.IsNullOrWhiteSpace(groupSearchText))"
-                                                           Clicked="@ClearGroupFiltersAsync" />
-                                    <span class="vpp-permission-group-summary">@Loc["CanonicalRoleCount", groupCount]</span>
-                                    <VppColumnPicker TItem="PermissionGroupDto" GridAccessor="@(() => grid)" />
-                                </VppDataToolbar>
-                            </Toolbar>
-                            <ChildContent>
-                                <RadzenDataGrid @ref="grid"
-                                                data-vpp-grid-region="true"
-                                                aria-label="@Loc["GroupName"]"
-                                                TItem="PermissionGroupDto"
-                                                Data="@list_Group"
-                                                Count="@groupCount"
-                                                LoadData="@LoadGroupsAsync"
-                                                IsLoading="@IsLoading"
-                                                @bind-Value="selected_Group"
-                                                RowSelect="@OnGroupSelectedAsync"
-                                                AllowFiltering="false"
-                                                AllowColumnResize="true"
-                                                AllowMultiColumnSorting="false"
-                                                AllowSorting="true"
-                                                AllowPaging="@(groupCount > VppPagingProfiles.SplitList.DefaultPageSize)"
-                                                PagerAlwaysVisible="false"
-                                                PagerHorizontalAlign="HorizontalAlign.Right"
-                                                GotoFirstPageOnSort="true"
-                                                AllowGrouping="false"
-                                                AllowVirtualization="false"
-                                                AllowAlternatingRows="false"
-                                                AllowColumnReorder="false"
-                                                AllowColumnPicking="false"
-                                                AllowPickAllColumns="true"
-                                                ColumnsPickerAllowFiltering="true"
-                                                ShowMultiColumnSortingIndex="false"
-                                                PageSize="@VppPagingProfiles.SplitList.DefaultPageSize"
-                                                PageSizeOptions="@VppPagingProfiles.SplitList.PageSizeOptions"
-                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                Density="Density.Compact"
-                                                GridLines="DataGridGridLines.Horizontal"
-                                                SelectionMode="DataGridSelectionMode.Single"
-                                                class="permission-group-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact"
-                                                Style="--vpp-admin-grid-min-width: 430px;">
-                                    <Columns>
-                                        <RadzenDataGridColumn TItem="PermissionGroupDto" Title="#" Width="48px" MinWidth="48px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
-                                            <Template Context="group">@(currentGroupSkip + list_Group.IndexOf(group) + 1)</Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.GroupName)" Title="@Loc["GroupName"]" Width="230px">
-                                            <Template Context="group">
-                                                <div class="permission-group-identity">
-                                                    <strong>@GetGroupDisplayName(group)</strong>
-                                                    <small>@GetGroupCode(group)</small>
-                                                </div>
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.UserCount)" Title="@Loc["Users"]" Width="86px" TextAlign="TextAlign.Center" Filterable="false" />
-                                        <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.Description)" Title="@Loc["Description"]" Width="260px" Visible="false" Pickable="true" />
-                                        <RadzenDataGridColumn TItem="PermissionGroupDto" Title="@Loc["Actions"]" Width="86px" MinWidth="86px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
-                                            <Template Context="group"><div class="vpp-admin-actions"><RadzenButton Icon="tune" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!PermissionState.HasPermission(Permissions.PermissionManage))" title="@Loc["ConfigureUiPermissions"]" Click="@(() => OpenPermissionEditorForGroupAsync(group))" @onclick:stopPropagation="true" /></div></Template>
-                                        </RadzenDataGridColumn>
-                                    </Columns>
-                                </RadzenDataGrid>
-                            </ChildContent>
-                        </VppDataSurfaceFrame>
-                    </List>
-                    <Detail>
-                        @if (SelectedGroup is null)
-                        {
-                            <VppContentState State="VppContentStateKind.Empty"
-                                             Icon="admin_panel_settings"
-                                             Title="@Loc["SelectPermissionGroup"]" />
-                        }
-                        else
-                        {
-                            <section class="vpp-permission-detail-shell" aria-busy="@IsLoading_Child">
-                                <header class="vpp-permission-detail-header">
-                                    <div>
-                                        <strong>@GetGroupDisplayName(SelectedGroup)</strong>
-                                        <span>@GetGroupCode(SelectedGroup) · @Loc["UserCountSummary", SelectedGroup.UserCount]</span>
-                                    </div>
-                                </header>
-
-                                @if (IsLoading_Child)
-                                {
-                                    <SkeletonGrid Rows="7" Cols="5" />
-                                }
-                                else if (groupPermissions.Count == 0)
-                                {
-                                    <VppContentState State="VppContentStateKind.Empty"
-                                                     Icon="rule"
-                                                     Title="@Loc["NoPermissionMappings"]" />
-                                }
-                                else
-                                {
-                                    <div class="permission-component-selector">
-                                        <VppSegmentedSelector TValue="int"
-                                                              Value="@selectedTab"
-                                                              Options="@PermissionPageOptions"
-                                                              ValueChanged="@SelectPermissionPageAsync"
-                                                              AriaLabel="@Loc["Page"]" />
-                                    </div>
-
-                                    @if (SelectedPermissionPage is { } page)
-                                    {
-                                        var components = page.Components ?? [];
-                                        <div class="permission-component-summary-row">
-                                            <div class="permission-page-description">
-                                                <span>@Loc["Description"]</span>
-                                                <strong>@(!string.IsNullOrWhiteSpace(page.Description) ? page.Description : page.PageCode ?? "—")</strong>
-                                            </div>
-                                            <VppColumnPicker TItem="PermissionComponentAccessResDTO" GridAccessor="@(() => componentGrid)" />
-                                        </div>
-
-                                        <RadzenDataGrid @ref="componentGrid"
-                                                        data-vpp-grid-region="true"
-                                                        aria-label="@Loc["ComponentName"]"
-                                                        TItem="PermissionComponentAccessResDTO"
-                                                        Data="@components"
-                                                        AllowFiltering="false"
-                                                        AllowColumnResize="true"
-                                                        AllowMultiColumnSorting="false"
-                                                        AllowSorting="true"
-                                                        AllowPaging="@(components.Count > VppPagingProfiles.SmallStatic.PagingThreshold)"
-                                                        PagerHorizontalAlign="HorizontalAlign.Right"
-                                                        GotoFirstPageOnSort="true"
-                                                        AllowGrouping="false"
-                                                        AllowVirtualization="false"
-                                                        AllowColumnReorder="false"
-                                                        AllowColumnPicking="false"
-                                                        AllowPickAllColumns="true"
-                                                        ShowMultiColumnSortingIndex="false"
-                                                        PageSize="@VppPagingProfiles.SmallStatic.DefaultPageSize"
-                                                        PageSizeOptions="@VppPagingProfiles.SmallStatic.PageSizeOptions"
-                                                        Density="Density.Compact"
-                                                        GridLines="DataGridGridLines.Horizontal"
-                                                        class="permission-component-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-permission-readonly-grid"
-                                                        Style="--vpp-admin-grid-min-width: 820px;">
-                                            <Columns>
-                                                <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Title="#" Width="48px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
-                                                    <Template Context="component">@(components.IndexOf(component) + 1)</Template>
-                                                </RadzenDataGridColumn>
-                                                <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Property="@nameof(PermissionComponentAccessResDTO.ComponentName)" Title="@Loc["ComponentName"]" Width="240px">
-                                                    <Template Context="component">
-                                                        <div class="vpp-admin-two-line-cell">
-                                                            <strong>@component.ComponentName</strong>
-                                                            <small>@component.ComponentCode</small>
-                                                        </div>
-                                                    </Template>
-                                                </RadzenDataGridColumn>
-                                                <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Property="@nameof(PermissionComponentAccessResDTO.Description)" Title="@Loc["Description"]" Width="280px" />
-                                                <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Title="@Loc["PermissionType"]" Width="140px" Filterable="false">
-                                                    <Template Context="component">@GetPermissionKind(component)</Template>
-                                                </RadzenDataGridColumn>
-                                                <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Title="@Loc["AccessState"]" Width="160px" Filterable="false">
-                                                    <Template Context="component">
-                                                        <VppStatusBadge Text="@GetAccessStateLabel(component)" Tone="@GetAccessStateTone(component)" />
-                                                    </Template>
-                                                </RadzenDataGridColumn>
-                                                <RadzenDataGridColumn TItem="PermissionComponentAccessResDTO" Title="@Loc["AdministrationMode"]" Width="170px" Filterable="false" Visible="false" Pickable="true">
-                                                    <Template Context="component">@GetAdministrationModeLabel(component)</Template>
-                                                </RadzenDataGridColumn>
-                                            </Columns>
-                                        </RadzenDataGrid>
-                                    }
-                                }
-                            </section>
-                        }
-                    </Detail>
-                </VppListDetailWorkspace>
+                <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                                     Density="VppDataDensity.Compact"
+                                     AriaLabel="@Loc["GroupName"]"
+                                     TestId="permission-groups-data-surface"
+                                     Class="vpp-admin-data-surface vpp-permission-group-surface">
+                    <Header>
+                        <VppCollectionHeader Title="@Loc["GroupName"]"
+                                             Summary="@Loc["CanonicalRoleCount", groupCount]" />
+                    </Header>
+                    <Toolbar>
+                        <VppDataToolbar AriaLabel="@Loc["GroupName"]" Class="vpp-admin-grid-toolbar">
+                            <VppFilterSearch Value="@groupSearchText"
+                                             Input="@OnGroupSearchInputAsync"
+                                             Placeholder="@Loc["Search"]"
+                                             AriaLabel="@Loc["Search"]" />
+                            <VppClearFiltersButton Text="@Loc["ClearFilters"]"
+                                                   IsActive="@(!string.IsNullOrWhiteSpace(groupSearchText))"
+                                                   Clicked="@ClearGroupFiltersAsync" />
+                            <VppColumnPicker TItem="PermissionGroupDto" GridAccessor="@(() => grid)" />
+                        </VppDataToolbar>
+                    </Toolbar>
+                    <ChildContent>
+                        <RadzenDataGrid @ref="grid"
+                                        data-vpp-grid-region="true"
+                                        aria-label="@Loc["GroupName"]"
+                                        TItem="PermissionGroupDto"
+                                        Data="@list_Group"
+                                        Count="@groupCount"
+                                        LoadData="@LoadGroupsAsync"
+                                        IsLoading="@IsLoading"
+                                        AllowFiltering="false"
+                                        AllowColumnResize="true"
+                                        AllowMultiColumnSorting="false"
+                                        AllowSorting="true"
+                                        AllowPaging="true"
+                                        PagerAlwaysVisible="true"
+                                        PagerHorizontalAlign="HorizontalAlign.Right"
+                                        GotoFirstPageOnSort="true"
+                                        AllowGrouping="false"
+                                        AllowVirtualization="false"
+                                        AllowAlternatingRows="false"
+                                        AllowColumnReorder="false"
+                                        AllowColumnPicking="false"
+                                        AllowPickAllColumns="true"
+                                        ColumnsPickerAllowFiltering="true"
+                                        ShowMultiColumnSortingIndex="false"
+                                        PageSize="@VppPagingProfiles.Collection.DefaultPageSize"
+                                        PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        Density="Density.Compact"
+                                        GridLines="DataGridGridLines.Horizontal"
+                                        class="permission-group-grid vpp-admin-grid vpp-admin-page-grid vpp-data-grid vpp-data-density-compact"
+                                        Style="--vpp-admin-grid-min-width: 760px;">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                                    <Template Context="group">@(currentGroupSkip + list_Group.IndexOf(group) + 1)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.GroupName)" Title="@Loc["GroupName"]" Width="260px">
+                                    <Template Context="group"><div class="permission-group-identity"><strong>@GetGroupDisplayName(group)</strong><small>@GetGroupCode(group)</small></div></Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.UserCount)" Title="@Loc["Users"]" Width="100px" TextAlign="TextAlign.Center" Filterable="false" />
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.Description)" Title="@Loc["Description"]" Width="420px" Pickable="true" />
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Title="@Loc["Actions"]" Width="96px" MinWidth="96px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                                    <Template Context="group"><div class="vpp-admin-actions"><RadzenButton Icon="tune" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!PermissionState.HasPermission(Permissions.PermissionManage))" title="@Loc["ConfigureUiPermissions"]" Click="@(() => OpenPermissionEditorForGroupAsync(group))" /></div></Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </ChildContent>
+                </VppDataSurfaceFrame>
             }
             else
             {

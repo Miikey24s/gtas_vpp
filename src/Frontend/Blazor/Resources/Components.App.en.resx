@@ -130,6 +130,7 @@
   <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="ConfirmDelete" xml:space="preserve"><value>Are you sure you want to delete?</value></data>
   <data name="PermanentDeleteWarning" xml:space="preserve"><value>This will permanently delete the record. This action cannot be undone.</value></data>
+  <data name="RecordPermanentlyDeleted" xml:space="preserve"><value>The record was permanently deleted.</value></data>
   <data name="GroupPermanentlyDeleted" xml:space="preserve"><value>Group permanently deleted.</value></data>
   <data name="PleaseWait" xml:space="preserve"><value>Please wait...</value></data>
   <data name="ServerError" xml:space="preserve"><value>Server Error</value></data>

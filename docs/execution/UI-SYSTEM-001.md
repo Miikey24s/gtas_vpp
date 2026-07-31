@@ -419,7 +419,7 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Bổ sung primitive/composite canonical `VppStatusBadge`, `VppInlineNotice`, `VppMetricCard` và `VppMetricGrid`; toàn bộ consumer `RadzenBadge`, `RadzenAlert`, KPI/status raw markup trong scope được migrate về contract semantic typed.
 - Account route dùng trực tiếp `VppAccountWorkspace`; adapter account/KPI/status/mobile, helper Radzen status, selector `librariestab`, stylesheet status riêng và standalone `Tab_AllOrdersSummary` đã về 0 consumer nên được xóa. URL quản lý cũ chỉ giữ redirect typed về Chốt kỳ, không giữ component/test authority thứ hai.
 - `app.css` và `vpp-wizard.css` đã xóa hẳn. Rule còn hợp lệ được chuyển về đúng owner (`vpp-radzen-theme`, `vpp-a11y`, `vpp-polish`, scoped CSS); khối CSS Period Management cũ có 59 class không consumer cũng bị xóa thay vì giữ compatibility layer.
-- Architecture gate khóa parity RouteCatalog/UiRouteCatalog, motif/state bắt buộc, file/identifier retired và ledger DataGrid. Inventory hiện còn `19` file chứa `23` DataGrid thật; không có shared/design-system Razor component 0-consumer sau khi tính cả routed layout và dialog generic.
+- Architecture gate khóa parity RouteCatalog/UiRouteCatalog, motif/state bắt buộc, file/identifier retired và ledger DataGrid. Inventory hiện còn `19` file chứa `22` DataGrid thật sau khi nhóm quyền bỏ khung detail đọc song song; không có shared/design-system Razor component 0-consumer sau khi tính cả routed layout và dialog generic.
 - Verification hiện tại: Release build `0 warning / 0 error`; frontend `201/201`; isolated browser smoke `14/14` cho Library grid, workspace pattern và data-surface foundation; My Orders visual inset/focus `1/1`, hai screenshot desktop đã được kiểm bằng mắt, không thấy overlay, focus oval kép hoặc lệch symmetric inset. `verify -Scope frontend` vẫn bị chặn trước UI gate bởi `model-routing-eval` thuộc AI-harness dirty có sẵn, không được sửa hoặc trộn vào change-set UI này.
 
 ### 7.5 — Owner correction: navigation, order action và period picker — 2026-07-31
@@ -429,6 +429,13 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Page-size dùng popup/hover/selected state của filter nhưng trigger là label-only, không chevron; rule polish dropdown chung không còn ghi đè pager bridge.
 - Picker `Tùy chọn` dùng hai selector Tháng/Năm. Biên năm History/Department lấy bằng aggregate `MIN/MAX` trên đúng authorization scope, không tải toàn bộ đơn; Chốt kỳ đưa `Kỳ MM/YYYY` vào header của data surface.
 - Evidence hẹp: Release build `0 warning/error`; architecture `35/35`; backend history aggregate `2/2`; Product Catalog + My Orders browser `2/2`; supplement create/cancel/no-reload `1/1`; Chốt kỳ picker/browser `1/1`. Screenshot page-size, My Orders và picker đã được kiểm bằng mắt.
+
+### 7.6 — Owner correction: admin lifecycle và permission group — 2026-07-31
+
+- Nhóm quyền dùng một bảng full-width; permission chỉ tải khi bấm **Cấu hình quyền UI** và mở batch editor. Khung detail đọc song song cùng CSS/test riêng đã retire để giảm tải ban đầu và tránh hai authority hiển thị cùng dữ liệu.
+- Các collection quản trị typed dùng cùng cụm thao tác `Sửa · bật/tắt · Xóa vĩnh viễn`. Hard delete chỉ được phép sau soft deactivation, xóa translation sở hữu và bị backend chặn khi còn tham chiếu; Item dùng typed Catalog endpoint, không khôi phục generic mutation cũ.
+- Bảng giá/Giá mặt hàng sở hữu toàn bộ chiều cao còn lại dưới header-tab cấp hai; Loại danh mục giữ split cố định và co cột master đúng vùng, không còn overflow ngang 50px.
+- Evidence: Release frontend/backend build `0 warning/error`; frontend `205/205`; backend `462/462`; focused browser Library/Pricing/Permission `4/4` pass sau correction. Screenshot desktop/mobile đã được kiểm bằng mắt; không đụng host `dotnet watch` của owner.
 
 ---
 
