@@ -264,13 +264,13 @@ public partial class Tab_User : IDisposable
     private async Task OnGroupAssignmentChangedAsync(UserAdministrationResDTO user, Guid? groupId)
     {
         pendingGroupSelections[user.UserId] = groupId;
-        await ApplyInlineMembershipAsync(user);
+        if (CanEditMembership(user)) await ApplyInlineMembershipAsync(user);
     }
 
     private async Task OnDepartmentAssignmentChangedAsync(UserAdministrationResDTO user, Guid? departmentId)
     {
         pendingDepartmentSelections[user.UserId] = departmentId;
-        await ApplyInlineMembershipAsync(user);
+        if (CanEditMembership(user)) await ApplyInlineMembershipAsync(user);
     }
 
     private async Task ApplyInlineMembershipAsync(UserAdministrationResDTO user)
@@ -282,17 +282,59 @@ public partial class Tab_User : IDisposable
             return;
         }
 
-        if (CanPrepareActivation(user))
-        {
-            await ActivateAccountAsync(user, groupId.Value, departmentId.Value);
-            return;
-        }
-
         if (CanEditMembership(user)
             && (user.GroupId != groupId.Value || user.DepartmentId != departmentId.Value))
         {
-            await PersistMembershipAsync(user, groupId.Value, departmentId.Value);
+            await UpsertMembershipAsync(user, groupId.Value, departmentId.Value);
         }
+    }
+
+    private async Task ApproveAccountAsync(UserAdministrationResDTO user)
+    {
+        if (!CanApproveAccount(user))
+        {
+            NotifyError(Loc["ActivateAccountRequiresAssignment"].Value);
+            return;
+        }
+
+        await ActivateAccountAsync(user, GetSelectedGroupId(user)!.Value, GetSelectedDepartmentId(user)!.Value);
+    }
+
+    private async Task ToggleUserAccessAsync(UserAdministrationResDTO user, bool isActive)
+    {
+        if (isActive == user.IsActive) return;
+
+        if (!isActive)
+        {
+            await DeactivateMembershipAsync(user);
+            return;
+        }
+
+        await ReactivateMembershipAsync(user);
+    }
+
+    private async Task ReactivateMembershipAsync(UserAdministrationResDTO user)
+    {
+        var groupId = GetSelectedGroupId(user);
+        var departmentId = GetSelectedDepartmentId(user);
+        if (!CanReactivateMembership(user) || !groupId.HasValue || !departmentId.HasValue)
+        {
+            NotifyError(Loc["EnableUserAccessRequiresAssignment"].Value);
+            await ReloadUsersAsync();
+            return;
+        }
+
+        var confirmed = await DialogService.Confirm(
+            Loc["EnableUserAccessConfirm", user.FullName ?? user.UserLogin ?? string.Empty].Value,
+            Loc["EnableUserAccess"].Value,
+            new ConfirmOptions { OkButtonText = Loc["Enable"].Value, CancelButtonText = Loc["Cancel"].Value });
+        if (confirmed != true)
+        {
+            await ReloadUsersAsync();
+            return;
+        }
+
+        await UpsertMembershipAsync(user, groupId.Value, departmentId.Value);
     }
 
     private async Task ActivateAccountAsync(UserAdministrationResDTO user, Guid groupId, Guid departmentId)
@@ -461,6 +503,28 @@ public partial class Tab_User : IDisposable
         && user.UserId != UserClaims
         && string.Equals(user.AccountStatus, "PendingApproval", StringComparison.OrdinalIgnoreCase);
 
+    private bool CanReactivateMembership(UserAdministrationResDTO user) =>
+        PermissionState.HasPermission(Permissions.PermissionManage)
+        && user.UserId > 0
+        && user.UserId != UserClaims
+        && string.Equals(user.AccountStatus, "Active", StringComparison.OrdinalIgnoreCase)
+        && !user.IsActive;
+
+    protected bool CanAssignMembership(UserAdministrationResDTO user) =>
+        CanEditMembership(user) || CanPrepareActivation(user) || CanReactivateMembership(user);
+
+    private bool CanApproveAccount(UserAdministrationResDTO user) =>
+        CanPrepareActivation(user)
+        && GetSelectedGroupId(user).HasValue
+        && GetSelectedDepartmentId(user).HasValue;
+
+    private bool CanToggleUserAccess(UserAdministrationResDTO user) =>
+        user.IsActive
+            ? CanDeactivateMembership(user)
+            : CanReactivateMembership(user)
+              && GetSelectedGroupId(user).HasValue
+              && GetSelectedDepartmentId(user).HasValue;
+
     private bool CanSendPasswordLink(UserAdministrationResDTO user) =>
         CanManageUsers
         && accountCapabilities.InvitationEnabled
@@ -472,12 +536,13 @@ public partial class Tab_User : IDisposable
     protected bool CanDeactivateMembership(UserAdministrationResDTO user) =>
         CanEditMembership(user);
 
-    private async Task PersistMembershipAsync(
+    private async Task UpsertMembershipAsync(
         UserAdministrationResDTO user,
         Guid groupId,
         Guid departmentId)
     {
-        if (!CanEditMembership(user)
+        var isReactivation = CanReactivateMembership(user);
+        if (!(CanEditMembership(user) || isReactivation)
             || groupId == Guid.Empty
             || departmentId == Guid.Empty)
         {
@@ -495,7 +560,7 @@ public partial class Tab_User : IDisposable
                 GroupId = groupId,
                 PrimaryDepartmentId = departmentId,
                 ExpectedRowVersion = user.IsActive ? GetRowVersion(user) : null,
-                Reason = Loc["MembershipUpdateReason"]
+                Reason = isReactivation ? Loc["MembershipReactivationReason"] : Loc["MembershipUpdateReason"]
             };
             await _apiServices.PutFromApiAsync<MembershipAdministrationResDTO>(
                 "/api/Permission/memberships",
@@ -503,7 +568,7 @@ public partial class Tab_User : IDisposable
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = Loc["MembershipUpdated"].Value,
+                Summary = Loc[isReactivation ? "UserAccessEnabled" : "MembershipUpdated"].Value,
                 Duration = 3000
             });
             await ReloadUsersAsync();
@@ -564,6 +629,16 @@ public partial class Tab_User : IDisposable
         => !user.EmailConfirmed && user.MustChangePassword
             ? VppStatusTone.Warning
             : user.EmailConfirmed && !user.MustChangePassword ? VppStatusTone.Success : VppStatusTone.Info;
+
+    private bool IsPendingApproval(UserAdministrationResDTO user) =>
+        string.Equals(user.AccountStatus, "PendingApproval", StringComparison.OrdinalIgnoreCase);
+
+    private string GetAccessToggleTitle(UserAdministrationResDTO user) =>
+        user.IsActive ? Loc["DisableUserAccess"].Value
+        : IsPendingApproval(user) ? Loc["ApproveAccountBeforeAccess"].Value
+        : string.Equals(user.AccountStatus, "Disabled", StringComparison.OrdinalIgnoreCase)
+            ? Loc["DisabledAccountAccessLocked"].Value
+            : Loc["EnableUserAccess"].Value;
 
     private void NotifyError(string detail) => Toast.Notify(new NotificationMessage
     {

@@ -953,6 +953,15 @@
   <data name="ActivateAccountRequiresAssignment" xml:space="preserve"><value>Hãy chọn nhóm quyền và phòng ban trước khi kích hoạt tài khoản.</value></data>
   <data name="ActivateAccountConfirm" xml:space="preserve"><value>Kích hoạt tài khoản {0}?</value></data>
   <data name="AccountActivated" xml:space="preserve"><value>Tài khoản đã được kích hoạt</value></data>
+  <data name="ApproveAccount" xml:space="preserve"><value>Duyệt tài khoản</value></data>
+  <data name="ApproveAccountBeforeAccess" xml:space="preserve"><value>Hãy duyệt tài khoản trước khi bật quyền truy cập</value></data>
+  <data name="EnableUserAccess" xml:space="preserve"><value>Bật quyền truy cập</value></data>
+  <data name="DisableUserAccess" xml:space="preserve"><value>Tắt quyền truy cập</value></data>
+  <data name="EnableUserAccessConfirm" xml:space="preserve"><value>Bật lại quyền truy cập cho {0}?</value></data>
+  <data name="EnableUserAccessRequiresAssignment" xml:space="preserve"><value>Hãy chọn nhóm quyền và phòng ban trước khi bật quyền truy cập.</value></data>
+  <data name="UserAccessEnabled" xml:space="preserve"><value>Đã bật quyền truy cập</value></data>
+  <data name="MembershipReactivationReason" xml:space="preserve"><value>Bật lại quyền truy cập bằng phân công mới.</value></data>
+  <data name="DisabledAccountAccessLocked" xml:space="preserve"><value>Tài khoản đã bị vô hiệu hóa ở cấp tài khoản</value></data>
   <data name="AccountAdministration" xml:space="preserve"><value>Quản trị tài khoản</value></data>
   <data name="AdminResetPasswordHint" xml:space="preserve"><value>Đặt mật khẩu tạm thời và buộc đổi ở lần đăng nhập tiếp theo</value></data>
   <data name="AdminResetPasswordConfirm" xml:space="preserve"><value>Tạo mật khẩu tạm thời cho {0}? Mật khẩu sẽ chỉ hiển thị một lần cho quản trị viên.</value></data>
@@ -1059,6 +1068,11 @@
   <data name="RequiredAccess" xml:space="preserve"><value>Bắt buộc</value></data>
   <data name="OutsideRoleCeiling" xml:space="preserve"><value>Ngoài phạm vi vai trò</value></data>
   <data name="ConfigurableAccess" xml:space="preserve"><value>Có thể cấu hình</value></data>
+  <data name="PermissionConfigurationBoundary" xml:space="preserve"><value>Chỉ trạng thái hiển thị UI có thể sửa; các quyền API, mục bắt buộc và mục ngoài phạm vi vai trò được khóa theo RBAC chuẩn.</value></data>
+  <data name="CanonicalActionLockedHint" xml:space="preserve"><value>Quyền API được lấy từ ma trận RBAC chuẩn và không chỉnh tại màn hình này.</value></data>
+  <data name="RequiredAccessLockedHint" xml:space="preserve"><value>Mục này bắt buộc để nhóm quyền truy cập được trang quản trị tương ứng.</value></data>
+  <data name="OutsideRoleCeilingLockedHint" xml:space="preserve"><value>Mục này vượt quá phạm vi tối đa của nhóm quyền hiện tại.</value></data>
+  <data name="ReadOnlyReferenceLockedHint" xml:space="preserve"><value>Mục tham chiếu chỉ đọc, không hỗ trợ chỉnh sửa.</value></data>
   <data name="PermissionBatchUpdated" xml:space="preserve"><value>Đã cập nhật {0} quyền giao diện.</value></data>
   <data name="SecurityAudit" xml:space="preserve"><value>Nhật ký bảo mật</value></data>
   <data name="SecurityAuditFilters" xml:space="preserve"><value>Bộ lọc nhật ký bảo mật</value></data>

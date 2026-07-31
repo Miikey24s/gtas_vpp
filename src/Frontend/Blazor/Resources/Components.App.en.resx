@@ -953,6 +953,15 @@
   <data name="ActivateAccountRequiresAssignment" xml:space="preserve"><value>Select a permission group and department before activating the account.</value></data>
   <data name="ActivateAccountConfirm" xml:space="preserve"><value>Activate the account for {0}?</value></data>
   <data name="AccountActivated" xml:space="preserve"><value>Account activated</value></data>
+  <data name="ApproveAccount" xml:space="preserve"><value>Approve account</value></data>
+  <data name="ApproveAccountBeforeAccess" xml:space="preserve"><value>Approve the account before enabling access</value></data>
+  <data name="EnableUserAccess" xml:space="preserve"><value>Enable access</value></data>
+  <data name="DisableUserAccess" xml:space="preserve"><value>Disable access</value></data>
+  <data name="EnableUserAccessConfirm" xml:space="preserve"><value>Enable access for {0}?</value></data>
+  <data name="EnableUserAccessRequiresAssignment" xml:space="preserve"><value>Select a permission group and department before enabling access.</value></data>
+  <data name="UserAccessEnabled" xml:space="preserve"><value>User access enabled</value></data>
+  <data name="MembershipReactivationReason" xml:space="preserve"><value>Enable user access with a new active assignment.</value></data>
+  <data name="DisabledAccountAccessLocked" xml:space="preserve"><value>The account is disabled at account level</value></data>
   <data name="AccountAdministration" xml:space="preserve"><value>Account administration</value></data>
   <data name="AdminResetPasswordHint" xml:space="preserve"><value>Set a temporary password and require a change at the next sign-in</value></data>
   <data name="AdminResetPasswordConfirm" xml:space="preserve"><value>Create a temporary password for {0}? It will be shown to the administrator only once.</value></data>
@@ -1059,6 +1068,11 @@
   <data name="RequiredAccess" xml:space="preserve"><value>Required</value></data>
   <data name="OutsideRoleCeiling" xml:space="preserve"><value>Outside role ceiling</value></data>
   <data name="ConfigurableAccess" xml:space="preserve"><value>Configurable</value></data>
+  <data name="PermissionConfigurationBoundary" xml:space="preserve"><value>Only UI display states are configurable; API grants, required entries, and entries outside the role ceiling are locked by canonical RBAC.</value></data>
+  <data name="CanonicalActionLockedHint" xml:space="preserve"><value>This API grant comes from the canonical RBAC matrix and cannot be edited here.</value></data>
+  <data name="RequiredAccessLockedHint" xml:space="preserve"><value>This entry is required for the group to access its administration page.</value></data>
+  <data name="OutsideRoleCeilingLockedHint" xml:space="preserve"><value>This entry exceeds the maximum authority of the current permission group.</value></data>
+  <data name="ReadOnlyReferenceLockedHint" xml:space="preserve"><value>This reference entry is read only.</value></data>
   <data name="PermissionBatchUpdated" xml:space="preserve"><value>Updated {0} UI permissions.</value></data>
   <data name="SecurityAudit" xml:space="preserve"><value>Security audit</value></data>
   <data name="SecurityAuditFilters" xml:space="preserve"><value>Security audit filters</value></data>

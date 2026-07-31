@@ -39,6 +39,7 @@
                 <div class="vpp-permission-editor-page-copy">
                     <strong>@selectedPage.PageName</strong>
                     <span>@(!string.IsNullOrWhiteSpace(selectedPage.Description) ? selectedPage.Description : selectedPage.PageCode)</span>
+                    <span>@Loc["PermissionConfigurationBoundary"]</span>
                 </div>
 
                 <RadzenDataGrid TItem="PermissionUiMappingEditModel"
@@ -85,7 +86,8 @@
                                 else
                                 {
                                     <VppStatusBadge Text="@GetLockedStateLabel(component)"
-                                                    Tone="@GetLockedStateTone(component)" />
+                                                    Tone="@GetLockedStateTone(component)"
+                                                    Title="@GetLockedStateDescription(component)" />
                                 }
                             </Template>
                         </RadzenDataGridColumn>
@@ -217,6 +219,14 @@
         "Required" => VppStatusTone.Success,
         "OutsideRoleCeiling" => VppStatusTone.Neutral,
         _ => VppStatusTone.Info
+    };
+
+    private string GetLockedStateDescription(PermissionUiMappingEditModel component) => component.AdministrationMode switch
+    {
+        "ActionMatrix" => Loc["CanonicalActionLockedHint"],
+        "Required" => Loc["RequiredAccessLockedHint"],
+        "OutsideRoleCeiling" => Loc["OutsideRoleCeilingLockedHint"],
+        _ => Loc["ReadOnlyReferenceLockedHint"]
     };
 
     private static PermissionUiAccessState ToAccessState(bool isVisible, bool isEnable) =>

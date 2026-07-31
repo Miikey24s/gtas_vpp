@@ -42,8 +42,7 @@
 
 .vpp-filter-select-trigger:focus-visible {
     outline: 0;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 20%, transparent),
-                var(--vpp-shadow-xs);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 30%, var(--vpp-border-default));
 }
 
 .vpp-filter-select-trigger.is-active {

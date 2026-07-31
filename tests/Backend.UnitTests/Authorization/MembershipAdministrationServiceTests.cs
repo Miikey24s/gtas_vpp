@@ -204,6 +204,49 @@ public sealed class MembershipAdministrationServiceTests
     }
 
     [Fact]
+    public async Task Upsert_AfterDeactivation_CreatesNewActiveMembership()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var account = AddActiveAccount(context, 1_000_000_108, "employee.reactivated");
+        var group = AddCanonicalGroup(context, CanonicalRbac.Employee);
+        var department = AddDepartment(context, "REACTIVATED");
+        var oldMembership = AddMembership(context, account, group, department, RowVersion);
+        await context.SaveChangesAsync();
+        var service = CreateService(context, new PersistedStateNotifier(context));
+
+        var deactivated = await service.DeactivateAsync(
+            actorAccountId: 1_000_000_999,
+            new MembershipDeactivateReqDTO
+            {
+                AccountId = account.Id,
+                ExpectedRowVersion = Convert.ToBase64String(RowVersion),
+                Reason = "Temporary access suspension"
+            });
+
+        var reactivated = await service.UpsertAsync(
+            actorAccountId: 1_000_000_999,
+            new MembershipUpsertReqDTO
+            {
+                AccountId = account.Id,
+                GroupId = group.Id,
+                PrimaryDepartmentId = department.Id,
+                Reason = "Access restored"
+            });
+
+        Assert.True(deactivated.Succeeded);
+        Assert.True(reactivated.Succeeded);
+        Assert.True(oldMembership.IsDeleted);
+        var activeMembership = Assert.Single(context.UserGroupMemberships.Where(item => !item.IsDeleted));
+        Assert.NotEqual(oldMembership.Id, activeMembership.Id);
+        Assert.Equal(account.Id, activeMembership.AccountId);
+        Assert.Equal(group.Id, activeMembership.PermissionGroupId);
+        Assert.Equal(department.Id, activeMembership.DepartmentId);
+        Assert.Equal(3, account.SessionVersion);
+        Assert.Contains(context.SecurityAudits, audit => audit.Action == "MEMBERSHIP_DEACTIVATED");
+        Assert.Contains(context.SecurityAudits, audit => audit.Action == "MEMBERSHIP_CREATED");
+    }
+
+    [Fact]
     public async Task Upsert_SelfMembershipChange_IsRejectedBeforeReadingTargetState()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

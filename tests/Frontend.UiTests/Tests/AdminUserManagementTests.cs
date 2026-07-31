@@ -27,6 +27,10 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
         var assignmentSelects = firstUserRow.Locator(".vpp-admin-inline-select");
         (await assignmentSelects.CountAsync()).Should().Be(2,
             "group and department assignments belong in their own columns");
+        (await firstUserRow.Locator(".vpp-admin-user-access-switch .rz-switch").CountAsync()).Should().Be(1,
+            "each user row owns one explicit access toggle");
+        (await Page.Locator(".permission-user-grid button[title='Vô hiệu hóa phân công']").CountAsync()).Should().Be(0,
+            "the one-way deactivate button is replaced by a two-way access switch");
         (await Page.EvaluateAsync<bool>(
             "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
             .Should().BeFalse("the grid owns horizontal overflow instead of the document");
@@ -73,6 +77,14 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
         """);
         inlineFocusChrome.Should().StartWith("true|",
             "inline selects use the canonical inset focus instead of Radzen's external blue ring");
+        await inlineSelect.ClickAsync();
+        var inlinePopup = Page.Locator(".rz-dropdown-panel:visible").Last;
+        await inlinePopup.WaitForAsync();
+        (await inlinePopup.Locator(".rz-dropdown-filter, input[type='search'], input.rz-textbox").CountAsync())
+            .Should().Be(0, "group and department assignment selects intentionally use no-search dropdowns");
+        await Page.Locator(".vpp-collection-header").ClickAsync();
+        await inlinePopup.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+
         await pageSizeSelect.ClickAsync();
         var pageSizePopup = Page.Locator(".rz-dropdown-panel:visible").Last;
         await pageSizePopup.WaitForAsync();
@@ -90,6 +102,14 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
             Exact = true
         });
         await invitationButton.WaitForAsync();
+        var flatButtonChrome = await invitationButton.EvaluateAsync<string>("""
+            element => {
+                const style = getComputedStyle(element);
+                return `${style.boxShadow}|${style.transform}`;
+            }
+        """);
+        flatButtonChrome.Should().Be("none|none",
+            "buttons use the project-wide flat surface without raised shadow or transform");
         if (!await invitationButton.IsEnabledAsync())
         {
             (await invitationButton.GetAttributeAsync("title")).Should().NotBeNullOrWhiteSpace();

@@ -42,6 +42,10 @@ public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiT
 
         var editor = Page.Locator("[data-testid='permission-ui-batch-editor']");
         await editor.WaitForAsync();
+        await editor.GetByText(
+                "Chỉ trạng thái hiển thị UI có thể sửa; các quyền API, mục bắt buộc và mục ngoài phạm vi vai trò được khóa theo RBAC chuẩn.",
+                new() { Exact = true })
+            .WaitForAsync();
         (await editor.Locator(".vpp-permission-access-select").CountAsync()).Should().BeGreaterThan(0);
         var dialogRect = await editor.BoundingBoxAsync();
         dialogRect.Should().NotBeNull();
