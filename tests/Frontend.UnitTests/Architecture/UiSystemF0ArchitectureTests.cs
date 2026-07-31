@@ -56,6 +56,20 @@ public sealed class UiSystemF0ArchitectureTests
         Assert.DoesNotContain("@media (max-width: 767px)", responsive, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ToastClose_RemainsAFlatIconWithoutBorderOrFocusLine()
+    {
+        var toastStyles = File.ReadAllText(Path.Combine(GetFrontendRoot(), "wwwroot", "css", "vpp-toast.css"));
+        var normalized = toastStyles.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+        Assert.Contains(".rz-notification-close {", normalized, StringComparison.Ordinal);
+        Assert.Contains("border: 0 !important;", normalized, StringComparison.Ordinal);
+        Assert.Contains("border-radius: 0 !important;", normalized, StringComparison.Ordinal);
+        Assert.Contains(".rz-notification-close:focus-visible {", normalized, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none !important;", normalized, StringComparison.Ordinal);
+        Assert.DoesNotContain(".rz-notification-close:focus-visible {\n    box-shadow: inset", normalized, StringComparison.Ordinal);
+    }
+
     private static string GetFrontendRoot()
         => Path.Combine(FindRepositoryRoot(), "src", "Frontend", "Blazor");
 
