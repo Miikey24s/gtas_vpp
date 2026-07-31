@@ -97,7 +97,8 @@ public static class UiRouteCatalog
             "account.forgot-password",
             "account.reset-password",
             "account.register",
-            "account.confirm-email"
+            "account.confirm-email",
+            "account.resend-confirmation"
         ], WorkspacePattern.Account, DataSourceMode.None, Density.None, ToolbarMotif.Account, FooterMotif.None, ResponsiveStrategy.AccountCentered, ["ACCOUNT", "FEEDBACK"], ["loading", "error", "success", "disabled"]);
 
         Add(profiles, ["login", "login-process", "logout-process"], WorkspacePattern.Process, DataSourceMode.None, Density.None, ToolbarMotif.Account, FooterMotif.None, ResponsiveStrategy.AccountCentered, ["ACCOUNT", "FEEDBACK"], ["loading", "error", "success"]);

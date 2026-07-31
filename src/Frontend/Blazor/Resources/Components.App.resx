@@ -105,6 +105,12 @@
   <data name="GoToLogin" xml:space="preserve"><value>Đi tới đăng nhập</value></data>
   <data name="EmailConfirmed" xml:space="preserve"><value>Email đã được xác nhận.</value></data>
   <data name="ConfirmationLinkInvalid" xml:space="preserve"><value>Liên kết xác nhận không hợp lệ hoặc đã hết hạn.</value></data>
+  <data name="ResendConfirmationTitle" xml:space="preserve"><value>Gửi lại email xác nhận</value></data>
+  <data name="ResendConfirmationDescription" xml:space="preserve"><value>Nhập email đã dùng để đăng ký tài khoản.</value></data>
+  <data name="ResendConfirmationSafetyNote" xml:space="preserve"><value>Vì lý do bảo mật, hệ thống luôn trả về cùng một thông báo dù tài khoản có tồn tại hay không.</value></data>
+  <data name="ResendConfirmationAction" xml:space="preserve"><value>Gửi lại email</value></data>
+  <data name="ResendConfirmationLink" xml:space="preserve"><value>Chưa nhận được email xác nhận?</value></data>
+  <data name="ResendConfirmationAccepted" xml:space="preserve"><value>Nếu tài khoản hợp lệ và chưa xác nhận email, yêu cầu gửi lại đã được tiếp nhận.</value></data>
   <data name="ChangePasswordTitle" xml:space="preserve"><value>Đổi mật khẩu</value></data>
   <data name="ChangePasswordRequired" xml:space="preserve"><value>Bạn cần đổi mật khẩu tạm thời trước khi tiếp tục sử dụng hệ thống.</value></data>
   <data name="CurrentPassword" xml:space="preserve"><value>Mật khẩu hiện tại</value></data>
@@ -734,7 +740,7 @@
   <data name="ForgotPasswordDescription" xml:space="preserve"><value>Nhập email đã đăng ký. Hệ thống sẽ gửi liên kết để bạn đặt lại mật khẩu.</value></data>
   <data name="ResetPasswordDescription" xml:space="preserve"><value>Tạo mật khẩu mới cho tài khoản của bạn.</value></data>
   <data name="ChangePasswordDescription" xml:space="preserve"><value>Xác nhận mật khẩu hiện tại trước khi tạo mật khẩu mới.</value></data>
-  <data name="RegisterDescription" xml:space="preserve"><value>Tạo tài khoản để sử dụng trong môi trường phát triển và kiểm thử.</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Tạo tài khoản; xác nhận email và chờ quản trị viên phê duyệt trước khi đăng nhập.</value></data>
   <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>Vì lý do bảo mật, hệ thống luôn trả về cùng một thông báo dù email có tồn tại hay không.</value></data>
   <data name="HistoryRequester" xml:space="preserve"><value>Người đặt</value></data>
   <data name="DepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm mã đơn hoặc họ tên</value></data>
@@ -1079,6 +1085,7 @@
   <data name="AuditActionAccountActivated" xml:space="preserve"><value>Kích hoạt tài khoản</value></data>
   <data name="AuditActionAccountRegistered" xml:space="preserve"><value>Đăng ký tài khoản</value></data>
   <data name="AuditActionEmailConfirmed" xml:space="preserve"><value>Xác nhận email</value></data>
+  <data name="AuditActionEmailConfirmationResend" xml:space="preserve"><value>Gửi lại email xác nhận</value></data>
   <data name="AuditActionPasswordChanged" xml:space="preserve"><value>Đổi mật khẩu</value></data>
   <data name="AuditActionPasswordReset" xml:space="preserve"><value>Đặt lại mật khẩu</value></data>
   <data name="AuditActionResetLinkSent" xml:space="preserve"><value>Gửi liên kết đặt lại mật khẩu</value></data>

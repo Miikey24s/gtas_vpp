@@ -355,6 +355,14 @@ public static class RouteCatalog
             Notes: "Process route; use only a disposable TEST confirmation token."),
 
         new(
+            Key: "account.resend-confirmation",
+            Path: "/Account/ResendConfirmation",
+            Title: "ResendConfirmationTitle",
+            PageCode: "",
+            AnyOfPermissions: [],
+            IsAuthenticated: false),
+
+        new(
             Key: "login-process",
             Path: Config.LoginProcessPath,
             Title: "LoginProcess",

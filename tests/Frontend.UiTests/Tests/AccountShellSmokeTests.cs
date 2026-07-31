@@ -59,6 +59,7 @@ public sealed class AccountShellSmokeTests : TestBase
             "Account/ForgotPassword",
             "Account/ResetPassword",
             "Account/Register",
+            "Account/ResendConfirmation",
             "Account/ConfirmEmail"
         };
 
@@ -307,7 +308,8 @@ public sealed class AccountShellSmokeTests : TestBase
         {
             "Account/Login",
             "Account/Register",
-            "Account/ForgotPassword"
+            "Account/ForgotPassword",
+            "Account/ResendConfirmation"
         };
 
         foreach (var viewport in new[]

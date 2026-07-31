@@ -26,6 +26,7 @@
 | JWT key | `JwtSettings__Key` | Secret server-side, nên là chuỗi ngẫu nhiên dài. |
 | Admin bootstrap | `AuthBootstrap__*` | One-shot, chỉ chạy cùng `RunOnly` + reference seed. |
 | SMTP password | `EmailNotifications__Password` | Chỉ cần khi bật gửi email. |
+| Email sandbox Aspire | `EmailSandbox__Enabled` | Mặc định `false` để không ép Docker; đặt `true` khi cần Aspire chạy Mailpit và gửi email local. |
 | AI provider priority | `ReportInsights__ProviderPriority__0..n` | Thứ tự thử: `groq`, `gemini`, `ollama`, `openai`. Provider lỗi/quota sẽ chuyển provider kế tiếp. |
 | Groq API key | `GROQ_API_KEY` | Free online provider; chỉ cần khi muốn dùng Groq. |
 | Gemini API key | `GEMINI_API_KEY` hoặc `GOOGLE_API_KEY` | Free online provider; chỉ gửi aggregate/synthetic data. |
@@ -50,6 +51,19 @@
 Script dùng `OperationKey` ổn định theo database + username. Chạy lần 2, 3, 4 với cùng thông tin là idempotent; không tạo thêm admin. Mật khẩu được nhập ẩn và chỉ tồn tại trong environment của process đang chạy.
 
 Không đặt connection string, JWT key, SMTP password, mật khẩu admin hoặc OpenAI key trong `appsettings.Development.json`. File đó chỉ giữ default không nhạy cảm; local dùng user-secrets, production dùng GitHub/DigitalOcean secrets.
+
+## Kiểm tra email tài khoản local
+
+Khi cần kiểm tra email, bật sandbox trước khi chạy Aspire:
+
+```powershell
+$env:EmailSandbox__Enabled = 'true'
+.\scripts\gtas.cmd run
+```
+
+AppHost sẽ khởi động Mailpit cùng backend/frontend và bật email xác nhận cho môi trường local. Mở resource **Mailpit inbox** trong Aspire Dashboard để xem email xác nhận đăng ký, đặt lại mật khẩu, lời mời và thông báo kích hoạt. Mailpit chỉ chặn email trong máy, không gửi ra Internet.
+
+Nếu máy không có container runtime, giữ `EmailSandbox__Enabled=false`. Production vẫn giữ `EmailNotifications:Enabled=false` cho đến khi SMTP host, sender và secret được cấu hình riêng.
 
 ## Bật AI report local
 

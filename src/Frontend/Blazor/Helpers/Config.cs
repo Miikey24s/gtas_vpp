@@ -7,6 +7,7 @@ namespace gtas_vpp_fe.Helpers
         public const string ApiLoginEndpoint = "/api/Auth/login";
         public const string ApiAccountRegisterEndpoint = "/api/account/register";
         public const string ApiAccountConfirmEmailEndpoint = "/api/account/confirm-email";
+        public const string ApiAccountResendConfirmationEndpoint = "/api/account/confirm-email/resend";
         public const string ApiAccountRecoveryEndpoint = "/api/account/password/recovery";
         public const string ApiAccountResetPasswordEndpoint = "/api/account/password/reset";
         public const string ApiAccountChangePasswordEndpoint = "/api/account/password/change";

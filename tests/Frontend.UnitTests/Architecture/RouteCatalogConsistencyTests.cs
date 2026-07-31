@@ -44,6 +44,7 @@ public sealed class RouteCatalogConsistencyTests
         Assert.Contains("/Account/ForgotPassword", paths);
         Assert.Contains("/Account/ResetPassword", paths);
         Assert.Contains("/Account/Register", paths);
+        Assert.Contains("/Account/ResendConfirmation", paths);
         Assert.Contains(
             RouteCatalog.Anonymous,
             route => route.Key == "account.confirm-email"

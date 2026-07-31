@@ -38,6 +38,10 @@ public sealed record AccountLifecycleResult(
                 Message = message
             });
 
+    public static AccountLifecycleResult Accepted(string code, string message) =>
+        new(StatusCodes.Status202Accepted, code, message,
+            new AccountLifecycleResDTO { Message = message });
+
     public static AccountLifecycleResult BadRequest(string code, string message) =>
         new(StatusCodes.Status400BadRequest, code, message);
 
@@ -59,6 +63,10 @@ public interface IAccountLifecycleService
 
     Task<AccountLifecycleResult> ConfirmEmailAsync(
         EmailConfirmationReqDTO request,
+        CancellationToken cancellationToken = default);
+
+    Task<AccountLifecycleResult> ResendEmailConfirmationAsync(
+        EmailConfirmationResendReqDTO request,
         CancellationToken cancellationToken = default);
 
     Task<AccountLifecycleResult> RequestPasswordResetAsync(
@@ -115,6 +123,8 @@ public sealed class AccountLifecycleService(
         "Nếu thông tin hợp lệ, yêu cầu đăng ký đã được tiếp nhận và đang chờ quản trị viên phê duyệt.";
     private const string GenericRecoveryMessage =
         "Nếu tài khoản tồn tại, hướng dẫn khôi phục đã được gửi tới email đã đăng ký.";
+    private const string GenericConfirmationResendMessage =
+        "Nếu tài khoản hợp lệ và chưa xác nhận email, yêu cầu gửi lại đã được tiếp nhận.";
 
     private readonly UserManager<AppUser> _userManager = userManager;
     private readonly VPPContext _context = context;
@@ -303,6 +313,44 @@ public sealed class AccountLifecycleService(
             "EMAIL_CONFIRMED",
             "Email confirmed.",
             MapAccount(account));
+    }
+
+    public async Task<AccountLifecycleResult> ResendEmailConfirmationAsync(
+        EmailConfirmationResendReqDTO request,
+        CancellationToken cancellationToken = default)
+    {
+        var email = request.Email.Trim();
+        var normalizedEmail = _userManager.NormalizeEmail(email);
+        var account = string.IsNullOrWhiteSpace(normalizedEmail)
+            ? null
+            : await _context.Users.SingleOrDefaultAsync(
+                candidate => candidate.NormalizedEmail == normalizedEmail,
+                cancellationToken);
+
+        var canResend = account is not null
+            && account.AccountStatus != AppAccountStatus.Disabled
+            && !account.EmailConfirmed
+            && !string.IsNullOrWhiteSpace(account.Email);
+
+        if (canResend)
+        {
+            await TrySendConfirmationAsync(account!, cancellationToken);
+        }
+
+        await RecordAuditAsync(
+            actorUserId: null,
+            targetUserId: account?.Id,
+            action: "ACCOUNT_EMAIL_CONFIRMATION_RESEND_REQUESTED",
+            outcome: canResend
+                ? (_emailOptions.Enabled ? "Queued" : "EmailDisabled")
+                : "Ignored",
+            summary: "An email confirmation resend request was handled without exposing account existence.",
+            reason: null,
+            cancellationToken);
+
+        return AccountLifecycleResult.Accepted(
+            "EMAIL_CONFIRMATION_RESEND_ACCEPTED",
+            GenericConfirmationResendMessage);
     }
 
     public async Task<AccountLifecycleResult> RequestPasswordResetAsync(

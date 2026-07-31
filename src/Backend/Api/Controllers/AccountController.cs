@@ -41,6 +41,17 @@ public sealed class AccountController(IAccountLifecycleService lifecycleService)
     }
 
     [AllowAnonymous]
+    [EnableRateLimiting("account-confirm")]
+    [HttpPost("confirm-email/resend")]
+    public async Task<IActionResult> ResendEmailConfirmation(
+        [FromBody] EmailConfirmationResendReqDTO request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _lifecycleService.ResendEmailConfirmationAsync(request, cancellationToken);
+        return ToActionResult(result);
+    }
+
+    [AllowAnonymous]
     [EnableRateLimiting("account-recovery")]
     [HttpPost("password/recovery")]
     public async Task<IActionResult> RequestPasswordRecovery(

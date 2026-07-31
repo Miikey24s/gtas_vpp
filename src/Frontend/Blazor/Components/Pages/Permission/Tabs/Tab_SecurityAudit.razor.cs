@@ -164,6 +164,7 @@ public partial class Tab_SecurityAudit : IDisposable
         "ACCOUNT_ACTIVATED" => Loc["AuditActionAccountActivated"],
         "ACCOUNT_REGISTERED" => Loc["AuditActionAccountRegistered"],
         "ACCOUNT_EMAIL_CONFIRMED" => Loc["AuditActionEmailConfirmed"],
+        "ACCOUNT_EMAIL_CONFIRMATION_RESEND_REQUESTED" => Loc["AuditActionEmailConfirmationResend"],
         "ACCOUNT_PASSWORD_CHANGED" => Loc["AuditActionPasswordChanged"],
         "ACCOUNT_PASSWORD_RESET" => Loc["AuditActionPasswordReset"],
         "ACCOUNT_ADMIN_RESET_LINK_SENT" => Loc["AuditActionResetLinkSent"],

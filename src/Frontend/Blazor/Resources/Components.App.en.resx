@@ -105,6 +105,12 @@
   <data name="GoToLogin" xml:space="preserve"><value>Go to Sign In</value></data>
   <data name="EmailConfirmed" xml:space="preserve"><value>Email confirmed.</value></data>
   <data name="ConfirmationLinkInvalid" xml:space="preserve"><value>The confirmation link is invalid or expired.</value></data>
+  <data name="ResendConfirmationTitle" xml:space="preserve"><value>Resend confirmation email</value></data>
+  <data name="ResendConfirmationDescription" xml:space="preserve"><value>Enter the email used to register the account.</value></data>
+  <data name="ResendConfirmationSafetyNote" xml:space="preserve"><value>For security, the system always returns the same response whether the account exists or not.</value></data>
+  <data name="ResendConfirmationAction" xml:space="preserve"><value>Resend email</value></data>
+  <data name="ResendConfirmationLink" xml:space="preserve"><value>Did not receive the confirmation email?</value></data>
+  <data name="ResendConfirmationAccepted" xml:space="preserve"><value>If the account is eligible and its email is not confirmed, the resend request was accepted.</value></data>
   <data name="ChangePasswordTitle" xml:space="preserve"><value>Change password</value></data>
   <data name="ChangePasswordRequired" xml:space="preserve"><value>You must change the temporary password before continuing.</value></data>
   <data name="CurrentPassword" xml:space="preserve"><value>Current password</value></data>
@@ -734,7 +740,7 @@
   <data name="ForgotPasswordDescription" xml:space="preserve"><value>Enter your registered email. The system will send a link to reset your password.</value></data>
   <data name="ResetPasswordDescription" xml:space="preserve"><value>Create a new password for your account.</value></data>
   <data name="ChangePasswordDescription" xml:space="preserve"><value>Confirm your current password before creating a new one.</value></data>
-  <data name="RegisterDescription" xml:space="preserve"><value>Create an account for use in the development and testing environment.</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Create an account, confirm its email, and wait for administrator approval before signing in.</value></data>
   <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>For security reasons the system always returns the same message whether the email exists or not.</value></data>
   <data name="HistoryRequester" xml:space="preserve"><value>Requested by</value></data>
   <data name="DepartmentSearchPlaceholder" xml:space="preserve"><value>Search order code or full name</value></data>
@@ -1079,6 +1085,7 @@
   <data name="AuditActionAccountActivated" xml:space="preserve"><value>Activate account</value></data>
   <data name="AuditActionAccountRegistered" xml:space="preserve"><value>Register account</value></data>
   <data name="AuditActionEmailConfirmed" xml:space="preserve"><value>Confirm email</value></data>
+  <data name="AuditActionEmailConfirmationResend" xml:space="preserve"><value>Resend confirmation email</value></data>
   <data name="AuditActionPasswordChanged" xml:space="preserve"><value>Change password</value></data>
   <data name="AuditActionPasswordReset" xml:space="preserve"><value>Reset password</value></data>
   <data name="AuditActionResetLinkSent" xml:space="preserve"><value>Send password reset link</value></data>

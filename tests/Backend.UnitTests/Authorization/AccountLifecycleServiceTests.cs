@@ -182,6 +182,31 @@ public sealed class AccountLifecycleServiceTests
     }
 
     [Fact]
+    public async Task ResendConfirmation_UsesSameAcceptedResponseAndOnlyEmailsEligibleAccount()
+    {
+        await using var fixture = await LifecycleFixture.CreateAsync(emailEnabled: true);
+        var pending = await fixture.CreateAccountAsync("pending.confirmation", AppAccountStatus.PendingApproval);
+        var active = await fixture.CreateAccountAsync("active.confirmation", AppAccountStatus.Active);
+
+        var pendingResult = await fixture.Service.ResendEmailConfirmationAsync(
+            new EmailConfirmationResendReqDTO { Email = pending.Email! });
+        var activeResult = await fixture.Service.ResendEmailConfirmationAsync(
+            new EmailConfirmationResendReqDTO { Email = active.Email! });
+        var unknownResult = await fixture.Service.ResendEmailConfirmationAsync(
+            new EmailConfirmationResendReqDTO { Email = "unknown@example.test" });
+
+        Assert.Equal(StatusCodes.Status202Accepted, pendingResult.StatusCode);
+        Assert.Equal(pendingResult.Code, activeResult.Code);
+        Assert.Equal(pendingResult.Code, unknownResult.Code);
+        var message = Assert.Single(fixture.EmailSender.Messages);
+        Assert.Contains("ConfirmEmail", message.TextBody, StringComparison.Ordinal);
+        Assert.Equal(
+            3,
+            await fixture.Context.SecurityAudits.CountAsync(
+                audit => audit.Action == "ACCOUNT_EMAIL_CONFIRMATION_RESEND_REQUESTED"));
+    }
+
+    [Fact]
     public async Task AdminInviteCreatesPasswordlessAccountAndOneTimeSetupFlow()
     {
         await using var fixture = await LifecycleFixture.CreateAsync(emailEnabled: true, membershipSucceeds: true);

@@ -1,0 +1,41 @@
+@page "/Account/ResendConfirmation"
+@attribute [AllowAnonymous]
+@layout LoginLayout
+
+<PageTitle>GTAS VPP - @Loc["ResendConfirmationTitle"]</PageTitle>
+
+<VppAccountWorkspace Title="@Loc["ResendConfirmationTitle"]"
+                     TitleId="resend-confirmation-title"
+                     Description="@Loc["ResendConfirmationDescription"]"
+                     Compact="true">
+    <VppInlineAlert Message="@ErrorMessage" Tone="VppAlertTone.Error" />
+    <VppInlineAlert Message="@SuccessMessage" Tone="VppAlertTone.Success" />
+    <VppInlineAlert Message="@Loc["ResendConfirmationSafetyNote"]" />
+
+    <RadzenTemplateForm TItem="EmailConfirmationResendReqDTO" Data="@Model" Submit="@SubmitAsync" class="vpp-login-form">
+        <div class="vpp-login-field">
+            <RadzenLabel Text="@Loc["CompanyEmail"]" Component="Email" class="vpp-login-label" />
+            <RadzenTextBox Name="Email"
+                           @bind-Value="Model.Email"
+                           Disabled="@IsLoading"
+                           autocomplete="email"
+                           class="vpp-login-control" />
+            <div class="vpp-validation-slot">
+                <RadzenRequiredValidator Component="Email" Text="@Loc["CompanyEmailRequired"]" class="vpp-field-validator" Style="position: absolute" />
+                <RadzenEmailValidator Component="Email" Visible="@(!string.IsNullOrWhiteSpace(Model.Email))" Text="@Loc["CompanyEmailInvalid"]" class="vpp-field-validator" Style="position: absolute" />
+            </div>
+        </div>
+
+        <RadzenButton Text="@Loc["ResendConfirmationAction"]"
+                      ButtonType="ButtonType.Submit"
+                      IsBusy="@IsLoading"
+                      class="vpp-login-btn" />
+    </RadzenTemplateForm>
+
+    <div class="vpp-login-links vpp-login-links-single">
+        <a class="vpp-account-back-link" href="/Account/Login">
+            <VppIcon Name="@VppIcons.ArrowBack" />
+            <span>@Loc["BackToLogin"]</span>
+        </a>
+    </div>
+</VppAccountWorkspace>

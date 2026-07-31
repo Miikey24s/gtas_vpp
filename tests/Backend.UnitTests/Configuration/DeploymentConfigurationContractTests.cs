@@ -436,6 +436,8 @@ public sealed class DeploymentConfigurationContractTests
         Assert.Contains("AddParameter(\"test-database-connection-string\", secret: true)", appHost);
         Assert.Contains("WithEnvironment(\"ConnectionStrings__TestEnv\"", appHost);
         Assert.Contains("WithEnvironment(\"JwtSettings__Audience\", \"gtas_vpp_test_clients\")", appHost);
+        Assert.Contains("AddContainer(\"mailpit\", \"axllent/mailpit\", \"v1.30.0\")", appHost);
+        Assert.Contains("EmailNotifications__SmtpHost", appHost);
 
         Assert.DoesNotContain("\"ConnectionStrings\"", developmentSettings);
         Assert.Contains("\"Audience\": \"gtas_vpp_test_clients\"", developmentSettings);

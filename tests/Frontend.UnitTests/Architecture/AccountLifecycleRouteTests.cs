@@ -12,6 +12,7 @@ public sealed class AccountLifecycleRouteTests
     [InlineData(typeof(ForgotPassword), "/Account/ForgotPassword")]
     [InlineData(typeof(ResetPassword), "/Account/ResetPassword")]
     [InlineData(typeof(ConfirmEmail), "/Account/ConfirmEmail")]
+    [InlineData(typeof(ResendConfirmation), "/Account/ResendConfirmation")]
     [InlineData(typeof(ChangePassword), "/Account/ChangePassword")]
     [InlineData(typeof(Logout), "/logoutprocess")]
     public void AccountLifecyclePage_ExposesExpectedRoute(Type componentType, string route)
@@ -28,6 +29,7 @@ public sealed class AccountLifecycleRouteTests
     [InlineData(typeof(ForgotPassword))]
     [InlineData(typeof(ResetPassword))]
     [InlineData(typeof(ConfirmEmail))]
+    [InlineData(typeof(ResendConfirmation))]
     [InlineData(typeof(Logout))]
     public void PublicAccountLifecyclePage_IsAnonymous(Type componentType)
     {

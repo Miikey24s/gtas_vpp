@@ -34,6 +34,7 @@ public sealed class AccountControllerTests
     [Theory]
     [InlineData(nameof(AccountController.Register), "account-register")]
     [InlineData(nameof(AccountController.ConfirmEmail), "account-confirm")]
+    [InlineData(nameof(AccountController.ResendEmailConfirmation), "account-confirm")]
     [InlineData(nameof(AccountController.RequestPasswordRecovery), "account-recovery")]
     [InlineData(nameof(AccountController.ResetPassword), "account-recovery")]
     [InlineData(nameof(AccountController.ChangePassword), "account-password")]
@@ -51,6 +52,7 @@ public sealed class AccountControllerTests
     [Theory]
     [InlineData(nameof(AccountController.Register))]
     [InlineData(nameof(AccountController.ConfirmEmail))]
+    [InlineData(nameof(AccountController.ResendEmailConfirmation))]
     [InlineData(nameof(AccountController.RequestPasswordRecovery))]
     [InlineData(nameof(AccountController.ResetPassword))]
     public void PublicLifecycleEndpoint_IsExplicitlyAnonymous(string methodName)
