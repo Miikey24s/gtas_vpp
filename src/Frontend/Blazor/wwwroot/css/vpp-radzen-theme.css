@@ -195,6 +195,72 @@
     opacity: 1;
 }
 
+/* Select quyết định nằm trong DataGrid vẫn dùng Radzen để giữ tìm kiếm bàn phím,
+   nhưng chrome phải liền khối và cùng nhịp với VppFilterSelect canonical. */
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: var(--vpp-data-control-height);
+    min-height: var(--vpp-data-control-height);
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--vpp-radius-lg);
+    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
+    color: var(--vpp-text-secondary);
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
+    transition: box-shadow var(--vpp-transition-fast),
+                background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast);
+}
+
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown .rz-dropdown-label {
+    justify-content: flex-start;
+    min-width: 0;
+    padding: 0 var(--vpp-data-control-height) 0 var(--vpp-space-2) !important;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    box-shadow: none;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown .rz-dropdown-trigger {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: var(--vpp-data-control-height);
+    min-width: var(--vpp-data-control-height);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--vpp-text-tertiary);
+}
+
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown:not(.rz-state-disabled):hover,
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown.rz-state-focus,
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown:focus-within,
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown[aria-expanded="true"] {
+    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated));
+    color: var(--vpp-text-primary);
+}
+
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown.rz-state-disabled {
+    cursor: default;
+    opacity: .62;
+}
+
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown.rz-state-disabled .rz-dropdown-label,
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown.rz-state-disabled .rz-dropdown-trigger {
+    background: transparent;
+    color: inherit;
+}
+
 /* Select Radzen dùng cùng chrome và popup với VppFilterSelect canonical. */
 .rz-dropdown-panel {
     box-sizing: border-box;

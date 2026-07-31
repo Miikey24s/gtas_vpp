@@ -49,6 +49,8 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("<VppAdaptiveDialogShell", invitation, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UserInvitationPasswordlessHint\"]", invitation, StringComparison.Ordinal);
         Assert.Contains("class=\"vpp-admin-inline-select\"", page, StringComparison.Ordinal);
+        Assert.Contains(".vpp-data-grid .vpp-admin-inline-select.rz-dropdown", ReadFrontendSource("wwwroot/css/vpp-radzen-theme.css"), StringComparison.Ordinal);
+        Assert.Contains(".vpp-data-grid .vpp-admin-inline-select.rz-dropdown:focus-visible", ReadFrontendSource("wwwroot/css/vpp-a11y.css"), StringComparison.Ordinal);
         Assert.Contains("OnGroupAssignmentChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("OnDepartmentAssignmentChangedAsync", page, StringComparison.Ordinal);
         Assert.DoesNotContain("manage_accounts", page, StringComparison.Ordinal);

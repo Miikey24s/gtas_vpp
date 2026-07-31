@@ -44,6 +44,18 @@ h1[tabindex="-1"]:focus-visible {
     box-shadow: none !important;
 }
 
+/* Inline decision select dùng cùng focus inset với filter canonical; không để
+   focus ring Radzen tạo viền xanh đậm khác motif ngay trong cell. */
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown:focus-visible,
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown.rz-state-focus,
+.vpp-data-grid .vpp-admin-inline-select.rz-dropdown:focus-within {
+    border: 0 !important;
+    outline: 0 !important;
+    outline-offset: 0 !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-text-primary) 20%, transparent),
+                var(--vpp-shadow-xs) !important;
+}
+
 /* Page-size select dùng focus inset như filter canonical; tránh cộng hai vòng
    focus của Radzen và rule accessibility thành viền oval bên ngoài control. */
 .rz-paginator .rz-dropdown:focus:not(:focus-visible),

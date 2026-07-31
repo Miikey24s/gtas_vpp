@@ -33,18 +33,46 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
 
         var pageSizeSelect = surface.Locator(".rz-paginator .rz-dropdown, .rz-pager .rz-dropdown").First;
         var filterSelect = surface.Locator(".vpp-filter-select-trigger").First;
+        var inlineSelect = surface.Locator(".vpp-admin-inline-select:not(.rz-state-disabled)").First;
+        await inlineSelect.WaitForAsync();
         var selectChrome = await Page.EvaluateAsync<string>("""
             () => {
                 const pageSize = document.querySelector('[data-testid="permission-users-data-surface"] .rz-paginator .rz-dropdown, [data-testid="permission-users-data-surface"] .rz-pager .rz-dropdown');
                 const filter = document.querySelector('[data-testid="permission-users-data-surface"] .vpp-filter-select-trigger');
-                if (!pageSize || !filter) return 'missing';
+                const inline = document.querySelector('[data-testid="permission-users-data-surface"] .vpp-admin-inline-select:not(.rz-state-disabled)');
+                const inlineLabel = inline?.querySelector('.rz-dropdown-label');
+                if (!pageSize || !filter || !inline || !inlineLabel) return 'missing';
                 const pageStyle = getComputedStyle(pageSize);
                 const filterStyle = getComputedStyle(filter);
-                return `${pageStyle.height === filterStyle.height && pageStyle.borderRadius === filterStyle.borderRadius}`
-                    + `|height=${pageStyle.height}/${filterStyle.height}|radius=${pageStyle.borderRadius}/${filterStyle.borderRadius}`;
+                const inlineStyle = getComputedStyle(inline);
+                const inlineLabelStyle = getComputedStyle(inlineLabel);
+                const sameGeometry = pageStyle.height === filterStyle.height
+                    && pageStyle.borderRadius === filterStyle.borderRadius
+                    && inlineStyle.height === filterStyle.height
+                    && inlineStyle.borderRadius === filterStyle.borderRadius;
+                const sameSurface = inlineStyle.backgroundColor === filterStyle.backgroundColor
+                    && inlineLabelStyle.backgroundColor === 'rgba(0, 0, 0, 0)';
+                return `${sameGeometry && sameSurface}`
+                    + `|height=${pageStyle.height}/${filterStyle.height}/${inlineStyle.height}`
+                    + `|radius=${pageStyle.borderRadius}/${filterStyle.borderRadius}/${inlineStyle.borderRadius}`
+                    + `|surface=${filterStyle.backgroundColor}/${inlineStyle.backgroundColor}/${inlineLabelStyle.backgroundColor}`;
             }
         """);
-        selectChrome.Should().StartWith("true", "page-size and filter selects share one control motif");
+        selectChrome.Should().StartWith("true", "page-size, filter and inline decision selects share one control motif");
+
+        await inlineSelect.FocusAsync();
+        var inlineFocusChrome = await inlineSelect.EvaluateAsync<string>("""
+            element => {
+                const style = getComputedStyle(element);
+                const canonical = style.outlineStyle === 'none'
+                    && style.outlineWidth === '0px'
+                    && style.boxShadow.includes('inset')
+                    && !style.boxShadow.includes('0px 0px 0px 3px');
+                return `${canonical}|${style.outlineStyle}|${style.outlineWidth}|${style.boxShadow}`;
+            }
+        """);
+        inlineFocusChrome.Should().StartWith("true|",
+            "inline selects use the canonical inset focus instead of Radzen's external blue ring");
         await pageSizeSelect.ClickAsync();
         var pageSizePopup = Page.Locator(".rz-dropdown-panel:visible").Last;
         await pageSizePopup.WaitForAsync();

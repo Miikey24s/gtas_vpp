@@ -1000,22 +1000,6 @@
     flex-wrap: nowrap;
 }
 
-.permission-user-grid .vpp-admin-inline-select.rz-dropdown {
-    width: 100%;
-    min-width: 0;
-    height: var(--vpp-data-control-height);
-    min-height: var(--vpp-data-control-height);
-    border: 0;
-    border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
-    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
-}
-
-.permission-user-grid .vpp-admin-inline-select.rz-dropdown:not(.rz-state-disabled):hover {
-    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated));
-    color: var(--vpp-text-primary);
-}
-
 @media (max-width: 767px) {
     .vpp-permission-user-actions {
         width: 100%;
