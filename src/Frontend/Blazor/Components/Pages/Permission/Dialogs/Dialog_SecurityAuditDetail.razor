@@ -24,9 +24,9 @@
         </dl>
     </ChildContent>
     <Footer>
-        <div class="vpp-adaptive-dialog-actions">
-            <RadzenButton Text="@Loc["Close"]" ButtonStyle="ButtonStyle.Light" Click="@CloseAsync" />
-        </div>
+        <VppDialogActions CancelText="@Loc["Close"]"
+                          ShowPrimary="false"
+                          CancelClick="@CloseAsync" />
     </Footer>
 </VppAdaptiveDialogShell>
 

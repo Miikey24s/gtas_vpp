@@ -117,12 +117,10 @@
                                 <div class="vpp-admin-actions">
                                     @if (accountCapabilities.InvitationEnabled)
                                     {
-                                        <RadzenButton Icon="mark_email_unread"
-                                                      ButtonStyle="ButtonStyle.Light"
-                                                      Size="ButtonSize.Small"
-                                                      Disabled="@(!CanSendPasswordLink(user))"
-                                                      Click="@(() => SendPasswordResetLinkAsync(user))"
-                                                      title="@GetPasswordLinkTitle(user)" />
+                                        <VppAdminIconAction Icon="mark_email_unread"
+                                                            Title="@GetPasswordLinkTitle(user)"
+                                                            Disabled="@(!CanSendPasswordLink(user))"
+                                                            Click="@(() => SendPasswordResetLinkAsync(user))" />
                                     }
                                     @if (IsPendingApproval(user))
                                     {
@@ -139,15 +137,11 @@
                                     }
                                     else
                                     {
-                                        <span class="vpp-admin-active-switch vpp-admin-user-access-switch"
-                                              title="@GetAccessToggleTitle(user)"
-                                              @onclick:stopPropagation="true">
-                                            <RadzenSwitch TValue="bool"
-                                                          Value="@user.IsActive"
-                                                          Change="@((bool isActive) => ToggleUserAccessAsync(user, isActive))"
-                                                          Disabled="@(!CanToggleUserAccess(user))"
-                                                          aria-label="@GetAccessToggleTitle(user)" />
-                                        </span>
+                                        <VppAdminActiveToggle IsActive="@user.IsActive"
+                                                              Title="@GetAccessToggleTitle(user)"
+                                                              Changed="@((bool isActive) => ToggleUserAccessAsync(user, isActive))"
+                                                              Disabled="@(!CanToggleUserAccess(user))"
+                                                              Class="vpp-admin-user-access-switch" />
                                     }
                                 </div>
                             </Template>

@@ -1,0 +1,42 @@
+<div class="vpp-adaptive-dialog-actions @Class">
+    @if (LeadingActions is not null)
+    {
+        <div class="vpp-adaptive-dialog-leading-actions">
+            @LeadingActions
+        </div>
+    }
+
+    @if (ShowCancel)
+    {
+        <RadzenButton Text="@CancelText"
+                      ButtonStyle="ButtonStyle.Light"
+                      Disabled="@(CancelDisabled || IsBusy)"
+                      Click="@CancelClick" />
+    }
+
+    @if (ShowPrimary)
+    {
+        <RadzenButton Text="@PrimaryText"
+                      Icon="@PrimaryIcon"
+                      ButtonStyle="@PrimaryButtonStyle"
+                      IsBusy="@IsBusy"
+                      Disabled="@(PrimaryDisabled || IsBusy)"
+                      Click="@PrimaryClick" />
+    }
+</div>
+
+@code {
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public string PrimaryText { get; set; } = "Save";
+    [Parameter] public string? PrimaryIcon { get; set; }
+    [Parameter] public ButtonStyle PrimaryButtonStyle { get; set; } = ButtonStyle.Primary;
+    [Parameter] public EventCallback<MouseEventArgs> CancelClick { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> PrimaryClick { get; set; }
+    [Parameter] public bool ShowCancel { get; set; } = true;
+    [Parameter] public bool ShowPrimary { get; set; } = true;
+    [Parameter] public bool CancelDisabled { get; set; }
+    [Parameter] public bool PrimaryDisabled { get; set; }
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public RenderFragment? LeadingActions { get; set; }
+    [Parameter] public string? Class { get; set; }
+}

@@ -1,0 +1,47 @@
+@inject DialogService DialogService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Compact" TestId="settlement-correction-dialog">
+    <Intro>
+        <VppInlineNotice Tone="VppStatusTone.Info">@Loc["CorrectionFourEyesHint"]</VppInlineNotice>
+    </Intro>
+    <ChildContent>
+        <RadzenFormField Text="@Loc["CorrectionReasonLabel"]" Variant="Variant.Outlined">
+            <RadzenTextArea @bind-Value="Reason"
+                            Rows="5"
+                            MaxLength="500"
+                            Placeholder="@Loc["CorrectionReasonPlaceholder"]"
+                            Style="width:100%" />
+        </RadzenFormField>
+        @if (HasValidationError)
+        {
+            <VppInlineNotice Tone="VppStatusTone.Warning">@Loc["CorrectionReasonLengthWarning"]</VppInlineNotice>
+        }
+    </ChildContent>
+    <Footer>
+        <VppDialogActions CancelText="@Loc["Cancel"]"
+                          PrimaryText="@Loc["CreateCorrectionRevision"]"
+                          PrimaryIcon="check"
+                          PrimaryButtonStyle="ButtonStyle.Warning"
+                          CancelClick="@CancelAsync"
+                          PrimaryClick="@SubmitAsync" />
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    private string Reason { get; set; } = string.Empty;
+    private bool HasValidationError { get; set; }
+    private bool CanSubmit => Reason.Trim().Length is >= 5 and <= 500;
+
+    private Task CancelAsync() => DialogService.TryCloseAsync(null);
+
+    private async Task SubmitAsync()
+    {
+        if (!CanSubmit)
+        {
+            HasValidationError = true;
+            return;
+        }
+
+        await DialogService.TryCloseAsync(Reason.Trim());
+    }
+}

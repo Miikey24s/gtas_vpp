@@ -34,6 +34,18 @@
     white-space: nowrap;
 }
 
+.vpp-collection-header-actions {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-collection-header-actions :deep(.rz-button) {
+    min-height: var(--vpp-control-height-compact);
+}
+
 .vpp-collection-header-add {
     display: inline-flex;
     flex: 0 0 auto;

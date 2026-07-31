@@ -40,57 +40,6 @@
     flex-wrap: nowrap !important;
 }
 
-.vpp-library-primary-action.rz-button,
-.vpp-library-refresh-action.rz-button {
-    height: var(--vpp-control-height-compact);
-    min-height: var(--vpp-control-height-compact);
-    padding-inline: 0.8rem;
-    border-radius: var(--vpp-radius-md);
-    box-shadow: none;
-    font-size: var(--vpp-text-sm);
-    font-weight: var(--vpp-font-weight-semibold);
-}
-
-.vpp-library-primary-action.rz-button {
-    border-color: var(--vpp-primary-600);
-}
-
-.vpp-library-refresh-action.rz-button {
-    min-width: 82px;
-    border: 1px solid color-mix(in srgb, var(--vpp-primary-500) 50%, var(--vpp-border-strong));
-    background: var(--vpp-bg-elevated);
-    color: var(--vpp-primary-700);
-    opacity: 1 !important;
-}
-
-.vpp-library-refresh-action.rz-button:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--vpp-primary-500) 35%, var(--vpp-border-default));
-    background: color-mix(in srgb, var(--vpp-primary-500) 8%, transparent);
-    color: var(--vpp-primary-700);
-}
-
-.vpp-library-refresh-action.rz-button:focus-visible {
-    outline: 2px solid var(--vpp-border-focus);
-    outline-offset: 2px;
-}
-
-.vpp-library-refresh-action.rz-button .rzi {
-    font-size: 1rem;
-    color: inherit;
-    opacity: 1 !important;
-}
-
-.vpp-library-primary-action.rz-button .rzi {
-    font-size: 1rem;
-}
-
-.vpp-library-refresh-action.rz-button:disabled,
-.vpp-library-refresh-action.rz-button.rz-state-disabled {
-    border-color: var(--vpp-border-default);
-    color: var(--vpp-text-tertiary);
-    opacity: 0.45 !important;
-}
-
 .vpp-admin-grid.rz-data-grid,
 .vpp-admin-grid.rz-datatable {
     --vpp-admin-grid-min-width: 1040px;
@@ -1590,7 +1539,7 @@
     min-width: 1.65rem !important;
     min-height: 1.65rem !important;
     padding: 0 !important;
-    box-shadow: var(--vpp-shadow-xs);
+    box-shadow: none;
 }
 
 .vpp-admin-actions .rz-button .rzi {
@@ -1853,8 +1802,16 @@
 
 .vpp-adaptive-dialog-actions {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: var(--vpp-space-2);
+}
+
+.vpp-adaptive-dialog-leading-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    margin-inline-end: auto;
 }
 
 @media (max-width: 768px) {

@@ -9,7 +9,7 @@
 | Lớp | File authority | Được chứa | Không được chứa |
 |---|---|---|---|
 | Foundation | `vpp-tokens.css` | palette thô, semantic token Light/Dark, typography, spacing, radius, shadow, motion, z-index | selector riêng của route, mapping `--rz-*` |
-| Radzen bridge | `vpp-radzen-theme.css` | ánh xạ `--rz-*` sang `--vpp-*`, normalization nhỏ có bằng chứng runtime | hex/RGB/HSL, design value mới, layout/nghiệp vụ route |
+| Radzen bridge | `vpp-radzen-theme.css` | ánh xạ `--rz-*` sang `--vpp-*`, chrome dropdown/popup/pager/button và normalization nhỏ có bằng chứng runtime | hex/RGB/HSL, design value mới, layout/nghiệp vụ route |
 | Shared UI | `vpp-layout.css`, `vpp-sidebar.css`, `vpp-tabs.css`, `vpp-datagrid.css`, `vpp-login.css` và CSS isolation của design-system component | contract shell/component dùng nhiều consumer | màu theme mới nếu token đã biểu diễn được |
 | Feature/workspace | `vpp-admin.css`, `vpp-kpi.css` và `.razor.css` gần component | layout/behavior đặc thù của workspace hoặc component | override global Radzen không có scope |
 | Cross-cutting | `vpp-a11y.css`, `vpp-loading.css`, `vpp-polish.css`, `vpp-responsive.css`, `vpp-toast.css`, `vpp-casing.css` | accessibility, print, loading, responsive và behavior toàn cục có owner rõ | token palette song song hoặc scrollbar chrome toàn cục |
@@ -26,6 +26,7 @@
 6. Không tạo lại stylesheet compatibility trung tâm. Rule mới phải có owner canonical hoặc CSS isolation gần component.
 7. Motion dùng token canonical trong `vpp-tokens.css`: `80ms` pressed, `120ms` hover/focus, `160–180ms` transient/navigation và `220ms` layout. Không dùng `transition: all`, forced reflow ripple hoặc duplicate `@keyframes`.
 8. `vpp-polish.css` sở hữu motion project-wide; `vpp-radzen-theme.css` chỉ bridge popup/dialog portal của Radzen sang cùng token. Mọi motion phải có nhánh `prefers-reduced-motion` và không làm dịch anchor/layout.
+9. Radzen dropdown, popup option và page-size pager chỉ có một CSS owner là `vpp-radzen-theme.css`; feature/polish không được lặp geometry, hover hoặc selected state.
 
 ## Phân loại debt sau F1
 

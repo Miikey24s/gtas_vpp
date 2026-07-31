@@ -40,10 +40,21 @@ public sealed class AtlasWave1Tests : TestBase, IAuthenticatedUiTest
         await GotoMainRouteAsync("permission?tab=0");
         var userSurface = Page.Locator("[data-testid='permission-users-data-surface']");
         await userSurface.WaitForAsync();
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const grid = document.querySelector('.permission-user-grid');
+                return !!grid
+                    && !grid.classList.contains('rz-datatable-loading')
+                    && !!grid.querySelector('.rz-data-row, .rz-datatable-emptymessage');
+            }
+            """);
         (await Page.Locator(".vpp-record-inspector").CountAsync()).Should().Be(0,
             "user administration uses the full-width collection pattern instead of a fixed inspector");
-        (await Page.Locator(".permission-user-grid tbody .vpp-admin-inline-select").CountAsync()).Should().BeGreaterThan(0,
-            "membership group and department are edited directly in their table columns");
+        if (await Page.Locator(".permission-user-grid .rz-data-row").CountAsync() > 0)
+        {
+            (await Page.Locator(".permission-user-grid .vpp-admin-inline-select").CountAsync()).Should().BeGreaterThan(0,
+                "membership group and department are edited directly in their table columns when rows are available");
+        }
         var invitationButton = Page.GetByRole(AriaRole.Button, new() { Name = "Thêm người dùng", Exact = true });
         await invitationButton.WaitForAsync();
         (await invitationButton.GetAttributeAsync("title")).Should().NotBeNullOrWhiteSpace(

@@ -30,6 +30,8 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | `ANALYTICS` | KPI/chart/list/detail data story | History, department summary, report | `VppAnalyticsWorkspace` | chart/list/detail arrangement | KPI rhythm, chart empty state, detail alignment |
 | `DATA-FRAME` | Header/toolbar/grid/footer frame | Bảng/list có data surface | `VppDataSurfaceFrame` | `ServerPaging`, `ClientSnapshotPaged`, `ClientSnapshotVirtualized`, `Static` | border, overflow, footer anchor |
 | `COLLECTION-HEADER` | Identity + count + collection action | Add/import/export thuộc cả collection | `VppCollectionHeader` | add/secondary/disabled | CRUD trong toolbar hoặc header cột |
+| `BUTTON-ACTION` | Button có text/icon theo cấp hành động | Collection, query, workflow, dialog | Radzen button bridge trong `vpp-radzen-theme.css`; component domain chỉ khi có behavior riêng | primary/secondary/light/success/warning/danger, icon-only/text | shadow/translate/oval focus riêng theo route; universal button wrapper chỉ đổi tên markup |
+| `ADMIN-ROW-ACTIONS` | Sửa, bật/tắt, hard delete và action nghiệp vụ của một dòng | Các bảng quản trị | `VppAdminIconAction`, `VppAdminActiveToggle`, cột `vpp-admin-actions` | icon action, active toggle, labeled approval | route tự đặt kích thước/icon chrome hoặc dựng switch shell khác |
 | `FILTER-TOOLBAR` | Search, filter, clear, column picker | Tìm/lọc dữ liệu thường xuyên | `VppDataToolbar`, `VppFilterSearch`, `VppFilterSelect`, `VppClearFiltersButton`, `VppColumnPicker` | filter count/domain-specific options | popup chrome, control height, order |
 | `FILTER-ADVANCED` | Bộ lọc ít dùng/nhiều điều kiện | Ngày, khoảng giá, metadata, audit/resource | typed route-owned filter panel anchored from the toolbar | compact/popover/workspace | không tạo filter icon riêng trong từng header |
 | `SELECTOR-FILTER` | Thay đổi tập dữ liệu hiển thị | Category/status/department/unit filters | `VppFilterSelect<T>` | active/inactive, option count | tự tạo dropdown khác visual |
@@ -43,9 +45,10 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | `STATUS-BADGE` | Trạng thái ngắn, có màu semantic | Order/admin/permission state | `VppStatusBadge` + `VppStatusTone` | info/success/warning/danger/neutral | badge tự map string hoặc màu theo route |
 | `METRIC-CARD` | Một chỉ số định lượng | Analytics/report summary | `VppMetricCard` | neutral/accent/success/warning | raw `kpi-card`/shine markup |
 | `DIALOG-EDITOR` | Thêm/sửa form | Admin CRUD | `VppAdaptiveDialogShell` + typed dialog contract | compact/wide/fullscreen, sticky footer | inline row edit hoặc dialog tự vẽ shell |
-| `DIALOG-ACTIONS` | Hủy/lưu/submit/destructive action | Dialog/editor | `vpp-adaptive-dialog-actions` contract + Radzen buttons | primary/secondary/danger | footer spacing riêng từng dialog |
+| `DIALOG-ACTIONS` | Hủy/lưu/submit/destructive action | Dialog/editor | `VppDialogActions` trong `VppAdaptiveDialogShell` | primary/secondary/danger, busy/disabled, leading slot | footer spacing hoặc cặp button riêng từng dialog |
 | `TRANSIENT` | Popup, popover, user menu, filter, notification | Surface tạm thời | `vpp-transient-surface`, `vpp-polish.css`, Radzen bridge | above/down/center, reduced-motion | `transform` làm đổi anchor geometry |
-| `FEEDBACK` | Inline notice/toast/reconnect | Thông báo hệ thống/nghiệp vụ | `VppInlineNotice`, toast/reconnect contract | neutral/info/success/warning/danger | `RadzenAlert` hoặc raw exception text tự dựng theo route |
+| `FEEDBACK` | Inline notice/toast/reconnect | Thông báo hệ thống/nghiệp vụ | `VppInlineNotice`, `IToastService`, reconnect contract | neutral/info/success/warning/danger | inject `NotificationService`, `RadzenAlert` hoặc raw exception text theo route |
+| `FILE-EXPORT` | Tải PDF/Excel/CSV từ API | Order, report, settlement | `IBrowserFileDownloadService`; backend builder typed + `SimpleWorkbookBuilder` | API stream, PDF, workbook, CSV | `DotNetStreamReference`/JS pipeline hoặc SpreadsheetML packager lặp theo route |
 | `SKELETON` | Loading placeholder | Chờ data | `SkeletonPage`, `SkeletonGrid`, `vpp-loading.css` | page/grid/row | legacy `.shimmer-*` mới |
 
 ## 3. Quy tắc selector

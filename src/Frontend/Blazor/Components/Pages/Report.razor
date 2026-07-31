@@ -44,35 +44,33 @@ else
                            placeholder="@Loc["ReportDepartmentSearchPlaceholder"]"
                            aria-label="@Loc["ReportDepartmentSearchPlaceholder"]" />
                 </label>
-                <label class="vpp-report-filter-field">
+                <div class="vpp-report-filter-field">
                     <span>@Loc["ReportScope"]</span>
-                    <RadzenDropDown TValue="string"
-                                    Data="@LocalizedScopeOptions"
-                                    TextProperty="@nameof(ReportScopeDisplayOption.Label)"
-                                    ValueProperty="@nameof(ReportScopeDisplayOption.Value)"
-                                    @bind-Value="SelectedScope"
-                                    aria-label="@Loc["ReportScope"]" />
-                </label>
-                <label class="vpp-report-filter-field">
+                    <VppFilterSelect TValue="string"
+                                     Value="@SelectedScope"
+                                     Options="@ScopeFilterOptions"
+                                     ValueChanged="@OnScopeChanged"
+                                     Placeholder="@Loc["ReportScope"]"
+                                     AriaLabel="@Loc["ReportScope"]" />
+                </div>
+                <div class="vpp-report-filter-field">
                     <span>@Loc["Year"]</span>
-                    <RadzenDropDown TValue="int?"
-                                    Data="@AvailableYears"
-                                    @bind-Value="SelectedYear"
-                                    AllowClear="true"
-                                    Placeholder="@Loc["AllYears"]"
-                                    aria-label="@Loc["Year"]" />
-                </label>
-                <label class="vpp-report-filter-field">
+                    <VppFilterSelect TValue="int?"
+                                     Value="@SelectedYear"
+                                     Options="@YearFilterOptions"
+                                     ValueChanged="@OnYearChanged"
+                                     Placeholder="@Loc["AllYears"]"
+                                     AriaLabel="@Loc["Year"]" />
+                </div>
+                <div class="vpp-report-filter-field">
                     <span>@Loc["Month"]</span>
-                    <RadzenDropDown TValue="int?"
-                                    Data="@MonthOptions"
-                                    TextProperty="@nameof(ReportMonthOption.Label)"
-                                    ValueProperty="@nameof(ReportMonthOption.Value)"
-                                    @bind-Value="SelectedMonth"
-                                    AllowClear="true"
-                                    Placeholder="@Loc["AllMonths"]"
-                                    aria-label="@Loc["Month"]" />
-                </label>
+                    <VppFilterSelect TValue="int?"
+                                     Value="@SelectedMonth"
+                                     Options="@MonthFilterOptions"
+                                     ValueChanged="@OnMonthChanged"
+                                     Placeholder="@Loc["AllMonths"]"
+                                     AriaLabel="@Loc["Month"]" />
+                </div>
                 <RadzenButton Icon="filter_alt"
                               Text="@Loc["ApplyFilters"]"
                               ButtonStyle="ButtonStyle.Light"

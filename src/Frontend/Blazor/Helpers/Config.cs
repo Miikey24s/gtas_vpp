@@ -74,6 +74,8 @@ namespace gtas_vpp_fe.Helpers
                 public const string Confirm = $"{Base}/confirm";
                 public const string Current = $"{Base}/current/{{0}}/{{1}}";
                 public const string Correct = $"{Base}/{{0}}/correct";
+                public const string ExportPdf = $"{Base}/{{0}}/export.pdf";
+                public const string ExportExcel = $"{Base}/{{0}}/export.xlsx";
                 public const string Status = $"{Base}/{{0}}/{{1}}";
                 public const string ListAll = Base;
             }

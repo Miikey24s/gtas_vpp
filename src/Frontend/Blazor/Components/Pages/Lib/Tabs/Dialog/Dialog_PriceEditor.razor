@@ -18,5 +18,5 @@
             <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>
         </RadzenStack>
     </ChildContent>
-    <Footer><div class="vpp-adaptive-dialog-actions"><RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" /><RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" /></div></Footer>
+    <Footer><VppDialogActions CancelText="@Loc["Cancel"]" PrimaryText="@Loc["Save"]" CancelClick="@Cancel" PrimaryClick="@Save" /></Footer>
 </VppAdaptiveDialogShell>

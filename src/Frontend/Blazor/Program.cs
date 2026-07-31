@@ -71,6 +71,7 @@ builder.Services.AddScoped<PermissionRealtimeService>();
 builder.Services.AddScoped<NotificationInboxState>();
 builder.Services.AddScoped<gtas_vpp_fe.Components.Pages.VPPRequest.Components.PeriodSettlementState>();
 builder.Services.AddScoped<IToastService, ToastService>();
+builder.Services.AddScoped<IBrowserFileDownloadService, BrowserFileDownloadService>();
 builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie
 // Cấu hình hỗ trợ Cookie policy

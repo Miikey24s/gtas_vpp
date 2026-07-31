@@ -38,6 +38,7 @@
   <data name="ExportOrderPdfAria" xml:space="preserve"><value>Export order {0} as a PDF file</value></data>
   <data name="ExportOrderExcelAria" xml:space="preserve"><value>Export order {0} as an Excel file</value></data>
   <data name="OrderExported" xml:space="preserve"><value>Order sheet exported</value></data>
+  <data name="SettlementExported" xml:space="preserve"><value>Period settlement exported</value></data>
   <data name="ReportContentNotConfigured" xml:space="preserve"><value>Report content has not been configured yet. Export functionality is coming soon.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Permissions</value></data>
   <data name="Settings" xml:space="preserve"><value>Settings</value></data>

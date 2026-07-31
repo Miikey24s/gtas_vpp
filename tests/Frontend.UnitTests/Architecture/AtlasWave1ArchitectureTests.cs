@@ -56,7 +56,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("OnDepartmentAssignmentChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("ApproveAccountAsync", page, StringComparison.Ordinal);
         Assert.Contains("ToggleUserAccessAsync", page, StringComparison.Ordinal);
-        Assert.Contains("RadzenSwitch TValue=\"bool\"", page, StringComparison.Ordinal);
+        Assert.Contains("<VppAdminActiveToggle", page, StringComparison.Ordinal);
         Assert.DoesNotContain("manage_accounts", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Icon=\"person_off\"", page, StringComparison.Ordinal);
         Assert.Contains("button,", ReadFrontendSource("wwwroot/css/vpp-radzen-theme.css"), StringComparison.Ordinal);
@@ -93,7 +93,7 @@ public sealed class AtlasWave1ArchitectureTests
 
         Assert.Contains("<VppAdaptiveDialogShell", categoryEditor, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", supplierEditor, StringComparison.Ordinal);
-        Assert.Contains("<RadzenSwitch TValue=\"bool\"", classes, StringComparison.Ordinal);
+        Assert.Contains("<VppAdminActiveToggle", classes, StringComparison.Ordinal);
         Assert.Contains("delete_forever", classes, StringComparison.Ordinal);
         Assert.Contains("!data.IsDeleted", classes, StringComparison.Ordinal);
         Assert.Contains("HardDeleteCategoryAsync", classesCode, StringComparison.Ordinal);
@@ -114,7 +114,7 @@ public sealed class AtlasWave1ArchitectureTests
                  })
         {
             var source = ReadFrontendSource($"Components/Pages/Lib/Tabs/{tab}");
-            Assert.Contains("<RadzenSwitch TValue=\"bool\"", source, StringComparison.Ordinal);
+            Assert.Contains("<VppAdminActiveToggle", source, StringComparison.Ordinal);
             Assert.Contains("delete_forever", source, StringComparison.Ordinal);
         }
     }

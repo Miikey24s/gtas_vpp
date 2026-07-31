@@ -1,4 +1,5 @@
 using System.Globalization;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -13,7 +14,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
     [Inject] protected PermissionState PermissionState { get; set; } = default!;
     [Inject] protected IAPIServices Api { get; set; } = default!;
     [Inject] protected IToastService Toast { get; set; } = default!;
-    [Inject] protected IJSRuntime JS { get; set; } = default!;
+    [Inject] protected IBrowserFileDownloadService FileDownloads { get; set; } = default!;
 
     protected ReportSummaryResDTO? Summary { get; private set; }
     protected ReportInsightResDTO? Insight { get; private set; }
@@ -35,6 +36,13 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected IReadOnlyList<ReportScopeDisplayOption> LocalizedScopeOptions => ScopeOptions
         .Select(option => new ReportScopeDisplayOption(option.Value, Localizer[option.ResourceKey].Value))
         .ToArray();
+    protected IReadOnlyList<VppFilterOption<string>> ScopeFilterOptions => LocalizedScopeOptions
+        .Select(option => new VppFilterOption<string>(option.Value, option.Label))
+        .ToArray();
+    protected IReadOnlyList<VppFilterOption<int?>> YearFilterOptions =>
+        [new(null, Localizer["AllYears"]), .. AvailableYears.Select(year => new VppFilterOption<int?>(year, year.ToString(CultureInfo.InvariantCulture)))];
+    protected IReadOnlyList<VppFilterOption<int?>> MonthFilterOptions =>
+        [new(null, Localizer["AllMonths"]), .. MonthOptions.Select(month => new VppFilterOption<int?>(month.Value, month.Label))];
     protected IReadOnlyList<ReportDepartmentPointResDTO> FilteredDepartmentBreakdown => Summary?.DepartmentBreakdown
         .Where(item => string.IsNullOrWhiteSpace(DepartmentSearchText)
             || item.Code.Contains(DepartmentSearchText.Trim(), StringComparison.OrdinalIgnoreCase))
@@ -123,6 +131,24 @@ public abstract class ReportBase : ComponentBase, IDisposable
         }
     }
 
+    protected Task OnScopeChanged(string value)
+    {
+        SelectedScope = value;
+        return Task.CompletedTask;
+    }
+
+    protected Task OnYearChanged(int? value)
+    {
+        SelectedYear = value;
+        return Task.CompletedTask;
+    }
+
+    protected Task OnMonthChanged(int? value)
+    {
+        SelectedMonth = value;
+        return Task.CompletedTask;
+    }
+
     protected Task ExportCsvAsync() => ExportAsync("export", "ReportExportedCsv");
 
     protected Task ExportXlsxAsync() => ExportAsync("export.xlsx", "ReportExportedXlsx");
@@ -137,10 +163,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         IsExporting = true;
         try
         {
-            var file = await Api.GetFileFromApiAsync(BuildEndpoint(action));
-            await using var stream = new MemoryStream(file.Content, writable: false);
-            using var streamReference = new DotNetStreamReference(stream);
-            await JS.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
+            await FileDownloads.DownloadFromApiAsync(BuildEndpoint(action));
             Toast.Success(Localizer["Success"], Localizer[successResourceKey]);
         }
         catch (Exception ex)

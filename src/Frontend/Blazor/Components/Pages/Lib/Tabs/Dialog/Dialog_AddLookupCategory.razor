@@ -44,10 +44,11 @@
 </RadzenStack>
 </ChildContent>
 <Footer>
-    <div class="vpp-adaptive-dialog-actions">
-        <RadzenButton Text="@Loc["Cancel"]" Click="@Cancel" ButtonStyle="ButtonStyle.Light" />
-        <RadzenButton Text="@Loc["Save"]" Click="@Save" ButtonStyle="ButtonStyle.Primary" IsBusy="@isBusy" Disabled="@isBusy" />
-    </div>
+    <VppDialogActions CancelText="@Loc["Cancel"]"
+                      PrimaryText="@Loc["Save"]"
+                      IsBusy="@isBusy"
+                      CancelClick="@Cancel"
+                      PrimaryClick="@Save" />
 </Footer>
 </VppAdaptiveDialogShell>
 

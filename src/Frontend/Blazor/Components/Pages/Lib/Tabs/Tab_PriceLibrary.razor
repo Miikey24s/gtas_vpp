@@ -104,30 +104,10 @@
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
                 <Template Context="row">
                     <div class="vpp-admin-actions">
-                        <RadzenButton Icon="edit"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      title="@GetEditPriceActionTitle(row)"
-                             Disabled="@(row.IsDeleted || !IsSelectedPriceListDraft)"
-                                      Click="@(() => EditPriceAsync(row))" />
-                        <RadzenButton Icon="star"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Info"
-                                      title="@Loc["SetDefault"]"
-                                      Disabled="@(!row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted)"
-                                      Click="@(() => SetDefaultAsync(row))" />
-                        <RadzenButton Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)"
-                                      title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])"
-                                      Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)"
-                                      Click="@(() => SetDeletedPriceAsync(row, !row.IsDeleted))" />
-                        <RadzenButton Icon="delete_forever"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Danger"
-                                      title="@Loc["HardDelete"]"
-                             Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)"
-                                      Click="@(() => HardDeletePriceAsync(row))" />
+                        <VppAdminIconAction Icon="edit" Title="@GetEditPriceActionTitle(row)" Disabled="@(row.IsDeleted || !IsSelectedPriceListDraft)" Click="@(() => EditPriceAsync(row))" />
+                        <VppAdminIconAction Icon="star" Title="@Loc["SetDefault"]" ButtonStyle="ButtonStyle.Info" Disabled="@(!row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted)" Click="@(() => SetDefaultAsync(row))" />
+                        <VppAdminIconAction Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")" Title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)" Click="@(() => SetDeletedPriceAsync(row, !row.IsDeleted))" />
+                        <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)" Click="@(() => HardDeletePriceAsync(row))" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>

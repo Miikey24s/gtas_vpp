@@ -107,23 +107,9 @@
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="136px" MinWidth="136px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                         <Template Context="data">
                             <div class="vpp-admin-actions">
-                                <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditCategoryAsync(data))" @onclick:stopPropagation="true" />
-                                <span class="vpp-admin-active-switch"
-                                      title="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])"
-                                      @onclick:stopPropagation="true">
-                                    <RadzenSwitch TValue="bool"
-                                                  Value="@(!data.IsDeleted)"
-                                                  Change="@((bool isActive) => ToggleCategoryDeleted(data, !isActive))"
-                                                  aria-label="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])"
-                                                  Disabled="@(!CanModifyLookup)" />
-                                </span>
-                                <RadzenButton Icon="delete_forever"
-                                              Size="ButtonSize.Small"
-                                              ButtonStyle="ButtonStyle.Danger"
-                                              Disabled="@(!CanModifyLookup || !data.IsDeleted)"
-                                              title="@Loc["HardDelete"]"
-                                              Click="@(() => HardDeleteCategoryAsync(data))"
-                                              @onclick:stopPropagation="true" />
+                                <VppAdminIconAction Icon="edit" Title="@Loc["Edit"]" Disabled="@(!CanModifyLookup)" Click="@(() => OpenEditCategoryAsync(data))" />
+                                <VppAdminActiveToggle IsActive="@(!data.IsDeleted)" Title="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Changed="@((bool isActive) => ToggleCategoryDeleted(data, !isActive))" Disabled="@(!CanModifyLookup)" />
+                                <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!CanModifyLookup || !data.IsDeleted)" Click="@(() => HardDeleteCategoryAsync(data))" />
                             </div>
                         </Template>
                     </RadzenDataGridColumn>
@@ -219,23 +205,9 @@
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="136px" MinWidth="136px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                         <Template Context="data">
                             <div class="vpp-admin-actions">
-                                <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Disabled="@(!CanModifyLookup)" title="@Loc["Edit"]" Click="@(() => OpenEditValueAsync(data))" @onclick:stopPropagation="true" />
-                                <span class="vpp-admin-active-switch"
-                                      title="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])"
-                                      @onclick:stopPropagation="true">
-                                    <RadzenSwitch TValue="bool"
-                                                  Value="@(!data.IsDeleted)"
-                                                  Change="@((bool isActive) => ToggleValueDeleted(data, !isActive))"
-                                                  aria-label="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])"
-                                                  Disabled="@(!CanModifyLookup)" />
-                                </span>
-                                <RadzenButton Icon="delete_forever"
-                                              Size="ButtonSize.Small"
-                                              ButtonStyle="ButtonStyle.Danger"
-                                              Disabled="@(!CanModifyLookup || !data.IsDeleted)"
-                                              title="@Loc["HardDelete"]"
-                                              Click="@(() => HardDeleteValueAsync(data))"
-                                              @onclick:stopPropagation="true" />
+                                <VppAdminIconAction Icon="edit" Title="@Loc["Edit"]" Disabled="@(!CanModifyLookup)" Click="@(() => OpenEditValueAsync(data))" />
+                                <VppAdminActiveToggle IsActive="@(!data.IsDeleted)" Title="@(data.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Changed="@((bool isActive) => ToggleValueDeleted(data, !isActive))" Disabled="@(!CanModifyLookup)" />
+                                <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!CanModifyLookup || !data.IsDeleted)" Click="@(() => HardDeleteValueAsync(data))" />
                             </div>
                         </Template>
                     </RadzenDataGridColumn>

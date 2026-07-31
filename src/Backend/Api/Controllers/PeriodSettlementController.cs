@@ -99,6 +99,36 @@ namespace gtas_vpp_be.Controllers
             return Ok(await _periodSettlementService.ListRevisionsAsync(y, m, cancellationToken));
         }
 
+        [HttpGet("{settlementId:guid}/export.pdf")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        [Produces("application/pdf")]
+        [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ExportPdf(
+            Guid settlementId,
+            CancellationToken cancellationToken)
+        {
+            var export = await _periodSettlementService.ExportPdfAsync(settlementId, cancellationToken);
+            return export is null
+                ? NotFound()
+                : File(export.Content, export.ContentType, export.FileName);
+        }
+
+        [HttpGet("{settlementId:guid}/export.xlsx")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+        [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ExportWorkbook(
+            Guid settlementId,
+            CancellationToken cancellationToken)
+        {
+            var export = await _periodSettlementService.ExportWorkbookAsync(settlementId, cancellationToken);
+            return export is null
+                ? NotFound()
+                : File(export.Content, export.ContentType, export.FileName);
+        }
+
         [HttpGet("{y:int}/{m:int}")]
         [Authorize(Policy = Permissions.PeriodSettle)]
         [ProducesResponseType<PeriodSettlementResDTO>(StatusCodes.Status200OK)]

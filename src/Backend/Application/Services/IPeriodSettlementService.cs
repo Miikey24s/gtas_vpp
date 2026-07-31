@@ -3,6 +3,8 @@ using gtas_vpp_shared.DTOs.Res.VPP;
 
 namespace gtas_vpp_be.Service.Services
 {
+    public sealed record SettlementExportResult(byte[] Content, string FileName, string ContentType);
+
     public interface IPeriodSettlementService
     {
         Task<PeriodSettlementResDTO> SettleAsync(PeriodSettlementReqDTO req, int userId);
@@ -27,6 +29,12 @@ namespace gtas_vpp_be.Service.Services
         Task<List<SettlementRevisionResDTO>> ListRevisionsAsync(
             int y,
             int m,
+            CancellationToken cancellationToken = default);
+        Task<SettlementExportResult?> ExportPdfAsync(
+            Guid settlementId,
+            CancellationToken cancellationToken = default);
+        Task<SettlementExportResult?> ExportWorkbookAsync(
+            Guid settlementId,
             CancellationToken cancellationToken = default);
     }
 }

@@ -22,6 +22,7 @@ public partial class PeriodSettlementPanel : IDisposable
     [Inject] private IAPIServices ApiServices { get; set; } = default!;
     [Inject] private IToastService Toast { get; set; } = default!;
     [Inject] private DialogService DialogService { get; set; } = default!;
+    [Inject] private IBrowserFileDownloadService FileDownloads { get; set; } = default!;
     [Inject] private PeriodSettlementState State { get; set; } = default!;
 
     [Parameter] public int Year { get; set; }
@@ -41,8 +42,8 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isPreviewLoading;
     private bool isSettling;
     private bool isCorrecting;
+    private bool isExportingSettlement;
     private bool canCorrect;
-    private bool isCorrectionDialogOpen;
     private bool showCustomPeriodPicker;
     private bool hasExplicitSupplierSelection;
     private bool hasExplicitPriceListSelection;
@@ -56,7 +57,6 @@ public partial class PeriodSettlementPanel : IDisposable
     private string selectedDepartment = string.Empty;
     private string selectedItemCategory = string.Empty;
     private string selectedItemUom = string.Empty;
-    private string correctionReason = string.Empty;
     private int loadedYear;
     private int loadedMonth;
 
@@ -527,13 +527,21 @@ public partial class PeriodSettlementPanel : IDisposable
         }
     }
 
-    private Task OpenCorrectionDialog()
+    private async Task OpenCorrectionDialog()
     {
-        isCorrectionDialogOpen = true;
-        return InvokeAsync(StateHasChanged);
-    }
+        var reason = await DialogService.OpenAsync<Dialog_SettlementCorrection>(
+            Loc["CorrectionDialogTitle"].Value,
+            new Dictionary<string, object?>(),
+            VppAdminDialogProfiles.Create(
+                VppAdminDialogSize.Compact,
+                Loc["CorrectionDialogTitle"].Value,
+                closeAriaLabel: Loc["Close"].Value));
 
-    private void CloseCorrectionDialog() => isCorrectionDialogOpen = false;
+        if (reason is string correctionReason)
+        {
+            await CorrectAsync(correctionReason);
+        }
+    }
 
     private bool IsCurrentQuote(PriceBookQuoteResDTO quote) => Preview?.PrimaryPriceListId == quote.PriceListId;
 
@@ -591,7 +599,33 @@ public partial class PeriodSettlementPanel : IDisposable
         }
     }
 
-    private async Task CorrectAsync()
+    private async Task ExportSettlementAsync(string format)
+    {
+        if (isExportingSettlement || status?.SettlementId is null)
+        {
+            return;
+        }
+
+        isExportingSettlement = true;
+        try
+        {
+            var endpoint = format == "export.pdf"
+                ? string.Format(Config.RequestApi.PeriodSettlement.ExportPdf, status.SettlementId.Value)
+                : string.Format(Config.RequestApi.PeriodSettlement.ExportExcel, status.SettlementId.Value);
+            await FileDownloads.DownloadFromApiAsync(endpoint);
+            Toast.Success(Loc["PeriodSettlement"], Loc["SettlementExported"]);
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["PeriodSettlement"], UiErrorMapper.GetMessage(ex, Loc));
+        }
+        finally
+        {
+            isExportingSettlement = false;
+        }
+    }
+
+    private async Task CorrectAsync(string correctionReason)
     {
         if (!CanConfirm || Preview is null || status?.SettlementId is null)
         {
@@ -623,8 +657,6 @@ public partial class PeriodSettlementPanel : IDisposable
                     Reason = reason
                 });
             State.CompleteConfirmation();
-            correctionReason = string.Empty;
-            isCorrectionDialogOpen = false;
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
             await LoadStatusAsync();
             await OnSettled.InvokeAsync();

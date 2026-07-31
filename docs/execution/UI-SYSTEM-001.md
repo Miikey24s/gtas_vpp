@@ -437,6 +437,15 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Bảng giá/Giá mặt hàng sở hữu toàn bộ chiều cao còn lại dưới header-tab cấp hai; Loại danh mục giữ split cố định và co cột master đúng vùng, không còn overflow ngang 50px.
 - Evidence: Release frontend/backend build `0 warning/error`; frontend `205/205`; backend `462/462`; focused browser Library/Pricing/Permission `4/4` pass sau correction. Screenshot desktop/mobile đã được kiểm bằng mắt; không đụng host `dotnet watch` của owner.
 
+### 7.7 — BTN-001 + SETTLE-EXPORT consolidation — 2026-07-31
+
+- Button không bị ép vào một universal wrapper. Radzen bridge sở hữu chrome/hover/focus; behavior lặp có component hẹp: `VppDialogActions` cho footer dialog, `VppAdminIconAction` và `VppAdminActiveToggle` cho cột thao tác. Shadow nút admin cũ và class add/refresh zero-consumer đã retire.
+- `vpp-radzen-theme.css` là owner duy nhất của Radzen dropdown, popup và page-size pager. Khối alignment trùng trong `vpp-polish.css` đã xóa; `Report` dùng ba `VppFilterSelect` typed thay vì tự dựng Radzen filter riêng.
+- `IBrowserFileDownloadService` là pipeline duy nhất từ API/file bytes sang `DotNetStreamReference` và JS download. Order, History và Report đã migrate; scan source không còn pipeline thứ hai.
+- Backend workbook Order/Report/Settlement dùng chung `SimpleWorkbookBuilder`; PDF dùng chung `VppPdfFontRegistry`. Chốt kỳ có export PDF/XLSX từ persisted settlement snapshot, đặt tại `VppCollectionHeader` của bảng.
+- Correction Chốt kỳ chuyển từ backdrop/modal tự dựng sang `DialogService`, `VppAdaptiveDialogShell` và `VppDialogActions`; selector/CSS manual cũ về zero-consumer và bị xóa.
+- Architecture gate mới khóa dialog/admin action composite, download owner, CSS select/pager authority, Report filter và settlement export. Final gate: solution Release `0 warning/error`; frontend `213/213`; backend `468/468`; focused browser `6/6` cho file download Order/Report, Chốt kỳ, admin/report responsive và footer paging. Review bằng mắt tại `1366×768`, `1920×1080` và tablet xác nhận selector, action switch, pager, popup và inset không chồng/lệch. `verify` vẫn dừng trước scope build ở `model-routing-eval` do AI-harness dirty có sẵn ngoài change-set này.
+
 ---
 
 ## 8. Rủi ro và recovery

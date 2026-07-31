@@ -44,6 +44,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] public IBrowserFileDownloadService FileDownloads { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [SupplyParameterFromQuery(Name = "orderView")] public string? OrderViewQuery { get; set; }
 
@@ -369,18 +370,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             IsExportingOrder = true;
             try
             {
-                var file = await _apiServices.GetFileFromApiAsync(
+                await FileDownloads.DownloadFromApiAsync(
                     $"{Config.VppApi.Orders}/{row.Id}/{format}");
-                await using var stream = new MemoryStream(file.Content, writable: false);
-                using var streamReference = new DotNetStreamReference(stream);
-                await JSRuntime.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
-                Toast.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = Loc["Order"],
-                    Detail = Loc["OrderExported"],
-                    Duration = 3000
-                });
+                Toast.Success(Loc["Order"], Loc["OrderExported"]);
             }
             catch (Exception ex)
             {

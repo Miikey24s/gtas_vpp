@@ -243,6 +243,32 @@ namespace gtas_vpp_be.Service.Services
             return entities.Select(MapRevision).ToList();
         }
 
+        public async Task<SettlementExportResult?> ExportPdfAsync(
+            Guid settlementId,
+            CancellationToken cancellationToken = default)
+        {
+            var settlement = await FindExportSettlementAsync(settlementId, cancellationToken);
+            return settlement is null
+                ? null
+                : new SettlementExportResult(
+                    SettlementPdfBuilder.Build(settlement),
+                    BuildExportFileName(settlement, "pdf"),
+                    "application/pdf");
+        }
+
+        public async Task<SettlementExportResult?> ExportWorkbookAsync(
+            Guid settlementId,
+            CancellationToken cancellationToken = default)
+        {
+            var settlement = await FindExportSettlementAsync(settlementId, cancellationToken);
+            return settlement is null
+                ? null
+                : new SettlementExportResult(
+                    SettlementWorkbookBuilder.Build(settlement),
+                    BuildExportFileName(settlement, "xlsx"),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        }
+
         private async Task<SettlementRevisionResDTO> SaveRevisionAsync(
             SettlementConfirmReqDTO req,
             Guid? correctionSettlementId,
@@ -818,6 +844,26 @@ namespace gtas_vpp_be.Service.Services
             => _scopedUow.VPPContext.Set<Settlement>()
                 .Include(x => x.Items)
                 .Include(x => x.Allocations);
+
+        private async Task<Settlement?> FindExportSettlementAsync(
+            Guid settlementId,
+            CancellationToken cancellationToken)
+        {
+            var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
+                System.Globalization.CultureInfo.InvariantCulture);
+            return await _scopedUow.VPPContext.Set<Settlement>()
+                .Include(x => x.Items)
+                .Include(x => x.Allocations)
+                    .ThenInclude(x => x.SettlementItem)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == settlementId
+                    && !x.IsDeleted
+                    && x.MemberCompanyCode == company,
+                    cancellationToken);
+        }
+
+        private static string BuildExportFileName(Settlement settlement, string extension)
+            => $"GTAS-VPP-settlement-{settlement.Year:0000}-{settlement.Month:00}-r{settlement.RevisionNumber}.{extension}";
 
         private async Task<Settlement?> FindIdempotentAsync(
             string company,

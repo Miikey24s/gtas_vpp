@@ -101,14 +101,12 @@
         }
     </ChildContent>
     <Footer>
-        <div class="vpp-adaptive-dialog-actions">
-            <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@CancelAsync" />
-            <RadzenButton Text="@Loc["SaveChanges"]"
-                          Icon="save"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Disabled="@(ChangedCount == 0)"
-                          Click="@SaveAsync" />
-        </div>
+        <VppDialogActions CancelText="@Loc["Cancel"]"
+                          PrimaryText="@Loc["SaveChanges"]"
+                          PrimaryIcon="save"
+                          PrimaryDisabled="@(ChangedCount == 0)"
+                          CancelClick="@CancelAsync"
+                          PrimaryClick="@SaveAsync" />
     </Footer>
 </VppAdaptiveDialogShell>
 

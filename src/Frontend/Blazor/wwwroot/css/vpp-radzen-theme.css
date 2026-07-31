@@ -210,6 +210,57 @@ button,
 
 /* Select quyết định nằm trong DataGrid vẫn dùng Radzen để giữ tìm kiếm bàn phím,
    nhưng chrome phải liền khối và cùng nhịp với VppFilterSelect canonical. */
+.rz-dropdown {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.rz-dropdown .rz-dropdown-label {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 100% !important;
+    height: 100% !important;
+    line-height: 1.25 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.rz-dropdown:not(.rz-paginator .rz-dropdown, .rz-pager .rz-dropdown) .rz-dropdown-trigger {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: stretch !important;
+    min-height: 100% !important;
+    height: 100% !important;
+    line-height: 1 !important;
+}
+
+.rz-dropdown .rz-dropdown-trigger :is(.rzi, .rz-dropdown-trigger-icon) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items li, .rz-listbox-item) {
+    display: flex;
+    align-items: center;
+    line-height: 1.25;
+}
+
+.rz-grid-table td .rz-cell-data:has(.rz-dropdown) {
+    display: flex;
+    align-items: center;
+    overflow: visible;
+}
+
+.rz-grid-table td .rz-dropdown {
+    width: 100%;
+    min-height: var(--vpp-data-control-height);
+    height: var(--vpp-data-control-height);
+}
+
 .vpp-data-grid .vpp-admin-inline-select.rz-dropdown {
     position: relative;
     box-sizing: border-box;
@@ -357,6 +408,16 @@ button,
     justify-content: center;
     padding: 0 var(--vpp-space-3);
     line-height: 1;
+}
+
+.rz-paginator .rz-pagesize-text,
+.rz-pager .rz-pagesize-text {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--vpp-data-control-height);
+    margin-block: 0;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .rz-paginator .rz-dropdown .rz-dropdown-trigger,

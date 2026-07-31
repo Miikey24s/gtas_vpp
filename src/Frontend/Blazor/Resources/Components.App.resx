@@ -38,6 +38,7 @@
   <data name="ExportOrderPdfAria" xml:space="preserve"><value>Xuất đơn {0} ra tệp PDF</value></data>
   <data name="ExportOrderExcelAria" xml:space="preserve"><value>Xuất đơn {0} ra tệp Excel</value></data>
   <data name="OrderExported" xml:space="preserve"><value>Đã xuất tệp chi tiết đơn</value></data>
+  <data name="SettlementExported" xml:space="preserve"><value>Đã xuất biên bản chốt kỳ</value></data>
   <data name="ReportContentNotConfigured" xml:space="preserve"><value>Nội dung báo cáo chưa được cấu hình. Chức năng xuất báo cáo sẽ được bổ sung sau.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Phân quyền</value></data>
   <data name="Settings" xml:space="preserve"><value>Cài đặt</value></data>

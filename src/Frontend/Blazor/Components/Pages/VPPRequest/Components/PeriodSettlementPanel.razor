@@ -95,7 +95,27 @@
                          Class="vpp-period-data-frame vpp-settlement-orders-frame">
         <Header>
             <VppCollectionHeader Title="@($"{Loc["Period"]} {Month:00}/{Year}")"
-                                 Summary="@CurrentViewLabel" />
+                                 Summary="@CurrentViewLabel">
+                <Actions>
+                    @if (status?.SettlementId is not null)
+                    {
+                        <RadzenButton Icon="picture_as_pdf"
+                                      Text="@Loc["ExportPdf"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Disabled="@isExportingSettlement"
+                                      Click='@(_ => ExportSettlementAsync("export.pdf"))' />
+                        <RadzenButton Icon="table_view"
+                                      Text="@Loc["ExportExcel"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Disabled="@isExportingSettlement"
+                                      Click='@(_ => ExportSettlementAsync("export.xlsx"))' />
+                    }
+                </Actions>
+            </VppCollectionHeader>
         </Header>
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["PeriodSettlement"]" Class="vpp-period-data-toolbar vpp-settlement-data-toolbar">
@@ -254,30 +274,6 @@
         </ChildContent>
     </VppDataSurfaceFrame>
 
-    @if (isCorrectionDialogOpen)
-    {
-        <button type="button" class="vpp-settlement-dialog-backdrop" aria-label="@Loc["Close"]" @onclick="@CloseCorrectionDialog"></button>
-        <section class="vpp-settlement-correction-dialog vpp-transient-surface vpp-transient-surface--center"
-                 role="dialog"
-                 aria-modal="true"
-                 aria-labelledby="settlement-correction-dialog-title">
-            <header>
-                <div>
-                    <h2 id="settlement-correction-dialog-title">@Loc["CorrectionDialogTitle"]</h2>
-                    <p>@Loc["CorrectionFourEyesHint"]</p>
-                </div>
-                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Small" Click="@CloseCorrectionDialog" aria-label="@Loc["Close"]" />
-            </header>
-            <div class="vpp-settlement-correction-body">
-                <label for="period-correction-reason">@Loc["CorrectionReasonLabel"]</label>
-                <RadzenTextArea id="period-correction-reason" @bind-Value="correctionReason" Rows="5" MaxLength="500" Placeholder="@Loc["CorrectionReasonPlaceholder"]" />
-            </div>
-            <footer>
-                <RadzenButton Text="@Loc["Cancel"]" ButtonStyle="ButtonStyle.Light" Click="@CloseCorrectionDialog" />
-                <RadzenButton Icon="check" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@isCorrecting" Click="@CorrectAsync" />
-            </footer>
-        </section>
-    }
         </HistoryWorkspaceShell>
     </div>
 </VppOperationWorkspace>

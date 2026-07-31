@@ -325,6 +325,13 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                 }
             }
 
+            var pageSizeSelect = pagers.First.Locator(".rz-dropdown");
+            await pageSizeSelect.ClickAsync();
+            var pageSizePopup = Page.Locator(".rz-dropdown-panel:visible").Last;
+            await pageSizePopup.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await Page.Mouse.ClickAsync(300, 70);
+            await pageSizePopup.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+
             await CaptureAsync($"data-footer-canonical-{route.Label}-1366x768.png");
         }
     }
