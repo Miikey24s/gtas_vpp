@@ -167,11 +167,19 @@ public sealed class AtlasWave1ArchitectureTests
     public void PeriodOperations_HostDelegatesLargeWorkspacesToFocusedComponents()
     {
         var host = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_AdminApproval.razor");
+        var hostCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_AdminApproval.razor.cs");
         var approvals = ReadFrontendSource("Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor");
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PendingApprovalWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("RadzenDataGrid TItem=\"VppRequestResDTO\"", approvals, StringComparison.Ordinal);
+        Assert.Contains("<VppCollectionHeader", approvals, StringComparison.Ordinal);
+        Assert.Contains("<VppFilterSelect TValue=\"string\"", approvals, StringComparison.Ordinal);
+        Assert.Contains("@bind-Value=\"selectedOrders\"", approvals, StringComparison.Ordinal);
+        Assert.Contains("VppStatusTone.Warning", approvals, StringComparison.Ordinal);
+        Assert.Contains("ApprovalDecisionHint", approvals, StringComparison.Ordinal);
+        Assert.DoesNotContain("ShortCode", approvals, StringComparison.Ordinal);
+        Assert.Contains("SynchronizePendingSelectionAsync", hostCode, StringComparison.Ordinal);
         Assert.Contains("FillAvailableSpace=\"true\"", approvals, StringComparison.Ordinal);
         Assert.DoesNotContain("RadzenDataGrid", host, StringComparison.Ordinal);
         Assert.True(host.Split('\n').Length < 100);

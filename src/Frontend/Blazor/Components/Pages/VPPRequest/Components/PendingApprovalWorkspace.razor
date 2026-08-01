@@ -10,6 +10,16 @@
     {
         <SkeletonPage Cards="0" Rows="8" Cols="7" />
     }
+    else if (HasGridLoadError)
+    {
+        <VppContentState State="VppContentStateKind.Error"
+                         Icon="error"
+                         Title="@Loc["PendingApprovalLoadFailed"]"
+                         Description="@Loc["HistoryLoadErrorDescription"]"
+                         PrimaryActionText="@Loc["Retry"]"
+                         PrimaryActionIcon="@VppIcons.Refresh"
+                         PrimaryAction="@(_ => ReloadRequested.InvokeAsync())" />
+    }
     else if (TotalCount == 0 && !IsGridLoading)
     {
         <VppContentState State="VppContentStateKind.Success"
@@ -32,6 +42,10 @@
                                      AriaLabel="@Loc["PendingOrders"]"
                                      TestId="pending-approval-list"
                                      Class="vpp-approval-list-surface">
+                    <Header>
+                        <VppCollectionHeader Title="@Loc["PendingOrders"]"
+                                             Summary="@Loc["PendingOrdersCountFormat", TotalCount]" />
+                    </Header>
                     <Toolbar>
                         <VppDataToolbar AriaLabel="@Loc["PendingOrders"]"
                                         Class="vpp-approval-toolbar">
@@ -39,6 +53,12 @@
                                              Input="@SearchChanged"
                                              Placeholder="@Loc["HistorySearchOrderOrNote"]"
                                              AriaLabel="@Loc["HistorySearchOrderOrNote"]" />
+                            <VppFilterSelect TValue="string"
+                                             Value="@SelectedDepartment"
+                                             Options="@DepartmentOptions"
+                                             ValueChanged="@DepartmentSelected"
+                                             Placeholder="@Loc["AllDepartments"]"
+                                             AriaLabel="@Loc["Department"]" />
                             <VppClearFiltersButton Text="@Loc["ClearFilters"]"
                                                    IsActive="@HasFilters"
                                                    Clicked="@ClearFiltersRequested" />
@@ -63,7 +83,9 @@
                                         AllowAlternatingRows="false"
                                         AllowColumnResize="false"
                                         RowSelect="@OrderSelected"
+                                        RowRender="@OnRowRender"
                                         SelectionMode="DataGridSelectionMode.Single"
+                                        @bind-Value="selectedOrders"
                                         IsLoading="@IsGridLoading"
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
@@ -75,8 +97,15 @@
                                 <RadzenDataGridColumn TItem="VppRequestResDTO" Property="@nameof(VppRequestResDTO.VppCode)" Title="@Loc["AdditionalOrder"]">
                                     <Template Context="row">
                                         <div class="vpp-approval-order-identity">
-                                            <strong title="@row.VppCode">@ShortCode(row)</strong>
-                                            <small>@row.DepartmentCode · @row.RequesterName · @row.Period</small>
+                                            <div class="vpp-approval-order-topline">
+                                                <strong title="@row.VppCode">@row.VppCode</strong>
+                                                <VppStatusBadge Tone="VppStatusTone.Warning"
+                                                                Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" />
+                                            </div>
+                                            <div class="vpp-approval-order-meta">
+                                                <span class="vpp-approval-order-owner">@row.DepartmentCode · @row.RequesterName</span>
+                                                <span class="vpp-approval-order-summary">@row.Period · @Loc["PendingOrderItemsFormat", row.TotalLines]</span>
+                                            </div>
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
@@ -99,16 +128,23 @@
                 {
                     <section class="vpp-approval-detail" aria-labelledby="pending-approval-detail-title">
                         <header class="vpp-approval-detail-header">
-                            <div>
-                                <span>@Loc["HistoryDetailSheetTitle"]</span>
-                                <h2 id="pending-approval-detail-title" title="@SelectedOrder.VppCode">@ShortCode(SelectedOrder)</h2>
+                            <div class="vpp-approval-detail-heading">
+                                <span>GTAS VPP — @Loc["HistoryDetailSheetTitle"]</span>
+                                <div class="vpp-approval-detail-code-row">
+                                    <h2 id="pending-approval-detail-title" title="@SelectedOrder.VppCode">@SelectedOrder.VppCode</h2>
+                                    <VppStatusBadge Tone="VppStatusTone.Info" Text="@Loc["AdditionalOrder"]" />
+                                    <VppStatusBadge Tone="VppStatusTone.Warning"
+                                                    Text="@Loc[StatusDisplay.GetResourceKey(SelectedOrder.Status, SelectedOrder.IsDeadlinePassed, SelectedOrder.IsAdditionalOrder)]" />
+                                </div>
                                 <p>@string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate))</p>
                             </div>
                             <div class="vpp-approval-detail-exports">
-                                <RadzenButton Icon="picture_as_pdf" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base"
-                                              Click="@(_ => ExportPdfRequested.InvokeAsync(SelectedOrder))" Title="@Loc["ExportPdf"]" Disabled="@IsExporting" />
-                                <RadzenButton Icon="table_view" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base"
-                                              Click="@(_ => ExportExcelRequested.InvokeAsync(SelectedOrder))" Title="@Loc["ExportExcel"]" Disabled="@IsExporting" />
+                                <RadzenButton Icon="picture_as_pdf" Text="@Loc["ExportPdf"]" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base"
+                                              Click="@(_ => ExportPdfRequested.InvokeAsync(SelectedOrder))" Title="@Loc["ExportPdf"]"
+                                              aria-label="@string.Format(Loc["ExportOrderPdfAria"], SelectedOrder.VppCode)" Disabled="@IsExporting" />
+                                <RadzenButton Icon="table_view" Text="@Loc["ExportExcel"]" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base"
+                                              Click="@(_ => ExportExcelRequested.InvokeAsync(SelectedOrder))" Title="@Loc["ExportExcel"]"
+                                              aria-label="@string.Format(Loc["ExportOrderExcelAria"], SelectedOrder.VppCode)" Disabled="@IsExporting" />
                             </div>
                         </header>
 
@@ -116,6 +152,7 @@
                             <div><dt>@Loc["HistoryRequester"]</dt><dd>@SelectedOrder.RequesterName</dd></div>
                             <div><dt>@Loc["Department"]</dt><dd>@SelectedOrder.DepartmentCode</dd></div>
                             <div><dt>@Loc["Period"]</dt><dd>@SelectedOrder.Period</dd></div>
+                            <div><dt>@Loc["HistoryItem"]</dt><dd>@SelectedOrder.TotalLines</dd></div>
                             <div><dt>@Loc["TotalQuantity"]</dt><dd>@SelectedOrder.TotalQty</dd></div>
                         </dl>
 
@@ -130,6 +167,16 @@
                         }
                         else
                         {
+                            <div class="vpp-approval-items-heading">
+                                <div>
+                                    <h3>@Loc["ApprovalItemsHeading"]</h3>
+                                    <p>@Loc["HistoryItemsHeadingHint"]</p>
+                                </div>
+                                <div class="vpp-approval-items-summary">
+                                    <span><strong>@SelectedOrder.TotalLines</strong> @Loc["HistoryItem"]</span>
+                                    <span><strong>@SelectedOrder.TotalQty</strong> @Loc["TotalQuantity"]</span>
+                                </div>
+                            </div>
                             <VppOrderItemsSurface Items="@DetailItems"
                                                   TotalItemCount="@DetailItems.Count"
                                                   AriaLabel="@Loc["ApprovalItemsHeading"]"
@@ -145,24 +192,29 @@
                         }
 
                         <footer class="vpp-approval-actions">
-                            @if (CanReject)
-                            {
-                                <RadzenButton Icon="cancel"
-                                              Text="@Loc["Reject"]"
-                                              ButtonStyle="ButtonStyle.Danger"
-                                              Variant="Variant.Text"
-                                              Disabled="@Processing(SelectedOrder.Id)"
-                                              Click="@(_ => RejectRequested.InvokeAsync(SelectedOrder))" />
-                            }
-                            @if (CanApprove)
-                            {
-                                <RadzenButton Icon="check_circle"
-                                              Text="@Loc["Approve"]"
-                                              ButtonStyle="ButtonStyle.Primary"
-                                              Disabled="@Processing(SelectedOrder.Id)"
-                                              IsBusy="@Processing(SelectedOrder.Id)"
-                                              Click="@(_ => ApproveRequested.InvokeAsync(SelectedOrder))" />
-                            }
+                            <span>@Loc["ApprovalDecisionHint"]</span>
+                            <div class="vpp-approval-action-buttons">
+                                @if (CanReject)
+                                {
+                                    <RadzenButton Icon="cancel"
+                                                  Text="@Loc["Reject"]"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Variant="Variant.Text"
+                                                  Disabled="@Processing(SelectedOrder.Id)"
+                                                  aria-label="@string.Format(Loc["RejectOrderAria"], SelectedOrder.VppCode)"
+                                                  Click="@(_ => RejectRequested.InvokeAsync(SelectedOrder))" />
+                                }
+                                @if (CanApprove)
+                                {
+                                    <RadzenButton Icon="check_circle"
+                                                  Text="@Loc["Approve"]"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Disabled="@Processing(SelectedOrder.Id)"
+                                                  IsBusy="@Processing(SelectedOrder.Id)"
+                                                  aria-label="@string.Format(Loc["ApproveOrderAria"], SelectedOrder.VppCode)"
+                                                  Click="@(_ => ApproveRequested.InvokeAsync(SelectedOrder))" />
+                                }
+                            </div>
                         </footer>
                     </section>
                 }
@@ -180,21 +232,24 @@
     [Parameter] public int CurrentSkip { get; set; }
     [Parameter] public bool IsLoading { get; set; }
     [Parameter] public bool IsGridLoading { get; set; }
+    [Parameter] public bool HasGridLoadError { get; set; }
     [Parameter] public bool CanApprove { get; set; }
     [Parameter] public bool CanReject { get; set; }
     [Parameter] public bool IsExporting { get; set; }
     [Parameter] public VppRequestResDTO? SelectedOrder { get; set; }
     [Parameter] public string SearchText { get; set; } = string.Empty;
+    [Parameter] public string SelectedDepartment { get; set; } = string.Empty;
+    [Parameter] public IReadOnlyList<VppFilterOption<string>> DepartmentOptions { get; set; } = [];
     [Parameter] public bool HasFilters { get; set; }
     [Parameter, EditorRequired] public Func<Guid, bool> Processing { get; set; } = _ => false;
     [Parameter, EditorRequired] public Func<Guid, bool> DetailLoading { get; set; } = _ => false;
-    [Parameter, EditorRequired] public Func<VppRequestResDTO, string> ShortCode { get; set; } = _ => string.Empty;
     [Parameter] public EventCallback ReloadRequested { get; set; }
     [Parameter] public EventCallback<LoadDataArgs> LoadDataRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> OrderSelected { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> ApproveRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> RejectRequested { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> SearchChanged { get; set; }
+    [Parameter] public EventCallback<string> DepartmentSelected { get; set; }
     [Parameter] public EventCallback ClearFiltersRequested { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> ExportPdfRequested { get; set; }
@@ -202,6 +257,7 @@
 
     private int? activeCodeNumber;
     private int? activeNoteNumber;
+    private IList<VppRequestResDTO> selectedOrders = [];
 
     private IReadOnlyList<VppOrderDetailItem> DetailItems => SelectedOrder?.Items?
         .Select((item, index) => new VppOrderDetailItem(
@@ -213,6 +269,26 @@
             item.Qty,
             item.Description))
         .ToArray() ?? [];
+
+    protected override void OnParametersSet()
+    {
+        selectedOrders = SelectedOrder is null
+            ? []
+            : Orders.Where(order => order.Id == SelectedOrder.Id).Take(1).ToList();
+    }
+
+    private void OnRowRender(RowRenderEventArgs<VppRequestResDTO> args)
+    {
+        if (SelectedOrder is null || args.Data is null || args.Data.Id != SelectedOrder.Id)
+        {
+            return;
+        }
+
+        args.Attributes["aria-selected"] = "true";
+        args.Attributes["class"] = args.Attributes.TryGetValue("class", out var value) && value is not null
+            ? $"{value} rz-state-highlight vpp-approval-row-selected"
+            : "rz-state-highlight vpp-approval-row-selected";
+    }
 
     private void ToggleCode(int number)
     {

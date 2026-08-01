@@ -28,10 +28,20 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private readonly Dictionary<(Guid OrderId, string Action), string> _decisionIdempotencyKeys = new();
         private string ActivePeriodTab { get; set; } = PeriodReviewTab;
         private bool _pendingOrdersLoaded;
+        private bool _pendingDepartmentOptionsLoaded;
         private bool _initialized;
+        private readonly SortedSet<string> _pendingDepartmentCodes = new(StringComparer.CurrentCultureIgnoreCase);
         private VppRequestResDTO? SelectedPendingOrder { get; set; }
         private string PendingSearchText { get; set; } = string.Empty;
-        private bool PendingHasFilters => !string.IsNullOrWhiteSpace(PendingSearchText);
+        private string PendingDepartmentCode { get; set; } = string.Empty;
+        private bool PendingHasFilters => !string.IsNullOrWhiteSpace(PendingSearchText)
+            || !string.IsNullOrWhiteSpace(PendingDepartmentCode);
+
+        private IReadOnlyList<VppFilterOption<string>> PendingDepartmentOptions =>
+        [
+            new(string.Empty, Loc["AllDepartments"]),
+            .. _pendingDepartmentCodes.Select(code => new VppFilterOption<string>(code, code))
+        ];
 
         // Alias tiện ích để template Razor giữ tên PendingOrders hiện có.
         public List<VppRequestResDTO> PendingOrders => Orders;
@@ -110,7 +120,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 if (!_pendingOrdersLoaded)
                 {
                     _pendingOrdersLoaded = true;
-                    await LoadAsync();
+                    await ReloadPendingWorkspaceAsync();
                 }
 
                 return;
@@ -184,7 +194,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             if (CanShowApprovals)
             {
-                await ReloadAsync();
+                await ReloadPendingWorkspaceAsync();
             }
         }
 
@@ -210,7 +220,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 };
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
-                await ReloadAsync();
+                await ReloadPendingWorkspaceAsync();
             }
             catch (Exception ex)
             {
@@ -245,7 +255,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 };
                 await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
-                await ReloadAsync();
+                await ReloadPendingWorkspaceAsync();
             }
             catch (Exception ex)
             {
@@ -264,32 +274,118 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await OnRowExpandAsync(order);
         }
 
-        private Task OnPendingSearchChangedAsync(ChangeEventArgs args)
+        private async Task OnPendingSearchChangedAsync(ChangeEventArgs args)
         {
             PendingSearchText = args.Value?.ToString() ?? string.Empty;
-            return ApplyManualFilterAsync(BuildPendingSearchFilter(PendingSearchText));
+            await ApplyManualFilterAsync(BuildPendingFilter());
+            await SynchronizePendingSelectionAsync();
         }
 
-        private Task ClearPendingFiltersAsync()
+        private async Task OnPendingDepartmentSelectedAsync(string value)
+        {
+            PendingDepartmentCode = value;
+            await ApplyManualFilterAsync(BuildPendingFilter(), debounceMilliseconds: 0);
+            await SynchronizePendingSelectionAsync();
+        }
+
+        private async Task ClearPendingFiltersAsync()
         {
             PendingSearchText = string.Empty;
-            return ApplyManualFilterAsync(null, debounceMilliseconds: 0);
+            PendingDepartmentCode = string.Empty;
+            await ApplyManualFilterAsync(null, debounceMilliseconds: 0);
+            await SynchronizePendingSelectionAsync();
         }
 
-        private static string? BuildPendingSearchFilter(string value)
+        private string? BuildPendingFilter()
         {
-            if (string.IsNullOrWhiteSpace(value))
+            var filters = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(PendingSearchText))
             {
-                return null;
+                var escapedSearch = EscapeFilterValue(PendingSearchText);
+                filters.Add($"((VppCode != null && VppCode.ToLower().Contains(\"{escapedSearch}\")) || "
+                    + $"(RequesterName != null && RequesterName.ToLower().Contains(\"{escapedSearch}\")) || "
+                    + $"(DepartmentCode != null && DepartmentCode.ToLower().Contains(\"{escapedSearch}\")) || "
+                    + $"(Description != null && Description.ToLower().Contains(\"{escapedSearch}\")))");
             }
 
-            var escaped = value.Trim().ToLowerInvariant()
+            if (!string.IsNullOrWhiteSpace(PendingDepartmentCode))
+            {
+                var escapedDepartment = EscapeFilterValue(PendingDepartmentCode);
+                filters.Add($"(DepartmentCode != null && DepartmentCode.ToLower() == \"{escapedDepartment}\")");
+            }
+
+            return filters.Count == 0 ? null : string.Join(" && ", filters);
+        }
+
+        private static string EscapeFilterValue(string value) => value.Trim().ToLowerInvariant()
                 .Replace("\\", "\\\\", StringComparison.Ordinal)
                 .Replace("\"", "\\\"", StringComparison.Ordinal);
-            return $"((VppCode != null && VppCode.ToLower().Contains(\"{escaped}\")) || "
-                + $"(RequesterName != null && RequesterName.ToLower().Contains(\"{escaped}\")) || "
-                + $"(DepartmentCode != null && DepartmentCode.ToLower().Contains(\"{escaped}\")) || "
-                + $"(Description != null && Description.ToLower().Contains(\"{escaped}\")))";
+
+        private async Task OnPendingLoadDataAsync(LoadDataArgs args)
+        {
+            await OnLoadData(args);
+            await SynchronizePendingSelectionAsync();
+        }
+
+        private async Task ReloadPendingWorkspaceAsync()
+        {
+            await LoadAsync();
+            await LoadPendingDepartmentOptionsAsync();
+            await SynchronizePendingSelectionAsync();
+        }
+
+        private async Task LoadPendingDepartmentOptionsAsync()
+        {
+            if (_pendingDepartmentOptionsLoaded)
+            {
+                AddCurrentPageDepartmentOptions();
+                return;
+            }
+
+            _pendingDepartmentOptionsLoaded = true;
+            try
+            {
+                var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(
+                    $"/api/VPPRequest/order-filter-values?column={nameof(VppRequestResDTO.DepartmentCode)}&scope=pending");
+
+                foreach (var row in response ?? [])
+                {
+                    if (row.TryGetValue(nameof(VppRequestResDTO.DepartmentCode), out var value)
+                        && !string.IsNullOrWhiteSpace(value?.ToString()))
+                    {
+                        _pendingDepartmentCodes.Add(value!.ToString()!.Trim());
+                    }
+                }
+            }
+            catch
+            {
+                // Bộ lọc phụ không được làm hỏng hàng chờ; dữ liệu trang hiện tại vẫn là fallback hữu ích.
+            }
+
+            AddCurrentPageDepartmentOptions();
+        }
+
+        private void AddCurrentPageDepartmentOptions()
+        {
+            foreach (var code in Orders.Select(order => order.DepartmentCode).Where(code => !string.IsNullOrWhiteSpace(code)))
+            {
+                _pendingDepartmentCodes.Add(code!.Trim());
+            }
+        }
+
+        private async Task SynchronizePendingSelectionAsync()
+        {
+            var selectedId = SelectedPendingOrder?.Id;
+            SelectedPendingOrder = selectedId.HasValue
+                ? Orders.FirstOrDefault(order => order.Id == selectedId.Value)
+                : null;
+            SelectedPendingOrder ??= Orders.FirstOrDefault();
+
+            if (SelectedPendingOrder is not null)
+            {
+                await OnRowExpandAsync(SelectedPendingOrder);
+            }
         }
 
         private bool IsProcessing(Guid orderId) => _processingOrderIds.Contains(orderId);

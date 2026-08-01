@@ -73,8 +73,9 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
             State = WaitForSelectorState.Visible
         });
 
-        await SelectQueueOrderByReasonAsync(approvalGrid, ApprovalReason);
         var approvalDetail = Page.Locator(".vpp-approval-detail:visible");
+
+        await SelectQueueOrderByReasonAsync(approvalGrid, ApprovalReason);
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
@@ -86,14 +87,14 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
                 Animations = ScreenshotAnimations.Disabled
             });
         }
-        await approvalDetail.GetByRole(AriaRole.Button, new() { Name = "Duyệt", Exact = true }).ClickAsync();
+        await approvalDetail.Locator("button:has-text('Duyệt')").ClickAsync();
         var approveDialog = Page.Locator(".rz-dialog:visible").Last;
         await approveDialog.GetByText("Duyệt đơn", new() { Exact = true }).WaitForAsync();
         await approveDialog.GetByRole(AriaRole.Button, new() { Name = "Có", Exact = true }).ClickAsync();
         await Page.GetByText("Đã duyệt đơn thành công.", new() { Exact = false }).WaitForAsync();
 
         await SelectQueueOrderByReasonAsync(approvalGrid, RejectionReason);
-        await approvalDetail.GetByRole(AriaRole.Button, new() { Name = "Từ chối", Exact = true }).ClickAsync();
+        await approvalDetail.Locator("button:has-text('Từ chối')").ClickAsync();
         var rejectDialog = Page.Locator(".rz-dialog:visible").Last;
         await rejectDialog.GetByText("Từ chối đơn", new() { Exact = true }).WaitForAsync();
         await rejectDialog.GetByRole(AriaRole.Button, new() { Name = "Từ chối", Exact = true }).ClickAsync();
@@ -110,6 +111,74 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
 
         failedRequests.Should().BeEmpty();
         consoleErrors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Manager_ReviewsPendingSupplementInCanonicalListDetailWorkspace()
+    {
+        const string visualReason = "UI motif pending approval review";
+
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsAsync(TestAccounts.Employee);
+        await CreateSupplementAsync(visualReason, verifyRequiredReason: false);
+        await SwitchUserAsync(TestAccounts.Manager);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=pending");
+
+        var approvalGrid = Page.GetByTestId("pending-approval-list");
+        await approvalGrid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await approvalGrid.Locator("tbody tr[aria-selected='true']").First.WaitForAsync();
+
+        var approvalDetail = Page.Locator(".vpp-approval-detail:visible");
+        await approvalDetail.Locator(".vpp-approval-detail-code-row h2").WaitForAsync();
+        (await approvalGrid.Locator(".vpp-collection-header-copy").InnerTextAsync())
+            .Should().Contain("Đơn bổ sung chờ duyệt");
+        (await approvalDetail.Locator("button:has-text('Xuất PDF')").CountAsync()).Should().Be(1);
+        (await approvalDetail.Locator("button:has-text('Xuất Excel')").CountAsync()).Should().Be(1);
+        (await approvalDetail.Locator(".vpp-status-badge").CountAsync()).Should().BeGreaterThanOrEqualTo(2);
+
+        var listFooterGap = await Page.EvaluateAsync<double>("""
+            () => {
+                const surface = document.querySelector('[data-testid="pending-approval-list"]')?.getBoundingClientRect();
+                const pager = document.querySelector('[data-testid="pending-approval-list"] :is(.rz-paginator, .rz-pager)')?.getBoundingClientRect();
+                return surface && pager ? surface.bottom - pager.bottom : Number.NaN;
+            }
+            """);
+        listFooterGap.Should().BeApproximately(0, 1, "pager của master list phải bám đáy data surface");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        var viewports = new[]
+        {
+            (Width: 1366, Height: 768, Name: "desktop"),
+            (Width: 1920, Height: 1080, Name: "desktop-wide"),
+            (Width: 768, Height: 1024, Name: "tablet"),
+            (Width: 390, Height: 844, Name: "mobile")
+        };
+
+        foreach (var viewport in viewports)
+        {
+            await Page.SetViewportSizeAsync(viewport.Width, viewport.Height);
+            await Page.WaitForTimeoutAsync(250);
+            var mobileBackdrop = Page.Locator(".vpp-sidebar-backdrop:visible");
+            if (await mobileBackdrop.CountAsync() > 0)
+            {
+                await mobileBackdrop.ClickAsync();
+                await mobileBackdrop.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+            }
+            var hasHorizontalOverflow = await Page.EvaluateAsync<bool>(
+                "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1");
+            hasHorizontalOverflow.Should().BeFalse($"{viewport.Name} không được tràn ngang document");
+
+            if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+            {
+                Directory.CreateDirectory(evidenceDirectory);
+                await Page.ScreenshotAsync(new()
+                {
+                    Path = Path.Combine(evidenceDirectory, $"pending-approval-{viewport.Name}.png"),
+                    FullPage = false,
+                    Animations = ScreenshotAnimations.Disabled
+                });
+            }
+        }
     }
 
     [Fact]

@@ -292,6 +292,10 @@
   <data name="OrderRejectedSuccess" xml:space="preserve"><value>Order rejected successfully.</value></data>
   <data name="Pending" xml:space="preserve"><value>Pending</value></data>
   <data name="PendingOrders" xml:space="preserve"><value>Pending Additional Orders</value></data>
+  <data name="PendingOrdersCountFormat" xml:space="preserve"><value>{0} orders</value></data>
+  <data name="PendingOrderItemsFormat" xml:space="preserve"><value>{0} items</value></data>
+  <data name="PendingApprovalLoadFailed" xml:space="preserve"><value>Could not load the approval queue</value></data>
+  <data name="AllDepartments" xml:space="preserve"><value>All departments</value></data>
   <data name="Period" xml:space="preserve"><value>Period</value></data>
   <data name="PreviousOrderPeriod" xml:space="preserve"><value>Previous Cycle</value></data>
   <data name="ProductCode" xml:space="preserve"><value>Item code</value></data>
@@ -755,6 +759,7 @@
   <data name="ApprovalSelectOrderDescription" xml:space="preserve"><value>Details, reason and items will appear here before you decide.</value></data>
   <data name="ApprovalNoReason" xml:space="preserve"><value>No reason provided</value></data>
   <data name="ApprovalItemsHeading" xml:space="preserve"><value>Items awaiting approval</value></data>
+  <data name="ApprovalDecisionHint" xml:space="preserve"><value>Review the reason and items before making a decision.</value></data>
   <data name="PeriodFlowAria" xml:space="preserve"><value>Period operations flow</value></data>
   <data name="PeriodDemandStep" xml:space="preserve"><value>Demand pooling</value></data>
   <data name="PeriodSupplyStep" xml:space="preserve"><value>Supply selection</value></data>

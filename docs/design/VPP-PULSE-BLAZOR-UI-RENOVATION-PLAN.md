@@ -639,7 +639,7 @@ quyền và dữ liệu. Frontend hiện tại được giữ khi đã tốt hơ
 | 04 Lịch sử | `/dashboard?tab=1` | ISOLATED_QA_PASS — OWNER_REVIEW | Summary/chart/list/detail; chart suy biến dùng empty state thay SVG `NaN` |
 | 05 Danh mục mặt hàng | `/dashboard?tab=2` | ISOLATED_QA_PASS — OWNER_REVIEW | Toolbar/state theo Atlas, không lộ giá cho nhân viên |
 | 06 Tổng hợp phòng ban | `/dashboard?tab=3&managementTab=department` | ISOLATED_QA_PASS — OWNER_REVIEW | Dùng chung History workspace; chỉ khác 8 cột danh sách và scope dữ liệu phòng ban |
-| 07 Duyệt đơn bổ sung | `/dashboard?tab=5&periodTab=pending` | ISOLATED_QA_PASS — OWNER_REVIEW | `Tab_AdminApproval` coordinator + split list-detail lấp đầy main content; mutation approve/reject pass |
+| 07 Duyệt đơn bổ sung | `/dashboard?tab=5&periodTab=pending` | ISOLATED_QA_PASS — OWNER_REVIEW | Canonical List-Detail: collection header/count, search + phòng ban trên toàn hàng chờ, tự chọn đơn đầu, full code + status/detail facts, pager master và workflow footer bám đáy; mutation approve/reject giữ nguyên |
 | 08 Rà soát kỳ | `/dashboard?tab=5&periodTab=review` | ISOLATED_QA_PASS — OWNER_REVIEW | Trạng thái, blocker chốt kỳ và bằng chứng nguồn |
 | 09 Gom nhu cầu | `/dashboard?tab=5&periodTab=demand` | ISOLATED_QA_PASS — OWNER_REVIEW | Hai chế độ Theo đơn/Theo mặt hàng, dữ liệu thật từ period-demand |
 | 10 Chọn nguồn cung | `/dashboard?tab=5&periodTab=supply` | ISOLATED_QA_PASS — OWNER_REVIEW | Nhà cung cấp trước bảng giá; preview và đối chiếu giá thật |
@@ -1632,6 +1632,13 @@ Gate đang chờ hiện tại: owner duyệt F4 Wave Review Board gồm sáu wor
 Correction runtime ngày 2026-07-31 cho Quản lý người dùng: account `PendingApproval` chỉ hiển thị action `Duyệt` có nhãn; nút bật sau khi chọn đủ nhóm quyền và phòng ban, còn access switch chỉ xuất hiện sau kích hoạt. Mọi trạng thái khóa phải có lý do đọc được; guard chống tự sửa membership vẫn giữ nguyên ở UI và backend.
 
 Evidence đóng record: solution Release build `0 warning`; frontend unit `202/202`; settlement confirmation `4/4`; route-real isolated History + Department Summary `2/2`, User Admin `1/1`, Chốt kỳ `1/1`, My Orders shell/period summary `1/1`. Screenshot đã được kiểm tra bằng mắt tại `390×844`, `1366×768`, `1920×1080`; artifact thô nằm trong thư mục temp ignored, không commit.
+
+### 14.3 Owner review record — Duyệt đơn bổ sung — 2026-08-01
+
+- `PendingApprovalWorkspace` dùng canonical `LIST-DETAIL`: master có collection header/count, filter server theo tìm kiếm + phòng ban, hàng đầu được chọn và tải detail ngay sau load/filter/paging/mutation.
+- Master hiển thị full mã đơn, người đặt, phòng ban, kỳ, số mặt hàng và trạng thái; detail hiển thị full code, hai badge loại/trạng thái, metadata, lý do, bảng mặt hàng và PDF/XLSX có nhãn rõ.
+- Pager của master và footer quyết định của detail bám đáy từng surface; error state tách khỏi empty/success để lỗi tải không bị hiểu nhầm là hết đơn chờ duyệt.
+- Evidence: Release build `0 warning`; frontend unit `213/213`; focused isolated Playwright `1/1` tại `390×844`, `768×1024`, `1366×768`, `1920×1080`, không tràn ngang document. Screenshot đã được kiểm tra bằng mắt; artifact thô nằm trong temp ignored.
 
 ---
 

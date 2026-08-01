@@ -292,6 +292,10 @@
   <data name="OrderRejectedSuccess" xml:space="preserve"><value>Đã từ chối đơn thành công.</value></data>
   <data name="Pending" xml:space="preserve"><value>Chờ duyệt</value></data>
   <data name="PendingOrders" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
+  <data name="PendingOrdersCountFormat" xml:space="preserve"><value>{0} đơn</value></data>
+  <data name="PendingOrderItemsFormat" xml:space="preserve"><value>{0} mặt hàng</value></data>
+  <data name="PendingApprovalLoadFailed" xml:space="preserve"><value>Không tải được hàng chờ duyệt</value></data>
+  <data name="AllDepartments" xml:space="preserve"><value>Tất cả phòng ban</value></data>
   <data name="Period" xml:space="preserve"><value>Kỳ</value></data>
   <data name="PreviousOrderPeriod" xml:space="preserve"><value>Kỳ trước</value></data>
   <data name="ProductCode" xml:space="preserve"><value>Mã mặt hàng</value></data>
@@ -755,6 +759,7 @@
   <data name="ApprovalSelectOrderDescription" xml:space="preserve"><value>Chi tiết, lý do và mặt hàng sẽ hiển thị tại đây trước khi quyết định.</value></data>
   <data name="ApprovalNoReason" xml:space="preserve"><value>Chưa có lý do</value></data>
   <data name="ApprovalItemsHeading" xml:space="preserve"><value>Mặt hàng cần duyệt</value></data>
+  <data name="ApprovalDecisionHint" xml:space="preserve"><value>Kiểm tra lý do và mặt hàng trước khi quyết định.</value></data>
   <data name="PeriodFlowAria" xml:space="preserve"><value>Quy trình vận hành kỳ</value></data>
   <data name="PeriodDemandStep" xml:space="preserve"><value>Gom nhu cầu</value></data>
   <data name="PeriodSupplyStep" xml:space="preserve"><value>Chọn nguồn cung</value></data>
