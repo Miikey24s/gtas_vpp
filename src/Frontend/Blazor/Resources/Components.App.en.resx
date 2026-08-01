@@ -35,11 +35,12 @@
   <data name="ExportReport" xml:space="preserve"><value>Export Report</value></data>
   <data name="ExportPdf" xml:space="preserve"><value>Export PDF</value></data>
   <data name="ExportExcel" xml:space="preserve"><value>Export Excel</value></data>
+  <data name="ExportingPdf" xml:space="preserve"><value>Creating PDF...</value></data>
+  <data name="ExportingExcel" xml:space="preserve"><value>Creating Excel...</value></data>
+  <data name="ExportingCsv" xml:space="preserve"><value>Creating CSV...</value></data>
+  <data name="ExportCompleted" xml:space="preserve"><value>Downloaded {0} ({1}).</value></data>
   <data name="ExportOrderPdfAria" xml:space="preserve"><value>Export order {0} as a PDF file</value></data>
   <data name="ExportOrderExcelAria" xml:space="preserve"><value>Export order {0} as an Excel file</value></data>
-  <data name="OrderExported" xml:space="preserve"><value>Order sheet exported</value></data>
-  <data name="SettlementExported" xml:space="preserve"><value>Period settlement exported</value></data>
-  <data name="ReportContentNotConfigured" xml:space="preserve"><value>Report content has not been configured yet. Export functionality is coming soon.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Permissions</value></data>
   <data name="Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="Save" xml:space="preserve"><value>Save</value></data>
@@ -494,7 +495,6 @@
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="ReportDepartments" xml:space="preserve"><value>Cost by department</value></data>
   <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Cost, order count, and quantity by department in the allowed scope.</value></data>
-  <data name="ReportExported" xml:space="preserve"><value>The CSV report was exported.</value></data>
   <data name="ReportExportFailed" xml:space="preserve"><value>Could not export the report: {0}</value></data>
   <data name="ReportFilters" xml:space="preserve"><value>Report filters</value></data>
   <data name="ReportLoadFailed" xml:space="preserve"><value>Could not load the report: {0}</value></data>
@@ -1034,8 +1034,6 @@
   <data name="PermissionActionReportExport" xml:space="preserve"><value>Export report</value></data>
   <data name="PermissionActionPeriodSettle" xml:space="preserve"><value>Review and settle period</value></data>
   <data name="ExportCsv" xml:space="preserve"><value>Export CSV</value></data>
-  <data name="ReportExportedCsv" xml:space="preserve"><value>The CSV report was exported.</value></data>
-  <data name="ReportExportedXlsx" xml:space="preserve"><value>The Excel report was exported.</value></data>
   <data name="ReportDepartmentSearchPlaceholder" xml:space="preserve"><value>Search departments</value></data>
   <data name="SettlementEvidence" xml:space="preserve"><value>Settlement evidence</value></data>
   <data name="SettlementEvidenceTitle" xml:space="preserve"><value>Period data reconciled</value></data>

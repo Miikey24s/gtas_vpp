@@ -213,8 +213,8 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("Summary.SettlementId.HasValue", report, StringComparison.Ordinal);
         Assert.Contains("vpp-report-settlement-evidence", report, StringComparison.Ordinal);
         Assert.Contains("Loc[\"SettlementEvidence\"]", report, StringComparison.Ordinal);
-        Assert.Contains("ExportCsvAsync", report, StringComparison.Ordinal);
-        Assert.Contains("ExportXlsxAsync", report, StringComparison.Ordinal);
+        Assert.Contains("<VppFileExportActions", report, StringComparison.Ordinal);
+        Assert.Contains("ReportExportFormats", report, StringComparison.Ordinal);
         Assert.Contains("ClearReportFiltersAsync", report, StringComparison.Ordinal);
         Assert.Contains("ValueProperty=\"TotalAmount\"", report, StringComparison.Ordinal);
         Assert.Contains("Smooth=\"@CanSmoothPeriodTrend\"", report, StringComparison.Ordinal);
@@ -223,8 +223,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains(".Where(item => item.OrderCount > 0)", reportCode, StringComparison.Ordinal);
         Assert.Contains("RadzenDataGrid TItem=\"ReportDepartmentPointResDTO\"", report, StringComparison.Ordinal);
         Assert.Contains("FilteredDepartmentBreakdown", reportCode, StringComparison.Ordinal);
-        Assert.Contains("ExportAsync(\"export\", \"ReportExportedCsv\")", reportCode, StringComparison.Ordinal);
-        Assert.Contains("ExportAsync(\"export.xlsx\", \"ReportExportedXlsx\")", reportCode, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportFormat.Pdf", reportCode, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportFormat.Excel", reportCode, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportFormat.Csv", reportCode, StringComparison.Ordinal);
+        Assert.Contains("format.ApiSuffix()", reportCode, StringComparison.Ordinal);
         Assert.DoesNotContain("aria-label=\"Bằng chứng chốt kỳ\"", report, StringComparison.Ordinal);
     }
 

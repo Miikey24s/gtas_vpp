@@ -260,8 +260,8 @@ namespace gtas_vpp_be.Controllers
             var content = OrderWorkbookBuilder.Build(data);
             return File(
                 content,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"{data.VppCode ?? "order"}.xlsx");
+                ExportFileContract.ExcelContentType,
+                ExportFileContract.Order(data.VppCode, data.Id, "xlsx"));
         }
 
         [HttpGet("orders/{id:guid}/export.pdf")]
@@ -276,7 +276,10 @@ namespace gtas_vpp_be.Controllers
             if (!await CanViewOrderAsync(data)) return Forbid();
 
             var content = OrderPdfBuilder.Build(data);
-            return File(content, "application/pdf", $"{data.VppCode ?? "order"}.pdf");
+            return File(
+                content,
+                ExportFileContract.PdfContentType,
+                ExportFileContract.Order(data.VppCode, data.Id, "pdf"));
         }
 
         [HttpGet("orders/{id:guid}/history")]

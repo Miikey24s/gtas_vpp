@@ -175,16 +175,23 @@
     };
 
     window.vppDownload = {
-        fromStream: async function (fileName, contentStreamReference) {
+        fromStream: async function (fileName, contentType, contentStreamReference) {
             var arrayBuffer = await contentStreamReference.arrayBuffer();
-            var blob = new Blob([arrayBuffer]);
+            var blob = new Blob([arrayBuffer], {
+                type: contentType || "application/octet-stream"
+            });
             var url = URL.createObjectURL(blob);
             var anchor = document.createElement("a");
             anchor.href = url;
             anchor.download = fileName || "download";
+            anchor.style.display = "none";
+            document.body.appendChild(anchor);
             anchor.click();
             anchor.remove();
-            URL.revokeObjectURL(url);
+            window.setTimeout(function () {
+                URL.revokeObjectURL(url);
+            }, 1000);
+            return arrayBuffer.byteLength;
         }
     };
 

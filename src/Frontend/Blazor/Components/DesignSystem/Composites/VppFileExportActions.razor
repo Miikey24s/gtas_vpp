@@ -1,0 +1,61 @@
+<div class="vpp-file-export-actions @Class" role="group" aria-label="@Loc["Export"]">
+    @foreach (var format in Formats)
+    {
+        <RadzenButton Icon="@GetIcon(format)"
+                      Text="@GetLabel(format)"
+                      BusyText="@GetBusyText(format)"
+                      IsBusy="@(BusyFormat == format)"
+                      Size="@Size"
+                      ButtonStyle="@ButtonStyle"
+                      Variant="@Variant"
+                      Disabled="@(Disabled || BusyFormat.HasValue)"
+                      Click="@(_ => ExportRequested.InvokeAsync(format))"
+                      Title="@GetLabel(format)"
+                      aria-label="@GetAriaLabel(format)"
+                      data-testid="@($"export-{format.ToString().ToLowerInvariant()}-action")" />
+    }
+</div>
+
+@code {
+    private static readonly IReadOnlyList<VppFileExportFormat> DefaultFormats =
+        [VppFileExportFormat.Pdf, VppFileExportFormat.Excel];
+
+    [Parameter] public IReadOnlyList<VppFileExportFormat> Formats { get; set; } = DefaultFormats;
+    [Parameter] public VppFileExportFormat? BusyFormat { get; set; }
+    [Parameter] public EventCallback<VppFileExportFormat> ExportRequested { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public ButtonSize Size { get; set; } = ButtonSize.Small;
+    [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Base;
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    [Parameter] public string? AriaContext { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string GetIcon(VppFileExportFormat format) => format switch
+    {
+        VppFileExportFormat.Pdf => "picture_as_pdf",
+        VppFileExportFormat.Excel => "table_view",
+        VppFileExportFormat.Csv => "description",
+        _ => "download"
+    };
+
+    private string GetLabel(VppFileExportFormat format) => format switch
+    {
+        VppFileExportFormat.Pdf => Loc["ExportPdf"],
+        VppFileExportFormat.Excel => Loc["ExportExcel"],
+        VppFileExportFormat.Csv => Loc["ExportCsv"],
+        _ => Loc["Export"]
+    };
+
+    private string GetBusyText(VppFileExportFormat format) => format switch
+    {
+        VppFileExportFormat.Pdf => Loc["ExportingPdf"],
+        VppFileExportFormat.Excel => Loc["ExportingExcel"],
+        VppFileExportFormat.Csv => Loc["ExportingCsv"],
+        _ => Loc["Loading"]
+    };
+
+    private string GetAriaLabel(VppFileExportFormat format)
+        => string.IsNullOrWhiteSpace(AriaContext)
+            ? GetLabel(format)
+            : $"{GetLabel(format)} — {AriaContext}";
+}

@@ -106,20 +106,9 @@
                     }
                     @if (CanExportSettlement)
                     {
-                        <RadzenButton Icon="picture_as_pdf"
-                                      Text="@Loc["ExportPdf"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Base"
-                                      Variant="Variant.Text"
-                                      Disabled="@isExportingSettlement"
-                                      Click='@(_ => ExportSettlementAsync("export.pdf"))' />
-                        <RadzenButton Icon="table_view"
-                                      Text="@Loc["ExportExcel"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Base"
-                                      Variant="Variant.Text"
-                                      Disabled="@isExportingSettlement"
-                                      Click='@(_ => ExportSettlementAsync("export.xlsx"))' />
+                        <VppFileExportActions BusyFormat="@exportingSettlementFormat"
+                                              ExportRequested="@ExportSettlementAsync"
+                                              AriaContext="@($"{Loc["Period"]} {Month:00}/{Year}")" />
                     }
                 </Actions>
             </VppCollectionHeader>

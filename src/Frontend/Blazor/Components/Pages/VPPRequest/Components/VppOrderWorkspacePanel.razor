@@ -52,29 +52,11 @@
                                   Click="@(async _ => await HistoryRequested.InvokeAsync(Order))"
                                   Title="@Loc["ViewRequestHistory"]"
                                   aria-label="@string.Format(Loc["ViewRequestHistoryAria"], Order.VppCode)" />
-                    @if (ExportPdfRequested.HasDelegate)
+                    @if (ExportRequested.HasDelegate)
                     {
-                        <RadzenButton Icon="picture_as_pdf"
-                                      Text="@Loc["ExportPdf"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Base"
-                                      Variant="Variant.Text"
-                                      Click="@(async _ => await ExportPdfRequested.InvokeAsync(Order))"
-                                      Title="@Loc["ExportPdf"]"
-                                      aria-label="@string.Format(Loc["ExportOrderPdfAria"], Order.VppCode)"
-                                      Disabled="@IsExporting" />
-                    }
-                    @if (ExportExcelRequested.HasDelegate)
-                    {
-                        <RadzenButton Icon="table_view"
-                                      Text="@Loc["ExportExcel"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Base"
-                                      Variant="Variant.Text"
-                                      Click="@(async _ => await ExportExcelRequested.InvokeAsync(Order))"
-                                      Title="@Loc["ExportExcel"]"
-                                      aria-label="@string.Format(Loc["ExportOrderExcelAria"], Order.VppCode)"
-                                      Disabled="@IsExporting" />
+                        <VppFileExportActions BusyFormat="@BusyExportFormat"
+                                              ExportRequested="@ExportRequested"
+                                              AriaContext="@Order.VppCode" />
                     }
                     @if (!ReadOnly && CanEdit)
                     {
@@ -202,9 +184,8 @@
     [Parameter] public EventCallback<VppRequestResDTO> RecreateRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> HistoryRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> CancelRequested { get; set; }
-    [Parameter] public EventCallback<VppRequestResDTO> ExportPdfRequested { get; set; }
-    [Parameter] public EventCallback<VppRequestResDTO> ExportExcelRequested { get; set; }
-    [Parameter] public bool IsExporting { get; set; }
+    [Parameter] public EventCallback<VppFileExportFormat> ExportRequested { get; set; }
+    [Parameter] public VppFileExportFormat? BusyExportFormat { get; set; }
     [Parameter] public EventCallback<string?> CopyCodeRequested { get; set; }
     [Parameter] public string? PrimaryActionText { get; set; }
     [Parameter] public string PrimaryActionIcon { get; set; } = VppIcons.Add;

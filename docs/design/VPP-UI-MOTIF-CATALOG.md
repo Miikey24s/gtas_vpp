@@ -48,7 +48,7 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | `DIALOG-ACTIONS` | Hủy/lưu/submit/destructive action | Dialog/editor | `VppDialogActions` trong `VppAdaptiveDialogShell` | primary/secondary/danger, busy/disabled, leading slot | footer spacing hoặc cặp button riêng từng dialog |
 | `TRANSIENT` | Popup, popover, user menu, filter, notification | Surface tạm thời | `vpp-transient-surface`, `vpp-polish.css`, Radzen bridge | above/down/center, reduced-motion | `transform` làm đổi anchor geometry |
 | `FEEDBACK` | Inline notice/toast/reconnect | Thông báo hệ thống/nghiệp vụ | `VppInlineNotice`, `IToastService`, reconnect contract | neutral/info/success/warning/danger | inject `NotificationService`, `RadzenAlert` hoặc raw exception text theo route |
-| `FILE-EXPORT` | Tải PDF/Excel/CSV từ API | Order, report, settlement | `IBrowserFileDownloadService`; backend builder typed + `SimpleWorkbookBuilder` | API stream, PDF, workbook, CSV | `DotNetStreamReference`/JS pipeline hoặc SpreadsheetML packager lặp theo route |
+| `FILE-EXPORT` | Tải PDF/Excel/CSV từ API | Order, history, approval, report, settlement | `VppFileExportActions`; `IBrowserFileDownloadService`; `ExportFileContract`; backend builder typed + `SimpleWorkbookBuilder` | per-format busy, API stream + MIME, PDF, workbook, CSV | nút export, `DotNetStreamReference`/JS pipeline, tên file/MIME hoặc SpreadsheetML packager lặp theo route |
 | `SKELETON` | Loading placeholder | Chờ data | `SkeletonPage`, `SkeletonGrid`, `vpp-loading.css` | page/grid/row | legacy `.shimmer-*` mới |
 
 ## 3. Quy tắc selector
@@ -69,6 +69,14 @@ Quy tắc vị trí lọc trong data grid:
 - Filter luôn áp trên toàn bộ tập dữ liệu được cấp quyền trước `paging`/`virtualization`, sau đó mới tính tổng và phân trang.
 
 Không gộp chúng thành một component string-configured. Dùng typed component/contract riêng, cùng token và popup bridge.
+
+Quy tắc `FILE-EXPORT`:
+
+- Route chỉ truyền `VppFileExportFormat`; không truyền suffix endpoint dạng string từ markup.
+- `VppFileExportActions` sở hữu label, icon, disabled và busy state theo từng định dạng.
+- `IBrowserFileDownloadService` stream response kèm MIME thật sang browser, xác nhận số byte và dùng tên từ `Content-Disposition`.
+- Backend dùng `ExportFileContract` cho tên file/MIME; Excel phải có header style, độ rộng cột, freeze header, auto-filter và number format phù hợp.
+- PDF ưu tiên bản in/tóm tắt dễ đọc; Excel giữ dữ liệu chi tiết; CSV chỉ là định dạng phụ cho báo cáo hoặc tích hợp dữ liệu.
 
 Footer có paging dùng một thứ tự cố định trên desktop: summary ở trái; cụm điều hướng trang, page-size và nhãn page-size ở phải. Mọi `RadzenDataGrid` có paging dùng `PagerHorizontalAlign="HorizontalAlign.Right"`; standalone `RadzenPager` dùng `HorizontalAlign="HorizontalAlign.Right"`. Responsive dưới `768px` dùng grid mobile native của Radzen, không để route tự căn giữa hoặc căn trái riêng.
 

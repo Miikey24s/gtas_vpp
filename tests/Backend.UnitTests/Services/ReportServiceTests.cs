@@ -3,6 +3,7 @@ using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Res.Reports;
 using System.IO.Compression;
+using System.Text;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.Services;
@@ -66,6 +67,29 @@ public sealed class ReportServiceTests
         Assert.Contains(archive.Entries, entry => entry.FullName == "xl/worksheets/sheet1.xml");
         Assert.Contains(archive.Entries, entry => entry.FullName == "xl/worksheets/sheet2.xml");
         Assert.Contains(archive.Entries, entry => entry.FullName == "xl/worksheets/sheet5.xml");
+        var workbook = ReadEntry(archive, "xl/workbook.xml");
+        var firstSheet = ReadEntry(archive, "xl/worksheets/sheet1.xml");
+        Assert.Contains("Tổng quan", workbook);
+        Assert.Contains("state=\"frozen\"", firstSheet);
+        Assert.Contains("autoFilter", firstSheet);
+    }
+
+    [Fact]
+    public async Task ExportPdf_ReturnsNamedVietnameseSummaryDocument()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var productId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, productId);
+        await AddOrderAsync(context, productId, 10, "IT", "77500", 2, 100);
+        var service = new ReportService(context);
+
+        var export = await service.ExportPdfAsync(
+            ReportScopes.All, 10, "IT", "77500", 2026, 7);
+
+        Assert.Equal(ExportFileContract.PdfContentType, export.ContentType);
+        Assert.Equal("GTAS-VPP-Bao-cao-all-2026-07.pdf", export.FileName);
+        Assert.True(export.Content.Length > 1000);
+        Assert.Equal("%PDF", Encoding.ASCII.GetString(export.Content, 0, 4));
     }
 
     [Fact]
@@ -236,5 +260,13 @@ public sealed class ReportServiceTests
         });
         context.Add(header);
         await context.SaveChangesAsync();
+    }
+
+    private static string ReadEntry(ZipArchive archive, string path)
+    {
+        var entry = archive.GetEntry(path);
+        Assert.NotNull(entry);
+        using var reader = new StreamReader(entry!.Open(), Encoding.UTF8);
+        return reader.ReadToEnd();
     }
 }

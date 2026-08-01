@@ -8,10 +8,25 @@ namespace gtas_vpp_be.Service.Services;
 /// Mô tả một worksheet đơn giản cho các file export nội bộ. Route nghiệp vụ chỉ
 /// chuẩn bị cột và dữ liệu; lớp này sở hữu duy nhất phần đóng gói SpreadsheetML.
 /// </summary>
+public enum SimpleWorkbookCellFormat
+{
+    Text,
+    Integer,
+    Decimal
+}
+
+public sealed record SimpleWorkbookColumn(
+    string Header,
+    double Width = 18,
+    SimpleWorkbookCellFormat Format = SimpleWorkbookCellFormat.Text);
+
 public sealed record SimpleWorkbookSheet(
     string Name,
-    IReadOnlyList<string> Headers,
-    IReadOnlyList<IReadOnlyList<object?>> Rows);
+    IReadOnlyList<SimpleWorkbookColumn> Columns,
+    IReadOnlyList<IReadOnlyList<object?>> Rows)
+{
+    public IReadOnlyList<string> Headers => Columns.Select(column => column.Header).ToArray();
+}
 
 public static class SimpleWorkbookBuilder
 {
@@ -56,7 +71,7 @@ public static class SimpleWorkbookBuilder
     private static SimpleWorkbookSheet NormalizeSheet(SimpleWorkbookSheet sheet, int index)
     {
         ArgumentNullException.ThrowIfNull(sheet);
-        if (sheet.Headers.Count == 0)
+        if (sheet.Columns.Count == 0)
         {
             throw new ArgumentException($"Worksheet {index + 1} requires at least one column.", nameof(sheet));
         }
@@ -75,41 +90,84 @@ public static class SimpleWorkbookBuilder
     {
         var sheetRows = new List<XElement>
         {
-            Row(sheet.Headers.Cast<object?>().ToArray(), 1)
+            Row(sheet.Headers.Cast<object?>().ToArray(), sheet.Columns, 1)
         };
-        sheetRows.AddRange(sheet.Rows.Select((row, index) => Row(row, index + 2)));
+        sheetRows.AddRange(sheet.Rows.Select((row, index) => Row(row, sheet.Columns, index + 2)));
 
-        var lastColumn = ColumnName(sheet.Headers.Count);
+        var lastColumn = ColumnName(sheet.Columns.Count);
+        var lastRow = Math.Max(1, sheet.Rows.Count + 1);
         return new XElement(Main + "worksheet",
             new XAttribute(XNamespace.Xmlns + "r", Relationships),
+            new XElement(Main + "dimension", new XAttribute("ref", $"A1:{lastColumn}{lastRow}")),
             new XElement(Main + "sheetViews",
-                new XElement(Main + "sheetView", new XAttribute("workbookViewId", 0))),
+                new XElement(Main + "sheetView",
+                    new XAttribute("workbookViewId", 0),
+                    new XElement(Main + "pane",
+                        new XAttribute("ySplit", 1),
+                        new XAttribute("topLeftCell", "A2"),
+                        new XAttribute("activePane", "bottomLeft"),
+                        new XAttribute("state", "frozen")))),
             new XElement(Main + "sheetFormatPr", new XAttribute("defaultRowHeight", 18)),
+            new XElement(Main + "cols",
+                sheet.Columns.Select((column, index) =>
+                    new XElement(Main + "col",
+                        new XAttribute("min", index + 1),
+                        new XAttribute("max", index + 1),
+                        new XAttribute("width", Math.Clamp(column.Width, 8, 60).ToString("0.##", CultureInfo.InvariantCulture)),
+                        new XAttribute("customWidth", 1)))),
             new XElement(Main + "sheetData", sheetRows),
             new XElement(Main + "autoFilter",
-                new XAttribute("ref", $"A1:{lastColumn}{Math.Max(1, sheet.Rows.Count + 1)}")),
+                new XAttribute("ref", $"A1:{lastColumn}{lastRow}")),
+            new XElement(Main + "printOptions",
+                new XAttribute("horizontalCentered", 0),
+                new XAttribute("verticalCentered", 0)),
             new XElement(Main + "pageMargins",
                 new XAttribute("left", "0.3"),
                 new XAttribute("right", "0.3"),
                 new XAttribute("top", "0.5"),
                 new XAttribute("bottom", "0.5"),
                 new XAttribute("header", "0.2"),
-                new XAttribute("footer", "0.2")));
+                new XAttribute("footer", "0.2")),
+            new XElement(Main + "pageSetup",
+                new XAttribute("orientation", "landscape"),
+                new XAttribute("fitToWidth", 1),
+                new XAttribute("fitToHeight", 0)));
     }
 
-    private static XElement Row(IReadOnlyList<object?> values, int rowNumber)
+    private static XElement Row(
+        IReadOnlyList<object?> values,
+        IReadOnlyList<SimpleWorkbookColumn> columns,
+        int rowNumber)
         => new(Main + "row",
             new XAttribute("r", rowNumber),
-            values.Select((value, index) => Cell(value, index + 1, rowNumber, rowNumber == 1)));
+            rowNumber == 1 ? new XAttribute("ht", 24) : null,
+            rowNumber == 1 ? new XAttribute("customHeight", 1) : null,
+            values.Select((value, index) => Cell(
+                value,
+                index + 1,
+                rowNumber,
+                rowNumber == 1,
+                index < columns.Count ? columns[index].Format : SimpleWorkbookCellFormat.Text)));
 
-    private static XElement Cell(object? value, int column, int row, bool header)
+    private static XElement Cell(
+        object? value,
+        int column,
+        int row,
+        bool header,
+        SimpleWorkbookCellFormat format)
     {
         var reference = $"{ColumnName(column)}{row}";
+        var styleIndex = header ? 1 : format switch
+        {
+            SimpleWorkbookCellFormat.Integer => 2,
+            SimpleWorkbookCellFormat.Decimal => 3,
+            _ => 0
+        };
         if (value is null)
         {
             return new XElement(Main + "c",
                 new XAttribute("r", reference),
-                header ? new XAttribute("s", 1) : null);
+                styleIndex > 0 ? new XAttribute("s", styleIndex) : null);
         }
 
         if (value is byte or short or int or long or decimal or double or float)
@@ -117,15 +175,18 @@ public static class SimpleWorkbookBuilder
             var number = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "0";
             return new XElement(Main + "c",
                 new XAttribute("r", reference),
-                header ? new XAttribute("s", 1) : null,
+                styleIndex > 0 ? new XAttribute("s", styleIndex) : null,
                 new XElement(Main + "v", number));
         }
 
         return new XElement(Main + "c",
             new XAttribute("r", reference),
             new XAttribute("t", "inlineStr"),
-            header ? new XAttribute("s", 1) : null,
-            new XElement(Main + "is", new XElement(Main + "t", value.ToString())));
+            styleIndex > 0 ? new XAttribute("s", styleIndex) : null,
+            new XElement(Main + "is",
+                new XElement(Main + "t",
+                    new XAttribute(XNamespace.Xml + "space", "preserve"),
+                    value.ToString())));
     }
 
     private static string ColumnName(int column)
@@ -199,15 +260,28 @@ public static class SimpleWorkbookBuilder
                     new XElement(Main + "b"),
                     new XElement(Main + "sz", new XAttribute("val", 11)),
                     new XElement(Main + "name", new XAttribute("val", "Aptos")))),
-            new XElement(Main + "fills", new XAttribute("count", 2),
+            new XElement(Main + "fills", new XAttribute("count", 3),
                 new XElement(Main + "fill", new XElement(Main + "patternFill", new XAttribute("patternType", "none"))),
-                new XElement(Main + "fill", new XElement(Main + "patternFill", new XAttribute("patternType", "gray125")))),
-            new XElement(Main + "borders", new XAttribute("count", 1),
+                new XElement(Main + "fill", new XElement(Main + "patternFill", new XAttribute("patternType", "gray125"))),
+                new XElement(Main + "fill",
+                    new XElement(Main + "patternFill",
+                        new XAttribute("patternType", "solid"),
+                        new XElement(Main + "fgColor", new XAttribute("rgb", "FFE8F4FB")),
+                        new XElement(Main + "bgColor", new XAttribute("indexed", 64))))),
+            new XElement(Main + "borders", new XAttribute("count", 2),
                 new XElement(Main + "border",
                     new XElement(Main + "left"),
                     new XElement(Main + "right"),
                     new XElement(Main + "top"),
                     new XElement(Main + "bottom"),
+                    new XElement(Main + "diagonal")),
+                new XElement(Main + "border",
+                    new XElement(Main + "left"),
+                    new XElement(Main + "right"),
+                    new XElement(Main + "top"),
+                    new XElement(Main + "bottom",
+                        new XAttribute("style", "thin"),
+                        new XElement(Main + "color", new XAttribute("rgb", "FFB7D7EA"))),
                     new XElement(Main + "diagonal"))),
             new XElement(Main + "cellStyleXfs", new XAttribute("count", 1),
                 new XElement(Main + "xf",
@@ -215,7 +289,7 @@ public static class SimpleWorkbookBuilder
                     new XAttribute("fontId", 0),
                     new XAttribute("fillId", 0),
                     new XAttribute("borderId", 0))),
-            new XElement(Main + "cellXfs", new XAttribute("count", 2),
+            new XElement(Main + "cellXfs", new XAttribute("count", 4),
                 new XElement(Main + "xf",
                     new XAttribute("numFmtId", 0),
                     new XAttribute("fontId", 0),
@@ -224,9 +298,24 @@ public static class SimpleWorkbookBuilder
                 new XElement(Main + "xf",
                     new XAttribute("numFmtId", 0),
                     new XAttribute("fontId", 1),
+                    new XAttribute("fillId", 2),
+                    new XAttribute("borderId", 1),
+                    new XAttribute("applyFont", 1),
+                    new XAttribute("applyFill", 1),
+                    new XAttribute("applyBorder", 1),
+                    new XElement(Main + "alignment", new XAttribute("vertical", "center"))),
+                new XElement(Main + "xf",
+                    new XAttribute("numFmtId", 3),
+                    new XAttribute("fontId", 0),
                     new XAttribute("fillId", 0),
                     new XAttribute("borderId", 0),
-                    new XAttribute("applyFont", 1))),
+                    new XAttribute("applyNumberFormat", 1)),
+                new XElement(Main + "xf",
+                    new XAttribute("numFmtId", 4),
+                    new XAttribute("fontId", 0),
+                    new XAttribute("fillId", 0),
+                    new XAttribute("borderId", 0),
+                    new XAttribute("applyNumberFormat", 1))),
             new XElement(Main + "cellStyles", new XAttribute("count", 1),
                 new XElement(Main + "cellStyle", new XAttribute("name", "Normal"), new XAttribute("xfId", 0))));
 

@@ -252,8 +252,9 @@ namespace gtas_vpp_be.Service.Services
                 ? null
                 : new SettlementExportResult(
                     SettlementPdfBuilder.Build(settlement),
-                    BuildExportFileName(settlement, "pdf"),
-                    "application/pdf");
+                    ExportFileContract.Settlement(
+                        settlement.Year, settlement.Month, settlement.RevisionNumber, "pdf"),
+                    ExportFileContract.PdfContentType);
         }
 
         public async Task<SettlementExportResult?> ExportWorkbookAsync(
@@ -265,8 +266,9 @@ namespace gtas_vpp_be.Service.Services
                 ? null
                 : new SettlementExportResult(
                     SettlementWorkbookBuilder.Build(settlement),
-                    BuildExportFileName(settlement, "xlsx"),
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    ExportFileContract.Settlement(
+                        settlement.Year, settlement.Month, settlement.RevisionNumber, "xlsx"),
+                    ExportFileContract.ExcelContentType);
         }
 
         private async Task<SettlementRevisionResDTO> SaveRevisionAsync(
@@ -861,9 +863,6 @@ namespace gtas_vpp_be.Service.Services
                     && x.MemberCompanyCode == company,
                     cancellationToken);
         }
-
-        private static string BuildExportFileName(Settlement settlement, string extension)
-            => $"GTAS-VPP-settlement-{settlement.Year:0000}-{settlement.Month:00}-r{settlement.RevisionNumber}.{extension}";
 
         private async Task<Settlement?> FindIdempotentAsync(
             string company,

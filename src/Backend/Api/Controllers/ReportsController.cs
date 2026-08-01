@@ -93,6 +93,31 @@ public sealed class ReportsController(
         return File(export.Content, export.ContentType, export.FileName);
     }
 
+    [HttpGet("export.pdf")]
+    [Authorize(Policy = Permissions.ReportExport)]
+    [Produces("application/pdf")]
+    [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExportPdf(
+        [FromQuery] string scope = ReportScopes.Own,
+        [FromQuery] int? year = null,
+        [FromQuery] int? month = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryGetIdentityScope(out var userId, out var departmentCode, out var companyCode))
+        {
+            return Unauthorized();
+        }
+
+        if (!await CanUseScopeAsync(scope, cancellationToken))
+        {
+            return Forbid();
+        }
+
+        var export = await _reportService.ExportPdfAsync(
+            scope, userId, departmentCode, companyCode, year, month, cancellationToken);
+        return File(export.Content, export.ContentType, export.FileName);
+    }
+
     [HttpGet("insights")]
     [EnableRateLimiting("report-insights")]
     [ProducesResponseType(typeof(ReportInsightResDTO), StatusCodes.Status200OK)]

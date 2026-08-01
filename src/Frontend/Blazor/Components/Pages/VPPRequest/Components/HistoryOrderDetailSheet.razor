@@ -28,24 +28,10 @@
             {
                 @* D10: xuất phiếu ngay từ màn lịch sử, tái dùng ExportOrderAsync của BaseOrderTab. *@
                 <div class="vpp-history-drawer-actions">
-                    <RadzenButton Icon="picture_as_pdf"
-                                  Text="@Loc["ExportPdf"]"
-                                  Size="ButtonSize.Small"
-                                  ButtonStyle="ButtonStyle.Base"
-                                  Variant="Variant.Text"
-                                  Click="@(async _ => await ExportRequested.InvokeAsync("export.pdf"))"
-                                  Title="@Loc["ExportPdf"]"
-                                  aria-label="@string.Format(Loc["ExportOrderPdfAria"], SelectedOrder.VppCode)"
-                                  Disabled="@(IsDetailLoading || IsExporting)" />
-                    <RadzenButton Icon="table_view"
-                                  Text="@Loc["ExportExcel"]"
-                                  Size="ButtonSize.Small"
-                                  ButtonStyle="ButtonStyle.Base"
-                                  Variant="Variant.Text"
-                                  Click="@(async _ => await ExportRequested.InvokeAsync("export.xlsx"))"
-                                  Title="@Loc["ExportExcel"]"
-                                  aria-label="@string.Format(Loc["ExportOrderExcelAria"], SelectedOrder.VppCode)"
-                                  Disabled="@(IsDetailLoading || IsExporting)" />
+                    <VppFileExportActions BusyFormat="@BusyExportFormat"
+                                          ExportRequested="@ExportRequested"
+                                          Disabled="@IsDetailLoading"
+                                          AriaContext="@SelectedOrder.VppCode" />
                     @if (FullscreenRequested.HasDelegate)
                     {
                         <RadzenButton Icon="@(IsFullscreen ? "close_fullscreen" : "open_in_full")"
@@ -188,10 +174,10 @@
     [Parameter] public bool HasTableFilters { get; set; }
     [Parameter] public int TotalCount { get; set; }
     [Parameter] public string UnitHeaderLabel { get; set; } = string.Empty;
-    [Parameter] public bool IsExporting { get; set; }
+    [Parameter] public VppFileExportFormat? BusyExportFormat { get; set; }
     [Parameter] public EventCallback CloseRequested { get; set; }
     [Parameter] public EventCallback FullscreenRequested { get; set; }
-    [Parameter] public EventCallback<string> ExportRequested { get; set; }
+    [Parameter] public EventCallback<VppFileExportFormat> ExportRequested { get; set; }
     [Parameter] public EventCallback RetryRequested { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> DetailSearchChanged { get; set; }
     [Parameter] public EventCallback<string> DetailCategorySelected { get; set; }

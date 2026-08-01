@@ -35,7 +35,7 @@ public static class SettlementPdfBuilder
                         row.ConstantItem(150).AlignRight().Text($"Phiên bản {settlement.RevisionNumber}")
                             .FontSize(9).SemiBold();
                     });
-                    header.Item().PaddingTop(8).LineHorizontal(0.75f).LineColor(Colors.Grey.Lighten2);
+                    header.Item().PaddingTop(8).LineHorizontal(1).LineColor(VppPdfTheme.Border);
                 });
 
                 page.Content().PaddingVertical(10).Column(content =>
@@ -81,37 +81,30 @@ public static class SettlementPdfBuilder
                             columns.RelativeColumn(1.5f);
                         });
 
-                        static IContainer HeaderCell(IContainer cell) => cell
-                            .BorderBottom(1).BorderColor(Colors.Grey.Lighten1)
-                            .PaddingVertical(4).PaddingHorizontal(3);
-                        static IContainer BodyCell(IContainer cell) => cell
-                            .BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2)
-                            .PaddingVertical(3.5f).PaddingHorizontal(3);
-
                         table.Header(header =>
                         {
-                            header.Cell().Element(HeaderCell).Text("#").SemiBold();
-                            header.Cell().Element(HeaderCell).Text("Mặt hàng").SemiBold();
-                            header.Cell().Element(HeaderCell).Text("ĐVT").SemiBold();
-                            header.Cell().Element(HeaderCell).AlignRight().Text("SL").SemiBold();
-                            header.Cell().Element(HeaderCell).AlignRight().Text("Đơn giá").SemiBold();
-                            header.Cell().Element(HeaderCell).AlignRight().Text("Thành tiền").SemiBold();
+                            header.Cell().Element(VppPdfTheme.TableHeaderCell).Text("#").SemiBold();
+                            header.Cell().Element(VppPdfTheme.TableHeaderCell).Text("Mặt hàng").SemiBold();
+                            header.Cell().Element(VppPdfTheme.TableHeaderCell).Text("Đơn vị").SemiBold();
+                            header.Cell().Element(VppPdfTheme.TableHeaderCell).AlignRight().Text("Số lượng").SemiBold();
+                            header.Cell().Element(VppPdfTheme.TableHeaderCell).AlignRight().Text("Đơn giá").SemiBold();
+                            header.Cell().Element(VppPdfTheme.TableHeaderCell).AlignRight().Text("Thành tiền").SemiBold();
                         });
 
                         var index = 0;
                         foreach (var item in settlement.Items.OrderBy(item => item.VppName))
                         {
                             index++;
-                            table.Cell().Element(BodyCell).Text(index.ToString(culture));
-                            table.Cell().Element(BodyCell).Column(cell =>
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Text(index.ToString(culture));
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Column(cell =>
                             {
                                 cell.Item().Text(item.VppName).SemiBold();
                                 cell.Item().Text(item.VppCode).FontSize(6.5f).FontColor(Colors.Grey.Darken1);
                             });
-                            table.Cell().Element(BodyCell).Text(item.UomName);
-                            table.Cell().Element(BodyCell).AlignRight().Text(item.Quantity.ToString("N0", culture));
-                            table.Cell().Element(BodyCell).AlignRight().Text(item.NetUnitPrice.ToString("N0", culture));
-                            table.Cell().Element(BodyCell).AlignRight().Text(item.GrossAmount.ToString("N0", culture));
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Text(item.UomName);
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.Quantity.ToString("N0", culture));
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.NetUnitPrice.ToString("N0", culture));
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.GrossAmount.ToString("N0", culture));
                         }
                     });
 

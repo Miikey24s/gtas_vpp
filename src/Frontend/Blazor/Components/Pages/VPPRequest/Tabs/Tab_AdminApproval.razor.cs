@@ -37,6 +37,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool PendingHasFilters => !string.IsNullOrWhiteSpace(PendingSearchText)
             || !string.IsNullOrWhiteSpace(PendingDepartmentCode);
 
+        private Task ExportPendingOrderAsync(VppFileExportFormat format)
+            => SelectedPendingOrder is null
+                ? Task.CompletedTask
+                : ExportOrderAsync(SelectedPendingOrder, format);
+
         private IReadOnlyList<VppFilterOption<string>> PendingDepartmentOptions =>
         [
             new(string.Empty, Loc["AllDepartments"]),

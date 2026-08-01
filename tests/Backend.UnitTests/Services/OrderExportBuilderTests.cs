@@ -18,6 +18,8 @@ public sealed class OrderExportBuilderTests
         using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
         var sheet1 = ReadEntry(archive, "xl/worksheets/sheet1.xml");
         var sheet2 = ReadEntry(archive, "xl/worksheets/sheet2.xml");
+        var workbook = ReadEntry(archive, "xl/workbook.xml");
+        var styles = ReadEntry(archive, "xl/styles.xml");
 
         Assert.Contains("DEMO-PPJ-0726", sheet1);
         Assert.Contains("Kiểm thử phòng họp", sheet1);
@@ -26,6 +28,13 @@ public sealed class OrderExportBuilderTests
         // Quy tắc quyền: file xuất theo đơn không bao giờ chứa giá.
         Assert.DoesNotContain("price", sheet2, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("142000", sheet2);
+        Assert.Contains("Tổng quan", workbook);
+        Assert.Contains("Mặt hàng", workbook);
+        Assert.Contains("state=\"frozen\"", sheet2);
+        Assert.Contains("autoFilter", sheet2);
+        Assert.Contains("customWidth=\"1\"", sheet2);
+        Assert.Contains("fillId=\"2\"", styles);
+        Assert.Contains("numFmtId=\"4\"", styles);
     }
 
     [Fact]

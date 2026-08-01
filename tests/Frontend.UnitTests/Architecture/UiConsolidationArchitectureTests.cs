@@ -50,6 +50,12 @@ public sealed class UiConsolidationArchitectureTests
 
         Assert.Equal(1, downloadService.Split("vppDownload.fromStream", StringSplitOptions.None).Length - 1);
         Assert.Contains("DotNetStreamReference", downloadService, StringComparison.Ordinal);
+        Assert.Contains("file.ContentType", downloadService, StringComparison.Ordinal);
+        Assert.Contains("BrowserFileDownloadResult", downloadService, StringComparison.Ordinal);
+
+        var exportActions = Read(root, "Components", "DesignSystem", "Composites", "VppFileExportActions.razor");
+        Assert.Contains("VppFileExportFormat", exportActions, StringComparison.Ordinal);
+        Assert.Contains("BusyFormat", exportActions, StringComparison.Ordinal);
 
         var duplicatePipelines = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(path => !Path.GetFullPath(path).Equals(Path.GetFullPath(downloadServicePath), StringComparison.OrdinalIgnoreCase))
@@ -59,6 +65,21 @@ public sealed class UiConsolidationArchitectureTests
         Assert.True(
             duplicatePipelines.Length == 0,
             $"Browser downloads must use IBrowserFileDownloadService: {string.Join(", ", duplicatePipelines)}");
+
+        var duplicateExportActions = Directory.EnumerateFiles(Path.Combine(root, "Components"), "*.razor", SearchOption.AllDirectories)
+            .Where(path => !path.EndsWith("VppFileExportActions.razor", StringComparison.OrdinalIgnoreCase))
+            .Where(path =>
+            {
+                var source = File.ReadAllText(path);
+                return source.Contains("Loc[\"ExportPdf\"]", StringComparison.Ordinal)
+                    || source.Contains("Loc[\"ExportExcel\"]", StringComparison.Ordinal)
+                    || source.Contains("Loc[\"ExportCsv\"]", StringComparison.Ordinal);
+            })
+            .Select(path => Path.GetRelativePath(root, path))
+            .ToArray();
+        Assert.True(
+            duplicateExportActions.Length == 0,
+            $"Export actions must use VppFileExportActions: {string.Join(", ", duplicateExportActions)}");
 
         var settlement = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor");
         var settlementCode = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor.cs");
@@ -170,10 +191,9 @@ public sealed class UiConsolidationArchitectureTests
         Assert.Contains("<VppStatusBadge", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementStatusText", settlement, StringComparison.Ordinal);
         Assert.Contains("@if (CanExportSettlement)", settlement, StringComparison.Ordinal);
-        Assert.Contains("ExportPdf", settlement, StringComparison.Ordinal);
-        Assert.Contains("ExportExcel", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportActions", settlement, StringComparison.Ordinal);
         Assert.Contains("status is { IsSettled: true, SettlementId: not null }", settlementCode, StringComparison.Ordinal);
-        Assert.Contains("isExportingSettlement || !CanExportSettlement", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("exportingSettlementFormat.HasValue || !CanExportSettlement", settlementCode, StringComparison.Ordinal);
         Assert.Contains("IBrowserFileDownloadService", settlementCode, StringComparison.Ordinal);
         Assert.Contains("export.pdf", config, StringComparison.Ordinal);
         Assert.Contains("export.xlsx", config, StringComparison.Ordinal);

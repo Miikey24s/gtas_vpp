@@ -315,22 +315,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected bool IsRowDetailLoading(Guid orderId) => LoadingDetailOrderIds.Contains(orderId);
 
         // ─── Xuất phiếu theo đơn (D10): GET /orders/{id}/export.pdf|xlsx ──────
-        protected bool IsExportingOrder { get; private set; }
+        protected VppFileExportFormat? ExportingOrderFormat { get; private set; }
 
-        protected Task ExportOrderPdfAsync(VppRequestResDTO row) => ExportOrderAsync(row, "export.pdf");
-
-        protected Task ExportOrderExcelAsync(VppRequestResDTO row) => ExportOrderAsync(row, "export.xlsx");
-
-        protected async Task ExportOrderAsync(VppRequestResDTO row, string format)
+        protected async Task ExportOrderAsync(VppRequestResDTO row, VppFileExportFormat format)
         {
-            if (IsExportingOrder) return;
+            if (ExportingOrderFormat.HasValue) return;
 
-            IsExportingOrder = true;
+            ExportingOrderFormat = format;
             try
             {
-                await FileDownloads.DownloadFromApiAsync(
-                    $"{Config.VppApi.Orders}/{row.Id}/{format}");
-                Toast.Success(BaseLoc["Order"], BaseLoc["OrderExported"]);
+                var result = await FileDownloads.DownloadFromApiAsync(
+                    $"{Config.VppApi.Orders}/{row.Id}/{format.ApiSuffix()}");
+                Toast.Success(BaseLoc["Order"], BaseLoc["ExportCompleted", result.FileName, FileSizeFormatter.Format(result.Size)]);
             }
             catch (Exception ex)
             {
@@ -344,7 +340,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             }
             finally
             {
-                IsExportingOrder = false;
+                ExportingOrderFormat = null;
                 StateHasChanged();
             }
         }

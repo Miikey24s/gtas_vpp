@@ -129,7 +129,7 @@
                              DetailSearch="@_detailSearch" DetailCategory="@_detailCategory" DetailUom="@_detailUom"
                              ActiveDetailCodeNumber="@_activeDetailCodeNumber" ActiveDetailNoteNumber="@_activeDetailNoteNumber"
                              HasDetailFilters="@HasDetailFilters" HasTableFilters="@HasTableFilters" TotalCount="@TotalCount"
-                             UnitHeaderLabel="@UnitHeaderLabel" IsExporting="@IsExportingOrder" CloseRequested="@CloseDrawer"
+                             UnitHeaderLabel="@UnitHeaderLabel" BusyExportFormat="@ExportingOrderFormat" CloseRequested="@CloseDrawer"
                              ExportRequested="@ExportSelectedOrderAsync" RetryRequested="@(() => OpenOrderAsync(_selectedOrder!, false))"
                              DetailSearchChanged="@OnDetailSearchInput" DetailCategorySelected="@SelectDetailCategoryAsync"
                              DetailUomSelected="@SelectDetailUomAsync" DetailFiltersCleared="@ClearDetailFiltersAsync"

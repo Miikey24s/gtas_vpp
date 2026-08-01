@@ -30,26 +30,26 @@ public static class ReportWorkbookBuilder
 
         var summaryRows = new List<IReadOnlyList<object?>>
         {
-            new object?[] { "GTAS VPP — Settlement-aware report", null },
-            new object?[] { "Scope", summary.Scope },
+            new object?[] { "GTAS VPP — Báo cáo tổng hợp văn phòng phẩm", null },
+            new object?[] { "Phạm vi", summary.Scope },
             new object?[]
             {
-                "Period",
+                "Kỳ",
                 summary.Year.HasValue && summary.Month.HasValue
                     ? $"{summary.Month:00}/{summary.Year}"
-                    : "All periods"
+                    : "Tất cả kỳ"
             },
-            new object?[] { "Generated UTC", summary.GeneratedAt.ToUniversalTime().ToString("O") },
-            new object?[] { "Total orders", summary.TotalOrders },
-            new object?[] { "Total lines", summary.TotalLines },
-            new object?[] { "Total quantity", summary.TotalQuantity },
-            new object?[] { "Total amount (VND)", summary.TotalAmount },
-            new object?[] { "Settlement reconciled", summary.IsSettlementReconciled ? "YES" : "NO / NOT SETTLED" },
-            new object?[] { "Settlement revision", summary.SettlementRevisionNumber },
-            new object?[] { "Primary supplier", summary.SettlementPrimarySupplierName },
-            new object?[] { "Settlement grand total", summary.SettlementGrandTotal },
-            new object?[] { "Allocation total", summary.SettlementAllocationTotal },
-            new object?[] { "Settlement variance", summary.SettlementVariance }
+            new object?[] { "Tạo lúc (UTC)", summary.GeneratedAt.ToUniversalTime().ToString("O") },
+            new object?[] { "Tổng đơn", summary.TotalOrders },
+            new object?[] { "Tổng mặt hàng", summary.TotalLines },
+            new object?[] { "Tổng số lượng", summary.TotalQuantity },
+            new object?[] { "Tổng giá trị (VND)", summary.TotalAmount },
+            new object?[] { "Đã đối chiếu chốt kỳ", summary.IsSettlementReconciled ? "Có" : "Chưa / Chưa chốt kỳ" },
+            new object?[] { "Phiên bản chốt kỳ", summary.SettlementRevisionNumber },
+            new object?[] { "Nhà cung cấp chính", summary.SettlementPrimarySupplierName },
+            new object?[] { "Tổng giá trị chốt kỳ", summary.SettlementGrandTotal },
+            new object?[] { "Tổng phân bổ", summary.SettlementAllocationTotal },
+            new object?[] { "Chênh lệch chốt kỳ", summary.SettlementVariance }
         };
 
         var itemRows = items.Select(item => (IReadOnlyList<object?>)new object?[]
@@ -68,36 +68,61 @@ public static class ReportWorkbookBuilder
             item.GrossAmount,
             item.SupplierName,
             item.PriceBook,
-            item.IsSupplierException ? "YES" : "NO"
+            item.IsSupplierException ? "Có" : "Không"
         }).ToArray();
 
         return SimpleWorkbookBuilder.Build([
-            new SimpleWorkbookSheet("Summary", ["Metric", "Value"], summaryRows),
             new SimpleWorkbookSheet(
-                "Items",
+                "Tổng quan",
+                [new("Chỉ số", 28), new("Giá trị", 46)],
+                summaryRows),
+            new SimpleWorkbookSheet(
+                "Mặt hàng",
                 [
-                    "Period", "Department", "RequesterUserId", "ProductCode", "ProductName",
-                    "Quantity", "NetUnitPrice", "VatRate", "NetAmount", "VatAmount",
-                    "CommercialAdjustment", "GrossAmount", "Supplier", "PriceBook", "SupplierException"
+                    new("Kỳ", 14), new("Phòng ban", 18),
+                    new("Mã người yêu cầu", 18, SimpleWorkbookCellFormat.Integer),
+                    new("Mã mặt hàng", 24), new("Tên mặt hàng", 36),
+                    new("Số lượng", 14, SimpleWorkbookCellFormat.Decimal),
+                    new("Đơn giá trước thuế", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Thuế VAT (%)", 14, SimpleWorkbookCellFormat.Decimal),
+                    new("Tiền trước thuế", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Tiền thuế", 18, SimpleWorkbookCellFormat.Decimal),
+                    new("Điều chỉnh", 18, SimpleWorkbookCellFormat.Decimal),
+                    new("Thành tiền", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Nhà cung cấp", 28), new("Bảng giá", 28), new("Ngoại lệ NCC", 16)
                 ],
                 itemRows),
             new SimpleWorkbookSheet(
-                "Departments",
-                ["Department", "Orders", "Quantity", "AmountVND"],
+                "Phòng ban",
+                [
+                    new("Phòng ban", 24),
+                    new("Số đơn", 14, SimpleWorkbookCellFormat.Integer),
+                    new("Tổng số lượng", 18, SimpleWorkbookCellFormat.Decimal),
+                    new("Tổng giá trị (VND)", 22, SimpleWorkbookCellFormat.Decimal)
+                ],
                 summary.DepartmentBreakdown.Select(item => (IReadOnlyList<object?>)new object?[]
                 {
                     item.Code, item.OrderCount, item.TotalQuantity, item.TotalAmount
                 }).ToArray()),
             new SimpleWorkbookSheet(
-                "Trend",
-                ["Period", "Orders", "Quantity", "AmountVND"],
+                "Xu hướng",
+                [
+                    new("Kỳ", 14),
+                    new("Số đơn", 14, SimpleWorkbookCellFormat.Integer),
+                    new("Tổng số lượng", 18, SimpleWorkbookCellFormat.Decimal),
+                    new("Tổng giá trị (VND)", 22, SimpleWorkbookCellFormat.Decimal)
+                ],
                 summary.PeriodTrend.Select(item => (IReadOnlyList<object?>)new object?[]
                 {
                     item.Period, item.OrderCount, item.TotalQuantity, item.TotalAmount
                 }).ToArray()),
             new SimpleWorkbookSheet(
-                "TopProducts",
-                ["ProductCode", "ProductName", "Quantity", "AmountVND"],
+                "Mặt hàng nổi bật",
+                [
+                    new("Mã mặt hàng", 24), new("Tên mặt hàng", 36),
+                    new("Tổng số lượng", 18, SimpleWorkbookCellFormat.Decimal),
+                    new("Tổng giá trị (VND)", 22, SimpleWorkbookCellFormat.Decimal)
+                ],
                 summary.TopProducts.Select(item => (IReadOnlyList<object?>)new object?[]
                 {
                     item.ProductCode, item.ProductName, item.TotalQuantity, item.TotalAmount

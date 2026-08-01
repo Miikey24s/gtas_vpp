@@ -80,9 +80,8 @@
                                             RecreateRequested="@GoToRecreatePage"
                                             HistoryRequested="@OpenHistoryAsync"
                                             CancelRequested="@CancelOrderAsync"
-                                            ExportPdfRequested="@ExportOrderPdfAsync"
-                                            ExportExcelRequested="@ExportOrderExcelAsync"
-                                            IsExporting="@IsExportingOrder"
+                                            ExportRequested="@(format => ExportOrderAsync(CurrentRegularOrder!, format))"
+                                            BusyExportFormat="@ExportingOrderFormat"
                                             CopyCodeRequested="@CopyToClipboard" />
                 }
                 else if (OrderViewSelectedIndex == SupplementOrderViewIndex)
@@ -116,9 +115,8 @@
                                             RecreateRequested="@GoToRecreatePage"
                                             HistoryRequested="@OpenHistoryAsync"
                                             CancelRequested="@CancelOrderAsync"
-                                            ExportPdfRequested="@ExportOrderPdfAsync"
-                                            ExportExcelRequested="@ExportOrderExcelAsync"
-                                            IsExporting="@IsExportingOrder"
+                                            ExportRequested="@(format => ExportOrderAsync(SelectedSupplementOrder!, format))"
+                                            BusyExportFormat="@ExportingOrderFormat"
                                             CopyCodeRequested="@CopyToClipboard" />
                 }
                 else
@@ -136,9 +134,8 @@
                                             PrimaryActionIcon="@VppIcons.Copy"
                                             PrimaryActionRequested="@CopyPreviousAsync"
                                             HistoryRequested="@OpenHistoryAsync"
-                                            ExportPdfRequested="@ExportOrderPdfAsync"
-                                            ExportExcelRequested="@ExportOrderExcelAsync"
-                                            IsExporting="@IsExportingOrder"
+                                            ExportRequested="@(format => ExportOrderAsync(PreviousRegularOrder!, format))"
+                                            BusyExportFormat="@ExportingOrderFormat"
                                             CopyCodeRequested="@CopyToClipboard" />
                 }
             </div>

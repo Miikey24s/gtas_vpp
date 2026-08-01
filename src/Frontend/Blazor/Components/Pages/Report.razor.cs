@@ -20,7 +20,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected ReportInsightResDTO? Insight { get; private set; }
     protected string? LoadError { get; private set; }
     protected bool IsLoading { get; private set; }
-    protected bool IsExporting { get; private set; }
+    protected VppFileExportFormat? ExportingFormat { get; private set; }
     protected bool IsLoadingInsights { get; private set; }
     private readonly AsyncLoadVersion _loadVersion = new();
     protected string SelectedScope { get; set; } = ReportScopes.Own;
@@ -30,6 +30,8 @@ public abstract class ReportBase : ComponentBase, IDisposable
 
     protected bool CanViewReport => ScopeOptions.Count > 0;
     protected bool CanExport => PermissionState.HasPermission(Permissions.ReportExport);
+    protected static IReadOnlyList<VppFileExportFormat> ReportExportFormats { get; } =
+        [VppFileExportFormat.Pdf, VppFileExportFormat.Excel, VppFileExportFormat.Csv];
     protected IReadOnlyList<int> AvailableYears => Summary?.AvailableYears ?? [];
     protected IReadOnlyList<ReportMonthOption> MonthOptions { get; } = Enumerable.Range(1, 12)
         .Select(month => new ReportMonthOption(month, month.ToString("00", CultureInfo.InvariantCulture)))
@@ -157,22 +159,18 @@ public abstract class ReportBase : ComponentBase, IDisposable
         return Task.CompletedTask;
     }
 
-    protected Task ExportCsvAsync() => ExportAsync("export", "ReportExportedCsv");
-
-    protected Task ExportXlsxAsync() => ExportAsync("export.xlsx", "ReportExportedXlsx");
-
-    private async Task ExportAsync(string action, string successResourceKey)
+    protected async Task ExportAsync(VppFileExportFormat format)
     {
-        if (!CanExport || IsExporting)
+        if (!CanExport || ExportingFormat.HasValue)
         {
             return;
         }
 
-        IsExporting = true;
+        ExportingFormat = format;
         try
         {
-            await FileDownloads.DownloadFromApiAsync(BuildEndpoint(action));
-            Toast.Success(Localizer["Success"], Localizer[successResourceKey]);
+            var result = await FileDownloads.DownloadFromApiAsync(BuildEndpoint(format.ApiSuffix()));
+            Toast.Success(Localizer["Success"], Localizer["ExportCompleted", result.FileName, FileSizeFormatter.Format(result.Size)]);
         }
         catch (Exception ex)
         {
@@ -180,7 +178,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         }
         finally
         {
-            IsExporting = false;
+            ExportingFormat = null;
         }
     }
 

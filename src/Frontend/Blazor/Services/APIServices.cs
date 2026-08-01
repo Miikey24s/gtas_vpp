@@ -17,7 +17,9 @@ namespace gtas_vpp_fe.Services
         Task<T?> PostFromApiAsync<T>(string endpoint, object? body);
         Task<T?> PutFromApiAsync<T>(string endpoint, object body);
         Task<T?> PatchFromApiAsync<T>(string endpoint, object body);
-        Task<ApiFileResult> GetFileFromApiAsync(string endpoint);
+        Task<ApiFileStreamResult> OpenFileFromApiAsync(
+            string endpoint,
+            CancellationToken cancellationToken = default);
         Task<bool> DeleteFromApiAsync(string endpoint);
     }
     public class APIServices : IAPIServices
@@ -262,19 +264,58 @@ namespace gtas_vpp_fe.Services
             return await ReadResponseAsJsonAsync<T>(response);
         }
 
-        public async Task<ApiFileResult> GetFileFromApiAsync(string endpoint)
+        public async Task<ApiFileStreamResult> OpenFileFromApiAsync(
+            string endpoint,
+            CancellationToken cancellationToken = default)
         {
             await ApplyAuthorizationHeaderAsync();
-            using var response = await _httpClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead);
-            await EnsureSuccessWithDetailsAsync(response);
+            var response = await _httpClient.GetAsync(
+                endpoint,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+            try
+            {
+                await EnsureSuccessWithDetailsAsync(response);
+                if (response.Content.Headers.ContentLength == 0)
+                {
+                    throw new InvalidDataException("The export response was empty.");
+                }
 
-            var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
-                ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
-                ?? "download.bin";
-            var contentType = response.Content.Headers.ContentType?.ToString()
-                ?? "application/octet-stream";
-            var content = await response.Content.ReadAsByteArrayAsync();
-            return new ApiFileResult(content, fileName, contentType);
+                var fileName = NormalizeDownloadFileName(
+                    response.Content.Headers.ContentDisposition?.FileNameStar
+                    ?? response.Content.Headers.ContentDisposition?.FileName);
+                var contentType = response.Content.Headers.ContentType?.ToString()
+                    ?? "application/octet-stream";
+                var content = await response.Content.ReadAsStreamAsync(cancellationToken);
+                return new ApiFileStreamResult(response, content, fileName, contentType);
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
+            }
+        }
+
+        private static string NormalizeDownloadFileName(string? value)
+        {
+            var raw = value?.Trim('"') ?? "download.bin";
+            string decoded;
+            try
+            {
+                decoded = Uri.UnescapeDataString(raw);
+            }
+            catch (UriFormatException)
+            {
+                decoded = raw;
+            }
+
+            var fileName = Path.GetFileName(decoded);
+            foreach (var character in Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(character, '-');
+            }
+
+            return string.IsNullOrWhiteSpace(fileName) ? "download.bin" : fileName;
         }
 
         private static async Task<T?> ReadResponseAsJsonAsync<T>(HttpResponseMessage response)
@@ -324,5 +365,23 @@ namespace gtas_vpp_fe.Services
         }
     }
 
-    public sealed record ApiFileResult(byte[] Content, string FileName, string ContentType);
+    public sealed class ApiFileStreamResult(
+        HttpResponseMessage response,
+        Stream content,
+        string fileName,
+        string contentType) : IAsyncDisposable
+    {
+        private readonly HttpResponseMessage _response = response;
+
+        public Stream Content { get; } = content;
+        public string FileName { get; } = fileName;
+        public string ContentType { get; } = contentType;
+        public long? ContentLength => _response.Content.Headers.ContentLength;
+
+        public async ValueTask DisposeAsync()
+        {
+            await Content.DisposeAsync();
+            _response.Dispose();
+        }
+    }
 }

@@ -32,7 +32,7 @@
                                   HasGridLoadError="@HasGridLoadError"
                                   CanApprove="@CanApprove"
                                   CanReject="@CanReject"
-                                  IsExporting="@IsExportingOrder"
+                                  BusyExportFormat="@ExportingOrderFormat"
                                   SelectedOrder="@SelectedPendingOrder"
                                   Processing="@IsProcessing"
                                   DetailLoading="@IsRowDetailLoading"
@@ -49,8 +49,7 @@
                                   DepartmentSelected="@OnPendingDepartmentSelectedAsync"
                                   ClearFiltersRequested="@ClearPendingFiltersAsync"
                                   CopyRequested="@CopyToClipboard"
-                                  ExportPdfRequested="@ExportOrderPdfAsync"
-                                  ExportExcelRequested="@ExportOrderExcelAsync" />
+                                  ExportRequested="@ExportPendingOrderAsync" />
     }
     else
     {

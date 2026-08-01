@@ -446,6 +446,13 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Correction Chốt kỳ chuyển từ backdrop/modal tự dựng sang `DialogService`, `VppAdaptiveDialogShell` và `VppDialogActions`; selector/CSS manual cũ về zero-consumer và bị xóa.
 - Architecture gate mới khóa dialog/admin action composite, download owner, CSS select/pager authority, Report filter và settlement export. Final gate: solution Release `0 warning/error`; frontend `213/213`; backend `468/468`; focused browser `6/6` cho file download Order/Report, Chốt kỳ, admin/report responsive và footer paging. Review bằng mắt tại `1366×768`, `1920×1080` và tablet xác nhận selector, action switch, pager, popup và inset không chồng/lệch. `verify` vẫn dừng trước scope build ở `model-routing-eval` do AI-harness dirty có sẵn ngoài change-set này.
 
+### 7.8 — FILE-EXPORT completion — 2026-08-01
+
+- `VppFileExportActions` là action cluster typed duy nhất cho PDF/Excel/CSV; My Orders, History, Department Summary, Duyệt đơn bổ sung, Chốt kỳ và Report dùng cùng label/icon/disabled/per-format busy contract.
+- `IBrowserFileDownloadService` không còn đọc response thành `byte[]`: response được mở với `ResponseHeadersRead`, stream sang `DotNetStreamReference`, giữ MIME thật trong `Blob`, dùng tên `Content-Disposition`, xác nhận byte count và revoke object URL sau khi browser đã nhận tải.
+- Backend dùng `ExportFileContract` cho tên file an toàn và MIME. `SimpleWorkbookBuilder` bổ sung độ rộng cột, freeze hàng tiêu đề, auto-filter, print setup và number format; Order/Settlement/Report dùng header tiếng Việt. Report có thêm bản PDF tóm tắt bên cạnh Excel nhiều sheet và CSV phụ trợ.
+- Evidence hẹp: frontend + API Release build `0 warning/error`; backend export `16/16`; frontend architecture `30/30`; isolated browser `2/2` route với 5 download thật (Report PDF/XLSX/CSV, Order PDF/XLSX), kiểm tra `%PDF`, workbook ZIP entries và CSV content.
+
 ---
 
 ## 8. Rủi ro và recovery

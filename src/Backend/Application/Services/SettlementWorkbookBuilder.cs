@@ -12,29 +12,29 @@ public static class SettlementWorkbookBuilder
         var culture = CultureInfo.GetCultureInfo("vi-VN");
         var summaryRows = new List<IReadOnlyList<object?>>
         {
-            new object?[] { "GTAS VPP — Period settlement", null },
-            new object?[] { "Period", $"{settlement.Month:00}/{settlement.Year}" },
-            new object?[] { "Revision", settlement.RevisionNumber },
-            new object?[] { "Current revision", settlement.IsCurrentRevision ? "YES" : "NO" },
-            new object?[] { "Correction", settlement.IsCorrection ? "YES" : "NO" },
-            new object?[] { "Correction reason", settlement.CorrectionReason ?? "-" },
-            new object?[] { "Primary supplier", settlement.PrimarySupplierName },
-            new object?[] { "Price book", settlement.PriceListName },
-            new object?[] { "Price book version", settlement.PriceListVersion },
-            new object?[] { "Price as of", settlement.PriceAsOfUtc.ToString("HH:mm dd/MM/yyyy", culture) },
-            new object?[] { "Currency", settlement.CurrencyCode },
-            new object?[] { "Subtotal", settlement.Subtotal },
-            new object?[] { "Discount", settlement.DiscountAmount },
-            new object?[] { "Rebate", settlement.RebateAmount },
-            new object?[] { "Fee", settlement.FeeAmount },
-            new object?[] { "Shipping", settlement.ShippingAmount },
-            new object?[] { "VAT", settlement.VatAmount },
-            new object?[] { "Rounding", settlement.RoundingAdjustment },
-            new object?[] { "Grand total", settlement.GrandTotal },
-            new object?[] { "Confirmed at", settlement.ConfirmedAtUtc.ToString("HH:mm dd/MM/yyyy", culture) },
-            new object?[] { "Confirmed by user", settlement.ConfirmedByUserId },
-            new object?[] { "Calculation version", settlement.CalculationVersion },
-            new object?[] { "Input hash", settlement.InputHash }
+            new object?[] { "GTAS VPP — Biên bản chốt kỳ văn phòng phẩm", null },
+            new object?[] { "Kỳ", $"{settlement.Month:00}/{settlement.Year}" },
+            new object?[] { "Phiên bản", settlement.RevisionNumber },
+            new object?[] { "Phiên bản hiện hành", settlement.IsCurrentRevision ? "Có" : "Không" },
+            new object?[] { "Phiên hiệu chỉnh", settlement.IsCorrection ? "Có" : "Không" },
+            new object?[] { "Lý do hiệu chỉnh", settlement.CorrectionReason ?? "-" },
+            new object?[] { "Nhà cung cấp chính", settlement.PrimarySupplierName },
+            new object?[] { "Bảng giá", settlement.PriceListName },
+            new object?[] { "Phiên bản bảng giá", settlement.PriceListVersion },
+            new object?[] { "Giá áp dụng lúc", settlement.PriceAsOfUtc.ToString("HH:mm dd/MM/yyyy", culture) },
+            new object?[] { "Tiền tệ", settlement.CurrencyCode },
+            new object?[] { "Tạm tính", settlement.Subtotal },
+            new object?[] { "Giảm giá", settlement.DiscountAmount },
+            new object?[] { "Chiết khấu", settlement.RebateAmount },
+            new object?[] { "Phí", settlement.FeeAmount },
+            new object?[] { "Vận chuyển", settlement.ShippingAmount },
+            new object?[] { "Thuế VAT", settlement.VatAmount },
+            new object?[] { "Điều chỉnh làm tròn", settlement.RoundingAdjustment },
+            new object?[] { "Tổng giá trị", settlement.GrandTotal },
+            new object?[] { "Chốt lúc", settlement.ConfirmedAtUtc.ToString("HH:mm dd/MM/yyyy", culture) },
+            new object?[] { "Người chốt", settlement.ConfirmedByUserId },
+            new object?[] { "Phiên bản tính toán", settlement.CalculationVersion },
+            new object?[] { "Mã đối chiếu", settlement.InputHash }
         };
 
         var itemRows = settlement.Items
@@ -53,7 +53,7 @@ public static class SettlementWorkbookBuilder
                 item.VatAmount,
                 item.GrossAmount,
                 item.SupplierSku,
-                item.IsSupplierException ? "YES" : "NO",
+                item.IsSupplierException ? "Có" : "Không",
                 item.SupplierExceptionReason ?? "-"
             })
             .ToArray();
@@ -79,20 +79,36 @@ public static class SettlementWorkbookBuilder
             .ToArray();
 
         return SimpleWorkbookBuilder.Build([
-            new SimpleWorkbookSheet("Settlement", ["Field", "Value"], summaryRows),
             new SimpleWorkbookSheet(
-                "Items",
+                "Tổng quan",
+                [new("Trường", 26), new("Giá trị", 48)],
+                summaryRows),
+            new SimpleWorkbookSheet(
+                "Mặt hàng",
                 [
-                    "#", "Item code", "Item name", "Unit", "Quantity", "Net unit price",
-                    "VAT rate", "Net amount", "VAT amount", "Gross amount", "Supplier SKU",
-                    "Supplier exception", "Exception reason"
+                    new("#", 8, SimpleWorkbookCellFormat.Integer),
+                    new("Mã mặt hàng", 24), new("Tên mặt hàng", 36), new("Đơn vị", 14),
+                    new("Số lượng", 14, SimpleWorkbookCellFormat.Decimal),
+                    new("Đơn giá trước thuế", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Thuế VAT (%)", 14, SimpleWorkbookCellFormat.Decimal),
+                    new("Tiền trước thuế", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Tiền thuế", 18, SimpleWorkbookCellFormat.Decimal),
+                    new("Thành tiền", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Mã NCC", 22), new("Ngoại lệ NCC", 16), new("Lý do ngoại lệ", 36)
                 ],
                 itemRows),
             new SimpleWorkbookSheet(
-                "Allocations",
+                "Phân bổ",
                 [
-                    "#", "Department", "Requester user", "Item code", "Item name", "Quantity",
-                    "Net amount", "VAT amount", "Commercial adjustment", "Rounding", "Gross amount"
+                    new("#", 8, SimpleWorkbookCellFormat.Integer),
+                    new("Phòng ban", 18), new("Mã người yêu cầu", 18, SimpleWorkbookCellFormat.Integer),
+                    new("Mã mặt hàng", 24), new("Tên mặt hàng", 36),
+                    new("Số lượng", 14, SimpleWorkbookCellFormat.Decimal),
+                    new("Tiền trước thuế", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Tiền thuế", 18, SimpleWorkbookCellFormat.Decimal),
+                    new("Điều chỉnh thương mại", 22, SimpleWorkbookCellFormat.Decimal),
+                    new("Điều chỉnh làm tròn", 20, SimpleWorkbookCellFormat.Decimal),
+                    new("Thành tiền", 20, SimpleWorkbookCellFormat.Decimal)
                 ],
                 allocationRows)
         ]);

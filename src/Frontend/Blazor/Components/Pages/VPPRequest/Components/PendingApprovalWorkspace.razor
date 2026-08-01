@@ -139,12 +139,9 @@
                                 <p>@string.Format(Loc["SubmittedAtInlineFormat"].Value, DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate))</p>
                             </div>
                             <div class="vpp-approval-detail-exports">
-                                <RadzenButton Icon="picture_as_pdf" Text="@Loc["ExportPdf"]" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base"
-                                              Click="@(_ => ExportPdfRequested.InvokeAsync(SelectedOrder))" Title="@Loc["ExportPdf"]"
-                                              aria-label="@string.Format(Loc["ExportOrderPdfAria"], SelectedOrder.VppCode)" Disabled="@IsExporting" />
-                                <RadzenButton Icon="table_view" Text="@Loc["ExportExcel"]" Size="ButtonSize.Small" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base"
-                                              Click="@(_ => ExportExcelRequested.InvokeAsync(SelectedOrder))" Title="@Loc["ExportExcel"]"
-                                              aria-label="@string.Format(Loc["ExportOrderExcelAria"], SelectedOrder.VppCode)" Disabled="@IsExporting" />
+                                <VppFileExportActions BusyFormat="@BusyExportFormat"
+                                                      ExportRequested="@ExportRequested"
+                                                      AriaContext="@SelectedOrder.VppCode" />
                             </div>
                         </header>
 
@@ -235,7 +232,7 @@
     [Parameter] public bool HasGridLoadError { get; set; }
     [Parameter] public bool CanApprove { get; set; }
     [Parameter] public bool CanReject { get; set; }
-    [Parameter] public bool IsExporting { get; set; }
+    [Parameter] public VppFileExportFormat? BusyExportFormat { get; set; }
     [Parameter] public VppRequestResDTO? SelectedOrder { get; set; }
     [Parameter] public string SearchText { get; set; } = string.Empty;
     [Parameter] public string SelectedDepartment { get; set; } = string.Empty;
@@ -252,8 +249,7 @@
     [Parameter] public EventCallback<string> DepartmentSelected { get; set; }
     [Parameter] public EventCallback ClearFiltersRequested { get; set; }
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
-    [Parameter] public EventCallback<VppRequestResDTO> ExportPdfRequested { get; set; }
-    [Parameter] public EventCallback<VppRequestResDTO> ExportExcelRequested { get; set; }
+    [Parameter] public EventCallback<VppFileExportFormat> ExportRequested { get; set; }
 
     private int? activeCodeNumber;
     private int? activeNoteNumber;

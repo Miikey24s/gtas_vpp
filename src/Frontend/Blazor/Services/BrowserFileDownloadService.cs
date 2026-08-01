@@ -4,8 +4,9 @@ namespace gtas_vpp_fe.Services;
 
 public interface IBrowserFileDownloadService
 {
-    Task<ApiFileResult> DownloadFromApiAsync(string endpoint);
-    Task DownloadAsync(ApiFileResult file);
+    Task<BrowserFileDownloadResult> DownloadFromApiAsync(
+        string endpoint,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -19,18 +20,25 @@ public sealed class BrowserFileDownloadService(
     private readonly IAPIServices _apiServices = apiServices;
     private readonly IJSRuntime _jsRuntime = jsRuntime;
 
-    public async Task<ApiFileResult> DownloadFromApiAsync(string endpoint)
+    public async Task<BrowserFileDownloadResult> DownloadFromApiAsync(
+        string endpoint,
+        CancellationToken cancellationToken = default)
     {
-        var file = await _apiServices.GetFileFromApiAsync(endpoint);
-        await DownloadAsync(file);
-        return file;
-    }
+        await using var file = await _apiServices.OpenFileFromApiAsync(endpoint, cancellationToken);
+        using var streamReference = new DotNetStreamReference(file.Content);
+        var size = await _jsRuntime.InvokeAsync<long>(
+            "vppDownload.fromStream",
+            cancellationToken,
+            file.FileName,
+            file.ContentType,
+            streamReference);
+        if (size <= 0)
+        {
+            throw new InvalidDataException("The export response was empty.");
+        }
 
-    public async Task DownloadAsync(ApiFileResult file)
-    {
-        ArgumentNullException.ThrowIfNull(file);
-        await using var stream = new MemoryStream(file.Content, writable: false);
-        using var streamReference = new DotNetStreamReference(stream);
-        await _jsRuntime.InvokeVoidAsync("vppDownload.fromStream", file.FileName, streamReference);
+        return new BrowserFileDownloadResult(file.FileName, file.ContentType, size);
     }
 }
+
+public sealed record BrowserFileDownloadResult(string FileName, string ContentType, long Size);

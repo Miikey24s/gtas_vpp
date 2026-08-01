@@ -28,6 +28,15 @@ public interface IReportService
         int? month,
         CancellationToken cancellationToken = default);
 
+    Task<ReportExportResult> ExportPdfAsync(
+        string scope,
+        int userId,
+        string Code,
+        string memberCompanyCode,
+        int? year,
+        int? month,
+        CancellationToken cancellationToken = default);
+
     Task<ReportExportResult> ExportWorkbookAsync(
         string scope,
         int userId,
@@ -354,14 +363,27 @@ public sealed class ReportService(VPPContext context) : IReportService
 
         var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
         var content = encoding.GetPreamble().Concat(encoding.GetBytes(csv.ToString())).ToArray();
-        var periodPart = year.HasValue
-            ? month.HasValue ? $"{year}-{month:00}" : year.Value.ToString(CultureInfo.InvariantCulture)
-            : "all";
-
         return new ReportExportResult(
             content,
-            $"GTAS-VPP-{scope}-{periodPart}.csv",
-            "text/csv; charset=utf-8");
+            ExportFileContract.Report(scope, year, month, "csv"),
+            ExportFileContract.CsvContentType);
+    }
+
+    public async Task<ReportExportResult> ExportPdfAsync(
+        string scope,
+        int userId,
+        string Code,
+        string memberCompanyCode,
+        int? year,
+        int? month,
+        CancellationToken cancellationToken = default)
+    {
+        var summary = await GetSummaryAsync(
+            scope, userId, Code, memberCompanyCode, year, month, cancellationToken);
+        return new ReportExportResult(
+            ReportPdfBuilder.Build(summary),
+            ExportFileContract.Report(scope, year, month, "pdf"),
+            ExportFileContract.PdfContentType);
     }
 
     public async Task<ReportExportResult> ExportWorkbookAsync(
@@ -430,13 +452,10 @@ public sealed class ReportService(VPPContext context) : IReportService
             }
         }
 
-        var periodPart = year.HasValue
-            ? month.HasValue ? $"{year}-{month:00}" : year.Value.ToString(CultureInfo.InvariantCulture)
-            : "all";
         return new ReportExportResult(
             ReportWorkbookBuilder.Build(summary, items),
-            $"GTAS-VPP-{scope}-{periodPart}.xlsx",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            ExportFileContract.Report(scope, year, month, "xlsx"),
+            ExportFileContract.ExcelContentType);
     }
 
     public static string EscapeCsvCell(string? value)

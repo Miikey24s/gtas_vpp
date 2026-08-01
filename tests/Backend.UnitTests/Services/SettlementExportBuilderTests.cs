@@ -21,6 +21,8 @@ public sealed class SettlementExportBuilderTests
         Assert.Contains("VPP Gia Định", ReadEntry(archive, "xl/worksheets/sheet1.xml"));
         Assert.Contains("Bút bi Thiên Long TL-027", ReadEntry(archive, "xl/worksheets/sheet2.xml"));
         Assert.Contains("IT", ReadEntry(archive, "xl/worksheets/sheet3.xml"));
+        Assert.Contains("state=\"frozen\"", ReadEntry(archive, "xl/worksheets/sheet2.xml"));
+        Assert.Contains("autoFilter", ReadEntry(archive, "xl/worksheets/sheet3.xml"));
     }
 
     [Fact]

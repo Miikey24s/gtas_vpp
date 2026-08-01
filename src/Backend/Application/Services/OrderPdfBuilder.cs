@@ -38,7 +38,7 @@ public static class OrderPdfBuilder
                         row.ConstantItem(140).AlignRight().AlignMiddle()
                             .Text(order.StatusText).FontSize(10).SemiBold();
                     });
-                    header.Item().PaddingTop(10).LineHorizontal(0.75f).LineColor(Colors.Grey.Lighten2);
+                    header.Item().PaddingTop(10).LineHorizontal(1).LineColor(VppPdfTheme.Border);
                 });
 
                 page.Content().PaddingVertical(12).Column(content =>
@@ -80,37 +80,30 @@ public static class OrderPdfBuilder
                             columns.RelativeColumn(2.6f);
                         });
 
-                        static IContainer HeaderCell(IContainer cell) => cell
-                            .BorderBottom(1).BorderColor(Colors.Grey.Lighten1)
-                            .PaddingVertical(5).PaddingHorizontal(4);
-                        static IContainer BodyCell(IContainer cell) => cell
-                            .BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2)
-                            .PaddingVertical(4).PaddingHorizontal(4);
-
                         table.Header(headerRow =>
                         {
-                            headerRow.Cell().Element(HeaderCell).Text("#").FontSize(8).SemiBold();
-                            headerRow.Cell().Element(HeaderCell).Text("Mặt hàng").FontSize(8).SemiBold();
-                            headerRow.Cell().Element(HeaderCell).Text("Danh mục").FontSize(8).SemiBold();
-                            headerRow.Cell().Element(HeaderCell).Text("Đơn vị").FontSize(8).SemiBold();
-                            headerRow.Cell().Element(HeaderCell).AlignRight().Text("Số lượng").FontSize(8).SemiBold();
-                            headerRow.Cell().Element(HeaderCell).Text("Ghi chú").FontSize(8).SemiBold();
+                            headerRow.Cell().Element(VppPdfTheme.TableHeaderCell).Text("#").FontSize(8).SemiBold();
+                            headerRow.Cell().Element(VppPdfTheme.TableHeaderCell).Text("Mặt hàng").FontSize(8).SemiBold();
+                            headerRow.Cell().Element(VppPdfTheme.TableHeaderCell).Text("Danh mục").FontSize(8).SemiBold();
+                            headerRow.Cell().Element(VppPdfTheme.TableHeaderCell).Text("Đơn vị").FontSize(8).SemiBold();
+                            headerRow.Cell().Element(VppPdfTheme.TableHeaderCell).AlignRight().Text("Số lượng").FontSize(8).SemiBold();
+                            headerRow.Cell().Element(VppPdfTheme.TableHeaderCell).Text("Ghi chú").FontSize(8).SemiBold();
                         });
 
                         var index = 0;
                         foreach (var item in order.Items)
                         {
                             index++;
-                            table.Cell().Element(BodyCell).Text(index.ToString()).FontSize(8.5f);
-                            table.Cell().Element(BodyCell).Column(cell =>
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Text(index.ToString()).FontSize(8.5f);
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Column(cell =>
                             {
                                 cell.Item().Text(item.VppName ?? "-").FontSize(9).SemiBold();
                                 cell.Item().Text(item.VppCode ?? "-").FontSize(7).FontColor(Colors.Grey.Darken1);
                             });
-                            table.Cell().Element(BodyCell).Text(item.CategoryName ?? "-").FontSize(8.5f);
-                            table.Cell().Element(BodyCell).Text(item.UomName ?? "-").FontSize(8.5f);
-                            table.Cell().Element(BodyCell).AlignRight().Text(item.Qty.ToString(CultureInfo.InvariantCulture)).FontSize(8.5f);
-                            table.Cell().Element(BodyCell).Text(string.IsNullOrWhiteSpace(item.Description) ? "-" : item.Description).FontSize(8.5f);
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Text(item.CategoryName ?? "-").FontSize(8.5f);
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Text(item.UomName ?? "-").FontSize(8.5f);
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.Qty.ToString(CultureInfo.InvariantCulture)).FontSize(8.5f);
+                            table.Cell().Element(VppPdfTheme.TableBodyCell).Text(string.IsNullOrWhiteSpace(item.Description) ? "-" : item.Description).FontSize(8.5f);
                         }
                     });
 

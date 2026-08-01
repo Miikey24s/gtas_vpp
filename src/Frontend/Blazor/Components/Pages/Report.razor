@@ -45,21 +45,17 @@ else
                                           BusyText="@Loc["GeneratingInsights"]"
                                           IsBusy="@IsLoadingInsights"
                                           ButtonStyle="ButtonStyle.Light"
-                                          Click="GenerateInsightsAsync"
-                                          Disabled="@(IsLoading || IsExporting)" />
+                                           Click="GenerateInsightsAsync"
+                                           Disabled="@(IsLoading || ExportingFormat.HasValue)" />
                         }
                         @if (CanExport)
                         {
-                            <RadzenButton Icon="description"
-                                          Text="@Loc["ExportCsv"]"
-                                          ButtonStyle="ButtonStyle.Light"
-                                          Click="ExportCsvAsync"
-                                          Disabled="@(IsLoading || IsExporting || Summary is null)" />
-                            <RadzenButton Icon="table_view"
-                                          Text="@Loc["ExportExcel"]"
-                                          ButtonStyle="ButtonStyle.Secondary"
-                                          Click="ExportXlsxAsync"
-                                          Disabled="@(IsLoading || IsExporting || Summary is null)" />
+                            <VppFileExportActions Formats="@ReportExportFormats"
+                                                  BusyFormat="@ExportingFormat"
+                                                  ExportRequested="@ExportAsync"
+                                                  Disabled="@(IsLoading || Summary is null)"
+                                                  ButtonStyle="ButtonStyle.Base"
+                                                  AriaContext="@Loc["Reports"]" />
                         }
                     </div>
                 </header>

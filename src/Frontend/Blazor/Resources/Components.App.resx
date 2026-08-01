@@ -35,11 +35,12 @@
   <data name="ExportReport" xml:space="preserve"><value>Xuất báo cáo</value></data>
   <data name="ExportPdf" xml:space="preserve"><value>Xuất PDF</value></data>
   <data name="ExportExcel" xml:space="preserve"><value>Xuất Excel</value></data>
+  <data name="ExportingPdf" xml:space="preserve"><value>Đang tạo PDF...</value></data>
+  <data name="ExportingExcel" xml:space="preserve"><value>Đang tạo Excel...</value></data>
+  <data name="ExportingCsv" xml:space="preserve"><value>Đang tạo CSV...</value></data>
+  <data name="ExportCompleted" xml:space="preserve"><value>Đã tải {0} ({1}).</value></data>
   <data name="ExportOrderPdfAria" xml:space="preserve"><value>Xuất đơn {0} ra tệp PDF</value></data>
   <data name="ExportOrderExcelAria" xml:space="preserve"><value>Xuất đơn {0} ra tệp Excel</value></data>
-  <data name="OrderExported" xml:space="preserve"><value>Đã xuất tệp chi tiết đơn</value></data>
-  <data name="SettlementExported" xml:space="preserve"><value>Đã xuất biên bản chốt kỳ</value></data>
-  <data name="ReportContentNotConfigured" xml:space="preserve"><value>Nội dung báo cáo chưa được cấu hình. Chức năng xuất báo cáo sẽ được bổ sung sau.</value></data>
   <data name="Permissions" xml:space="preserve"><value>Phân quyền</value></data>
   <data name="Settings" xml:space="preserve"><value>Cài đặt</value></data>
   <data name="Save" xml:space="preserve"><value>Lưu</value></data>
@@ -494,7 +495,6 @@
   <data name="Refresh" xml:space="preserve"><value>Làm mới</value></data>
   <data name="ReportDepartments" xml:space="preserve"><value>Chi phí theo phòng ban</value></data>
   <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Chi phí, số đơn và số lượng theo phòng ban trong phạm vi được phép.</value></data>
-  <data name="ReportExported" xml:space="preserve"><value>Đã xuất báo cáo CSV.</value></data>
   <data name="ReportExportFailed" xml:space="preserve"><value>Không thể xuất báo cáo: {0}</value></data>
   <data name="ReportFilters" xml:space="preserve"><value>Bộ lọc báo cáo</value></data>
   <data name="ReportLoadFailed" xml:space="preserve"><value>Không thể tải báo cáo: {0}</value></data>
@@ -1034,8 +1034,6 @@
   <data name="PermissionActionReportExport" xml:space="preserve"><value>Xuất báo cáo</value></data>
   <data name="PermissionActionPeriodSettle" xml:space="preserve"><value>Rà soát và chốt kỳ</value></data>
   <data name="ExportCsv" xml:space="preserve"><value>Xuất CSV</value></data>
-  <data name="ReportExportedCsv" xml:space="preserve"><value>Đã xuất báo cáo CSV.</value></data>
-  <data name="ReportExportedXlsx" xml:space="preserve"><value>Đã xuất báo cáo Excel.</value></data>
   <data name="ReportDepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm phòng ban</value></data>
   <data name="SettlementEvidence" xml:space="preserve"><value>Bằng chứng chốt kỳ</value></data>
   <data name="SettlementEvidenceTitle" xml:space="preserve"><value>Dữ liệu kỳ đã được đối chiếu</value></data>

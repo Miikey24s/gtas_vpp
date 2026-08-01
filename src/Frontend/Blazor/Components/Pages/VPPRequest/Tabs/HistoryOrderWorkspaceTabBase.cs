@@ -721,7 +721,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
             item.Description)));
     }
 
-    protected Task ExportSelectedOrderAsync(string format)
+    protected Task ExportSelectedOrderAsync(VppFileExportFormat format)
         => _selectedOrder is null ? Task.CompletedTask : ExportOrderAsync(_selectedOrder, format);
 
     protected void CloseDrawer()

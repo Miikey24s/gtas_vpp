@@ -1,0 +1,19 @@
+.vpp-file-export-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--vpp-space-1);
+    min-width: 0;
+}
+
+@media (max-width: 767px) {
+    .vpp-file-export-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    }
+
+    .vpp-file-export-actions :deep(.rz-button) {
+        width: 100%;
+    }
+}

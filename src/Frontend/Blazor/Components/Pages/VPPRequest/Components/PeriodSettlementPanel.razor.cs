@@ -44,7 +44,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isPreviewLoading;
     private bool isSettling;
     private bool isCorrecting;
-    private bool isExportingSettlement;
+    private VppFileExportFormat? exportingSettlementFormat;
     private bool canCorrect;
     private bool showCustomPeriodPicker;
     private bool hasExplicitSupplierSelection;
@@ -616,22 +616,25 @@ public partial class PeriodSettlementPanel : IDisposable
         }
     }
 
-    private async Task ExportSettlementAsync(string format)
+    private async Task ExportSettlementAsync(VppFileExportFormat format)
     {
-        if (isExportingSettlement || !CanExportSettlement)
+        if (exportingSettlementFormat.HasValue || !CanExportSettlement)
         {
             return;
         }
 
         var settlementId = status!.SettlementId!.Value;
-        isExportingSettlement = true;
+        exportingSettlementFormat = format;
         try
         {
-            var endpoint = format == "export.pdf"
-                ? string.Format(Config.RequestApi.PeriodSettlement.ExportPdf, settlementId)
-                : string.Format(Config.RequestApi.PeriodSettlement.ExportExcel, settlementId);
-            await FileDownloads.DownloadFromApiAsync(endpoint);
-            Toast.Success(Loc["PeriodSettlement"], Loc["SettlementExported"]);
+            var endpoint = format switch
+            {
+                VppFileExportFormat.Pdf => string.Format(Config.RequestApi.PeriodSettlement.ExportPdf, settlementId),
+                VppFileExportFormat.Excel => string.Format(Config.RequestApi.PeriodSettlement.ExportExcel, settlementId),
+                _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+            };
+            var result = await FileDownloads.DownloadFromApiAsync(endpoint);
+            Toast.Success(Loc["PeriodSettlement"], Loc["ExportCompleted", result.FileName, FileSizeFormatter.Format(result.Size)]);
         }
         catch (Exception ex)
         {
@@ -639,7 +642,7 @@ public partial class PeriodSettlementPanel : IDisposable
         }
         finally
         {
-            isExportingSettlement = false;
+            exportingSettlementFormat = null;
         }
     }
 
