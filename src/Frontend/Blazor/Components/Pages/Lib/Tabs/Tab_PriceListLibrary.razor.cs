@@ -7,6 +7,7 @@ using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Radzen;
 using Radzen.Blazor;
 using System.Security.Claims;
@@ -20,6 +21,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
+        [Inject] public ContextMenuService ContextMenuService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
         private List<PriceListResDTO> priceLists = [];
@@ -334,8 +336,86 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private Task OpenPricesAsync(PriceListResDTO row)
         {
-            NavigationManager.NavigateTo($"/library?tab=4&priceListId={row.Id}");
+            NavigationManager.NavigateTo($"/library?tab=6&pricingTab=prices&priceListId={row.Id}");
             return Task.CompletedTask;
+        }
+
+        private void OpenLifecycleMenu(MouseEventArgs args, PriceListResDTO row)
+        {
+            var items = new List<ContextMenuItem>
+            {
+                new()
+                {
+                    Text = Loc["PriceListPublishTitle"],
+                    Icon = "publish",
+                    Value = "publish",
+                    Disabled = row.IsDeleted || row.Status != "Draft" || !CanModify
+                },
+                new()
+                {
+                    Text = Loc["PriceListExpireTitle"],
+                    Icon = "timer_off",
+                    Value = "expire",
+                    Disabled = row.IsDeleted || row.Status != "Published" || !CanModify
+                },
+                new()
+                {
+                    Text = Loc["SetAsDefault"],
+                    Icon = "star",
+                    Value = "default",
+                    Disabled = row.IsDefault || row.IsDeleted || !CanModify
+                },
+                new()
+                {
+                    Text = Loc["Clone"],
+                    Icon = "content_copy",
+                    Value = "clone",
+                    Disabled = !CanModify
+                },
+                new()
+                {
+                    Text = row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"],
+                    Icon = row.IsDeleted ? "restore_from_trash" : "block",
+                    Value = "toggle-active",
+                    Disabled = row.Status == "Published" || !CanModify
+                },
+                new()
+                {
+                    Text = Loc["HardDelete"],
+                    Icon = "delete_forever",
+                    IconColor = "var(--vpp-danger)",
+                    Value = "hard-delete",
+                    Disabled = !CanModify || !row.IsDeleted || row.Status == "Published"
+                }
+            };
+
+            ContextMenuService.Open(args, items, async item =>
+                await HandleLifecycleActionAsync(row, item.Value?.ToString()));
+        }
+
+        private async Task HandleLifecycleActionAsync(PriceListResDTO row, string? action)
+        {
+            switch (action)
+            {
+                case "publish":
+                    await PublishAsync(row);
+                    break;
+                case "expire":
+                    await ExpireAsync(row);
+                    break;
+                case "default":
+                    await SetDefaultAsync(row);
+                    break;
+                case "clone":
+                    await CloneAsync(row);
+                    break;
+                case "toggle-active":
+                    await SetDeletedAsync(row, !row.IsDeleted);
+                    break;
+                case "hard-delete":
+                    await HardDeleteAsync(row);
+                    break;
+            }
         }
 
         private async Task<PriceListUpdateReqDTO?> OpenEditorAsync(
@@ -370,12 +450,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             _toastService.Show(severity, summary, detail, 5000, false);
         }
 
-        private static string GetStatusLabel(string? status) => status switch
+        private string GetStatusLabel(string? status) => status switch
         {
-            "Draft" => "Bản nháp",
-            "Published" => "Đã công bố",
-            "Expired" => "Hết hiệu lực",
-            _ => status ?? "Chưa xác định"
+            "Draft" => Loc["PriceListStatusDraft"],
+            "Published" => Loc["PriceListStatusPublished"],
+            "Expired" => Loc["PriceListStatusExpired"],
+            _ => status ?? Loc["StatusUnknown"]
         };
 
         private static VppStatusTone GetStatusTone(string? status) => status switch

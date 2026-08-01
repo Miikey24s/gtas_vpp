@@ -1,0 +1,6 @@
+.vpp-price-list-grid {
+    --vpp-admin-grid-min-width: 1040px;
+    --vpp-data-grid-min-width: 1040px;
+    --vpp-admin-isdeleted-width: 90px;
+    --vpp-admin-actions-width: 128px;
+}

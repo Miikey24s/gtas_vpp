@@ -18,6 +18,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
 
     protected ReportSummaryResDTO? Summary { get; private set; }
     protected ReportInsightResDTO? Insight { get; private set; }
+    protected string? LoadError { get; private set; }
     protected bool IsLoading { get; private set; }
     protected bool IsExporting { get; private set; }
     protected bool IsLoadingInsights { get; private set; }
@@ -54,12 +55,16 @@ public abstract class ReportBase : ComponentBase, IDisposable
     protected bool HasPeriodTrend => Summary?.PeriodTrend.Count >= 2;
     protected bool CanSmoothPeriodTrend => Summary?.PeriodTrend.Count >= 3;
     protected bool HasStatusChartData => StatusChartData.Count > 0;
+    protected bool HasReportFilters => !string.IsNullOrWhiteSpace(DepartmentSearchText)
+        || SelectedYear.HasValue
+        || SelectedMonth.HasValue
+        || !string.Equals(SelectedScope, GetDefaultScope(), StringComparison.Ordinal);
     protected IReadOnlyList<string> ReportStatusFills { get; } =
     [
-        "#0EA5E9",
-        "#10B981",
-        "#F59E0B",
-        "#EF4444"
+        "var(--vpp-info)",
+        "var(--vpp-success)",
+        "var(--vpp-warning)",
+        "var(--vpp-danger)"
     ];
 
     protected IReadOnlyList<ReportScopeOption> ScopeOptions
@@ -109,6 +114,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
 
         IsLoading = true;
         Insight = null;
+        LoadError = null;
         var loadVersion = _loadVersion.Begin();
         try
         {
@@ -116,12 +122,14 @@ public abstract class ReportBase : ComponentBase, IDisposable
             if (_loadVersion.IsCurrent(loadVersion))
             {
                 Summary = summary;
+                LoadError = null;
             }
         }
         catch (Exception ex)
         {
             if (_loadVersion.IsCurrent(loadVersion))
             {
+                LoadError = UiErrorMapper.GetMessage(ex, Localizer, "ReportLoadFailed");
                 Toast.Error(Localizer["Error"], UiErrorMapper.GetMessage(ex, Localizer));
             }
         }

@@ -1,0 +1,66 @@
+.vpp-price-context {
+    display: grid;
+    grid-template-columns: minmax(18rem, 1.15fr) minmax(20rem, 0.85fr);
+    align-items: end;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-price-context-selector {
+    display: grid;
+    gap: var(--vpp-space-1);
+    min-width: 0;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-price-context-selector :deep(.vpp-filter-select) {
+    width: 100%;
+}
+
+.vpp-price-context-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--vpp-space-3);
+    margin: 0;
+}
+
+.vpp-price-context-facts div {
+    min-width: 0;
+}
+
+.vpp-price-context-facts dt,
+.vpp-price-context-facts dd {
+    margin: 0;
+}
+
+.vpp-price-context-facts dt {
+    margin-bottom: var(--vpp-space-1);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-price-context-facts dd {
+    overflow: hidden;
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-price-grid {
+    --vpp-admin-grid-min-width: 1260px;
+    --vpp-data-grid-min-width: 1260px;
+    --vpp-admin-actions-width: 128px;
+}
+
+@media (max-width: 767px) {
+    .vpp-price-context {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+    }
+}

@@ -46,6 +46,7 @@
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="HardDelete" xml:space="preserve"><value>Hard Delete</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>More actions</value></data>
   <data name="Edit" xml:space="preserve"><value>Edit</value></data>
   <data name="Create" xml:space="preserve"><value>Create</value></data>
   <data name="Search" xml:space="preserve"><value>Search</value></data>
@@ -254,6 +255,12 @@
   <data name="DefaultUpdated" xml:space="preserve"><value>Default updated</value></data>
   <data name="PriceDeleted" xml:space="preserve"><value>Price deleted</value></data>
   <data name="LoadPricesPrompt" xml:space="preserve"><value>Select a price list and supplier to load item prices.</value></data>
+  <data name="LoadPriceListPrompt" xml:space="preserve"><value>Select a price list to load item prices.</value></data>
+  <data name="PriceContext" xml:space="preserve"><value>Price-list context</value></data>
+  <data name="AllPriceMappings" xml:space="preserve"><value>All price states</value></data>
+  <data name="PriceMappingActive" xml:space="preserve"><value>Priced</value></data>
+  <data name="PriceMappingMissing" xml:space="preserve"><value>Not priced</value></data>
+  <data name="PriceMappingInactive" xml:space="preserve"><value>Inactive price</value></data>
   <data name="NoPricesFound" xml:space="preserve"><value>No prices found.</value></data>
   <data name="OnlyOneDefaultPerVPPAllowed" xml:space="preserve"><value>Only one default per VPP is allowed.</value></data>
   <data name="DeleteFailed" xml:space="preserve"><value>Delete failed</value></data>
@@ -491,6 +498,9 @@
   <data name="ReportExportFailed" xml:space="preserve"><value>Could not export the report: {0}</value></data>
   <data name="ReportFilters" xml:space="preserve"><value>Report filters</value></data>
   <data name="ReportLoadFailed" xml:space="preserve"><value>Could not load the report: {0}</value></data>
+  <data name="ReportLoadFailedTitle" xml:space="preserve"><value>Could not load the report</value></data>
+  <data name="ReportVisualizations" xml:space="preserve"><value>Report charts</value></data>
+  <data name="ReportEvidenceTables" xml:space="preserve"><value>Report data tables</value></data>
   <data name="GenerateInsights" xml:space="preserve"><value>Generate insights</value></data>
   <data name="GeneratingInsights" xml:space="preserve"><value>Analyzing...</value></data>
   <data name="ReportInsights" xml:space="preserve"><value>Report insights</value></data>

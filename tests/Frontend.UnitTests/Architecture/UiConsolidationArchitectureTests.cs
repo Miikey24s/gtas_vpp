@@ -99,6 +99,41 @@ public sealed class UiConsolidationArchitectureTests
     }
 
     [Fact]
+    public void PricingAndReports_UseCanonicalWorkspaceContracts()
+    {
+        var root = GetFrontendRoot();
+        var priceList = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor");
+        var priceListCode = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor.cs");
+        var prices = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor");
+        var pricesCode = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor.cs");
+        var report = Read(root, "Components", "Pages", "Report.razor");
+        var reportCode = Read(root, "Components", "Pages", "Report.razor.cs");
+        var adminCss = Read(root, "wwwroot", "css", "vpp-admin.css");
+        var layoutCss = Read(root, "wwwroot", "css", "vpp-layout.css");
+
+        Assert.Contains("ContextMenuService.Open", priceListCode, StringComparison.Ordinal);
+        Assert.Contains("pricingTab=prices", priceListCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("/library?tab=4", priceListCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("rz-col-actions-xwide", priceList, StringComparison.Ordinal);
+        Assert.DoesNotContain("rz-col-actions-xwide", adminCss, StringComparison.Ordinal);
+
+        Assert.Contains("data-testid=\"price-context\"", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("OnSupplierChangedAsync", prices, StringComparison.Ordinal);
+        Assert.Contains("distinct=CategoryName", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("BuildPriceFilter", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("VppAdminActiveToggle", prices, StringComparison.Ordinal);
+        Assert.Contains("!row.IsDeleted || !IsSelectedPriceListDraft", prices, StringComparison.Ordinal);
+
+        Assert.Contains("<VppAnalyticsWorkspace", report, StringComparison.Ordinal);
+        Assert.Equal(2, report.Split("<VppDataSurfaceFrame", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, report.Split("<VppDataSummaryFooter", StringSplitOptions.None).Length - 1);
+        Assert.Contains("<details class=\"vpp-report-insight\"", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Style=\"height:", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("#0EA5E9", reportCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-report-filter-controls", layoutCss, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ToastFeedback_HasOneInjectedRuntimeService()
     {
         var root = GetFrontendRoot();

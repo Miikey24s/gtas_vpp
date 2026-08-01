@@ -1,11 +1,11 @@
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
-using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
@@ -27,24 +27,59 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private List<PriceListResDTO> priceLists = [];
         private List<SupplierResDTO> suppliers = [];
         private List<VppItemPriceResDTO> displayItems = [];
+        private List<string> categories = [];
         private RadzenDataGrid<VppItemPriceResDTO> grid = default!;
         private Guid? selectedPriceListId;
         private Guid? selectedSupplierId;
         private string searchText = "";
+        private string selectedCategory = "";
+        private string selectedMappingStatus = "";
+        private string? loadError;
+        private bool interactiveLookupsRefreshed;
         private bool isLoading;
         private int priceCount;
         private int currentSkip;
         private bool HasPriceLists => priceLists.Count > 0;
         private bool HasPriceListSelected => selectedPriceListId.HasValue;
+        private bool HasPriceContext => selectedPriceListId.HasValue && selectedSupplierId.HasValue;
+        private bool HasPriceFilters => !string.IsNullOrWhiteSpace(searchText)
+            || !string.IsNullOrWhiteSpace(selectedCategory)
+            || !string.IsNullOrWhiteSpace(selectedMappingStatus);
+        private PriceListResDTO? SelectedPriceList => priceLists.FirstOrDefault(x => x.Id == selectedPriceListId);
         private bool IsSelectedPriceListDraft
-            => priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.Status == "Draft";
+            => SelectedPriceList?.Status == "Draft";
         private IReadOnlyList<VppFilterOption<Guid?>> PriceListFilterOptions
-            => priceLists.Select(row => new VppFilterOption<Guid?>(row.Id, row.PriceListName ?? row.PriceListCode ?? "–")).ToList();
-        private IReadOnlyList<VppFilterOption<Guid?>> SupplierFilterOptions
-            => suppliers.Select(row => new VppFilterOption<Guid?>(row.Id, row.SupplierName ?? row.SupplierShortName ?? "–")).ToList();
+            => priceLists.Select(row => new VppFilterOption<Guid?>(row.Id, FormatPriceListOption(row))).ToList();
+        private IReadOnlyList<VppFilterOption<string>> CategoryFilterOptions =>
+            [new(string.Empty, Loc["AllCategories"].Value), .. categories.Select(category => new VppFilterOption<string>(category, category))];
+        private IReadOnlyList<VppFilterOption<string>> MappingStatusOptions =>
+        [
+            new(string.Empty, Loc["AllPriceMappings"].Value),
+            new("active", Loc["PriceMappingActive"].Value),
+            new("missing", Loc["PriceMappingMissing"].Value),
+            new("inactive", Loc["PriceMappingInactive"].Value)
+        ];
+        private string SelectedSupplierName => SelectedPriceList?.SupplierName
+            ?? suppliers.FirstOrDefault(row => row.Id == selectedSupplierId)?.SupplierName
+            ?? suppliers.FirstOrDefault(row => row.Id == selectedSupplierId)?.SupplierShortName
+            ?? "–";
+        private string SelectedPriceListStatusLabel => SelectedPriceList?.Status switch
+        {
+            "Draft" => Loc["PriceListStatusDraft"],
+            "Published" => Loc["PriceListStatusPublished"],
+            "Expired" => Loc["PriceListStatusExpired"],
+            _ => Loc["StatusUnknown"]
+        };
+        private VppStatusTone SelectedPriceListStatusTone => SelectedPriceList?.Status switch
+        {
+            "Published" => VppStatusTone.Success,
+            "Draft" => VppStatusTone.Info,
+            "Expired" => VppStatusTone.Warning,
+            _ => VppStatusTone.Neutral
+        };
         private string GridEmptyText => !HasPriceLists
             ? Loc["NoPriceListAvailable"].Value
-            : selectedSupplierId.HasValue ? Loc["NoPricesFound"].Value : Loc["LoadPricesPrompt"].Value;
+            : HasPriceContext ? Loc["NoPricesFound"].Value : Loc["LoadPriceListPrompt"].Value;
         protected override RadzenDataGrid<VppItemPriceResDTO>? InitialGrid => grid;
         protected override bool CanRequestInitialGridLoad => selectedSupplierId.HasValue && selectedPriceListId.HasValue;
 
@@ -54,14 +89,31 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             await LoadLookupsAsync();
         }
 
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            // OnAfterRender không chạy trong prerender. Vì vậy đây là một lần refresh
+            // có chủ đích sau khi circuit đã nhận auth state, kể cả prerender từng trả
+            // danh sách rỗng mà không ném lỗi.
+            if (firstRender && !interactiveLookupsRefreshed)
+            {
+                interactiveLookupsRefreshed = true;
+                await LoadLookupsAsync();
+                StateHasChanged();
+            }
+
+            await base.OnAfterRenderAsync(firstRender);
+        }
+
         private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
         {
             var newPriceListId = ResolveSelectedPriceListId();
             if (newPriceListId != selectedPriceListId)
             {
                 selectedPriceListId = newPriceListId;
+                selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
                 _ = InvokeAsync(async () =>
                 {
+                    await LoadCategoryOptionsAsync();
                     await LoadPricesAsync();
                     StateHasChanged();
                 });
@@ -86,10 +138,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 suppliers = await suppliersTask ?? [];
 
                 selectedPriceListId = ResolveSelectedPriceListId();
-                selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId
-                                     ?? suppliers.FirstOrDefault(s => s.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName)?.Id
-                                     ?? suppliers.FirstOrDefault()?.Id;
+                selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
 
+                await LoadCategoryOptionsAsync();
                 await LoadPricesAsync();
             }
             catch (Exception ex)
@@ -102,6 +153,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             displayItems = [];
             priceCount = 0;
+            loadError = null;
 
             if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
             {
@@ -135,9 +187,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
                 displayItems = result.Data ?? [];
                 priceCount = result.TotalCount;
+                loadError = null;
             }
             catch (Exception ex)
             {
+                displayItems = [];
+                priceCount = 0;
+                loadError = UiErrorMapper.GetMessage(ex, Loc, "LoadLibraryDataFailed");
                 _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
             finally
@@ -156,9 +212,23 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
         }
 
-        private async Task ClearSearchAsync()
+        private async Task OnCategoryChangedAsync(string value)
+        {
+            selectedCategory = value;
+            if (grid is not null) await grid.FirstPage(true);
+        }
+
+        private async Task OnMappingStatusChangedAsync(string value)
+        {
+            selectedMappingStatus = value;
+            if (grid is not null) await grid.FirstPage(true);
+        }
+
+        private async Task ClearFiltersAsync()
         {
             searchText = string.Empty;
+            selectedCategory = string.Empty;
+            selectedMappingStatus = string.Empty;
             if (grid is not null) await grid.FirstPage(true);
         }
 
@@ -351,13 +421,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task OnPriceListChangedAsync(Guid? value)
         {
             selectedPriceListId = value;
-            selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId ?? selectedSupplierId;
-            await LoadPricesAsync();
-        }
-
-        private async Task OnSupplierChangedAsync(Guid? value)
-        {
-            selectedSupplierId = value;
+            selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
+            selectedCategory = string.Empty;
+            selectedMappingStatus = string.Empty;
+            await LoadCategoryOptionsAsync();
             await LoadPricesAsync();
         }
 
@@ -371,7 +438,43 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 return requestedId;
             }
 
-            return priceLists.FirstOrDefault(x => x.IsDefault)?.Id;
+            return priceLists.FirstOrDefault(x => x.IsDefault)?.Id
+                ?? priceLists.FirstOrDefault()?.Id;
+        }
+
+        private async Task LoadCategoryOptionsAsync()
+        {
+            categories = [];
+            if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
+            {
+                return;
+            }
+
+            const int batchSize = 200;
+            var skip = 0;
+            var values = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
+
+            while (true)
+            {
+                var endpoint = $"{Config.LibraryApi.VPPPrice_ItemPrices}?supplierId={selectedSupplierId.Value}&priceListId={selectedPriceListId.Value}&showDeleted=true&distinct=CategoryName&skip={skip}&top={batchSize}";
+                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(endpoint);
+                var rows = result.Data ?? [];
+                foreach (var row in rows)
+                {
+                    if (!string.IsNullOrWhiteSpace(row.CategoryName))
+                    {
+                        values.Add(row.CategoryName.Trim());
+                    }
+                }
+
+                skip += rows.Count;
+                if (rows.Count == 0 || skip >= result.TotalCount)
+                {
+                    break;
+                }
+            }
+
+            categories = values.OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase).ToList();
         }
 
         private async Task ReloadGridAsync()
@@ -421,6 +524,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 queryParams.Add($"search={Uri.EscapeDataString(searchText.Trim())}");
             }
 
+            var filter = BuildPriceFilter();
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            }
+
             if (skip.HasValue)
             {
                 queryParams.Add($"skip={skip.Value}");
@@ -437,6 +546,35 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             }
 
             return $"{Config.LibraryApi.VPPPrice_ItemPrices}?{string.Join("&", queryParams)}";
+        }
+
+        private string? BuildPriceFilter()
+        {
+            var filters = new List<string>();
+            if (!string.IsNullOrWhiteSpace(selectedCategory))
+            {
+                filters.Add($"CategoryName == \"{EscapeDynamicString(selectedCategory)}\"");
+            }
+
+            filters.AddRange(selectedMappingStatus switch
+            {
+                "active" => ["PriceMappingId != null", "IsDeleted == false"],
+                "missing" => ["PriceMappingId == null"],
+                "inactive" => ["PriceMappingId != null", "IsDeleted == true"],
+                _ => []
+            });
+
+            return filters.Count == 0 ? null : string.Join(" && ", filters);
+        }
+
+        private static string EscapeDynamicString(string value) => value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal);
+
+        private static string FormatPriceListOption(PriceListResDTO row)
+        {
+            var name = row.PriceListName ?? row.PriceListCode ?? "–";
+            return row.Version > 0 ? $"{name} · v{row.Version}" : name;
         }
     }
 }

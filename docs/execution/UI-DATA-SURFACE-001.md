@@ -254,7 +254,7 @@ Gate: owner duyệt admin board và keyboard/accessibility trace.
 #### DS4 implementation record — 2026-07-29
 
 - Library, Lookup, Price, Price List, Users và Permission group được migrate sang `VppDataSurfaceFrame → VppDataToolbar → route-owned RadzenDataGrid`; API, paging, permission, inline edit và action nghiệp vụ giữ nguyên.
-- Admin collection dùng `ServerPaging + Compact`; Report giữ `Static + Compact`, không gắn frame/pager giả. Permission matrix vẫn là ngoại lệ vì dữ liệu là ma trận capability, không phải collection thông thường.
+- Admin collection dùng `ServerPaging + Compact`; Report dùng `AnalyticsWorkspace` với hai frame `Static + Compact`, có summary footer thật nhưng không gắn pager giả. Permission matrix vẫn là ngoại lệ vì dữ liệu là ma trận capability, không phải collection thông thường.
 - Outer Library shell trở thành bounded workspace; Lookup giữ hai pane desktop, chia hai vùng dọc trong viewport ở tablet. List/detail đổi sang một cột dưới `1100px`, sửa lỗi selector responsive có specificity thấp hơn rule ratio.
 - Secondary Pricing tabs trở lại normal flow thay vì sticky-offset; toolbar không còn bị tab lồng đè. Loading screenshot gate chờ mọi Radzen overlay thật sự ẩn trước khi đo/chụp.
 - Visual runtime đã được xem bằng mắt ở desktop `1920×1080` và tablet `768×1024` cho Lookup, Categories, Items, Suppliers, Departments, Price Lists, Prices, Users, Permission và Report; evidence thô ở `tmp/ui-system-f6a-final3/` (ignored).
@@ -266,6 +266,13 @@ Gate: owner duyệt admin board và keyboard/accessibility trace.
 - `Component_Library` chuyển sang server-rendered tab ownership; các collection tab dùng `VppServerGridComponentBase<T>` để reload đúng một lần ở interactive render đầu tiên. Lookup tự chọn loại đầu tiên và reload bảng giá trị, vì vậy route không còn tạo cảm giác “không có data”.
 - Profile cột được đối chiếu lại với `UI-ADMIN-ACCESS-001`: name + code dùng cell hai dòng, Supplier gộp city/ward, Category hiện updated time, Pricing hiện đúng SKU/price/VAT/MOQ/lead và cột phụ chuyển vào column picker. CSS filter/search legacy zero-consumer bị xóa; shared grid contract đang dùng được giữ nguyên.
 - Regression mới kiểm tra cả API `X-Total-Count > 0` và DOM row thật trên Lookup category/value, Category, Item, Supplier, Department, Price List và Price. Frontend unit/architecture `203/203`, route matrix `1920×1080 / 768×1024`, 9 Library dialog/layout tests và visual board `1366×768` đều pass; ảnh cuối đã được kiểm bằng mắt trong `tmp/ds4-audit-final5/` và `tmp/ds4-responsive-final/` (ignored). `verify -Scope frontend` vẫn bị chặn trước frontend gate bởi `model-routing-eval` trong nhóm AI-harness owner đang sửa ngoài scope (`62/63`), không sửa hoặc stage trong correction này.
+
+#### Pricing + Reports canonical retrofit — 2026-08-01
+
+- `Danh sách bảng giá` giữ collection frame server-paged nhưng giảm action trực tiếp còn `Giá / Sửa / Thêm`; publish, expire, default, clone, active và hard-delete chuyển vào một context menu lifecycle. Deep-link `Giá` dùng route canonical `tab=6&pricingTab=prices&priceListId=...`.
+- `Giá mặt hàng` khóa `Bảng giá → Nhà cung cấp → Trạng thái` thành context bar; nhà cung cấp được suy ra từ bảng giá. Toolbar chỉ lọc query theo search, danh mục và trạng thái ánh xạ trên full authorized dataset. Interactive refresh sau prerender bảo đảm lookup và 547 row fixture không bị rỗng giả.
+- `Báo cáo` compose bằng `VppAnalyticsWorkspace`: context/action, toolbar filter, KPI, visualization, hai evidence table `Static + Compact`, summary footer và insight detail. Không thêm endpoint, pager giả hoặc business action mới.
+- CSS/report adapter zero-consumer và action-column `xwide` bị xóa trong đúng scope; architecture gate khóa route, context/filter ownership, lifecycle menu và static-report contract.
 
 ### Owner correction — selector, paging và Quản lý kỳ (2026-07-29)
 

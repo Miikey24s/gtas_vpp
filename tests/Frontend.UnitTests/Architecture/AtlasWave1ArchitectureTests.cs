@@ -88,6 +88,7 @@ public sealed class AtlasWave1ArchitectureTests
         var classesCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor.cs");
         var valueEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_AddLookupValue.razor");
         var priceLists = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
+        var priceListsCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor.cs");
         var categoryEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_CategoryEditor.razor");
         var supplierEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_SupplierEditor.razor");
 
@@ -102,8 +103,9 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("Model.ExtraField2", valueEditor, StringComparison.Ordinal);
         Assert.DoesNotContain("Model.ExtraField3", valueEditor, StringComparison.Ordinal);
         Assert.Contains("FieldExample", valueEditor, StringComparison.Ordinal);
-        Assert.Contains("HardDeleteAsync", priceLists, StringComparison.Ordinal);
-        Assert.Contains("delete_forever", priceLists, StringComparison.Ordinal);
+        Assert.Contains("price-list-lifecycle-menu", priceLists, StringComparison.Ordinal);
+        Assert.Contains("HardDeleteAsync", priceListsCode, StringComparison.Ordinal);
+        Assert.Contains("delete_forever", priceListsCode, StringComparison.Ordinal);
 
         foreach (var tab in new[]
                  {

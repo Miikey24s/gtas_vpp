@@ -46,6 +46,7 @@
   <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Delete" xml:space="preserve"><value>Xóa</value></data>
   <data name="HardDelete" xml:space="preserve"><value>Xóa vĩnh viễn</value></data>
+  <data name="MoreActions" xml:space="preserve"><value>Thao tác khác</value></data>
   <data name="Edit" xml:space="preserve"><value>Sửa</value></data>
   <data name="Create" xml:space="preserve"><value>Tạo mới</value></data>
   <data name="Search" xml:space="preserve"><value>Tìm kiếm</value></data>
@@ -254,6 +255,12 @@
   <data name="DefaultUpdated" xml:space="preserve"><value>Đã cập nhật mặc định</value></data>
   <data name="PriceDeleted" xml:space="preserve"><value>Đã xóa giá</value></data>
   <data name="LoadPricesPrompt" xml:space="preserve"><value>Chọn bảng giá và nhà cung cấp để tải giá mặt hàng.</value></data>
+  <data name="LoadPriceListPrompt" xml:space="preserve"><value>Chọn bảng giá để tải giá mặt hàng.</value></data>
+  <data name="PriceContext" xml:space="preserve"><value>Ngữ cảnh bảng giá</value></data>
+  <data name="AllPriceMappings" xml:space="preserve"><value>Tất cả trạng thái giá</value></data>
+  <data name="PriceMappingActive" xml:space="preserve"><value>Đã có giá</value></data>
+  <data name="PriceMappingMissing" xml:space="preserve"><value>Chưa có giá</value></data>
+  <data name="PriceMappingInactive" xml:space="preserve"><value>Giá đã vô hiệu hóa</value></data>
   <data name="NoPricesFound" xml:space="preserve"><value>Không có giá.</value></data>
   <data name="OnlyOneDefaultPerVPPAllowed" xml:space="preserve"><value>Chỉ được có một giá mặc định cho mỗi VPP.</value></data>
   <data name="DeleteFailed" xml:space="preserve"><value>Xóa thất bại</value></data>
@@ -491,6 +498,9 @@
   <data name="ReportExportFailed" xml:space="preserve"><value>Không thể xuất báo cáo: {0}</value></data>
   <data name="ReportFilters" xml:space="preserve"><value>Bộ lọc báo cáo</value></data>
   <data name="ReportLoadFailed" xml:space="preserve"><value>Không thể tải báo cáo: {0}</value></data>
+  <data name="ReportLoadFailedTitle" xml:space="preserve"><value>Không thể tải báo cáo</value></data>
+  <data name="ReportVisualizations" xml:space="preserve"><value>Biểu đồ báo cáo</value></data>
+  <data name="ReportEvidenceTables" xml:space="preserve"><value>Bảng dữ liệu báo cáo</value></data>
   <data name="GenerateInsights" xml:space="preserve"><value>Tạo nhận định</value></data>
   <data name="GeneratingInsights" xml:space="preserve"><value>Đang phân tích...</value></data>
   <data name="ReportInsights" xml:space="preserve"><value>Nhận định báo cáo</value></data>

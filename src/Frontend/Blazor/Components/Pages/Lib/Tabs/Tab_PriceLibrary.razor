@@ -6,14 +6,40 @@
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                          Density="VppDataDensity.Compact"
                          AriaLabel="@Loc["Prices"]"
-                         TestId="prices-data-surface"
-                         Class="vpp-admin-data-surface">
+                          TestId="prices-data-surface"
+                          Class="vpp-admin-data-surface">
+    <Header>
+        <VppCollectionHeader Title="@Loc["Prices"]"
+                             Summary="@Loc["RecordsCount", priceCount]" />
+        <section class="vpp-price-context" aria-label="@Loc["PriceContext"]" data-testid="price-context">
+            <label class="vpp-price-context-selector">
+                <span>@Loc["PriceList"]</span>
+                <VppFilterSelect TValue="Guid?"
+                                 Value="@selectedPriceListId"
+                                 Options="@PriceListFilterOptions"
+                                 ValueChanged="@OnPriceListChangedAsync"
+                                 Placeholder="@Loc["SelectPriceList"]"
+                                 AriaLabel="@Loc["PriceList"]"
+                                 Disabled="@(!HasPriceLists)" />
+            </label>
+            <dl class="vpp-price-context-facts">
+                <div>
+                    <dt>@Loc["Supplier"]</dt>
+                    <dd>@SelectedSupplierName</dd>
+                </div>
+                <div>
+                    <dt>@Loc["Status"]</dt>
+                    <dd><VppStatusBadge Text="@SelectedPriceListStatusLabel" Tone="@SelectedPriceListStatusTone" /></dd>
+                </div>
+            </dl>
+        </section>
+    </Header>
     <Toolbar>
     <VppDataToolbar AriaLabel="@Loc["Prices"]" Class="vpp-admin-grid-toolbar vpp-price-filterbar">
-        <VppFilterSelect TValue="Guid?" Value="@selectedPriceListId" Options="@PriceListFilterOptions" ValueChanged="@OnPriceListChangedAsync" Placeholder="@Loc["PriceList"]" AriaLabel="@Loc["PriceList"]" Disabled="@(!HasPriceLists)" />
-        <VppFilterSelect TValue="Guid?" Value="@selectedSupplierId" Options="@SupplierFilterOptions" ValueChanged="@OnSupplierChangedAsync" Placeholder="@Loc["Supplier"]" AriaLabel="@Loc["Supplier"]" Disabled="@(!HasPriceListSelected)" />
         <VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchPrices"]" AriaLabel="@Loc["LibrarySearchPrices"]" />
-        <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@(!string.IsNullOrWhiteSpace(searchText))" Clicked="@ClearSearchAsync" />
+        <VppFilterSelect TValue="string" Value="@selectedCategory" Options="@CategoryFilterOptions" ValueChanged="@OnCategoryChangedAsync" Placeholder="@Loc["AllCategories"]" AriaLabel="@Loc["AllCategories"]" Disabled="@(!HasPriceListSelected)" />
+        <VppFilterSelect TValue="string" Value="@selectedMappingStatus" Options="@MappingStatusOptions" ValueChanged="@OnMappingStatusChangedAsync" Placeholder="@Loc["AllPriceMappings"]" AriaLabel="@Loc["AllPriceMappings"]" Disabled="@(!HasPriceListSelected)" />
+        <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasPriceFilters" Clicked="@ClearFiltersAsync" />
         <VppColumnPicker TItem="VppItemPriceResDTO" GridAccessor="@(() => grid)" />
     </VppDataToolbar>
     </Toolbar>
@@ -26,6 +52,17 @@
         </VppInlineNotice>
     }
 
+    @if (!string.IsNullOrWhiteSpace(loadError))
+    {
+        <VppContentState State="VppContentStateKind.Error"
+                         Icon="error_outline"
+                         Title="@Loc["LoadLibraryDataFailed"]"
+                         Description="@loadError"
+                         PrimaryActionText="@Loc["Retry"]"
+                         PrimaryAction="@(async _ => await LoadPricesAsync())" />
+    }
+    else
+    {
     <RadzenDataGrid @ref="grid"
                     data-vpp-grid-region="true"
                     aria-label="@Loc["Prices"]"
@@ -54,8 +91,7 @@
                     ColumnsPickerAllowFiltering="true"
                     RowRender="@OnRowRenderPrice"
                     class="vpp-admin-grid vpp-admin-page-grid vpp-price-grid vpp-data-grid vpp-data-density-compact"
-                    ColumnWidth="150px"
-                    Style="--vpp-admin-grid-min-width: 1260px; --vpp-admin-actions-width: 128px;">
+                    ColumnWidth="150px">
         <Columns>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="#" Width="52px" MinWidth="52px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                 <Template Context="row">
@@ -105,14 +141,15 @@
                 <Template Context="row">
                     <div class="vpp-admin-actions">
                         <VppAdminIconAction Icon="edit" Title="@GetEditPriceActionTitle(row)" Disabled="@(row.IsDeleted || !IsSelectedPriceListDraft)" Click="@(() => EditPriceAsync(row))" />
-                        <VppAdminIconAction Icon="star" Title="@Loc["SetDefault"]" ButtonStyle="ButtonStyle.Info" Disabled="@(!row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted)" Click="@(() => SetDefaultAsync(row))" />
-                        <VppAdminIconAction Icon="@(row.IsDeleted ? "restore_from_trash" : "delete")" Title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" ButtonStyle="@(row.IsDeleted ? ButtonStyle.Light : ButtonStyle.Danger)" Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)" Click="@(() => SetDeletedPriceAsync(row, !row.IsDeleted))" />
-                        <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)" Click="@(() => HardDeletePriceAsync(row))" />
+                        <VppAdminIconAction Icon="star" Title="@Loc["SetDefault"]" ButtonStyle="ButtonStyle.Info" Disabled="@(!row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted || !IsSelectedPriceListDraft)" Click="@(() => SetDefaultAsync(row))" />
+                        <VppAdminActiveToggle IsActive="@(!row.IsDeleted)" Title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Changed="@((bool isActive) => SetDeletedPriceAsync(row, !isActive))" Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)" />
+                        <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!row.PriceMappingId.HasValue || !row.IsDeleted || !IsSelectedPriceListDraft)" Click="@(() => HardDeletePriceAsync(row))" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
+    }
     </ChildContent>
     </VppDataSurfaceFrame>
 </VppCollectionWorkspace>

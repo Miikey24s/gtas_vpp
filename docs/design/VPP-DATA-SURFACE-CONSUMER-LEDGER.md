@@ -1,6 +1,6 @@
 # VPP Data Surface Consumer Ledger
 
-> Snapshot: `2026-07-30` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 IMPLEMENTED; R1 IN PROGRESS`
+> Snapshot: `2026-08-01` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 + R1 DONE; PRICING/REPORT RETROFIT IMPLEMENTED`
 
 Ledger này là bản đồ migration, không phải yêu cầu mọi bảng phải giống hệt nhau. Shared foundation chỉ sở hữu frame, toolbar, density, footer và transient cell value; route vẫn sở hữu dữ liệu, cột, API, permission và action.
 
@@ -16,13 +16,13 @@ Source hiện có **19 file / 23 DataGrid thật**. Generic type reference trong
 | `Components/Pages/Lib/Tabs/Tab_ItemLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_DepartmentLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor` | 2 | Master/detail admin | `ServerPaging` | `Compact` | DS4 complete |
-| `Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
-| `Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor` | 1 | Price-list context + item-price query collection | `ServerPaging` | `Compact` | DS4 complete + context/filter retrofit |
+| `Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor` | 1 | Price-list lifecycle collection | `ServerPaging` | `Compact` | DS4 complete + lifecycle action consolidation |
 | `Components/Pages/Permission/Dialogs/Dialog_PermissionUiBatchEditor.razor` | 1 | Permission batch editor | `Static` | `Compact` | AA6 workspace editor |
 | `Components/Pages/Permission/Tabs/Tab_SecurityAudit.razor` | 1 | Security audit collection | `ServerPaging` | `Compact` | AA7 read-only audit |
 | `Components/Pages/Permission/Tabs/Tab_PagePermission.razor` | 1 | Permission group collection | `ServerPaging` | `Compact` | Full-width group table; permission detail loads in batch editor |
 | `Components/Pages/Permission/Tabs/Tab_User.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
-| `Components/Pages/Report.razor` | 2 | Static report | `Static` | `Compact` | DS4 static exception complete |
+| `Components/Pages/Report.razor` | 2 | Analytics evidence tables | `Static` | `Compact` | Analytics workspace + bounded static frames complete |
 | `Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor` | 1 | Dialog history | `Static` | `Compact` | Deferred dialog exception; không thuộc reference route DS2 |
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Canonical approval List-Detail; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `RichTwoLine` master; `Compact` detail | Collection header/filter/default selection/footer complete |
@@ -68,8 +68,8 @@ Source hiện có **19 file / 23 DataGrid thật**. Generic type reference trong
 
 ## DS4 admin group
 
-- Categories, Items, Suppliers, Departments, Lookup, Price, Price List và Users dùng route-typed server-paged frame, compact density, canonical toolbar, column picker và native grid scroll/pager. Theo quyết định owner 2026-07-30, toolbar là nguồn lọc chính; header chỉ sort và `FilterMode.CheckBoxList` không phải admin default. `Component_ShareGrid<T>` reflection legacy đã hết consumer và được xóa.
+- Categories, Items, Suppliers, Departments, Lookup, Price, Price List và Users dùng route-typed server-paged frame, compact density, canonical toolbar, column picker và native grid scroll/pager. Theo quyết định owner 2026-07-30, toolbar là nguồn lọc chính; header chỉ sort và `FilterMode.CheckBoxList` không phải admin default. Giá mặt hàng tách `Bảng giá` thành context cố định; toolbar chỉ giữ query filter `Danh mục + trạng thái ánh xạ`. `Component_ShareGrid<T>` reflection legacy đã hết consumer và được xóa.
 - Library shell truyền chiều cao viewport xuống active panel; Lookup chia đôi desktop và xếp dọc tablet. List/detail admin cũng xếp dọc ở tablet để không cắt pane hoặc tạo horizontal document overflow.
-- Pricing tabs là navigation nội bộ trong flow, không còn sticky-offset đè lên toolbar.
+- Pricing tabs là navigation nội bộ trong flow, không còn sticky-offset đè lên toolbar. Danh sách bảng giá giữ ba action trực tiếp tối đa; publish/expire/default/clone/active/hard-delete nằm trong menu lifecycle dùng chung.
 - Permission group/component grids opt-in cùng header/row/footer bridge; permission action matrix tiếp tục là ngoại lệ đúng nghiệp vụ.
-- Report giữ hai grid static: dùng compact visual contract nhưng không giả server paging, pager hoặc footer.
+- Report dùng `VppAnalyticsWorkspace`; hai bảng evidence là `Static + Compact`, mỗi bảng có collection header và static summary footer nhưng không giả server paging/pager.
