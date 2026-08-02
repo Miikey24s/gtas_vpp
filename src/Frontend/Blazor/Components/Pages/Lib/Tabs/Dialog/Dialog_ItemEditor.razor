@@ -1,20 +1,62 @@
-@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Features.CatalogPricing.Api
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Req.Library
 @using gtas_vpp_shared.DTOs.Res.Library
 @inject DialogService DialogService
-@inject IAPIServices ApiServices
+@inject CatalogApiClient CatalogApi
 @inject IToastService ToastService
 
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="item-editor">
     <ChildContent>
         <RadzenStack Gap="1rem">
-            <RadzenRow><RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["ProductCode"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.VppCode" Style="width:100%" /></RadzenFormField></RadzenColumn><RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["ProductName"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.VppName" Style="width:100%" /></RadzenFormField></RadzenColumn></RadzenRow>
-            <RadzenRow><RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["Category"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Categories" TextProperty="VppCategoryName" ValueProperty="Id" @bind-Value="Model.VppCategoryId" AllowFiltering="true" Style="width:100%" /></RadzenFormField></RadzenColumn><RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["UOM"]" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid" Data="@Uoms" TextProperty="Value" ValueProperty="Id" @bind-Value="Model.UomId" AllowFiltering="true" Style="width:100%" /></RadzenFormField></RadzenColumn></RadzenRow>
-            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenFormField Text="@Loc["ProductCode"]" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="Model.VppCode" Style="width:100%" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenFormField Text="@Loc["ProductName"]" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="Model.VppName" Style="width:100%" />
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenFormField Text="@Loc["Category"]" Variant="Variant.Outlined">
+                        <RadzenDropDown TValue="Guid"
+                                        Data="@Categories"
+                                        TextProperty="VppCategoryName"
+                                        ValueProperty="Id"
+                                        @bind-Value="Model.VppCategoryId"
+                                        AllowFiltering="true"
+                                        Style="width:100%" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenFormField Text="@Loc["UOM"]" Variant="Variant.Outlined">
+                        <RadzenDropDown TValue="Guid"
+                                        Data="@Uoms"
+                                        TextProperty="Value"
+                                        ValueProperty="Id"
+                                        @bind-Value="Model.UomId"
+                                        AllowFiltering="true"
+                                        Style="width:100%" />
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
+                <RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" />
+            </RadzenFormField>
         </RadzenStack>
     </ChildContent>
-    <Footer><VppDialogActions CancelText="@Loc["Cancel"]" PrimaryText="@Loc["Save"]" IsBusy="@isBusy" CancelClick="@CancelAsync" PrimaryClick="@SaveAsync" /></Footer>
+    <Footer>
+        <VppDialogActions CancelText="@Loc["Cancel"]"
+                          PrimaryText="@Loc["Save"]"
+                          IsBusy="@isBusy"
+                          CancelClick="@CancelAsync"
+                          PrimaryClick="@SaveAsync" />
+    </Footer>
 </VppAdaptiveDialogShell>
 
 @code {
@@ -22,21 +64,81 @@
     [Parameter] public bool IsCreate { get; set; }
     [Parameter] public IEnumerable<VppCategoryResDTO> Categories { get; set; } = [];
     [Parameter] public IEnumerable<LookupValueResDTO> Uoms { get; set; } = [];
+
     private bool isBusy;
+
     private async Task CancelAsync() => await DialogService.TryCloseAsync(null);
+
     private async Task SaveAsync()
     {
-        if (string.IsNullOrWhiteSpace(Model.VppCode) || string.IsNullOrWhiteSpace(Model.VppName) || Model.VppCategoryId == Guid.Empty || Model.UomId == Guid.Empty) { ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["ProductName"], 4000, false); return; }
+        if (string.IsNullOrWhiteSpace(Model.VppCode)
+            || string.IsNullOrWhiteSpace(Model.VppName)
+            || Model.VppCategoryId == Guid.Empty
+            || Model.UomId == Guid.Empty)
+        {
+            ToastService.Show(
+                NotificationSeverity.Warning,
+                Loc["ValidationTitle"],
+                Loc["ProductName"],
+                4000,
+                false);
+            return;
+        }
+
         isBusy = true;
         try
         {
             VppItemResDTO? result;
-            if (IsCreate) result = await ApiServices.PostFromApiAsync<VppItemResDTO>(Config.ApiCatalogItems, new VppItemCreateRequest { VppCode = Model.VppCode, VppName = Model.VppName, Description = Model.Description, UomId = Model.UomId, VppCategoryId = Model.VppCategoryId });
-            else result = await ApiServices.PutFromApiAsync<VppItemResDTO>($"{Config.ApiCatalogItems}/{Model.Id}", new VppItemUpdateRequest { Id = Model.Id, VppCode = Model.VppCode, VppName = Model.VppName, Description = Model.Description, UomId = Model.UomId, VppCategoryId = Model.VppCategoryId });
-            if (result is null) { ToastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["UpdateRecordFailed"], 5000, true); return; }
-            ToastService.Show(NotificationSeverity.Success, Loc["Success"], IsCreate ? Loc["RecordAddedSuccess"] : Loc["RecordUpdatedSuccess"], 4000, false); DialogService.Close(result);
+            if (IsCreate)
+            {
+                result = await CatalogApi.CreateItemAsync(new VppItemCreateRequest
+                {
+                    VppCode = Model.VppCode,
+                    VppName = Model.VppName,
+                    Description = Model.Description,
+                    UomId = Model.UomId,
+                    VppCategoryId = Model.VppCategoryId
+                });
+            }
+            else
+            {
+                result = await CatalogApi.UpdateItemAsync(new VppItemUpdateRequest
+                {
+                    Id = Model.Id,
+                    VppCode = Model.VppCode,
+                    VppName = Model.VppName,
+                    Description = Model.Description,
+                    UomId = Model.UomId,
+                    VppCategoryId = Model.VppCategoryId
+                });
+            }
+
+            if (result is null)
+            {
+                ToastService.Show(
+                    NotificationSeverity.Error,
+                    Loc["Error"],
+                    Loc["UpdateRecordFailed"],
+                    5000,
+                    true);
+                return;
+            }
+
+            ToastService.Show(
+                NotificationSeverity.Success,
+                Loc["Success"],
+                IsCreate ? Loc["RecordAddedSuccess"] : Loc["RecordUpdatedSuccess"],
+                4000,
+                false);
+            DialogService.Close(result);
         }
-        catch (Exception ex) { ToastService.Error(ex, Loc, IsCreate ? "CreateRecordFailed" : "UpdateRecordFailed"); }
-        finally { isBusy = false; }
+        catch (Exception ex)
+        {
+            ToastService.Error(ex, Loc, IsCreate ? "CreateRecordFailed" : "UpdateRecordFailed");
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 }

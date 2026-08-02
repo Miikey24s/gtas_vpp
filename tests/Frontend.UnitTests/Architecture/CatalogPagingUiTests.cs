@@ -31,12 +31,16 @@ public sealed class CatalogPagingUiTests
         var editor = ReadSource("Components", "Pages", "Lib", "Tabs", "Dialog", "Dialog_ItemEditor.razor");
 
         Assert.Contains("<Tab_ItemLibrary", source, StringComparison.Ordinal);
-        Assert.Contains("Config.ApiCatalogItems", grid, StringComparison.Ordinal);
-        Assert.Contains("/status", grid, StringComparison.Ordinal);
+        Assert.Contains("CatalogApi.GetItemsAsync", grid, StringComparison.Ordinal);
+        Assert.Contains("CatalogApi.SetItemDeletedAsync", grid, StringComparison.Ordinal);
         Assert.Contains("VppItemCreateRequest", editor, StringComparison.Ordinal);
         Assert.Contains("VppItemUpdateRequest", editor, StringComparison.Ordinal);
+        Assert.Contains("CatalogApi.CreateItemAsync", editor, StringComparison.Ordinal);
+        Assert.Contains("CatalogApi.UpdateItemAsync", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("AllowHardDelete", source, StringComparison.Ordinal);
-        Assert.Contains("DeleteFromApiAsync", grid, StringComparison.Ordinal);
+        Assert.Contains("CatalogApi.DeleteItemAsync", grid, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", grid, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", editor, StringComparison.Ordinal);
         Assert.Contains("PermanentDeleteWarning", grid, StringComparison.Ordinal);
     }
 

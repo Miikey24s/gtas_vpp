@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Tests.TestDoubles;
+using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Xunit;
 
@@ -131,5 +132,63 @@ public sealed class CatalogApiClientTests
         Assert.Contains("/api/Library/departments?showDeleted=false", endpoints);
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/departments?showDeleted=true&", StringComparison.Ordinal));
         Assert.Contains($"/api/Library/departments/{id}/dependency-impact", endpoints);
+    }
+
+    [Fact]
+    public async Task ItemMethods_UseReferenceDataTypedRequestsAndStatusEndpoint()
+    {
+        var itemId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+        var categoryId = Guid.Parse("77777777-7777-7777-7777-777777777777");
+        var uomId = Guid.Parse("88888888-8888-8888-8888-888888888888");
+        var calls = new List<(string Method, string Endpoint, object? Body)>();
+        var api = new StubApiServices
+        {
+            GetAsync = (endpoint, type) =>
+            {
+                calls.Add(("GET", endpoint, null));
+                object data = type == typeof(List<VppCategoryResDTO>)
+                    ? new List<VppCategoryResDTO>()
+                    : new List<LookupValueResDTO>();
+                return Task.FromResult<object?>(data);
+            },
+            GetWithTotalCountAsync = (endpoint, _) =>
+            {
+                calls.Add(("GET_PAGE", endpoint, null));
+                return Task.FromResult<(object?, int)>((new List<VppItemResDTO>(), 0));
+            },
+            PostAsync = (endpoint, body, _) =>
+            {
+                calls.Add(("POST", endpoint, body));
+                return Task.FromResult<object?>(new VppItemResDTO());
+            },
+            PutAsync = (endpoint, body, _) =>
+            {
+                calls.Add(("PUT", endpoint, body));
+                return Task.FromResult<object?>(new VppItemResDTO());
+            },
+            PatchAsync = (endpoint, body, _) =>
+            {
+                calls.Add(("PATCH", endpoint, body));
+                return Task.FromResult<object?>(new VppItemResDTO());
+            }
+        };
+        var client = new CatalogApiClient(api);
+
+        await client.GetItemReferenceDataAsync();
+        await client.GetItemsAsync(new CatalogItemQuery(10, 25, "pen", categoryId, uomId, "VppName"));
+        await client.CreateItemAsync(new VppItemCreateRequest());
+        await client.UpdateItemAsync(new VppItemUpdateRequest { Id = itemId });
+        await client.SetItemDeletedAsync(itemId, true);
+
+        Assert.Contains(calls, call => call.Endpoint == "/api/Library/vpp-categories?showDeleted=true");
+        Assert.Contains(calls, call => call.Endpoint == "/api/Library/lookup-values?showDeleted=true");
+        var pageEndpoint = Assert.Single(calls, call => call.Method == "GET_PAGE").Endpoint;
+        Assert.Contains("categoryId=77777777-7777-7777-7777-777777777777", pageEndpoint);
+        Assert.Contains("UomId%20%3D%3D%20%2288888888-8888-8888-8888-888888888888%22", pageEndpoint);
+        Assert.Contains(calls, call => call.Method == "POST" && call.Body is VppItemCreateRequest);
+        Assert.Contains(calls, call => call.Method == "PUT" && call.Body is VppItemUpdateRequest);
+        Assert.Contains(calls, call => call.Method == "PATCH"
+            && call.Endpoint == $"/api/catalog/items/{itemId}/status"
+            && call.Body is CatalogItemStatusChange { IsDeleted: true });
     }
 }

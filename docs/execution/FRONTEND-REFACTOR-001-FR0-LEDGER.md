@@ -555,3 +555,19 @@ format lại thành các method/markup block có tên và control flow rõ, khô
 
 Department editor route-real Add vẫn thuộc permission-fixture debt đã biết, nên checkpoint này dùng
 contract/build/unit làm behavior gate và không sửa permission chỉ để test mở dialog.
+
+## 27. FR4 Item feature client + readability cleanup
+
+`CatalogApiClient` đã mở rộng cho Item: category/UOM reference data, server query với search/category/UOM,
+typed `VppItemCreateRequest`/`VppItemUpdateRequest`, status endpoint và hard-delete. Grid và dialog được
+format lại từ one-line code thành các method/markup block dễ lần theo.
+
+| Gate | Kết quả |
+|---|---|
+| Catalog client focused | PASS `5/5` |
+| Catalog/architecture focused | PASS `32/32` |
+| Frontend unit/architecture | PASS `271/271` |
+| Release build | PASS `0 warning / 0 error` |
+
+Item editor browser Add thuộc permission-fixture debt đã biết và đã tồn tại trước slice; architecture
+test mới khóa page/dialog chỉ gọi typed client, không tự dựng endpoint hoặc inject `IAPIServices`.
