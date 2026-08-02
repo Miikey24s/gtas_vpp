@@ -69,6 +69,7 @@ builder.Services.AddScoped<CurrentUserState>();
 builder.Services.AddScoped<LookupApiClient>();
 builder.Services.AddScoped<CatalogApiClient>();
 builder.Services.AddScoped<PricingApiClient>();
+builder.Services.AddScoped<PermissionAdministrationApiClient>();
 builder.Services.AddScoped<IAuthSessionInvalidationCoordinator, AuthSessionInvalidationCoordinator>();
 builder.Services.AddScoped<PermissionRefreshSignal>();
 builder.Services.AddScoped<PermissionState>();

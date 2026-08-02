@@ -622,3 +622,19 @@ consumer. Đã xóa class, DI registration, global import và bốn injection th
 
 Auth tests được viết lại để khóa anonymous no-load, authenticated canonical-state load, missing-profile
 failure và permission fallback. Không thay cookie claim set hoặc backend authorization authority.
+
+## 31. FR5 Permission Administration + Security Audit client
+
+`PermissionAdministrationApiClient` gom query group, tải component mapping, batch patch và security-audit
+filter/paging vào một boundary có kiểu dữ liệu rõ ràng. `Tab_PagePermission` và `Tab_SecurityAudit` chỉ còn
+điều phối UI/state; URL, escaping, paging và transport không còn nằm trong component. Parameter `claims`
+không được render hoặc dùng đã được xóa khỏi permission tab.
+
+| Gate | Kết quả |
+|---|---|
+| Focused typed-client tests | PASS `2/2` |
+| Frontend unit/architecture | PASS `276/276` |
+| Permission + Security Audit route-real | PASS `2/2` isolated |
+
+Hai route thật xác nhận group grid, adaptive permission editor, audit rows/filter/detail và read-only
+contract vẫn hoạt động. Slice không thay permission policy, mapping semantics hoặc audit immutability.

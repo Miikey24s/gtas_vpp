@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Res.Permission;
@@ -12,7 +13,7 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
 
 public partial class Tab_SecurityAudit : IDisposable
 {
-    [Inject] public IAPIServices ApiServices { get; set; } = default!;
+    [Inject] public PermissionAdministrationApiClient PermissionAdminApi { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
     [Inject] public DialogService DialogService { get; set; } = default!;
     [Inject] public IToastService Toast { get; set; } = default!;
@@ -43,8 +44,7 @@ public partial class Tab_SecurityAudit : IDisposable
         isLoadingOptions = true;
         try
         {
-            filterOptions = await ApiServices.GetFromApiAsync<SecurityAuditFilterOptionsResDTO>(
-                "/api/Permission/security-audits/filter-options") ?? new();
+            filterOptions = await PermissionAdminApi.GetSecurityAuditFilterOptionsAsync() ?? new();
         }
         catch (Exception ex)
         {
@@ -72,10 +72,15 @@ public partial class Tab_SecurityAudit : IDisposable
         StateHasChanged();
         try
         {
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<SecurityAuditResDTO>>(
-                BuildEndpoint(args.Skip, args.Top, args.OrderBy));
+            var result = await PermissionAdminApi.GetSecurityAuditsAsync(new SecurityAuditQuery(
+                args.Skip ?? 0,
+                args.Top ?? 20,
+                SearchText,
+                SelectedAction,
+                SelectedOutcome,
+                args.OrderBy));
             audits.Clear();
-            audits.AddRange(result.Data ?? []);
+            audits.AddRange(result.Items);
             auditCount = result.TotalCount;
         }
         catch (Exception ex)
@@ -143,18 +148,6 @@ public partial class Tab_SecurityAudit : IDisposable
             VppAdminDialogSize.Standard,
             Loc["SecurityAuditDetail"],
             closeAriaLabel: Loc["Close"].Value));
-
-    private string BuildEndpoint(int? skip, int? top, string? orderby)
-    {
-        var query = new List<string>();
-        if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
-        if (!string.IsNullOrWhiteSpace(SelectedAction)) query.Add($"action={Uri.EscapeDataString(SelectedAction)}");
-        if (!string.IsNullOrWhiteSpace(SelectedOutcome)) query.Add($"outcome={Uri.EscapeDataString(SelectedOutcome)}");
-        if (skip.HasValue) query.Add($"skip={skip.Value}");
-        if (top.HasValue) query.Add($"top={top.Value}");
-        if (!string.IsNullOrWhiteSpace(orderby)) query.Add($"orderby={Uri.EscapeDataString(orderby)}");
-        return $"/api/Permission/security-audits?{string.Join("&", query)}";
-    }
 
     private string GetActionLabel(string action) => action switch
     {

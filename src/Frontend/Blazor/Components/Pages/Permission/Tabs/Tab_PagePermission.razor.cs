@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
@@ -19,11 +19,10 @@ namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
 
 public partial class Tab_PagePermission
 {
-    [Inject] public IAPIServices _apiServices { get; set; } = default!;
+    [Inject] public PermissionAdministrationApiClient PermissionAdminApi { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
     [Inject] public UiBusyState BusyState { get; set; } = default!;
 
-    [Parameter] public IEnumerable<Claim> claims { get; set; } = [];
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
 
     public List<PermissionGroupDto> list_Group { get; set; } = [];
@@ -54,7 +53,6 @@ public partial class Tab_PagePermission
             return;
         }
 
-        claims = authState.User.Claims;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -80,9 +78,12 @@ public partial class Tab_PagePermission
 
         try
         {
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PermissionGroupDto>>(
-                BuildGroupsEndpoint(args.Skip, args.Top, args.OrderBy));
-            list_Group = result.Data ?? [];
+            var result = await PermissionAdminApi.GetGroupsAsync(new PermissionGroupQuery(
+                args.Skip ?? 0,
+                args.Top ?? 20,
+                groupSearchText,
+                args.OrderBy));
+            list_Group = result.Items.ToList();
             groupCount = result.TotalCount;
 
         }
@@ -137,9 +138,7 @@ public partial class Tab_PagePermission
         IsLoading_Child = true;
         try
         {
-            var response = await _apiServices.PatchFromApiAsync<BatchPatchComponentMappingsResDTO>(
-                "/api/Permission/component-mappings/batch",
-                request);
+            var response = await PermissionAdminApi.PatchComponentMappingsAsync(request);
 
             if (request.PermissionGroupId == PermissionState.CurrentGroupId)
             {
@@ -185,8 +184,7 @@ public partial class Tab_PagePermission
         StateHasChanged();
         try
         {
-            groupPermissions = await _apiServices.GetFromApiAsync<List<PermissionPageComponentResDTO>>(
-                $"/api/Permission/groups/{groupId}/page-components") ?? [];
+            groupPermissions = await PermissionAdminApi.GetGroupPageComponentsAsync(groupId) ?? [];
         }
         catch (Exception ex)
         {
@@ -234,30 +232,6 @@ public partial class Tab_PagePermission
         Detail = detail,
         Duration = 10000
     });
-
-    private string BuildGroupsEndpoint(int? skip, int? top, string? orderBy)
-    {
-        var queryParams = new List<string> { "getFullName=true" };
-        var searchFilter = BuildSearchFilter();
-        if (!string.IsNullOrWhiteSpace(searchFilter)) queryParams.Add($"filter={Uri.EscapeDataString(searchFilter)}");
-        if (skip.HasValue) queryParams.Add($"skip={skip.Value}");
-        if (top.HasValue) queryParams.Add($"top={top.Value}");
-        if (!string.IsNullOrWhiteSpace(orderBy)) queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
-        return $"/api/Permission/groups?{string.Join("&", queryParams)}";
-    }
-
-    private string? BuildSearchFilter()
-    {
-        var search = groupSearchText.Trim();
-        if (string.IsNullOrWhiteSpace(search)) return null;
-
-        var escaped = search
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal)
-            .ToLowerInvariant();
-        var clause = $"((GroupCode ?? \"\").ToLower().Contains(\"{escaped}\") || (GroupName ?? \"\").ToLower().Contains(\"{escaped}\"))";
-        return clause;
-    }
 
     private bool IsDevPersona(RbacPersonaDefinition persona) =>
         string.Equals(persona.GroupCode, CanonicalRbac.Dev.GroupCode, StringComparison.OrdinalIgnoreCase);

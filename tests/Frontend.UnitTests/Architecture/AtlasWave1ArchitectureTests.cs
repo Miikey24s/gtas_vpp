@@ -293,6 +293,7 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var page = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_SecurityAudit.razor");
         var code = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_SecurityAudit.razor.cs");
+        var apiClient = ReadFrontendSource("Features/IdentityAccess/Api/PermissionAdministrationApiClient.cs");
         var dialog = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_SecurityAuditDetail.razor");
         var sidebar = ReadFrontendSource("Components/Layout/LeftSidebar.razor");
         var sidebarCode = ReadFrontendSource("Components/Layout/LeftSidebar.razor.cs");
@@ -301,7 +302,8 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("security-audit-data-surface", page, StringComparison.Ordinal);
         Assert.Contains("VppDataSourceMode.ServerPaging", page, StringComparison.Ordinal);
         Assert.Contains("SecurityAuditResDTO", page, StringComparison.Ordinal);
-        Assert.Contains("/api/Permission/security-audits", code, StringComparison.Ordinal);
+        Assert.Contains("PermissionAdministrationApiClient", code, StringComparison.Ordinal);
+        Assert.Contains("/security-audits", apiClient, StringComparison.Ordinal);
         Assert.Contains("Dialog_SecurityAuditDetail", code, StringComparison.Ordinal);
         Assert.Contains("VppAdaptiveDialogShell", dialog, StringComparison.Ordinal);
         Assert.Equal("/permission?tab=2", ShellNavigationCatalog.SecurityAudit.Path);
