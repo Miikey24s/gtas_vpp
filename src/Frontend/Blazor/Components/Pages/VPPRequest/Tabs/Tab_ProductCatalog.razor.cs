@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Radzen;
 using Radzen.Blazor;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
 
@@ -26,8 +25,6 @@ public partial class Tab_ProductCatalog : IDisposable
 
     [Inject] public IAPIServices ApiServices { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
-
-    [Parameter] public IEnumerable<Claim>? claims { get; set; }
 
     public List<ProductItem> Products { get; set; } = [];
     public List<VppFilterOption<string>> CategoryOptions { get; set; } = [];

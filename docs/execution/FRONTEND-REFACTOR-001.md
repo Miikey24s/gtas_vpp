@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1A COMPLETE; FR1B/FR1C IN PROGRESS`
+- Status: `IN PROGRESS — FR0/FR1 COMPLETE; FR2 NEXT`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -34,7 +34,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `214/214`; 82 UI test được phát hiện; focused FR0 browser đã pass. `model-routing-eval` đã được sửa và `verify -Scope frontend` hiện pass | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Hoàn tất FR1 theo ba lát độc lập: FR1A zero-consumer C#, FR1B package-only, FR1C dead parameter nhỏ; không mở architecture migration trước khi runtime gate của lát hiện tại rõ ràng | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR1 đã hoàn tất theo ba commit nhỏ. Bắt đầu FR2 bằng characterization `APIServices`, sau đó Reports typed client, `UiBusyState` pilot và cuối cùng mới move Reports | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -691,7 +691,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0 và FR1A zero-consumer C# hoàn tất; FR1B/FR1C đang chạy**. Provisional baseline chưa phải
+- Current status: **FR0 và toàn bộ FR1 hoàn tất; FR2 là wave kế tiếp**. Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
@@ -702,10 +702,14 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 - FR1A evidence: usage scan không còn match; format verify PASS; Release build PASS; unit `214/214`;
   My Orders smoke PASS. Item/Department editor có cùng exact timeout trên clean baseline `b739288d`,
   nên FR1A đạt non-regression; fixture/permission debt được giữ cho UI acceptance/B0R.
+- FR1B evidence: direct/transitive package audit không còn Newtonsoft/Serilog; restore/build/unit pass;
+  anonymous account + authenticated report smoke `2/2`; publish không chứa DLL Newtonsoft/Serilog.
+- FR1C evidence: bỏ parameter `claims` không đọc khỏi Product Catalog; format/build/unit pass và focused
+  Product Catalog route-real `1/1`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: commit FR1A đúng scope, hoàn tất FR1B package-only và FR1C dead parameter; giữ
-  failure Item/Department trong ledger để xử lý trước final UI acceptance.
+- Next exact action: FR2A bổ sung characterization cho `APIServices` trước khi tạo typed Reports client;
+  không tạo client/state abstraction và move file trong cùng commit.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

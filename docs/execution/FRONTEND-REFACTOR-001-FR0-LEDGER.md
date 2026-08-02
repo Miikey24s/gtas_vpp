@@ -224,3 +224,32 @@ Scope đã triển khai:
 FR1A không đổi route, API endpoint, DTO, permission hoặc visual CSS và đạt non-regression gate. Failure
 Item/Department được giữ thành fixture/permission debt cho final UI acceptance/B0R; không được che bằng
 cách giảm assertion.
+
+## 9. FR1B execution record — package-only cleanup
+
+Đã bỏ top-level `Newtonsoft.Json` và toàn bộ Serilog package family khỏi frontend, đồng thời xóa
+`using Serilog` không dùng. SignalR và Radzen giữ nguyên.
+
+| Gate | Kết quả |
+|---|---|
+| Repo-wide runtime/config scan | PASS — không còn callsite/config Newtonsoft hoặc Serilog trong frontend/tests |
+| Direct/transitive package audit | PASS — chỉ còn Radzen và SignalR top-level; không còn Serilog transitive tree |
+| Restore + Release build | PASS `0 warning / 0 error` |
+| Frontend unit/architecture | PASS `214/214` |
+| Account startup/auth + report smoke | PASS `2/2` |
+| Release publish artifact audit | PASS — không có DLL/file Newtonsoft hoặc Serilog |
+
+## 10. FR1C execution record — dead Product Catalog parameter
+
+Đã bỏ parameter `claims` khỏi `Tab_ProductCatalog` và callsite duy nhất vì component sử dụng
+`PermissionState` làm authority, không đọc parameter này.
+
+| Gate | Kết quả |
+|---|---|
+| Consumer/usage scan | PASS — parameter chỉ có một producer và không có read |
+| Format verify + Release build | PASS |
+| Frontend unit/architecture | PASS `214/214` |
+| Product Catalog route-real | PASS `1/1` |
+
+FR1 hoàn tất. Static asset cleanup được dời sang FR8A và test-only `ProductCatalogPage` được dời sang
+FR8B để production cleanup, package cleanup và test refactor không bị trộn trong cùng wave.
