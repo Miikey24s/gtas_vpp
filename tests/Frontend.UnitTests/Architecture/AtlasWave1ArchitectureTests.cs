@@ -209,6 +209,7 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var report = ReadFrontendSource("Components/Pages/Report.razor");
         var reportCode = ReadFrontendSource("Components/Pages/Report.razor.cs");
+        var reportClient = ReadFrontendSource("Features/Reports/Api/ReportsApiClient.cs");
 
         Assert.Contains("Summary.SettlementId.HasValue", report, StringComparison.Ordinal);
         Assert.Contains("vpp-report-settlement-evidence", report, StringComparison.Ordinal);
@@ -226,7 +227,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("VppFileExportFormat.Pdf", reportCode, StringComparison.Ordinal);
         Assert.Contains("VppFileExportFormat.Excel", reportCode, StringComparison.Ordinal);
         Assert.Contains("VppFileExportFormat.Csv", reportCode, StringComparison.Ordinal);
-        Assert.Contains("format.ApiSuffix()", reportCode, StringComparison.Ordinal);
+        Assert.Contains("Reports.ExportAsync", reportCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", reportCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("api/reports", reportCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildEndpoint", reportCode, StringComparison.Ordinal);
+        Assert.Contains("format.ApiSuffix()", reportClient, StringComparison.Ordinal);
+        Assert.Contains("api/reports/{action}", reportClient, StringComparison.Ordinal);
         Assert.DoesNotContain("aria-label=\"Bằng chứng chốt kỳ\"", report, StringComparison.Ordinal);
     }
 

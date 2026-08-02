@@ -1,5 +1,6 @@
 using System.Globalization;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Features.Reports.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -12,9 +13,8 @@ namespace gtas_vpp_fe.Components.Pages;
 public abstract class ReportBase : ComponentBase, IDisposable
 {
     [Inject] protected PermissionState PermissionState { get; set; } = default!;
-    [Inject] protected IAPIServices Api { get; set; } = default!;
+    [Inject] protected ReportsApiClient Reports { get; set; } = default!;
     [Inject] protected IToastService Toast { get; set; } = default!;
-    [Inject] protected IBrowserFileDownloadService FileDownloads { get; set; } = default!;
 
     protected ReportSummaryResDTO? Summary { get; private set; }
     protected ReportInsightResDTO? Insight { get; private set; }
@@ -120,7 +120,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         var loadVersion = _loadVersion.Begin();
         try
         {
-            var summary = await Api.GetFromApiAsync<ReportSummaryResDTO>(BuildEndpoint("summary"));
+            var summary = await Reports.GetSummaryAsync(CreateQuery());
             if (_loadVersion.IsCurrent(loadVersion))
             {
                 Summary = summary;
@@ -169,7 +169,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         ExportingFormat = format;
         try
         {
-            var result = await FileDownloads.DownloadFromApiAsync(BuildEndpoint(format.ApiSuffix()));
+            var result = await Reports.ExportAsync(CreateQuery(), format);
             Toast.Success(Localizer["Success"], Localizer["ExportCompleted", result.FileName, FileSizeFormatter.Format(result.Size)]);
         }
         catch (Exception ex)
@@ -193,8 +193,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         try
         {
             var language = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "vi";
-            Insight = await Api.GetFromApiAsync<ReportInsightResDTO>(
-                $"{BuildEndpoint("insights")}&language={language}");
+            Insight = await Reports.GetInsightsAsync(CreateQuery(), language);
         }
         catch (Exception ex)
         {
@@ -256,13 +255,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         Convert.ToInt64(value, CultureInfo.InvariantCulture)
             .ToString("N0", CultureInfo.CurrentUICulture);
 
-    private string BuildEndpoint(string action)
-    {
-        var query = $"scope={Uri.EscapeDataString(SelectedScope)}";
-        if (SelectedYear.HasValue) query += $"&year={SelectedYear.Value}";
-        if (SelectedMonth.HasValue) query += $"&month={SelectedMonth.Value}";
-        return $"api/reports/{action}?{query}";
-    }
+    private ReportQuery CreateQuery() => new(SelectedScope, SelectedYear, SelectedMonth);
 
     private void OnPermissionStateChanged()
     {

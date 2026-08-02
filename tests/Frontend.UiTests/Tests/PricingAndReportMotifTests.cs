@@ -87,27 +87,25 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             await AssertNoDocumentOverflowAsync(viewport.Width, "item prices");
             await CaptureAsync($"pricing-prices-{viewport.Width}x{viewport.Height}.png");
 
-            await Page.GotoAsync($"{BaseUrl}report", new() { WaitUntil = WaitUntilState.Load });
-            var analytics = Page.Locator("[data-vpp-workspace-pattern='analytics']");
-            await analytics.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
-            await Page.WaitForFunctionAsync(
-                "() => document.querySelectorAll('.vpp-report-page .vpp-skeleton-page').length === 0",
-                null,
-                new() { Timeout = 60_000 });
-            var reportSurfaces = analytics.Locator("[data-vpp-data-surface='true']");
-            (await reportSurfaces.CountAsync()).Should().Be(2);
-            for (var index = 0; index < 2; index++)
-            {
-                var surface = reportSurfaces.Nth(index);
-                (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("static");
-                (await surface.GetAttributeAsync("data-vpp-data-density")).Should().Be("compact");
-                (await surface.Locator(".vpp-data-summary-footer").CountAsync()).Should().Be(1);
-                (await surface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().Be(0,
-                    "evidence tables are bounded static collections, not fake paged grids");
-            }
-            (await analytics.Locator(".vpp-report-chart-grid .vpp-report-card").CountAsync()).Should().Be(2);
-            await AssertNoDocumentOverflowAsync(viewport.Width, "reports");
-            await CaptureAsync($"report-analytics-{viewport.Width}x{viewport.Height}.png");
+            await AssertReportContractsAsync(viewport.Width, viewport.Height);
+        }
+    }
+
+    [Fact]
+    public async Task Reports_KeepCanonicalContractsAcrossResponsiveViewports()
+    {
+        await LoginAsDefaultUserAsync();
+
+        foreach (var viewport in new[]
+                 {
+                     (Width: 390, Height: 844),
+                     (Width: 768, Height: 1024),
+                     (Width: 1366, Height: 768),
+                     (Width: 1920, Height: 1080)
+                 })
+        {
+            await Page.SetViewportSizeAsync(viewport.Width, viewport.Height);
+            await AssertReportContractsAsync(viewport.Width, viewport.Height);
         }
     }
 
@@ -168,6 +166,32 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             null,
             new() { Timeout = 60_000 });
         await WaitForRenderSettleAsync();
+    }
+
+    private async Task AssertReportContractsAsync(int viewportWidth, int viewportHeight)
+    {
+        await Page.GotoAsync($"{BaseUrl}report", new() { WaitUntil = WaitUntilState.Load });
+        var analytics = Page.Locator("[data-vpp-workspace-pattern='analytics']");
+        await analytics.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelectorAll('.vpp-report-page .vpp-skeleton-page').length === 0",
+            null,
+            new() { Timeout = 60_000 });
+        var reportSurfaces = analytics.Locator("[data-vpp-data-surface='true']");
+        (await reportSurfaces.CountAsync()).Should().Be(2);
+        for (var index = 0; index < 2; index++)
+        {
+            var surface = reportSurfaces.Nth(index);
+            (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("static");
+            (await surface.GetAttributeAsync("data-vpp-data-density")).Should().Be("compact");
+            (await surface.Locator(".vpp-data-summary-footer").CountAsync()).Should().Be(1);
+            (await surface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().Be(0,
+                "evidence tables are bounded static collections, not fake paged grids");
+        }
+
+        (await analytics.Locator(".vpp-report-chart-grid .vpp-report-card").CountAsync()).Should().Be(2);
+        await AssertNoDocumentOverflowAsync(viewportWidth, "reports");
+        await CaptureAsync($"report-analytics-{viewportWidth}x{viewportHeight}.png");
     }
 
     private async Task AssertNoDocumentOverflowAsync(int viewportWidth, string route)

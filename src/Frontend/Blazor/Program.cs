@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Components;
 using gtas_vpp_fe.Endpoints;
+using gtas_vpp_fe.Features.Reports.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.State;
@@ -71,6 +72,7 @@ builder.Services.AddScoped<NotificationInboxState>();
 builder.Services.AddScoped<gtas_vpp_fe.Components.Pages.VPPRequest.Components.PeriodSettlementState>();
 builder.Services.AddScoped<IToastService, ToastService>();
 builder.Services.AddScoped<IBrowserFileDownloadService, BrowserFileDownloadService>();
+builder.Services.AddScoped<ReportsApiClient>();
 builder.Services.AddSingleton<LoginTicketCache>();
 #region Cookie
 // Cấu hình hỗ trợ Cookie policy

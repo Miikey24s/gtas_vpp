@@ -253,3 +253,36 @@ cách giảm assertion.
 
 FR1 hoàn tất. Static asset cleanup được dời sang FR8A và test-only `ProductCatalogPage` được dời sang
 FR8B để production cleanup, package cleanup và test refactor không bị trộn trong cùng wave.
+
+## 11. FR2 transport characterization
+
+`ApiServicesJsonTransportTests` đã được mở rộng để khóa các contract dùng lại khi feature client dần
+thay raw endpoint trong page:
+
+- bearer token lấy từ authentication state;
+- fallback total count từ collection khi header thiếu;
+- `204`/content rỗng trả default, không parse lỗi;
+- export giữ file name, MIME, length và bytes;
+- 401 session invalidation, 403 permission refresh và safe ProblemDetails giữ nguyên.
+
+Focused transport suite PASS `11/11`.
+
+## 12. FR2 Reports pilot
+
+Đã tạo `Features/Reports/Api/ReportsApiClient.cs`. Client sở hữu query builder, summary/insight endpoint
+và mapping PDF/XLSX/CSV; `Report.razor.cs` chỉ còn permission, UI state, localization, feedback và
+derived presentation data.
+
+| Gate | Kết quả |
+|---|---|
+| Reports client + architecture focused unit | PASS `7/7` |
+| Frontend unit/architecture | PASS `224/224` |
+| Release build | PASS `0 warning / 0 error` |
+| UI discovery | 83 test case |
+| Report responsive + combined Pricing/Report | PASS `2/2`, gồm 4 viewport |
+| English contract + real report exports | PASS `2/2`; PDF/XLSX/CSV name, bytes và signature thật |
+| Dark mode + Print CSS + axe | PASS `1/1` |
+
+Lần chạy đầu của combined Pricing/Report fail tại pricing lifecycle menu trước khi vào Report; report
+English/export vẫn pass. Thêm focused Report test để tách gate theo owner và lượt chạy lại cả focused +
+combined đều pass. Không sửa assertion để che failure.
