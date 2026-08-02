@@ -34,7 +34,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `259/259`; 83 UI test được phát hiện. Public account, login và authenticated password change đều dùng typed client; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Account HTTP ownership đã hoàn tất. Tiếp theo retire identity/navigation shell state lặp, giữ nguyên logout/cookie flow, URL và permission behavior | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Account HTTP ownership và shell identity projection đã hoàn tất. Tiếp theo hợp nhất route/sidebar metadata, giữ nguyên URL, tab alias và permission behavior | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -737,10 +737,14 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   global đã xóa; architecture gate cấm account pages sở hữu `IHttpClientFactory`/`IAPIServices`. Focused
   account client/route `31/31`, full frontend `259/259`, Release build sạch; success vẫn force-load qua
   `/perform-logout` để hủy cookie/session sau khi đổi mật khẩu.
+- FR3 shell identity migration: `LeftSidebar`/`UserMenu` đọc trực tiếp `CurrentUserState` thay vì bản sao
+  `GlobalClass.UserInfo`, đồng thời subscribe/unsubscribe state event theo lifecycle. Focused state/shell
+  architecture `66/66`, Release build sạch và User Menu route-real `2/2`; tên, nhóm vai trò và phòng ban
+  giữ nguyên.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: retire `GlobalClass.UserInfo` consumer bằng `CurrentUserState`, sau đó hợp nhất
-  route/sidebar metadata mà không đổi URL, tab alias hay permission behavior.
+- Next exact action: thêm canonical shell navigation metadata để xóa ba route array và header-tab
+  hard-code trong sidebar mà không đổi URL, tab alias hay permission behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

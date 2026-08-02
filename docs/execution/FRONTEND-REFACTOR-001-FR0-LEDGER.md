@@ -437,3 +437,19 @@ Page chỉ còn form/loading/localized message và full-page `/perform-logout` s
 
 Architecture test mới khóa toàn bộ account page code-behind không được inject lại
 `IHttpClientFactory` hoặc `IAPIServices`. Logout/cookie/session revocation flow không đổi trong slice này.
+
+## 20. FR3 shell identity migration
+
+`LeftSidebar` và `UserMenu` đã đọc hồ sơ hiển thị trực tiếp từ `CurrentUserState.Current`. Bản projection
+`GlobalClass.UserInfo` không còn là source của tên, login, email, vai trò hoặc phòng ban trong shell.
+Sidebar subscribe/unsubscribe `CurrentUserState.Changed` cùng lifecycle hiện có để refresh đúng khi hồ sơ
+bị invalidate/reload.
+
+| Gate | Kết quả |
+|---|---|
+| State + shell architecture focused | PASS `66/66` |
+| Release build | PASS `0 warning / 0 error` |
+| User Menu route-real | PASS `2/2` trên isolated fixture |
+
+`GlobalClass` chưa xóa ở checkpoint này vì một số Library mutation/editor còn dùng user id cũ; các
+consumer đó sẽ chuyển sang `CurrentUserState` trong FR4 trước khi xóa projection và DI registration.

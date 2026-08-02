@@ -48,6 +48,7 @@ namespace gtas_vpp_fe.Components.Layout
         [Inject] public ThemeService ThemeService { get; set; } = default!;
         [Inject] public ThemeState ThemeState { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
+        [Inject] public CurrentUserState CurrentUserState { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public UiBusyState BusyState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
@@ -101,6 +102,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
 
             BusyState.Changed += OnBusyStateChanged;
+            CurrentUserState.Changed += OnCurrentUserStateChanged;
 
             try
             {
@@ -262,6 +264,7 @@ namespace gtas_vpp_fe.Components.Layout
             NavigationManager.LocationChanged -= OnLocationChanged;
             PermissionState.Changed -= OnPermissionStateChanged;
             BusyState.Changed -= OnBusyStateChanged;
+            CurrentUserState.Changed -= OnCurrentUserStateChanged;
         }
 
         public async Task ToggleLanguage()
@@ -318,7 +321,7 @@ namespace gtas_vpp_fe.Components.Layout
 
         public string GetUserInitials()
         {
-            var name = glb.UserInfo.FullName ?? "";
+            var name = CurrentUserState.Current?.FullName ?? string.Empty;
             var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length >= 2)
                 return $"{parts[0][0]}{parts[^1][0]}".ToUpper();
@@ -336,7 +339,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             get
             {
-                var groupId = glb.UserInfo?.GroupId ?? Guid.Empty;
+                var groupId = CurrentUserState.Current?.GroupId ?? Guid.Empty;
                 if (groupId == CanonicalRbac.Employee.GroupId)
                 {
                     return Loc["RoleEmployee"];
@@ -352,7 +355,7 @@ namespace gtas_vpp_fe.Components.Layout
                     return Loc["RoleDev"];
                 }
 
-                return glb.UserInfo?.GroupName?.Trim() ?? string.Empty;
+                return CurrentUserState.Current?.GroupName?.Trim() ?? string.Empty;
             }
         }
 
@@ -613,6 +616,11 @@ namespace gtas_vpp_fe.Components.Layout
         }
 
         private void OnPermissionStateChanged()
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void OnCurrentUserStateChanged()
         {
             _ = InvokeAsync(StateHasChanged);
         }

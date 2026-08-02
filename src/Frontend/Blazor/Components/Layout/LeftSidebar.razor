@@ -2,7 +2,6 @@
 @using Radzen.Blazor.Rendering
 @using gtas_vpp_shared.Constants
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject GlobalClass glb
 @inject NavigationManager NavigationManager
 @inject ProtectedLocalStorage ProtectedLocalStore
 
@@ -189,12 +188,12 @@
         </RadzenPanelMenu>
     </nav>
     <footer class="vpp-sidebar-user-footer">
-        <UserMenu UserFullName="@glb.UserInfo.FullName"
-                  UserLogin="@glb.UserInfo.UserLogin"
-                  UserEmail="@glb.UserInfo.Email"
+        <UserMenu UserFullName="@CurrentUserState.Current?.FullName"
+                  UserLogin="@CurrentUserState.Current?.UserLogin"
+                  UserEmail="@CurrentUserState.Current?.Email"
                   SidebarSubline="@RoleBadgeLabel"
-                  DepartmentName="@glb.UserInfo.DepartmentName"
-                  DepartmentCode="@glb.UserInfo.DepartmentCode"
+                  DepartmentName="@CurrentUserState.Current?.PrimaryDepartmentName"
+                  DepartmentCode="@CurrentUserState.Current?.PrimaryDepartmentCode"
                   IsLightTheme="@LightTheme"
                   IsLightThemeChanged="@(isLight => LightTheme = isLight)"
                   OnThemeToggle="ThemeOnChange"
