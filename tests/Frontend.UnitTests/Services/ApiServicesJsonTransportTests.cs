@@ -1,7 +1,9 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -88,6 +90,67 @@ public sealed class ApiServicesJsonTransportTests
     }
 
     [Fact]
+    public async Task GetFromApiAsync_AddsBearerTokenFromAuthenticationState()
+    {
+        using var handler = new RecordingHttpMessageHandler("{}");
+        using var client = CreateClient(handler);
+        var authProvider = new StaticAuthenticationStateProvider(
+            new Claim(ClaimKeys.AccessToken, "access-token-42"));
+        var sut = CreateSut(client, authProvider: authProvider);
+
+        await sut.GetFromApiAsync<object>("api/secure");
+
+        Assert.Equal("Bearer", handler.LastAuthorization?.Scheme);
+        Assert.Equal("access-token-42", handler.LastAuthorization?.Parameter);
+    }
+
+    [Fact]
+    public async Task GetFromApiWithTotalCountAsync_UsesCollectionCountWhenHeaderIsMissing()
+    {
+        using var handler = new RecordingHttpMessageHandler("[{\"id\":1},{\"id\":2}]");
+        using var client = CreateClient(handler);
+        var sut = CreateSut(client);
+
+        var result = await sut.GetFromApiWithTotalCountAsync<List<Dictionary<string, int>>>("api/items");
+
+        Assert.NotNull(result.Data);
+        Assert.Equal(2, result.TotalCount);
+    }
+
+    [Fact]
+    public async Task NoContentResponse_ReturnsDefaultWithoutParsing()
+    {
+        using var handler = new NoContentHttpMessageHandler();
+        using var client = CreateClient(handler);
+        var sut = CreateSut(client);
+
+        var result = await sut.GetFromApiAsync<AuthenticationResultDTO>("api/empty");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task OpenFileFromApiAsync_PreservesSafeFileMetadataAndBytes()
+    {
+        var expectedBytes = Encoding.UTF8.GetBytes("report-content");
+        using var handler = new FileHttpMessageHandler(expectedBytes);
+        using var client = CreateClient(handler);
+        var sut = CreateSut(client);
+
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var result = await sut.OpenFileFromApiAsync(
+            "api/reports/export.pdf",
+            cancellationToken);
+        using var buffer = new MemoryStream();
+        await result.Content.CopyToAsync(buffer, cancellationToken);
+
+        Assert.Equal("report thang 8.pdf", result.FileName);
+        Assert.Equal("application/pdf", result.ContentType);
+        Assert.Equal(expectedBytes.Length, result.ContentLength);
+        Assert.Equal(expectedBytes, buffer.ToArray());
+    }
+
+    [Fact]
     public async Task UnauthorizedResponse_RequestsSessionInvalidation()
     {
         using var handler = new StatusHttpMessageHandler(HttpStatusCode.Unauthorized);
@@ -140,9 +203,10 @@ public sealed class ApiServicesJsonTransportTests
     private static APIServices CreateSut(
         HttpClient client,
         IAuthSessionInvalidationCoordinator? coordinator = null,
-        PermissionRefreshSignal? signal = null) => new(
+        PermissionRefreshSignal? signal = null,
+        AuthenticationStateProvider? authProvider = null) => new(
         client,
-        new AnonymousAuthenticationStateProvider(),
+        authProvider ?? new AnonymousAuthenticationStateProvider(),
         signal ?? new PermissionRefreshSignal(),
         coordinator ?? new NoOpSessionInvalidationCoordinator());
 
@@ -175,6 +239,14 @@ public sealed class ApiServicesJsonTransportTests
         public override Task<AuthenticationState> GetAuthenticationStateAsync() => AnonymousState;
     }
 
+    private sealed class StaticAuthenticationStateProvider(params Claim[] claims) : AuthenticationStateProvider
+    {
+        private readonly Task<AuthenticationState> _state = Task.FromResult(
+            new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims, "test"))));
+
+        public override Task<AuthenticationState> GetAuthenticationStateAsync() => _state;
+    }
+
     private sealed class RecordingHttpMessageHandler(string responseJson) : HttpMessageHandler
     {
         public HttpMethod? LastMethod { get; private set; }
@@ -182,6 +254,8 @@ public sealed class ApiServicesJsonTransportTests
         public Uri? LastRequestUri { get; private set; }
 
         public string? LastRequestBody { get; private set; }
+
+        public AuthenticationHeaderValue? LastAuthorization { get; private set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -192,11 +266,43 @@ public sealed class ApiServicesJsonTransportTests
             LastRequestBody = request.Content is null
                 ? null
                 : await request.Content.ReadAsStringAsync(cancellationToken);
+            LastAuthorization = request.Headers.Authorization;
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
             };
+        }
+    }
+
+    private sealed class NoContentHttpMessageHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)
+            {
+                Content = new ByteArrayContent([])
+            });
+    }
+
+    private sealed class FileHttpMessageHandler(byte[] content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var responseContent = new ByteArrayContent(content);
+            responseContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            responseContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                FileNameStar = "report%20thang%208.pdf"
+            };
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = responseContent
+            });
         }
     }
 
