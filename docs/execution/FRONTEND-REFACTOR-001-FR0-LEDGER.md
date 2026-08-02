@@ -506,3 +506,20 @@ hai dialog dùng typed client và `CurrentUserState`.
 
 Worktree đối chứng tạm đã được xóa sau khi xác nhận non-regression. Không nới permission assertion hay
 ép hiển thị nút; fixture/permission seed sẽ được xử lý ở UI final acceptance/backend B0R.
+
+## 24. FR4 Category feature client
+
+`CatalogApiClient` đã được tạo với category server query và mutation API. `Tab_CategoryLibrary` không
+còn tự dựng filter/query/endpoint; `Dialog_CategoryEditor` và grid dùng typed methods, còn audit user
+lấy từ `CurrentUserState`.
+
+| Gate | Kết quả |
+|---|---|
+| Category client contract | PASS `2/2` |
+| Catalog/architecture focused | PASS `29/29` |
+| Frontend unit/architecture | PASS `268/268` |
+| Release build | PASS `0 warning / 0 error` |
+| Category grid/editor browser | BASELINE PERMISSION DEBT — Add action không visible trước API call |
+
+`CanModify` và `PagePermissionResDTO` không đổi trong slice; failure xảy ra trước khi bất kỳ method của
+`CatalogApiClient` được gọi. Không ép enable action hoặc sửa assertion để che fixture seed thiếu quyền.

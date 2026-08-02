@@ -1,7 +1,7 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.State;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
@@ -14,9 +14,9 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
 {
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
 
-    [Inject] public IAPIServices ApiServices { get; set; } = default!;
+    [Inject] public CatalogApiClient CatalogApi { get; set; } = default!;
     [Inject] public IToastService ToastService { get; set; } = default!;
-    [Inject] public GlobalClass Global { get; set; } = default!;
+    [Inject] public CurrentUserState CurrentUserState { get; set; } = default!;
     [Inject] public DialogService DialogService { get; set; } = default!;
 
     private List<VppCategoryResDTO> rows = [];
@@ -36,13 +36,14 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
     {
         isLoading = true;
         currentSkip = args.Skip ?? 0;
-        var searchFilter = BuildSearchFilter();
-
         try
         {
-            var query = BuildQuery(searchFilter, args.Skip, args.Top, args.OrderBy);
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<VppCategoryResDTO>>(query);
-            rows = result.Data ?? [];
+            var result = await CatalogApi.GetCategoriesAsync(new CatalogQuery(
+                args.Skip ?? 0,
+                args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
+                searchText,
+                args.OrderBy));
+            rows = result.Items.ToList();
             totalCount = result.TotalCount;
         }
         catch (Exception ex)
@@ -89,9 +90,12 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
     {
         try
         {
-            var result = await ApiServices.PatchFromApiAsync<VppCategoryResDTO>(
-                $"{Config.LibraryApi.VppCategories}/{row.Id}",
-                new { IsDeleted = value, UpdatedAtUtc = DateTime.Now, UpdatedByUserId = Global.UserInfo.UserID });
+            var result = await CatalogApi.SetCategoryDeletedAsync(
+                row.Id,
+                new CatalogStatusChange(
+                    value,
+                    DateTime.Now,
+                    CurrentUserState.Current?.UserId ?? 0));
 
             if (result is null)
             {
@@ -121,7 +125,7 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
 
         try
         {
-            await ApiServices.DeleteFromApiAsync($"{Config.LibraryApi.VppCategories}/{row.Id}");
+            await CatalogApi.DeleteCategoryAsync(row.Id);
             ToastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["RecordPermanentlyDeleted"], 3000, false);
             await grid.Reload();
         }
@@ -149,25 +153,6 @@ public partial class Tab_CategoryLibrary : VppServerGridComponentBase<VppCategor
     {
         searchText = string.Empty;
         await grid.FirstPage(true);
-    }
-
-    private string? BuildSearchFilter()
-    {
-        var search = searchText.Trim();
-        if (string.IsNullOrWhiteSpace(search)) return null;
-
-        var escaped = search.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal).ToLowerInvariant();
-        return $"((VppCategoryCode ?? \"\").ToLower().Contains(\"{escaped}\") || (VppCategoryName ?? \"\").ToLower().Contains(\"{escaped}\"))";
-    }
-
-    private static string BuildQuery(string? filter, int? skip, int? top, string? orderby)
-    {
-        var query = new List<string> { "showDeleted=true" };
-        if (!string.IsNullOrWhiteSpace(filter)) query.Add($"filter={Uri.EscapeDataString(filter)}");
-        if (skip.HasValue) query.Add($"skip={skip.Value}");
-        if (top.HasValue) query.Add($"top={top.Value}");
-        if (!string.IsNullOrWhiteSpace(orderby)) query.Add($"orderby={Uri.EscapeDataString(orderby)}");
-        return $"{Config.LibraryApi.VppCategories}?{string.Join("&", query)}";
     }
 
     private static VppCategoryResDTO Clone(VppCategoryResDTO row)
