@@ -1,14 +1,14 @@
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Account;
-using gtas_vpp_shared.DTOs.Res.Account;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Authen;
 
 public partial class ResetPassword
 {
-    [Inject] public IHttpClientFactory HttpClientFactory { get; set; } = default!;
+    [Inject] public AccountApiClient AccountApi { get; set; } = default!;
     [Inject] public NavigationManager Navigation { get; set; } = default!;
 
     [SupplyParameterFromQuery(Name = "userId")]
@@ -36,29 +36,24 @@ public partial class ResetPassword
         Model.Token = Token ?? string.Empty;
     }
 
-    private async Task SubmitAsync(PasswordResetReqDTO _submittedModel)
+    private async Task SubmitAsync(PasswordResetReqDTO request)
     {
         IsLoading = true;
         ErrorMessage = null;
         SuccessMessage = null;
         try
         {
-            var client = HttpClientFactory.CreateClient(Config.HttpClientName);
-            using var response = await client.PostAsJsonAsync(
-                Config.ApiAccountResetPasswordEndpoint,
-                Model);
-            if (!response.IsSuccessStatusCode)
-            {
-                ErrorMessage = await AccountLifecycleUiMapper.ReadErrorMessageAsync(
-                    response,
-                    Loc,
-                    "ResetLinkInvalid");
-                return;
-            }
-
+            _ = await AccountApi.ResetPasswordAsync(request);
             SuccessMessage = Loc["ResetPasswordSuccess"];
             await Task.Delay(1200);
             Navigation.NavigateTo(Config.LoginPagePath, forceLoad: true);
+        }
+        catch (ApiRequestException exception)
+        {
+            ErrorMessage = AccountLifecycleUiMapper.GetMessage(
+                exception,
+                Loc,
+                "ResetLinkInvalid");
         }
         catch (HttpRequestException)
         {
