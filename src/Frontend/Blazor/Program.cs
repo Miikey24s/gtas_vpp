@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Components;
 using gtas_vpp_fe.Endpoints;
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Features.Reports.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Platform.State;
@@ -128,17 +129,17 @@ SocketsHttpHandler CreateApiHttpHandler()
     return handler;
 }
 
-builder.Services.AddHttpClient(Config.HttpClientName, client =>
+void ConfigureApiClient(HttpClient client)
 {
     client.BaseAddress = apiBaseUri;
     client.Timeout = apiRequestTimeout;
-})
+}
+
+builder.Services.AddHttpClient(Config.HttpClientName, ConfigureApiClient)
 .ConfigurePrimaryHttpMessageHandler(CreateApiHttpHandler);
-builder.Services.AddHttpClient<IAPIServices, APIServices>(client =>
-{
-    client.BaseAddress = apiBaseUri;
-    client.Timeout = apiRequestTimeout;
-})
+builder.Services.AddHttpClient<IAPIServices, APIServices>(ConfigureApiClient)
+.ConfigurePrimaryHttpMessageHandler(CreateApiHttpHandler);
+builder.Services.AddHttpClient<AccountApiClient>(ConfigureApiClient)
 .ConfigurePrimaryHttpMessageHandler(CreateApiHttpHandler);
 #endregion
 

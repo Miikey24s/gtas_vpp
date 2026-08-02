@@ -338,3 +338,26 @@ hardening trước final UI acceptance.
 Nợ được ghi nhận, chưa sửa trong test-only slice: permission `EnsureLoadedAsync` có thể chạy hai refresh
 nối tiếp khi concurrent; `PermissionState` subscribe refresh signal nhưng chưa có dispose contract;
 legacy `GlobalClass.UserInfo` chỉ được retire sau khi sidebar/consumer chuyển sang `CurrentUserState`.
+
+## 15. FR3 account transport foundation
+
+Đã tách `Platform/Api/ApiProblemReader` khỏi private parser trong `APIServices` và tạo
+`Features/IdentityAccess/Api/AccountApiClient`.
+
+Boundary:
+
+- public register/confirm/resend/recovery/reset dùng typed `HttpClient`, không gắn bearer và không gọi
+  session invalidation khi backend trả `401` hợp lệ;
+- change password tiếp tục đi qua authenticated `IAPIServices`;
+- client sở hữu endpoint/query/serialization; localization và navigation vẫn thuộc page;
+- chưa tạo interface/base client/DI extension một-consumer.
+
+| Gate | Kết quả |
+|---|---|
+| ApiProblem + AccountApiClient + legacy transport focused | PASS `22/22` |
+| Frontend unit/architecture | PASS `246/246` |
+| Release build | PASS `0 warning / 0 error` |
+
+Contract test khóa root `code`, nested `extensions`, safe detail, malformed fallback, bốn public POST,
+confirm-email token encoding, public `401` không dùng authenticated transport và change-password dùng
+đúng authenticated endpoint. Chưa có page migration trong foundation commit.
