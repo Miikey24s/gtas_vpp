@@ -654,3 +654,18 @@ busy state và toast; endpoint/query/transport đã rời khỏi component. Chu�
 
 Sáu endpoint constant zero-consumer trong `Config` đã xóa sau repository scan. Slice giữ nguyên self-edit
 guard, capability gate, row-version concurrency, invitation/activation và membership semantics.
+
+## 33. FR5 Permission refresh lifecycle
+
+`PermissionState` tách `RefreshCoreAsync` và dùng handler signal không chờ (`WaitAsync(0)`). Khi chính API
+permission trả 403 trong lúc refresh đang giữ lock, signal được coalesce thay vì gọi `RefreshAsync` lồng
+nhau và treo circuit. State lưu `PermissionRefreshSignal` để unsubscribe khi scope bị dispose.
+
+| Gate | Kết quả |
+|---|---|
+| Permission lifecycle focused | PASS `5/5` |
+| 403 re-entry timeout regression | PASS, ném `ApiRequestException` thay vì deadlock |
+| Frontend unit/architecture | PASS `281/281` |
+
+Không thêm retry hoặc đổi policy 403; đây chỉ sửa re-entry/lifecycle và giữ request lỗi hiển thị qua error
+mapping hiện có.

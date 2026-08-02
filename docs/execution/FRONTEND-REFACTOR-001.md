@@ -785,6 +785,9 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   activation, password-link và membership commands. Tab không còn generic transport, endpoint builder
   hay claims/PagePermission parameter thừa; sáu Config endpoint zero-consumer đã xóa. Full frontend
   `279/279`; user administration desktop/mobile route-real pass `1/1` isolated.
+- FR5 permission lifecycle: `PermissionState` coalesce refresh signal thay vì chờ semaphore lồng nhau,
+  nên `/me/permissions` trả 403 không còn deadlock. State unsubscribe signal khi dispose; focused
+  lifecycle `5/5`, full frontend `281/281`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: FR5 tách `NotificationApiClient`/realtime client và lifecycle cleanup cho

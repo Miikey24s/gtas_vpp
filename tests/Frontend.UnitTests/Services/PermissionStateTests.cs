@@ -1,5 +1,8 @@
+using System.Net;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Platform.Api;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Tests.TestDoubles;
 using gtas_vpp_shared.Constants;
@@ -68,6 +71,43 @@ public sealed class PermissionStateTests
         Assert.Equal(1, notifications);
     }
 
+    [Fact]
+    public async Task Dispose_UnsubscribesPermissionRefreshSignal()
+    {
+        var fixture = CreateFixture();
+        await fixture.State.RefreshAsync();
+        fixture.State.Dispose();
+        fixture.Snapshot.Version = 8;
+
+        await fixture.Signal.RequestAsync();
+
+        Assert.Equal(7, fixture.State.Version);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_WhenPermissionsEndpointReturnsForbidden_DoesNotDeadlock()
+    {
+        var signal = new PermissionRefreshSignal();
+        var principal = new ClaimsPrincipal(new ClaimsIdentity(
+        [
+            new Claim(ClaimKeys.UserID, "42"),
+            new Claim(ClaimKeys.AccessToken, "token-42")
+        ], "test"));
+        var authProvider = new MutableAuthenticationStateProvider(principal);
+        using var handler = new PermissionForbiddenHandler();
+        using var client = new HttpClient(handler) { BaseAddress = new Uri("https://localhost/") };
+        var api = new APIServices(client, authProvider, signal, new NoOpSessionInvalidationCoordinator());
+        var currentUserState = new CurrentUserState(api);
+        var state = new PermissionState(new AuthHelper(authProvider, api, currentUserState), signal);
+
+        await Assert.ThrowsAsync<ApiRequestException>(
+            () => state.RefreshAsync().WaitAsync(
+                TimeSpan.FromSeconds(2),
+                TestContext.Current.CancellationToken));
+
+        state.Dispose();
+    }
+
     private static PermissionFixture CreateFixture()
     {
         var groupId = Guid.Parse("33333333-3333-3333-3333-333333333333");
@@ -130,4 +170,41 @@ public sealed class PermissionStateTests
         MutableAuthenticationStateProvider AuthProvider,
         PermissionSnapshotResDTO Snapshot,
         Guid GroupId);
+
+    private sealed class NoOpSessionInvalidationCoordinator : IAuthSessionInvalidationCoordinator
+    {
+        public Task InvalidateAsync(string reason) => Task.CompletedTask;
+    }
+
+    private sealed class PermissionForbiddenHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = request.RequestUri?.AbsolutePath switch
+            {
+                "/api/Auth/me" => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(new CurrentUserResDTO
+                    {
+                        UserId = 42,
+                        UserLogin = "employee42",
+                        FullName = "Nguyen Van A"
+                    })
+                },
+                "/api/Auth/me/permissions" => new HttpResponseMessage(HttpStatusCode.Forbidden)
+                {
+                    Content = JsonContent.Create(new
+                    {
+                        detail = "Permission snapshot is stale.",
+                        errorCode = "Forbidden"
+                    })
+                },
+                _ => throw new InvalidOperationException($"Unexpected endpoint: {request.RequestUri}")
+            };
+
+            return Task.FromResult(response);
+        }
+    }
 }

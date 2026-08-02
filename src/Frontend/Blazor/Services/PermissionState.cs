@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Services;
 
-public sealed class PermissionState
+public sealed class PermissionState : IDisposable
 {
     private sealed record RouteTarget(string PageCode, string? PermissionCode, string Path);
 
@@ -31,12 +31,14 @@ public sealed class PermissionState
     }
 
     private readonly AuthHelper _authHelper;
+    private readonly PermissionRefreshSignal _permissionRefreshSignal;
     private readonly SemaphoreSlim _reloadLock = new(1, 1);
 
     public PermissionState(AuthHelper authHelper, PermissionRefreshSignal permissionRefreshSignal)
     {
         _authHelper = authHelper;
-        permissionRefreshSignal.Requested += RefreshAsync;
+        _permissionRefreshSignal = permissionRefreshSignal;
+        permissionRefreshSignal.Requested += HandleRefreshRequestedAsync;
     }
 
     public IEnumerable<Claim> IdentityClaims { get; private set; } = Array.Empty<Claim>();
@@ -67,61 +69,85 @@ public sealed class PermissionState
         await _reloadLock.WaitAsync();
         try
         {
-            var (isAuthenticated, claims) = await _authHelper.EnsureAuthenticatedAsync();
-            if (!isAuthenticated)
-            {
-                SetState(
-                    Array.Empty<Claim>(),
-                    new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
-                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                    Guid.Empty,
-                    0,
-                    false);
-                return;
-            }
-
-            var currentClaims = claims.ToArray();
-            var userId = currentClaims.GetInt(ClaimKeys.UserID);
-            if (userId <= 0)
-            {
-                SetState(
-                    currentClaims,
-                    new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
-                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                    Guid.Empty,
-                    0,
-                    false);
-                return;
-            }
-
-            var snapshot = await _authHelper.GetMyPermissionsAsync();
-            var pagePermissions = snapshot.Pages.ToDictionary(
-                page => page.PageCode,
-                page => new PagePermissionResDTO
-                {
-                    PageCode = page.PageCode,
-                    Components = page.Components.Select(component =>
-                        new childModel_Authentication_GetPermissionSinglePage_Component
-                        {
-                            ComponentCode = component.ComponentCode,
-                            IsVisible = component.IsVisible,
-                            IsEnable = component.IsEnable
-                        }).ToList()
-                },
-                StringComparer.OrdinalIgnoreCase);
-
-            SetState(
-                currentClaims,
-                pagePermissions,
-                snapshot.Permissions.ToHashSet(StringComparer.OrdinalIgnoreCase),
-                snapshot.GroupId,
-                snapshot.Version,
-                true);
+            await RefreshCoreAsync();
         }
         finally
         {
             _reloadLock.Release();
         }
+    }
+
+    private async Task HandleRefreshRequestedAsync()
+    {
+        // APIServices phát signal khi nhận 403. Nếu chính permission refresh đang giữ lock,
+        // không chờ lồng nhau vì request ngoài sẽ tự hoàn tất hoặc ném lỗi với snapshot mới nhất.
+        if (!await _reloadLock.WaitAsync(0))
+        {
+            return;
+        }
+
+        try
+        {
+            await RefreshCoreAsync();
+        }
+        finally
+        {
+            _reloadLock.Release();
+        }
+    }
+
+    private async Task RefreshCoreAsync()
+    {
+        var (isAuthenticated, claims) = await _authHelper.EnsureAuthenticatedAsync();
+        if (!isAuthenticated)
+        {
+            SetState(
+                Array.Empty<Claim>(),
+                new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                Guid.Empty,
+                0,
+                false);
+            return;
+        }
+
+        var currentClaims = claims.ToArray();
+        var userId = currentClaims.GetInt(ClaimKeys.UserID);
+        if (userId <= 0)
+        {
+            SetState(
+                currentClaims,
+                new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                Guid.Empty,
+                0,
+                false);
+            return;
+        }
+
+        var snapshot = await _authHelper.GetMyPermissionsAsync();
+        var pagePermissions = snapshot.Pages.ToDictionary(
+            page => page.PageCode,
+            page => new PagePermissionResDTO
+            {
+                PageCode = page.PageCode,
+                Components = page.Components.Select(component =>
+                    new childModel_Authentication_GetPermissionSinglePage_Component
+                    {
+                        ComponentCode = component.ComponentCode,
+                        IsVisible = component.IsVisible,
+                        IsEnable = component.IsEnable
+                    }).ToList()
+            },
+            StringComparer.OrdinalIgnoreCase);
+
+        SetState(
+            currentClaims,
+            pagePermissions,
+            snapshot.Permissions.ToHashSet(StringComparer.OrdinalIgnoreCase),
+            snapshot.GroupId,
+            snapshot.Version,
+            true);
     }
 
     public PagePermissionResDTO GetPagePermission(string pageCode)
@@ -225,5 +251,10 @@ public sealed class PermissionState
         Version = version;
         IsLoaded = isLoaded;
         Changed?.Invoke();
+    }
+
+    public void Dispose()
+    {
+        _permissionRefreshSignal.Requested -= HandleRefreshRequestedAsync;
     }
 }
