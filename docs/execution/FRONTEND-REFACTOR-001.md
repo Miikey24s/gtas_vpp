@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2 COMPLETE; FR3 ACCOUNT FOUNDATION READY`
+- Status: `IN PROGRESS — FR0/FR1/FR2 COMPLETE; FR3.1 PUBLIC ACCOUNT MIGRATION 2/5`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -34,7 +34,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `246/246`; 83 UI test được phát hiện. State characterization và public-safe account client foundation đã pass; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Shared problem reader và `AccountApiClient` đã sẵn sàng. Migrate ForgotPassword rồi ResendConfirmation theo hai lát nhỏ, giữ nguyên markup/copy/navigation; chưa move/rename page | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | ForgotPassword và ResendConfirmation đã dùng typed client. Tiếp theo migrate Register, rồi ResetPassword và ConfirmEmail; giữ nguyên markup/copy/navigation | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -722,10 +722,12 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 - FR3 account foundation: `ApiProblemReader` được dùng chung bởi transitional `APIServices` và typed
   `AccountApiClient`; public POST/GET exact route/body/token encoding, public 401 isolation và authenticated
   change-password delegation pass `22/22`; full frontend `246/246`, build sạch.
+- FR3.1 migration: ForgotPassword và ResendConfirmation không còn `IHttpClientFactory`, dùng parameter
+  submit có nghĩa và typed error mapping; mỗi checkpoint full unit `246/246`, account route-real `1/1`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: migrate ForgotPassword và ResendConfirmation khỏi `IHttpClientFactory`, dùng
-  `AccountLifecycleUiMapper.GetMessage(ApiRequestException, ...)`; browser account shell/validation giữ nguyên.
+- Next exact action: migrate Register qua `AccountApiClient.RegisterAsync`, giữ reset model/success copy;
+  chạy account shell và mutation registration chỉ với isolated opt-in khi cần.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

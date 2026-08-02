@@ -361,3 +361,23 @@ Boundary:
 Contract test khóa root `code`, nested `extensions`, safe detail, malformed fallback, bốn public POST,
 confirm-email token encoding, public `401` không dùng authenticated transport và change-password dùng
 đúng authenticated endpoint. Chưa có page migration trong foundation commit.
+
+## 16. FR3.1 public account migration — recovery/resend
+
+Đã migrate hai public flow đơn giản nhất:
+
+- `ForgotPassword` → `AccountApiClient.RequestPasswordRecoveryAsync`;
+- `ResendConfirmation` → `AccountApiClient.ResendConfirmationAsync`.
+
+Hai page không còn tự tạo named `HttpClient`, dựng endpoint, đọc JSON response hoặc parse error body.
+Submit handler dùng chính request parameter thay vì bỏ qua `_submittedModel`; page vẫn sở hữu loading,
+localized success/error copy và form state.
+
+| Gate | Kết quả |
+|---|---|
+| Format verify từng page | PASS |
+| Frontend unit/architecture | PASS `246/246` sau mỗi checkpoint |
+| Anonymous account routes, 7 route × 3 viewport | PASS `1/1` sau mỗi checkpoint |
+
+Public `ApiRequestException` được map qua `AccountLifecycleUiMapper`; network failure vẫn dùng
+`RecoveryConnectionFailed`. Markup, route và navigation không đổi.
