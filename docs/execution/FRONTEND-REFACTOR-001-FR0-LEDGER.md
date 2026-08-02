@@ -317,3 +317,24 @@ một lượt timeout lúc notification action chưa xuất hiện, lượt ch�
 nhưng timeout ở full-page `/not-found` navigation. Hai failure signature khác nhau, trong khi User Menu
 và các consumer busy trực tiếp đều pass; chưa coi đây là regression của `UiBusyState`, nhưng phải
 hardening trước final UI acceptance.
+
+## 14. FR3.0 identity/permission characterization
+
+Đã thêm direct unit test trước khi thay authority hoặc gom account HTTP:
+
+- `CurrentUserState`: concurrent load chỉ gọi `/me` một lần, cache, null retry và invalidate;
+- `AuthHelper`: anonymous không gọi profile, authenticated projection từ server + access token,
+  profile thiếu không overwrite legacy projection và permission null trả snapshot rỗng;
+- `PermissionState`: map claim/page/component/action/group/version, route fallback, refresh signal và
+  anonymous reset;
+- test doubles dùng chung cho API và mutable authentication state, không thêm mocking package.
+
+| Gate | Kết quả |
+|---|---|
+| CurrentUser + AuthHelper + Permission focused | PASS `10/10` |
+| Frontend unit/architecture | PASS `235/235` |
+| Production source | Không đổi trong slice characterization này |
+
+Nợ được ghi nhận, chưa sửa trong test-only slice: permission `EnsureLoadedAsync` có thể chạy hai refresh
+nối tiếp khi concurrent; `PermissionState` subscribe refresh signal nhưng chưa có dispose contract;
+legacy `GlobalClass.UserInfo` chỉ được retire sau khi sidebar/consumer chuyển sang `CurrentUserState`.
