@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using System.Net.Security;
 using Radzen;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var authCookieSecurePolicy = builder.Environment.IsDevelopment()
