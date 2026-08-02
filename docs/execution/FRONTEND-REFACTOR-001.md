@@ -125,6 +125,10 @@ hai nếu diff không thể review độc lập.
 
 ## 3. Evidence baseline — 2026-08-02
 
+Canonical FR0 inventory, reading map, consumer/debt ledger và execution evidence nằm tại
+[`FRONTEND-REFACTOR-001-FR0-LEDGER.md`](./FRONTEND-REFACTOR-001-FR0-LEDGER.md). Plan này chỉ giữ
+contract và sequencing; không nhân bản ledger đang thay đổi theo source.
+
 ### Repository và test gates
 
 | Evidence | Kết quả hiện tại |
@@ -169,8 +173,8 @@ Số file/dòng/test là snapshot hiện tại, không phải invariant lâu dà
   và tự build header tab.
 - Có 67 companion file mang prefix `Page_`, `Tab_`, `Component_`, `Dialog_` cạnh naming mới;
   21 public property dùng camel/lowercase và khoảng 30 file còn block-scoped namespace.
-- Snapshot CSS/Razor hiện có khoảng 522 `!important`, 71 hex literal và 95 inline style attribute
-  (`91` component/Radzen `Style=`, `4` HTML `style=`). Mục tiêu là giảm khi chạm đúng owner, không
+- Snapshot FR0 sau scoped control correction có 525 `!important` occurrence, 71 hex literal và 137
+  inline style occurrence (`133` component/Radzen `Style=`, `4` HTML `style=`). Mục tiêu là giảm khi chạm đúng owner, không
   ép về 0 bằng big-bang.
 - Có khoảng 250 dòng dài hơn 200 ký tự; một số Library tab nén field, `try/catch`, API call và mutation
   vào một dòng, làm source khó đọc dù behavior đơn giản.
@@ -690,16 +694,17 @@ cầu một hướng khác materially.
 
 ## 15. Continuation note
 
-- Current status: plan hoàn chỉnh; production frontend source chưa được refactor trong record này.
-- Current branch/HEAD: `codex/ai-agent-foundation` @ `296027da`.
+- Current status: **FR0 hoàn tất trong scope frontend**; provisional baseline/ledger đã khóa, chưa phải
+  golden hoặc owner final visual acceptance.
+- FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
   `ProductCatalogTests.cs` và hai text extraction artifact; không stage/overwrite.
-- Last completed evidence: preflight frontend pass; Release build `0 warning/error`; frontend
-  unit/architecture `214/214`; 78 UI test discovered; browser suite chưa chạy; verify dừng ở
-  `model-routing-eval` 62/63.
+- Last completed evidence: preflight PASS; Release build `0 warning/error`; frontend unit/architecture
+  `214/214`; 82 UI test discovered; Product Catalog `1/1`, responsive matrix `4/4`, User Menu `1/1`;
+  9 PNG runtime đã xem trực tiếp; verify vẫn dừng đúng `model-routing-eval` 62/63.
 - Quota: sanitized probe trả `404` hai lần; capacity chưa xác nhận, decision `SLICE_ONLY` cho FR0.
-- Next exact action: FR0 đọc current UI diff, lập ledger canonical và chạy focused Product Catalog
-  route-real 4 viewport trước khi gọi provisional baseline locked.
+- Next exact action: re-probe quota và sửa/duyệt waiver exact `model-routing-eval`; sau đó mới mở một
+  cleanup slice FR1 zero-consumer nhỏ, không mở architecture migration cùng lúc.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,
