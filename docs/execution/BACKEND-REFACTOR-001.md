@@ -10,6 +10,7 @@
 - Planned at: `2026-07-29T05:17:46+07:00`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`
+- Related sequencing: `docs/execution/FRONTEND-REFACTOR-001.md`
 - Supersedes: phần **R-1 backend** và quy ước comment backend trong
   `docs/execution/REFACTOR-001.md`; lịch sử R-0/R-2 của record cũ vẫn giữ nguyên
 - User approval required: Yes, trước khi sửa production source
@@ -495,6 +496,20 @@ recovery chuyển sang DB execution record có backup/restore/forward-correction
 
 ## 12. Thứ tự ba công việc
 
+### Owner sequencing update — 2026-08-02
+
+Owner đã thay thế yêu cầu phải final-accept UI trước khi refactor frontend. Thứ tự portfolio mới là:
+
+1. checkpoint correction UI đang dirty, chưa cần final acceptance;
+2. thực thi `FRONTEND-REFACTOR-001` trên provisional baseline, correction sau này được phép kéo theo
+   follow-up refactor;
+3. owner final UI acceptance và chốt golden/screenshot cuối;
+4. thực thi backend B0→B8;
+5. đồng bộ luận văn và hoàn thiện slide.
+
+Phần khuyến nghị lịch sử bên dưới được giữ để giải thích quyết định cũ, nhưng không còn là authority
+sequencing hiện hành.
+
 ### Khuyến nghị mặc định cho một implementer chính
 
 1. **Hoàn tất `UI-SYSTEM-001`** — đây là work-in-progress đã mở; đóng baseline/guard trước để không
@@ -519,7 +534,7 @@ và context drift.
 |---|---|---|
 | BR-D1 | Giữ modular monolith/4 project; không rewrite Clean Architecture hoặc microservices | Cần task kiến trúc mới, estimate/risk hoàn toàn khác |
 | BR-D2 | Comment VI why-only; bỏ quy tắc mặc định gắn `§` luận văn trong source, giữ mapping ở reading guide | Source tiếp tục mang academic reference dễ stale và “lộ” |
-| BR-D3 | Thứ tự mặc định `UI-SYSTEM-001 → frontend refactor → backend refactor`; hôm nay chỉ plan hoặc tối đa B0 | Nếu backend cần ưu tiên do deadline, đổi sang alternative nêu ở mục 12 |
+| BR-D3 | `SUPERSEDED 2026-08-02` — dùng sequencing update ở mục 12 và `FRONTEND-REFACTOR-001` mục 13 | Không còn là decision pending |
 
 Không còn câu hỏi blocking để hoàn thiện plan. Ba quyết định trên chỉ block **implementation**, không
 block audit/read-only hoặc việc owner review plan.
@@ -535,8 +550,9 @@ block audit/read-only hoặc việc owner review plan.
 - Last completed evidence: backend 429/429; integration default 14 pass/6 skip; disposable LocalDB
   19 pass/1 pre-existing fixture failure (`Expected 4`, `Actual 1`); EF no pending model; backend
   format/analyzer warn-level pass; full verify dừng sớm ở pre-existing `model-routing-eval` 62/63.
-- Next exact action after approval: implement B0 role-authority fix + route/verb/policy/status/error
-  manifest + DI/resource ledger; đạt LocalDB 20/20 rồi đo/reforecast trước B1.
+- Next exact backend action: chờ frontend refactor + owner final UI acceptance theo sequencing mới;
+  sau đó implement B0 role-authority fix + route/verb/policy/status/error manifest + DI/resource
+  ledger; đạt LocalDB 20/20 rồi đo/reforecast trước B1.
 - Do not redo: source inventory, official-practice research, dead-code usage scan và baseline gates.
 - Do not touch: UI-SYSTEM-001 source, frontend, Shared wire shape, migration history hoặc user-owned
   dirty files trong B0/B1.

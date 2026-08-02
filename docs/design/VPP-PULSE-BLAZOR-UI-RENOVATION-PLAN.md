@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `2.99` — 2026-08-01
+> **Phiên bản:** `3.00` — 2026-08-02
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -14,17 +14,17 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F0–F7 IMPLEMENTED; OWNER FINAL VISUAL REVIEW PENDING`.
+> **Trạng thái:** `F0–F7 IMPLEMENTED; FRONTEND READABILITY REFACTOR AUTHORIZED; OWNER FINAL VISUAL REVIEW PENDING`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
 | Muốn đạt gì? | Một UI Blazor/Radzen dễ đọc, dễ tùy biến và đủ ổn định để AI agent mở rộng mà không tạo thêm component “vạn năng”. | [Mục tiêu và phạm vi](../execution/UI-SYSTEM-001.md#1-mục-tiêu-và-phạm-vi) |
 | Xây theo kiểu nào? | Hybrid: Razor/HTML sở hữu layout; Radzen sở hữu widget phức tạp; tái sử dụng theo `token → primitive → composite → pattern → route`. | [Kiến trúc đích](../execution/UI-SYSTEM-001.md#3-kiến-trúc-đích) |
 | Làm theo thứ tự nào? | F0 khóa baseline → F1 token/bridge → F2 primitive/state → F3 composite → F4 pattern → F5 M0–M2 → F6 M3–M8 → F7 hardening. | [Các wave F0–F7](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
-| Dùng model nào? | Mỗi wave có `model + effort` ngay trong bảng canonical; chỉ đổi ở checkpoint lớn để tránh context drift. Không kiểm tra/báo cáo quota hoặc % tài khoản nếu owner chưa mở lại phạm vi đó. | [Model routing theo wave](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
+| Dùng model nào? | Bảng F0–F7 giữ routing lịch sử riêng của `UI-SYSTEM-001`; plan mới phải dùng authority/quota guidance hiện hành trong execution record của chính nó. | [Frontend refactor routing](../execution/FRONTEND-REFACTOR-001.md#plan-detail-routing) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | `T001` đã retired; F0–F7, DS0–DS4 và R1 đã triển khai. Pricing + Reports retrofit đã vào canonical workspace; bước kế tiếp là owner rà final board + route thật và gửi correction cuối nếu có. | [Pricing + Reports record](../execution/UI-DATA-SURFACE-001.md#pricing--reports-canonical-retrofit--2026-08-01) |
+| Bước code hiện tại? | F0–F7, DS0–DS4 và R1 đã triển khai. Owner cho phép mở `FRONTEND-REFACTOR-001` trước final visual review; runtime hiện tại là baseline tạm, correction UI sau này vẫn được phép và refactor tiếp khi cần. | [Frontend refactor timing](../execution/FRONTEND-REFACTOR-001.md#plan-detail-timing) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
 | Cần owner duyệt gì? | Sau F7, owner rà lại toàn bộ màn hình một lần bằng final review board: responsive, VI/EN, Light/Dark, motion/animation, keyboard, state và nghiệp vụ đại diện. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
@@ -56,6 +56,8 @@ File này phải được cập nhật trong cùng change-set khi một quyết 
 - `docs/design/VPP-PULSE-UI-UX-AI-TOOLCHAIN.md` định nghĩa MCP, browser QA, accessibility, visual regression và performance workflow cho AI agent.
 - `docs/design/VPP-UI-CSS-OWNERSHIP.md` định nghĩa authority của token, Radzen bridge, shared, feature, legacy và vendor CSS.
 - `docs/execution/UI-SYSTEM-001.md` là execution record chi tiết cho đợt chuẩn hóa UI system scalable sau Atlas.
+- `docs/execution/FRONTEND-REFACTOR-001.md` là execution authority cho module ownership, API/state,
+  naming/comment, cleanup và folder/file sau khi UI system đã hoàn tất implementation.
 - Figma `GTAS VPP — VPP Pulse` là tài liệu tham khảo flow/visual/state, không thay thế route/source audit.
 - `src/Frontend/Blazor/AGENTS.md`, UI repo skill và `.github/instructions/frontend.instructions.md` giữ convention Blazor/Radzen hiện hành.
 - `src/Frontend/Blazor/Helpers/RouteCatalog.cs` là nguồn danh sách logical route/tab để triển khai và QA.
@@ -186,6 +188,16 @@ Quyết định auth cho POC:
 - Đây là giới hạn chỉ dành cho local/TEST runtime review. Production cutover bị chặn cho đến khi có BFF hoặc secure HttpOnly cookie session, vì browser storage vẫn có rủi ro khi ứng dụng bị XSS.
 - React không tự giải mã JWT để quyết định quyền; user/permission state luôn lấy từ endpoint backend và API vẫn là authorization authority.
 - Swagger snapshot được xuất trực tiếp từ backend với `DatabaseInitialization=None`; response annotations được bổ sung chỉ để sinh typed client, không đổi runtime behavior.
+
+### 3.1.4 Frontend readability refactor timing — OWNER-APPROVED (2026-08-02)
+
+- Owner cho phép bắt đầu `FRONTEND-REFACTOR-001` trước final visual acceptance và chấp nhận chỉnh/refactor
+  tiếp nếu correction UI xuất hiện sau đó.
+- UI runtime hiện tại là provisional baseline; `UI-SYSTEM-001`, motif catalog và browser Blazor thật
+  tiếp tục quyết định visual/interaction.
+- Refactor source không được trộn với redesign trong cùng slice. Correction UI mới phải có evidence
+  riêng rồi structural follow-up cập nhật phần bị ảnh hưởng.
+- Golden baseline, ảnh luận văn cuối và screenshot slide cuối vẫn chờ owner final visual acceptance.
 
 ### 3.2 Dữ liệu và môi trường
 
@@ -1601,7 +1613,8 @@ Gate thiết kế mới:
 - [x] Sinh Design Atlas draft: 28 Light screens, 10 board sheets theo taxonomy M0–M8 có M5A/M5B, overview và 4 Dark representatives; automated geometry/overflow/console gate pass.
 - [x] Tách chế độ duyệt fluid khỏi capture cố định; 84/84 kiểm tra responsive desktop pass ở zoom trình duyệt 100%.
 - [x] M0 hiển thị đầy đủ hierarchy cha–con–cháu; M1 Login/Logout bám thiết kế account hiện tại; copy VI dùng ngữ cảnh nghiệp vụ thay vì dịch thô.
-- [ ] Chỉ sau M0 và board route tương ứng `APPROVED` mới refactor shared primitives rồi code route; chưa duyệt thì không mở rộng mutation UI production.
+- [x] Gate lịch sử M0/board đã được thỏa trong ATLAS/UI-SYSTEM trước khi rollout shared primitives và
+  route production; final visual acceptance toàn hệ thống vẫn là gate riêng đang pending.
 
 ### 14.1 Checkpoint triển khai Atlas M0–M2
 
@@ -1616,7 +1629,10 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
 
-Gate đang chờ hiện tại: owner duyệt F4 Wave Review Board gồm sáu workspace archetype, shell seam mở/thu, navigation hover/indicator và symmetric content inset; sau đó mới mở F5 migrate M0–M2 reference. Không sửa backend/API/database/RBAC/LVTN/React trong đợt UI system này nếu không có approval riêng.
+Checkpoint hiện tại: F0–F7 đã hoàn tất implementation. Owner final visual review vẫn pending, nhưng
+owner đã cho phép bắt đầu `FRONTEND-REFACTOR-001` trên provisional baseline. Không đổi backend API
+endpoint/contract/behavior, database, RBAC, LVTN hoặc React trong frontend refactor nếu không có
+approval riêng.
 
 > **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 

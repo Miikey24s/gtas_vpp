@@ -3,9 +3,11 @@
 Chủ plan: owner Nguyễn An Nam. Khởi tạo 2026-07-26 theo yêu cầu owner (mở sớm, chạy song song
 phần không xung đột với ATLAS-001 thay vì chờ ATLAS-001 xong hẳn).
 
-> Cập nhật 2026-07-29: phần **R-1 backend** và quy ước comment backend đã được thay thế bởi
-> [`BACKEND-REFACTOR-001.md`](BACKEND-REFACTOR-001.md). Record này tiếp tục giữ lịch sử R-0 E2E,
-> R-2 frontend và các decision đã hoàn thành; không dùng mục R-1 bên dưới làm execution authority mới.
+> Cập nhật 2026-08-02: phần **R-1 backend** đã được thay thế bởi
+> [`BACKEND-REFACTOR-001.md`](BACKEND-REFACTOR-001.md), phần **R-2 frontend** đã được thay thế bởi
+> [`FRONTEND-REFACTOR-001.md`](FRONTEND-REFACTOR-001.md). Record này chỉ giữ lịch sử R-0, các lát
+> R-2 đã hoàn thành trong ATLAS/UI-SYSTEM và decision log; không dùng mô tả broad bên dưới làm
+> execution authority mới.
 
 ## 1. Mục tiêu và thứ tự thẩm quyền
 
@@ -57,9 +59,10 @@ cách ly hoàn toàn theo nhóm.
 
 - **R-1 backend**: đã được supersede bởi `BACKEND-REFACTOR-001.md`; dùng record mới cho scope,
   comment policy, wave, verification và routing. Không tiếp tục triển khai từ mô tả cũ này.
-- **R-2 frontend (`gtas_vpp_fe`)**: sau khi wave ATLAS tương ứng đóng. Ứng viên đầu: các file đã
-  ổn định qua W-B/W-C (VppStatePanel, VppIcons, LeftSidebar, NotificationCenter). `Tab_History`
-  đã có kế hoạch chẻ 5 component (C-7 của W-C — tính là một lát R-2 làm sớm).
+- **R-2 frontend (`gtas_vpp_fe`)**: **SUPERSEDED** bởi `FRONTEND-REFACTOR-001.md`. Các record cũ
+  như tách History/AdminApproval, retire adapter và chuẩn hóa data surface tiếp tục là lịch sử đã
+  hoàn thành; plan mới bắt đầu từ source sau `UI-SYSTEM-001`, tập trung module ownership, API/state,
+  naming/comment, cleanup, CSS/JS và khả năng đọc hiểu thay vì làm lại design system.
 - **R-3 database**: KHÔNG đổi schema/data nếu chưa hỏi owner. Phạm vi mặc định: comment tiếng Việt
   trong stored procedure (kiểm tra bằng SSMS trước theo AGENTS.md), tài liệu hóa bảng/quan hệ vào
   CODE-READING-GUIDE (bảng ↔ mục luận văn §3.2), index/performance chỉ khi có số đo và owner duyệt
@@ -67,9 +70,9 @@ cách ly hoàn toàn theo nhóm.
 
 ## 5. Trình tự hiện hành
 
-Trình tự cũ theo ATLAS W-B…W-H đã hoàn thành vai trò lịch sử. Thứ tự portfolio hiện hành và wave
-backend nằm tại `BACKEND-REFACTOR-001.md` mục 8/12; trạng thái UI nằm tại `UI-SYSTEM-001.md`.
-Không duy trì thêm một bảng thứ tự song song trong record này.
+Trình tự cũ theo ATLAS W-B…W-H đã hoàn thành vai trò lịch sử. Thứ tự portfolio hiện hành nằm tại
+`FRONTEND-REFACTOR-001.md` mục 13; wave backend nằm tại `BACKEND-REFACTOR-001.md` mục 8; trạng thái
+visual UI nằm tại `UI-SYSTEM-001.md`. Không duy trì thêm một bảng thứ tự song song trong record này.
 
 ## 6. Decision log
 
@@ -83,3 +86,4 @@ Không duy trì thêm một bảng thứ tự song song trong record này.
 | R-D6 | 2026-07-26 | **R-0.5 hoàn thành** (commit `a3e4ecc`): 28 call site `WaitForTimeoutAsync` còn lại → 2 (2 quiet window có chủ đích cho negative assertion, giữ kèm comment: AtlasWave1Tests 500ms "không có toast lỗi", HistoryTests 60ms "không render loading-line"). Mỗi thay thế chờ đúng tín hiệu phép đo phía sau cần (double-rAF `WaitForRenderSettleAsync` trong TestBase, điều kiện viewport/scroll/indicator/toast, marker `_bl_`). Flake xoay vòng cuối `GlobalRenderFlowTests.NotFoundAction`: root cause = click nút prerender trước khi circuit interactive trên full page load `/not-found` + console noise `ERR_ABORTED` khi điều hướng — sửa bằng `GetInteractiveButtonAsync` + allowlist chỉ `ERR_ABORTED`. Không xóa/nới assertion nào. Nghiệm thu: 3 lượt full suite 28/28 liên tiếp — chạy trong batch E2E kế tiếp |
 | R-D7 | 2026-07-27 | **R-2 W-D hoàn thành phần host lớn**: `Tab_AdminApproval.razor` 419 dòng được tách thành coordinator dưới 100 dòng + `PeriodOperationsWorkspace` + `PendingApprovalWorkspace`. Dữ liệu và hành động đi qua parameter/EventCallback; API, DTO, permission và idempotency handler giữ nguyên. Architecture test khóa ranh giới component |
 | R-D8 | 2026-07-27 | **R-2 W-E chốt mô hình thao tác thư viện**: inspector gọi lại inline `EditRow` và soft-delete handler hiện hữu; không thêm drawer CRUD thứ hai. Gỡ parameter/dead path hard-delete khỏi ShareGrid và nút hard-delete classes/price-lists; status filter price-list chuyển sang option VI/EN |
+| R-D9 | 2026-08-02 | Owner cho phép mở frontend refactor trước final visual acceptance và chấp nhận refactor tiếp sau correction UI; `FRONTEND-REFACTOR-001` trở thành execution authority mới cho toàn bộ R-2 còn lại. |

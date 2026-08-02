@@ -1,0 +1,731 @@
+# FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
+
+- Status: `PLANNED — OWNER DIRECTION APPROVED; IMPLEMENTATION NOT STARTED`
+- Priority: P1
+- Path: `STANDARD — behavior-preserving feature-first refactor`
+- Owner: Nguyễn An Nam
+- Planning agent: Codex
+- Branch: `codex/ai-agent-foundation`
+- Base commit: `296027daf69d81cee43b09e1dddf9af4950a028e`
+- Planned at: `2026-08-02T23:42:18+07:00`
+- Frontend authority: `src/Frontend/Blazor/`
+- Related authority: `AGENTS.md`, `src/Frontend/Blazor/AGENTS.md`,
+  `docs/architecture/ARCH-001-MODULE-MAP.md`, `docs/execution/UI-SYSTEM-001.md`,
+  `docs/design/VPP-UI-MOTIF-CATALOG.md`, `Helpers/RouteCatalog.cs` và
+  `Helpers/UiRouteCatalog.cs`
+- Supersedes: phần **R-2 frontend** trong `docs/execution/REFACTOR-001.md`; lịch sử R-0 và các
+  decision đã hoàn thành vẫn được giữ nguyên
+- Does not supersede: visual, interaction, motif và route-real QA authority của `UI-SYSTEM-001`
+- User approval required: owner đã duyệt **hướng bắt đầu refactor trước lượt duyệt UI cuối**;
+  owner review plan này được khuyến nghị trước FR1, nhưng không còn câu hỏi blocking cho FR0 read-only
+
+<a id="plan-overview"></a>
+
+## 0. Bản một ánh nhìn
+
+| Mục | Tóm tắt dễ hiểu | Chi tiết |
+|---|---|---|
+| Kết quả cần đạt | Frontend nhìn và chạy như hiện tại, nhưng một sinh viên năm 4 có thể lần từ route → page → state → API client → Shared DTO, hiểu file nào sở hữu việc gì và trình bày được luồng chính | [Objective](#plan-detail-objective) |
+| Quyết định thời điểm | Refactor được bắt đầu **trước** final visual acceptance. UI hiện tại là baseline tạm; nếu owner sửa UI sau đó thì thực hiện correction riêng rồi refactor tiếp phần bị ảnh hưởng | [Timing contract](#plan-detail-timing) |
+| Phạm vi | Blazor/Radzen frontend, frontend tests và tài liệu đọc code; không đổi API/DTO/database/RBAC/nghiệp vụ, không khôi phục React | [Scope](#plan-detail-scope) |
+| Phương án | Giữ một project Blazor, giữ design system hiện có; tổ chức dần theo feature `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, cộng `Platform` dùng chung | [Target structure](#plan-detail-target-structure) |
+| Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
+| Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
+| Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local trả `404` hai lần nên chưa xác nhận capacity; chỉ chốt `SLICE_ONLY` cho FR0 rồi đo lại | [Routing](#plan-detail-routing) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `214/214`; phát hiện 78 UI test case nhưng chưa chạy browser suite trong lượt lập plan; full verify dừng ở `model-routing-eval` 62/63 ngoài scope frontend | [Evidence](#plan-detail-evidence) |
+| Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
+| Việc làm ngay sau plan | Giữ nguyên diff UI hiện có, chạy FR0 để khóa baseline tạm và consumer/debt ledger; sau đó làm một slice FR1 nhỏ trước khi mở architecture migration | [Continuation](#plan-detail-continuation) |
+
+**Thuật ngữ:**
+
+- `behavior-preserving refactor`: đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
+- `provisional baseline`: baseline tạm vì owner chưa duyệt visual cuối;
+- `feature-first`: file được nhóm theo chức năng/nghiệp vụ thay vì gom mọi helper/service vào một
+  thư mục phẳng;
+- `migration-on-touch`: chỉ move/rename code cũ khi module đó đang được xử lý và có test bảo vệ;
+- `consumer ledger`: bảng ghi file/component/CSS/API nào còn dùng implementation cũ trước khi xóa.
+
+<a id="plan-detail-objective"></a>
+
+## 1. Objective và definition of done
+
+### Objective
+
+Refactor frontend để owner có thể:
+
+1. nhìn tên folder/file là đoán đúng module và trách nhiệm chính;
+2. lần một luồng từ URL → route component → UI state → feature API client → DTO trong tối đa vài
+   bước có tài liệu dẫn đường;
+3. đọc identifier English phổ thông, nhất quán với thuật ngữ GTAS VPP;
+4. hiểu các ràng buộc khó nhờ comment tiếng Việt ngắn và test name có nghĩa;
+5. trình bày được kiến trúc Blazor/Radzen, data flow, state, permission và API integration khi bảo vệ;
+6. tiếp tục vibe-coding mà AI khó nhét endpoint, state hoặc CSS vào sai owner;
+7. sửa UI sau này mà không phải quay lại một component god-class hoặc stylesheet không rõ quyền sở hữu.
+
+### Definition of done
+
+- Blazor/Radzen, global `InteractiveServer`, route, query parameter, permission, API/JSON, locale,
+  theme và nghiệp vụ giữ nguyên trừ task thay đổi riêng được owner duyệt.
+- Mỗi feature có boundary rõ: route/page orchestration, component trình bày, feature API client,
+  feature state/model và test.
+- `IAPIServices` generic không còn được inject trực tiếp vào Razor/page component; transport thấp chỉ
+  được gọi qua typed feature client hoặc platform service có ownership rõ.
+- Raw API URL/query construction không còn rải trong Razor. Endpoint và request builder thuộc feature
+  client; route chỉ truyền input có nghĩa.
+- `CurrentUserState` là UI profile projection/cache canonical từ `/me`; trạng thái đăng nhập vẫn do
+  `AuthenticationStateProvider`/cookie/claims xác lập và backend/API vẫn là authorization authority.
+  Busy state tách riêng; `GlobalClass` được retire sau khi consumer ledger về 0.
+- Sidebar/header/navigation dùng route metadata canonical thay vì duy trì một danh sách permission/path
+  thứ hai cạnh `RouteCatalog`.
+- Hotspot được tách theo **lý do thay đổi** và khả năng test, không theo luật số dòng máy móc.
+- CSS global chỉ giữ foundation/Radzen bridge/shell/cross-cutting thật sự dùng chung; feature/component
+  style chuyển dần về owner gần nhất khi selector ledger chứng minh an toàn.
+- JavaScript global được chia theo responsibility có lifecycle/dispose rõ hoặc được giữ với waiver có
+  bằng chứng nếu việc tách không tạo giá trị.
+- Dead code/package/static asset chỉ bị xóa sau usage + runtime/resource verification.
+- `docs/architecture/ARCH-001-MODULE-MAP.md` và `docs/CODE-READING-GUIDE.md` phản ánh source cuối;
+  tên test đọc như executable documentation.
+- Các gate tại [mục 11](#plan-detail-verification) pass; owner final visual acceptance hoàn tất trước
+  khi tạo golden baseline và trước khi chốt ảnh slide/luận văn cuối.
+
+### Non-goals
+
+- Không rewrite React, microfrontend, WebAssembly hoặc framework UI khác.
+- Không tạo project/class library mới chỉ để giống textbook Clean Architecture.
+- Không thay design system/motif đã hoàn thành trong `UI-SYSTEM-001` nếu không có correction UI riêng.
+- Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, generic CRUD engine, reflection-driven columns hoặc
+  endpoint/query config bằng string.
+- Không tự thêm Flux/Redux/MediatR/AutoMapper hoặc state framework mới nếu chưa có vấn đề đo được.
+- Không mass-move, mass-rename, mass-format hoặc đổi namespace toàn frontend trong một commit.
+- Không đặt mục tiêu “mọi file dưới N dòng”, “0 `!important`” hoặc “100% CSS isolation” một cách máy móc.
+- Không đổi backend, Shared wire contract, database, RBAC, LVTN hoặc deployment trong record này.
+
+<a id="plan-detail-timing"></a>
+
+## 2. Timing contract — owner decision 2026-08-02
+
+Owner xác nhận không cần chờ final UI acceptance mới refactor. Quyết định áp dụng như sau:
+
+1. UI hiện tại sau `UI-SYSTEM-001` là **provisional baseline**, không phải visual golden.
+2. Refactor chỉ cam kết giữ hành vi/visual của baseline tại thời điểm mở slice.
+3. Nếu owner yêu cầu sửa UI trong lúc refactor:
+   - correction UI là một change-set có mục tiêu riêng;
+   - không che correction trong commit move/rename/cleanup;
+   - sau correction, cập nhật baseline và refactor tiếp phần bị ảnh hưởng nếu cần.
+4. Owner chấp nhận chi phí rework hợp lý để đổi lấy việc source dễ đọc sớm hơn.
+5. Golden screenshot, ảnh luận văn cuối và slide cuối chỉ chốt sau final visual acceptance.
+6. Hai file đang dirty `wwwroot/css/vpp-polish.css` và
+   `tests/Frontend.UiTests/Tests/Order/ProductCatalogTests.cs` thuộc correction hiện hữu; FR0 phải
+   đọc/giữ nguyên diff này, không overwrite hoặc gọi baseline đã khóa trước khi focused QA pass.
+
+Nguyên tắc “hai chiếc mũ” vẫn giữ: một commit là refactor hoặc UI behavior change, không đồng thời cả
+hai nếu diff không thể review độc lập.
+
+<a id="plan-detail-evidence"></a>
+
+## 3. Evidence baseline — 2026-08-02
+
+### Repository và test gates
+
+| Evidence | Kết quả hiện tại |
+|---|---|
+| Authored frontend inventory | 273 file `.cs/.razor/.css/.js`, khoảng 40.073 dòng khi bỏ `bin`, `obj` và vendor Bootstrap |
+| C# | 101 file, 14.090 dòng |
+| Razor | 110 file, 9.577 dòng |
+| CSS | 55 file, 14.748 dòng |
+| JavaScript | 7 file, 1.658 dòng |
+| Logical route typed | 44 route: 33 authenticated + 11 anonymous |
+| `./scripts/gtas.cmd test-frontend` | PASS — `214/214` |
+| `dotnet build gtas_vpp.slnx -c Release --no-restore` | PASS — `0 warning / 0 error` |
+| UI test discovery | 78 test case; chưa chạy browser suite trong lượt lập plan |
+| `./scripts/gtas.cmd verify -Scope frontend` | FAIL trước frontend gate tại `model-routing-eval`: `62 pass / 1 fail`; exact blocker thuộc dirty AI-harness ngoài scope |
+| Owner visual status | `UI-SYSTEM-001` đã implement F0–F7; owner final visual review vẫn pending |
+
+Số file/dòng/test là snapshot hiện tại, không phải invariant lâu dài.
+
+### Hotspot đã đo
+
+| File | Dòng xấp xỉ | Vấn đề đọc hiểu chính |
+|---|---:|---|
+| `wwwroot/css/vpp-admin.css` | 1.919 | Nhiều workspace/admin/history/dialog rule trong một global owner |
+| `wwwroot/css/vpp-layout.css` | 1.687 | Shell, route viewport, report và responsive behavior cùng file |
+| `HistoryWorkspaceShell.razor.css` | 1.578 | Một scoped file vẫn sở hữu quá nhiều child concern và nhiều `::deep` |
+| `wwwroot/js/vpp-interactions.js` | 1.165 | A11y normalization, dropdown, theme/language, download, navigation indicator và mutation observer cùng module |
+| `Page_OrderCreate.razor.cs` | 821 | Route/query mode, draft, autosave, load, validation, submit và navigation cùng coordinator |
+| `HistoryOrderWorkspaceTabBase.cs` | 812 | Query, scope/filter, chart, list/detail, export và JS lifecycle cùng base |
+| `PeriodSettlementPanel.razor.cs` | 764 | Load/filter/aggregate/quote/settle/correct/export cùng component |
+| `Tab_User.razor.cs` | 727 | Lookup, filter, activation, membership, permission và notification cùng page |
+| `LeftSidebar.razor.cs` | 636 | Auth, current user, permission, theme, language, storage, sidebar và header navigation cùng class |
+
+Đây là tín hiệu để tìm seam; số dòng không tự động yêu cầu split.
+
+### Debt/duplication signals
+
+- `IAPIServices` xuất hiện trong 32 source file, trong đó 26 file component/page; có 41 raw API string
+  literal và query `skip/top/orderby/filter` được dựng phân tán.
+- `CurrentUserState` đã tồn tại nhưng `AuthHelper` vẫn sao chép identity sang `GlobalClass`;
+  `GlobalClass` đồng thời giữ busy counter, `BaseUrl` và `CurrentLanguage`.
+- `RouteCatalog` đã chứa path/title/page/permission nhưng `LeftSidebar` vẫn khai báo lại permission/path
+  và tự build header tab.
+- Có 67 companion file mang prefix `Page_`, `Tab_`, `Component_`, `Dialog_` cạnh naming mới;
+  21 public property dùng camel/lowercase và khoảng 30 file còn block-scoped namespace.
+- Snapshot CSS/Razor hiện có khoảng 522 `!important`, 71 hex literal và 95 inline style attribute
+  (`91` component/Radzen `Style=`, `4` HTML `style=`). Mục tiêu là giảm khi chạm đúng owner, không
+  ép về 0 bằng big-bang.
+- Có khoảng 250 dòng dài hơn 200 ký tự; một số Library tab nén field, `try/catch`, API call và mutation
+  vào một dòng, làm source khó đọc dù behavior đơn giản.
+- Architecture/browser tests rất mạnh nhưng cũng có hotspot path/source-text coupled:
+  `SharedUiFoundationTests` 1.306 dòng, `HistoryTests` 1.295,
+  `ShellNavigationRegressionTests` 1.132 và `LibraryGridScrollTests` 850.
+
+### Cleanup candidates đã có usage evidence ban đầu
+
+- `Helpers/ObjectExtensions.cs`: chỉ còn declaration.
+- `IAPIServices.SetBaseUrl`: chỉ còn interface + implementation; `HttpClient.BaseAddress` đã được DI cấu hình.
+- `GlobalClass.BaseUrl`, `GlobalClass.CurrentLanguage`: không có consumer.
+- `DropdownModel`, `LeftSidebar.dropdownDataModels_Company`, `selected_Company`, `State` và
+  `GlobalStorageModel` chain: không tham gia render hiện tại; cần storage compatibility audit trước xóa.
+- Hai no-op `Dispose()` và một số nested model cũ cần usage scan theo type/member trước khi delete.
+- Frontend package `Newtonsoft.Json` và Serilog package family không có runtime configuration/callsite
+  hiện hành; cần MSBuild/package/transitive audit trước removal.
+- 13 static asset khoảng 9 MB không có literal reference trong source/docs/tests: background/login/logo
+  cũ, `normalview`, `mordernview`, ba font cũ và favicon PNG. Phải kiểm network/static manifest trước xóa.
+- `VppColumnPicker` dùng reflection vào non-public Radzen API: **KEEP/ISOLATE**, không coi là rác;
+  ghi rõ lý do và khóa focused test khi nâng Radzen.
+
+<a id="plan-detail-readability"></a>
+
+## 4. Readability contract
+
+### Naming
+
+- Identifier, file và namespace mới dùng English.
+- Ưu tiên từ đầy đủ, đúng nghiệp vụ: `LoadPendingOrdersAsync`, `SelectedDepartmentId`,
+  `CanApproveRequest`, `SettlementPreview`.
+- Boolean bắt đầu bằng `Is`, `Has`, `Can` hoặc `Should` khi phù hợp.
+- Async I/O method có suffix `Async`; event handler cũng dùng tên mô tả hành động, không dùng
+  `ButtonOnClick_*`, `ProcessData`, `HandleThing`, `mgr`, `tmp`, `data2`.
+- Dùng cùng glossary xuyên DTO, feature client, page, component, test và reading guide:
+  `Request`, `Supplement`, `Period`, `Settlement`, `Revision`, `PriceList`, `Department`, `Permission`.
+- New internal code dùng casing .NET hiện hành (`VppRequest`, `UserId`, `FileName`). Không mass-rename
+  public Shared DTO/JSON/route/query/permission code hoặc type legacy nếu có compatibility impact.
+- Prefix `Page_`, `Tab_`, `Component_`, `Dialog_` được migrate-on-touch sang tên có nghĩa như
+  `OrderCreatePage`, `UserAdministration`, `PermissionBatchDialog`; không rename cả tree cùng lúc.
+
+### Comment tiếng Việt, không biến source thành bài giảng
+
+Comment chỉ giải thích điều code không thể tự nói rõ:
+
+- luật nghiệp vụ;
+- permission/security boundary;
+- prerender/interactive lifecycle hoặc Radzen workaround khó đoán;
+- concurrency/idempotency/cancellation/dispose;
+- compatibility/recovery bắt buộc.
+
+Ví dụ phù hợp:
+
+```csharp
+// Giữ dữ liệu cũ khi refresh lỗi để người dùng không mất ngữ cảnh đang xem.
+```
+
+Không dùng:
+
+```csharp
+// Gọi API lấy danh sách đơn hàng.
+// F6B / P1 / Atlas round 4.
+```
+
+- Comment ngắn dùng `//` trên dòng riêng; XML documentation chỉ cho public/shared boundary thật sự cần
+  giải thích.
+- Mã wave/ticket, lịch sử thử-sai, “AI generated” và reference học thuật dài chuyển về execution
+  record/Git/reading guide khi file được chạm.
+- Không mặc định gắn `§` luận văn trong source; mapping nằm ở `docs/CODE-READING-GUIDE.md`.
+
+### Component, class và method
+
+- Route/page chịu trách nhiệm đọc route/query, permission gate, điều phối load/mutation và compose UI.
+- Presentational component nhận typed `[Parameter]`, phát `EventCallback<T>` và không tự ghép raw API URL.
+- Feature dialog có thể sở hữu save workflow nếu đó là trách nhiệm công khai, nhưng chỉ gọi typed feature
+  client; không dùng generic transport/string endpoint trực tiếp.
+- Page state tạm giữ private trong component; state dùng xuyên route/circuit mới đưa vào scoped service.
+- Không ghi đè parameter; dùng local state hoặc `Value`/`ValueChanged` contract.
+- Tách class khi có seam theo use case/lifecycle/test; không tạo private method một dòng hoặc hàng chục
+  component nhỏ chỉ để giảm LOC.
+- Public member của component giảm về private/protected khi Razor và test không cần public surface.
+- API call dài có `CancellationToken`; unsubscribe event và dispose timer/resource/`IJSObjectReference`
+  khi component rời DOM, có xử lý `JSDisconnectedException` phù hợp. Không gọi JS interop để cleanup
+  DOM từ `Dispose/DisposeAsync`; DOM cleanup thuộc module client-side/`MutationObserver` khi cần.
+- Không tối ưu `ShouldRender` hoặc tạo hàng nghìn component nhỏ nếu chưa có measurement.
+- Test name theo `Action_Scenario_ExpectedBehavior`; test observable behavior, không khóa private method.
+
+### Changed-file ratchet
+
+Mỗi file được chạm phải:
+
+- dùng format/casing nhất quán;
+- không tăng raw API literal, `Style=`/`style=`, hex hoặc `!important` không giải thích;
+- xóa comment/ticket noise trong đúng responsibility đang sửa;
+- giữ hoặc giảm public surface;
+- thêm localization resource thay vì hard-code VI/EN mới;
+- không mass-format file ngoài scope.
+
+<a id="plan-detail-scope"></a>
+
+## 5. Scope và compatibility boundaries
+
+### In scope
+
+- `src/Frontend/Blazor/` production source và package/resource cleanup liên quan.
+- `tests/Frontend.UnitTests`, `tests/Frontend.UiTests` và page-object/helper cần để khóa behavior.
+- `docs/architecture/ARCH-001-MODULE-MAP.md`, `docs/CODE-READING-GUIDE.md`, route/motif/debt ledger.
+- Architecture ratchet cho API/state/navigation/CSS/asset ownership.
+
+### Must remain stable
+
+- `@page` route, query parameter, deep link và first-accessible navigation behavior.
+- Permission/page/component code, hidden/disabled/action capability và direct API authorization.
+- HTTP endpoint, verb, request/response JSON, status/error/session behavior và export bytes/name/MIME.
+- Blazor global `InteractiveServer`, prerender/interactive handoff và circuit/reconnect behavior.
+- Radzen widget semantics, paging/virtualization, dialog, popup, keyboard/focus và accessibility.
+- VI/EN, Light/Dark/Print, responsive geometry và content state của baseline đã chụp.
+- Shared DTO wire shape và backend/database behavior.
+
+### Stop conditions
+
+Wave dừng và tách task/approval riêng nếu:
+
+- cần đổi API/DTO/RBAC/database/nghiệp vụ hoặc backend source;
+- owner correction UI làm thay đổi acceptance đang dùng cho cùng slice;
+- route/permission/deep-link consumer bên ngoài chưa kiểm chứng;
+- Radzen change cần MCP nhưng quota/key unavailable;
+- package/asset có runtime network consumer hoặc external link chưa xác định;
+- browser diff không giải thích được bằng refactor dự kiến;
+- mutation test cần dữ liệu không disposable hoặc chưa có opt-in an toàn.
+
+<a id="plan-detail-target-structure"></a>
+
+## 6. Target structure
+
+Giữ **một project Blazor**. Design system và layout toàn cục tiếp tục là authority dùng chung; source
+nghiệp vụ chuyển dần về feature để người đọc thấy UI, API và state của cùng chức năng gần nhau.
+
+```text
+src/Frontend/Blazor/
+├─ Components/
+│  ├─ DesignSystem/            # token consumer, primitive, composite, pattern; không API/nghiệp vụ
+│  └─ Layout/                  # app shell và global chrome
+├─ Features/
+│  ├─ IdentityAccess/
+│  │  ├─ Account/
+│  │  ├─ Administration/
+│  │  ├─ Api/
+│  │  └─ State/
+│  ├─ CatalogPricing/
+│  │  ├─ Pages/
+│  │  ├─ Components/
+│  │  ├─ Dialogs/
+│  │  └─ Api/
+│  ├─ Requests/
+│  │  ├─ Pages/
+│  │  ├─ Components/
+│  │  ├─ Api/
+│  │  └─ State/
+│  ├─ Settlement/
+│  │  ├─ Components/
+│  │  ├─ Api/
+│  │  └─ State/
+│  ├─ Reports/
+│  │  ├─ Pages/
+│  │  └─ Api/
+│  └─ Notifications/
+│     ├─ Components/
+│     ├─ Api/
+│     └─ State/
+└─ Platform/
+   ├─ Api/                     # auth header, JSON, errors, paging headers, file stream
+   ├─ Auth/
+   ├─ Browser/
+   ├─ Localization/
+   ├─ Routing/
+   └─ State/                   # busy/theme hoặc cross-feature state thật sự
+```
+
+Đây là **target end-state**, không phải lệnh mass-move. Không bắt buộc mỗi feature có đủ mọi folder
+`Pages/Components/Dialogs/Api/State`; chỉ tạo folder khi có file/consumer thật. Mỗi module đi qua:
+
+1. characterization/browser baseline;
+2. tách responsibility trong path hiện tại;
+3. tạo feature/platform boundary có consumer thật;
+4. move file và namespace trong một slice nhỏ;
+5. cập nhật architecture/path tests;
+6. xóa adapter/path cũ khi ledger bằng 0.
+
+Không tạo README cho mọi folder. Authority bền vững nằm ở module map và code-reading guide; source
+giữ tên rõ và API nhỏ.
+
+## 7. Ownership contracts
+
+### API
+
+- FR2 dùng pilot để chọn **các HTTP capability nhỏ** thay vì đóng cứng một universal `ApiTransport`.
+  Typed `HttpClient`/delegating handler có thể sở hữu authorization và cross-cutting HTTP concern;
+  ProblemDetails reader, file stream/download và session invalidation được tách nếu lifecycle khác nhau.
+- Feature client như `ReportsApiClient`, `CatalogApiClient`, `RequestsApiClient`,
+  `SettlementApiClient`, `IdentityAccessApiClient` sở hữu endpoint và typed request/query builder.
+- Feature client trả DTO hoặc frontend-only result có nghĩa như `PagedResult<T>`; không trả raw
+  `HttpResponseMessage` cho page, trừ streaming contract có lifecycle rõ.
+- Không tạo một client cho từng endpoint; group theo cohesive module/use case.
+- `APIServices` là transitional adapter. Migrate consumer theo module, rồi rename/retire khi ledger 0.
+- `Config` giữ app route/cookie/config thật sự; endpoint constant chuyển dần về owning feature client.
+
+### State
+
+- `CurrentUserState`: projection/cache UI canonical của profile `/me`; không thay
+  `AuthenticationStateProvider`, claims/cookie hoặc backend authorization.
+- `PermissionState`, `ThemeState`, `NotificationInboxState`: giữ nếu responsibility rõ và scoped đúng circuit.
+- `UiBusyState`: busy lease/counter có API an toàn, thay boolean setter dễ lệch counter.
+- Component-local state không được đẩy vào global service chỉ để “dễ dùng”.
+- Query/filter cần bookmark hoặc deep link nằm ở route/query; dialog/open state nằm local.
+- Scoped state của Interactive Server chỉ sống theo circuit, không phải durable storage. State cần sống
+  qua refresh/reconnect phải nằm ở URL, browser storage, persistent component state hoặc backend.
+- Event state service phải unsubscribe/dispose đúng lifecycle và gọi `InvokeAsync` khi cập nhật renderer từ nền.
+
+### Navigation
+
+- `RouteCatalog` sở hữu route key/path/title/page/permission và typed path builder.
+- `UiRouteCatalog` chỉ sở hữu visual/composition metadata.
+- Sidebar, header tabs, landing redirect và route tests đọc cùng catalog; không giữ mảng permission/path thứ hai.
+- Dynamic path/query builder phải encode input; không nối navigation string ở nhiều component.
+
+### Component và design system
+
+- `Components/DesignSystem` tuyệt đối không gọi API, không biết permission code hoặc DTO orchestration.
+- Shared abstraction cần ít nhất hai consumer cùng behavior; giống visual nhưng khác workflow thì chia sẻ
+  primitive/composite thấp hơn.
+- `Components/Shared` được phân loại `MOVE_TO_DESIGN_SYSTEM`, `MOVE_TO_FEATURE`, `MERGE` hoặc `KEEP`;
+  không xóa/move theo tên folder.
+- `VppColumnPicker` reflection workaround được cô lập và test; không lan reflection sang component khác.
+
+### CSS và JavaScript
+
+- Global CSS chỉ giữ token, base, Radzen bridge, shell và cross-cutting owner đã ghi trong
+  `VPP-UI-CSS-OWNERSHIP.md`.
+- Feature/component CSS ưu tiên `.razor.css`; `::deep` chỉ dùng khi cần chạm Radzen DOM và có comment why.
+- Tách CSS theo consumer/behavior, không cắt một file 1.500 dòng thành nhiều file tùy ý.
+- Global JS được phân trách nhiệm: accessibility normalization, transient positioning, theme/culture,
+  navigation indicator, download/storage. Có thể giữ một bootstrap mỏng nếu runtime cần.
+- Chỉ module có listener/observer/resource mới cần init/dispose/re-init contract; module stateless không
+  bị ép thêm lifecycle ceremony. Blazor dispose `IJSObjectReference`, còn DOM cleanup không gọi JS
+  interop từ `Dispose`. `LongSessionStabilityTests` là gate trước khi retire observer/listener cũ.
+
+## 8. Cleanup classification
+
+| Candidate | Class | Hành động dự kiến | Gate trước khi làm |
+|---|---|---|---|
+| `ObjectExtensions.cs` | `DELETE_CANDIDATE` | Xóa ở FR1 | Repo-wide method usage = declaration; build + 214 test |
+| `IAPIServices.SetBaseUrl` | `DELETE_CANDIDATE` | Xóa ở FR1 | DI base address test + API transport tests |
+| `GlobalClass.BaseUrl/CurrentLanguage` | `DELETE_CANDIDATE` | Xóa ở FR1 | Usage 0 + GlobalClass tests |
+| `GlobalClass` identity + busy | `MIGRATE_ON_TOUCH` | Current user → `CurrentUserState`; busy → `UiBusyState`; retire khi ledger 0 | Account/permission/library/shell tests |
+| `GlobalStorageModel` + Sidebar `State`/company fields | `NEEDS_AUDIT` | Xác nhận local-storage key không còn behavior rồi xóa | Storage/browser scan + shell route smoke |
+| Nested/no-op model/dispose trong Library/Orders | `DELETE_CANDIDATE` | Xóa theo type/member usage | Focused unit/build/browser route |
+| `Newtonsoft.Json` + Serilog package family | `DELETE_CANDIDATE/NEEDS_AUDIT` | Bỏ package/using không dùng | `dotnet list package --include-transitive`, build, deploy/health smoke |
+| 13 zero-reference static asset | `DELETE_CANDIDATE` | Xóa một asset slice | Source/docs scan, browser network, App static manifest, screenshot parity |
+| Prefix naming cũ | `MIGRATE_ON_TOUCH` | Rename theo feature, không mass rename | Build + route/path architecture + focused UI tests |
+| 41 raw API literal + `Config` endpoint cluster | `MIGRATE_ON_TOUCH` | Chuyển vào feature client | Request URL/headers/status characterization |
+| `Components/Shared` overlap | `NEEDS_AUDIT` | Move/merge theo ownership và consumer | Consumer ledger + two-consumer rule |
+| `VppColumnPicker` non-public Radzen reflection | `KEEP/ISOLATE` | Ghi compatibility note, focused test, review khi nâng Radzen | Radzen version + column picker browser test |
+| Global CSS/JS hotspot | `MIGRATE_ON_TOUCH` | Tách theo responsibility gần cuối | DOM/computed-style/interaction/long-session parity |
+| `bin`, `obj`, TestResults, screenshot/trace thô | `LOCAL_CLEANUP` | Giữ ignored, không commit; xóa local khi cần và không có process owner | Process/lock check + path validation |
+| UI-SYSTEM canonical component/CSS có consumer | `KEEP` | Không làm lại design system trong plan này | Motif/route catalog authority |
+
+<a id="plan-detail-routing"></a>
+
+## 9. Model, effort và quota routing
+
+### Current official guidance
+
+- OpenAI current model guide ngày lập plan: `gpt-5.6-sol` cho frontier capability;
+  `gpt-5.6-terra` cho cân bằng chất lượng/chi phí.
+- Architecture, ambiguous lifecycle, shared CSS/JS và final review cần `sol` high/xhigh.
+- Mechanical cleanup, clear file moves và repetitive feature-client migration dùng `terra` medium/high,
+  với `sol` review tại checkpoint lớn.
+- Đây là **khuyến nghị routing**, không có nghĩa root task đã tự đổi model.
+
+### Quota snapshot
+
+- Local sanitized probe `Get-CLIProxyQuotaSnapshot.ps1` được chạy hai lần ngày 2026-08-02 và đều
+  trả HTTP `404`; không có live coverage/capacity đáng tin cậy.
+- Không có consumption history tương ứng cho frontend refactor khoảng 40K authored LOC + browser QA.
+- Forecast toàn plan: khoảng `65–165% Plus-equivalent`, confidence thấp; giữ safety envelope đến
+  khoảng `250%` trước khi tuyên bố đủ capacity cho full plan.
+- Kết luận hiện tại: `SLICE_ONLY` cho **FR0**, sau đó sửa/re-probe quota và đo aggregate delta trước FR1.
+- Không tự hạ model/effort để vừa quota. Nếu upper bound sau reforecast vượt capacity có buffer thì `WAIT`.
+
+<a id="plan-detail-waves"></a>
+
+## 10. Execution waves
+
+| Wave | Outcome | Scope chính | Model + effort khuyến nghị | Cost forecast | Gate mở wave sau |
+|---|---|---|---|---:|---|
+| **FR0 — Provisional baseline & ledger** | Khóa đúng điểm xuất phát dù UI chưa final | Đọc diff `vpp-polish.css` + ProductCatalog test; route/component/API/state/CSS/JS/asset/package ledger; capture Product Catalog + archetype đại diện; source/path manifest; baseline reading map | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | 2–5% | Preflight, build, `214/214`, focused ProductCatalog route-real ở 4 viewport; screenshot chỉ là evidence, không golden |
+| **FR1 — Proven cleanup & immediate readability** | Source bớt rác và file nén dễ đọc mà chưa đổi architecture | Chỉ format file đã nằm trong cleanup slice; xóa dead member/helper đã chứng minh; bỏ package/asset từng slice; migrate hard-coded copy/comment ticket trong đúng file chạm | `gpt-5.6-terra` medium/high | 3–8% | Usage/resource evidence; build + unit + route smoke tương xứng; package/security audit |
+| **FR2 — Platform contracts + Reports pilot** | Chốt pattern API/state/routing trên feature read-only nhỏ | Characterize `APIServices`; pilot typed HttpClient/small HTTP capabilities + `PagedResult<T>`; typed `ReportsApiClient`; tạo `UiBusyState`; route catalog consumer API; move Reports theo target structure | `gpt-5.6-sol` high design/review, `terra` high implement | 5–12% | Report JSON/export/name/MIME parity; 401/403; Report responsive/Dark/Print; DI smoke |
+| **FR3 — Account, system & structural shell state** | Anonymous/session flow dùng typed client; shell identity/busy/navigation source không còn lặp nhưng visual chưa đổi | Account client; retire direct `IHttpClientFactory` trong pages; Login/LoginPage ownership audit; change/recovery/confirm/register/logout/error/not-found; migrate LeftSidebar current-user/busy/route-source wiring, giữ CSS/JS visual cho FR8 | `gpt-5.6-sol` high, `terra` high implement | 6–14% | Account unit; shell identity/navigation focused test; AccountShell, LoginFeedback, Login, Logout, GlobalRender, Accessibility; VI/EN + keyboard + 4 viewport |
+| **FR4 — Catalog & Pricing** | Admin data feature có structure lặp lại, dễ lần và không generic transport trong Razor | Lookup, Category, Item, Supplier, Department, PriceList, Price; typed clients/query objects; dialog ownership; server grid state; localization; rename-on-touch | `gpt-5.6-terra` high, review `sol` high | 10–24% | DataSurfaceFoundation, LibraryGridScroll, Pricing/Report motif; Lookup mutation; row thật phải render; permission parity |
+| **FR5 — Identity access & Notifications** | User/group/permission/audit/realtime dễ giải thích và không god-page | User administration use cases; membership/activation/capability client; permission mapping; security audit; notification client/state; migrate remaining feature `GlobalClass` consumers và chỉ retire adapter khi ledger 0 | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | 10–25% | Admin user/permission/audit tests; permission mutation; direct 401/403; session invalidation; realtime disposal |
+| **FR6 — Requests read paths** | My Orders, History, Catalog và Department Summary có query/state/component ownership rõ | Typed request query client; remove raw endpoints; split History query/filter/detail/export responsibility; My Orders workspace; product catalog; department summary; route/path rename-on-touch | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | 12–30% | MyOrders, History, ProductCatalog, DepartmentSummary, selector/deep-link; paging/virtualization/bounded DOM; console/network |
+| **FR7 — Requests write & Settlement** | Core thesis workflow tách theo use case nhưng behavior/mutation không đổi | Order editor session, draft store/autosave, submission coordinator, step components; supplement approval; settlement query/preview/confirm/correct/export; cancellation/dispose | `gpt-5.6-sol` xhigh, `terra` high implement | 15–38% | OrderCreate, OrderManagement, DS3, pending workspace, ExportDownload; API/DB observable outcome; idempotency/draft/recreate/correction parity |
+| **FR8 — Global hardening & final acceptance** | Xóa owner cạnh tranh còn lại, hoàn tất test/docs và owner duyệt UI cuối qua ba checkpoint tách biệt | FR8A shell/shared/CSS/JS → FR8B test-only cleanup → FR8C route/docs/final acceptance | `gpt-5.6-sol` xhigh | 10–25% | Mỗi checkpoint có commit/gate riêng; golden chỉ sau FR8C owner approval |
+
+Một implementer chính giữ context. Reviewer/subagent chỉ audit/verify độc lập; agent cùng sửa source phải
+dùng worktree riêng và không chạm cùng module.
+
+### FR8 checkpoints bắt buộc
+
+1. **FR8A — Global UI/CSS/JS:** migrate visual shell, shared/design-system owner, CSS/JS và asset/package
+   final audit; chạy broad runtime, long-session, axe, Dark/Print rồi **freeze production structure**.
+2. **FR8B — Test-only refactor:** production source không đổi; tách test hotspot/page-object/assertion
+   helper, giữ discovered test name/count và assertion intent.
+3. **FR8C — Route/docs/final acceptance:** cập nhật module map, code-reading guide và ledger đủ 44 route
+   key; mỗi key được đánh dấu `TESTED`, `REDIRECT`, `DYNAMIC_SAMPLE` hoặc `JUSTIFIED_EQUIVALENT` kèm
+   evidence. Owner rà final board/route thật rồi mới tạo golden baseline.
+
+## 10.1 Module decomposition guide
+
+Tên bên dưới là responsibility guide, không phải yêu cầu tạo đủ class ngay lập tức.
+
+### Platform
+
+- HTTP capability set: typed `HttpClient`/auth handler, response/problem reader, file stream và
+  session-invalid handling theo lifecycle; không bắt buộc một universal transport interface.
+- `UiBusyState`: disposable/lease-based busy ownership.
+- `AppRouteCatalog` hoặc API typed trên `RouteCatalog`: path builder + permission/title metadata.
+- Browser service/module: theme, storage, download, viewport; không để page gọi nhiều global JS string.
+- `Program.cs` đọc như outline: add platform → add features → configure auth/localization → map app.
+
+### IdentityAccess
+
+- `AccountApiClient`: register/confirm/recovery/reset/change và admin lifecycle endpoint phù hợp.
+- `CurrentUserState`: `/me` và display identity.
+- `IdentityAccessApiClient`: user/group/membership/page mapping/security audit.
+- Page/dialog chia theo use case: invitation, activation, membership, password link, permission batch.
+- Không chuyền raw group/department/permission string ở nhiều page nếu typed DTO/option đã tồn tại.
+
+### CatalogPricing
+
+- Client/query theo aggregate: Catalog, Lookup, Pricing; không một client cho từng endpoint.
+- Server paging/filter request là frontend-only typed record hoặc method parameter có nghĩa.
+- Route/tab giữ column/action/permission; data client không sở hữu Radzen component.
+- Dialog editor giữ input/validation/save contract; hard-delete/activation rule vẫn do backend quyết định.
+
+### Requests
+
+- `RequestsQueryClient`: My Orders, History, Product Catalog, Department Summary, filter values.
+- `RequestsCommandClient`: create/update/cancel/recreate/supplement approve/reject.
+- `OrderEditorSession`: mode, selected items, step và validation UI state.
+- `OrderDraftStore`: local draft serialization/autosave/recovery; không sở hữu submit API.
+- History split theo query/filter/list selection/detail/export; không tạo base class lớn mới.
+
+### Settlement
+
+- `SettlementApiClient`: status, demand, preview, confirm, correct, export.
+- Page/panel giữ selection/filter/view mode; view-model builder giữ derived row/summary thuần.
+- Confirmation/correction là explicit method/use case; không giấu trong generic `SaveAsync`.
+
+### Reports và Notifications
+
+- Reports là pilot read-heavy để chứng minh feature structure/API client trước module mutation lớn.
+- Notification inbox/realtime tách transport, state và presentation; dispose subscription khi circuit/page kết thúc.
+
+<a id="plan-detail-verification"></a>
+
+## 11. Verification ladder
+
+### Gate mọi wave
+
+```powershell
+./scripts/gtas.cmd preflight -Scope frontend
+./scripts/gtas.cmd test-frontend
+dotnet build gtas_vpp.slnx -c Release --no-restore
+git diff --check
+```
+
+Chạy thêm `dotnet format ... --verify-no-changes` theo exact changed files khi slice đổi C# format hoặc
+naming; không format toàn repository trong refactor logic.
+
+### Gate route thật
+
+- Viewport: `390×844`, `768×1024`, `1366×768`, `1920×1080`.
+- VI/EN và Light/Dark đại diện; Print cho report/detail/export route phù hợp.
+- Loading, normal, empty, filter-empty, error, denied, disabled và success theo route profile.
+- Keyboard/focus, accessible name, axe critical/serious, overflow, console và failed network.
+- Paging/virtualization request count, bounded DOM, popup/dialog position và enhanced-navigation lifecycle.
+- Screenshot phải được xem bằng mắt; geometry/source assertion không thay visual review.
+
+### Authenticated read-only browser safety
+
+Mọi authenticated browser test cần isolated QA fixture. Luôn restore environment sau command:
+
+```powershell
+$previousIsolated = $env:GTAS_E2E_ISOLATED
+try {
+    $env:GTAS_E2E_ISOLATED = '1'
+    dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj `
+        -c Release --no-restore --filter 'FullyQualifiedName~ProductCatalogTests'
+}
+finally {
+    if ($null -eq $previousIsolated) {
+        Remove-Item Env:GTAS_E2E_ISOLATED -ErrorAction SilentlyContinue
+    } else {
+        $env:GTAS_E2E_ISOLATED = $previousIsolated
+    }
+}
+```
+
+### Mutation safety
+
+Mutation browser tests cần thêm explicit opt-in và phải restore cả hai biến:
+
+```powershell
+$previousIsolated = $env:GTAS_E2E_ISOLATED
+$previousMutationOptIn = $env:GTAS_E2E_MUTATION_OPT_IN
+try {
+    $env:GTAS_E2E_ISOLATED = '1'
+    $env:GTAS_E2E_MUTATION_OPT_IN = 'I_UNDERSTAND_THIS_MUTATES_QA_DATA'
+    dotnet test tests/Frontend.UiTests/gtas_vpp_fe.UITests.csproj -c Release --no-restore
+}
+finally {
+    if ($null -eq $previousMutationOptIn) {
+        Remove-Item Env:GTAS_E2E_MUTATION_OPT_IN -ErrorAction SilentlyContinue
+    } else {
+        $env:GTAS_E2E_MUTATION_OPT_IN = $previousMutationOptIn
+    }
+
+    if ($null -eq $previousIsolated) {
+        Remove-Item Env:GTAS_E2E_ISOLATED -ErrorAction SilentlyContinue
+    } else {
+        $env:GTAS_E2E_ISOLATED = $previousIsolated
+    }
+}
+```
+
+Không dùng profile/cookie/database production hoặc tự điều khiển `dotnet watch` của owner.
+
+### Gate theo loại thay đổi
+
+| Change type | Bắt buộc thêm |
+|---|---|
+| File/folder/namespace rename | Route/path architecture tests; `_Imports`; resource key; `--list-tests` parity; focused route |
+| API transport/feature client | Request URL/query/header/status/error characterization; 401/403; session invalidation |
+| State/event/lifecycle | Unit test + enhanced navigation/reconnect + dispose/listener leak check |
+| Account/permission | Direct API authorization, role/action matrix, cookie/session and mutation outcome |
+| Paging/virtualization | Filter-before-paging, total count, reset offset, bounded DOM và request count |
+| CSS move/delete | Consumer/selector ledger; computed style; 4 viewport; Light/Dark; visual inspection |
+| JS split/delete | Init/dispose/re-init khi module sở hữu resource; keyboard; popup/navigation motion; long-session stability |
+| Package removal | Direct/transitive package audit, Release build, publish/static asset/health smoke |
+| Static asset removal | Repo scan + runtime network log + static manifest + screenshot parity |
+| Test refactor | Production source unchanged; discovered test names/count and assertion intent preserved |
+| Final wave | Full isolated UI suite; 44-key route ledger; dynamic/account flows; `verify -Scope frontend`; owner final visual acceptance, then golden baseline |
+
+### Current `verify` blocker
+
+`verify -Scope frontend` hiện dừng ở `model-routing-eval` 62/63 trước frontend gate. Trước FR1 cần một
+trong hai:
+
+1. AI-harness task sửa blocker; hoặc
+2. owner duyệt waiver tạm đúng signature trong khi từng wave chạy thủ công toàn bộ gate frontend và
+   browser liên quan.
+
+Không gọi wave PASS nếu failure signature thay đổi, có failure mới hoặc browser gate bị bỏ qua.
+
+<a id="plan-detail-risks"></a>
+
+## 12. Risks và rollback
+
+| Risk | Mức | Mitigation | Rollback |
+|---|---|---|---|
+| Refactor đè correction UI dirty | High | FR0 đọc exact diff, stage exact paths, không mass checkout/reset | Revert riêng refactor commit; giữ owner diff |
+| Feature-first thành mass move | High | Migration-on-touch, một module/commit, move sau characterization | Revert move/namespace slice, giữ tests |
+| Typed client chỉ là wrapper vô nghĩa | Medium | Group theo cohesive use case, page không raw endpoint, API nhỏ | Hạ abstraction hoặc merge client trong module |
+| Route/deep-link đổi vô ý | High | RouteCatalog manifest + browser direct navigation | Revert path builder/rename slice |
+| Global state bị chia sai làm stale UI | High | Current user/busy/permission characterization + event/dispose tests | Giữ transitional adapter, rollback consumer slice |
+| CSS move làm visual drift | High | Consumer ledger + computed style + runtime visual at 4 viewport | Revert CSS slice, không thêm `!important` che lỗi |
+| JS split tích lũy observer/listener | High | Explicit lifecycle + LongSessionStabilityTests | Revert module split, giữ bootstrap cũ |
+| Package/asset tưởng rác nhưng có runtime consumer | Medium | Publish/network/static manifest before delete | Re-add exact package/asset in isolated commit |
+| Test source/path assertion cản rename | Medium | Đổi test từ path detail sang stable contract khi phù hợp; giữ observable assertion | Revert rename; không sửa test để bỏ behavior |
+| Comment quá nhiều hoặc “lộ AI” | Medium | Why-only ratchet; history nằm docs/Git | Xóa comment noise trong same slice |
+| User-owned dirty file bị stage nhầm | High | `git add <exact-path>`, staged diff review; không `git add .` | Unstage exact path; không reset user work |
+
+Rollback mặc định là revert một vertical slice nhỏ. Không có database restore khi frontend change đã
+chứng minh không mutation schema/data; mutation QA phải tự reset fixture theo harness contract.
+
+## 13. Thứ tự portfolio hiện hành
+
+Owner đã thay thế yêu cầu “chốt UI hoàn toàn rồi mới refactor frontend”. Thứ tự dễ hiểu hiện tại:
+
+1. **Checkpoint correction UI đang dở** — hiểu và giữ hai dirty file hiện hữu; chưa cần final acceptance.
+2. **Frontend refactor FR0→FR8** — từng lát giữ baseline tạm; correction UI mới vẫn được phép xen ở
+   boundary rõ rồi refactor tiếp.
+3. **Owner final UI acceptance** — rà toàn bộ route, sửa correction cuối và chỉ lúc này mới chốt golden.
+4. **Backend refactor B0→B8** theo `BACKEND-REFACTOR-001`.
+5. **Luận văn + slide finalization** — cập nhật source map, test evidence, screenshot và sơ đồ cuối.
+
+Storyboard slide, dàn ý chương trình bày và glossary có thể làm sớm. Không chốt screenshot, test count,
+file path hoặc sơ đồ kiến trúc cuối trước khi frontend/backend refactor ổn định.
+
+## 14. Owner decisions
+
+| ID | Trạng thái | Quyết định |
+|---|---|---|
+| FE-D1 | `APPROVED 2026-08-02` | Bắt đầu refactor trước final visual acceptance; chấp nhận refactor tiếp sau correction UI |
+| FE-D2 | `RECOMMENDED — PLAN REVIEW` | Giữ một Blazor project, feature-first theo module của `ARCH-001`; không rewrite framework/new project |
+| FE-D3 | `RECOMMENDED — PLAN REVIEW` | `CurrentUserState` canonical, tách `UiBusyState`, typed feature clients; migrate-on-touch, không big-bang |
+| FE-D4 | `RECOMMENDED — PLAN REVIEW` | English identifiers + Vietnamese why-only comments; bỏ ticket/wave/history khỏi source khi chạm |
+| FE-D5 | `RECOMMENDED — PLAN REVIEW` | Final golden/slide screenshots chỉ sau owner final UI acceptance |
+
+FE-D2..D5 không block FR0 read-only. Chúng block implementation architecture từ FR1/FR2 nếu owner yêu
+cầu một hướng khác materially.
+
+<a id="plan-detail-continuation"></a>
+
+## 15. Continuation note
+
+- Current status: plan hoàn chỉnh; production frontend source chưa được refactor trong record này.
+- Current branch/HEAD: `codex/ai-agent-foundation` @ `296027da`.
+- Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
+  `ProductCatalogTests.cs` và hai text extraction artifact; không stage/overwrite.
+- Last completed evidence: preflight frontend pass; Release build `0 warning/error`; frontend
+  unit/architecture `214/214`; 78 UI test discovered; browser suite chưa chạy; verify dừng ở
+  `model-routing-eval` 62/63.
+- Quota: sanitized probe trả `404` hai lần; capacity chưa xác nhận, decision `SLICE_ONLY` cho FR0.
+- Next exact action: FR0 đọc current UI diff, lập ledger canonical và chạy focused Product Catalog
+  route-real 4 viewport trước khi gọi provisional baseline locked.
+- Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
+  research và unit/build baseline.
+- Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,
+  owner `dotnet watch`, raw screenshot/trace outside ignored evidence folder.
+
+## 16. Research sources
+
+- [OpenAI — current GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model.md)
+- [Microsoft — ASP.NET Core Razor components, naming and code-behind](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/?view=aspnetcore-10.0)
+- [Microsoft — Blazor event handling and `EventCallback`](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/event-handling?view=aspnetcore-10.0)
+- [Microsoft — Avoid overwriting component parameters](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/overwriting-parameters?view=aspnetcore-10.0)
+- [Microsoft — Blazor call Web API](https://learn.microsoft.com/en-us/aspnet/core/blazor/call-web-api?view=aspnetcore-10.0)
+- [Microsoft — .NET dependency injection guidelines](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/guidelines)
+- [Microsoft — Blazor state management](https://learn.microsoft.com/en-us/aspnet/core/blazor/state-management/?view=aspnetcore-10.0)
+- [Microsoft — Blazor authentication state](https://learn.microsoft.com/en-us/aspnet/core/blazor/security/authentication-state?view=aspnetcore-10.0)
+- [Microsoft — Razor component lifecycle](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle?view=aspnetcore-10.0)
+- [Microsoft — Razor component disposal](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/component-disposal?view=aspnetcore-10.0)
+- [Microsoft — Blazor JavaScript interoperability and DOM cleanup](https://learn.microsoft.com/en-us/aspnet/core/blazor/javascript-interoperability/?view=aspnetcore-10.0)
+- [Microsoft — Blazor rendering performance](https://learn.microsoft.com/en-us/aspnet/core/blazor/performance/rendering?view=aspnetcore-10.0)
+- [Microsoft — Blazor CSS isolation](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/css-isolation?view=aspnetcore-10.0)
+- [Microsoft — C# identifier naming conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names)
+- [Microsoft — Common C# coding conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
+- [Microsoft — .NET unit testing best practices](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices)
+- [W3C WAI — Page structure](https://www.w3.org/WAI/tutorials/page-structure/)
+- [W3C WAI — Form labels](https://www.w3.org/WAI/tutorials/forms/labels/)
+- [WCAG 2.2 — Focus visible](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible)
+- [WCAG 2.2 — Status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages)
+- [Martin Fowler — Refactoring](https://martinfowler.com/books/refactoring.html)
+- [Martin Fowler — Workflows of refactoring](https://martinfowler.com/articles/workflowsOfRefactoring/fallback.html)

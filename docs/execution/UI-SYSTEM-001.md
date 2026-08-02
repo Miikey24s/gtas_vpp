@@ -1,6 +1,6 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `IMPLEMENTED — F0–F7 DONE; OWNER FINAL VISUAL REVIEW PENDING`
+- Status: `IMPLEMENTED — F0–F7 DONE; FRONTEND READABILITY REFACTOR AUTHORIZED; OWNER FINAL VISUAL REVIEW PENDING`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
@@ -12,6 +12,11 @@
 > Owner đã gỡ pause và mở toàn bộ phần còn lại ngày 2026-07-29. F4 được chấp nhận làm nền để tiếp tục; F5–F7 phải chạy liên tục đến khi toàn bộ route, motion, refactor và QA hoàn tất rồi owner mới review tổng thể.
 >
 > Chế độ nhanh `T001` đã bị hủy trên toàn repository. Từ checkpoint này quay lại build/test/verify/browser/accessibility đầy đủ theo rủi ro; không dùng kết quả focused-only để tuyên bố handoff hoàn chỉnh.
+>
+> Owner decision 2026-08-02: [`FRONTEND-REFACTOR-001`](./FRONTEND-REFACTOR-001.md) được phép bắt
+> đầu trước lượt duyệt visual cuối. Runtime hiện tại là baseline tạm; correction UI sau này vẫn được
+> phép và có thể kéo theo refactor tiếp. Quyết định này không biến screenshot hiện tại thành golden
+> baseline và không hạ gate route-real/browser của record này.
 
 ---
 
@@ -181,7 +186,10 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 | F6 — M3–M8 rollout | `DONE — FINAL REVIEW DEFERRED TO F7` | **Terra · High** — rollout lớn nhưng pattern đã ổn định. | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | F6A/F6B có build, unit/architecture, route-real và visual evidence; owner review tổng thể dồn sau F7. |
 | F7 — Hardening | `DONE — OWNER FINAL REVIEW` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, đồng bộ motion, axe/Print và chuẩn bị visual baseline để owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh về implementation:** sẵn sàng cho lượt rà toàn bộ màn hình và các correction cuối của owner. | Final board: 4 viewport, Light/Dark/Print, account/data/workflow/transient surface và QA scorecard. | Gate frontend tương đương pass; `verify` wrapper chỉ bị chặn bởi một AI-harness eval ngoài scope UI. |
 
-Routing trên áp dụng riêng cho `UI-SYSTEM-001`; chỉ đổi model ở ranh giới wave/checkpoint lớn. `Sol review` là lượt review độc lập, không phải hai agent cùng sửa một worktree. Theo quyết định owner mới nhất, plan không kiểm tra hoặc báo cáo quota/% tài khoản trừ khi owner chủ động mở lại phạm vi đó.
+Routing trên áp dụng riêng cho execution lịch sử của `UI-SYSTEM-001`; chỉ đổi model ở ranh giới
+wave/checkpoint lớn. `Sol review` là lượt review độc lập, không phải hai agent cùng sửa một worktree.
+Các plan mới như `FRONTEND-REFACTOR-001` dùng authority và quota guidance hiện hành của chính plan,
+không kế thừa quyết định quota tạm thời trong wave UI-SYSTEM cũ.
 
 Mốc dễ hiểu:
 
@@ -453,6 +461,18 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Backend dùng `ExportFileContract` cho tên file an toàn và MIME. `SimpleWorkbookBuilder` bổ sung độ rộng cột, freeze hàng tiêu đề, auto-filter, print setup và number format; Order/Settlement/Report dùng header tiếng Việt. Report có thêm bản PDF tóm tắt bên cạnh Excel nhiều sheet và CSV phụ trợ.
 - Evidence hẹp: frontend + API Release build `0 warning/error`; backend export `16/16`; frontend architecture `30/30`; isolated browser `2/2` route với 5 download thật (Report PDF/XLSX/CSV, Order PDF/XLSX), kiểm tra `%PDF`, workbook ZIP entries và CSV content.
 
+### 7.9 — Owner sequencing decision: readability refactor trước final acceptance — 2026-08-02
+
+- Owner đánh giá UI đã gần hoàn tất nhưng chấp nhận bắt đầu refactor source ngay, thay vì giữ toàn bộ
+  frontend chờ một lượt visual freeze tuyệt đối.
+- `UI-SYSTEM-001` tiếp tục sở hữu visual/motif/interaction và final route-real acceptance;
+  `FRONTEND-REFACTOR-001` sở hữu module ownership, API/state boundary, naming/comment, cleanup,
+  folder/file và khả năng đọc hiểu.
+- Mọi slice frontend phải giữ visual/behavior của baseline tại thời điểm bắt đầu. Nếu owner correction
+  thay đổi UI, correction và structural follow-up được tách thành change-set dễ review.
+- Hai dirty file hiện hữu `vpp-polish.css` và `ProductCatalogTests.cs` phải được bảo toàn và xác minh
+  trong FR0 trước khi gọi baseline tạm đã khóa.
+
 ---
 
 ## 8. Rủi ro và recovery
@@ -477,7 +497,9 @@ Ba gate mở plan đã được owner duyệt trong các checkpoint trước:
 - [x] Slice đầu tiên F0.1–F0.3: CSS order, route metadata và regression baseline.
 - [ ] Owner rà final board + route thật và ghi correction cuối nếu có.
 
-Implementation F0–F7 đã hoàn tất và commit local theo slice. Push/PR chỉ khi owner yêu cầu rõ.
+Implementation F0–F7 đã hoàn tất và commit local theo slice. Checkbox final visual review không còn
+block việc bắt đầu readability refactor, nhưng vẫn block golden baseline, screenshot luận văn cuối và
+final visual acceptance. Push/PR chỉ khi owner yêu cầu rõ.
 
 ---
 
