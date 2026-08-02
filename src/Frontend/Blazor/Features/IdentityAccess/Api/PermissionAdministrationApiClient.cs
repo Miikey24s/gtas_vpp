@@ -20,10 +20,6 @@ public sealed record SecurityAuditQuery(
     string? Outcome = null,
     string? OrderBy = null);
 
-public sealed record AdministrationPage<T>(
-    IReadOnlyList<T> Items,
-    int TotalCount);
-
 public sealed class PermissionAdministrationApiClient(IAPIServices api)
 {
     private const string PermissionBase = "/api/Permission";

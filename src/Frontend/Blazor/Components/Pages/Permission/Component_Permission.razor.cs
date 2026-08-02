@@ -6,7 +6,6 @@ using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Permission
 {
@@ -21,7 +20,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             new(2, Permissions.PermissionManage)
         ];
 
-        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
         [Inject] private PermissionState PermissionState { get; set; } = default!;

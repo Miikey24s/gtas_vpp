@@ -781,10 +781,14 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   mapping và security-audit query/filter. Hai tab không còn generic transport hoặc tự ghép endpoint;
   parameter claims thừa đã xóa. Full frontend `276/276`; Permission editor và Security Audit route-real
   cùng pass `2/2` trên isolated host.
+- FR5 User Administration: `UserAdministrationApiClient` sở hữu lookup, user query, invitation,
+  activation, password-link và membership commands. Tab không còn generic transport, endpoint builder
+  hay claims/PagePermission parameter thừa; sáu Config endpoint zero-consumer đã xóa. Full frontend
+  `279/279`; user administration desktop/mobile route-real pass `1/1` isolated.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: FR5 tiếp tục `UserAdministrationApiClient`, `NotificationApiClient` và lifecycle
-  cleanup cho permission/notification state; giữ nguyên RBAC/session/realtime behavior.
+- Next exact action: FR5 tách `NotificationApiClient`/realtime client và lifecycle cleanup cho
+  permission/notification state; giữ nguyên RBAC/session/realtime behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

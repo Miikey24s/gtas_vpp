@@ -4,7 +4,6 @@ using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using Radzen;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Permission
 {
@@ -17,7 +16,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission
             ErrorDetailPrefix: "Could not load page permissions:");
 
         [Parameter] public string? Per { get; set; }
-        public IEnumerable<Claim> claims { get; set; } = new List<Claim>();
         public PagePermissionResDTO PagePermissionResDTO { get; set; } = new PagePermissionResDTO();
         protected override async Task OnInitializedAsync()
         {
@@ -38,11 +36,6 @@ namespace gtas_vpp_fe.Components.Pages.Permission
         private void OnPermissionStateChanged()
         {
             HandlePermissionStateChanged(PageOptions);
-        }
-
-        protected override void ApplyClaims(IEnumerable<Claim> newClaims)
-        {
-            claims = newClaims;
         }
 
         protected override void ApplyPagePermission(PagePermissionResDTO permission)

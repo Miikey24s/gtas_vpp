@@ -1,13 +1,10 @@
-@using Microsoft.AspNetCore.Components.Authorization
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Auth
 @using gtas_vpp_shared.DTOs.Res.Library
 @using gtas_vpp_shared.DTOs.Req.Account
 @using gtas_vpp_shared.DTOs.Res.Account
 @using gtas_vpp_fe.Helpers
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject DialogService DialogService
-@inject NavigationManager NavigationManager
 @inject IToastService Toast
 
 @if (PermissionState.HasPermission(Permissions.PermissionView))

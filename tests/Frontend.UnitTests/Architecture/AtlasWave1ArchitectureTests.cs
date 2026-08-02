@@ -38,14 +38,21 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var page = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor");
         var code = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor.cs");
+        var apiClient = ReadFrontendSource("Features/IdentityAccess/Api/UserAdministrationApiClient.cs");
         var invitation = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserInvitationEditor.razor");
 
         Assert.Contains("<VppCollectionWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppListDetailWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Component_RecordInspector", page, StringComparison.Ordinal);
         Assert.Contains("Loc[\"AddUser\"]", page, StringComparison.Ordinal);
-        Assert.Contains("Config.ApiAccountAdminInviteEndpoint", code, StringComparison.Ordinal);
-        Assert.Contains("Config.ApiAccountAdminSendPasswordResetLinkEndpoint", code, StringComparison.Ordinal);
+        Assert.Contains("UserAdministrationApiClient", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("AuthenticationStateProvider", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("NavigationManager", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("/api/", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildUsersEndpoint", code, StringComparison.Ordinal);
+        Assert.Contains("/invite", apiClient, StringComparison.Ordinal);
+        Assert.Contains("/send-password-reset-link", apiClient, StringComparison.Ordinal);
         Assert.DoesNotContain("CreateTemporaryPassword", code, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", invitation, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UserInvitationPasswordlessHint\"]", invitation, StringComparison.Ordinal);
@@ -245,6 +252,7 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var users = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor");
         var userCode = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_User.razor.cs");
+        var apiClient = ReadFrontendSource("Features/IdentityAccess/Api/UserAdministrationApiClient.cs");
         var invitation = ReadFrontendSource("Components/Pages/Permission/Dialogs/Dialog_UserInvitationEditor.razor");
         var renderedUserSources = string.Join('\n', users, userCode, invitation);
 
@@ -255,7 +263,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("GetApprovalActionTitle(user)", users, StringComparison.Ordinal);
         Assert.Contains("vpp-admin-action-label", users, StringComparison.Ordinal);
         Assert.Contains("SelfMembershipChangeBlocked", userCode, StringComparison.Ordinal);
-        Assert.Contains("accountStatus=", userCode, StringComparison.Ordinal);
+        Assert.Contains("accountStatus", apiClient, StringComparison.Ordinal);
         Assert.DoesNotContain("Reset mật khẩu", users, StringComparison.Ordinal);
         Assert.DoesNotContain("TemporaryPassword", userCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Membership updated", userCode, StringComparison.Ordinal);

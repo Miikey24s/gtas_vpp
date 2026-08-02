@@ -638,3 +638,19 @@ không được render hoặc dùng đã được xóa khỏi permission tab.
 
 Hai route thật xác nhận group grid, adaptive permission editor, audit rows/filter/detail và read-only
 contract vẫn hoạt động. Slice không thay permission policy, mapping semantics hoặc audit immutability.
+
+## 32. FR5 User Administration client
+
+`UserAdministrationApiClient` gom permission-group/department/capability lookup, user paging/filter và
+năm command quản trị tài khoản/membership. `Tab_User` chỉ điều phối selection, dialog, permission guard,
+busy state và toast; endpoint/query/transport đã rời khỏi component. Chuỗi parameter `claims` và
+`PagePermissionResDTO` không dùng đã được xóa; current-user guard lấy từ canonical `PermissionState`.
+
+| Gate | Kết quả |
+|---|---|
+| Focused typed-client tests | PASS `3/3` |
+| Frontend unit/architecture | PASS `279/279` |
+| User Administration route-real | PASS `1/1` isolated, desktop + mobile |
+
+Sáu endpoint constant zero-consumer trong `Config` đã xóa sau repository scan. Slice giữ nguyên self-edit
+guard, capability gate, row-version concurrency, invitation/activation và membership semantics.

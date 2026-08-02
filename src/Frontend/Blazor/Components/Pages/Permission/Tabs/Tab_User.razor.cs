@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
@@ -11,20 +12,14 @@ using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Account;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using Radzen.Blazor;
-using System.Security.Claims;
-using MembershipAdministrationResDTO = gtas_vpp_shared.DTOs.Res.Permission.MembershipAdministrationResDTO;
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
 
 public partial class Tab_User : IDisposable
 {
-    [Parameter] public IEnumerable<Claim> claims { get; set; } = [];
-    [Parameter]
-    public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
-    [Inject] public IAPIServices _apiServices { get; set; } = default!;
+    [Inject] public UserAdministrationApiClient UserAdminApi { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
     [Inject] public UiBusyState BusyState { get; set; } = default!;
 
@@ -71,17 +66,7 @@ public partial class Tab_User : IDisposable
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (authState.User.Identity?.IsAuthenticated != true)
-        {
-            NavigationManager.NavigateTo("Home", true);
-            return;
-        }
-
-        claims = authState.User.Claims;
-        UserClaims = PermissionState.CurrentUserId > 0
-            ? PermissionState.CurrentUserId
-            : claims.GetInt(ClaimKeys.UserID);
+        UserClaims = PermissionState.CurrentUserId;
         await LoadGroupLookupsAsync();
     }
 
@@ -101,18 +86,10 @@ public partial class Tab_User : IDisposable
         isUserLookupLoading = true;
         try
         {
-            var groupTask = _apiServices.GetFromApiAsync<List<PermissionGroupResDTO>>(Config.ApiPermissionGroupsEndpoint);
-            var departmentTask = _apiServices.GetFromApiAsync<List<DepartmentResDTO>>(
-                "/api/Library/departments?top=1000&showDeleted=false&orderby=Name");
-            var capabilityTask = CanManageUsers
-                ? _apiServices.GetFromApiAsync<AccountAdministrationCapabilitiesResDTO>(Config.ApiAccountAdminCapabilitiesEndpoint)
-                : Task.FromResult<AccountAdministrationCapabilitiesResDTO?>(null);
-            await Task.WhenAll(groupTask, departmentTask, capabilityTask);
-            permissionGroups = await groupTask ?? [];
-            departments = (await departmentTask ?? [])
-                .OrderBy(department => department.Name)
-                .ToList();
-            accountCapabilities = await capabilityTask ?? new AccountAdministrationCapabilitiesResDTO();
+            var lookups = await UserAdminApi.GetLookupsAsync(CanManageUsers);
+            permissionGroups = lookups.Groups.ToList();
+            departments = lookups.Departments.ToList();
+            accountCapabilities = lookups.Capabilities;
         }
         catch (Exception ex)
         {
@@ -169,9 +146,15 @@ public partial class Tab_User : IDisposable
 
         try
         {
-            var result = await _apiServices.GetFromApiWithTotalCountAsync<List<UserAdministrationResDTO>>(
-                BuildUsersEndpoint(args.Skip, args.Top, args.OrderBy));
-            users = result.Data ?? [];
+            var result = await UserAdminApi.GetUsersAsync(new UserAdministrationQuery(
+                args.Skip ?? 0,
+                args.Top ?? 20,
+                SearchText,
+                SelectedAccountStatus,
+                SelectedGroupId,
+                SelectedDepartmentId,
+                args.OrderBy));
+            users = result.Items.ToList();
             userCount = result.TotalCount;
             pendingGroupSelections.Clear();
             pendingDepartmentSelections.Clear();
@@ -225,7 +208,7 @@ public partial class Tab_User : IDisposable
         isUserLoading = true;
         try
         {
-            await _apiServices.PostFromApiAsync<AccountLifecycleResDTO>(Config.ApiAccountAdminInviteEndpoint, request);
+            await UserAdminApi.InviteAsync(request);
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
@@ -362,8 +345,7 @@ public partial class Tab_User : IDisposable
         isUserLoading = true;
         try
         {
-            await _apiServices.PostFromApiAsync<MembershipAdministrationResDTO>(
-                Config.ApiAccountAdminActivateEndpoint,
+            await UserAdminApi.ActivateAsync(
                 new AdminAccountActivationReqDTO
                 {
                     AccountId = user.UserId,
@@ -411,8 +393,7 @@ public partial class Tab_User : IDisposable
         isUserLoading = true;
         try
         {
-            await _apiServices.PostFromApiAsync<AccountLifecycleResDTO>(
-                Config.ApiAccountAdminSendPasswordResetLinkEndpoint,
+            await UserAdminApi.SendPasswordResetLinkAsync(
                 new AdminPasswordResetLinkReqDTO
                 {
                     AccountId = user.UserId,
@@ -465,9 +446,7 @@ public partial class Tab_User : IDisposable
                 ExpectedRowVersion = GetRowVersion(user),
                 Reason = "Membership deactivated by permission administrator."
             };
-            await _apiServices.PostFromApiAsync<MembershipAdministrationResDTO>(
-                "/api/Permission/memberships/deactivate",
-                request);
+            await UserAdminApi.DeactivateMembershipAsync(request);
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
@@ -561,9 +540,7 @@ public partial class Tab_User : IDisposable
                 ExpectedRowVersion = user.IsActive ? GetRowVersion(user) : null,
                 Reason = isReactivation ? Loc["MembershipReactivationReason"] : Loc["MembershipUpdateReason"]
             };
-            await _apiServices.PutFromApiAsync<MembershipAdministrationResDTO>(
-                "/api/Permission/memberships",
-                request);
+            await UserAdminApi.UpsertMembershipAsync(request);
             Toast.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
@@ -674,48 +651,6 @@ public partial class Tab_User : IDisposable
         Detail = detail,
         Duration = 10000
     });
-
-    private string BuildUsersEndpoint(int? skip, int? top, string? orderBy)
-    {
-        var queryParams = new List<string>();
-        if (!string.IsNullOrWhiteSpace(SearchText))
-        {
-            queryParams.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(SelectedAccountStatus))
-        {
-            queryParams.Add($"accountStatus={Uri.EscapeDataString(SelectedAccountStatus)}");
-        }
-
-        if (SelectedGroupId.HasValue)
-        {
-            queryParams.Add($"groupId={SelectedGroupId.Value}");
-        }
-
-        if (SelectedDepartmentId.HasValue)
-        {
-            queryParams.Add($"departmentId={SelectedDepartmentId.Value}");
-        }
-
-        if (skip.HasValue)
-        {
-            queryParams.Add($"skip={skip.Value}");
-        }
-
-        if (top.HasValue)
-        {
-            queryParams.Add($"top={top.Value}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(orderBy))
-        {
-            queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
-        }
-
-        var queryString = queryParams.Count == 0 ? string.Empty : $"?{string.Join("&", queryParams)}";
-        return $"/api/Permission/users{queryString}";
-    }
 
     public void Dispose()
     {
