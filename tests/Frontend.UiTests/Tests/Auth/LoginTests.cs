@@ -1,7 +1,6 @@
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
 using gtas_vpp_fe.UITests.Pages.Auth;
-using Microsoft.Playwright;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -15,12 +14,11 @@ namespace gtas_vpp_fe.UITests.Tests.Auth
         {
             // Arrange
             var loginPage = new LoginPage(Page);
-            await Page.GotoAsync($"{BaseUrl}Account/Login");
+            await loginPage.GotoAsync(BaseUrl);
 
             // Act
             await loginPage.LoginAsync(TestUsername, TestPassword);
-
-            await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*dashboard.*"), new PageWaitForURLOptions { Timeout = 15000 });
+            await loginPage.WaitForDashboardAsync();
 
             // Assert
             Page.Url.Should().NotContain("Login");
