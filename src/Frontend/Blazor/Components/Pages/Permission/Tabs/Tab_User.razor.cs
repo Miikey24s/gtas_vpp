@@ -148,7 +148,7 @@ public partial class Tab_User : IDisposable
         {
             var result = await UserAdminApi.GetUsersAsync(new UserAdministrationQuery(
                 args.Skip ?? 0,
-                args.Top ?? 20,
+                args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
                 SearchText,
                 SelectedAccountStatus,
                 SelectedGroupId,

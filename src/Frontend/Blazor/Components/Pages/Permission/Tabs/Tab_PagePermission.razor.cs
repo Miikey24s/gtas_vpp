@@ -80,7 +80,7 @@ public partial class Tab_PagePermission
         {
             var result = await PermissionAdminApi.GetGroupsAsync(new PermissionGroupQuery(
                 args.Skip ?? 0,
-                args.Top ?? 20,
+                args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
                 groupSearchText,
                 args.OrderBy));
             list_Group = result.Items.ToList();

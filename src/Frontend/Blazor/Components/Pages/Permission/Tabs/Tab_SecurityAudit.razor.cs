@@ -74,7 +74,7 @@ public partial class Tab_SecurityAudit : IDisposable
         {
             var result = await PermissionAdminApi.GetSecurityAuditsAsync(new SecurityAuditQuery(
                 args.Skip ?? 0,
-                args.Top ?? 20,
+                args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
                 SearchText,
                 SelectedAction,
                 SelectedOutcome,
