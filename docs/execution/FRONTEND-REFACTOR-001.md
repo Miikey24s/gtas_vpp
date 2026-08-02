@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2 COMPLETE; FR3 ACCOUNT + LOGIN MIGRATION COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2 COMPLETE; FR3 ACCOUNT HTTP MIGRATION COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `251/251`; 83 UI test được phát hiện. Public account và login đều dùng typed client; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `259/259`; 83 UI test được phát hiện. Public account, login và authenticated password change đều dùng typed client; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Public account và Login đã dùng typed client. Tiếp theo migrate authenticated ChangePassword, rồi retire identity/navigation shell state lặp; logout/cookie flow giữ nguyên | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Account HTTP ownership đã hoàn tất. Tiếp theo retire identity/navigation shell state lặp, giữ nguyên logout/cookie flow, URL và permission behavior | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -733,11 +733,14 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   sạch. Invalid-login browser pass ở 3 viewport; valid-login pass khi chạy riêng trên isolated fixture.
   Lượt chạy chung bị nhiễu sau nhiều invalid attempt và timeout navigation, nên không dùng làm regression
   verdict cho client.
+- FR3 change-password migration: page dùng authenticated method của `AccountApiClient`, endpoint constant
+  global đã xóa; architecture gate cấm account pages sở hữu `IHttpClientFactory`/`IAPIServices`. Focused
+  account client/route `31/31`, full frontend `259/259`, Release build sạch; success vẫn force-load qua
+  `/perform-logout` để hủy cookie/session sau khi đổi mật khẩu.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: migrate `ChangePassword` qua authenticated method của `AccountApiClient`, khóa
-  forced-logout/session invalidation contract; sau đó retire `GlobalClass.UserInfo` consumer và hợp nhất
-  route/sidebar metadata mà không đổi URL hay permission behavior.
+- Next exact action: retire `GlobalClass.UserInfo` consumer bằng `CurrentUserState`, sau đó hợp nhất
+  route/sidebar metadata mà không đổi URL, tab alias hay permission behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

@@ -42,6 +42,22 @@ public sealed class AccountLifecycleRouteTests
         Assert.NotEmpty(typeof(ChangePassword).GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true));
     }
 
+    [Theory]
+    [InlineData("Register.razor.cs")]
+    [InlineData("ForgotPassword.razor.cs")]
+    [InlineData("ResendConfirmation.razor.cs")]
+    [InlineData("ResetPassword.razor.cs")]
+    [InlineData("ConfirmEmail.razor.cs")]
+    [InlineData("ChangePassword.razor.cs")]
+    [InlineData("LoginPage.razor.cs")]
+    public void AccountPage_DoesNotOwnLowLevelHttpTransport(string fileName)
+    {
+        var source = ReadSource("Components", "Pages", "Authen", fileName);
+
+        Assert.DoesNotContain("IHttpClientFactory", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", source, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void AuthenticatedUserMenu_ExposesVoluntaryPasswordChangeInRuntimeAndAtlas()
     {
@@ -52,6 +68,15 @@ public sealed class AccountLifecycleRouteTests
         Assert.Contains("screenTarget(\"change-password\")", atlas, StringComparison.Ordinal);
         Assert.Contains("số và ký tự đặc biệt", atlas, StringComparison.Ordinal);
         Assert.Contains("chờ quản trị viên phê duyệt", atlas, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ChangePasswordPage_UsesTypedClientThenForcesSessionRevocation()
+    {
+        var source = ReadSource("Components", "Pages", "Authen", "ChangePassword.razor.cs");
+
+        Assert.Contains("AccountApi.ChangePasswordAsync(request)", source, StringComparison.Ordinal);
+        Assert.Contains("NavigateTo(\"/perform-logout\", forceLoad: true)", source, StringComparison.Ordinal);
     }
 
     [Fact]

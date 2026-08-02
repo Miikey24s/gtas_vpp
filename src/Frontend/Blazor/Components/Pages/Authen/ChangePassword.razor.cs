@@ -1,15 +1,13 @@
-using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Req.Account;
-using gtas_vpp_shared.DTOs.Res.Account;
 using Microsoft.AspNetCore.Components;
-using System.Net;
 
 namespace gtas_vpp_fe.Components.Pages.Authen;
 
 public partial class ChangePassword
 {
-    [Inject] public IAPIServices Api { get; set; } = default!;
+    [Inject] public AccountApiClient AccountApi { get; set; } = default!;
     [Inject] public NavigationManager Navigation { get; set; } = default!;
     [Inject] public Microsoft.Extensions.Localization.IStringLocalizer<App> Localizer { get; set; } = default!;
 
@@ -22,16 +20,14 @@ public partial class ChangePassword
     protected string? ErrorMessage { get; set; }
     protected string? SuccessMessage { get; set; }
 
-    private async Task SubmitAsync(PasswordChangeReqDTO _submittedModel)
+    private async Task SubmitAsync(PasswordChangeReqDTO request)
     {
         IsLoading = true;
         ErrorMessage = null;
         SuccessMessage = null;
         try
         {
-            var result = await Api.PostFromApiAsync<AccountLifecycleResDTO>(
-                Helpers.Config.ApiAccountChangePasswordEndpoint,
-                Model);
+            await AccountApi.ChangePasswordAsync(request);
             SuccessMessage = Localizer["ChangePasswordSuccess"];
             await Task.Delay(1200);
             Navigation.NavigateTo("/perform-logout", forceLoad: true);

@@ -422,3 +422,18 @@ feedback, `LoginTicketCache`, remember-me, returnUrl và full-page `/perform-log
 Lượt chạy gộp invalid + valid có valid-login timeout sau nhiều invalid attempt trên cùng fixture. Vì
 valid-login pass trên fixture mới và invalid-login cũng pass độc lập trong lượt gộp, đây được ghi là
 test-interaction/throttling debt; không nới timeout hoặc sửa assertion để che hiện tượng.
+
+## 19. FR3 authenticated password-change migration
+
+`ChangePassword` đã chuyển từ direct `IAPIServices` sang authenticated method của `AccountApiClient`.
+Page chỉ còn form/loading/localized message và full-page `/perform-logout` sau thành công; endpoint
+`/api/account/password/change` chỉ còn một owner trong feature client.
+
+| Gate | Kết quả |
+|---|---|
+| Account client + lifecycle route focused | PASS `31/31` |
+| Frontend unit/architecture | PASS `259/259` |
+| Release build | PASS `0 warning / 0 error` |
+
+Architecture test mới khóa toàn bộ account page code-behind không được inject lại
+`IHttpClientFactory` hoặc `IAPIServices`. Logout/cookie/session revocation flow không đổi trong slice này.
