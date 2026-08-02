@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3 COMPLETE; FR4 CATALOG + PRICING TRANSPORT COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4 COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -34,7 +34,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `274/274`; 83 UI test được phát hiện. Account/shell và toàn Catalog/Pricing đã có transport owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Catalog/Pricing transport đã hoàn tất. Tiếp theo xóa `GlobalClass`/projection còn lại, rồi chuyển sang FR5 Identity/Notifications | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR4 hoàn tất và `GlobalClass` đã retire. Tiếp theo FR5 Identity/Notifications typed clients và lifecycle cleanup | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -774,10 +774,13 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   create/update/deactivate/default/hard-delete. Full frontend `274/274`, Release build sạch; pricing
   bounded-grid route-real `1/1`. Motif test có dữ liệu nhưng lifecycle action bị ẩn vì `CanModify=false`,
   cùng permission-fixture debt đã biết.
+- FR4 state retirement: production consumer `GlobalClass.UserInfo` về 0; xóa class/DI/import và bốn
+  injection thừa. `AuthHelper` chỉ xác nhận cookie rồi nạp canonical `CurrentUserState`, không còn profile
+  projection thứ hai. Full frontend `274/274`, Release build sạch; shell identity route-real `1/1`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: retire `GlobalClass`, bỏ profile projection khỏi `AuthHelper` và khóa shell/current-user
-  route-real; sau đó bắt đầu FR5 Identity/Notifications.
+- Next exact action: FR5 tạo typed client cho User Administration/Permission/Security Audit và
+  Notifications, ưu tiên read/query trước mutation; giữ nguyên RBAC/session behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

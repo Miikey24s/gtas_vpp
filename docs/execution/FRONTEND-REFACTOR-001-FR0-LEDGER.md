@@ -605,3 +605,20 @@ page không còn `IAPIServices`, `Config.LibraryApi` hoặc endpoint builder; `c
 
 Failure motif xảy ra sau khi grid có row và trước mutation call; transport/query đã được route-real xác
 nhận. Không ép hiện lifecycle menu khi fixture không cấp quyền sửa.
+
+## 30. FR4 `GlobalClass` retirement
+
+Sau khi toàn bộ Library và shell đã dùng `CurrentUserState`, `GlobalClass.UserInfo` không còn production
+consumer. Đã xóa class, DI registration, global import và bốn injection thừa. `AuthHelper` không còn dựng
+`AuthenticationResultDTO` projection; cookie/claims xác lập session, `/me` được cache duy nhất ở
+`CurrentUserState`.
+
+| Gate | Kết quả |
+|---|---|
+| Production `GlobalClass` usage scan | PASS `0 consumer` |
+| Frontend unit/architecture | PASS `274/274` |
+| Release build | PASS `0 warning / 0 error` |
+| Shell identity route-real | PASS `1/1` |
+
+Auth tests được viết lại để khóa anonymous no-load, authenticated canonical-state load, missing-profile
+failure và permission fallback. Không thay cookie claim set hoặc backend authorization authority.

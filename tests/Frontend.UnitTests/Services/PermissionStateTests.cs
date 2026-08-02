@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.State;
 using gtas_vpp_fe.Tests.TestDoubles;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
@@ -119,7 +118,7 @@ public sealed class PermissionStateTests
         ], "test"));
         var authProvider = new MutableAuthenticationStateProvider(principal);
         var currentUserState = new CurrentUserState(api);
-        var authHelper = new AuthHelper(authProvider, api, new GlobalClass(), currentUserState);
+        var authHelper = new AuthHelper(authProvider, api, currentUserState);
         var signal = new PermissionRefreshSignal();
         var state = new PermissionState(authHelper, signal);
         return new PermissionFixture(state, signal, authProvider, snapshot, groupId);

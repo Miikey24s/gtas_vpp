@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using gtas_vpp_fe.Endpoints;
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_fe.State;
+using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Xunit;
@@ -27,7 +27,7 @@ public sealed class ClientEnvironmentSelectionSafetyTests
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static),
             IsEnvironmentSelectionMember);
         Assert.DoesNotContain(
-            typeof(GlobalClass).GetMembers(
+            typeof(CurrentUserState).GetMembers(
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static),
             IsEnvironmentSelectionMember);
         Assert.DoesNotContain(

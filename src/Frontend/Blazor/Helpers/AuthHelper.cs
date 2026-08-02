@@ -1,5 +1,4 @@
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.State;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
@@ -10,18 +9,15 @@ namespace gtas_vpp_fe.Helpers
     {
         private readonly AuthenticationStateProvider _authProvider;
         private readonly IAPIServices _api;
-        private readonly GlobalClass _glb;
         private readonly CurrentUserState _currentUserState;
 
         public AuthHelper(
             AuthenticationStateProvider auth,
             IAPIServices api,
-            GlobalClass glb,
             CurrentUserState currentUserState)
         {
             _authProvider = auth;
             _api = api;
-            _glb = glb;
             _currentUserState = currentUserState;
         }
 
@@ -40,27 +36,6 @@ namespace gtas_vpp_fe.Helpers
             {
                 return (false, Array.Empty<Claim>());
             }
-
-            _glb.UserInfo = new AuthenticationResultDTO
-            {
-                UserID = currentUser.UserId,
-                UserLogin = currentUser.UserLogin,
-                FullName = currentUser.FullName,
-                Email = currentUser.Email,
-                IsAdmin = string.Equals(
-                    currentUser.GroupCode,
-                    gtas_vpp_shared.Constants.CanonicalRbac.SystemAdmin.GroupCode,
-                    StringComparison.Ordinal),
-                GroupId = currentUser.GroupId,
-                GroupName = currentUser.GroupName,
-                MemberCompanyCode = currentUser.MemberCompanyCode.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                DepartmentName = currentUser.PrimaryDepartmentName,
-                DepartmentCode = currentUser.PrimaryDepartmentCode,
-                AccessToken = user.Claims.Get(ClaimKeys.AccessToken),
-                SessionVersion = currentUser.SessionVersion,
-                AccountStatus = currentUser.AccountStatus,
-                MustChangePassword = currentUser.MustChangePassword
-            };
 
             return (true, user.Claims);
         }

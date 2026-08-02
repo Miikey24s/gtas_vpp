@@ -6,7 +6,6 @@ using gtas_vpp_fe.Features.Reports.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.State;
 using gtas_vpp_shared.Constants;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -63,7 +62,6 @@ builder.Services.AddRazorComponents()
     });
 builder.Services.AddRadzenComponents();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<GlobalClass>();
 builder.Services.AddScoped<UiBusyState>();
 builder.Services.AddScoped<ThemeState>();
 builder.Services.AddScoped<AuthHelper>();
