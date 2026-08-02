@@ -1,6 +1,7 @@
 using System.Globalization;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
+using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -67,12 +68,15 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
 
     protected abstract string HistoryPermission { get; }
     protected abstract string HistoryErrorSummary { get; }
-    protected abstract string HistoryPageEndpoint { get; }
-    protected abstract string HistorySummaryEndpoint { get; }
-    protected abstract string HistoryFilterScope { get; }
+    protected abstract OrderHistoryScope HistoryScope { get; }
 
     protected override bool CanView => HasDashboardPermission(HistoryPermission);
     protected override string ErrorSummary => HistoryErrorSummary;
+    protected override OrderFilterScope FilterScope => HistoryScope == OrderHistoryScope.Department
+        ? OrderFilterScope.Department
+        : OrderFilterScope.Own;
+    protected override int? FilterFromPeriod => _fromPeriod;
+    protected override int? FilterToPeriod => _toPeriod;
 
     protected HistoryOrderWorkspaceTabBase()
     {
@@ -119,7 +123,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
 
         try
         {
-            _requestedOrder = await _apiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{orderId}");
+            _requestedOrder = await Requests.GetOrderAsync(orderId);
             if (_requestedOrder is null)
             {
                 return;
@@ -145,7 +149,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     {
         try
         {
-            var periodInfo = await _apiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
+            var periodInfo = await Requests.GetPeriodInfoAsync();
             if (periodInfo is { CurrentPeriodYear: > 0, CurrentPeriodMonth: >= 1 and <= 12 })
             {
                 _currentPeriod = (periodInfo.CurrentPeriodYear * 100) + periodInfo.CurrentPeriodMonth;
@@ -191,35 +195,23 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
 
     protected ElementReference HistoryRoot => _workspaceShell?.RootElement ?? default;
 
-    protected override string BuildEndpoint()
-    {
-        var query = new List<string>
-        {
-            $"skip={CurrentSkip}",
-            $"top={PageSize}"
-        };
-        AppendPeriodRange(query);
-
-        if (_selectedPeriod.HasValue) query.Add($"exactPeriod={_selectedPeriod.Value}");
-        if (!string.IsNullOrWhiteSpace(_search)) query.Add($"search={Uri.EscapeDataString(_search.Trim())}");
-        if (_selectedStatus.HasValue) query.Add($"status={_selectedStatus.Value}");
-        if (_selectedOrderType == "regular") query.Add("isAdditionalOrder=false");
-        if (_selectedOrderType == "additional") query.Add("isAdditionalOrder=true");
-
-        return $"{HistoryPageEndpoint}?{string.Join("&", query)}";
-    }
-
-    protected override void AppendFilterScopeQuery(List<string> query)
-    {
-        query.Add(HistoryFilterScope);
-        AppendPeriodRange(query);
-    }
-
-    protected void AppendPeriodRange(List<string> query)
-    {
-        if (_fromPeriod.HasValue) query.Add($"fromPeriod={_fromPeriod.Value}");
-        if (_toPeriod.HasValue) query.Add($"toPeriod={_toPeriod.Value}");
-    }
+    protected override Task<RequestStatsPage<VppRequestResDTO>> QueryOrdersAsync() =>
+        Requests.GetHistoryOrdersAsync(
+            HistoryScope,
+            new OrderHistoryQuery(
+                CurrentSkip,
+                PageSize,
+                _fromPeriod,
+                _toPeriod,
+                _selectedPeriod,
+                _search,
+                _selectedStatus,
+                _selectedOrderType switch
+                {
+                    "regular" => false,
+                    "additional" => true,
+                    _ => null
+                }));
 
     protected async Task LoadSummaryAsync()
     {
@@ -233,11 +225,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
         await InvokeAsync(StateHasChanged);
         try
         {
-            var query = new List<string>();
-            AppendPeriodRange(query);
-            var endpoint = HistorySummaryEndpoint;
-            if (query.Count > 0) endpoint += $"?{string.Join("&", query)}";
-            _summary = await _apiServices.GetFromApiAsync<VppOrderHistorySummaryResDTO>(endpoint);
+            _summary = await Requests.GetHistorySummaryAsync(HistoryScope, _fromPeriod, _toPeriod);
         }
         catch (Exception ex)
         {
@@ -597,8 +585,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
 
         try
         {
-            var detail = await _apiServices.GetFromApiAsync<VppRequestResDTO>(
-                $"{Config.VppApi.Orders}/{order.Id}");
+            var detail = await Requests.GetOrderAsync(order.Id);
             _selectedOrder = detail ?? order;
             _detailSearch = string.Empty;
             _detailCategory = string.Empty;

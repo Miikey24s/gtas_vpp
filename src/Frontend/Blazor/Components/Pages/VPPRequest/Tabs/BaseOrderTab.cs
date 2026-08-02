@@ -2,6 +2,7 @@ using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Components;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
@@ -23,14 +24,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     /// được tái sử dụng tại đây.
     ///
     /// Tab kế thừa:
-    ///  - Bắt buộc override <see cref="CanView"/>, <see cref="ErrorSummary"/>, <see cref="BuildEndpoint"/>.
+    ///  - Bắt buộc override <see cref="CanView"/>, <see cref="ErrorSummary"/> và <see cref="QueryOrdersAsync"/>.
     ///  - Có thể override <see cref="OnInit"/> để seed tùy chọn lọc trước lần tải đầu.
     ///  - Có thể gọi trực tiếp <see cref="LoadAsync"/> để refresh, ví dụ sau action quản trị.
     /// </summary>
     public abstract class BaseOrderTab : ComponentBase, IDisposable
     {
         // ─── Service inject do base sở hữu; Razor/C# kế thừa được dùng trực tiếp ───
-        [Inject] protected IAPIServices _apiServices { get; set; } = default!;
+        [Inject] protected RequestsQueryClient Requests { get; set; } = default!;
         [Inject] protected IStringLocalizer<App> BaseLoc { get; set; } = default!;
         [Inject] protected IToastService Toast { get; set; } = default!;
         [Inject] protected IBrowserFileDownloadService FileDownloads { get; set; } = default!;
@@ -69,16 +70,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         /// <summary>Tóm tắt notification khi lời gọi load/expand thất bại.</summary>
         protected abstract string ErrorSummary { get; }
 
-        /// <summary>
-        /// Dựng URL API tương đối cho giá trị filter/paging hiện tại.
-        /// Tab kế thừa đọc state bộ lọc riêng cùng <see cref="CurrentSkip"/> và
-        /// <see cref="PageSize"/>, rồi trả về giá trị dạng
-        /// Ví dụ: <c>/api/VPPRequest/my-orders-summary?year=2026&amp;skip=0&amp;top=20</c>.
-        /// </summary>
-        protected abstract string BuildEndpoint();
+        /// <summary>Tải collection theo query typed do tab kế thừa cung cấp.</summary>
+        protected abstract Task<RequestStatsPage<VppRequestResDTO>> QueryOrdersAsync();
 
-        /// <summary>Thêm scope riêng của tab để dữ liệu popup filter khớp dataset hiện tại.</summary>
-        protected abstract void AppendFilterScopeQuery(List<string> query);
+        /// <summary>Scope giúp popup filter đọc đúng dataset của tab hiện tại.</summary>
+        protected abstract OrderFilterScope FilterScope { get; }
+
+        protected virtual int? FilterFromPeriod => null;
+        protected virtual int? FilterToPeriod => null;
 
         /// <summary>Hook gọi một lần trước lần tải đầu; dùng để seed danh sách tùy chọn lọc.</summary>
         protected virtual void OnInit() { }
@@ -170,40 +169,21 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 var property = args.Column.GetFilterProperty();
                 if (string.IsNullOrWhiteSpace(property)) return;
 
-                var query = new List<string>
-                {
-                    $"column={Uri.EscapeDataString(property)}"
-                };
-                AppendFilterScopeQuery(query);
-
                 var scopedFilters = VppOrderGridFilterHelper.BuildColumnFilterScopes(CurrentFilters, property);
+                var response = await Requests.GetOrderFilterValuesAsync(new OrderFilterValuesQuery(
+                    property,
+                    FilterScope,
+                    FilterFromPeriod,
+                    FilterToPeriod,
+                    scopedFilters.Count > 0 ? JsonSerializer.Serialize(scopedFilters) : null,
+                    scopedFilters.Count == 0 ? CurrentFilterExpression : null,
+                    args.Filter));
+                var distinctDtos = response
+                    .Select(VppOrderGridFilterHelper.BuildFilterValueDto)
+                    .ToList();
 
-                if (scopedFilters.Count > 0)
-                {
-                    query.Add($"filters={Uri.EscapeDataString(JsonSerializer.Serialize(scopedFilters))}");
-                }
-                else if (!string.IsNullOrWhiteSpace(CurrentFilterExpression))
-                {
-                    query.Add($"filter={Uri.EscapeDataString(CurrentFilterExpression)}");
-                }
-
-                if (!string.IsNullOrWhiteSpace(args.Filter))
-                {
-                    query.Add($"distinctFilter={Uri.EscapeDataString(args.Filter)}");
-                }
-
-                var apiUrl = $"/api/VPPRequest/order-filter-values?{string.Join("&", query)}";
-                var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(apiUrl);
-
-                if (response != null)
-                {
-                    var distinctDtos = response
-                        .Select(VppOrderGridFilterHelper.BuildFilterValueDto)
-                        .ToList();
-
-                    args.Data = distinctDtos;
-                    args.Count = distinctDtos.Count;
-                }
+                args.Data = distinctDtos;
+                args.Count = distinctDtos.Count;
             }
             catch (Exception ex)
             {
@@ -239,14 +219,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var endpoint = BuildEndpoint();
-                var (data, totalCount, totalLines, totalQty) =
-                    await _apiServices.GetFromApiWithStatsAsync<List<VppRequestResDTO>>(endpoint);
+                var result = await QueryOrdersAsync();
 
-                Orders = data ?? new();
-                TotalCount = totalCount;
-                TotalLines = totalLines;
-                TotalQty = totalQty;
+                Orders = result.Items.ToList();
+                TotalCount = result.TotalCount;
+                TotalLines = result.TotalLines;
+                TotalQty = result.TotalQuantity;
 
                 LoadedDetailOrderIds.Clear();
                 LoadingDetailOrderIds.Clear();
@@ -290,8 +268,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             LoadingDetailOrderIds.Add(row.Id);
             try
             {
-                var detail = await _apiServices.GetFromApiAsync<VppRequestResDTO>(
-                    $"{Config.VppApi.Orders}/{row.Id}");
+                var detail = await Requests.GetOrderAsync(row.Id);
                 row.Items = detail?.Items ?? new List<VppRequestDetailResDTO>();
                 LoadedDetailOrderIds.Add(row.Id);
             }

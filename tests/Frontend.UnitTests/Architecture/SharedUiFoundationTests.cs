@@ -1011,7 +1011,7 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("ExpandMode=", historyOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("ExpandMode=", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("PagerAlwaysVisible=\"true\"", historyOrders, StringComparison.Ordinal);
-        Assert.Contains("HistoryPageEndpoint => Config.VppApi.MyOrderHistory", historyCode, StringComparison.Ordinal);
+        Assert.Contains("OrderHistoryScope.Own", historyCode, StringComparison.Ordinal);
         Assert.Contains("VppPagingProfiles.SplitList.DefaultPageSize", historyWorkspaceCode, StringComparison.Ordinal);
         Assert.DoesNotContain("SetHistoryViewport", historyWorkspaceCode, StringComparison.Ordinal);
         Assert.Contains("HasGridLoadError", history, StringComparison.Ordinal);

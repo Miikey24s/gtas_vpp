@@ -704,3 +704,19 @@ query object rõ nghĩa, còn escaping/paging/endpoint nằm trong client. Hai m
 Browser gate xác nhận seeded rows, category/unit filters, page-size popup, pager geometry và responsive
 layout. File UI test đang có correction riêng của owner chỉ được dùng để chạy evidence, không stage vào
 slice refactor.
+
+## 36. FR6 Orders, History và Department Summary queries
+
+`RequestsQueryClient` được mở rộng cho period info, My Orders, order detail/history, history summary,
+history/pending collections và distinct filter values. `BaseOrderTab` gọi `QueryOrdersAsync` typed thay
+vì yêu cầu class con dựng URL; scope history/filter dùng enum `OrderHistoryScope` và `OrderFilterScope`.
+
+| Gate | Kết quả |
+|---|---|
+| Requests query contract | PASS `6/6` |
+| Frontend unit/architecture | PASS `294/294` |
+| My Orders + History route-real | PASS `2/2` isolated |
+| Department Summary route-real | PASS `1/1` isolated |
+
+`Tab_Orders` và `Tab_AdminApproval` vẫn giữ `CommandApi` riêng cho mutation đến FR7; mọi GET đã rời khỏi
+component. Export streaming tiếp tục đi qua `IBrowserFileDownloadService`, không được đưa vào query client.

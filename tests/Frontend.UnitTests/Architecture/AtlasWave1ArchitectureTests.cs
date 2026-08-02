@@ -418,6 +418,10 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var orders = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_Orders.razor");
         var ordersCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_Orders.razor.cs");
+        var baseOrderTab = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/BaseOrderTab.cs");
+        var historyCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/HistoryOrderWorkspaceTabBase.cs");
+        var historyDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor");
+        var requestsClient = ReadFrontendSource("Features/Requests/Api/RequestsQueryClient.cs");
         // Sau C-7, hai grid của màn Lịch sử nằm trong hai component con thay vì Tab_History.razor.
         var historyOrders = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderList.razor");
         var historyDetail = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderDetailSheet.razor");
@@ -427,6 +431,14 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("CurrentOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.Contains("SupplementOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.Contains("PreviousOrderViewIndex", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsQueryClient", ordersCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetFromApi", ordersCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", baseOrderTab, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildEndpoint", baseOrderTab, StringComparison.Ordinal);
+        Assert.DoesNotContain("_apiServices", historyCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", historyDialog, StringComparison.Ordinal);
+        Assert.Contains("GetHistoryOrdersAsync", requestsClient, StringComparison.Ordinal);
+        Assert.Contains("GetOrderFilterValuesAsync", requestsClient, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", orders, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"true\"", historyOrders, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDetail, StringComparison.Ordinal);

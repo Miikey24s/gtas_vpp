@@ -2,6 +2,7 @@ using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
+using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -23,6 +24,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         // Dialog service chỉ dành cho tab này, base không cần.
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+        [Inject] private IAPIServices CommandApi { get; set; } = default!;
 
         private readonly HashSet<Guid> _processingOrderIds = new();
         private readonly Dictionary<(Guid OrderId, string Action), string> _decisionIdempotencyKeys = new();
@@ -54,6 +56,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected override bool CanView => HasDashboardPermission(Permissions.RequestAdminApproval)
             || HasDashboardPermission(Permissions.PeriodSettle);
         protected override string ErrorSummary => Loc["PeriodOperations"];
+        protected override OrderFilterScope FilterScope => OrderFilterScope.Pending;
 
         private bool CanShowSettlement => PermissionState.HasPermission(Permissions.PeriodSettle);
 
@@ -166,29 +169,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             ActivePeriodTab = CanShowApprovals ? PendingApprovalsTab : PeriodReviewTab;
         }
 
-        protected override string BuildEndpoint()
-        {
-            var query = new List<string>
-            {
-                $"skip={CurrentSkip}",
-                $"top={PageSize}"
-            };
-
-            if (!string.IsNullOrWhiteSpace(CurrentFilterExpression)) query.Add($"filter={Uri.EscapeDataString(CurrentFilterExpression)}");
-            // Hàng chờ duyệt xếp đơn chờ lâu nhất lên đầu (Atlas supplement-approval);
-            // người duyệt vẫn đổi được thứ tự bằng sort trên cột.
-            var orderBy = string.IsNullOrWhiteSpace(CurrentOrderByExpression)
-                ? "SubmittedDate asc"
-                : CurrentOrderByExpression;
-            query.Add($"orderby={Uri.EscapeDataString(orderBy)}");
-
-            return $"/api/VPPRequest/additional-orders/pending?{string.Join("&", query)}";
-        }
-
-        protected override void AppendFilterScopeQuery(List<string> query)
-        {
-            query.Add("scope=pending");
-        }
+        protected override Task<RequestStatsPage<VppRequestResDTO>> QueryOrdersAsync() =>
+            Requests.GetPendingAdditionalOrdersAsync(new PendingAdditionalOrdersQuery(
+                CurrentSkip,
+                PageSize,
+                CurrentFilterExpression,
+                CurrentOrderByExpression));
 
         private void NavigateToPeriodTab(string periodTab)
         {
@@ -223,7 +209,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = order.RowVersion,
                     IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "approve")
                 };
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", request);
+                await CommandApi.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
                 await ReloadPendingWorkspaceAsync();
             }
@@ -258,7 +244,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = order.RowVersion,
                     IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "reject")
                 };
-                await _apiServices.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", request);
+                await CommandApi.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
                 await ReloadPendingWorkspaceAsync();
             }
@@ -351,10 +337,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             _pendingDepartmentOptionsLoaded = true;
             try
             {
-                var response = await _apiServices.GetFromApiAsync<List<Dictionary<string, object?>>>(
-                    $"/api/VPPRequest/order-filter-values?column={nameof(VppRequestResDTO.DepartmentCode)}&scope=pending");
+                var response = await Requests.GetOrderFilterValuesAsync(new OrderFilterValuesQuery(
+                    nameof(VppRequestResDTO.DepartmentCode),
+                    OrderFilterScope.Pending));
 
-                foreach (var row in response ?? [])
+                foreach (var row in response)
                 {
                     if (row.TryGetValue(nameof(VppRequestResDTO.DepartmentCode), out var value)
                         && !string.IsNullOrWhiteSpace(value?.ToString()))

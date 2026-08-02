@@ -3,6 +3,7 @@ using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Components.Shared;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
+using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -16,7 +17,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
     public partial class Tab_Orders
     {
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public RequestsQueryClient Requests { get; set; } = default!;
+        [Inject] public IAPIServices CommandApi { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
@@ -231,7 +233,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             try
             {
-                PeriodInfo = await _apiServices.GetFromApiAsync<VppPeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
+                PeriodInfo = await Requests.GetPeriodInfoAsync();
             }
             catch (Exception ex)
             {
@@ -257,10 +259,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var endpoint = $"{Config.VppApi.MyOrders}?years={CurrentOrderPeriodDate.Year}&months={CurrentOrderPeriodDate.Month}&years={PreviousOrderPeriodDate.Year}&months={PreviousOrderPeriodDate.Month}";
-                var data = await _apiServices.GetFromApiAsync<List<VppRequestResDTO>>(endpoint);
+                var data = await Requests.GetMyOrdersAsync(
+                [
+                    new OrderPeriod(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month),
+                    new OrderPeriod(PreviousOrderPeriodDate.Year, PreviousOrderPeriodDate.Month)
+                ]);
 
-                var allOrders = (data ?? new()).OrderByDescending(x => x.UpdatedAtUtc).ToList();
+                var allOrders = data.OrderByDescending(x => x.UpdatedAtUtc).ToList();
 
                 // Tách đơn theo loại.
                 ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == CurrentOrderPeriodDate.Year && x.Month == CurrentOrderPeriodDate.Month).ToList();
@@ -384,7 +389,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = row.RowVersion,
                     IdempotencyKey = Guid.NewGuid().ToString("N")
                 };
-                await _apiServices.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", request);
+                await CommandApi.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", request);
                 Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -445,7 +450,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = row.RowVersion,
                     IdempotencyKey = Guid.NewGuid().ToString("N")
                 };
-                await _apiServices.PostFromApiAsync<VppRequestResDTO>(
+                await CommandApi.PostFromApiAsync<VppRequestResDTO>(
                     $"{Config.VppApi.Orders}/{row.Id}/restore",
                     request);
                 Toast.Notify(new NotificationMessage

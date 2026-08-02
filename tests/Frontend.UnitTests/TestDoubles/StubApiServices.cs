@@ -6,6 +6,7 @@ internal sealed class StubApiServices : IAPIServices
 {
     public Func<string, Type, Task<object?>>? GetAsync { get; init; }
     public Func<string, Type, Task<(object? Data, int TotalCount)>>? GetWithTotalCountAsync { get; init; }
+    public Func<string, Type, Task<(object? Data, int TotalCount, int TotalLines, int TotalQty)>>? GetWithStatsAsync { get; init; }
     public Func<string, object?, Type, Task<object?>>? PostAsync { get; init; }
     public Func<string, object, Type, Task<object?>>? PutAsync { get; init; }
     public Func<string, object, Type, Task<object?>>? PatchAsync { get; init; }
@@ -32,8 +33,16 @@ internal sealed class StubApiServices : IAPIServices
         return ((T?)result.Data, result.TotalCount);
     }
 
-    public Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint) =>
-        throw new NotSupportedException();
+    public async Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint)
+    {
+        if (GetWithStatsAsync is null)
+        {
+            throw new NotSupportedException();
+        }
+
+        var result = await GetWithStatsAsync(endpoint, typeof(T));
+        return ((T?)result.Data, result.TotalCount, result.TotalLines, result.TotalQty);
+    }
 
     public Task<(T? Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetFromApiWithAmountStatsAsync<T>(string endpoint) =>
         throw new NotSupportedException();

@@ -1,7 +1,7 @@
 @using gtas_vpp_fe.Helpers
-@using gtas_vpp_fe.Services
+@using gtas_vpp_fe.Features.Requests.Api
 @using gtas_vpp_shared.DTOs.Res.VPP
-@inject IAPIServices ApiServices
+@inject RequestsQueryClient Requests
 @inject DialogService DialogService
 
 <div aria-live="polite">
@@ -105,8 +105,7 @@
         _error = null;
         try
         {
-            _history = await ApiServices.GetFromApiAsync<VppRequestHistoryResDTO>(
-                $"{Config.VppApi.Orders}/{RequestId}/history");
+            _history = await Requests.GetOrderHistoryAsync(RequestId);
         }
         catch (Exception ex)
         {
