@@ -286,3 +286,34 @@ derived presentation data.
 Lần chạy đầu của combined Pricing/Report fail tại pricing lifecycle menu trước khi vào Report; report
 English/export vẫn pass. Thêm focused Report test để tách gate theo owner và lượt chạy lại cả focused +
 combined đều pass. Không sửa assertion để che failure.
+
+## 13. FR2 UiBusyState
+
+Đã thay busy setter `true/false` trong `GlobalClass` bằng `Platform/State/UiBusyState` dạng lease. Mỗi
+operation dùng `using var busy = BusyState.Begin()` nên tự cân bằng khi success, exception hoặc return
+sớm; dispose lặp không làm counter âm.
+
+Consumer đã migrate:
+
+- `PermissionAwarePageBase`;
+- User Administration;
+- Page Permission Administration;
+- global loader/subscription trong `LeftSidebar`.
+
+`GlobalClass` hiện chỉ còn user projection tạm thời cho FR3; repo scan không còn `isBusyPage` hoặc
+`BusyChanged` legacy.
+
+| Gate | Kết quả |
+|---|---|
+| UiBusy focused unit + environment contract | PASS `3/3` |
+| Frontend unit/architecture | PASS `225/225` |
+| Release build | PASS `0 warning / 0 error` |
+| Admin User + Admin Permission browser | PASS `2/2` |
+| User Menu browser | PASS `2/2` |
+| `./scripts/gtas.cmd verify -Scope frontend` | PASS; agent setup `63/63`, UI lightweight `2/2`, audit/leak checks pass |
+
+`GlobalRenderFlowTests` được ghi là flaky debt: clean baseline `d5b7c19a` pass `1/1`; trên source mới
+một lượt timeout lúc notification action chưa xuất hiện, lượt chẩn đoán sau notification đã xuất hiện
+nhưng timeout ở full-page `/not-found` navigation. Hai failure signature khác nhau, trong khi User Menu
+và các consumer busy trực tiếp đều pass; chưa coi đây là regression của `UiBusyState`, nhưng phải
+hardening trước final UI acceptance.

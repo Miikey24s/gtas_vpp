@@ -2,6 +2,7 @@ using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Permission;
@@ -25,6 +26,7 @@ public partial class Tab_User : IDisposable
     public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
     [Inject] public IAPIServices _apiServices { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
+    [Inject] public UiBusyState BusyState { get; set; } = default!;
 
     private string SearchText { get; set; } = string.Empty;
     private string? SelectedAccountStatus { get; set; }
@@ -356,7 +358,7 @@ public partial class Tab_User : IDisposable
             return;
         }
 
-        glb.isBusyPage = true;
+        using var busy = BusyState.Begin();
         isUserLoading = true;
         try
         {
@@ -385,7 +387,6 @@ public partial class Tab_User : IDisposable
         finally
         {
             isUserLoading = false;
-            glb.isBusyPage = false;
             StateHasChanged();
         }
     }
@@ -406,7 +407,7 @@ public partial class Tab_User : IDisposable
             return;
         }
 
-        glb.isBusyPage = true;
+        using var busy = BusyState.Begin();
         isUserLoading = true;
         try
         {
@@ -432,7 +433,6 @@ public partial class Tab_User : IDisposable
         finally
         {
             isUserLoading = false;
-            glb.isBusyPage = false;
             StateHasChanged();
         }
     }
@@ -455,7 +455,7 @@ public partial class Tab_User : IDisposable
             return;
         }
 
-        glb.isBusyPage = true;
+        using var busy = BusyState.Begin();
         isUserLoading = true;
         try
         {
@@ -484,7 +484,6 @@ public partial class Tab_User : IDisposable
         finally
         {
             isUserLoading = false;
-            glb.isBusyPage = false;
             StateHasChanged();
         }
     }
@@ -550,7 +549,7 @@ public partial class Tab_User : IDisposable
             return;
         }
 
-        glb.isBusyPage = true;
+        using var busy = BusyState.Begin();
         isUserLoading = true;
         try
         {
@@ -581,7 +580,6 @@ public partial class Tab_User : IDisposable
         finally
         {
             isUserLoading = false;
-            glb.isBusyPage = false;
             StateHasChanged();
         }
     }

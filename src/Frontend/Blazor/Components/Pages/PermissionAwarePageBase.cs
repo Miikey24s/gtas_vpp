@@ -1,6 +1,6 @@
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.State;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -23,7 +23,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
     [Inject] protected PermissionState PagePermissionState { get; set; } = default!;
     [Inject] protected NavigationManager PageNavigationManager { get; set; } = default!;
     [Inject] protected IToastService Toast { get; set; } = default!;
-    [Inject] protected GlobalClass PageGlobalState { get; set; } = default!;
+    [Inject] protected UiBusyState PageBusyState { get; set; } = default!;
     [Inject] protected Microsoft.Extensions.Localization.IStringLocalizer<App> PageLocalizer { get; set; } = default!;
 
     protected async Task<bool> LoadPageAccessAsync(
@@ -51,7 +51,7 @@ public abstract class PermissionAwarePageBase : ComponentBase
             return false;
         }
 
-        PageGlobalState.isBusyPage = true;
+        using var busy = PageBusyState.Begin();
         try
         {
             await PagePermissionState.EnsureLoadedAsync();
@@ -76,10 +76,6 @@ public abstract class PermissionAwarePageBase : ComponentBase
                 Duration = 10000
             });
             return false;
-        }
-        finally
-        {
-            PageGlobalState.isBusyPage = false;
         }
     }
 

@@ -3,6 +3,7 @@ using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Components.Pages.Permission.Dialogs;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Permission;
@@ -20,6 +21,7 @@ public partial class Tab_PagePermission
 {
     [Inject] public IAPIServices _apiServices { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
+    [Inject] public UiBusyState BusyState { get; set; } = default!;
 
     [Parameter] public IEnumerable<Claim> claims { get; set; } = [];
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
@@ -131,7 +133,7 @@ public partial class Tab_PagePermission
                 closeAriaLabel: Loc["Close"].Value));
         if (result is not BatchPatchComponentMappingsReqDTO request) return;
 
-        glb.isBusyPage = true;
+        using var busy = BusyState.Begin();
         IsLoading_Child = true;
         try
         {
@@ -166,7 +168,6 @@ public partial class Tab_PagePermission
         finally
         {
             IsLoading_Child = false;
-            glb.isBusyPage = false;
             StateHasChanged();
         }
     }
@@ -179,7 +180,7 @@ public partial class Tab_PagePermission
 
     private async Task LoadGroupPermissionsAsync(Guid groupId, bool notifyErrors)
     {
-        glb.isBusyPage = true;
+        using var busy = BusyState.Begin();
         IsLoading_Child = true;
         StateHasChanged();
         try
@@ -195,7 +196,6 @@ public partial class Tab_PagePermission
         finally
         {
             IsLoading_Child = false;
-            glb.isBusyPage = false;
             StateHasChanged();
         }
     }

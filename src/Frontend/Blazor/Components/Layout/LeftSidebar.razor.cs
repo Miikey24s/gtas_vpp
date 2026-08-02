@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Models;
+using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Share;
@@ -48,6 +49,7 @@ namespace gtas_vpp_fe.Components.Layout
         [Inject] public ThemeState ThemeState { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
+        [Inject] public UiBusyState BusyState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
@@ -98,7 +100,7 @@ namespace gtas_vpp_fe.Components.Layout
                 return;
             }
 
-            glb.BusyChanged += OnBusyChanged;
+            BusyState.Changed += OnBusyStateChanged;
 
             try
             {
@@ -259,7 +261,7 @@ namespace gtas_vpp_fe.Components.Layout
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
             PermissionState.Changed -= OnPermissionStateChanged;
-            glb.BusyChanged -= OnBusyChanged;
+            BusyState.Changed -= OnBusyStateChanged;
         }
 
         public async Task ToggleLanguage()
@@ -615,7 +617,7 @@ namespace gtas_vpp_fe.Components.Layout
             _ = InvokeAsync(StateHasChanged);
         }
 
-        private void OnBusyChanged()
+        private void OnBusyStateChanged()
         {
             _ = InvokeAsync(StateHasChanged);
         }

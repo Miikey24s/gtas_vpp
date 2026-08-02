@@ -6,7 +6,7 @@
 @inject NavigationManager NavigationManager
 @inject ProtectedLocalStorage ProtectedLocalStore
 
-<RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@glb.isBusyPage AriaLabel="Loading progress" class="vpp-global-loader" />
+<RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@BusyState.IsBusy AriaLabel="Loading progress" class="vpp-global-loader" />
 
 <RadzenHeader class="vpp-header-glass vpp-layout-header">
     <RadzenStack Orientation="Orientation.Horizontal" class="vpp-header-row">
