@@ -92,6 +92,29 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void NotificationState_SeparatesApiRealtimeAndUiStateOwnership()
+    {
+        var root = GetFrontendRoot();
+        var state = File.ReadAllText(Path.Combine(root, "Services", "NotificationInboxState.cs"));
+        var apiClient = File.ReadAllText(Path.Combine(
+            root, "Features", "Notifications", "Api", "NotificationApiClient.cs"));
+        var realtimeClient = File.ReadAllText(Path.Combine(
+            root, "Features", "Notifications", "Realtime", "NotificationRealtimeClient.cs"));
+
+        Assert.Contains("NotificationApiClient", state, StringComparison.Ordinal);
+        Assert.Contains("INotificationRealtimeClient", state, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", state, StringComparison.Ordinal);
+        Assert.DoesNotContain("IHttpClientFactory", state, StringComparison.Ordinal);
+        Assert.DoesNotContain("HubConnectionBuilder", state, StringComparison.Ordinal);
+        Assert.DoesNotContain("api/notifications", state, StringComparison.Ordinal);
+        Assert.DoesNotContain("hubs/notifications", state, StringComparison.Ordinal);
+        Assert.Contains("/api/notifications", apiClient, StringComparison.Ordinal);
+        Assert.Contains("hubs/notifications", realtimeClient, StringComparison.Ordinal);
+        Assert.Contains("WithAutomaticReconnect", realtimeClient, StringComparison.Ordinal);
+        Assert.Contains("IDisposable? _notificationSubscription", realtimeClient, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MyOrders_UsesTheSharedIconSystem()
     {
         var root = GetFrontendRoot();

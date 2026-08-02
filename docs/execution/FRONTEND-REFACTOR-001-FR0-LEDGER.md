@@ -669,3 +669,22 @@ nhau và treo circuit. State lưu `PermissionRefreshSignal` để unsubscribe kh
 
 Không thêm retry hoặc đổi policy 403; đây chỉ sửa re-entry/lifecycle và giữ request lỗi hiển thị qua error
 mapping hiện có.
+
+## 34. FR5 Notification API + realtime ownership
+
+Notification được tách thành ba lớp trách nhiệm dễ lần:
+
+- `NotificationApiClient`: inbox query, mark-read và mark-all-read;
+- `NotificationRealtimeClient`: bearer token, SignalR hub, reconnect policy và subscription lifecycle;
+- `NotificationInboxState`: loading/error/stale-data semantics và state dành cho component.
+
+| Gate | Kết quả |
+|---|---|
+| Notification API/state focused | PASS `7/7` |
+| Frontend unit/architecture | PASS `288/288` |
+| Notification panel route-real | PASS `1/1` isolated |
+
+State không còn sở hữu `IAPIServices`, `IHttpClientFactory` hoặc `HubConnectionBuilder`. Dispose
+unsubscribe event và hub subscription; semaphore managed không bị dispose khi callback có thể còn đang
+hoàn tất. Initial SignalR connection failure vẫn giữ fallback manual refresh như hành vi cũ; không thêm
+retry ngầm trong refactor này.
