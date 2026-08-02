@@ -102,7 +102,7 @@ Add-Check 'ui-skill-plan-coherence' ($uiSkillContent -match 'one canonical table
 Add-Check 'ui-skill-wave-report' ($uiSkillContent -match 'Report each completed wave in one compact block' -and $uiSkillContent -match 'owner-visible result') 'UI skill reports owner-visible outcomes, evidence, gates, risk, and commit status coherently.'
 Add-Check 'ui-plan-coherence-eval' ($evalContent -match '\| E13 \|' -and $evalContent -match 'hai bảng song song') 'Behavior eval catches fragmented plans and reports with duplicate row axes.'
 Add-Check 'ui-skill-model-routing' ($uiSkillContent -match 'include `Model \+ effort`' -and $uiSkillContent -match 'wave or major checkpoint boundaries') 'UI skill keeps model routing inside the canonical wave table and limits switches to stable checkpoints.'
-Add-Check 'model-routing-eval' ($evalContent -match '\| E14 \|' -and $evalContent -match 'khai đã tự switch') 'Behavior eval covers capacity snapshots, official guidance, checkpoint routing, and truthful active-model reporting.'
+Add-Check 'model-routing-eval' ($evalContent -match '\| E14 \|' -and $evalContent -match 'khai đã (tự )?switch') 'Behavior eval covers capacity snapshots, official guidance, checkpoint routing, and truthful active-model reporting.'
 
 $hookConfigPath = Get-RepoPath '.codex/hooks.json'
 $hookScriptPath = Get-RepoPath '.codex/hooks/session-resume-check.ps1'
