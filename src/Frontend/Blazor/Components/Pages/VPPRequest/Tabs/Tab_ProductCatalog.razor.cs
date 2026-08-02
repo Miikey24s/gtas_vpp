@@ -1,7 +1,9 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Radzen;
@@ -11,22 +13,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
 
 public partial class Tab_ProductCatalog : IDisposable
 {
-    public sealed class ProductItem
-    {
-        public Guid Id { get; set; }
-        public string? VppCode { get; set; }
-        public string? VppName { get; set; }
-        public string? Description { get; set; }
-        public string? VppCategoryCode { get; set; }
-        public string? VppCategoryName { get; set; }
-        public string? UomCode { get; set; }
-        public string? UomName { get; set; }
-    }
-
-    [Inject] public IAPIServices ApiServices { get; set; } = default!;
+    [Inject] public RequestsQueryClient Requests { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
 
-    public List<ProductItem> Products { get; set; } = [];
+    public List<VppItemResDTO> Products { get; set; } = [];
     public List<VppFilterOption<string>> CategoryOptions { get; set; } = [];
     public List<VppFilterOption<string>> UnitOptions { get; set; } = [];
     public int ProductCount { get; set; }
@@ -37,7 +27,7 @@ public partial class Tab_ProductCatalog : IDisposable
     public Guid? CategoryFilter { get; set; }
     public string? UnitFilter { get; set; }
     public string? SearchText { get; set; }
-    public RadzenDataGrid<ProductItem>? productGrid { get; set; }
+    public RadzenDataGrid<VppItemResDTO>? productGrid { get; set; }
 
     private bool _isFirstLoad = true;
     private CancellationTokenSource? _searchDebounceCts;
@@ -58,7 +48,7 @@ public partial class Tab_ProductCatalog : IDisposable
     {
         try
         {
-            var data = await ApiServices.GetFromApiAsync<List<CategoryItem>>(Config.VppApi.Categories) ?? [];
+            var data = await Requests.GetCatalogCategoriesAsync();
             CategoryOptions = [new(string.Empty, Loc["AllCategories"])];
             CategoryOptions.AddRange(data.Select(category => new VppFilterOption<string>(
                 category.Id.ToString(),
@@ -74,26 +64,10 @@ public partial class Tab_ProductCatalog : IDisposable
     {
         try
         {
-            const int batchSize = 100;
-            var data = new List<ProductItem>();
-            for (var skip = 0; ; skip += batchSize)
-            {
-                var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductItem>>(
-                    $"/api/VPPRequest/products?distinct=UomName&skip={skip}&top={batchSize}");
-                var batch = result.Data ?? [];
-                data.AddRange(batch);
-                if (data.Count >= result.TotalCount || batch.Count == 0)
-                {
-                    break;
-                }
-            }
+            var data = await Requests.GetCatalogUnitNamesAsync();
 
             UnitOptions = [new(string.Empty, Loc["AllUnits"])];
             UnitOptions.AddRange(data
-                .Where(item => !string.IsNullOrWhiteSpace(item.UomName))
-                .Select(item => item.UomName!.Trim())
-                .Distinct(StringComparer.CurrentCultureIgnoreCase)
-                .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
                 .Select(name => new VppFilterOption<string>(name, name)));
         }
         catch
@@ -116,8 +90,14 @@ public partial class Tab_ProductCatalog : IDisposable
         try
         {
             CurrentSkip = args.Skip ?? 0;
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductItem>>(BuildProductsEndpoint(args));
-            Products = result.Data ?? [];
+            var result = await Requests.GetCatalogItemsAsync(new ProductCatalogQuery(
+                args.Skip ?? 0,
+                args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
+                CategoryFilter,
+                SearchText ?? string.Empty,
+                UnitFilter,
+                args.OrderBy));
+            Products = result.Items.ToList();
             ProductCount = result.TotalCount;
         }
         catch (Exception ex)
@@ -189,31 +169,9 @@ public partial class Tab_ProductCatalog : IDisposable
         }
     }
 
-    private string BuildProductsEndpoint(LoadDataArgs args)
-    {
-        var query = new List<string>();
-        if (CategoryFilter.HasValue) query.Add($"categoryId={CategoryFilter.Value}");
-        if (!string.IsNullOrWhiteSpace(SearchText)) query.Add($"search={Uri.EscapeDataString(SearchText.Trim())}");
-        if (!string.IsNullOrWhiteSpace(UnitFilter)) query.Add($"filter={Uri.EscapeDataString(BuildUnitFilter(UnitFilter))}");
-        query.Add($"skip={args.Skip ?? 0}");
-        query.Add($"top={args.Top ?? VppPagingProfiles.Collection.DefaultPageSize}");
-        if (!string.IsNullOrWhiteSpace(args.OrderBy)) query.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
-        return $"/api/VPPRequest/products?{string.Join("&", query)}";
-    }
-
-    private static string BuildUnitFilter(string value)
-        => $"UomName == \"{value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
-
     public void Dispose()
     {
         _searchDebounceCts?.Cancel();
         _searchDebounceCts?.Dispose();
-    }
-
-    private sealed class CategoryItem
-    {
-        public Guid Id { get; set; }
-        public string? VppCategoryCode { get; set; }
-        public string? VppCategoryName { get; set; }
     }
 }

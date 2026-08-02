@@ -792,10 +792,13 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `NotificationRealtimeClient` sở hữu SignalR connection/subscription, còn `NotificationInboxState`
   chỉ điều phối UI state. Focused `7/7`, full frontend `288/288`; notification panel route-real pass
   `1/1` isolated. FR5 hoàn tất.
+- FR6 Product Catalog: `RequestsQueryClient` bắt đầu sở hữu request-side catalog query, category/unit
+  reference data và filter escaping. Page dùng Shared `VppItemResDTO`/`VppCategoryResDTO`, không còn
+  model lồng hoặc generic transport. Full frontend `291/291`; catalog route-real pass `1/1` isolated.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: FR6 tạo `RequestsQueryClient`, migrate Product Catalog và My Orders trước khi chạm
-  History/detail; giữ nguyên endpoint, wire DTO, paging/filter và permission behavior.
+- Next exact action: FR6 mở rộng `RequestsQueryClient` cho My Orders/filter/detail, sau đó migrate
+  History/dialog; giữ nguyên endpoint, wire DTO, paging/filter/export và permission behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

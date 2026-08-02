@@ -364,6 +364,7 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var catalog = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor");
         var catalogCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor.cs");
+        var requestsClient = ReadFrontendSource("Features/Requests/Api/RequestsQueryClient.cs");
 
         Assert.DoesNotContain("vpp-catalog-card-header", catalog, StringComparison.Ordinal);
         Assert.Contains("<VppFilterSearch", catalog, StringComparison.Ordinal);
@@ -374,6 +375,14 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("LoadData=\"@LoadProductsAsync\"", catalog, StringComparison.Ordinal);
         Assert.Contains("Title=\"#\"", catalog, StringComparison.Ordinal);
         Assert.Contains("CurrentSkip = args.Skip ?? 0;", catalogCode, StringComparison.Ordinal);
+        Assert.Contains("VppItemResDTO", catalog, StringComparison.Ordinal);
+        Assert.Contains("RequestsQueryClient", catalogCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", catalogCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("class ProductItem", catalogCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("class CategoryItem", catalogCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildProductsEndpoint", catalogCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsBase = \"/api/VPPRequest\"", requestsClient, StringComparison.Ordinal);
+        Assert.Contains("/products?", requestsClient, StringComparison.Ordinal);
         Assert.DoesNotContain("DownloadCatalog", catalog, StringComparison.Ordinal);
         Assert.DoesNotContain("ShowCatalogDownloadNotice", catalogCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"@Loc[\"Status\"]\"", catalog, StringComparison.Ordinal);

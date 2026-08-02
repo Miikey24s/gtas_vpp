@@ -688,3 +688,19 @@ State không còn sở hữu `IAPIServices`, `IHttpClientFactory` hoặc `HubCon
 unsubscribe event và hub subscription; semaphore managed không bị dispose khi callback có thể còn đang
 hoàn tất. Initial SignalR connection failure vẫn giữ fallback manual refresh như hành vi cũ; không thêm
 retry ngầm trong refactor này.
+
+## 35. FR6 Product Catalog query client + Shared DTO
+
+`RequestsQueryClient` sở hữu categories, unit-name distinct paging và catalog item query. Page truyền
+query object rõ nghĩa, còn escaping/paging/endpoint nằm trong client. Hai model lồng `ProductItem` và
+`CategoryItem` đã được thay bằng Shared `VppItemResDTO` và `VppCategoryResDTO`, đúng wire contract backend.
+
+| Gate | Kết quả |
+|---|---|
+| Requests query focused | PASS `3/3` |
+| Frontend unit/architecture | PASS `291/291` |
+| Product Catalog route-real | PASS `1/1` isolated |
+
+Browser gate xác nhận seeded rows, category/unit filters, page-size popup, pager geometry và responsive
+layout. File UI test đang có correction riêng của owner chỉ được dùng để chạy evidence, không stage vào
+slice refactor.
