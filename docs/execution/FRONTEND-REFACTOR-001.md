@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2 COMPLETE; FR3.1 PUBLIC ACCOUNT MIGRATION 5/5`
+- Status: `IN PROGRESS — FR0/FR1/FR2 COMPLETE; FR3 ACCOUNT + LOGIN MIGRATION COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `246/246`; 83 UI test được phát hiện. State characterization và public-safe account client foundation đã pass; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `251/251`; 83 UI test được phát hiện. Public account và login đều dùng typed client; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Toàn bộ 5 public lifecycle page đã dùng typed client. Tiếp theo tạo `AuthenticationApiClient` cho Login, sau đó migrate authenticated ChangePassword; logout/cookie flow giữ nguyên | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Public account và Login đã dùng typed client. Tiếp theo migrate authenticated ChangePassword, rồi retire identity/navigation shell state lặp; logout/cookie flow giữ nguyên | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -726,11 +726,18 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   submit có nghĩa và typed error mapping; mỗi checkpoint full unit `246/246`, account route-real `1/1`.
 - FR3.1 public complete: Register mutation `1/1`; Reset/Confirm prerender+route contract pass; final
   anonymous 7-route × 3-viewport `1/1`, full unit `246/246`. Năm endpoint constant global zero-consumer
-  đã xóa; chỉ Login còn `IHttpClientFactory` trong account pages.
+  đã xóa.
+- FR3 login migration: `AuthenticationApiClient` sở hữu public `POST /api/Auth/login`; `LoginPage`
+  không còn `IHttpClientFactory` nhưng vẫn giữ `LoginTicketCache`, returnUrl, remember-me và
+  `/perform-login`. Contract 400/401/429 + malformed JSON pass; full frontend `251/251`, Release build
+  sạch. Invalid-login browser pass ở 3 viewport; valid-login pass khi chạy riêng trên isolated fixture.
+  Lượt chạy chung bị nhiễu sau nhiều invalid attempt và timeout navigation, nên không dùng làm regression
+  verdict cho client.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tạo `AuthenticationApiClient.SignInAsync` public-safe, khóa 400/401/429/network/JSON;
-  migrate LoginPage nhưng giữ LoginTicketCache, returnUrl, remember-me và `/perform-login` orchestration.
+- Next exact action: migrate `ChangePassword` qua authenticated method của `AccountApiClient`, khóa
+  forced-logout/session invalidation contract; sau đó retire `GlobalClass.UserInfo` consumer và hợp nhất
+  route/sidebar metadata mà không đổi URL hay permission behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

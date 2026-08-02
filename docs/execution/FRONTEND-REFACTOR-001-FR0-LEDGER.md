@@ -404,3 +404,21 @@ authenticated transport.
 Một validation-layout run fail 2 px tại registration desktop (`page=771`, viewport `768`, card `747`),
 trong khi anonymous route matrix pass. Đây là visual/harness debt thuộc final UI acceptance, không nằm
 trên HTTP/page-state code đã migrate; không nới geometry assertion trong refactor.
+
+## 18. FR3 login migration
+
+Đã tạo `AuthenticationApiClient` cho public `POST /api/Auth/login` và migrate `LoginPage` khỏi
+`IHttpClientFactory`. Client sở hữu endpoint, JSON và status-aware exception; page vẫn sở hữu localized
+feedback, `LoginTicketCache`, remember-me, returnUrl và full-page `/perform-login` navigation.
+
+| Gate | Kết quả |
+|---|---|
+| Authentication client + login policy/cache focused | PASS `14/14` |
+| Frontend unit/architecture | PASS `251/251` |
+| Release build | PASS `0 warning / 0 error` |
+| Invalid login browser | PASS `1/1`, 3 viewport |
+| Valid login browser | PASS `1/1` khi chạy riêng trên isolated fixture |
+
+Lượt chạy gộp invalid + valid có valid-login timeout sau nhiều invalid attempt trên cùng fixture. Vì
+valid-login pass trên fixture mới và invalid-login cũng pass độc lập trong lượt gộp, đây được ghi là
+test-interaction/throttling debt; không nới timeout hoặc sửa assertion để che hiện tượng.

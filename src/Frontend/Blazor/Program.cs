@@ -141,6 +141,8 @@ builder.Services.AddHttpClient<IAPIServices, APIServices>(ConfigureApiClient)
 .ConfigurePrimaryHttpMessageHandler(CreateApiHttpHandler);
 builder.Services.AddHttpClient<AccountApiClient>(ConfigureApiClient)
 .ConfigurePrimaryHttpMessageHandler(CreateApiHttpHandler);
+builder.Services.AddHttpClient<AuthenticationApiClient>(ConfigureApiClient)
+.ConfigurePrimaryHttpMessageHandler(CreateApiHttpHandler);
 #endregion
 
 

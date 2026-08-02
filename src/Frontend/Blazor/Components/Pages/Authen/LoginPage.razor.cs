@@ -1,10 +1,12 @@
+using System.Net;
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Localization;
-using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Authen
@@ -12,7 +14,7 @@ namespace gtas_vpp_fe.Components.Pages.Authen
     public partial class LoginPage
     {
         [Inject] public IHttpContextAccessor? HttpContextAccessor { get; set; }
-        [Inject] public IHttpClientFactory HttpClientFactory { get; set; } = default!;
+        [Inject] public AuthenticationApiClient AuthenticationApi { get; set; } = default!;
         [Inject] public LoginTicketCache TicketCache { get; set; } = default!;
         [Inject] public IStringLocalizerFactory LocalizerFactory { get; set; } = default!;
         [SupplyParameterFromQuery(Name = "returnUrl")]
@@ -135,26 +137,22 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
         private async Task<AuthenticationResultDTO?> DoLogin(string username, string password)
         {
-            var client = HttpClientFactory.CreateClient(Config.HttpClientName);
             try
             {
-                var response = await client.PostAsJsonAsync(
-                    Config.ApiLoginEndpoint,
-                    new AuthenticationLoginRequest(username, password));
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    ShowError(LoginFailureMapper.GetMessage(response.StatusCode, ComponentLoc));
-                    return null;
-                }
-
-                var loginData = await response.Content.ReadFromJsonAsync<AuthenticationResultDTO>();
+                var loginData = await AuthenticationApi.SignInAsync(username, password);
                 if (loginData is null)
                 {
                     ShowError(ComponentLoc["LoginRequestFailed"].Value);
                 }
 
                 return loginData;
+            }
+            catch (ApiRequestException exception)
+            {
+                ShowError(LoginFailureMapper.GetMessage(
+                    exception.StatusCode ?? HttpStatusCode.BadRequest,
+                    ComponentLoc));
+                return null;
             }
             catch (TaskCanceledException)
             {

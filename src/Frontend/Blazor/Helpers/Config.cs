@@ -4,7 +4,6 @@ namespace gtas_vpp_fe.Helpers
     {
         // Cấu hình HTTP client.
         public const string HttpClientName = "VPP_API";
-        public const string ApiLoginEndpoint = "/api/Auth/login";
         public const string ApiAccountChangePasswordEndpoint = "/api/account/password/change";
         public const string ApiAccountAdminActivateEndpoint = "/api/account/admin/activate";
         public const string ApiAccountAdminResetPasswordEndpoint = "/api/account/admin/reset-password";
