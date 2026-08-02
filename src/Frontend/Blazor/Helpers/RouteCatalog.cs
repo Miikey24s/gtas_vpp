@@ -15,7 +15,8 @@ namespace gtas_vpp_fe.Helpers;
 /// (Playwright + accessibility scanner) có thể suy ra tập route duy nhất mà không
 /// phải crawl lại source Razor.
 ///
-/// Class này chỉ chứa metadata, không thay đổi hành vi runtime.
+/// Metadata này được runtime dùng để chọn route được phép và dựng điều hướng shell;
+/// vì vậy mọi thay đổi path/quyền phải qua test consistency và route-real.
 /// </summary>
 public static class RouteCatalog
 {
@@ -394,6 +395,18 @@ public static class RouteCatalog
             AnyOfPermissions: [],
             IsAuthenticated: false),
     ];
+
+    public static IReadOnlyList<Route> All { get; } = Authenticated
+        .Concat(Anonymous)
+        .ToArray();
+
+    private static IReadOnlyDictionary<string, Route> ByKey { get; } = All
+        .ToDictionary(route => route.Key, StringComparer.OrdinalIgnoreCase);
+
+    public static Route GetRequired(string key) =>
+        ByKey.TryGetValue(key, out var route)
+            ? route
+            : throw new KeyNotFoundException($"RouteCatalog does not contain key '{key}'.");
 
     /// <summary>
     /// Query parameter làm thay đổi view logic; khóa duy nhất của audit có chứa các giá trị này.

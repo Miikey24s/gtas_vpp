@@ -93,34 +93,34 @@
         <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Multiple="true" Click="@OnMenuItemClick">
         @if (CanViewDashboardMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Dashboard"]" Icon="@VppIcons.Dashboard" class="ppjsidebarmenu" title="@Loc["Dashboard"]" @bind-Expanded="_dashboardMenuExpanded">
-                @if (CanViewDashboardItem(Permissions.RequestOrder))
+            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Dashboard.LabelKey]" Icon="@ShellNavigationCatalog.Dashboard.Icon" class="ppjsidebarmenu" title="@Loc[ShellNavigationCatalog.Dashboard.LabelKey]" @bind-Expanded="_dashboardMenuExpanded">
+                @if (CanViewShellItem(ShellNavigationCatalog.MyOrders))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["MyOrders"]" Path="/dashboard?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavMyOrders" title="@Loc["MyOrders"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.MyOrders.LabelKey]" Path="@ShellNavigationCatalog.MyOrders.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.MyOrders.Icon" title="@Loc[ShellNavigationCatalog.MyOrders.LabelKey]" />
                 }
-                @if (CanViewDashboardItem(Permissions.RequestHistory))
+                @if (CanViewShellItem(ShellNavigationCatalog.History))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["History"]" Path="/dashboard?tab=1" class="ppjsidebarmenu submenu" Icon="@VppIcons.History" title="@Loc["History"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.History.LabelKey]" Path="@ShellNavigationCatalog.History.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.History.Icon" title="@Loc[ShellNavigationCatalog.History.LabelKey]" />
                 }
                 @* Tổng hợp toàn công ty nằm trong dữ liệu quản lý kỳ, không tạo thêm mục điều hướng. *@
-                @if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
+                @if (CanViewShellItem(ShellNavigationCatalog.DepartmentSummary))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["DepartmentSummary"]" Path="@("/dashboard?tab=3&managementTab=department")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Department" title="@Loc["DepartmentSummary"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.DepartmentSummary.LabelKey]" Path="@ShellNavigationCatalog.DepartmentSummary.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.DepartmentSummary.Icon" title="@Loc[ShellNavigationCatalog.DepartmentSummary.LabelKey]" />
                 }
-                @if (CanViewDashboardItem(Permissions.RequestProductCatalog))
+                @if (CanViewShellItem(ShellNavigationCatalog.Catalog))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Catalog"]" Path="/dashboard?tab=2" class="ppjsidebarmenu submenu" Icon="@VppIcons.Catalog" title="@Loc["Catalog"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Catalog.LabelKey]" Path="@ShellNavigationCatalog.Catalog.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Catalog.Icon" title="@Loc[ShellNavigationCatalog.Catalog.LabelKey]" />
                 }
-                @if (CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle))
+                @if (CanViewPeriodMenu)
                 {
-                    <RadzenPanelMenuItem Text="@Loc["PeriodOperations"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.PeriodOperations" title="@Loc["PeriodOperations"]" @bind-Expanded="_periodMenuExpanded">
-                        @if (CanViewDashboardItem(Permissions.PeriodSettle))
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.PeriodOperations.LabelKey]" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.PeriodOperations.Icon" title="@Loc[ShellNavigationCatalog.PeriodOperations.LabelKey]" @bind-Expanded="_periodMenuExpanded">
+                        @if (CanViewShellItem(ShellNavigationCatalog.PeriodReview))
                         {
-                            <RadzenPanelMenuItem Text="@Loc["PeriodSettleStep"]" Path="/dashboard?tab=5&periodTab=review" class="ppjsidebarmenu submenu" Icon="@VppIcons.Review" title="@Loc["PeriodSettleStep"]" />
+                            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.PeriodReview.LabelKey]" Path="@ShellNavigationCatalog.PeriodReview.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.PeriodReview.Icon" title="@Loc[ShellNavigationCatalog.PeriodReview.LabelKey]" />
                         }
-                        @if (CanViewDashboardItem(Permissions.RequestAdminApproval))
+                        @if (CanViewShellItem(ShellNavigationCatalog.PendingApproval))
                         {
-                            <RadzenPanelMenuItem Text="@Loc["AdminApproval"]" Path="/dashboard?tab=5&periodTab=pending" class="ppjsidebarmenu submenu" Icon="@VppIcons.NavApproval" title="@Loc["AdminApproval"]" />
+                            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.PendingApproval.LabelKey]" Path="@ShellNavigationCatalog.PendingApproval.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.PendingApproval.Icon" title="@Loc[ShellNavigationCatalog.PendingApproval.LabelKey]" />
                         }
                     </RadzenPanelMenuItem>
                 }
@@ -128,60 +128,60 @@
         }
         @if (CanViewLibraryMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Library"]" Icon="@VppIcons.Folder" class="ppjsidebarmenu" title="@Loc["Library"]" @bind-Expanded="_libraryMenuExpanded">
-                @if (CanViewLibraryItem(Permissions.LibraryClass))
+            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Library.LabelKey]" Icon="@ShellNavigationCatalog.Library.Icon" class="ppjsidebarmenu" title="@Loc[ShellNavigationCatalog.Library.LabelKey]" @bind-Expanded="_libraryMenuExpanded">
+                @if (CanViewShellItem(ShellNavigationCatalog.Classes))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["ClassDefinitions"]" Path="/library?tab=0" class="ppjsidebarmenu submenu" Icon="@VppIcons.Schema" title="@Loc["ClassDefinitions"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Classes.LabelKey]" Path="@ShellNavigationCatalog.Classes.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Classes.Icon" title="@Loc[ShellNavigationCatalog.Classes.LabelKey]" />
                 }
-                @if (CanViewLibraryItem(Permissions.LibraryCategory))
+                @if (CanViewShellItem(ShellNavigationCatalog.Categories))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["OperationCategories"]" Path="/library?tab=1" class="ppjsidebarmenu submenu" Icon="@VppIcons.Category" title="@Loc["OperationCategories"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Categories.LabelKey]" Path="@ShellNavigationCatalog.Categories.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Categories.Icon" title="@Loc[ShellNavigationCatalog.Categories.LabelKey]" />
                 }
-                @if (CanViewLibraryItem(Permissions.LibraryItem))
+                @if (CanViewShellItem(ShellNavigationCatalog.Items))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Operations"]" Path="/library?tab=2" class="ppjsidebarmenu submenu" Icon="@VppIcons.Item" title="@Loc["Operations"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Items.LabelKey]" Path="@ShellNavigationCatalog.Items.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Items.Icon" title="@Loc[ShellNavigationCatalog.Items.LabelKey]" />
                 }
-                @if (CanViewLibraryItem(Permissions.LibrarySupplier))
+                @if (CanViewShellItem(ShellNavigationCatalog.Suppliers))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Suppliers"]" Path="/library?tab=3" class="ppjsidebarmenu submenu" Icon="@VppIcons.Supplier" title="@Loc["Suppliers"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Suppliers.LabelKey]" Path="@ShellNavigationCatalog.Suppliers.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Suppliers.Icon" title="@Loc[ShellNavigationCatalog.Suppliers.LabelKey]" />
                 }
-                @if (CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice))
+                @if (CanViewPricingMenu)
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Pricing"]" class="ppjsidebarmenu submenu" Icon="@VppIcons.Pricing" title="@Loc["Pricing"]" @bind-Expanded="_pricingMenuExpanded">
-                        @if (CanViewLibraryItem(Permissions.LibraryPriceList))
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Pricing.LabelKey]" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Pricing.Icon" title="@Loc[ShellNavigationCatalog.Pricing.LabelKey]" @bind-Expanded="_pricingMenuExpanded">
+                        @if (CanViewShellItem(ShellNavigationCatalog.PriceLists))
                         {
-                            <RadzenPanelMenuItem Text="@Loc["PriceLists"]" Path="@("/library?tab=6&pricingTab=price-lists")" class="ppjsidebarmenu submenu" Icon="@VppIcons.PriceList" title="@Loc["PriceLists"]" />
+                            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.PriceLists.LabelKey]" Path="@ShellNavigationCatalog.PriceLists.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.PriceLists.Icon" title="@Loc[ShellNavigationCatalog.PriceLists.LabelKey]" />
                         }
-                        @if (CanViewLibraryItem(Permissions.LibraryPrice))
+                        @if (CanViewShellItem(ShellNavigationCatalog.Prices))
                         {
-                            <RadzenPanelMenuItem Text="@Loc["Prices"]" Path="@("/library?tab=6&pricingTab=prices")" class="ppjsidebarmenu submenu" Icon="@VppIcons.Price" title="@Loc["Prices"]" />
+                            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Prices.LabelKey]" Path="@ShellNavigationCatalog.Prices.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Prices.Icon" title="@Loc[ShellNavigationCatalog.Prices.LabelKey]" />
                         }
                     </RadzenPanelMenuItem>
                 }
-                @if (CanViewLibraryItem(Permissions.LibraryDepartment))
+                @if (CanViewShellItem(ShellNavigationCatalog.Departments))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Departments"]" Path="/library?tab=5" class="ppjsidebarmenu submenu" Icon="@VppIcons.Apartment" title="@Loc["Departments"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Departments.LabelKey]" Path="@ShellNavigationCatalog.Departments.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.Departments.Icon" title="@Loc[ShellNavigationCatalog.Departments.LabelKey]" />
                 }
             </RadzenPanelMenuItem>
         }
         @if (CanViewReportMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Reports"]" Icon="@VppIcons.Reports" class="ppjsidebarmenu" Path="/report" title="@Loc["Reports"]" />
+            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Reports.LabelKey]" Icon="@ShellNavigationCatalog.Reports.Icon" class="ppjsidebarmenu" Path="@ShellNavigationCatalog.Reports.Path" title="@Loc[ShellNavigationCatalog.Reports.LabelKey]" />
         }
         @if (CanViewPermissionMenu)
         {
-            <RadzenPanelMenuItem Text="@Loc["Permissions"]" Icon="@VppIcons.Permissions" class="ppjsidebarmenu" title="@Loc["Permissions"]" @bind-Expanded="_permissionMenuExpanded">
-                @if (CanViewPermissionItem(Permissions.PermissionUser))
+            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Permission.LabelKey]" Icon="@ShellNavigationCatalog.Permission.Icon" class="ppjsidebarmenu" title="@Loc[ShellNavigationCatalog.Permission.LabelKey]" @bind-Expanded="_permissionMenuExpanded">
+                @if (CanViewShellItem(ShellNavigationCatalog.Users))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["Users"]" Icon="@VppIcons.Group" class="ppjsidebarmenu submenu" Path="/permission?tab=0" title="@Loc["Users"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Users.LabelKey]" Icon="@ShellNavigationCatalog.Users.Icon" class="ppjsidebarmenu submenu" Path="@ShellNavigationCatalog.Users.Path" title="@Loc[ShellNavigationCatalog.Users.LabelKey]" />
                 }
-                @if (CanViewPermissionItem(Permissions.PermissionComponent))
+                @if (CanViewShellItem(ShellNavigationCatalog.GroupsAndPermissions))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["GroupsAndPermissions"]" Icon="@VppIcons.Rule" class="ppjsidebarmenu submenu" Path="/permission?tab=1" title="@Loc["GroupsAndPermissions"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.GroupsAndPermissions.LabelKey]" Icon="@ShellNavigationCatalog.GroupsAndPermissions.Icon" class="ppjsidebarmenu submenu" Path="@ShellNavigationCatalog.GroupsAndPermissions.Path" title="@Loc[ShellNavigationCatalog.GroupsAndPermissions.LabelKey]" />
                 }
-                @if (CanViewPermissionItem(Permissions.PermissionManage))
+                @if (CanViewShellItem(ShellNavigationCatalog.SecurityAudit))
                 {
-                    <RadzenPanelMenuItem Text="@Loc["SecurityAudit"]" Icon="@VppIcons.History" class="ppjsidebarmenu submenu" Path="/permission?tab=2" title="@Loc["SecurityAudit"]" />
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.SecurityAudit.LabelKey]" Icon="@ShellNavigationCatalog.SecurityAudit.Icon" class="ppjsidebarmenu submenu" Path="@ShellNavigationCatalog.SecurityAudit.Path" title="@Loc[ShellNavigationCatalog.SecurityAudit.LabelKey]" />
                 }
             </RadzenPanelMenuItem>
         }

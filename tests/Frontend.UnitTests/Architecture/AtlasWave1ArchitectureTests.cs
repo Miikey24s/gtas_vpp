@@ -1,3 +1,4 @@
+using gtas_vpp_fe.Components.Layout;
 using gtas_vpp_shared.Constants;
 using Xunit;
 
@@ -300,8 +301,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("/api/Permission/security-audits", code, StringComparison.Ordinal);
         Assert.Contains("Dialog_SecurityAuditDetail", code, StringComparison.Ordinal);
         Assert.Contains("VppAdaptiveDialogShell", dialog, StringComparison.Ordinal);
-        Assert.Contains("/permission?tab=2", sidebar, StringComparison.Ordinal);
-        Assert.Contains("Permissions.PermissionManage", sidebarCode, StringComparison.Ordinal);
+        Assert.Equal("/permission?tab=2", ShellNavigationCatalog.SecurityAudit.Path);
+        Assert.Equal(Permissions.PermissionManage, ShellNavigationCatalog.SecurityAudit.Permission);
+        Assert.Contains("ShellNavigationCatalog.SecurityAudit.Path", sidebar, StringComparison.Ordinal);
+        Assert.Contains("CanViewShellItem(ShellNavigationCatalog.SecurityAudit)", sidebarCode, StringComparison.Ordinal);
         Assert.Contains("permission.security-audit", routeCatalog, StringComparison.Ordinal);
         Assert.DoesNotContain("PostFromApi", code, StringComparison.Ordinal);
         Assert.DoesNotContain("PatchFromApi", code, StringComparison.Ordinal);

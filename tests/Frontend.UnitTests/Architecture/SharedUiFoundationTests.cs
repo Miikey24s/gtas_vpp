@@ -1,3 +1,4 @@
+using gtas_vpp_fe.Components.Layout;
 using Xunit;
 
 namespace gtas_vpp_fe.Tests.Architecture;
@@ -381,13 +382,16 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain(".vpp-header-breadcrumb", layoutCss, StringComparison.Ordinal);
         Assert.Contains("vpp-header-tabs", source, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-header-breadcrumb", source, StringComparison.Ordinal);
-        Assert.Contains("new(Loc[\"DepartmentSummary\"], \"/dashboard?tab=3&managementTab=department\", tab == \"3\")", sourceCode, StringComparison.Ordinal);
+        Assert.Equal(
+            "/dashboard?tab=3&managementTab=department",
+            ShellNavigationCatalog.DepartmentSummary.Path);
+        Assert.Contains("ShellNavigationCatalog.DepartmentSummary.Path", sourceCode, StringComparison.Ordinal);
         Assert.True(
-            sourceCode.IndexOf("new(Loc[\"History\"]", StringComparison.Ordinal)
-            < sourceCode.IndexOf("new(Loc[\"DepartmentSummary\"]", StringComparison.Ordinal));
+            Array.IndexOf(ShellNavigationCatalog.Dashboard.Items.ToArray(), ShellNavigationCatalog.History)
+            < Array.IndexOf(ShellNavigationCatalog.Dashboard.Items.ToArray(), ShellNavigationCatalog.DepartmentSummary));
         Assert.True(
-            sourceCode.IndexOf("new(Loc[\"DepartmentSummary\"]", StringComparison.Ordinal)
-            < sourceCode.IndexOf("new(Loc[\"Catalog\"]", StringComparison.Ordinal));
+            Array.IndexOf(ShellNavigationCatalog.Dashboard.Items.ToArray(), ShellNavigationCatalog.DepartmentSummary)
+            < Array.IndexOf(ShellNavigationCatalog.Dashboard.Items.ToArray(), ShellNavigationCatalog.Catalog));
         Assert.DoesNotContain("vpp-header-role-badge", source, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-header-role-badge", layoutCss, StringComparison.Ordinal);
         Assert.Contains("\"rz-sidebar rz-header\"", layoutCss, StringComparison.Ordinal);

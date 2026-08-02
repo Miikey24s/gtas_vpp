@@ -453,3 +453,24 @@ bị invalidate/reload.
 
 `GlobalClass` chưa xóa ở checkpoint này vì một số Library mutation/editor còn dùng user id cũ; các
 consumer đó sẽ chuyển sang `CurrentUserState` trong FR4 trước khi xóa projection và DI registration.
+
+## 21. FR3 shell navigation catalog
+
+Đã thêm `ShellNavigationCatalog` gồm 4 section và 17 leaf item. Mỗi item chỉ giữ metadata shell
+(label/icon/group/default/compatibility alias) và resolve path/page/permission từ `RouteCatalog`.
+`LeftSidebar`/primary header đã dùng catalog này; ba route array, literal path và ba hàm permission theo
+section cũ đã bị xóa.
+
+| Gate | Kết quả |
+|---|---|
+| Route + shell catalog focused | PASS `7/7` |
+| Shell/permission architecture focused | PASS `61/61` |
+| Frontend unit/architecture | PASS `262/262` |
+| Release build | PASS `0 warning / 0 error` |
+| Sidebar controls | PASS `1/1` |
+| Nested Period/Pricing header | PASS `1/1` khi chạy isolated riêng |
+| Desktop inactive/hover header | PASS `1/1` khi chạy isolated riêng |
+
+Lượt chạy gộp ba browser test có hai timing failure ở animation/hover; từng test fail đều pass trên
+fixture mới. Không đổi CSS, timeout hay assertion. `RouteCatalog` vẫn ở path authority hiện tại vì skill
+repository đang có thay đổi của owner và còn trỏ tới `Helpers/RouteCatalog.cs`.

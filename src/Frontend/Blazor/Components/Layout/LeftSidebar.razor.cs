@@ -17,34 +17,6 @@ namespace gtas_vpp_fe.Components.Layout
 {
     public partial class LeftSidebar : IDisposable
     {
-        private static readonly (string Permission, string Path)[] DashboardMenuRoutes =
-        [
-            (Permissions.RequestOrder, "/dashboard?tab=0"),
-            (Permissions.RequestHistory, "/dashboard?tab=1"),
-            (Permissions.RequestProductCatalog, "/dashboard?tab=2"),
-            (Permissions.RequestDepartmentSummary, "/dashboard?tab=3&managementTab=department"),
-            (Permissions.PeriodSettle, "/dashboard?tab=5&periodTab=review"),
-            (Permissions.RequestAdminApproval, "/dashboard?tab=5&periodTab=pending")
-        ];
-
-        private static readonly (string Permission, string Path)[] LibraryMenuRoutes =
-        [
-            (Permissions.LibraryClass, "/library?tab=0"),
-            (Permissions.LibraryCategory, "/library?tab=1"),
-            (Permissions.LibraryItem, "/library?tab=2"),
-            (Permissions.LibrarySupplier, "/library?tab=3"),
-            (Permissions.LibraryPriceList, "/library?tab=6&pricingTab=price-lists"),
-            (Permissions.LibraryPrice, "/library?tab=6&pricingTab=prices"),
-            (Permissions.LibraryDepartment, "/library?tab=5")
-        ];
-
-        private static readonly (string Permission, string Path)[] PermissionMenuRoutes =
-        [
-            (Permissions.PermissionUser, "/permission?tab=0"),
-            (Permissions.PermissionComponent, "/permission?tab=1"),
-            (Permissions.PermissionManage, "/permission?tab=2")
-        ];
-
         [Inject] public ThemeService ThemeService { get; set; } = default!;
         [Inject] public ThemeState ThemeState { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
@@ -74,12 +46,14 @@ namespace gtas_vpp_fe.Components.Layout
         public string State { get; set; } = "normal";
         private bool _isPrerendering = true;
 
-        private bool CanViewDashboardMenu => HasSidebarMenu(Permissions.MenuDashboard) && DashboardMenuRoutes.Any(route => CanViewDashboardItem(route.Permission));
-        private bool CanViewLibraryMenu => HasSidebarMenu(Permissions.MenuLibrary) && LibraryMenuRoutes.Any(route => CanViewLibraryItem(route.Permission));
-        private bool CanViewReportMenu => PermissionState.HasPageAccess(Config.Page_ComponentCode.PageCode.Report);
-        private bool CanViewPermissionMenu => HasSidebarMenu(Permissions.MenuPermission) && PermissionMenuRoutes.Any(route => CanViewPermissionItem(route.Permission));
-        private bool CanViewPeriodMenu => CanViewDashboardItem(Permissions.RequestAdminApproval) || CanViewDashboardItem(Permissions.PeriodSettle);
-        private bool CanViewPricingMenu => CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice);
+        private bool CanViewDashboardMenu => CanViewSection(ShellNavigationCatalog.Dashboard);
+        private bool CanViewLibraryMenu => CanViewSection(ShellNavigationCatalog.Library);
+        private bool CanViewReportMenu => CanViewShellItem(ShellNavigationCatalog.Reports);
+        private bool CanViewPermissionMenu => CanViewSection(ShellNavigationCatalog.Permission);
+        private bool CanViewPeriodMenu => CanViewShellItem(ShellNavigationCatalog.PendingApproval)
+            || CanViewShellItem(ShellNavigationCatalog.PeriodReview);
+        private bool CanViewPricingMenu => CanViewShellItem(ShellNavigationCatalog.PriceLists)
+            || CanViewShellItem(ShellNavigationCatalog.Prices);
         private bool HasExpandableSidebarGroups => CanViewDashboardMenu || CanViewLibraryMenu || CanViewPermissionMenu;
 
         private bool AreAllSidebarGroupsExpanded =>
@@ -418,33 +392,45 @@ namespace gtas_vpp_fe.Components.Layout
                     case "" or "dashboard" or "dashboard/order-create":
                         var isOrderCreate = path == "dashboard/order-create";
                         var myOrdersActive = isOrderCreate || tab is null or "" or "0";
-                        if (CanViewDashboardItem(Permissions.RequestOrder))
+                        if (CanViewShellItem(ShellNavigationCatalog.MyOrders))
                         {
-                            tabs.Add(new(Loc["MyOrders"], "/dashboard?tab=0", myOrdersActive));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.MyOrders.LabelKey],
+                                ShellNavigationCatalog.MyOrders.Path,
+                                myOrdersActive));
                         }
 
-                        if (CanViewDashboardItem(Permissions.RequestHistory))
+                        if (CanViewShellItem(ShellNavigationCatalog.History))
                         {
-                            tabs.Add(new(Loc["History"], "/dashboard?tab=1", tab == "1"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.History.LabelKey],
+                                ShellNavigationCatalog.History.Path,
+                                tab == "1"));
                         }
 
-                        if (CanViewDashboardItem(Permissions.RequestDepartmentSummary))
+                        if (CanViewShellItem(ShellNavigationCatalog.DepartmentSummary))
                         {
-                            tabs.Add(new(Loc["DepartmentSummary"], "/dashboard?tab=3&managementTab=department", tab == "3"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.DepartmentSummary.LabelKey],
+                                ShellNavigationCatalog.DepartmentSummary.Path,
+                                tab == "3"));
                         }
 
-                        if (CanViewDashboardItem(Permissions.RequestProductCatalog))
+                        if (CanViewShellItem(ShellNavigationCatalog.Catalog))
                         {
-                            tabs.Add(new(Loc["Catalog"], "/dashboard?tab=2", tab == "2"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Catalog.LabelKey],
+                                ShellNavigationCatalog.Catalog.Path,
+                                tab == "2"));
                         }
 
-                        var canSettle = CanViewDashboardItem(Permissions.PeriodSettle);
-                        var canApproval = CanViewDashboardItem(Permissions.RequestAdminApproval);
+                        var canSettle = CanViewShellItem(ShellNavigationCatalog.PeriodReview);
+                        var canApproval = CanViewShellItem(ShellNavigationCatalog.PendingApproval);
                         if (canSettle || canApproval)
                         {
                             var periodPath = canSettle
-                                ? "/dashboard?tab=5&periodTab=review"
-                                : "/dashboard?tab=5&periodTab=pending";
+                                ? ShellNavigationCatalog.PeriodReview.Path
+                                : ShellNavigationCatalog.PendingApproval.Path;
                             var periodChildren = new List<VppHeaderSubTab>();
                             var pendingActive = tab == "5"
                                 && string.Equals(periodTab, "pending", StringComparison.OrdinalIgnoreCase)
@@ -453,51 +439,67 @@ namespace gtas_vpp_fe.Components.Layout
                             if (canSettle)
                             {
                                 periodChildren.Add(new(
-                                    Loc["PeriodSettleStep"],
-                                    "/dashboard?tab=5&periodTab=review",
+                                    Loc[ShellNavigationCatalog.PeriodReview.LabelKey],
+                                    ShellNavigationCatalog.PeriodReview.Path,
                                     tab == "5" && !pendingActive));
                             }
 
                             if (canApproval)
                             {
                                 periodChildren.Add(new(
-                                    Loc["AdminApproval"],
-                                    "/dashboard?tab=5&periodTab=pending",
+                                    Loc[ShellNavigationCatalog.PendingApproval.LabelKey],
+                                    ShellNavigationCatalog.PendingApproval.Path,
                                     tab == "5" && (pendingActive || !canSettle)));
                             }
 
-                            tabs.Add(new(Loc["PeriodOperations"], periodPath, tab == "5", periodChildren));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.PeriodOperations.LabelKey],
+                                periodPath,
+                                tab == "5",
+                                periodChildren));
                         }
 
                         break;
                     case "library":
-                        if (CanViewLibraryItem(Permissions.LibraryClass))
+                        if (CanViewShellItem(ShellNavigationCatalog.Classes))
                         {
-                            tabs.Add(new(Loc["ClassDefinitions"], "/library?tab=0", tab is null or "" or "0"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Classes.LabelKey],
+                                ShellNavigationCatalog.Classes.Path,
+                                tab is null or "" or "0"));
                         }
 
-                        if (CanViewLibraryItem(Permissions.LibraryCategory))
+                        if (CanViewShellItem(ShellNavigationCatalog.Categories))
                         {
-                            tabs.Add(new(Loc["OperationCategories"], "/library?tab=1", tab == "1"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Categories.LabelKey],
+                                ShellNavigationCatalog.Categories.Path,
+                                tab == "1"));
                         }
 
-                        if (CanViewLibraryItem(Permissions.LibraryItem))
+                        if (CanViewShellItem(ShellNavigationCatalog.Items))
                         {
-                            tabs.Add(new(Loc["Operations"], "/library?tab=2", tab == "2"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Items.LabelKey],
+                                ShellNavigationCatalog.Items.Path,
+                                tab == "2"));
                         }
 
-                        if (CanViewLibraryItem(Permissions.LibrarySupplier))
+                        if (CanViewShellItem(ShellNavigationCatalog.Suppliers))
                         {
-                            tabs.Add(new(Loc["Suppliers"], "/library?tab=3", tab == "3"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Suppliers.LabelKey],
+                                ShellNavigationCatalog.Suppliers.Path,
+                                tab == "3"));
                         }
 
-                        if (CanViewLibraryItem(Permissions.LibraryPriceList) || CanViewLibraryItem(Permissions.LibraryPrice))
+                        if (CanViewPricingMenu)
                         {
-                            var canViewPriceLists = CanViewLibraryItem(Permissions.LibraryPriceList);
-                            var canViewPrices = CanViewLibraryItem(Permissions.LibraryPrice);
+                            var canViewPriceLists = CanViewShellItem(ShellNavigationCatalog.PriceLists);
+                            var canViewPrices = CanViewShellItem(ShellNavigationCatalog.Prices);
                             var pricingPath = canViewPriceLists
-                                ? "/library?tab=6&pricingTab=price-lists"
-                                : "/library?tab=6&pricingTab=prices";
+                                ? ShellNavigationCatalog.PriceLists.Path
+                                : ShellNavigationCatalog.Prices.Path;
                             var pricingActive = tab is "4" or "6";
                             var pricesActive = pricingActive
                                 && canViewPrices
@@ -507,49 +509,68 @@ namespace gtas_vpp_fe.Components.Layout
                             if (canViewPriceLists)
                             {
                                 pricingChildren.Add(new(
-                                    Loc["PriceLists"],
-                                    "/library?tab=6&pricingTab=price-lists",
+                                    Loc[ShellNavigationCatalog.PriceLists.LabelKey],
+                                    ShellNavigationCatalog.PriceLists.Path,
                                     pricingActive && !pricesActive));
                             }
 
                             if (canViewPrices)
                             {
                                 pricingChildren.Add(new(
-                                    Loc["Prices"],
-                                    "/library?tab=6&pricingTab=prices",
+                                    Loc[ShellNavigationCatalog.Prices.LabelKey],
+                                    ShellNavigationCatalog.Prices.Path,
                                     pricingActive && (pricesActive || !canViewPriceLists)));
                             }
 
-                            tabs.Add(new(Loc["Pricing"], pricingPath, pricingActive, pricingChildren));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Pricing.LabelKey],
+                                pricingPath,
+                                pricingActive,
+                                pricingChildren));
                         }
 
-                        if (CanViewLibraryItem(Permissions.LibraryDepartment))
+                        if (CanViewShellItem(ShellNavigationCatalog.Departments))
                         {
-                            tabs.Add(new(Loc["Departments"], "/library?tab=5", tab == "5"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Departments.LabelKey],
+                                ShellNavigationCatalog.Departments.Path,
+                                tab == "5"));
                         }
 
                         break;
                     case "permission":
-                        if (CanViewPermissionItem(Permissions.PermissionUser))
+                        if (CanViewShellItem(ShellNavigationCatalog.Users))
                         {
-                            tabs.Add(new(Loc["Users"], "/permission?tab=0", tab is null or "" or "0"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Users.LabelKey],
+                                ShellNavigationCatalog.Users.Path,
+                                tab is null or "" or "0"));
                         }
 
-                        if (CanViewPermissionItem(Permissions.PermissionComponent))
+                        if (CanViewShellItem(ShellNavigationCatalog.GroupsAndPermissions))
                         {
-                            tabs.Add(new(Loc["GroupsAndPermissions"], "/permission?tab=1", tab == "1"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.GroupsAndPermissions.LabelKey],
+                                ShellNavigationCatalog.GroupsAndPermissions.Path,
+                                tab == "1"));
                         }
 
-                        if (CanViewPermissionItem(Permissions.PermissionManage))
+                        if (CanViewShellItem(ShellNavigationCatalog.SecurityAudit))
                         {
-                            tabs.Add(new(Loc["SecurityAudit"], "/permission?tab=2", tab == "2"));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.SecurityAudit.LabelKey],
+                                ShellNavigationCatalog.SecurityAudit.Path,
+                                tab == "2"));
                         }
 
                         break;
                     case "report":
                         if (CanViewReportMenu)
                         {
-                            tabs.Add(new(Loc["Reports"], "/report", true));
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.Reports.LabelKey],
+                                ShellNavigationCatalog.Reports.Path,
+                                true));
                         }
 
                         break;
@@ -584,9 +605,12 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 string? defaultPath = args.Text switch
                 {
-                    var t when t == Loc["Dashboard"].Value => GetFirstAccessiblePath(DashboardMenuRoutes, CanViewDashboardItem),
-                    var t when t == Loc["Library"].Value => GetFirstAccessiblePath(LibraryMenuRoutes, CanViewLibraryItem),
-                    var t when t == Loc["Permissions"].Value => GetFirstAccessiblePath(PermissionMenuRoutes, CanViewPermissionItem),
+                    var t when t == Loc[ShellNavigationCatalog.Dashboard.LabelKey].Value =>
+                        GetFirstAccessiblePath(ShellNavigationCatalog.Dashboard),
+                    var t when t == Loc[ShellNavigationCatalog.Library.LabelKey].Value =>
+                        GetFirstAccessiblePath(ShellNavigationCatalog.Library),
+                    var t when t == Loc[ShellNavigationCatalog.Permission.LabelKey].Value =>
+                        GetFirstAccessiblePath(ShellNavigationCatalog.Permission),
                     _ => null
                 };
 
@@ -597,16 +621,21 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
-        private bool CanViewDashboardItem(string permission)
-            => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission);
+        private bool CanViewSection(ShellNavigationCatalog.Section section)
+            => (section.MenuPermission is null || HasSidebarMenu(section.MenuPermission))
+                && section.Items.Any(CanViewShellItem);
 
-        private bool CanViewLibraryItem(string permission)
-            => PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission);
+        private bool CanViewShellItem(ShellNavigationCatalog.Item item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Permission))
+            {
+                return PermissionState.HasPageAccess(item.Route.PageCode);
+            }
 
-        private bool CanViewPermissionItem(string permission)
-            => Permissions.IsActionCode(permission)
-                ? PermissionState.HasPermission(permission)
-                : PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Permission, permission);
+            return Permissions.IsActionCode(item.Permission)
+                ? PermissionState.HasPermission(item.Permission)
+                : PermissionState.HasVisibleComponent(item.Route.PageCode, item.Permission);
+        }
 
         private bool HasSidebarMenu(string permission)
         {
@@ -630,13 +659,14 @@ namespace gtas_vpp_fe.Components.Layout
             _ = InvokeAsync(StateHasChanged);
         }
 
-        private static string? GetFirstAccessiblePath(IEnumerable<(string Permission, string Path)> routes, Func<string, bool> canView)
+        private string? GetFirstAccessiblePath(ShellNavigationCatalog.Section section)
         {
-            foreach (var route in routes)
+            foreach (var routeKey in section.DefaultRouteKeys)
             {
-                if (canView(route.Permission))
+                var item = section.Items.First(candidate => candidate.RouteKey == routeKey);
+                if (CanViewShellItem(item))
                 {
-                    return route.Path;
+                    return item.Path;
                 }
             }
 

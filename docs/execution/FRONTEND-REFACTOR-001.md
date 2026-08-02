@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `259/259`; 83 UI test được phát hiện. Public account, login và authenticated password change đều dùng typed client; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `262/262`; 83 UI test được phát hiện. Account transport, shell identity và navigation metadata đã có owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Account HTTP ownership và shell identity projection đã hoàn tất. Tiếp theo hợp nhất route/sidebar metadata, giữ nguyên URL, tab alias và permission behavior | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR3 shell state/navigation đã hoàn tất. Tiếp theo xóa shell state zero-consumer rồi bắt đầu FR4 Catalog/Pricing typed clients và retire `GlobalClass` | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -741,10 +741,15 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `GlobalClass.UserInfo`, đồng thời subscribe/unsubscribe state event theo lifecycle. Focused state/shell
   architecture `66/66`, Release build sạch và User Menu route-real `2/2`; tên, nhóm vai trò và phòng ban
   giữ nguyên.
+- FR3 shell navigation: `ShellNavigationCatalog` nối 4 section/17 leaf với canonical `RouteCatalog`;
+  sidebar/header không còn lặp literal URL, permission array, label hoặc icon. Default theo quyền,
+  order-create alias, period legacy aliases và pricing `tab=4` được khóa bằng test. Full frontend
+  `262/262`, Release build sạch; sidebar controls `1/1`, nested header `1/1` và desktop header `1/1`
+  khi chạy isolated riêng. Lượt gộp ba test có animation/hover timing nhiễu nên không dùng làm verdict.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: thêm canonical shell navigation metadata để xóa ba route array và header-tab
-  hard-code trong sidebar mà không đổi URL, tab alias hay permission behavior.
+- Next exact action: xóa `LeftSidebar` company/costing state zero-consumer, rồi tạo Catalog/Lookup
+  feature clients và migrate Library mutation khỏi generic transport/`GlobalClass`.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,
