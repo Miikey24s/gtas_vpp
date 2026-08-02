@@ -5,9 +5,11 @@ namespace gtas_vpp_fe.Tests.TestDoubles;
 internal sealed class StubApiServices : IAPIServices
 {
     public Func<string, Type, Task<object?>>? GetAsync { get; init; }
+    public Func<string, Type, Task<(object? Data, int TotalCount)>>? GetWithTotalCountAsync { get; init; }
     public Func<string, object?, Type, Task<object?>>? PostAsync { get; init; }
     public Func<string, object, Type, Task<object?>>? PutAsync { get; init; }
     public Func<string, object, Type, Task<object?>>? PatchAsync { get; init; }
+    public Func<string, Task<bool>>? DeleteAsync { get; init; }
 
     public int GetCallCount { get; private set; }
 
@@ -19,8 +21,16 @@ internal sealed class StubApiServices : IAPIServices
             : (T?)await GetAsync(endpoint, typeof(T));
     }
 
-    public Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint) =>
-        throw new NotSupportedException();
+    public async Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint)
+    {
+        if (GetWithTotalCountAsync is null)
+        {
+            throw new NotSupportedException();
+        }
+
+        var result = await GetWithTotalCountAsync(endpoint, typeof(T));
+        return ((T?)result.Data, result.TotalCount);
+    }
 
     public Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint) =>
         throw new NotSupportedException();
@@ -49,5 +59,5 @@ internal sealed class StubApiServices : IAPIServices
         throw new NotSupportedException();
 
     public Task<bool> DeleteFromApiAsync(string endpoint) =>
-        throw new NotSupportedException();
+        DeleteAsync?.Invoke(endpoint) ?? throw new NotSupportedException();
 }

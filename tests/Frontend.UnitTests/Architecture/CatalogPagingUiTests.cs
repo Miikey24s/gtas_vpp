@@ -40,6 +40,27 @@ public sealed class CatalogPagingUiTests
         Assert.Contains("PermanentDeleteWarning", grid, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void LookupLibrary_UsesFeatureClientAndCanonicalCurrentUserState()
+    {
+        var grid = ReadSource("Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor.cs");
+        var categoryEditor = ReadSource(
+            "Components", "Pages", "Lib", "Tabs", "Dialog", "Dialog_AddLookupCategory.razor");
+        var valueEditor = ReadSource(
+            "Components", "Pages", "Lib", "Tabs", "Dialog", "Dialog_AddLookupValue.razor");
+
+        foreach (var source in new[] { grid, categoryEditor, valueEditor })
+        {
+            Assert.Contains("LookupApi", source, StringComparison.Ordinal);
+            Assert.Contains("CurrentUserState", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("IAPIServices", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("GlobalClass", source, StringComparison.Ordinal);
+        }
+
+        Assert.DoesNotContain("BuildLookupFilter", grid, StringComparison.Ordinal);
+        Assert.DoesNotContain("Config.LibraryApi.Lookup", grid, StringComparison.Ordinal);
+    }
+
     private static string ReadSource(params string[] relativeSegments)
     {
         var root = FindRepositoryRoot();

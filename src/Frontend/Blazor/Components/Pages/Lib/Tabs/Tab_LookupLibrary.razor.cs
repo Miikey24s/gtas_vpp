@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -7,15 +8,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using Radzen.Blazor;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
     public partial class Tab_LookupLibrary
     {
-        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public LookupApiClient LookupApi { get; set; } = default!;
+        [Inject] public CurrentUserState CurrentUserState { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
 
         // Nhóm lookup.
@@ -89,39 +89,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             StateHasChanged();
             try
             {
-                // Dựng query parameter cho bộ lọc server-side.
-                var queryParams = new List<string> { "showDeleted=true" };
-
-                var toolbarFilter = BuildLookupFilter(categorySearchText, categoryStatusFilter, "Code", "Name");
-                if (!string.IsNullOrWhiteSpace(toolbarFilter))
-                {
-                    queryParams.Add($"filter={Uri.EscapeDataString(toolbarFilter)}");
-                }
-
-                queryParams.Add($"skip={skip}");
-                queryParams.Add($"top={top}");
-
-                if (!string.IsNullOrEmpty(args.OrderBy))
-                {
-                    queryParams.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
-                }
-
-                string apiUrl = Config.LibraryApi.LookupCategories;
-                if (queryParams.Any())
-                {
-                    apiUrl += "?" + string.Join("&", queryParams);
-                }
-
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupCategoryResDTO>>(apiUrl);
-                if (result.TotalCount > 0 && (result.Data?.Count ?? 0) == 0 && skip > 0)
-                {
-                    queryParams.RemoveAll(parameter => parameter.StartsWith("skip=", StringComparison.Ordinal));
-                    queryParams.Add("skip=0");
-                    apiUrl = $"{Config.LibraryApi.LookupCategories}?{string.Join("&", queryParams)}";
-                    result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupCategoryResDTO>>(apiUrl);
-                    currentCategorySkip = 0;
-                }
-                lookupCategories = result.Data ?? [];
+                var result = await LookupApi.GetCategoriesAsync(new LookupQuery(
+                    skip,
+                    top,
+                    categorySearchText,
+                    categoryStatusFilter,
+                    args.OrderBy));
+                currentCategorySkip = result.AppliedSkip;
+                lookupCategories = result.Items.ToList();
                 categoryCount = result.TotalCount;
 
                 if (!hasAutoSelectedInitialCategory
@@ -193,23 +168,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             var previous = data.IsDeleted;
             try
             {
-                if (isDeleted && !await CanDeactivateAsync(Config.LibraryApi.LookupCategories, data.Id))
+                if (isDeleted && !await CanDeactivateAsync(
+                        () => LookupApi.GetCategoryDependencyImpactAsync(data.Id)))
                 {
                     data.IsDeleted = previous;
                     StateHasChanged();
                     return;
                 }
 
-                _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int userId);
-
-                var patchData = new
-                {
-                    IsDeleted = isDeleted,
-                    UpdatedAtUtc = DateTime.Now,
-                    UpdatedByUserId = userId == 0 ? glb.UserInfo.UserID : userId
-                };
-
-                var result = await _apiServices.PatchFromApiAsync<LookupCategoryResDTO>($"{Config.LibraryApi.LookupCategories}/{data.Id}", patchData);
+                var change = new LookupStatusChange(
+                    isDeleted,
+                    DateTime.Now,
+                    CurrentUserState.Current?.UserId ?? 0);
+                var result = await LookupApi.SetCategoryDeletedAsync(data.Id, change);
                 if (result != null)
                 {
                     data.IsDeleted = result.IsDeleted;
@@ -243,7 +214,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.LookupCategories}/{data.Id}");
+                await LookupApi.DeleteCategoryAsync(data.Id);
                 _toastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["LookupCategoryPermanentlyDeleted"], 3000, false);
 
                 selectedLookupCategories = [];
@@ -361,38 +332,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             StateHasChanged();
             try
             {
-                // Dựng query parameter cho bộ lọc server-side.
-                var queryParams = new List<string>
-                {
-                    "showDeleted=true",
-                    $"lookupCategoryId={selectedLookupCategory.Id}"
-                };
-
-                var toolbarFilter = BuildLookupFilter(valueSearchText, valueStatusFilter, "Code", "Value");
-                if (!string.IsNullOrWhiteSpace(toolbarFilter))
-                {
-                    queryParams.Add($"filter={Uri.EscapeDataString(toolbarFilter)}");
-                }
-
-                queryParams.Add($"skip={skip}");
-                queryParams.Add($"top={top}");
-
-                if (!string.IsNullOrEmpty(args.OrderBy))
-                {
-                    queryParams.Add($"orderby={Uri.EscapeDataString(args.OrderBy)}");
-                }
-
-                string apiUrl = $"{Config.LibraryApi.LookupValues}?{string.Join("&", queryParams)}";
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupValueResDTO>>(apiUrl);
-                if (result.TotalCount > 0 && (result.Data?.Count ?? 0) == 0 && skip > 0)
-                {
-                    queryParams.RemoveAll(parameter => parameter.StartsWith("skip=", StringComparison.Ordinal));
-                    queryParams.Add("skip=0");
-                    apiUrl = $"{Config.LibraryApi.LookupValues}?{string.Join("&", queryParams)}";
-                    result = await _apiServices.GetFromApiWithTotalCountAsync<List<LookupValueResDTO>>(apiUrl);
-                    currentValueSkip = 0;
-                }
-                lookupValues = result.Data ?? [];
+                var result = await LookupApi.GetValuesAsync(
+                    selectedLookupCategory.Id,
+                    new LookupQuery(
+                        skip,
+                        top,
+                        valueSearchText,
+                        valueStatusFilter,
+                        args.OrderBy));
+                currentValueSkip = result.AppliedSkip;
+                lookupValues = result.Items.ToList();
                 valueCount = result.TotalCount;
             }
             catch (Exception ex)
@@ -411,23 +360,19 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             var previous = data.IsDeleted;
             try
             {
-                if (isDeleted && !await CanDeactivateAsync(Config.LibraryApi.LookupValues, data.Id))
+                if (isDeleted && !await CanDeactivateAsync(
+                        () => LookupApi.GetValueDependencyImpactAsync(data.Id)))
                 {
                     data.IsDeleted = previous;
                     StateHasChanged();
                     return;
                 }
 
-                _ = int.TryParse(claims.FirstOrDefault(x => x.Type == "UserID")?.Value, out int userId);
-
-                var patchData = new
-                {
-                    IsDeleted = isDeleted,
-                    UpdatedAtUtc = DateTime.Now,
-                    UpdatedByUserId = userId == 0 ? glb.UserInfo.UserID : userId
-                };
-
-                var result = await _apiServices.PatchFromApiAsync<LookupValueResDTO>($"{Config.LibraryApi.LookupValues}/{data.Id}", patchData);
+                var change = new LookupStatusChange(
+                    isDeleted,
+                    DateTime.Now,
+                    CurrentUserState.Current?.UserId ?? 0);
+                var result = await LookupApi.SetValueDeletedAsync(data.Id, change);
                 if (result != null)
                 {
                     data.IsDeleted = result.IsDeleted;
@@ -461,7 +406,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.LookupValues}/{data.Id}");
+                await LookupApi.DeleteValueAsync(data.Id);
                 _toastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["LookupValuePermanentlyDeleted"], 3000, false);
                 await valueGrid.Reload();
             }
@@ -513,31 +458,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 UpdatedByUserId = source.UpdatedByUserId
             };
 
-        private static string? BuildLookupFilter(string search, string status, string codeProperty, string nameProperty)
-        {
-            var clauses = new List<string>();
-            var normalizedSearch = search.Trim();
-            if (!string.IsNullOrWhiteSpace(normalizedSearch))
-            {
-                var escaped = normalizedSearch
-                    .Replace("\\", "\\\\", StringComparison.Ordinal)
-                    .Replace("\"", "\\\"", StringComparison.Ordinal)
-                    .ToLowerInvariant();
-                clauses.Add($"(({codeProperty} ?? \"\").ToLower().Contains(\"{escaped}\") || ({nameProperty} ?? \"\").ToLower().Contains(\"{escaped}\"))");
-            }
-
-            if (string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
-            {
-                clauses.Add("IsDeleted == false");
-            }
-            else if (string.Equals(status, "inactive", StringComparison.OrdinalIgnoreCase))
-            {
-                clauses.Add("IsDeleted == true");
-            }
-
-            return clauses.Count == 0 ? null : string.Join(" && ", clauses);
-        }
-
         private static LookupValueResDTO CloneValue(LookupValueResDTO source)
             => new()
             {
@@ -557,10 +477,10 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 UpdatedByUserId = source.UpdatedByUserId
             };
 
-        private async Task<bool> CanDeactivateAsync(string endpoint, Guid id)
+        private async Task<bool> CanDeactivateAsync(
+            Func<Task<LibraryDependencyImpactResDTO?>> loadImpact)
         {
-            var impact = await _apiServices.GetFromApiAsync<LibraryDependencyImpactResDTO>(
-                $"{endpoint}/{id}/dependency-impact");
+            var impact = await loadImpact();
 
             if (impact is null || impact.CanDeactivate)
             {

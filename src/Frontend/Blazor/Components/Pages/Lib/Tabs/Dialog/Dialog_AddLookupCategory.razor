@@ -1,10 +1,11 @@
+@using gtas_vpp_fe.Features.CatalogPricing.Api
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Res.Library
 @using gtas_vpp_shared.DTOs.Share
 @inject DialogService DialogService
-@inject IAPIServices _apiServices
+@inject LookupApiClient LookupApi
 @inject IToastService _toastService
-@inject GlobalClass glb
+@inject CurrentUserState CurrentUserState
 
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Compact" TestId="lookup-category-editor">
 <ChildContent>
@@ -84,19 +85,19 @@
         try
         {
             Model.UpdatedAtUtc = DateTime.Now;
-            Model.UpdatedByUserId = glb.UserInfo.UserID;
+            Model.UpdatedByUserId = CurrentUserState.Current?.UserId ?? 0;
 
             LookupCategoryResDTO? result;
             if (IsCreate)
             {
                 Model.Id = Guid.NewGuid();
                 Model.CreatedAtUtc = DateTime.Now;
-                Model.CreatedByUserId = glb.UserInfo.UserID;
-                result = await _apiServices.PostFromApiAsync<LookupCategoryResDTO>(Config.LibraryApi.LookupCategories, Model);
+                Model.CreatedByUserId = CurrentUserState.Current?.UserId ?? 0;
+                result = await LookupApi.CreateCategoryAsync(Model);
             }
             else
             {
-                result = await _apiServices.PutFromApiAsync<LookupCategoryResDTO>(Config.LibraryApi.LookupCategories, Model);
+                result = await LookupApi.UpdateCategoryAsync(Model);
             }
 
             if (result != null)

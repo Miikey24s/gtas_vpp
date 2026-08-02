@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2 COMPLETE; FR3 ACCOUNT HTTP MIGRATION COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3 COMPLETE; FR4 LOOKUP COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `262/262`; 83 UI test được phát hiện. Account transport, shell identity và navigation metadata đã có owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `266/266`; 83 UI test được phát hiện. Account/shell và Lookup transport đã có owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR3 đã hoàn tất. Tiếp theo bắt đầu FR4 Catalog/Pricing typed clients, migrate Library mutation và retire `GlobalClass` | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Lookup đã hoàn tất. Tiếp theo tạo Catalog client cho Category/Item/Supplier/Department, migrate Library mutation và retire `GlobalClass` | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -749,10 +749,15 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 - FR3 shell cleanup: xóa company dropdown và `CostingSetting` storage state zero-consumer khỏi sidebar,
   đồng thời xóa hai model chỉ phục vụ code chết và các namespace import tương ứng. Release build sạch;
   shell/prerender focused `39/39`.
+- FR4 Lookup: `LookupApiClient` sở hữu query/filter/paging fallback/dependency impact/CRUD cho category
+  và value; grid/dialog không còn generic transport hoặc `GlobalClass`, dùng `CurrentUserState` cho audit
+  user. Full frontend `266/266`, Release build sạch, Lookup master-detail route-real `1/1`. Mutation E2E
+  không thấy nút Add nhưng đối chứng commit trước FR4 fail cùng locator, nên được ghi fixture/permission
+  debt chứ không gán regression cho client mới.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tạo Catalog/Lookup feature clients và migrate Library mutation khỏi generic
-  transport/`GlobalClass`, bắt đầu từ Lookup có contract nhỏ nhất.
+- Next exact action: tạo `CatalogApiClient` và migrate Category/Item/Supplier/Department theo các vertical
+  slice nhỏ, giữ nguyên dependency-impact, hard-delete và editor contract.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

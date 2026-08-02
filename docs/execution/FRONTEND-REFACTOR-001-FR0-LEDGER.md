@@ -487,3 +487,22 @@ global Razor import và bốn C# using thừa cũng được dọn.
 | Shell + prerender focused | PASS `39/39` |
 
 Không xóa sidebar preference/theme/language storage vì chúng vẫn có runtime consumer và test bảo vệ.
+
+## 23. FR4 Lookup feature client
+
+Đã tạo `Features/CatalogPricing/Api/LookupApiClient` làm owner của hai endpoint Lookup. Client dựng
+filter/search/status/order/paging, tự về trang đầu khi page hiện tại rỗng sau mutation, và gom dependency
+impact, soft-delete, create/update/hard-delete. `Tab_LookupLibrary` chỉ còn state grid/selection/toast;
+hai dialog dùng typed client và `CurrentUserState`.
+
+| Gate | Kết quả |
+|---|---|
+| Lookup client contract | PASS `3/3` |
+| Lookup + catalog architecture focused | PASS `29/29` |
+| Frontend unit/architecture | PASS `266/266` |
+| Release build | PASS `0 warning / 0 error` |
+| Lookup master-detail route-real | PASS `1/1` |
+| Lookup mutation | BASELINE DEBT — current và pre-FR4 `e597e484` cùng timeout tại Add action |
+
+Worktree đối chứng tạm đã được xóa sau khi xác nhận non-regression. Không nới permission assertion hay
+ép hiển thị nút; fixture/permission seed sẽ được xử lý ở UI final acceptance/backend B0R.
