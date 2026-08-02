@@ -127,6 +127,7 @@ public sealed class UiConsolidationArchitectureTests
         var priceListCode = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor.cs");
         var prices = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor");
         var pricesCode = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor.cs");
+        var pricingClient = Read(root, "Features", "CatalogPricing", "Api", "PricingApiClient.cs");
         var report = Read(root, "Components", "Pages", "Report.razor");
         var reportCode = Read(root, "Components", "Pages", "Report.razor.cs");
         var adminCss = Read(root, "wwwroot", "css", "vpp-admin.css");
@@ -140,8 +141,10 @@ public sealed class UiConsolidationArchitectureTests
 
         Assert.Contains("data-testid=\"price-context\"", prices, StringComparison.Ordinal);
         Assert.DoesNotContain("OnSupplierChangedAsync", prices, StringComparison.Ordinal);
-        Assert.Contains("distinct=CategoryName", pricesCode, StringComparison.Ordinal);
-        Assert.Contains("BuildPriceFilter", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("PricingApi.GetItemPriceCategoriesAsync", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("PricingApi.GetItemPricesAsync", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("distinct=CategoryName", pricingClient, StringComparison.Ordinal);
+        Assert.Contains("MappingStatus switch", pricingClient, StringComparison.Ordinal);
         Assert.Contains("VppAdminActiveToggle", prices, StringComparison.Ordinal);
         Assert.Contains("!row.IsDeleted || !IsSelectedPriceListDraft", prices, StringComparison.Ordinal);
 

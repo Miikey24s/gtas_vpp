@@ -81,4 +81,86 @@ public sealed class PricingApiClientTests
         Assert.Contains(calls, call => call.Endpoint == "/api/vpppricelist/clone" && call.Body is PriceListCloneReqDTO);
         Assert.Contains(calls, call => call.Method == "DELETE" && call.Endpoint == $"/api/vpppricelist/{id}/hard");
     }
+
+    [Fact]
+    public async Task ItemPriceContracts_KeepFiltersCategoriesAndMutationEndpoints()
+    {
+        var supplierId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var priceListId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var mappingId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+        var calls = new List<(string Method, string Endpoint, object? Body)>();
+        var pageCall = 0;
+        var api = new StubApiServices
+        {
+            GetAsync = (endpoint, type) =>
+            {
+                calls.Add(("GET", endpoint, null));
+                object data = type == typeof(List<PriceListResDTO>)
+                    ? new List<PriceListResDTO>()
+                    : new List<SupplierResDTO>();
+                return Task.FromResult<object?>(data);
+            },
+            GetWithTotalCountAsync = (endpoint, _) =>
+            {
+                calls.Add(("GET_PAGE", endpoint, null));
+                pageCall++;
+                object data = pageCall == 2
+                    ? new List<VppItemPriceResDTO> { new() { CategoryName = "Paper" } }
+                    : new List<VppItemPriceResDTO>();
+                return Task.FromResult<(object?, int)>((data, pageCall == 2 ? 1 : 0));
+            },
+            PostAsync = (endpoint, body, _) =>
+            {
+                calls.Add(("POST", endpoint, body));
+                return Task.FromResult<object?>(new SupplierProductMappingResDTO());
+            },
+            PutAsync = (endpoint, body, _) =>
+            {
+                calls.Add(("PUT", endpoint, body));
+                return Task.FromResult<object?>(new SupplierProductMappingResDTO());
+            },
+            PatchAsync = (endpoint, body, _) =>
+            {
+                calls.Add(("PATCH", endpoint, body));
+                return Task.FromResult<object?>(new SupplierProductMappingResDTO());
+            },
+            DeleteAsync = endpoint =>
+            {
+                calls.Add(("DELETE", endpoint, null));
+                return Task.FromResult(true);
+            }
+        };
+        var client = new PricingApiClient(api);
+
+        await client.GetPricingReferenceDataAsync();
+        await client.GetItemPricesAsync(new ItemPriceQuery(
+            supplierId,
+            priceListId,
+            10,
+            20,
+            "pen",
+            "Paper",
+            "active",
+            "VppName"));
+        await client.GetItemPriceCategoriesAsync(supplierId, priceListId);
+        await client.CreateItemPriceAsync(new SupplierProductPriceCreateReqDTO());
+        await client.UpdateItemPriceAsync(mappingId, new SupplierProductPriceUpdateReqDTO { Id = mappingId });
+        await client.SetItemPriceDeletedAsync(mappingId, true);
+        await client.SetDefaultItemPriceAsync(mappingId);
+        await client.DeleteItemPriceAsync(mappingId);
+
+        Assert.Contains(calls, call => call.Endpoint == "/api/vpppricelist?showDeleted=true");
+        Assert.Contains(calls, call => call.Endpoint == "/api/Library/suppliers?showDeleted=true");
+        var itemPage = calls.First(call => call.Method == "GET_PAGE").Endpoint;
+        Assert.Contains($"supplierId={supplierId}", itemPage);
+        Assert.Contains("CategoryName%20%3D%3D%20%22Paper%22", itemPage);
+        Assert.Contains("PriceMappingId%20%21%3D%20null", itemPage);
+        Assert.Contains(calls, call => call.Endpoint == "/api/vppprice" && call.Body is SupplierProductPriceCreateReqDTO);
+        Assert.Contains(calls, call => call.Endpoint == $"/api/vppprice/{mappingId}" && call.Body is SupplierProductPriceUpdateReqDTO);
+        Assert.Contains(calls, call => call.Endpoint == $"/api/Library/supplier-product-mappings/{mappingId}"
+            && call.Body is PriceMappingDeletedChange { IsDeleted: true });
+        Assert.Contains(calls, call => call.Endpoint == $"/api/vppprice/{mappingId}/set-default");
+        Assert.Contains(calls, call => call.Method == "DELETE"
+            && call.Endpoint == $"/api/Library/supplier-product-mappings/{mappingId}");
+    }
 }

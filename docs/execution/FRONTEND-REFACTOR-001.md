@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3 COMPLETE; FR4 CATALOG CORE + PRICE LIST COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3 COMPLETE; FR4 CATALOG + PRICING TRANSPORT COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `273/273`; 83 UI test được phát hiện. Account/shell, Catalog core và Price List đã có transport owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `274/274`; 83 UI test được phát hiện. Account/shell và toàn Catalog/Pricing đã có transport owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Catalog core + Price List đã hoàn tất. Tiếp theo migrate Item Price, rồi xóa các consumer `GlobalClass` còn lại và chốt FR4 | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Catalog/Pricing transport đã hoàn tất. Tiếp theo xóa `GlobalClass`/projection còn lại, rồi chuyển sang FR5 Identity/Notifications | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -770,10 +770,14 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 - FR4 Price List: `PricingApiClient` sở hữu supplier lookup, server query và toàn lifecycle create/update/
   publish/expire/default/clone/deactivate/hard-delete. Page không còn generic transport hoặc endpoint
   builder; full frontend `273/273`, Release build sạch.
+- FR4 Item Price: client sở hữu price-list/supplier reference data, rows/category options/filter query và
+  create/update/deactivate/default/hard-delete. Full frontend `274/274`, Release build sạch; pricing
+  bounded-grid route-real `1/1`. Motif test có dữ liệu nhưng lifecycle action bị ẩn vì `CanModify=false`,
+  cùng permission-fixture debt đã biết.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: mở rộng `PricingApiClient` cho Item Price rows/category options/create/update/
-  deactivate/default/hard-delete; sau đó retire `GlobalClass` và generic transport khỏi Library.
+- Next exact action: retire `GlobalClass`, bỏ profile projection khỏi `AuthHelper` và khóa shell/current-user
+  route-real; sau đó bắt đầu FR5 Identity/Notifications.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

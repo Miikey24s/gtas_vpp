@@ -587,3 +587,21 @@ publish, expire và clone. Page giữ dialog/context menu/toast/navigation.
 
 `claims` parameter zero-consumer của Price List đã xóa; Item Price tạm giữ đến slice kế tiếp. Lifecycle
 request type và exact endpoint được khóa bằng unit test trước khi migrate page.
+
+## 29. FR4 Item Price feature client
+
+`PricingApiClient` đã mở rộng cho Item Price: reference data Price List/Supplier, server rows query,
+distinct category batching, create/update, deactivate/restore, set-default và hard-delete. Hai pricing
+page không còn `IAPIServices`, `Config.LibraryApi` hoặc endpoint builder; `claims` parameter cũng về 0.
+
+| Gate | Kết quả |
+|---|---|
+| Pricing client contract | PASS `3/3` |
+| Pricing/architecture focused | PASS `30/30` |
+| Frontend unit/architecture | PASS `274/274` |
+| Release build | PASS `0 warning / 0 error` |
+| Pricing bounded grids route-real | PASS `1/1` |
+| Pricing lifecycle motif | PERMISSION DEBT — rows có dữ liệu nhưng action bị ẩn khi `CanModify=false` |
+
+Failure motif xảy ra sau khi grid có row và trước mutation call; transport/query đã được route-real xác
+nhận. Không ép hiện lifecycle menu khi fixture không cấp quyền sửa.

@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
+using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
@@ -11,15 +12,13 @@ using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
 using Radzen.Blazor;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
     public partial class Tab_PriceLibrary : VppServerGridComponentBase<VppItemPriceResDTO>, IDisposable
     {
-        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public PricingApiClient PricingApi { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
@@ -129,13 +128,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
-                var priceListsTask = _apiServices.GetFromApiAsync<List<PriceListResDTO>>($"{Config.LibraryApi.PriceList}?showDeleted=true");
-                var suppliersTask = _apiServices.GetFromApiAsync<List<SupplierResDTO>>($"{Config.LibraryApi.Suppliers}?showDeleted=true");
-
-                await Task.WhenAll(priceListsTask, suppliersTask);
-
-                priceLists = await priceListsTask ?? [];
-                suppliers = await suppliersTask ?? [];
+                var referenceData = await PricingApi.GetPricingReferenceDataAsync();
+                priceLists = referenceData.PriceLists.ToList();
+                suppliers = referenceData.Suppliers.ToList();
 
                 selectedPriceListId = ResolveSelectedPriceListId();
                 selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
@@ -182,10 +177,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(
-                    BuildPriceRowsEndpoint(args.Skip ?? 0, args.Top ?? 20, args.OrderBy));
+                var result = await PricingApi.GetItemPricesAsync(new ItemPriceQuery(
+                    selectedSupplierId.Value,
+                    selectedPriceListId.Value,
+                    args.Skip ?? 0,
+                    args.Top ?? 20,
+                    searchText,
+                    selectedCategory,
+                    selectedMappingStatus,
+                    args.OrderBy));
 
-                displayItems = result.Data ?? [];
+                displayItems = result.Items.ToList();
                 priceCount = result.TotalCount;
                 loadError = null;
             }
@@ -269,7 +271,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                         IsDefault = result.IsDefault,
                         Description = result.Description
                     };
-                    await _apiServices.PostFromApiAsync<SupplierProductMappingResDTO>(Config.LibraryApi.VPPPriceBase, req);
+                    await PricingApi.CreateItemPriceAsync(req);
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
                     await LoadPricesAsync();
                 }
@@ -300,8 +302,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
                 try
                 {
-                    await _apiServices.PutFromApiAsync<SupplierProductMappingResDTO>(
-                        $"{Config.LibraryApi.VPPPriceBase}/{row.PriceMappingId.Value}", result);
+                    await PricingApi.UpdateItemPriceAsync(row.PriceMappingId.Value, result);
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceSaved"].Value);
                     await LoadPricesAsync();
                 }
@@ -328,9 +329,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var result = await _apiServices.PatchFromApiAsync<SupplierProductMappingResDTO>(
-                    $"{Config.LibraryApi.SupplierProductMappings}/{row.PriceMappingId.Value}",
-                    new { IsDeleted = isDeleted });
+                var result = await PricingApi.SetItemPriceDeletedAsync(
+                    row.PriceMappingId.Value,
+                    isDeleted);
 
                 if (result is null)
                 {
@@ -362,7 +363,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var deleted = await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.SupplierProductMappings}/{row.PriceMappingId.Value}");
+                var deleted = await PricingApi.DeleteItemPriceAsync(row.PriceMappingId.Value);
                 if (deleted)
                 {
                     Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceDeleted"].Value);
@@ -385,8 +386,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<object>(
-                    string.Format(Config.LibraryApi.VPPPrice_SetDefault, row.PriceMappingId.Value), null);
+                await PricingApi.SetDefaultItemPriceAsync(row.PriceMappingId.Value);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["DefaultUpdated"].Value);
                 await LoadPricesAsync();
             }
@@ -450,31 +450,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 return;
             }
 
-            const int batchSize = 200;
-            var skip = 0;
-            var values = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
-
-            while (true)
-            {
-                var endpoint = $"{Config.LibraryApi.VPPPrice_ItemPrices}?supplierId={selectedSupplierId.Value}&priceListId={selectedPriceListId.Value}&showDeleted=true&distinct=CategoryName&skip={skip}&top={batchSize}";
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(endpoint);
-                var rows = result.Data ?? [];
-                foreach (var row in rows)
-                {
-                    if (!string.IsNullOrWhiteSpace(row.CategoryName))
-                    {
-                        values.Add(row.CategoryName.Trim());
-                    }
-                }
-
-                skip += rows.Count;
-                if (rows.Count == 0 || skip >= result.TotalCount)
-                {
-                    break;
-                }
-            }
-
-            categories = values.OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase).ToList();
+            categories = (await PricingApi.GetItemPriceCategoriesAsync(
+                selectedSupplierId.Value,
+                selectedPriceListId.Value)).ToList();
         }
 
         private async Task ReloadGridAsync()
@@ -509,67 +487,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             attributes["class"] = className;
         }
-
-        private string BuildPriceRowsEndpoint(int? skip, int? top, string? orderBy)
-        {
-            var queryParams = new List<string>
-            {
-                $"supplierId={selectedSupplierId!.Value}",
-                $"priceListId={selectedPriceListId!.Value}",
-                "showDeleted=true"
-            };
-
-            if (!string.IsNullOrWhiteSpace(searchText))
-            {
-                queryParams.Add($"search={Uri.EscapeDataString(searchText.Trim())}");
-            }
-
-            var filter = BuildPriceFilter();
-            if (!string.IsNullOrWhiteSpace(filter))
-            {
-                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
-            }
-
-            if (skip.HasValue)
-            {
-                queryParams.Add($"skip={skip.Value}");
-            }
-
-            if (top.HasValue)
-            {
-                queryParams.Add($"top={top.Value}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(orderBy))
-            {
-                queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
-            }
-
-            return $"{Config.LibraryApi.VPPPrice_ItemPrices}?{string.Join("&", queryParams)}";
-        }
-
-        private string? BuildPriceFilter()
-        {
-            var filters = new List<string>();
-            if (!string.IsNullOrWhiteSpace(selectedCategory))
-            {
-                filters.Add($"CategoryName == \"{EscapeDynamicString(selectedCategory)}\"");
-            }
-
-            filters.AddRange(selectedMappingStatus switch
-            {
-                "active" => ["PriceMappingId != null", "IsDeleted == false"],
-                "missing" => ["PriceMappingId == null"],
-                "inactive" => ["PriceMappingId != null", "IsDeleted == true"],
-                _ => []
-            });
-
-            return filters.Count == 0 ? null : string.Join(" && ", filters);
-        }
-
-        private static string EscapeDynamicString(string value) => value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal);
 
         private static string FormatPriceListOption(PriceListResDTO row)
         {
