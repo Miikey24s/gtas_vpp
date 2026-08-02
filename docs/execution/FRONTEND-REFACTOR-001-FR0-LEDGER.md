@@ -474,3 +474,16 @@ section cũ đã bị xóa.
 Lượt chạy gộp ba browser test có hai timing failure ở animation/hover; từng test fail đều pass trên
 fixture mới. Không đổi CSS, timeout hay assertion. `RouteCatalog` vẫn ở path authority hiện tại vì skill
 repository đang có thay đổi của owner và còn trỏ tới `Helpers/RouteCatalog.cs`.
+
+## 22. FR3 shell zero-consumer cleanup
+
+Đã xóa `dropdownDataModels_Company`, `selected_Company`, `State`, `LoadStateAsync` và read storage key
+`CostingSetting` khỏi `LeftSidebar`. `DropdownModel`/`GlobalStorageModel` không còn consumer nên được xóa;
+global Razor import và bốn C# using thừa cũng được dọn.
+
+| Gate | Kết quả |
+|---|---|
+| Release build | PASS `0 warning / 0 error` |
+| Shell + prerender focused | PASS `39/39` |
+
+Không xóa sidebar preference/theme/language storage vì chúng vẫn có runtime consumer và test bảo vệ.

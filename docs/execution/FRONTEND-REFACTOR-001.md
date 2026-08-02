@@ -34,7 +34,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `262/262`; 83 UI test được phát hiện. Account transport, shell identity và navigation metadata đã có owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR3 shell state/navigation đã hoàn tất. Tiếp theo xóa shell state zero-consumer rồi bắt đầu FR4 Catalog/Pricing typed clients và retire `GlobalClass` | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR3 đã hoàn tất. Tiếp theo bắt đầu FR4 Catalog/Pricing typed clients, migrate Library mutation và retire `GlobalClass` | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -746,10 +746,13 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   order-create alias, period legacy aliases và pricing `tab=4` được khóa bằng test. Full frontend
   `262/262`, Release build sạch; sidebar controls `1/1`, nested header `1/1` và desktop header `1/1`
   khi chạy isolated riêng. Lượt gộp ba test có animation/hover timing nhiễu nên không dùng làm verdict.
+- FR3 shell cleanup: xóa company dropdown và `CostingSetting` storage state zero-consumer khỏi sidebar,
+  đồng thời xóa hai model chỉ phục vụ code chết và các namespace import tương ứng. Release build sạch;
+  shell/prerender focused `39/39`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: xóa `LeftSidebar` company/costing state zero-consumer, rồi tạo Catalog/Lookup
-  feature clients và migrate Library mutation khỏi generic transport/`GlobalClass`.
+- Next exact action: tạo Catalog/Lookup feature clients và migrate Library mutation khỏi generic
+  transport/`GlobalClass`, bắt đầu từ Lookup có contract nhỏ nhất.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

@@ -1,6 +1,5 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
-using gtas_vpp_fe.Models;
 using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -41,9 +40,6 @@ namespace gtas_vpp_fe.Components.Layout
         private string? currentUrl { get; set; }
         public const string QueryParameter = "theme";
         public string theme = "material3-base";
-        public List<DropdownModel> dropdownDataModels_Company { get; set; } = new List<DropdownModel>();
-        public DropdownModel selected_Company { get; set; } = default!;
-        public string State { get; set; } = "normal";
         private bool _isPrerendering = true;
 
         private bool CanViewDashboardMenu => CanViewSection(ShellNavigationCatalog.Dashboard);
@@ -102,7 +98,6 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 _isPrerendering = false;
                 await LoadTheme();
-                await LoadStateAsync();
                 await LoadSidebarStateAsync();
                 _shellStateReady = true;
                 StateHasChanged();
@@ -162,14 +157,6 @@ namespace gtas_vpp_fe.Components.Layout
             catch (JSException)
             {
                 return false;
-            }
-        }
-        protected async Task LoadStateAsync()
-        {
-            var result = await ProtectedLocalStore.GetAsync<GlobalStorageModel>("CostingSetting");
-            if (result.Success && result.Value is not null)
-            {
-                State = result.Value?.Header?.FirstOrDefault(x => x.PageName == Config.Page_ComponentCode.PageCode.Sidebar)?.Fields?.FirstOrDefault(x => x.FieldName == "RequestPageViewType")?.FieldValue ?? "normal";
             }
         }
         protected async Task ThemeOnChange()
