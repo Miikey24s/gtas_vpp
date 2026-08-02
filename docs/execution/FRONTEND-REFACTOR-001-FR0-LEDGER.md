@@ -571,3 +571,19 @@ format lại từ one-line code thành các method/markup block dễ lần theo.
 
 Item editor browser Add thuộc permission-fixture debt đã biết và đã tồn tại trước slice; architecture
 test mới khóa page/dialog chỉ gọi typed client, không tự dựng endpoint hoặc inject `IAPIServices`.
+
+## 28. FR4 Price List lifecycle client
+
+Đã tạo `PricingApiClient` và migrate `Tab_PriceListLibrary`. Client sở hữu supplier lookup, filter/search/
+paging/sort và toàn lifecycle Price List: create, update, deactivate/restore, hard-delete, set-default,
+publish, expire và clone. Page giữ dialog/context menu/toast/navigation.
+
+| Gate | Kết quả |
+|---|---|
+| Pricing client contract | PASS `2/2` |
+| Pricing/architecture focused | PASS `29/29` |
+| Frontend unit/architecture | PASS `273/273` |
+| Release build | PASS `0 warning / 0 error` |
+
+`claims` parameter zero-consumer của Price List đã xóa; Item Price tạm giữ đến slice kế tiếp. Lifecycle
+request type và exact endpoint được khóa bằng unit test trước khi migrate page.

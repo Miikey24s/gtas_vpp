@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
+using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
@@ -10,15 +11,13 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Radzen;
 using Radzen.Blazor;
-using System.Security.Claims;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
     public partial class Tab_PriceListLibrary : VppServerGridComponentBase<PriceListResDTO>
     {
-        [Parameter] public IEnumerable<Claim> claims { get; set; } = Enumerable.Empty<Claim>();
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public PricingApiClient PricingApi { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] public ContextMenuService ContextMenuService { get; set; } = default!;
@@ -48,8 +47,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
-                suppliers = await _apiServices.GetFromApiAsync<List<SupplierResDTO>>(
-                    $"{Config.LibraryApi.Suppliers}?showDeleted=false") ?? [];
+                suppliers = await PricingApi.GetActiveSuppliersAsync() ?? [];
             }
             catch (Exception ex)
             {
@@ -71,9 +69,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             currentSkip = args.Skip ?? 0;
             try
             {
-                var endpoint = BuildPriceListEndpoint(SelectedStatusFilter, args.Skip ?? 0, args.Top ?? 20, args.OrderBy);
-                var result = await _apiServices.GetFromApiWithTotalCountAsync<List<PriceListResDTO>>(endpoint);
-                priceLists = result.Data ?? [];
+                var result = await PricingApi.GetPriceListsAsync(new PriceListQuery(
+                    args.Skip ?? 0,
+                    args.Top ?? 20,
+                    searchText,
+                    string.IsNullOrWhiteSpace(selectedStatus) ? null : selectedStatus,
+                    args.OrderBy));
+                priceLists = result.Items.ToList();
                 count = result.TotalCount;
             }
             catch (Exception ex)
@@ -94,8 +96,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<PriceListResDTO>(
-                    Config.LibraryApi.PriceList,
+                await PricingApi.CreatePriceListAsync(
                     new PriceListCreateReqDTO
                     {
                         Code = result.Code,
@@ -148,8 +149,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PutFromApiAsync<PriceListResDTO>(
-                    $"{Config.LibraryApi.PriceList}/{row.Id}", result);
+                await PricingApi.UpdatePriceListAsync(row.Id, result);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListSaved"].Value);
                 await LoadAsync();
             }
@@ -166,9 +166,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                var result = await _apiServices.PatchFromApiAsync<PriceListResDTO>(
-                    $"{Config.LibraryApi.PriceList}/{row.Id}/deleted",
-                    new { IsDeleted = isDeleted });
+                var result = await PricingApi.SetPriceListDeletedAsync(row.Id, isDeleted);
 
                 if (result is null)
                 {
@@ -198,7 +196,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.DeleteFromApiAsync($"{Config.LibraryApi.PriceList}/{row.Id}/hard");
+                await PricingApi.HardDeletePriceListAsync(row.Id);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["RecordPermanentlyDeleted"].Value);
                 await LoadAsync();
             }
@@ -224,10 +222,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             await grid.FirstPage(true);
         }
 
-        private string? SelectedStatusFilter => string.IsNullOrWhiteSpace(selectedStatus)
-            ? null
-            : $"Status == \"{selectedStatus}\"";
-
         private void OnRowRenderPriceList(RowRenderEventArgs<PriceListResDTO> args)
         {
             if (args.Data?.IsDeleted == true)
@@ -240,8 +234,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             try
             {
-                await _apiServices.PostFromApiAsync<object>(
-                    string.Format(Config.LibraryApi.PriceList_SetDefault, row.Id), null);
+                await PricingApi.SetDefaultPriceListAsync(row.Id);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["DefaultUpdated"].Value);
                 await LoadAsync();
             }
@@ -261,8 +254,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<PriceListResDTO>(
-                    string.Format(Config.LibraryApi.PriceList_Publish, row.Id),
+                await PricingApi.PublishPriceListAsync(
+                    row.Id,
                     new PriceBookStatusReqDTO
                     {
                         RowVersion = row.RowVersion,
@@ -287,8 +280,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<PriceListResDTO>(
-                    string.Format(Config.LibraryApi.PriceList_Expire, row.Id),
+                await PricingApi.ExpirePriceListAsync(
+                    row.Id,
                     new PriceBookStatusReqDTO
                     {
                         RowVersion = row.RowVersion,
@@ -316,8 +309,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             try
             {
-                await _apiServices.PostFromApiAsync<PriceListResDTO>(
-                    Config.LibraryApi.PriceList_Clone,
+                await PricingApi.ClonePriceListAsync(
                     new PriceListCloneReqDTO
                     {
                         SourceId = row.Id,
@@ -480,42 +472,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             var to = row.EffectiveToUtc.Value.ToLocalTime();
             return $"{fromText} – {to:dd/MM/yyyy}";
-        }
-
-        private string BuildPriceListEndpoint(
-            string? filter = null,
-            int? skip = null,
-            int? top = null,
-            string? orderby = null)
-        {
-            var query = new List<string> { "showDeleted=true" };
-
-            if (!string.IsNullOrWhiteSpace(filter))
-            {
-                query.Add($"filter={Uri.EscapeDataString(filter)}");
-            }
-
-            if (skip.HasValue)
-            {
-                query.Add($"skip={skip.Value}");
-            }
-
-            if (top.HasValue)
-            {
-                query.Add($"top={top.Value}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(orderby))
-            {
-                query.Add($"orderby={Uri.EscapeDataString(orderby)}");
-            }
-
-            if (!string.IsNullOrWhiteSpace(searchText))
-            {
-                query.Add($"search={Uri.EscapeDataString(searchText.Trim())}");
-            }
-
-            return $"{Config.LibraryApi.PriceList}?{string.Join("&", query)}";
         }
 
         private static void AppendRowClass(IDictionary<string, object> attributes, string className)

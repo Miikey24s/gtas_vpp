@@ -127,10 +127,13 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var page = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
         var code = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor.cs");
+        var client = ReadFrontendSource("Features/CatalogPricing/Api/PricingApiClient.cs");
 
         Assert.Contains("PriceListStatusOptions", page, StringComparison.Ordinal);
         Assert.Contains("Filterable=\"false\"", page, StringComparison.Ordinal);
-        Assert.Contains("SelectedStatusFilter", code, StringComparison.Ordinal);
+        Assert.Contains("PricingApi.GetPriceListsAsync", code, StringComparison.Ordinal);
+        Assert.Contains("string.IsNullOrWhiteSpace(selectedStatus) ? null : selectedStatus", code, StringComparison.Ordinal);
+        Assert.Contains("Status ==", client, StringComparison.Ordinal);
         Assert.DoesNotContain("DataGridLoadColumnFilterDataEventArgs", code, StringComparison.Ordinal);
         Assert.Contains("PriceListStatusPublished", code, StringComparison.Ordinal);
     }
