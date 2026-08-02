@@ -1,14 +1,13 @@
+using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
-using gtas_vpp_shared.DTOs.Req.Account;
-using gtas_vpp_shared.DTOs.Res.Account;
+using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http.Json;
 
 namespace gtas_vpp_fe.Components.Pages.Authen;
 
 public partial class ConfirmEmail
 {
-    [Inject] public IHttpClientFactory HttpClientFactory { get; set; } = default!;
+    [Inject] public AccountApiClient AccountApi { get; set; } = default!;
 
     [SupplyParameterFromQuery(Name = "userId")]
     public int UserId { get; set; }
@@ -38,20 +37,15 @@ public partial class ConfirmEmail
 
         try
         {
-            var client = HttpClientFactory.CreateClient(Config.HttpClientName);
-            var endpoint = $"{Config.ApiAccountConfirmEmailEndpoint}?userId={UserId}&token={Uri.EscapeDataString(Token)}";
-            using var response = await client.GetAsync(endpoint);
-            if (!response.IsSuccessStatusCode)
-            {
-                ErrorMessage = await AccountLifecycleUiMapper.ReadErrorMessageAsync(
-                    response,
-                    Loc,
-                    "ConfirmationLinkInvalid");
-                return;
-            }
-
-            _ = await response.Content.ReadFromJsonAsync<AccountLifecycleResDTO>();
+            _ = await AccountApi.ConfirmEmailAsync(UserId, Token);
             SuccessMessage = Loc["EmailConfirmed"];
+        }
+        catch (ApiRequestException exception)
+        {
+            ErrorMessage = AccountLifecycleUiMapper.GetMessage(
+                exception,
+                Loc,
+                "ConfirmationLinkInvalid");
         }
         catch (HttpRequestException)
         {

@@ -381,3 +381,26 @@ localized success/error copy và form state.
 
 Public `ApiRequestException` được map qua `AccountLifecycleUiMapper`; network failure vẫn dùng
 `RecoveryConnectionFailed`. Markup, route và navigation không đổi.
+
+## 17. FR3.1 public account migration — complete
+
+Ba public flow còn lại đã migrate:
+
+- Register → `RegisterAsync`;
+- Reset Password → `ResetPasswordAsync`;
+- Confirm Email → `ConfirmEmailAsync`, giữ interactive-only guard để không gửi side effect hai lần.
+
+`Config` đã bỏ năm public account endpoint constant zero-consumer; endpoint authority nằm trong
+`AccountApiClient`. Login vẫn là public client riêng ở checkpoint kế tiếp; ChangePassword vẫn dùng
+authenticated transport.
+
+| Gate | Kết quả |
+|---|---|
+| Frontend unit/architecture | PASS `246/246` |
+| Registration mutation lifecycle | PASS `1/1` trên isolated LocalDB với explicit mutation opt-in |
+| ConfirmEmail prerender + account route focused | PASS `35/35` |
+| Anonymous account routes | PASS `1/1`, 7 route × 3 viewport sau public migration hoàn tất |
+
+Một validation-layout run fail 2 px tại registration desktop (`page=771`, viewport `768`, card `747`),
+trong khi anonymous route matrix pass. Đây là visual/harness debt thuộc final UI acceptance, không nằm
+trên HTTP/page-state code đã migrate; không nới geometry assertion trong refactor.
