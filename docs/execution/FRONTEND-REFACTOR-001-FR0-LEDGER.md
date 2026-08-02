@@ -523,3 +523,19 @@ lấy từ `CurrentUserState`.
 
 `CanModify` và `PagePermissionResDTO` không đổi trong slice; failure xảy ra trước khi bất kỳ method của
 `CatalogApiClient` được gọi. Không ép enable action hoặc sửa assertion để che fixture seed thiếu quyền.
+
+## 25. FR4 Supplier feature client
+
+`CatalogApiClient` đã mở rộng cho Supplier: server query, dependency impact, create/update, status và
+hard-delete. `Tab_SupplierLibrary`/`Dialog_SupplierEditor` chỉ điều phối UI và đọc audit user từ
+`CurrentUserState`.
+
+| Gate | Kết quả |
+|---|---|
+| Catalog client focused | PASS `3/3` |
+| Catalog/architecture focused | PASS `30/30` |
+| Frontend unit/architecture | PASS `269/269` |
+| Release build | PASS `0 warning / 0 error` |
+
+Không chạy lại editor Add browser ở checkpoint này vì cùng permission gate đã fail trước API call ở
+Lookup/Category; route-real matrix sẽ được chạy sau khi fixture seed được sửa tại final acceptance/B0R.

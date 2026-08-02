@@ -21,6 +21,7 @@ public sealed record CatalogStatusChange(
 public sealed class CatalogApiClient(IAPIServices api)
 {
     private const string CategoryEndpoint = "/api/Library/vpp-categories";
+    private const string SupplierEndpoint = "/api/Library/suppliers";
 
     public Task<CatalogPage<VppCategoryResDTO>> GetCategoriesAsync(CatalogQuery query) =>
         GetPageAsync<VppCategoryResDTO>(
@@ -42,6 +43,30 @@ public sealed class CatalogApiClient(IAPIServices api)
 
     public Task<bool> DeleteCategoryAsync(Guid id) =>
         api.DeleteFromApiAsync($"{CategoryEndpoint}/{id}");
+
+    public Task<CatalogPage<SupplierResDTO>> GetSuppliersAsync(CatalogQuery query) =>
+        GetPageAsync<SupplierResDTO>(
+            SupplierEndpoint,
+            query,
+            "SupplierShortName",
+            "SupplierName");
+
+    public Task<LibraryDependencyImpactResDTO?> GetSupplierDependencyImpactAsync(Guid id) =>
+        api.GetFromApiAsync<LibraryDependencyImpactResDTO>($"{SupplierEndpoint}/{id}/dependency-impact");
+
+    public Task<SupplierResDTO?> CreateSupplierAsync(SupplierResDTO model) =>
+        api.PostFromApiAsync<SupplierResDTO>(SupplierEndpoint, model);
+
+    public Task<SupplierResDTO?> UpdateSupplierAsync(SupplierResDTO model) =>
+        api.PatchFromApiAsync<SupplierResDTO>($"{SupplierEndpoint}/{model.Id}", model);
+
+    public Task<SupplierResDTO?> SetSupplierDeletedAsync(
+        Guid id,
+        CatalogStatusChange change) =>
+        api.PatchFromApiAsync<SupplierResDTO>($"{SupplierEndpoint}/{id}", change);
+
+    public Task<bool> DeleteSupplierAsync(Guid id) =>
+        api.DeleteFromApiAsync($"{SupplierEndpoint}/{id}");
 
     private async Task<CatalogPage<T>> GetPageAsync<T>(
         string endpoint,

@@ -1,7 +1,7 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.State;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
@@ -13,9 +13,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs;
 public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierResDTO>, IDisposable
 {
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
-    [Inject] public IAPIServices ApiServices { get; set; } = default!;
+    [Inject] public CatalogApiClient CatalogApi { get; set; } = default!;
     [Inject] public IToastService ToastService { get; set; } = default!;
-    [Inject] public GlobalClass Global { get; set; } = default!;
+    [Inject] public CurrentUserState CurrentUserState { get; set; } = default!;
     [Inject] public DialogService DialogService { get; set; } = default!;
 
     private List<SupplierResDTO> rows = [];
@@ -35,11 +35,14 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
     {
         isLoading = true;
         currentSkip = args.Skip ?? 0;
-        var searchFilter = BuildSearchFilter();
         try
         {
-            var result = await ApiServices.GetFromApiWithTotalCountAsync<List<SupplierResDTO>>(BuildQuery(searchFilter, args.Skip, args.Top, args.OrderBy));
-            rows = result.Data ?? [];
+            var result = await CatalogApi.GetSuppliersAsync(new CatalogQuery(
+                args.Skip ?? 0,
+                args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
+                searchText,
+                args.OrderBy));
+            rows = result.Items.ToList();
             totalCount = result.TotalCount;
         }
         catch (Exception ex)
@@ -75,14 +78,19 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
 
     private async Task ToggleDeletedAsync(SupplierResDTO row, bool value)
     {
-        if (value && !await CanDeactivateAsync(Config.LibraryApi.Suppliers, row.Id))
+        if (value && !await CanDeactivateAsync(row.Id))
         {
             return;
         }
 
         try
         {
-            var result = await ApiServices.PatchFromApiAsync<SupplierResDTO>($"{Config.LibraryApi.Suppliers}/{row.Id}", new { IsDeleted = value, UpdatedAtUtc = DateTime.Now, UpdatedByUserId = Global.UserInfo.UserID });
+            var result = await CatalogApi.SetSupplierDeletedAsync(
+                row.Id,
+                new CatalogStatusChange(
+                    value,
+                    DateTime.Now,
+                    CurrentUserState.Current?.UserId ?? 0));
             if (result is null)
             {
                 row.IsDeleted = !value;
@@ -109,16 +117,16 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
         if (confirm != true) return;
         try
         {
-            await ApiServices.DeleteFromApiAsync($"{Config.LibraryApi.Suppliers}/{row.Id}");
+            await CatalogApi.DeleteSupplierAsync(row.Id);
             ToastService.Show(NotificationSeverity.Success, Loc["Success"], Loc["RecordPermanentlyDeleted"], 3000, false);
             await grid.Reload();
         }
         catch (Exception ex) { ToastService.Error(ex, Loc, "DeleteRecordFailed"); }
     }
 
-    private async Task<bool> CanDeactivateAsync(string endpoint, Guid id)
+    private async Task<bool> CanDeactivateAsync(Guid id)
     {
-        var impact = await ApiServices.GetFromApiAsync<LibraryDependencyImpactResDTO>($"{endpoint}/{id}/dependency-impact");
+        var impact = await CatalogApi.GetSupplierDependencyImpactAsync(id);
         if (impact is null || impact.CanDeactivate) return true;
 
         ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"],
@@ -137,24 +145,6 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
     }
 
     private async Task ClearFiltersAsync() { searchText = string.Empty; await grid.FirstPage(true); }
-
-    private string? BuildSearchFilter()
-    {
-        var search = searchText.Trim();
-        if (string.IsNullOrWhiteSpace(search)) return null;
-        var escaped = search.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal).ToLowerInvariant();
-        return $"((SupplierShortName ?? \"\").ToLower().Contains(\"{escaped}\") || (SupplierName ?? \"\").ToLower().Contains(\"{escaped}\"))";
-    }
-
-    private static string BuildQuery(string? filter, int? skip, int? top, string? orderby)
-    {
-        var query = new List<string> { "showDeleted=true" };
-        if (!string.IsNullOrWhiteSpace(filter)) query.Add($"filter={Uri.EscapeDataString(filter)}");
-        if (skip.HasValue) query.Add($"skip={skip.Value}");
-        if (top.HasValue) query.Add($"top={top.Value}");
-        if (!string.IsNullOrWhiteSpace(orderby)) query.Add($"orderby={Uri.EscapeDataString(orderby)}");
-        return $"{Config.LibraryApi.Suppliers}?{string.Join("&", query)}";
-    }
 
     private static SupplierResDTO Clone(SupplierResDTO row) => new()
     {

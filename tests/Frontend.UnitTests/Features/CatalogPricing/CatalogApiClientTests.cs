@@ -67,4 +67,38 @@ public sealed class CatalogApiClientTests
         Assert.Equal(2, calls.Count(call => call.Method == "PATCH" && call.Endpoint == $"/api/Library/vpp-categories/{id}"));
         Assert.Contains(calls, call => call.Method == "DELETE" && call.Endpoint == $"/api/Library/vpp-categories/{id}");
     }
+
+    [Fact]
+    public async Task SupplierQueriesAndMutations_UseCanonicalEndpoints()
+    {
+        var id = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        var endpoints = new List<string>();
+        var api = new StubApiServices
+        {
+            GetWithTotalCountAsync = (endpoint, _) =>
+            {
+                endpoints.Add(endpoint);
+                return Task.FromResult<(object?, int)>((new List<SupplierResDTO>(), 0));
+            },
+            GetAsync = (endpoint, _) =>
+            {
+                endpoints.Add(endpoint);
+                return Task.FromResult<object?>(new LibraryDependencyImpactResDTO());
+            },
+            PatchAsync = (endpoint, _, _) =>
+            {
+                endpoints.Add(endpoint);
+                return Task.FromResult<object?>(new SupplierResDTO());
+            }
+        };
+        var client = new CatalogApiClient(api);
+
+        await client.GetSuppliersAsync(new CatalogQuery(0, 15, "office"));
+        await client.GetSupplierDependencyImpactAsync(id);
+        await client.SetSupplierDeletedAsync(id, new CatalogStatusChange(true, DateTime.UnixEpoch, 42));
+
+        Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/suppliers?showDeleted=true&", StringComparison.Ordinal));
+        Assert.Contains($"/api/Library/suppliers/{id}/dependency-impact", endpoints);
+        Assert.Contains($"/api/Library/suppliers/{id}", endpoints);
+    }
 }

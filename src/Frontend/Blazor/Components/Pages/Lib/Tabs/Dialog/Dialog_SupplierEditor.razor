@@ -1,10 +1,10 @@
-@using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Features.CatalogPricing.Api
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Res.Library
 @inject DialogService DialogService
-@inject IAPIServices ApiServices
+@inject CatalogApiClient CatalogApi
 @inject IToastService ToastService
-@inject GlobalClass Global
+@inject CurrentUserState CurrentUserState
 
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="supplier-editor">
     <ChildContent>
@@ -43,14 +43,14 @@
         isBusy = true;
         try
         {
-            Model.UpdatedAtUtc = DateTime.Now; Model.UpdatedByUserId = Global.UserInfo.UserID;
+            Model.UpdatedAtUtc = DateTime.Now; Model.UpdatedByUserId = CurrentUserState.Current?.UserId ?? 0;
             SupplierResDTO? result;
             if (IsCreate)
             {
-                Model.Id = Guid.NewGuid(); Model.CreatedAtUtc = DateTime.Now; Model.CreatedByUserId = Global.UserInfo.UserID;
-                result = await ApiServices.PostFromApiAsync<SupplierResDTO>(Config.LibraryApi.Suppliers, Model);
+                Model.Id = Guid.NewGuid(); Model.CreatedAtUtc = DateTime.Now; Model.CreatedByUserId = CurrentUserState.Current?.UserId ?? 0;
+                result = await CatalogApi.CreateSupplierAsync(Model);
             }
-            else result = await ApiServices.PatchFromApiAsync<SupplierResDTO>($"{Config.LibraryApi.Suppliers}/{Model.Id}", Model);
+            else result = await CatalogApi.UpdateSupplierAsync(Model);
             if (result is null) { ToastService.Show(NotificationSeverity.Error, Loc["Error"], Loc["UpdateRecordFailed"], 5000, true); return; }
             ToastService.Show(NotificationSeverity.Success, Loc["Success"], IsCreate ? Loc["RecordAddedSuccess"] : Loc["RecordUpdatedSuccess"], 4000, false);
             DialogService.Close(result);
