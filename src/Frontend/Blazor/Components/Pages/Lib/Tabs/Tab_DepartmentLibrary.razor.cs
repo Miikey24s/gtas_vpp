@@ -11,7 +11,7 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs;
 
-public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<DepartmentResDTO>, IDisposable
+public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<DepartmentResDTO>
 {
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
     [Inject] public IAPIServices ApiServices { get; set; } = default!;
@@ -57,5 +57,4 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
     private string GetParentName(Guid? id) => id.HasValue ? allDepartments.FirstOrDefault(x => x.Id == id)?.Name ?? "–" : "–";
     private static DepartmentResDTO Clone(DepartmentResDTO row) => new() { Id = row.Id, Code = row.Code, Name = row.Name, ParentDepartmentId = row.ParentDepartmentId, Description = row.Description, IsDeleted = row.IsDeleted, CreatedAtUtc = row.CreatedAtUtc, CreatedByUserId = row.CreatedByUserId, UpdatedAtUtc = row.UpdatedAtUtc, UpdatedByUserId = row.UpdatedByUserId };
     private static void OnRowRender(RowRenderEventArgs<DepartmentResDTO> args) { if (args.Data?.IsDeleted == true) args.Attributes["class"] = args.Attributes.TryGetValue("class", out var current) ? $"{current} vpp-admin-row-deleted" : "vpp-admin-row-deleted"; }
-    public void Dispose() { }
 }

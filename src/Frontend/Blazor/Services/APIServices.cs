@@ -9,7 +9,6 @@ namespace gtas_vpp_fe.Services
 {
     public interface IAPIServices
     {
-        Task SetBaseUrl(string baseUrl);
         Task<T?> GetFromApiAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount)> GetFromApiWithTotalCountAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint);
@@ -60,15 +59,6 @@ namespace gtas_vpp_fe.Services
             }
         }
 
-        public Task SetBaseUrl(string baseUrl)
-        {
-            if (_httpClient.BaseAddress == null)
-            {
-                _httpClient.BaseAddress = new Uri(baseUrl);
-            }
-
-            return Task.CompletedTask;
-        }
         private async Task EnsureSuccessWithDetailsAsync(HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)

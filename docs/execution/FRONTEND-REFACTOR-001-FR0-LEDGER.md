@@ -189,10 +189,38 @@ Evidence runtime nằm trong ignored `TestResults/FR0-*`; không commit PNG/TRX 
 
 FR1 chỉ mở khi đồng thời:
 
-1. quota probe có sanitized snapshot dùng được và reforecast kết luận `ENOUGH` cho slice; và
-2. `model-routing-eval` được sửa, hoặc owner duyệt waiver tạm đúng exact signature `62 pass / 1 fail`; và
+1. quota/capacity đã được kiểm tra; nếu probe vẫn lỗi thì phải ghi rõ thiếu coverage và chỉ mở checkpoint
+   độc lập theo chỉ đạo owner, không hạ quality gate; và
+2. `model-routing-eval` pass hoặc có waiver đúng exact signature; và
 3. hai correction owner dirty vẫn còn đúng hash hoặc đã được owner commit/cập nhật baseline; và
 4. FR1 chỉ chọn một cleanup slice nhỏ, ưu tiên zero-consumer code/package candidate, không mass move.
 
+Tại checkpoint 2026-08-03: điều kiện 1 đi theo owner-directed checkpoint vì probe tiếp tục `404`;
+điều kiện 2 đã pass `63/63`; điều kiện 3 giữ nguyên hash; FR1A đáp ứng điều kiện 4.
+
 Candidate khuyến nghị đầu tiên: cleanup zero-consumer thuần C# (`ObjectExtensions`, `SetBaseUrl`, legacy
 member/type rõ ràng) trong một commit riêng; chưa mở typed-client/state/module migration ở cùng slice.
+
+## 8. FR1A execution record — zero-consumer C#
+
+Scope đã triển khai:
+
+- xóa `Helpers/ObjectExtensions.cs`;
+- bỏ `IAPIServices.SetBaseUrl` và implementation;
+- bỏ `GlobalClass.BaseUrl`, `GlobalClass.CurrentLanguage`;
+- bỏ ba nested model cũ trong `Tab_Orders`;
+- bỏ `IDisposable` và `Dispose()` rỗng ở Item/Department Library.
+
+| Gate | Kết quả |
+|---|---|
+| Repo-wide usage scan sau cleanup | PASS — không còn declaration/callsite mục tiêu |
+| `dotnet format ... --verify-no-changes --include <FR1A files>` | PASS |
+| `./scripts/gtas.cmd test-frontend` | PASS `214/214` |
+| `dotnet build gtas_vpp.slnx -c Release --no-restore` | PASS `0 warning / 0 error` |
+| My Orders focused smoke | PASS `1/1` |
+| Item/Department editor smoke | BASELINE-MATCH — cùng exact timeout trên clean detached `b739288d`; không phải FR1A regression |
+| Owner dirty correction hashes | UNCHANGED — `vpp-polish.css` và `ProductCatalogTests.cs` giữ đúng FR0 hash |
+
+FR1A không đổi route, API endpoint, DTO, permission hoặc visual CSS và đạt non-regression gate. Failure
+Item/Department được giữ thành fixture/permission debt cho final UI acceptance/B0R; không được che bằng
+cách giảm assertion.

@@ -16,30 +16,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
     public partial class Tab_Orders
     {
-        public sealed class ProductOption
-        {
-            public Guid Id { get; set; }
-            public string? VppCode { get; set; }
-            public string? VppName { get; set; }
-            public string Display => $"{VppCode} - {VppName}";
-        }
-
-        public sealed class EditOrderItem
-        {
-            public Guid VppId { get; set; }
-            public int Qty { get; set; } = 1;
-            public string? Description { get; set; }
-        }
-
-        public sealed class EditOrderModel
-        {
-            public Guid Id { get; set; }
-            public int Year { get; set; }
-            public int Month { get; set; }
-            public string? Description { get; set; }
-            public List<EditOrderItem> Items { get; set; } = new();
-        }
-
         [Inject] public IAPIServices _apiServices { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;

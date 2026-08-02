@@ -36,7 +36,4 @@ public class GlobalClass
             }
         }
     }
-
-    public string BaseUrl { get; set; } = string.Empty;
-    public string CurrentLanguage { get; set; } = "vi";
 }

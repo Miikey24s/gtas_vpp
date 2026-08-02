@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `PLANNED — OWNER DIRECTION APPROVED; IMPLEMENTATION NOT STARTED`
+- Status: `IN PROGRESS — FR0/FR1A COMPLETE; FR1B/FR1C IN PROGRESS`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -31,10 +31,10 @@
 | Phương án | Giữ một project Blazor, giữ design system hiện có; tổ chức dần theo feature `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, cộng `Platform` dùng chung | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local trả `404` hai lần nên chưa xác nhận capacity; chỉ chốt `SLICE_ONLY` cho FR0 rồi đo lại | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `214/214`; phát hiện 78 UI test case nhưng chưa chạy browser suite trong lượt lập plan; full verify dừng ở `model-routing-eval` 62/63 ngoài scope frontend | [Evidence](#plan-detail-evidence) |
+| Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `214/214`; 82 UI test được phát hiện; focused FR0 browser đã pass. `model-routing-eval` đã được sửa và `verify -Scope frontend` hiện pass | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay sau plan | Giữ nguyên diff UI hiện có, chạy FR0 để khóa baseline tạm và consumer/debt ledger; sau đó làm một slice FR1 nhỏ trước khi mở architecture migration | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Hoàn tất FR1 theo ba lát độc lập: FR1A zero-consumer C#, FR1B package-only, FR1C dead parameter nhỏ; không mở architecture migration trước khi runtime gate của lát hiện tại rõ ràng | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -141,8 +141,8 @@ contract và sequencing; không nhân bản ledger đang thay đổi theo source
 | Logical route typed | 44 route: 33 authenticated + 11 anonymous |
 | `./scripts/gtas.cmd test-frontend` | PASS — `214/214` |
 | `dotnet build gtas_vpp.slnx -c Release --no-restore` | PASS — `0 warning / 0 error` |
-| UI test discovery | 78 test case; chưa chạy browser suite trong lượt lập plan |
-| `./scripts/gtas.cmd verify -Scope frontend` | FAIL trước frontend gate tại `model-routing-eval`: `62 pass / 1 fail`; exact blocker thuộc dirty AI-harness ngoài scope |
+| UI test discovery | 82 test case |
+| `./scripts/gtas.cmd verify -Scope frontend` | PASS sau khi nới exact wording của `model-routing-eval`; agent setup `63/63`, frontend unit `214/214`, UI lightweight `2/2` |
 | Owner visual status | `UI-SYSTEM-001` đã implement F0–F7; owner final visual review vẫn pending |
 
 Số file/dòng/test là snapshot hiện tại, không phải invariant lâu dài.
@@ -414,7 +414,8 @@ giữ tên rõ và API nhỏ.
 
 - Global CSS chỉ giữ token, base, Radzen bridge, shell và cross-cutting owner đã ghi trong
   `VPP-UI-CSS-OWNERSHIP.md`.
-- Feature/component CSS ưu tiên `.razor.css`; `::deep` chỉ dùng khi cần chạm Radzen DOM và có comment why.
+- Feature/component CSS ưu tiên `.razor.css`; `::deep` chỉ dùng khi CSS isolation cần chạm DOM do
+  component con render ra, chủ yếu là Radzen, và phải có comment why khi lý do không hiển nhiên.
 - Tách CSS theo consumer/behavior, không cắt một file 1.500 dòng thành nhiều file tùy ý.
 - Global JS được phân trách nhiệm: accessibility normalization, transient positioning, theme/culture,
   navigation indicator, download/storage. Có thể giữ một bootstrap mỏng nếu runtime cần.
@@ -462,7 +463,8 @@ giữ tên rõ và API nhỏ.
 - Không có consumption history tương ứng cho frontend refactor khoảng 40K authored LOC + browser QA.
 - Forecast toàn plan: khoảng `65–165% Plus-equivalent`, confidence thấp; giữ safety envelope đến
   khoảng `250%` trước khi tuyên bố đủ capacity cho full plan.
-- Kết luận hiện tại: `SLICE_ONLY` cho **FR0**, sau đó sửa/re-probe quota và đo aggregate delta trước FR1.
+- Kết luận hiện tại: không có bằng chứng để tuyên bố `ENOUGH` cho toàn plan. Owner đã yêu cầu tiếp tục
+  xuyên suốt, vì vậy chỉ mở từng checkpoint độc lập, giữ nguyên quality gate và reforecast tại boundary.
 - Không tự hạ model/effort để vừa quota. Nếu upper bound sau reforecast vượt capacity có buffer thì `WAIT`.
 
 <a id="plan-detail-waves"></a>
@@ -472,7 +474,7 @@ giữ tên rõ và API nhỏ.
 | Wave | Outcome | Scope chính | Model + effort khuyến nghị | Cost forecast | Gate mở wave sau |
 |---|---|---|---|---:|---|
 | **FR0 — Provisional baseline & ledger** | Khóa đúng điểm xuất phát dù UI chưa final | Đọc diff `vpp-polish.css` + ProductCatalog test; route/component/API/state/CSS/JS/asset/package ledger; capture Product Catalog + archetype đại diện; source/path manifest; baseline reading map | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | 2–5% | Preflight, build, `214/214`, focused ProductCatalog route-real ở 4 viewport; screenshot chỉ là evidence, không golden |
-| **FR1 — Proven cleanup & immediate readability** | Source bớt rác và file nén dễ đọc mà chưa đổi architecture | Chỉ format file đã nằm trong cleanup slice; xóa dead member/helper đã chứng minh; bỏ package/asset từng slice; migrate hard-coded copy/comment ticket trong đúng file chạm | `gpt-5.6-terra` medium/high | 3–8% | Usage/resource evidence; build + unit + route smoke tương xứng; package/security audit |
+| **FR1 — Proven cleanup & immediate readability** | Source bớt rác mà chưa đổi architecture | **FR1A:** zero-consumer C#; **FR1B:** package-only; **FR1C:** dead parameter nhỏ. Asset chuyển FR8A; test-only cleanup chuyển FR8B. Không trộn move/rename hoặc Product Catalog formatting vào các lát này | `gpt-5.6-terra` medium/high | 3–8% | Usage/resource evidence; build + unit + route smoke tương xứng; package/security audit |
 | **FR2 — Platform contracts + Reports pilot** | Chốt pattern API/state/routing trên feature read-only nhỏ | Characterize `APIServices`; pilot typed HttpClient/small HTTP capabilities + `PagedResult<T>`; typed `ReportsApiClient`; tạo `UiBusyState`; route catalog consumer API; move Reports theo target structure | `gpt-5.6-sol` high design/review, `terra` high implement | 5–12% | Report JSON/export/name/MIME parity; 401/403; Report responsive/Dark/Print; DI smoke |
 | **FR3 — Account, system & structural shell state** | Anonymous/session flow dùng typed client; shell identity/busy/navigation source không còn lặp nhưng visual chưa đổi | Account client; retire direct `IHttpClientFactory` trong pages; Login/LoginPage ownership audit; change/recovery/confirm/register/logout/error/not-found; migrate LeftSidebar current-user/busy/route-source wiring, giữ CSS/JS visual cho FR8 | `gpt-5.6-sol` high, `terra` high implement | 6–14% | Account unit; shell identity/navigation focused test; AccountShell, LoginFeedback, Login, Logout, GlobalRender, Accessibility; VI/EN + keyboard + 4 viewport |
 | **FR4 — Catalog & Pricing** | Admin data feature có structure lặp lại, dễ lần và không generic transport trong Razor | Lookup, Category, Item, Supplier, Department, PriceList, Price; typed clients/query objects; dialog ownership; server grid state; localization; rename-on-touch | `gpt-5.6-terra` high, review `sol` high | 10–24% | DataSurfaceFoundation, LibraryGridScroll, Pricing/Report motif; Lookup mutation; row thật phải render; permission parity |
@@ -631,16 +633,12 @@ Không dùng profile/cookie/database production hoặc tự điều khiển `dot
 | Test refactor | Production source unchanged; discovered test names/count and assertion intent preserved |
 | Final wave | Full isolated UI suite; 44-key route ledger; dynamic/account flows; `verify -Scope frontend`; owner final visual acceptance, then golden baseline |
 
-### Current `verify` blocker
+### Current verification state
 
-`verify -Scope frontend` hiện dừng ở `model-routing-eval` 62/63 trước frontend gate. Trước FR1 cần một
-trong hai:
-
-1. AI-harness task sửa blocker; hoặc
-2. owner duyệt waiver tạm đúng signature trong khi từng wave chạy thủ công toàn bộ gate frontend và
-   browser liên quan.
-
-Không gọi wave PASS nếu failure signature thay đổi, có failure mới hoặc browser gate bị bỏ qua.
+`model-routing-eval` đã được sửa bằng thay đổi wording-compatible và `verify -Scope frontend` pass.
+FR1A runtime gate được đóng theo non-regression: My Orders pass; hai smoke Item/Department editor fail
+cùng exact timeout trên clean baseline `b739288d`, nên đây là baseline fixture/permission debt, không phải
+regression của cleanup. Debt vẫn phải được xử lý trước final UI acceptance.
 
 <a id="plan-detail-risks"></a>
 
@@ -682,29 +680,32 @@ file path hoặc sơ đồ kiến trúc cuối trước khi frontend/backend ref
 | ID | Trạng thái | Quyết định |
 |---|---|---|
 | FE-D1 | `APPROVED 2026-08-02` | Bắt đầu refactor trước final visual acceptance; chấp nhận refactor tiếp sau correction UI |
-| FE-D2 | `RECOMMENDED — PLAN REVIEW` | Giữ một Blazor project, feature-first theo module của `ARCH-001`; không rewrite framework/new project |
-| FE-D3 | `RECOMMENDED — PLAN REVIEW` | `CurrentUserState` canonical, tách `UiBusyState`, typed feature clients; migrate-on-touch, không big-bang |
-| FE-D4 | `RECOMMENDED — PLAN REVIEW` | English identifiers + Vietnamese why-only comments; bỏ ticket/wave/history khỏi source khi chạm |
-| FE-D5 | `RECOMMENDED — PLAN REVIEW` | Final golden/slide screenshots chỉ sau owner final UI acceptance |
+| FE-D2 | `APPROVED 2026-08-03` | Giữ một Blazor project, feature-first theo module của `ARCH-001`; không rewrite framework/new project |
+| FE-D3 | `APPROVED 2026-08-03` | `CurrentUserState` canonical, tách `UiBusyState`, typed feature clients; migrate-on-touch, không big-bang |
+| FE-D4 | `APPROVED 2026-08-03` | English identifiers + Vietnamese why-only comments; bỏ ticket/wave/history khỏi source khi chạm |
+| FE-D5 | `APPROVED 2026-08-03` | Final golden/slide screenshots chỉ sau owner final UI acceptance |
 
-FE-D2..D5 không block FR0 read-only. Chúng block implementation architecture từ FR1/FR2 nếu owner yêu
-cầu một hướng khác materially.
+FE-D2..D5 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
 
 <a id="plan-detail-continuation"></a>
 
 ## 15. Continuation note
 
-- Current status: **FR0 hoàn tất trong scope frontend**; provisional baseline/ledger đã khóa, chưa phải
+- Current status: **FR0 và FR1A zero-consumer C# hoàn tất; FR1B/FR1C đang chạy**. Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
   `ProductCatalogTests.cs` và hai text extraction artifact; không stage/overwrite.
 - Last completed evidence: preflight PASS; Release build `0 warning/error`; frontend unit/architecture
   `214/214`; 82 UI test discovered; Product Catalog `1/1`, responsive matrix `4/4`, User Menu `1/1`;
-  9 PNG runtime đã xem trực tiếp; verify vẫn dừng đúng `model-routing-eval` 62/63.
-- Quota: sanitized probe trả `404` hai lần; capacity chưa xác nhận, decision `SLICE_ONLY` cho FR0.
-- Next exact action: re-probe quota và sửa/duyệt waiver exact `model-routing-eval`; sau đó mới mở một
-  cleanup slice FR1 zero-consumer nhỏ, không mở architecture migration cùng lúc.
+  9 PNG runtime đã xem trực tiếp; `verify -Scope frontend` PASS với agent setup `63/63`.
+- FR1A evidence: usage scan không còn match; format verify PASS; Release build PASS; unit `214/214`;
+  My Orders smoke PASS. Item/Department editor có cùng exact timeout trên clean baseline `b739288d`,
+  nên FR1A đạt non-regression; fixture/permission debt được giữ cho UI acceptance/B0R.
+- Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
+  chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
+- Next exact action: commit FR1A đúng scope, hoàn tất FR1B package-only và FR1C dead parameter; giữ
+  failure Item/Department trong ledger để xử lý trước final UI acceptance.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,
