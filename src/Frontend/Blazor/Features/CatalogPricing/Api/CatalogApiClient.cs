@@ -22,6 +22,7 @@ public sealed class CatalogApiClient(IAPIServices api)
 {
     private const string CategoryEndpoint = "/api/Library/vpp-categories";
     private const string SupplierEndpoint = "/api/Library/suppliers";
+    private const string DepartmentEndpoint = "/api/Library/departments";
 
     public Task<CatalogPage<VppCategoryResDTO>> GetCategoriesAsync(CatalogQuery query) =>
         GetPageAsync<VppCategoryResDTO>(
@@ -67,6 +68,33 @@ public sealed class CatalogApiClient(IAPIServices api)
 
     public Task<bool> DeleteSupplierAsync(Guid id) =>
         api.DeleteFromApiAsync($"{SupplierEndpoint}/{id}");
+
+    public Task<CatalogPage<DepartmentResDTO>> GetDepartmentsAsync(CatalogQuery query) =>
+        GetPageAsync<DepartmentResDTO>(
+            DepartmentEndpoint,
+            query,
+            "Code",
+            "Name");
+
+    public Task<List<DepartmentResDTO>?> GetActiveDepartmentsAsync() =>
+        api.GetFromApiAsync<List<DepartmentResDTO>>($"{DepartmentEndpoint}?showDeleted=false");
+
+    public Task<LibraryDependencyImpactResDTO?> GetDepartmentDependencyImpactAsync(Guid id) =>
+        api.GetFromApiAsync<LibraryDependencyImpactResDTO>($"{DepartmentEndpoint}/{id}/dependency-impact");
+
+    public Task<DepartmentResDTO?> CreateDepartmentAsync(DepartmentResDTO model) =>
+        api.PostFromApiAsync<DepartmentResDTO>(DepartmentEndpoint, model);
+
+    public Task<DepartmentResDTO?> UpdateDepartmentAsync(DepartmentResDTO model) =>
+        api.PatchFromApiAsync<DepartmentResDTO>($"{DepartmentEndpoint}/{model.Id}", model);
+
+    public Task<DepartmentResDTO?> SetDepartmentDeletedAsync(
+        Guid id,
+        CatalogStatusChange change) =>
+        api.PatchFromApiAsync<DepartmentResDTO>($"{DepartmentEndpoint}/{id}", change);
+
+    public Task<bool> DeleteDepartmentAsync(Guid id) =>
+        api.DeleteFromApiAsync($"{DepartmentEndpoint}/{id}");
 
     private async Task<CatalogPage<T>> GetPageAsync<T>(
         string endpoint,

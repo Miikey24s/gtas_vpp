@@ -101,4 +101,35 @@ public sealed class CatalogApiClientTests
         Assert.Contains($"/api/Library/suppliers/{id}/dependency-impact", endpoints);
         Assert.Contains($"/api/Library/suppliers/{id}", endpoints);
     }
+
+    [Fact]
+    public async Task DepartmentMethods_PreserveActiveListAndDependencyImpactContracts()
+    {
+        var id = Guid.Parse("55555555-5555-5555-5555-555555555555");
+        var endpoints = new List<string>();
+        var api = new StubApiServices
+        {
+            GetAsync = (endpoint, type) =>
+            {
+                endpoints.Add(endpoint);
+                return Task.FromResult<object?>(type == typeof(List<DepartmentResDTO>)
+                    ? new List<DepartmentResDTO>()
+                    : new LibraryDependencyImpactResDTO());
+            },
+            GetWithTotalCountAsync = (endpoint, _) =>
+            {
+                endpoints.Add(endpoint);
+                return Task.FromResult<(object?, int)>((new List<DepartmentResDTO>(), 0));
+            }
+        };
+        var client = new CatalogApiClient(api);
+
+        await client.GetActiveDepartmentsAsync();
+        await client.GetDepartmentsAsync(new CatalogQuery(0, 15, "IT"));
+        await client.GetDepartmentDependencyImpactAsync(id);
+
+        Assert.Contains("/api/Library/departments?showDeleted=false", endpoints);
+        Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/departments?showDeleted=true&", StringComparison.Ordinal));
+        Assert.Contains($"/api/Library/departments/{id}/dependency-impact", endpoints);
+    }
 }

@@ -539,3 +539,19 @@ hard-delete. `Tab_SupplierLibrary`/`Dialog_SupplierEditor` chỉ điều phối 
 
 Không chạy lại editor Add browser ở checkpoint này vì cùng permission gate đã fail trước API call ở
 Lookup/Category; route-real matrix sẽ được chạy sau khi fixture seed được sửa tại final acceptance/B0R.
+
+## 26. FR4 Department feature client + readability cleanup
+
+`CatalogApiClient` đã mở rộng cho Department, gồm active list dùng cho parent dropdown, server paging,
+dependency impact, create/update/status/hard-delete. Hai file Department dạng one-line trước đây được
+format lại thành các method/markup block có tên và control flow rõ, không đổi rule parent/self-parent.
+
+| Gate | Kết quả |
+|---|---|
+| Catalog client focused | PASS `4/4` |
+| Catalog/architecture focused | PASS `31/31` |
+| Frontend unit/architecture | PASS `270/270` |
+| Release build | PASS `0 warning / 0 error` |
+
+Department editor route-real Add vẫn thuộc permission-fixture debt đã biết, nên checkpoint này dùng
+contract/build/unit làm behavior gate và không sửa permission chỉ để test mở dialog.
