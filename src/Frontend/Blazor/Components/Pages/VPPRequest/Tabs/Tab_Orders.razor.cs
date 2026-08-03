@@ -1,7 +1,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Services;
-using gtas_vpp_fe.Components.Shared;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_shared.Constants;

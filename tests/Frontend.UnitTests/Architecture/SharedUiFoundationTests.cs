@@ -36,7 +36,7 @@ public sealed class SharedUiFoundationTests
     {
         var root = GetFrontendRoot();
         var componentRoot = Path.Combine(root, "Components");
-        var iconComponent = Path.Combine(componentRoot, "Shared", "VppIcon.razor");
+        var iconComponent = Path.Combine(componentRoot, "DesignSystem", "Primitives", "VppIcon.razor");
 
         var offenders = Directory.EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
             .Where(path => !Path.GetFullPath(path).Equals(Path.GetFullPath(iconComponent), StringComparison.OrdinalIgnoreCase))
@@ -89,6 +89,18 @@ public sealed class SharedUiFoundationTests
 
         Assert.DoesNotContain("class=\"rzi", source, StringComparison.Ordinal);
         Assert.Contains("<VppIcon", source, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("VppIcon.razor")]
+    [InlineData("VppIcons.cs")]
+    [InlineData("VppBrandMark.razor")]
+    public void IconAndBrandPrimitives_AreOwnedByTheDesignSystem(string fileName)
+    {
+        var componentRoot = Path.Combine(GetFrontendRoot(), "Components");
+
+        Assert.True(File.Exists(Path.Combine(componentRoot, "DesignSystem", "Primitives", fileName)));
+        Assert.False(File.Exists(Path.Combine(componentRoot, "Shared", fileName)));
     }
 
     [Fact]
@@ -294,7 +306,7 @@ public sealed class SharedUiFoundationTests
         var source = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor"));
         var sourceCode = File.ReadAllText(Path.Combine(root, "Components", "Layout", "LeftSidebar.razor.cs"));
         var userMenuSource = File.ReadAllText(Path.Combine(root, "Components", "Layout", "UserMenu.razor"));
-        var brandMarkSource = File.ReadAllText(Path.Combine(root, "Components", "Shared", "VppBrandMark.razor"));
+        var brandMarkSource = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppBrandMark.razor"));
         var appSource = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
         var layoutCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
         var sidebarCss = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-sidebar.css"));

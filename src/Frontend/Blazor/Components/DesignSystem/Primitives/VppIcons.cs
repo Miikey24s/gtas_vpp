@@ -1,4 +1,4 @@
-namespace gtas_vpp_fe.Components.Shared;
+namespace gtas_vpp_fe.Components.DesignSystem.Primitives;
 
 /// <summary>
 /// Tên icon theo ngữ nghĩa dùng bởi UI VPP chung. Giữ icon chức năng ổn định giữa

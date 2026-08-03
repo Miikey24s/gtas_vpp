@@ -1,4 +1,4 @@
-using gtas_vpp_fe.Components.Shared;
+using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.Constants;
 
