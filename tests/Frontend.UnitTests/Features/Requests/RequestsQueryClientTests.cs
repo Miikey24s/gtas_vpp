@@ -220,4 +220,40 @@ public sealed class RequestsQueryClientTests
         Assert.Contains("scope=pending", endpoints[1], StringComparison.Ordinal);
         Assert.Contains("filter=Status == 1", Uri.UnescapeDataString(endpoints[1]), StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task OrderEditorReads_LoadCompleteCatalogSnapshotAndPreviousOrder()
+    {
+        var catalogEndpoints = new List<string>();
+        string? previousOrderEndpoint = null;
+        var api = new StubApiServices
+        {
+            GetWithTotalCountAsync = (endpoint, _) =>
+            {
+                catalogEndpoints.Add(endpoint);
+                object data = catalogEndpoints.Count == 1
+                    ? new List<VppItemResDTO> { new(), new() }
+                    : new List<VppItemResDTO> { new() };
+                return Task.FromResult<(object?, int)>((data, 3));
+            },
+            GetAsync = (endpoint, type) =>
+            {
+                previousOrderEndpoint = endpoint;
+                Assert.Equal(typeof(VppRequestResDTO), type);
+                return Task.FromResult<object?>(new VppRequestResDTO());
+            }
+        };
+        var client = new RequestsQueryClient(api);
+
+        var snapshot = await client.GetCatalogSnapshotAsync(2, "VppName");
+        await client.GetPreviousOrderItemsAsync();
+
+        Assert.Equal(3, snapshot.Count);
+        Assert.Equal(2, catalogEndpoints.Count);
+        Assert.Contains("skip=0", catalogEndpoints[0], StringComparison.Ordinal);
+        Assert.Contains("top=2", catalogEndpoints[0], StringComparison.Ordinal);
+        Assert.Contains("skip=2", catalogEndpoints[1], StringComparison.Ordinal);
+        Assert.Contains("orderby=VppName", catalogEndpoints[1], StringComparison.Ordinal);
+        Assert.Equal("/api/VPPRequest/orders/previous-items", previousOrderEndpoint);
+    }
 }

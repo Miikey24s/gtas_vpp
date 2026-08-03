@@ -1,5 +1,7 @@
 @using gtas_vpp_shared.DTOs.Share
-@using gtas_vpp_fe.Services
+@using gtas_vpp_shared.DTOs.Res.Library
+@using gtas_vpp_fe.Features.Requests.Api
+@implements IDisposable
 @inject IJSRuntime JSRuntime
 
 <div class="wizard-step wizard-step-products">
@@ -320,21 +322,11 @@
     [Parameter] public EventCallback SaveDraftRequested { get; set; }
     [Parameter] public bool CanSaveDraft { get; set; }
     [Parameter] public string TargetPeriodLabel { get; set; } = string.Empty;
-    [Inject] public IAPIServices ApiServices { get; set; } = default!;
-
-    public sealed class ProductOption
-    {
-        public Guid Id { get; set; }
-        public string? VppCode { get; set; }
-        public string? VppName { get; set; }
-        public string? UomCode { get; set; }
-        public string? UomName { get; set; }
-        public string? VppCategoryName { get; set; }
-    }
+    [Inject] public RequestsQueryClient Requests { get; set; } = default!;
 
     public bool IsLoadingProducts { get; set; }
     public int ProductCount { get; set; }
-    public List<ProductOption> ProductOptions { get; set; } = [];
+    public List<VppItemResDTO> ProductOptions { get; set; } = [];
     public List<VppFilterOption<string>> CategoryOptions { get; set; } = [];
     public List<VppFilterOption<string>> UnitOptions { get; set; } = [];
     public string? SearchText { get; set; }
@@ -344,13 +336,13 @@
     private int _catalogPageSize = VppPagingProfiles.LargeWorkingSet.DefaultPageSize;
     private int _catalogSkip;
     private int _catalogPagerVersion;
-    private readonly List<ProductOption> _allProductOptions = [];
+    private readonly List<VppItemResDTO> _allProductOptions = [];
     private CancellationTokenSource? _searchDebounceCts;
     private Guid? _openProductCodeId;
     private readonly string _instanceId = Guid.NewGuid().ToString("N");
 
     private string OrderNotePopoverId => $"vpp-order-note-{_instanceId}";
-    private IReadOnlyList<ProductOption> VisibleProductOptions => ProductOptions
+    private IReadOnlyList<VppItemResDTO> VisibleProductOptions => ProductOptions
         .Skip(_catalogSkip)
         .Take(_catalogPageSize)
         .ToList();
@@ -372,7 +364,7 @@
     private string? _itemNoteSnapshot;
     private string? _orderNoteSnapshot;
 
-    private int GetProductRowNumber(ProductOption row)
+    private int GetProductRowNumber(VppItemResDTO row)
         => ProductOptions.IndexOf(row) + 1;
 
     private void SnapshotItemNote(OrderCreateContext.SelectedItem item)
@@ -422,14 +414,9 @@
         try
         {
             _allProductOptions.Clear();
-            for (var skip = 0; ; skip += SnapshotBatchSize)
-            {
-                var result = await ApiServices.GetFromApiWithTotalCountAsync<List<ProductOption>>(
-                    $"/api/VPPRequest/products?skip={skip}&top={SnapshotBatchSize}&orderby=VppName");
-                var batch = result.Data ?? [];
-                _allProductOptions.AddRange(batch);
-                if (_allProductOptions.Count >= result.TotalCount || batch.Count == 0) break;
-            }
+            _allProductOptions.AddRange(await Requests.GetCatalogSnapshotAsync(
+                SnapshotBatchSize,
+                "VppName"));
             BuildFilterOptions();
             ApplyProductFilters();
         }
@@ -536,7 +523,7 @@
 
     private bool IsSelected(Guid id) => Context.SelectedItems.Any(item => item.VppId == id);
 
-    private async Task AddProductAsync(ProductOption row)
+    private async Task AddProductAsync(VppItemResDTO row)
     {
         if (!IsSelected(row.Id))
         {

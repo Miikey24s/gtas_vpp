@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
+using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -16,7 +17,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 {
     public partial class Page_OrderCreate : IDisposable
     {
-        [Inject] public IAPIServices _apiServices { get; set; } = default!;
+        [Inject] public RequestsQueryClient Requests { get; set; } = default!;
+        [Inject] public RequestsCommandClient Commands { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
@@ -73,14 +75,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         // P1: BE sở hữu dữ liệu kỳ có thẩm quyền; FE không suy Year/Month từ DateTime.Now.
         public VppPeriodInfoResDTO? PeriodInfo { get; set; }
-
-        private readonly ProductOptionEqualityComparer _productComparer = new();
-
-        private sealed class ProductOptionEqualityComparer : IEqualityComparer<OrderCreateStep2.ProductOption>
-        {
-            public bool Equals(OrderCreateStep2.ProductOption? x, OrderCreateStep2.ProductOption? y) => x?.Id == y?.Id;
-            public int GetHashCode(OrderCreateStep2.ProductOption obj) => obj.Id.GetHashCode();
-        }
 
         private sealed class OrderDraft
         {
@@ -406,7 +400,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         {
             try
             {
-                PeriodInfo = await _apiServices.GetFromApiAsync<VppPeriodInfoResDTO>($"{Config.VppApi.ApiVppBase}/period-info");
+                PeriodInfo = await Requests.GetPeriodInfoAsync();
             }
             catch (Exception ex)
             {
@@ -426,7 +420,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             try
             {
-                var editingOrder = await _apiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{OrderId.Value}");
+                var editingOrder = await Requests.GetOrderAsync(OrderId.Value);
                 if (editingOrder == null)
                 {
                     Toast.Notify(new NotificationMessage
@@ -484,7 +478,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         {
             try
             {
-                var previousOrder = await _apiServices.GetFromApiAsync<VppRequestResDTO>($"{Config.VppApi.ApiVppBase}/orders/previous-items");
+                var previousOrder = await Requests.GetPreviousOrderItemsAsync();
                 if (previousOrder == null)
                 {
                     Toast.Notify(new NotificationMessage
@@ -733,9 +727,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Items = requestItems
                     };
 
-                    await _apiServices.PostFromApiAsync<VppRequestResDTO>(
-                        $"{Config.VppApi.Orders}/{OrderId}/recreate",
-                        recreateReq);
+                    await Commands.RecreateAsync(OrderId!.Value, recreateReq);
                 }
                 else if (IsEdit)
                 {
@@ -750,7 +742,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Items = requestItems
                     };
 
-                    await _apiServices.PutFromApiAsync<VppRequestResDTO>($"{Config.VppApi.Orders}/{OrderId}", updateReq);
+                    await Commands.UpdateAsync(OrderId!.Value, updateReq);
                 }
                 else
                 {
@@ -766,7 +758,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Items = requestItems
                     };
 
-                    await _apiServices.PostFromApiAsync<VppRequestResDTO>(Config.VppApi.Orders, createReq);
+                    await Commands.CreateAsync(createReq);
                     if (!string.IsNullOrWhiteSpace(DraftStorageKey))
                     {
                         await JS.InvokeVoidAsync("localStorage.removeItem", DraftStorageKey);

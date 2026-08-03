@@ -18,7 +18,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     public partial class Tab_Orders
     {
         [Inject] public RequestsQueryClient Requests { get; set; } = default!;
-        [Inject] public IAPIServices CommandApi { get; set; } = default!;
+        [Inject] public RequestsCommandClient Commands { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
@@ -389,7 +389,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = row.RowVersion,
                     IdempotencyKey = Guid.NewGuid().ToString("N")
                 };
-                await CommandApi.PostFromApiAsync<object>($"{Config.VppApi.Orders}/{row.Id}/cancel", request);
+                await Commands.CancelAsync(row.Id, request);
                 Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -450,9 +450,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = row.RowVersion,
                     IdempotencyKey = Guid.NewGuid().ToString("N")
                 };
-                await CommandApi.PostFromApiAsync<VppRequestResDTO>(
-                    $"{Config.VppApi.Orders}/{row.Id}/restore",
-                    request);
+                await Commands.RestoreAsync(row.Id, request);
                 Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,

@@ -193,6 +193,9 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("ApprovalDecisionHint", approvals, StringComparison.Ordinal);
         Assert.DoesNotContain("ShortCode", approvals, StringComparison.Ordinal);
         Assert.Contains("SynchronizePendingSelectionAsync", hostCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsCommandClient", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("PostFromApi", hostCode, StringComparison.Ordinal);
         Assert.Contains("FillAvailableSpace=\"true\"", approvals, StringComparison.Ordinal);
         Assert.DoesNotContain("RadzenDataGrid", host, StringComparison.Ordinal);
         Assert.True(host.Split('\n').Length < 100);
@@ -392,7 +395,9 @@ public sealed class AtlasWave1ArchitectureTests
     public void M2_OrderCreateUsesCompactTwoStepNavigationAndAtlasFooterActions()
     {
         var page = ReadFrontendSource("Components/Pages/VPPRequest/Page_OrderCreate.razor");
+        var pageCode = ReadFrontendSource("Components/Pages/VPPRequest/Page_OrderCreate.razor.cs");
         var selection = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep2.razor");
+        var commandClient = ReadFrontendSource("Features/Requests/Api/RequestsCommandClient.cs");
 
         Assert.Contains("<VppWorkflowStepper", page, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-flow-header", page, StringComparison.Ordinal);
@@ -411,6 +416,15 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("LoadData=", selection, StringComparison.Ordinal);
         Assert.Contains("VppPagingProfiles.LargeWorkingSet", selection, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenDataGrid", selection, StringComparison.Ordinal);
+        Assert.Contains("RequestsQueryClient", pageCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsCommandClient", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", pageCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsQueryClient", selection, StringComparison.Ordinal);
+        Assert.Contains("VppItemResDTO", selection, StringComparison.Ordinal);
+        Assert.Contains("@implements IDisposable", selection, StringComparison.Ordinal);
+        Assert.DoesNotContain("class ProductOption", selection, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", selection, StringComparison.Ordinal);
+        Assert.Contains("/orders/{orderId}/recreate", commandClient, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -432,7 +446,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("SupplementOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.Contains("PreviousOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsCommandClient", ordersCode, StringComparison.Ordinal);
         Assert.DoesNotContain("GetFromApi", ordersCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("PostFromApi", ordersCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", ordersCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", baseOrderTab, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildEndpoint", baseOrderTab, StringComparison.Ordinal);
         Assert.DoesNotContain("_apiServices", historyCode, StringComparison.Ordinal);

@@ -77,6 +77,7 @@ builder.Services.AddScoped<UserAdministrationApiClient>();
 builder.Services.AddScoped<NotificationApiClient>();
 builder.Services.AddScoped<INotificationRealtimeClient, NotificationRealtimeClient>();
 builder.Services.AddScoped<RequestsQueryClient>();
+builder.Services.AddScoped<RequestsCommandClient>();
 builder.Services.AddScoped<IAuthSessionInvalidationCoordinator, AuthSessionInvalidationCoordinator>();
 builder.Services.AddScoped<PermissionRefreshSignal>();
 builder.Services.AddScoped<PermissionState>();

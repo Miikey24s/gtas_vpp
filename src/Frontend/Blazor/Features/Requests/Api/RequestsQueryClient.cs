@@ -100,6 +100,28 @@ public sealed class RequestsQueryClient(IAPIServices api)
         return new RequestPage<VppItemResDTO>(result.Data ?? [], result.TotalCount);
     }
 
+    public async Task<IReadOnlyList<VppItemResDTO>> GetCatalogSnapshotAsync(
+        int batchSize = 100,
+        string orderBy = "VppName")
+    {
+        var normalizedBatchSize = Math.Max(1, batchSize);
+        var items = new List<VppItemResDTO>();
+        for (var skip = 0; ; skip += normalizedBatchSize)
+        {
+            var page = await GetCatalogItemsAsync(new ProductCatalogQuery(
+                skip,
+                normalizedBatchSize,
+                OrderBy: orderBy));
+            items.AddRange(page.Items);
+            if (page.Items.Count == 0 || items.Count >= page.TotalCount)
+            {
+                break;
+            }
+        }
+
+        return items;
+    }
+
     public Task<VppPeriodInfoResDTO?> GetPeriodInfoAsync() =>
         api.GetFromApiAsync<VppPeriodInfoResDTO>($"{RequestsBase}/period-info");
 
@@ -118,6 +140,9 @@ public sealed class RequestsQueryClient(IAPIServices api)
 
     public Task<VppRequestResDTO?> GetOrderAsync(Guid orderId) =>
         api.GetFromApiAsync<VppRequestResDTO>($"{RequestsBase}/orders/{orderId}");
+
+    public Task<VppRequestResDTO?> GetPreviousOrderItemsAsync() =>
+        api.GetFromApiAsync<VppRequestResDTO>($"{RequestsBase}/orders/previous-items");
 
     public Task<VppRequestHistoryResDTO?> GetOrderHistoryAsync(Guid orderId) =>
         api.GetFromApiAsync<VppRequestHistoryResDTO>($"{RequestsBase}/orders/{orderId}/history");

@@ -24,7 +24,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         // Dialog service chỉ dành cho tab này, base không cần.
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-        [Inject] private IAPIServices CommandApi { get; set; } = default!;
+        [Inject] private RequestsCommandClient Commands { get; set; } = default!;
 
         private readonly HashSet<Guid> _processingOrderIds = new();
         private readonly Dictionary<(Guid OrderId, string Action), string> _decisionIdempotencyKeys = new();
@@ -209,7 +209,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = order.RowVersion,
                     IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "approve")
                 };
-                await CommandApi.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/approve", request);
+                await Commands.ApproveAdditionalAsync(order.Id, request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
                 await ReloadPendingWorkspaceAsync();
             }
@@ -244,7 +244,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     RowVersion = order.RowVersion,
                     IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "reject")
                 };
-                await CommandApi.PostFromApiAsync<object>($"/api/VPPRequest/additional-orders/{order.Id}/reject", request);
+                await Commands.RejectAdditionalAsync(order.Id, request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
                 await ReloadPendingWorkspaceAsync();
             }

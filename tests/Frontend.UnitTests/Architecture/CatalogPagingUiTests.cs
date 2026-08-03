@@ -8,6 +8,7 @@ public sealed class CatalogPagingUiTests
     public void OrderWizard_UsesFullClientSnapshotWithBoundedPaging()
     {
         var source = ReadSource("Components", "Pages", "VPPRequest", "OrderCreateStep2.razor");
+        var queryClient = ReadSource("Features", "Requests", "Api", "RequestsQueryClient.cs");
 
         Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", source, StringComparison.Ordinal);
         Assert.Contains("SnapshotBatchSize = 100", source, StringComparison.Ordinal);
@@ -18,7 +19,9 @@ public sealed class CatalogPagingUiTests
         Assert.Contains("vpp-order-builder-virtual-header", source, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenDataGrid", source, StringComparison.Ordinal);
         Assert.DoesNotContain("<Virtualize", source, StringComparison.Ordinal);
-        Assert.Contains("GetFromApiWithTotalCountAsync", source, StringComparison.Ordinal);
+        Assert.Contains("GetCatalogSnapshotAsync", source, StringComparison.Ordinal);
+        Assert.Contains("GetFromApiWithTotalCountAsync", queryClient, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", source, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", source, StringComparison.Ordinal);
         Assert.DoesNotContain("products/lookup", source, StringComparison.OrdinalIgnoreCase);
     }
