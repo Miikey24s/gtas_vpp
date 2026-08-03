@@ -35,6 +35,7 @@ public sealed class FeatureEndpointOwnershipTests
         Assert.DoesNotContain("static class VppApi", source, StringComparison.Ordinal);
         Assert.DoesNotContain("static class LibraryApi", source, StringComparison.Ordinal);
         Assert.DoesNotContain("\"/api", source, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("\"api/", source, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string FindRepositoryRoot()

@@ -882,6 +882,10 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   bốn API base constant zero-consumer; thêm architecture ratchet cấm `Config` sở hữu endpoint catalog.
   Full usage scan không còn production consumer; focused `2/2`, full frontend `338/338`, solution Release
   build `0 warning/error`.
+- FR8A package cleanup: bỏ direct package `Microsoft.AspNetCore.SignalR.Client.Core` vì
+  `Microsoft.AspNetCore.SignalR.Client 10.0.9` đã phụ thuộc đúng `Core 10.0.9`. Restore/package graph xác nhận
+  Core chuyển thành transitive; full frontend `338/338`, solution Release build sạch, publish output vẫn có
+  cả hai SignalR assembly và isolated user-menu/notification realtime smoke pass `1/1`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +
