@@ -176,13 +176,21 @@ public sealed class SharedUiFoundationTests
     public void NotificationState_SeparatesApiRealtimeAndUiStateOwnership()
     {
         var root = GetFrontendRoot();
-        var state = File.ReadAllText(Path.Combine(root, "Services", "NotificationInboxState.cs"));
+        var statePath = Path.Combine(
+            root,
+            "Features",
+            "Notifications",
+            "State",
+            "NotificationInboxState.cs");
+        var state = File.ReadAllText(statePath);
         var apiClient = File.ReadAllText(Path.Combine(
             root, "Features", "Notifications", "Api", "NotificationApiClient.cs"));
         var realtimeClient = File.ReadAllText(Path.Combine(
             root, "Features", "Notifications", "Realtime", "NotificationRealtimeClient.cs"));
 
         Assert.Contains("NotificationApiClient", state, StringComparison.Ordinal);
+        Assert.Contains("namespace gtas_vpp_fe.Features.Notifications.State;", state, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "Services", "NotificationInboxState.cs")));
         Assert.Contains("INotificationRealtimeClient", state, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", state, StringComparison.Ordinal);
         Assert.DoesNotContain("IHttpClientFactory", state, StringComparison.Ordinal);

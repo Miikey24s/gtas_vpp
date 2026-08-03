@@ -1,12 +1,13 @@
 using gtas_vpp_fe.Features.Notifications.Api;
 using gtas_vpp_fe.Features.Notifications.Realtime;
+using gtas_vpp_fe.Features.Notifications.State;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Tests.TestDoubles;
 using gtas_vpp_shared.DTOs.Res.Notifications;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace gtas_vpp_fe.Tests.Services;
+namespace gtas_vpp_fe.Tests.Features.Notifications;
 
 public sealed class NotificationInboxStateTests
 {

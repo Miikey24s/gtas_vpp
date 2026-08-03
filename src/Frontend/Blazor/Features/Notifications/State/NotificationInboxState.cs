@@ -2,7 +2,7 @@ using gtas_vpp_fe.Features.Notifications.Api;
 using gtas_vpp_fe.Features.Notifications.Realtime;
 using gtas_vpp_shared.DTOs.Res.Notifications;
 
-namespace gtas_vpp_fe.Services;
+namespace gtas_vpp_fe.Features.Notifications.State;
 
 public sealed class NotificationInboxState : IAsyncDisposable
 {

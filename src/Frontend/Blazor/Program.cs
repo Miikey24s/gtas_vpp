@@ -4,6 +4,7 @@ using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Features.Notifications.Api;
 using gtas_vpp_fe.Features.Notifications.Realtime;
+using gtas_vpp_fe.Features.Notifications.State;
 using gtas_vpp_fe.Features.Reports.Api;
 using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Features.Requests.Drafts;

@@ -905,6 +905,10 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `68/68`, full frontend `354/354`, solution Release build sạch. Account shell smoke pass `2/3`; test form
   đăng ký còn vượt viewport đúng `2px` (`page=771`, `viewport=768`, `card=747`) và worktree sạch tại
   `59b6a102` tái hiện cùng số liệu, nên đây là geometry debt có sẵn chứ không phải regression của slice.
+- FR8A notification-state ownership: chuyển `NotificationInboxState` khỏi thư mục service phẳng vào
+  `Features/Notifications/State`, đồng bộ namespace consumer/test và architecture ratchet cấm quay lại path
+  cũ. Feature Notifications giờ có ba owner tách biệt `Api`, `Realtime`, `State`; focused `45/45`, full frontend
+  `354/354`, solution Release build sạch và isolated user-menu/notification panel pass `2/2`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +
