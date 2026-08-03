@@ -174,11 +174,11 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         await CaptureRouteAsync(directory, "ui-report.png", "report", ".vpp-report-page");
 
         await SwitchUserAsync(TestAccounts.Procurement);
-        await CaptureRouteAsync(directory, "ui-period-review.png", "dashboard?tab=5&periodTab=review", "[data-testid='period-review-data-surface']");
-        await CaptureRouteAsync(directory, "ui-supplement-approval.png", "dashboard?tab=5&periodTab=pending", ".vpp-section");
+        await CaptureRouteAsync(directory, "ui-period-review.png", "dashboard?tab=5&periodTab=review", "[data-testid='period-settlement-data-surface']");
+        await CaptureRouteAsync(directory, "ui-supplement-approval.png", "dashboard?tab=5&periodTab=pending", ".vpp-approval-operation-workspace");
         await CaptureRouteAsync(directory, "ui-department-summary.png", "dashboard?tab=3&managementTab=department", ".vpp-history-page");
-        await CaptureRouteAsync(directory, "ui-period-demand.png", "dashboard?tab=5&periodTab=demand", "[data-testid='period-demand-data-surface']");
-        await CaptureRouteAsync(directory, "ui-supply-allocation.png", "dashboard?tab=5&periodTab=supply", "[data-testid='period-supply-data-surface']");
+        await CaptureRouteAsync(directory, "ui-period-demand.png", "dashboard?tab=5&periodTab=demand", "[data-testid='period-settlement-data-surface']");
+        await CaptureRouteAsync(directory, "ui-supply-allocation.png", "dashboard?tab=5&periodTab=supply", "[data-testid='period-settlement-data-surface']");
         await CaptureRouteAsync(directory, "ui-settlement-flow.png", "dashboard?tab=5&periodTab=settle", "[data-testid='period-settlement-data-surface']");
         await CaptureRouteAsync(directory, "ui-library-items.png", "library?tab=2", ".vpp-admin-data-surface");
         await CaptureRouteAsync(directory, "ui-price-lists.png", "library?tab=6&pricingTab=price-lists", ".vpp-price-list-workspace");
@@ -213,6 +213,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
             await focusTarget.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
             await focusTarget.ScrollIntoViewIfNeededAsync();
         }
+        await WaitForRouteContentAsync();
         if (string.Equals(fileName, "ui-price-lists.png", StringComparison.Ordinal))
         {
             // The empty QA price-book state can briefly show a transient toast
@@ -224,6 +225,35 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
                 new PageWaitForFunctionOptions { Timeout = 20_000 });
         }
         await CaptureScreenshotAsync(directory, fileName);
+    }
+
+    private async Task WaitForRouteContentAsync()
+    {
+        await Page.WaitForFunctionAsync(
+            """
+            () => {
+                const visible = element => {
+                    const style = getComputedStyle(element);
+                    return style.display !== 'none'
+                        && style.visibility !== 'hidden'
+                        && element.getClientRects().length > 0;
+                };
+                const busy = [...document.querySelectorAll('[aria-busy="true"]')]
+                    .some(visible);
+                const loadingSelectors = [
+                    '.vpp-history-loading-state',
+                    '.vpp-skeleton-page',
+                    '.vpp-content-state-loading',
+                    '.rz-datatable-loading',
+                    '.rz-datatable-loading-content'
+                ];
+                const loading = loadingSelectors.some(selector =>
+                    [...document.querySelectorAll(selector)].some(visible));
+                return !busy && !loading;
+            }
+            """,
+            null,
+            new PageWaitForFunctionOptions { Timeout = 60_000 });
     }
 
     private async Task CaptureSystemStatesAsync(string directory)
@@ -261,6 +291,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
             new PageWaitForFunctionOptions { Timeout = 60_000 });
         await Page.WaitForFunctionAsync(
             "() => !document.documentElement.classList.contains('vpp-page-entering')");
+        await WaitForRouteContentAsync();
 
         // Let the post-loader render flush and web fonts finish before capturing pixels.
         await WaitForRenderSettleAsync();
