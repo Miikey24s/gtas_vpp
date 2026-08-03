@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `312/312`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft persistence và submission DTO mapping đã tách khỏi page | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `315/315`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, submission mapping và Settlement projection/filter đã tách khỏi page | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR7 transport, `OrderDraftStore` và submission request factory đã hoàn tất. Tiếp theo tách Settlement projection/filter thuần hoặc Order Editor session nhỏ | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR7 transport, `OrderDraftStore`, submission request factory và Settlement projection đã hoàn tất. Tiếp theo tách một `OrderEditorSession` nhỏ cho mode/step/selection | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -691,7 +691,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store và submission request factory hoàn tất; editor session/Settlement projection còn tiếp tục**.
+- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory và Settlement projection hoàn tất; editor session còn tiếp tục**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -825,10 +825,15 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   additional hiện hữu (`IsAdditional` route state và `Context.IsAdditional` wizard state) được giữ tách biệt
   để không đổi payload khi query-only navigation làm chúng lệch. Focused `30/30`, full frontend `312/312`,
   solution Release build `0 warning/error`; Order Create lifecycle mutation pass `1/1` sau parity patch.
+- FR7 Settlement projection: department option, item option/filter, department filter/group/totals và status
+  precedence chuyển sang `SettlementWorkspaceProjection` thuần; component chỉ còn orchestration và ánh xạ
+  localization/status tone. Focused Settlement/architecture `34/34`, full frontend `315/315`, solution
+  Release build `0 warning/error`; route-real DS3 Settlement pass `1/1` trên isolated fixture. Test chọn kỳ
+  dùng selector CSS có mục đích vì dialog có hai button cùng accessible name `Hủy`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tách projection/filter thuần cho Settlement department rows hoặc một `OrderEditorSession`
-  nhỏ cho mode/step/selection; giữ component làm orchestration, giữ nguyên route, Shared DTO, `InputHash`,
+- Next exact action: tách một `OrderEditorSession` nhỏ cho mode/step/selection; giữ page làm orchestration,
+  giữ nguyên route, Shared DTO, `InputHash`,
   `PriceAsOfUtc`, row version và idempotency behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.

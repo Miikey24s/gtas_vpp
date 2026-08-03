@@ -215,18 +215,24 @@ public sealed class AtlasWave1ArchitectureTests
         var page = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var code = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
         var client = ReadFrontendSource("Features/Settlement/Api/SettlementApiClient.cs");
+        var projection = ReadFrontendSource("Features/Settlement/Projection/SettlementWorkspaceProjection.cs");
 
         Assert.Contains("OnSupplierChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("OnPriceListChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("AggregatedVppItemResDTO", page, StringComparison.Ordinal);
         Assert.Contains("Settlement.GetDemandAsync", code, StringComparison.Ordinal);
         Assert.Contains("Settlement.PreviewAsync", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementWorkspaceProjection.BuildDepartmentRows", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementWorkspaceProjection.FilterItems", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("MatchesClientFilters", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("MatchesItemFilters", code, StringComparison.Ordinal);
         Assert.Contains("PrimarySupplierId = supplierId", code, StringComparison.Ordinal);
         Assert.Contains("PriceListId = priceListId", code, StringComparison.Ordinal);
         Assert.DoesNotContain("isSupplierDialogOpen", code, StringComparison.Ordinal);
         Assert.DoesNotContain("Config.LibraryApi.VPPPrice_ItemPrices", code, StringComparison.Ordinal);
         Assert.Contains("/period-demand?year={year}&month={month}", client, StringComparison.Ordinal);
         Assert.Contains("/all-orders?year={year}&month={month}", client, StringComparison.Ordinal);
+        Assert.Contains("SettlementDepartmentStatus.Pending", projection, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -111,7 +111,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         }
         else
         {
-            await periodPicker.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
+            await periodPicker.Locator(".vpp-period-picker-secondary").ClickAsync();
             await periodPicker.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
         }
 

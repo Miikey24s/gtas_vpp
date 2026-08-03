@@ -3,6 +3,7 @@ using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Features.Settlement.Api;
+using gtas_vpp_fe.Features.Settlement.Projection;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -185,47 +186,41 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private IReadOnlyList<VppFilterOption<string>> DepartmentOptions =>
         new[] { new VppFilterOption<string>(string.Empty, Loc["SettlementAllDepartments"]) }
-            .Concat(periodOrdersSnapshot
-                .Select(order => order.DepartmentCode)
-                .Where(code => !string.IsNullOrWhiteSpace(code))
-                .Select(code => code!)
-                .Distinct(StringComparer.CurrentCultureIgnoreCase)
-                .Select(code => new VppFilterOption<string>(code, GetDepartmentName(code)))
-                .OrderBy(option => option.Label, StringComparer.CurrentCultureIgnoreCase))
+            .Concat(SettlementWorkspaceProjection
+                .BuildDepartmentOptions(periodOrdersSnapshot, departmentDirectory)
+                .Select(option => new VppFilterOption<string>(option.Code, option.Name)))
             .ToArray();
 
     private IReadOnlyList<VppFilterOption<string>> ItemCategoryOptions =>
         new[] { new VppFilterOption<string>(string.Empty, Loc["AllCategories"]) }
-            .Concat((periodDemand?.Items ?? [])
-                .Select(item => item.CategoryName)
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .Select(value => value!)
-                .Distinct(StringComparer.CurrentCultureIgnoreCase)
-                .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase)
+            .Concat(SettlementWorkspaceProjection
+                .GetDistinctItemCategories(periodDemand?.Items ?? [])
                 .Select(value => new VppFilterOption<string>(value, value)))
             .ToArray();
 
     private IReadOnlyList<VppFilterOption<string>> ItemUomOptions =>
         new[] { new VppFilterOption<string>(string.Empty, Loc["AllUnits"]) }
-            .Concat((periodDemand?.Items ?? [])
-                .Select(item => item.UomName)
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .Select(value => value!)
-                .Distinct(StringComparer.CurrentCultureIgnoreCase)
-                .OrderBy(value => value, StringComparer.CurrentCultureIgnoreCase)
+            .Concat(SettlementWorkspaceProjection
+                .GetDistinctItemUnits(periodDemand?.Items ?? [])
                 .Select(value => new VppFilterOption<string>(value, value)))
             .ToArray();
 
-    private List<AggregatedVppItemResDTO> FilteredItemRows => (periodDemand?.Items ?? [])
-        .Where(MatchesItemFilters)
-        .ToList();
+    private List<AggregatedVppItemResDTO> FilteredItemRows =>
+        SettlementWorkspaceProjection.FilterItems(
+            periodDemand?.Items ?? [],
+            new SettlementItemFilter(searchText, selectedItemCategory, selectedItemUom));
 
-    private List<DepartmentSettlementRow> FilteredDepartmentRows => periodOrdersSnapshot
-        .Where(MatchesClientFilters)
-        .GroupBy(order => DisplayDepartment(order.DepartmentCode), StringComparer.CurrentCultureIgnoreCase)
-        .Select(group => CreateDepartmentRow(group.Key, group.ToList()))
-        .OrderBy(row => row.DepartmentName, StringComparer.CurrentCultureIgnoreCase)
-        .ToList();
+    private List<DepartmentSettlementRow> FilteredDepartmentRows =>
+        SettlementWorkspaceProjection.BuildDepartmentRows(
+                periodOrdersSnapshot,
+                departmentDirectory,
+                new SettlementDepartmentFilter(
+                    searchText,
+                    selectedOrderType,
+                    selectedStatus,
+                    selectedDepartment))
+            .Select(ToDepartmentSettlementRow)
+            .ToList();
 
     protected override void OnInitialized() => State.Changed += OnStateChanged;
 
@@ -317,57 +312,25 @@ public partial class PeriodSettlementPanel : IDisposable
         departmentDirectory = await Catalog.GetActiveDepartmentsAsync(1000, "Name") ?? [];
     }
 
-    private bool MatchesClientFilters(VppRequestResDTO order)
+    private DepartmentSettlementRow ToDepartmentSettlementRow(SettlementDepartmentRow row)
     {
-        var search = searchText.Trim();
-        return (string.IsNullOrWhiteSpace(search)
-                || (order.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                || (order.RequesterName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                || (order.Description?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                || (order.DepartmentCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                || GetDepartmentName(order.DepartmentCode).Contains(search, StringComparison.CurrentCultureIgnoreCase))
-            && (selectedOrderType switch
-            {
-                "regular" => !order.IsAdditionalOrder,
-                "additional" => order.IsAdditionalOrder,
-                _ => true
-            })
-            && (!selectedStatus.HasValue || order.Status == selectedStatus.Value)
-            && (string.IsNullOrWhiteSpace(selectedDepartment)
-                || string.Equals(order.DepartmentCode, selectedDepartment, StringComparison.CurrentCultureIgnoreCase));
-    }
-
-    private bool MatchesItemFilters(AggregatedVppItemResDTO item)
-    {
-        var search = searchText.Trim();
-        return (string.IsNullOrWhiteSpace(search)
-                || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
-            && (string.IsNullOrWhiteSpace(selectedItemCategory)
-                || string.Equals(item.CategoryName, selectedItemCategory, StringComparison.CurrentCultureIgnoreCase))
-            && (string.IsNullOrWhiteSpace(selectedItemUom)
-                || string.Equals(item.UomName, selectedItemUom, StringComparison.CurrentCultureIgnoreCase));
-    }
-
-    private DepartmentSettlementRow CreateDepartmentRow(string departmentCode, List<VppRequestResDTO> departmentOrders)
-    {
-        var statusValue = departmentOrders.Any(order => order.Status == 6)
-            ? (Loc["Pending"].Value, VppStatusTone.Warning)
-            : departmentOrders.All(order => order.Status == 7)
-                ? (Loc["Approved"].Value, VppStatusTone.Success)
-                : departmentOrders.Any(order => order.Status is 4 or 8)
-                    ? (Loc["SettlementNeedsReview"].Value, VppStatusTone.Warning)
-                    : (Loc["Submitted"].Value, VppStatusTone.Info);
+        var statusValue = row.Status switch
+        {
+            SettlementDepartmentStatus.Pending => (Loc["Pending"].Value, VppStatusTone.Warning),
+            SettlementDepartmentStatus.Approved => (Loc["Approved"].Value, VppStatusTone.Success),
+            SettlementDepartmentStatus.NeedsReview => (Loc["SettlementNeedsReview"].Value, VppStatusTone.Warning),
+            _ => (Loc["Submitted"].Value, VppStatusTone.Info)
+        };
 
         return new DepartmentSettlementRow(
-            departmentCode,
-            GetDepartmentName(departmentCode),
-            departmentOrders.Count,
-            departmentOrders.Count(order => !order.IsAdditionalOrder),
-            departmentOrders.Count(order => order.IsAdditionalOrder),
-            departmentOrders.Sum(order => order.TotalLines),
-            departmentOrders.Sum(order => order.TotalQty),
-            departmentOrders.Sum(order => order.TotalAmount),
+            row.DepartmentCode,
+            row.DepartmentName,
+            row.OrderCount,
+            row.RegularOrderCount,
+            row.AdditionalOrderCount,
+            row.TotalLines,
+            row.TotalQuantity,
+            row.TotalAmount,
             statusValue.Item1,
             statusValue.Item2);
     }
@@ -676,19 +639,6 @@ public partial class PeriodSettlementPanel : IDisposable
         SupplierId = source.SupplierId,
         Reason = source.Reason?.Trim()
     };
-
-    private static string DisplayDepartment(string? value) => string.IsNullOrWhiteSpace(value) ? "–" : value;
-    private string GetDepartmentName(string? code)
-    {
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            return "–";
-        }
-
-        return departmentDirectory.FirstOrDefault(department =>
-                   string.Equals(department.Code, code, StringComparison.CurrentCultureIgnoreCase))?.Name
-               ?? code;
-    }
 
     private string ResolvePeriodScope(int year, int month)
     {
