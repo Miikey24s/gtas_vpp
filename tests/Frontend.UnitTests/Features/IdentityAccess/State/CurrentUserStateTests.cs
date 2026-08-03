@@ -1,9 +1,9 @@
-using gtas_vpp_fe.Services;
+using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Tests.TestDoubles;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Xunit;
 
-namespace gtas_vpp_fe.Tests.Services;
+namespace gtas_vpp_fe.Tests.Features.IdentityAccess.State;
 
 public sealed class CurrentUserStateTests
 {

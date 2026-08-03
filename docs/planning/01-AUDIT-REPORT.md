@@ -332,7 +332,7 @@ Public login ở ba viewport không có horizontal overflow, console error hay f
 
 ### FE-03 — Route/permission/action drift
 
-**Bằng chứng.** Route/tab/fallback/menu lặp trong `Helpers/RouteCatalog.cs:48-186,246-251`, `Services/PermissionState.cs:12-30`, `LeftSidebar.razor.cs:18-44`, `Component_VPPRequest.razor.cs:20-27`, `Routes.razor.cs:57-120`. `periodTab` không nằm trong query allowlist dù sidebar tạo link; preferred routes thiếu settlement và còn URL legacy.
+**Bằng chứng.** Route/tab/fallback/menu lặp trong `Helpers/RouteCatalog.cs:48-186,246-251`, `Features/IdentityAccess/State/PermissionState.cs:12-30`, `LeftSidebar.razor.cs:18-44`, `Component_VPPRequest.razor.cs:20-27`, `Routes.razor.cs:57-120`. `periodTab` không nằm trong query allowlist dù sidebar tạo link; preferred routes thiếu settlement và còn URL legacy.
 
 **Đề xuất.** Một typed `NavigationDefinition` phục vụ sidebar, router guard, tab, fallback, audit và role-route tests.
 

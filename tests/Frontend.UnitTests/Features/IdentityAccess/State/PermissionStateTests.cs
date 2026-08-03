@@ -3,13 +3,14 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Platform.Api;
+using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Tests.TestDoubles;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using Xunit;
 
-namespace gtas_vpp_fe.Tests.Services;
+namespace gtas_vpp_fe.Tests.Features.IdentityAccess.State;
 
 public sealed class PermissionStateTests
 {

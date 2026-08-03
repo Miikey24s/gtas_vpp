@@ -50,7 +50,7 @@ contract và giảm rủi ro; code mới phải tuân theo ownership logic bên 
 
 | Module | Backend/model ownership | Shared contracts | Frontend ownership |
 |---|---|---|---|
-| Identity and access | `Model/Auth`, authorization handlers, `AuthController`, `PermissionController`, permission services | `DTOs/Req`, `DTOs/Req/Permission`, `DTOs/Res/Auth`, `DTOs/Res/Permission`, permission constants | authentication, permission pages and permission state |
+| Identity and access | `Model/Auth`, authorization handlers, `AuthController`, `PermissionController`, permission services | `DTOs/Req`, `DTOs/Req/Permission`, `DTOs/Res/Auth`, `DTOs/Res/Permission`, permission constants | authentication, permission pages, `Features/IdentityAccess/Api` clients and `Features/IdentityAccess/State` (`CurrentUserState`, `PermissionState`, `PermissionRefreshSignal`) |
 | Catalog and pricing | `Model/Library`, library/price services and controllers | `DTOs/*/Library`, pricing constants | library/catalog and price-management pages |
 | Requests | `Model/VPP`, request service/controller | `DTOs/*/VPP` request contracts | regular/additional request journeys |
 | Settlement | period settlement service/endpoints | settlement request/response contracts under VPP | settlement panels and confirmation journey |

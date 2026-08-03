@@ -77,9 +77,10 @@ hash/evidence trước slice frontend kế tiếp bị ảnh hưởng.
 
 | State | Consumer hiện tại | Class | Boundary đích |
 |---|---|---|---|
-| `CurrentUserState` | `AuthHelper` trực tiếp; sau đó copy sang `GlobalClass.UserInfo` | `KEEP` | UI profile projection/cache từ `/me`, không phải backend authorization authority |
-| `GlobalClass` | Identity, busy counter và legacy field trong 19 consumer | `MIGRATE` | Identity → `CurrentUserState`; busy → `UiBusyState`; retire khi ledger bằng 0 |
-| `PermissionState` | 20 consumer | `KEEP` | UI visibility/navigation; backend/API vẫn enforce authorization |
+| `CurrentUserState` | `AuthHelper`, shell và feature cần profile/audit user | `KEEP/MOVED` | `Features/IdentityAccess/State`; UI profile projection/cache từ `/me`, không phải backend authorization authority |
+| `GlobalClass` | Production consumer bằng 0; class đã xóa | `DELETE_COMPLETE` | Identity dùng `CurrentUserState`; busy dùng `UiBusyState` |
+| `PermissionState` | Route, shell và page permission consumers | `KEEP/MOVED` | `Features/IdentityAccess/State`; UI visibility/navigation; backend/API vẫn enforce authorization |
+| `PermissionRefreshSignal` | `APIServices`, `PermissionState` và focused tests | `MOVED` | `Features/IdentityAccess/State`; signal nội bộ cho 403 refresh, không phải permission authority |
 | `ThemeState` | `App`, `LeftSidebar` | `KEEP` | Platform UI state |
 | `NotificationInboxState` | `MainLayout`, `NotificationCenter` | `KEEP/MIGRATE` | Notifications module |
 | `PeriodSettlementState` | Workspace/panel settlement | `KEEP/MIGRATE` | Settlement module |

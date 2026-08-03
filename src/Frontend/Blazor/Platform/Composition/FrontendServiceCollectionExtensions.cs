@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Features.IdentityAccess.Api;
+using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Features.Notifications.Api;
 using gtas_vpp_fe.Features.Notifications.Realtime;
 using gtas_vpp_fe.Features.Notifications.State;

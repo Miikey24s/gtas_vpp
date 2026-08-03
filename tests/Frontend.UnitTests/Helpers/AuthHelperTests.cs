@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Tests.TestDoubles;

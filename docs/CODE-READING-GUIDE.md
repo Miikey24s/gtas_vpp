@@ -10,7 +10,7 @@ tắc nghiệp vụ nào.
 - Nguồn nghiệp vụ: `LVTN/NguyenAnNam_DH52201078.docx`
 
 > Trạng thái: đã đồng bộ với implementation ATLAS-001 và các checkpoint frontend refactor đến
-> `e0e275be` (2026-08-03). Các mục không có số hình vẫn là route/state thật nhưng chưa được luận văn
+> các slice FR8A/FR8B ngày 2026-08-03. Các mục không có số hình vẫn là route/state thật nhưng chưa được luận văn
 > gán hình riêng.
 
 ---
@@ -32,8 +32,10 @@ Trình duyệt
 Ở frontend, `Program.cs` chỉ là composition outline. Registration, pipeline và endpoint map nằm ở
 `Platform/Composition/`; state dùng chung cross-feature nằm ở `Platform/State/`; download API → browser
 chỉ có một owner ở `Platform/Browser/`. Các API client/state đã refactor nằm dưới `Features/<Feature>/`
-để người đọc lần theo route → feature → Shared DTO. Một số identity/permission state cũ vẫn còn trong
-`Services/` và chỉ chuyển theo migration-on-touch, không mass-move chỉ để đồng đều tên thư mục.
+để người đọc lần theo route → feature → Shared DTO. Identity/profile/permission state hiện nằm trong
+`Features/IdentityAccess/State/`. `Services/` vẫn còn transport dùng chung và residual có owner riêng như
+`PermissionRealtimeService`; các file đó chỉ chuyển trong slice lifecycle phù hợp, không mass-move chỉ để
+đồng đều tên thư mục.
 
 Điểm hay bị hỏi khi bảo vệ: **ẩn nút trên giao diện không phải là phân quyền**. Giao diện chỉ ẩn cho
 gọn mắt; quyền thật được kiểm ở từng action của controller bằng `[Authorize(Policy = ...)]`. Xem luận
@@ -87,6 +89,11 @@ Toàn bộ account route dùng trực tiếp pattern `DesignSystem/Patterns/VppA
 
 Hai primitive chỉ phục vụ account flow (`VppLanguageSwitch`, `VppPasswordField`) thuộc
 `Features/IdentityAccess/Components/`, không nằm trong shared bucket.
+
+State identity cũng có owner riêng trong `Features/IdentityAccess/State/`: `CurrentUserState` nạp/cache
+profile `/me`, `PermissionState` giữ snapshot quyền và route fallback, còn `PermissionRefreshSignal` là
+signal nội bộ khi transport gặp 403. Ba state này là scoped theo circuit; `AuthHelper` chỉ phối hợp xác thực,
+không biến state UI thành authority phân quyền backend.
 
 ### M2 — Vòng đời đơn của nhân viên
 
@@ -182,7 +189,7 @@ không cố render SVG suy biến.
 audit, component gắn `data-vpp-grid-region="true"`; `wwwroot/js/vpp-interactions.js` chuẩn hóa role của
 wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 sinh ra.
 
-**Evidence hiện tại:** Release build sạch; frontend unit/architecture `364/364`; 28 screen × 4 viewport
+**Evidence hiện tại:** Release build sạch; frontend unit/architecture `365/365`; 28 screen × 4 viewport
 runtime pass, representative Dark/Print/axe pass, Atlas export/account/user-menu smoke và real-file
 download gates pass. Backend gate và owner visual approval vẫn là checkpoint riêng; ảnh runtime chỉ khóa
 vào thesis/slide sau khi owner chấp thuận UI cuối.

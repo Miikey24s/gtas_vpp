@@ -157,6 +157,34 @@ public sealed class SharedUiFoundationTests
         Assert.Empty(otherReflectionConsumers);
     }
 
+    [Fact]
+    public void IdentityAccessState_IsOwnedByTheFeatureStateFolder()
+    {
+        var frontendRoot = GetFrontendRoot();
+        var stateRoot = Path.Combine(frontendRoot, "Features", "IdentityAccess", "State");
+        var legacyRoot = Path.Combine(frontendRoot, "Services");
+        var expectedFiles = new[]
+        {
+            "CurrentUserState.cs",
+            "PermissionState.cs",
+            "PermissionRefreshSignal.cs"
+        };
+
+        foreach (var fileName in expectedFiles)
+        {
+            var statePath = Path.Combine(stateRoot, fileName);
+            Assert.True(File.Exists(statePath), $"IdentityAccess state owner is missing: {fileName}");
+            Assert.False(File.Exists(Path.Combine(legacyRoot, fileName)), $"Legacy flat state owner remains: {fileName}");
+            Assert.Contains(
+                "namespace gtas_vpp_fe.Features.IdentityAccess.State;",
+                File.ReadAllText(statePath),
+                StringComparison.Ordinal);
+        }
+
+        var imports = File.ReadAllText(Path.Combine(frontendRoot, "_Imports.razor"));
+        Assert.Contains("@using gtas_vpp_fe.Features.IdentityAccess.State", imports, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("Primitives", "VppInlineAlert.razor")]
     [InlineData("Primitives", "VppAlertTone.cs")]

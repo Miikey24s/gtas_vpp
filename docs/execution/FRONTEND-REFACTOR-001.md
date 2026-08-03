@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `364/364`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `365/365`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR8A đã xóa endpoint registry/package thừa và dọn `Components/Shared` về 0 source owner. FR7 còn owner chốt correction, sau đó triển khai UX và mutation E2E trước khi đóng wave | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR8A/FR8B đã dọn CSS owner, test helper rác và chuyển identity/permission state về feature. Tiếp tục audit residual độc lập; FR7 vẫn chờ owner chốt correction UX rồi mới chạy mutation E2E đóng wave | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -950,6 +950,13 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `ProductCatalogTests.cs`; focused Product Catalog route/responsive tests, full frontend `364/364` và
   Release build giữ nguyên. Đây là deletion độc lập để giảm page-object rác, không đổi discovered test name
   hay assertion intent.
+- FR8A IdentityAccess state ownership: chuyển `CurrentUserState`, `PermissionState` và
+  `PermissionRefreshSignal` khỏi flat `Services/` vào `Features/IdentityAccess/State/`; chuyển hai state test
+  tương ứng về `tests/Frontend.UnitTests/Features/IdentityAccess/State/`, cập nhật consumer usings và giữ
+  `PermissionRealtimeService`/transport ở owner cũ. Architecture ownership gate mới, full frontend `365/365`,
+  solution Release build `0 warning/error`; User Menu + Permission desktop/mobile + User Administration
+  route-real pass `5/5` trên fixture cô lập. DI registration giữ nguyên; không đổi cache, refresh,
+  event-dispose, claims hay authorization behavior.
 - FR8C code-reading sync: cập nhật `docs/CODE-READING-GUIDE.md` và `docs/architecture/ARCH-001-MODULE-MAP.md`
   theo feature/platform ownership hiện tại (`Program` composition, `Platform/State`, `Platform/Browser`,
   `Notifications/State`, account components), sửa reference `CurrentUserState` và bỏ test-count cũ. Đây là

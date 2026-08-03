@@ -1,4 +1,4 @@
-namespace gtas_vpp_fe.Services;
+namespace gtas_vpp_fe.Features.IdentityAccess.State;
 
 public sealed class PermissionRefreshSignal
 {

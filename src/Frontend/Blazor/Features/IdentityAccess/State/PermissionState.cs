@@ -3,7 +3,7 @@ using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using System.Security.Claims;
 
-namespace gtas_vpp_fe.Services;
+namespace gtas_vpp_fe.Features.IdentityAccess.State;
 
 public sealed class PermissionState : IDisposable
 {

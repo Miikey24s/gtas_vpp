@@ -1,6 +1,7 @@
 using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_fe.Services;
 
-namespace gtas_vpp_fe.Services;
+namespace gtas_vpp_fe.Features.IdentityAccess.State;
 
 /// <summary>
 /// Danh tính hiển thị do server quyết định. Cookie claim chủ động chỉ chứa dữ liệu
