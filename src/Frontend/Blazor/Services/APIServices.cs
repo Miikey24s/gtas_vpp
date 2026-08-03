@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Platform.Api;
+using gtas_vpp_fe.Platform.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net;
 using System.Net.Http.Headers;

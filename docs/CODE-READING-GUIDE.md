@@ -31,11 +31,11 @@ Trình duyệt
 
 Ở frontend, `Program.cs` chỉ là composition outline. Registration, pipeline và endpoint map nằm ở
 `Platform/Composition/`; state dùng chung cross-feature nằm ở `Platform/State/`; download API → browser
-chỉ có một owner ở `Platform/Browser/`. Các API client/state đã refactor nằm dưới `Features/<Feature>/`
-để người đọc lần theo route → feature → Shared DTO. Identity/profile/permission state hiện nằm trong
-`Features/IdentityAccess/State/`. `Services/` vẫn còn transport dùng chung và residual có owner riêng như
-`PermissionRealtimeService`; các file đó chỉ chuyển trong slice lifecycle phù hợp, không mass-move chỉ để
-đồng đều tên thư mục.
+chỉ có một owner ở `Platform/Browser/`; vô hiệu hóa session sau phản hồi 401 nằm ở `Platform/Auth/`.
+Các API client/state đã refactor nằm dưới `Features/<Feature>/` để người đọc lần theo route → feature →
+Shared DTO. Identity/profile/permission state hiện nằm trong `Features/IdentityAccess/State/`. `Services/`
+vẫn còn transport dùng chung và residual có owner riêng như `PermissionRealtimeService`; các file đó chỉ
+chuyển trong slice lifecycle phù hợp, không mass-move chỉ để đồng đều tên thư mục.
 
 Điểm hay bị hỏi khi bảo vệ: **ẩn nút trên giao diện không phải là phân quyền**. Giao diện chỉ ẩn cho
 gọn mắt; quyền thật được kiểm ở từng action của controller bằng `[Authorize(Policy = ...)]`. Xem luận

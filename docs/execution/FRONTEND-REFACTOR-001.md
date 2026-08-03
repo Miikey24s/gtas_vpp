@@ -975,10 +975,15 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   solution Release build `0 warning/error`; User Menu + Permission desktop/mobile + User Administration
   route-real pass `5/5` trên fixture cô lập. DI registration giữ nguyên; không đổi cache, refresh,
   event-dispose, claims hay authorization behavior.
+- FR8A session-invalidation ownership: chuyển `AuthSessionInvalidationCoordinator` khỏi `Services/` phẳng
+  vào `Platform/Auth`; generic `APIServices` vẫn chỉ gọi interface khi backend trả 401. DI tiếp tục `Scoped`
+  để one-shot guard sống theo circuit. Unit test mới khóa reason rỗng, trim + URL-escape, `forceLoad` và gọi
+  lặp không điều hướng lần hai; architecture ratchet cấm owner cũ quay lại. Full frontend `370/370`, solution
+  Release build `0 warning/error` và logout route-real pass `1/1` trên fixture cô lập.
 - FR8C code-reading sync: cập nhật `docs/CODE-READING-GUIDE.md` và `docs/architecture/ARCH-001-MODULE-MAP.md`
-  theo feature/platform ownership hiện tại (`Program` composition, `Platform/State`, `Platform/Browser`,
-  `Notifications/State`, account components), sửa reference `CurrentUserState` và bỏ test-count cũ. Đây là
-  handoff đọc code cho thesis/slide; không thay đổi runtime.
+  theo feature/platform ownership hiện tại (`Program` composition, `Platform/Auth`, `Platform/State`,
+  `Platform/Browser`, `Notifications/State`, account components), sửa reference `CurrentUserState` và bỏ
+  test-count cũ. Đây là handoff đọc code cho thesis/slide; không thay đổi runtime.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +

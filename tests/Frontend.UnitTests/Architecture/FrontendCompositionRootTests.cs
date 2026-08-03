@@ -38,6 +38,7 @@ public sealed class FrontendCompositionRootTests
                  {
                      "AddScoped<UiBusyState>",
                      "AddScoped<ThemeState>",
+                     "AddScoped<IAuthSessionInvalidationCoordinator, AuthSessionInvalidationCoordinator>",
                      "AddScoped<CurrentUserState>",
                      "AddScoped<INotificationRealtimeClient, NotificationRealtimeClient>",
                      "AddScoped<NotificationInboxState>",
@@ -54,6 +55,23 @@ public sealed class FrontendCompositionRootTests
 
         Assert.DoesNotContain("Scrutor", services, StringComparison.Ordinal);
         Assert.DoesNotContain("Scan(", services, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SessionInvalidation_IsOwnedByPlatformAuth()
+    {
+        var owner = ReadFrontendSource(
+            "Platform/Auth/AuthSessionInvalidationCoordinator.cs");
+        var legacyPath = Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Frontend",
+            "Blazor",
+            "Services",
+            "AuthSessionInvalidationCoordinator.cs");
+
+        Assert.Contains("namespace gtas_vpp_fe.Platform.Auth;", owner, StringComparison.Ordinal);
+        Assert.False(File.Exists(legacyPath), "Legacy flat session invalidation owner remains.");
     }
 
     [Fact]

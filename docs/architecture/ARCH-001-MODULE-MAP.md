@@ -56,7 +56,7 @@ contract và giảm rủi ro; code mới phải tuân theo ownership logic bên 
 | Settlement | period settlement service/endpoints | settlement request/response contracts under VPP | settlement panels and confirmation journey |
 | Reports | report/insight services and controller | `DTOs/Res/Reports` | reporting pages, charts and exports |
 | Notifications | `Model/Notifications`, notification service/controller/hub | `DTOs/Res/Notifications` | `Features/Notifications/{Api,Realtime,State}`: API client, realtime client và inbox state |
-| Platform | contexts, Unit of Work, SQL helpers, middleware, configuration and Aspire | only framework-neutral contracts truly consumed by both clients | `Platform/Composition` (startup), `Platform/Api` (shared API problem mapping), `Platform/State` (cross-feature state), `Platform/Browser` (browser bridge) |
+| Platform | contexts, Unit of Work, SQL helpers, middleware, configuration and Aspire | only framework-neutral contracts truly consumed by both clients | `Platform/Composition` (startup), `Platform/Api` (shared API problem mapping), `Platform/Auth` (frontend session invalidation), `Platform/State` (cross-feature state), `Platform/Browser` (browser bridge) |
 
 Cross-module writes go through a typed service/use case. Do not add a new generic
 repository/controller or a new project merely to satisfy the diagram. Existing flat
@@ -65,7 +65,8 @@ folders migrate when they are touched by an approved feature task.
 Frontend composition rule: `Program.cs` must remain a short startup outline. Detailed DI registration,
 middleware order và endpoint mapping belong to `src/Frontend/Blazor/Platform/Composition/`; do not put
 feature registrations or raw HTTP setup back into the composition root. Cross-feature browser/runtime
-bridges belong to `Platform/Browser` or `Platform/State`; feature-specific state stays with its feature.
+bridges belong to `Platform/Auth`, `Platform/Browser` or `Platform/State`; feature-specific state stays
+with its feature.
 Typed feature clients belong to `Features/*/Api`; shell/design-system ownership remains in
 `Components/{Layout,DesignSystem}`. Transitional generic transport `Services/APIServices.cs` remains a
 migration-on-touch residual, not the target owner for new feature code.

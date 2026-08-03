@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Platform.Auth;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req;
 using gtas_vpp_shared.DTOs.Req.VPP;

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace gtas_vpp_fe.Services;
+namespace gtas_vpp_fe.Platform.Auth;
 
 public interface IAuthSessionInvalidationCoordinator
 {

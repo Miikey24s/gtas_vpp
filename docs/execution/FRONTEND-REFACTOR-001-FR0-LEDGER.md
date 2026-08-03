@@ -81,6 +81,7 @@ hash/evidence trước slice frontend kế tiếp bị ảnh hưởng.
 | `GlobalClass` | Production consumer bằng 0; class đã xóa | `DELETE_COMPLETE` | Identity dùng `CurrentUserState`; busy dùng `UiBusyState` |
 | `PermissionState` | Route, shell và page permission consumers | `KEEP/MOVED` | `Features/IdentityAccess/State`; UI visibility/navigation; backend/API vẫn enforce authorization |
 | `PermissionRefreshSignal` | `APIServices`, `PermissionState` và focused tests | `MOVED` | `Features/IdentityAccess/State`; signal nội bộ cho 403 refresh, không phải permission authority |
+| `AuthSessionInvalidationCoordinator` | Generic transport gọi khi backend trả 401 | `MOVED` | `Platform/Auth`; one-shot `Scoped` navigation sang logout endpoint để kết thúc đúng circuit/session frontend |
 | `ThemeState` | `App`, `LeftSidebar` | `KEEP` | Platform UI state |
 | `NotificationInboxState` | `MainLayout`, `NotificationCenter` | `KEEP/MIGRATE` | Notifications module |
 | `PeriodSettlementState` | Workspace/panel settlement | `KEEP/MIGRATE` | Settlement module |
