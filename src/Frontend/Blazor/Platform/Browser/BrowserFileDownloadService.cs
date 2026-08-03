@@ -1,6 +1,7 @@
+using gtas_vpp_fe.Services;
 using Microsoft.JSInterop;
 
-namespace gtas_vpp_fe.Services;
+namespace gtas_vpp_fe.Platform.Browser;
 
 public interface IBrowserFileDownloadService
 {

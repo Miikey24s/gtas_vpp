@@ -10,6 +10,7 @@ using gtas_vpp_fe.Features.Requests.Submission;
 using gtas_vpp_fe.Features.Settlement.Api;
 using gtas_vpp_fe.Features.Settlement.State;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Platform.Browser;
 using gtas_vpp_fe.Platform.State;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;

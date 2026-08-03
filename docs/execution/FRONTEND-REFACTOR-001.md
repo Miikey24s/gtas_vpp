@@ -928,6 +928,10 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `bootstrap.min.css` + source map trong app-local distribution. Architecture asset `2/2`, full frontend
   `364/364`, solution Release build sạch; publish tree không còn candidate app-local, Atlas runtime `2/2`,
   account shell + authenticated user menu `2/2`. Bootstrap min CSS vẫn tải qua link canonical, không có 404.
+- FR8A browser-download ownership: chuyển `BrowserFileDownloadService` và interface khỏi `Services` phẳng vào
+  `Platform/Browser`; Reports, Requests và Settlement chỉ consume interface, không tạo stream/JS pipeline cạnh
+  tranh. Architecture/export client focused `18/18`, full frontend `364/364`, solution Release build sạch và
+  real-file export E2E `2/2`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +

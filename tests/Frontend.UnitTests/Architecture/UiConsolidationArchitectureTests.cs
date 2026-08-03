@@ -44,10 +44,12 @@ public sealed class UiConsolidationArchitectureTests
     public void FileDownloadAndSettlementCorrection_HaveOneRuntimeOwner()
     {
         var root = GetFrontendRoot();
-        var serviceRoot = Path.Combine(root, "Services");
-        var downloadServicePath = Path.Combine(serviceRoot, "BrowserFileDownloadService.cs");
+        var browserPlatformRoot = Path.Combine(root, "Platform", "Browser");
+        var downloadServicePath = Path.Combine(browserPlatformRoot, "BrowserFileDownloadService.cs");
         var downloadService = File.ReadAllText(downloadServicePath);
 
+        Assert.Contains("namespace gtas_vpp_fe.Platform.Browser;", downloadService, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "Services", "BrowserFileDownloadService.cs")));
         Assert.Equal(1, downloadService.Split("vppDownload.fromStream", StringSplitOptions.None).Length - 1);
         Assert.Contains("DotNetStreamReference", downloadService, StringComparison.Ordinal);
         Assert.Contains("file.ContentType", downloadService, StringComparison.Ordinal);

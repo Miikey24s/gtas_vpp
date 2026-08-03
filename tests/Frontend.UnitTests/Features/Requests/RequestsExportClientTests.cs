@@ -1,5 +1,6 @@
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Features.Requests.Api;
+using gtas_vpp_fe.Platform.Browser;
 using gtas_vpp_fe.Services;
 using Xunit;
 
