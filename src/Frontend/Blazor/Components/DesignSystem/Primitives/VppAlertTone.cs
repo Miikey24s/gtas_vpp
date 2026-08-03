@@ -1,4 +1,4 @@
-namespace gtas_vpp_fe.Components.Shared;
+namespace gtas_vpp_fe.Components.DesignSystem.Primitives;
 
 public enum VppAlertTone
 {

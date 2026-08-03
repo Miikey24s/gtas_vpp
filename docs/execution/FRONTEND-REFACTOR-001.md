@@ -32,7 +32,7 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `347/347`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `350/350`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
 | Việc làm ngay | FR8A đã xóa endpoint registry zero-consumer. FR7 còn owner chốt correction, sau đó triển khai UX và mutation E2E trước khi đóng wave | [Continuation](#plan-detail-continuation) |
 
@@ -437,7 +437,7 @@ giữ tên rõ và API nhỏ.
 | 13 zero-reference static asset | `DELETE_CANDIDATE` | Xóa một asset slice | Source/docs scan, browser network, App static manifest, screenshot parity |
 | Prefix naming cũ | `MIGRATE_ON_TOUCH` | Rename theo feature, không mass rename | Build + route/path architecture + focused UI tests |
 | 41 raw API literal + `Config` endpoint cluster | `DELETE_COMPLETE` | Typed feature client đã sở hữu endpoint; resolver và global endpoint catalog được xóa ở FR8A | Full usage scan + architecture ratchet + frontend tests/build |
-| `Components/Shared` overlap | `IN_PROGRESS` | Icon/brand/skeleton/column picker đã về DesignSystem; tiếp tục phân loại account-only component theo consumer | Consumer ledger + two-consumer rule |
+| `Components/Shared` overlap | `IN_PROGRESS` | Generic UI đã về đúng DesignSystem layer; Shared chỉ còn `VppLanguageSwitch` và `VppPasswordField` thuộc account flow | Consumer ledger + two-consumer rule |
 | `VppColumnPicker` non-public Radzen reflection | `KEEP/ISOLATED` | Đã chuyển vào DesignSystem composite; architecture test khóa reflection chỉ tồn tại tại owner này | Radzen version + column picker browser test |
 | Global CSS/JS hotspot | `MIGRATE_ON_TOUCH` | Tách theo responsibility gần cuối | DOM/computed-style/interaction/long-session parity |
 | `bin`, `obj`, TestResults, screenshot/trace thô | `LOCAL_CLEANUP` | Giữ ignored, không commit; xóa local khi cần và không có process owner | Process/lock check + path validation |
@@ -895,6 +895,10 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `Components/DesignSystem/Composites`. Reflection vào non-public Radzen `SetVisible/ChangeState` được giữ
   nguyên nhưng architecture test khóa workaround chỉ tồn tại trong component owner này. Focused shared
   foundation `37/37`, full frontend `347/347`, solution Release build sạch; User Administration route pass `1/1`.
+- FR8A generic shared UI: chuyển `VppPageHeader` vào DesignSystem composite và `VppInlineAlert` +
+  `VppAlertTone` vào DesignSystem primitives. Public parameter/markup giữ nguyên, path Shared cũ bị architecture
+  ratchet cấm quay lại. Focused shared/account `64/64`, full frontend `350/350`, solution Release build sạch;
+  Account shell + authenticated NotFound return flow pass `2/2`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +

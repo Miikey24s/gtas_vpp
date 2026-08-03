@@ -147,6 +147,20 @@ public sealed class SharedUiFoundationTests
         Assert.Empty(otherReflectionConsumers);
     }
 
+    [Theory]
+    [InlineData("Primitives", "VppInlineAlert.razor")]
+    [InlineData("Primitives", "VppAlertTone.cs")]
+    [InlineData("Composites", "VppPageHeader.razor")]
+    public void GenericSharedUi_IsOwnedByTheCorrectDesignSystemLayer(
+        string layer,
+        string fileName)
+    {
+        var componentRoot = Path.Combine(GetFrontendRoot(), "Components");
+
+        Assert.True(File.Exists(Path.Combine(componentRoot, "DesignSystem", layer, fileName)));
+        Assert.False(File.Exists(Path.Combine(componentRoot, "Shared", fileName)));
+    }
+
     [Fact]
     public void NotificationState_SeparatesApiRealtimeAndUiStateOwnership()
     {
