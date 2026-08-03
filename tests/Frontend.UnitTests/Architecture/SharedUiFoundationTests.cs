@@ -103,6 +103,20 @@ public sealed class SharedUiFoundationTests
         Assert.False(File.Exists(Path.Combine(componentRoot, "Shared", fileName)));
     }
 
+    [Theory]
+    [InlineData("SkeletonGrid.razor")]
+    [InlineData("SkeletonGrid.razor.css")]
+    [InlineData("SkeletonPage.razor")]
+    [InlineData("SkeletonStatCards.razor")]
+    [InlineData("SkeletonStatCards.razor.css")]
+    public void LoadingPrimitives_AreOwnedByTheDesignSystem(string fileName)
+    {
+        var componentRoot = Path.Combine(GetFrontendRoot(), "Components");
+
+        Assert.True(File.Exists(Path.Combine(componentRoot, "DesignSystem", "Primitives", fileName)));
+        Assert.False(File.Exists(Path.Combine(componentRoot, "Shared", fileName)));
+    }
+
     [Fact]
     public void NotificationState_SeparatesApiRealtimeAndUiStateOwnership()
     {
