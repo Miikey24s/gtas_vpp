@@ -1,7 +1,7 @@
-using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Features.Requests.Drafts;
 using Xunit;
 
-namespace gtas_vpp_fe.Tests.Helpers;
+namespace gtas_vpp_fe.Tests.Features.Requests;
 
 public sealed class OrderDraftStoragePolicyTests
 {

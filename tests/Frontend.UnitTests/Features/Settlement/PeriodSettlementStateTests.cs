@@ -1,4 +1,4 @@
-using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
+using gtas_vpp_fe.Features.Settlement.State;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Xunit;

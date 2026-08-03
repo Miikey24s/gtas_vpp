@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION/REQUEST FACTORY + ORDER EDITOR SESSION + SUBMISSION COORDINATOR + PENDING APPROVAL HELPERS COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 CORE SEAMS + DRAFT/SETTLEMENT STATE OWNERSHIP CLEANUP COMPLETE; CLOSURE DECISIONS PENDING`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -34,7 +34,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `334/334`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft/editor/submission, pending approval mapping và Settlement projection/request mapping đã tách khỏi page | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Các seam chính của FR7 đã tách. Tiếp theo audit đóng FR7: source scan phần orchestration còn lại, chạy gate tổng hợp và chỉ mở thêm slice khi còn hotspot có giá trị rõ | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Draft và Settlement state đã về đúng feature. Tiếp theo gom order export endpoint vào feature client; sau đó chốt rõ correction phải re-preview hay tự refresh trước khi đóng FR7 | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -694,7 +694,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; các seam chính của FR7 đã triển khai; đang audit đóng FR7 trước khi chuyển FR8**.
+- Current status: **FR0–FR6 hoàn tất; FR7 core seams và feature ownership đã triển khai; còn order export owner và một decision correction trước khi đóng wave**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -859,11 +859,18 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `b568d8fc` fail cùng locator/stack trace nên đây vẫn là nợ E2E có sẵn.
 - Backend-review backlog, không sửa trong FR7: pending query hiện luôn gửi default `orderby`, khiến controller
   đi qua nhánh filter/sort in-memory; rà lại khi review `BACKEND-REFACTOR-001` thay vì đổi behavior ở frontend.
+- FR7 feature ownership cleanup: `OrderDraftStoragePolicy` chuyển khỏi `Helpers` vào
+  `Features/Requests/Drafts`; `PeriodSettlementState` chuyển khỏi route component vào
+  `Features/Settlement/State`, DI dùng typed namespace ngắn. Focused state/draft/architecture `39/39`, full
+  frontend `334/334`, solution Release build `0 warning/error`; DS3 Settlement route pass `1/1`.
+- FR7 closure decision: sau confirm/correct, state xóa key và giữ preview; `CanConfirm` vì vậy khóa action cho
+  đến khi có preview mới. Tự động rotate key hoặc re-preview sẽ đổi workflow hiện tại, nên không sửa âm thầm
+  trong behavior-preserving refactor; cần owner chốt `re-preview bắt buộc` hay `tự refresh sau thành công`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: audit đóng FR7 bằng source scan + gate Requests/Settlement tổng hợp; nếu không còn hotspot
-  bắt buộc thì đánh dấu FR7 complete và chuyển FR8 shell/CSS/JS/tests/docs. Không tách thêm Step2 hoặc draft
-  timer nếu chỉ tạo abstraction một-consumer mà không giảm rủi ro/độ khó đọc rõ ràng.
+- Next exact action: gom hai implementation order export trùng endpoint vào feature-owned export client,
+  giữ nguyên download pipeline/MIME/file bytes; sau đó xử lý decision correction và chạy gate đóng FR7.
+  Không tách thêm Step2 hoặc draft timer nếu chỉ tạo abstraction một-consumer mà không giảm rủi ro rõ ràng.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

@@ -236,6 +236,8 @@ public sealed class AtlasWave1ArchitectureTests
         var client = ReadFrontendSource("Features/Settlement/Api/SettlementApiClient.cs");
         var projection = ReadFrontendSource("Features/Settlement/Projection/SettlementWorkspaceProjection.cs");
         var requestFactory = ReadFrontendSource("Features/Settlement/Submission/SettlementRequestFactory.cs");
+        var state = ReadFrontendSource("Features/Settlement/State/PeriodSettlementState.cs");
+        var program = ReadFrontendSource("Program.cs");
 
         Assert.Contains("OnSupplierChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("OnPriceListChangedAsync", page, StringComparison.Ordinal);
@@ -264,6 +266,22 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("PriceListId = priceListId", requestFactory, StringComparison.Ordinal);
         Assert.Contains("SettlementCorrectionReqDTO", requestFactory, StringComparison.Ordinal);
         Assert.Contains("correctionReason.Trim()", requestFactory, StringComparison.Ordinal);
+        Assert.Contains("namespace gtas_vpp_fe.Features.Settlement.State;", state, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<PeriodSettlementState>", program, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "Components.Pages.VPPRequest.Components.PeriodSettlementState",
+            program,
+            StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Frontend",
+            "Blazor",
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "PeriodSettlementState.cs")));
     }
 
     [Fact]
@@ -448,6 +466,7 @@ public sealed class AtlasWave1ArchitectureTests
         var review = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep3.razor");
         var commandClient = ReadFrontendSource("Features/Requests/Api/RequestsCommandClient.cs");
         var draftStore = ReadFrontendSource("Features/Requests/Drafts/OrderDraftStore.cs");
+        var draftPolicy = ReadFrontendSource("Features/Requests/Drafts/OrderDraftStoragePolicy.cs");
         var editorSession = ReadFrontendSource("Features/Requests/Editor/OrderEditorSession.cs");
         var submissionCoordinator = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionCoordinator.cs");
         var submissionFactory = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionRequestFactory.cs");
@@ -490,6 +509,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("localStorage.setItem", draftStore, StringComparison.Ordinal);
         Assert.Contains("localStorage.getItem", draftStore, StringComparison.Ordinal);
         Assert.Contains("OrderDraftStoragePolicy.CanRestore", draftStore, StringComparison.Ordinal);
+        Assert.Contains("namespace gtas_vpp_fe.Features.Requests.Drafts;", draftPolicy, StringComparison.Ordinal);
         Assert.Contains("AddScoped<OrderDraftStore>", program, StringComparison.Ordinal);
         Assert.Contains("AddScoped<OrderSubmissionCoordinator>", program, StringComparison.Ordinal);
         Assert.Contains("OrderSubmissionOperation.Create", submissionCoordinator, StringComparison.Ordinal);
@@ -520,6 +540,13 @@ public sealed class AtlasWave1ArchitectureTests
             "Pages",
             "VPPRequest",
             "OrderCreateContext.cs")));
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Frontend",
+            "Blazor",
+            "Helpers",
+            "OrderDraftStoragePolicy.cs")));
     }
 
     [Fact]

@@ -1,9 +1,8 @@
-namespace gtas_vpp_fe.Helpers;
+namespace gtas_vpp_fe.Features.Requests.Drafts;
 
 /// <summary>
 /// Định nghĩa boundary browser storage cho draft yêu cầu. Key và kiểm tra restore
-/// được scope theo cả user đã xác thực và kỳ bền vững để draft không thể đi qua
-/// ranh giới tài khoản hoặc kỳ nghiệp vụ Việt Nam.
+/// được scope theo user đã xác thực và kỳ nghiệp vụ để draft không đi nhầm context.
 /// </summary>
 public static class OrderDraftStoragePolicy
 {
@@ -28,8 +27,8 @@ public static class OrderDraftStoragePolicy
         return $"{StoragePrefix}{normalizedUserId}.{periodId:N}.{requestType}.{requestId}";
     }
 
-    public static string BuildUserPrefix(string userId)
-        => $"{StoragePrefix}{NormalizeUserId(userId)}.";
+    public static string BuildUserPrefix(string userId) =>
+        $"{StoragePrefix}{NormalizeUserId(userId)}.";
 
     public static bool CanRestore(
         string? draftUserId,
