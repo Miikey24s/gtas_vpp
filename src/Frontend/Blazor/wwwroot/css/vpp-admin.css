@@ -811,20 +811,6 @@
     padding: var(--vpp-space-3) var(--vpp-space-1) 0;
 }
 
-/* Atlas department-summary: toolbar tìm kiếm/lọc trên đầu card danh sách đơn. */
-.vpp-department-data-surface {
-    container-type: inline-size;
-}
-
-.vpp-order-view-clear:disabled {
-    opacity: 0.45;
-    cursor: default;
-}
-
-.vpp-order-view-clear:disabled:hover {
-    background: transparent;
-}
-
 .vpp-price-filterbar {
     margin-bottom: 0;
     padding-block: var(--vpp-space-2);

@@ -118,6 +118,7 @@ Không bắt buộc module có đủ `Pages/Components/Dialogs/Api/State`; chỉ
 | `HistoryWorkspaceShell.razor.css` | Khoảng 1.578 dòng, 301 `::deep` | `MIGRATE_ON_TOUCH` | Tách theo behavior/consumer đã chứng minh, không cắt theo số dòng |
 | Global selector ownership chồng nhau | Sidebar/layout/order/data/admin grid ở nhiều file | `NEEDS_VERIFY` | Selector/computed-style ledger trước move/delete |
 | Legacy `.vpp-atlas-*` selector family trong `vpp-admin.css` | 23 selector/67 occurrence, tracked production consumer bằng 0 | `DELETE_COMPLETE` | Xóa 387 dòng trong FR8A; owner thay thế là History/Pending Approval canonical workspace, có architecture + route-real gate |
+| Legacy order-items selector trong `vpp-admin.css`/`vpp-kpi.css` | 7 nhóm selector cho grid-frame/filter/search/select/clear/footer/department surface, production consumer bằng 0 | `DELETE_COMPLETE` | Xóa 103 dòng trong FR8A; toolbar/filter hiện thuộc `VppOrderItemsSurface.razor.css`; giữ `panel/meta/identity` vì còn consumer thật |
 | `vpp-interactions.js` | 1.165 dòng: dropdown/a11y, theme/download, tabs, sidebar, observer | `MIGRATE` | Split sau lifecycle/re-init/long-session evidence |
 | 6 feature/component JS module nhỏ | 16–192 dòng | `KEEP` | Chỉ module sở hữu listener/observer/resource mới cần explicit dispose/re-init |
 

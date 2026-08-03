@@ -950,8 +950,14 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   Pending Approval đã dùng canonical `HistoryWorkspaceShell`/`PendingApprovalWorkspace`; architecture ratchet
   cấm selector legacy quay lại. Full frontend `366/366`, solution Release build `0 warning/error`; Department
   Summary, Pending Approval và all-28 runtime pass `3/3`. Dark/Print/axe ban đầu timeout tại user-menu action
-  ngoài CSS slice, sau đó pass `1/1` trên fixture mới. `vpp-order-view-*` giữ lại cho audit riêng vì còn
-  assertion legacy.
+  ngoài CSS slice, sau đó pass `1/1` trên fixture mới. Nhóm `vpp-order-view-*` được tách sang slice riêng vì
+  có cả consumer thật và assertion legacy, không xóa gộp cùng Atlas.
+- FR8A retired order-items CSS cleanup: audit tách rõ selector đang dùng `vpp-order-view-panel/meta/identity`
+  với 7 nhóm grid-frame/filter/search/select/clear/footer/department-surface không còn production consumer.
+  Xóa 103 dòng legacy khỏi `vpp-kpi.css`/`vpp-admin.css`; toolbar và filter hiện thuộc scoped owner
+  `VppOrderItemsSurface.razor.css`. Architecture ratchet cấm đúng nhóm đã retire nhưng không cấm ba selector
+  còn dùng. Full frontend `366/366`, solution Release build `0 warning/error`; My Orders responsive, History
+  interaction/scroll parity và Department Summary responsive route-real pass `3/3` trên fixture cô lập.
 - FR8B test-only cleanup: xóa `tests/Frontend.UiTests/Pages/Order/ProductCatalogPage.cs` sau repo-wide scan
   xác nhận chỉ còn declaration, không có consumer. Không sửa production source, test hiện hữu hoặc dirty
   `ProductCatalogTests.cs`; focused Product Catalog route/responsive tests, full frontend `364/364` và

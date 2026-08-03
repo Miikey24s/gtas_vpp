@@ -732,6 +732,7 @@ public sealed class SharedUiFoundationTests
         var submissionFactory = File.ReadAllText(Path.Combine(root, "Features", "Requests", "Submission", "OrderSubmissionRequestFactory.cs"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
         var orderItemsStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.css"));
+        var adminStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
         var kpiStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-kpi.css"));
         var gridStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-datagrid.css"));
         var layoutStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
@@ -790,6 +791,22 @@ public sealed class SharedUiFoundationTests
         Assert.Equal(2, orderItemsSurface.Split("<VppFilterSelect", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("vpp-order-view-filters", orderPanel, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-items-toolbar", orderItemsStyles, StringComparison.Ordinal);
+        var retiredOrderItemsSelectors = new[]
+        {
+            ".vpp-department-data-surface",
+            ".vpp-order-view-grid-frame",
+            ".vpp-order-view-filters",
+            ".vpp-order-view-search",
+            ".vpp-order-view-select",
+            ".vpp-order-view-clear",
+            ".vpp-order-view-data-footer"
+        };
+        var legacyGlobalStyles = $"{adminStyles}{Environment.NewLine}{kpiStyles}";
+        foreach (var retiredSelector in retiredOrderItemsSelectors)
+        {
+            Assert.DoesNotContain(retiredSelector, legacyGlobalStyles, StringComparison.Ordinal);
+        }
+
         Assert.DoesNotContain("vpp-order-card-kind", orderPanel, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-state", source, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"@UsePaging\"", orderItemsSurface, StringComparison.Ordinal);
@@ -806,7 +823,6 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-orders-view-switchbar", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-orders-selected-view", kpiStyles, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-orders-view-tabs", kpiStyles, StringComparison.Ordinal);
-        Assert.Contains(".vpp-order-view-grid-frame", kpiStyles, StringComparison.Ordinal);
         Assert.Contains("min-height: 44px;", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-grid-embedded .rz-grid-table tbody > tr:hover", gridStyles, StringComparison.Ordinal);
         Assert.Contains("tbody > tr:nth-child(even)", gridStyles, StringComparison.Ordinal);
