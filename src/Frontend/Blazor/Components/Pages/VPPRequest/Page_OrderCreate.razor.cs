@@ -1,6 +1,7 @@
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Features.Requests.Api;
+using gtas_vpp_fe.Features.Requests.Drafts;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -11,7 +12,6 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using Radzen;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest
 {
@@ -19,6 +19,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
     {
         [Inject] public RequestsQueryClient Requests { get; set; } = default!;
         [Inject] public RequestsCommandClient Commands { get; set; } = default!;
+        [Inject] public OrderDraftStore Drafts { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
@@ -75,16 +76,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         // P1: BE sở hữu dữ liệu kỳ có thẩm quyền; FE không suy Year/Month từ DateTime.Now.
         public VppPeriodInfoResDTO? PeriodInfo { get; set; }
-
-        private sealed class OrderDraft
-        {
-            public string UserId { get; set; } = string.Empty;
-            public Guid PeriodId { get; set; }
-            public string? Description { get; set; }
-            public string? SupplementReason { get; set; }
-            public List<OrderCreateContext.SelectedItem> Items { get; set; } = new();
-            public DateTime SavedAtUtc { get; set; }
-        }
 
         private PeriodicTimer? _draftAutoSaveTimer;
         private CancellationTokenSource? _draftAutoSaveCts;
@@ -298,10 +289,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     && PeriodInfo?.PeriodId is Guid periodId
                     && periodId != Guid.Empty)
                 {
-                    await JS.InvokeVoidAsync(
-                        "vppDrafts.clearUserExceptPeriod",
+                    await Drafts.ClearOtherPeriodsAsync(
                         CurrentUserId,
-                        periodId.ToString("N"));
+                        periodId);
                 }
                 await TryRestoreDraftAsync();
             }
@@ -542,18 +532,26 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             try
             {
-                var draft = new OrderDraft
+                var draft = new OrderDraftSnapshot
                 {
                     UserId = CurrentUserId,
                     PeriodId = periodId,
                     Description = Context.Description,
                     SupplementReason = Context.SupplementReason,
-                    Items = Context.SelectedItems,
+                    Items = Context.SelectedItems.Select(item => new OrderDraftItemSnapshot
+                    {
+                        VppId = item.VppId,
+                        VppCode = item.VppCode,
+                        VppName = item.VppName,
+                        UomCode = item.UomCode,
+                        UomName = item.UomName,
+                        Qty = item.Qty,
+                        Description = item.Description
+                    }).ToList(),
                     SavedAtUtc = DateTime.UtcNow
                 };
 
-                var json = JsonSerializer.Serialize(draft);
-                await JS.InvokeVoidAsync("localStorage.setItem", storageKey, json);
+                await Drafts.SaveAsync(storageKey, draft);
                 LastDraftSavedAt = draft.SavedAtUtc.ToLocalTime();
                 _draftDirty = false;
 
@@ -583,26 +581,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             try
             {
-                var draftJson = await JS.InvokeAsync<string>("localStorage.getItem", storageKey);
-                if (string.IsNullOrWhiteSpace(draftJson)) return;
-
-                var draft = JsonSerializer.Deserialize<OrderDraft>(draftJson);
-                if (draft == null
-                    || !OrderDraftStoragePolicy.CanRestore(
-                        draft.UserId,
-                        draft.PeriodId,
-                        draft.SavedAtUtc,
-                        CurrentUserId,
-                        periodId,
-                        DateTime.UtcNow))
-                {
-                    await JS.InvokeVoidAsync("localStorage.removeItem", storageKey);
-                    return;
-                }
+                var draft = await Drafts.RestoreAsync(
+                    storageKey,
+                    CurrentUserId,
+                    periodId,
+                    DateTime.UtcNow);
+                if (draft is null) return;
 
                 Context.Description = draft.Description;
                 Context.SupplementReason = draft.SupplementReason;
-                Context.SelectedItems = draft.Items ?? new();
+                Context.SelectedItems = draft.Items.Select(item => new OrderCreateContext.SelectedItem
+                {
+                    VppId = item.VppId,
+                    VppCode = item.VppCode,
+                    VppName = item.VppName,
+                    UomCode = item.UomCode,
+                    UomName = item.UomName,
+                    Qty = item.Qty,
+                    Description = item.Description
+                }).ToList();
                 LastDraftSavedAt = draft.SavedAtUtc.ToLocalTime();
                 DraftRecovered = Context.SelectedItems.Count > 0
                     || !string.IsNullOrWhiteSpace(Context.Description)
@@ -761,7 +758,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     await Commands.CreateAsync(createReq);
                     if (!string.IsNullOrWhiteSpace(DraftStorageKey))
                     {
-                        await JS.InvokeVoidAsync("localStorage.removeItem", DraftStorageKey);
+                        await Drafts.RemoveAsync(DraftStorageKey);
                     }
                 }
 

@@ -409,6 +409,8 @@ public sealed class AtlasWave1ArchitectureTests
         var pageCode = ReadFrontendSource("Components/Pages/VPPRequest/Page_OrderCreate.razor.cs");
         var selection = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep2.razor");
         var commandClient = ReadFrontendSource("Features/Requests/Api/RequestsCommandClient.cs");
+        var draftStore = ReadFrontendSource("Features/Requests/Drafts/OrderDraftStore.cs");
+        var program = ReadFrontendSource("Program.cs");
 
         Assert.Contains("<VppWorkflowStepper", page, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-flow-header", page, StringComparison.Ordinal);
@@ -429,7 +431,16 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("<RadzenDataGrid", selection, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", pageCode, StringComparison.Ordinal);
         Assert.Contains("RequestsCommandClient", pageCode, StringComparison.Ordinal);
+        Assert.Contains("OrderDraftStore", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("JsonSerializer", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("localStorage.setItem", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("localStorage.getItem", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("localStorage.removeItem", pageCode, StringComparison.Ordinal);
+        Assert.Contains("localStorage.setItem", draftStore, StringComparison.Ordinal);
+        Assert.Contains("localStorage.getItem", draftStore, StringComparison.Ordinal);
+        Assert.Contains("OrderDraftStoragePolicy.CanRestore", draftStore, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<OrderDraftStore>", program, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", selection, StringComparison.Ordinal);
         Assert.Contains("VppItemResDTO", selection, StringComparison.Ordinal);
         Assert.Contains("@implements IDisposable", selection, StringComparison.Ordinal);
