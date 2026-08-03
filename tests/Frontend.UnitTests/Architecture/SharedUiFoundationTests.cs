@@ -577,6 +577,7 @@ public sealed class SharedUiFoundationTests
         var codeBehind = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
         var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
         var orderCreate = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Page_OrderCreate.razor.cs"));
+        var submissionCoordinator = File.ReadAllText(Path.Combine(root, "Features", "Requests", "Submission", "OrderSubmissionCoordinator.cs"));
         var submissionFactory = File.ReadAllText(Path.Combine(root, "Features", "Requests", "Submission", "OrderSubmissionRequestFactory.cs"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
         var orderItemsStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.css"));
@@ -621,7 +622,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("RecreateRequested", orderPanel, StringComparison.Ordinal);
         Assert.Contains("RestoreOrder", orderPanel, StringComparison.Ordinal);
         Assert.Contains("RecreateOrder", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("BuildRecreateRequest", orderCreate, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildRecreateRequest", orderCreate, StringComparison.Ordinal);
+        Assert.Contains("BuildRecreateRequest", submissionCoordinator, StringComparison.Ordinal);
         Assert.Contains("VppRequestRecreateReqDTO", submissionFactory, StringComparison.Ordinal);
         Assert.Contains("mode=recreate", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("CanReplace", source, StringComparison.Ordinal);

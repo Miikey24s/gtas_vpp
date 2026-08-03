@@ -7,6 +7,7 @@ using gtas_vpp_fe.Features.Notifications.Realtime;
 using gtas_vpp_fe.Features.Reports.Api;
 using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Features.Requests.Drafts;
+using gtas_vpp_fe.Features.Requests.Submission;
 using gtas_vpp_fe.Features.Settlement.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Platform.State;
@@ -81,6 +82,7 @@ builder.Services.AddScoped<INotificationRealtimeClient, NotificationRealtimeClie
 builder.Services.AddScoped<RequestsQueryClient>();
 builder.Services.AddScoped<RequestsCommandClient>();
 builder.Services.AddScoped<OrderDraftStore>();
+builder.Services.AddScoped<OrderSubmissionCoordinator>();
 builder.Services.AddScoped<SettlementApiClient>();
 builder.Services.AddScoped<IAuthSessionInvalidationCoordinator, AuthSessionInvalidationCoordinator>();
 builder.Services.AddScoped<PermissionRefreshSignal>();

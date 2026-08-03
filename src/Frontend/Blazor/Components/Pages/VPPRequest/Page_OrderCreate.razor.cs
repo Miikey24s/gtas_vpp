@@ -19,7 +19,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
     public partial class Page_OrderCreate : IDisposable
     {
         [Inject] public RequestsQueryClient Requests { get; set; } = default!;
-        [Inject] public RequestsCommandClient Commands { get; set; } = default!;
+        [Inject] public OrderSubmissionCoordinator Submissions { get; set; } = default!;
         [Inject] public OrderDraftStore Drafts { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
@@ -629,6 +629,38 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             catch (OperationCanceledException) { }
         }
 
+        private OrderSubmissionOperation BuildSubmissionOperation(
+            OrderSubmissionSnapshot submission,
+            DateTime period)
+        {
+            if (IsRecreate)
+            {
+                return new OrderSubmissionOperation.Recreate(
+                    submission,
+                    OrderId!.Value,
+                    Editor.IsAdditional,
+                    Editor.RowVersion);
+            }
+
+            if (IsEdit)
+            {
+                return new OrderSubmissionOperation.Update(
+                    submission,
+                    OrderId!.Value,
+                    IsAdditional,
+                    Editor.RowVersion);
+            }
+
+            // Route flag giữ wire payload; session flag giữ context bổ sung đã được hydrate.
+            return new OrderSubmissionOperation.Create(
+                submission,
+                period.Year,
+                period.Month,
+                IsAdditional,
+                Editor.IsAdditional,
+                PeriodInfo!.BaseRequestId);
+        }
+
         public async Task SubmitAsync()
         {
             if (IsSaving || !CanSubmitForPeriod)
@@ -681,49 +713,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         item.Quantity,
                         item.Description)).ToArray());
 
-                if (IsRecreate)
+                var outcome = await Submissions.SubmitAsync(BuildSubmissionOperation(
+                    submission,
+                    period));
+                if (outcome == OrderSubmissionOutcome.Created
+                    && !string.IsNullOrWhiteSpace(DraftStorageKey))
                 {
-                    await Commands.RecreateAsync(
-                        OrderId!.Value,
-                        OrderSubmissionRequestFactory.BuildRecreateRequest(
-                            submission,
-                            Editor.IsAdditional,
-                            Editor.RowVersion));
-                }
-                else if (IsEdit)
-                {
-                    await Commands.UpdateAsync(
-                        OrderId!.Value,
-                        OrderSubmissionRequestFactory.BuildUpdateRequest(
-                            submission,
-                            OrderId.Value,
-                            IsAdditional,
-                            Editor.RowVersion));
-                }
-                else
-                {
-                    await Commands.CreateAsync(OrderSubmissionRequestFactory.BuildCreateRequest(
-                        submission,
-                        period.Year,
-                        period.Month,
-                        IsAdditional,
-                        Editor.IsAdditional,
-                        PeriodInfo.BaseRequestId));
-                    if (!string.IsNullOrWhiteSpace(DraftStorageKey))
-                    {
-                        await Drafts.RemoveAsync(DraftStorageKey);
-                    }
+                    await Drafts.RemoveAsync(DraftStorageKey);
                 }
 
                 Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = Loc["Order"],
-                    Detail = IsRecreate
-                        ? Loc["OrderRecreatedSuccess"]
-                        : IsEdit
-                            ? Loc["OrderUpdatedSuccessfully"]
-                            : Loc["OrderCreatedSuccessfully"],
+                    Detail = outcome switch
+                    {
+                        OrderSubmissionOutcome.Recreated => Loc["OrderRecreatedSuccess"],
+                        OrderSubmissionOutcome.Updated => Loc["OrderUpdatedSuccessfully"],
+                        _ => Loc["OrderCreatedSuccessfully"]
+                    },
                     Duration = 3000
                 });
 

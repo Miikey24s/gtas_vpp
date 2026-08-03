@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION + ORDER EDITOR SESSION COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION + ORDER EDITOR SESSION + SUBMISSION COORDINATOR COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `320/320`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, submission mapping, editor session và Settlement projection/filter đã tách khỏi page | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `324/324`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, editor session, submission mapping/dispatch và Settlement projection/filter đã tách khỏi page | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR7 transport, `OrderDraftStore`, submission request factory, `OrderEditorSession` và Settlement projection đã hoàn tất. Tiếp theo tách `OrderSubmissionCoordinator` nhỏ, giữ toast/navigation ở page | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR7 transport, draft store, editor session, submission factory/coordinator và Settlement projection đã hoàn tất. Tiếp theo tách request factory thuần cho Settlement confirm/correct | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -528,8 +528,9 @@ Tên bên dưới là responsibility guide, không phải yêu cầu tạo đủ
 
 - `RequestsQueryClient`: My Orders, History, Product Catalog, Department Summary, filter values.
 - `RequestsCommandClient`: create/update/cancel/recreate/supplement approve/reject.
-- `OrderEditorSession`: mode, selected items, step và validation UI state.
-- `OrderDraftStore`: local draft serialization/autosave/recovery; không sở hữu submit API.
+- `OrderEditorSession`: selected items, step và validation UI state; route-derived mode vẫn thuộc page.
+- `OrderDraftStore`: local draft serialization/storage/recovery; page giữ timer, dirty flag và notification.
+- `OrderSubmissionCoordinator`: dispatch create/update/recreate và trả outcome typed; không sở hữu toast/navigation.
 - History split theo query/filter/list selection/detail/export; không tạo base class lớn mới.
 
 ### Settlement
@@ -691,7 +692,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory, Settlement projection và Order Editor Session hoàn tất; submission coordination còn tiếp tục**.
+- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory/coordinator, Settlement projection và Order Editor Session hoàn tất; Settlement confirm/correct extraction còn tiếp tục**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -836,11 +837,17 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   toast và navigation. Hai nguồn additional legacy vẫn tách biệt; recreate vẫn khởi tạo danh sách rỗng.
   Focused session/architecture `6/6`, full frontend `320/320`, solution Release build `0 warning/error`;
   isolated edit-cancel-restore và recreate-from-blank lifecycle pass `2/2`.
+- FR7 Order Submission Coordinator: ba operation typed create/update/recreate điều phối factory + command
+  client và trả outcome cho page; period refresh, hai nguồn additional, idempotency key, draft cleanup,
+  localization, toast/log và navigation vẫn ở đúng owner. Coordinator không nuốt transport exception và
+  tiếp tục chấp nhận response nullable như behavior cũ. Focused submission/architecture `11/11`, full
+  frontend `324/324`, solution Release build `0 warning/error`; isolated create supplement,
+  edit-cancel-restore và recreate-from-blank pass `3/3`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tách `OrderSubmissionCoordinator` để điều phối create/update/recreate và trả kết quả
-  typed; page vẫn sở hữu localization, toast/navigation và refresh period. Giữ nguyên period authority,
-  hai nguồn additional, base request, row version, idempotency và chỉ xóa draft sau create thành công.
+- Next exact action: tách factory thuần cho Settlement confirm/correct payload; panel vẫn sở hữu dialog,
+  localization, toast và navigation state. Giữ nguyên `InputHash`, `PriceAsOfUtc`, supplier/price-list,
+  exceptions, correction reason và idempotency behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

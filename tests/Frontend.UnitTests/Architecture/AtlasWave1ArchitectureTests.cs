@@ -418,6 +418,7 @@ public sealed class AtlasWave1ArchitectureTests
         var commandClient = ReadFrontendSource("Features/Requests/Api/RequestsCommandClient.cs");
         var draftStore = ReadFrontendSource("Features/Requests/Drafts/OrderDraftStore.cs");
         var editorSession = ReadFrontendSource("Features/Requests/Editor/OrderEditorSession.cs");
+        var submissionCoordinator = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionCoordinator.cs");
         var submissionFactory = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionRequestFactory.cs");
         var program = ReadFrontendSource("Program.cs");
 
@@ -439,10 +440,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("VppPagingProfiles.LargeWorkingSet", selection, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenDataGrid", selection, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", pageCode, StringComparison.Ordinal);
-        Assert.Contains("RequestsCommandClient", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("RequestsCommandClient", pageCode, StringComparison.Ordinal);
         Assert.Contains("OrderDraftStore", pageCode, StringComparison.Ordinal);
         Assert.Contains("OrderEditorSession", pageCode, StringComparison.Ordinal);
-        Assert.Contains("OrderSubmissionRequestFactory", pageCode, StringComparison.Ordinal);
+        Assert.Contains("OrderSubmissionCoordinator", pageCode, StringComparison.Ordinal);
+        Assert.Contains("BuildSubmissionOperation", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("OrderSubmissionRequestFactory", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("currentStep", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("OrderCreateContext", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", pageCode, StringComparison.Ordinal);
@@ -457,6 +460,11 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("localStorage.getItem", draftStore, StringComparison.Ordinal);
         Assert.Contains("OrderDraftStoragePolicy.CanRestore", draftStore, StringComparison.Ordinal);
         Assert.Contains("AddScoped<OrderDraftStore>", program, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<OrderSubmissionCoordinator>", program, StringComparison.Ordinal);
+        Assert.Contains("OrderSubmissionOperation.Create", submissionCoordinator, StringComparison.Ordinal);
+        Assert.Contains("OrderSubmissionOperation.Update", submissionCoordinator, StringComparison.Ordinal);
+        Assert.Contains("OrderSubmissionOperation.Recreate", submissionCoordinator, StringComparison.Ordinal);
+        Assert.Contains("OrderSubmissionRequestFactory", submissionCoordinator, StringComparison.Ordinal);
         Assert.Contains("BuildCreateRequest", submissionFactory, StringComparison.Ordinal);
         Assert.Contains("BuildUpdateRequest", submissionFactory, StringComparison.Ordinal);
         Assert.Contains("BuildRecreateRequest", submissionFactory, StringComparison.Ordinal);
