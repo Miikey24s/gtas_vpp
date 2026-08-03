@@ -97,6 +97,44 @@ public sealed class SeedDataRbacTests
         await AssertActiveComponentsAsync(context, CanonicalRbac.Employee.GroupId);
     }
 
+    [Fact]
+    public async Task ReferenceRbacSeed_ReconcilesLegacyProcurementMembershipsIntoManager()
+    {
+        await using var context = CreateContext();
+        var now = DateTime.UtcNow;
+        var legacyGroup = new PermissionGroup
+        {
+            Id = CanonicalRbac.LegacyProcurementAdminGroupId,
+            GroupCode = "PROCUREMENT_ADMIN",
+            GroupName = "Legacy procurement admin",
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now
+        };
+        var remappedMembership = CreateMembership(1_001, legacyGroup.Id, now);
+        var existingManagerMembership = CreateMembership(1_002, CanonicalRbac.Manager.GroupId, now);
+        var duplicateLegacyMembership = CreateMembership(1_002, legacyGroup.Id, now);
+        context.PermissionGroups.Add(legacyGroup);
+        context.UserGroupMemberships.AddRange(
+            remappedMembership,
+            existingManagerMembership,
+            duplicateLegacyMembership);
+        await context.SaveChangesAsync();
+
+        await SeedRbacAsync(context);
+
+        Assert.True(legacyGroup.IsDeleted);
+        Assert.False(remappedMembership.IsDeleted);
+        Assert.Equal(CanonicalRbac.Manager.GroupId, remappedMembership.PermissionGroupId);
+        Assert.False(existingManagerMembership.IsDeleted);
+        Assert.True(duplicateLegacyMembership.IsDeleted);
+        Assert.Empty(await context.UserGroupMemberships
+            .Where(membership => !membership.IsDeleted
+                && membership.PermissionGroupId == CanonicalRbac.LegacyProcurementAdminGroupId)
+            .ToListAsync());
+    }
+
     private static VPPMigrationDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<VPPMigrationDbContext>()
@@ -109,6 +147,7 @@ public sealed class SeedDataRbacTests
     {
         await InvokeSeedAsync(context, "SeedPermissionPage");
         await InvokeSeedAsync(context, "SeedPermissionGroup");
+        await InvokeSeedAsync(context, "ReconcileLegacyManagementRoles");
         await InvokeSeedAsync(context, "SeedPermissionComponent");
         await InvokeSeedAsync(context, "SeedPageComponentMapping");
         await InvokeSeedAsync(context, "SeedGroupPageComponentMapping");
@@ -144,6 +183,20 @@ public sealed class SeedDataRbacTests
             CanonicalRbac.GetAllSeedComponents(groupId).Order(StringComparer.Ordinal),
             actual.Order(StringComparer.Ordinal));
     }
+
+    private static UserGroupMembership CreateMembership(int accountId, Guid groupId, DateTime now) =>
+        new()
+        {
+            Id = Guid.NewGuid(),
+            AccountId = accountId,
+            UserId = accountId,
+            PermissionGroupId = groupId,
+            DepartmentId = Guid.NewGuid(),
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now
+        };
 
     private static async Task<(int Groups, int Components, int PageMappings, int GroupMappings)> ReadCountsAsync(
         VPPMigrationDbContext context) =>

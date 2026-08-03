@@ -29,9 +29,9 @@ public sealed class CanonicalPermissionControllerTests
 
         context.PermissionGroups.Add(new PermissionGroup
         {
-            Id = Guid.NewGuid(),
-            GroupCode = "LEGACY_ADMIN",
-            GroupName = "Legacy admin",
+            Id = CanonicalRbac.LegacyProcurementAdminGroupId,
+            GroupCode = "PROCUREMENT_ADMIN",
+            GroupName = "Legacy procurement admin",
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow
         });

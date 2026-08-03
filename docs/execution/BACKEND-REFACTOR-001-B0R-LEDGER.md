@@ -1,7 +1,7 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `PREPARED READ-ONLY — PRODUCTION B0R/B1 CHỜ OWNER UI FINAL ACCEPTANCE`
-- Branch/HEAD khảo sát: `codex/ai-agent-foundation` @ `5b060c4d`
+- Status: `CHARACTERIZATION IN PROGRESS — HTTP/RBAC + FULL VERIFY PASS; PRODUCTION B1 CHỜ OWNER UI FINAL ACCEPTANCE`
+- Slice base: `codex/ai-agent-foundation` @ `69397af9`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -11,21 +11,22 @@
 
 | Mục | Kết luận hiện tại |
 |---|---|
-| Baseline | Preflight PASS; backend unit `473/473`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20`; full backend verify PASS; EF không pending model |
+| Baseline | Focused HTTP/RBAC `23/23`; backend unit `476/476`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20`; full backend verify PASS |
 | Kiến trúc | Giữ `API → Application → Domain`; Shared là wire contract; không tạo project/microservice mới |
 | Xóa an toàn đầu tiên | 5 private `*LegacyAsync` trong `VPPRequestService`, `ObjectHelpers.cs`, `PasswordHelpers.cs` có usage chỉ là declaration |
 | Chưa được xóa | `BaseServices`, `IBaseServices`, `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật |
-| RBAC drift | Canonical hiện có 3 persona; Procurement legacy alias về Manager, nhưng QA fixture còn diagnostic “four personas” và chưa assert trực tiếp legacy group/membership inactive |
-| Documentation drift | `ARCH-001-MODULE-MAP.md` còn residual `SQLController`, trong khi current tree không còn controller/callsite này |
+| RBAC contract | Canonical có 3 persona; Procurement legacy alias về Manager; test đã khóa legacy ID không thuộc persona và không còn group/membership active sau reconciliation |
+| HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
+| Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production đầu tiên | Sau owner UI acceptance: B0R thêm characterization/manifest, rồi B1a-1 xóa dead code nhỏ; không trộn `BaseServices` hoặc localization cutover |
+| Bước production đầu tiên | Sau owner UI acceptance và B0R full PASS: B1a-1 xóa dead code nhỏ; không trộn `BaseServices` hoặc localization cutover |
 
 ## 1. Baseline đã kiểm chứng
 
 | Gate | Kết quả trên HEAD khảo sát |
 |---|---|
 | `./scripts/gtas.cmd preflight -Scope backend` | PASS |
-| `./scripts/gtas.cmd test-backend` | PASS — `473/473` |
+| Backend unit trong full verify | PASS — `476/476` |
 | Integration mặc định | PASS — `14`, skip đúng `6` opt-in LocalDB |
 | `GTAS_QA_SQL_INTEGRATION=1` | PASS — `20/20`, `0` skip |
 | `./scripts/gtas.cmd verify -Scope backend` | PASS — build sạch, unit/integration, EF pending-model, format, vulnerability và Gitleaks |
@@ -48,7 +49,7 @@ HEAD của từng slice.
 
 Generated migration designer/snapshot là schema history, không được phân loại là rác từ line count.
 
-## 3. RBAC/reconciliation characterization còn thiếu
+## 3. RBAC/reconciliation characterization đã khóa
 
 Current contract:
 
@@ -58,14 +59,13 @@ Current contract:
   `Personas` hoặc permission matrix canonical;
 - QA account `Procurement` hiện được map vào `CanonicalRbac.ProcurementAdmin.GroupId`, tức Manager.
 
-Gap cần khóa trong B0R:
+Slice B0R hiện đã khóa:
 
-1. sửa diagnostic `QA fixture requires the four reconciled canonical flat personas.` thành message
-   dựa trên `CanonicalRbac.Personas.Count` hoặc wording không hardcode số;
+1. QA diagnostic derive số persona từ `CanonicalRbac.Personas.Count`;
 2. unit test assert `LegacyProcurementAdminGroupId` không thuộc `Personas`;
-3. LocalDB characterization assert active canonical group count bằng `Personas.Count`;
-4. LocalDB characterization assert không có active `PermissionGroup` mang legacy Procurement ID;
-5. LocalDB characterization assert không có active `UserGroupMembership` trỏ tới legacy Procurement ID.
+3. non-vacuous unit test tạo legacy memberships, rồi chứng minh record được remap/soft-delete đúng;
+4. LocalDB snapshot assert active canonical group count bằng `Personas.Count`;
+5. LocalDB snapshot assert không có active legacy Procurement group hoặc membership sau seed/reseed/reset.
 
 Các assertion này chỉ khóa reconciliation hiện tại; không tạo/xóa role, không đổi permission và không
 chạy data repair thật.
@@ -102,8 +102,8 @@ thẳng khi chưa có DI/transaction characterization.
 
 | Drift | Phân loại | Hướng xử lý |
 |---|---|---|
-| `ARCH-001-MODULE-MAP.md` còn nhắc `SQLController`/Newtonsoft nhưng current tree không còn file/callsite | stale docs | B0R cập nhật module map sau repo-wide search |
-| QA fixture error text hardcode “four personas” | stale diagnostic | sửa cùng RBAC characterization, không đổi seed behavior |
+| Historical `SQLController`/Newtonsoft residual | resolved stale docs | đã gỡ khỏi module map; HTTP surface hiện hành được khóa bằng manifest MVC |
+| QA fixture error text hardcode “four personas” | resolved stale diagnostic | message đã derive từ canonical persona count, không đổi seed behavior |
 | Raw English period action reason trên Shared DTO | presentation coupling on wire | B0R ghi manifest; compatibility slice sau đó thêm reason code typed và FE localization, giữ message cũ trong deprecation window |
 | Một số controller/service vẫn flat và rất lớn | readability/ownership debt | tách theo use case ở B2–B7, không theo số dòng máy móc |
 
@@ -111,19 +111,20 @@ Không nên chỉ dịch trực tiếp raw backend message sang tiếng Việt: 
 string không phải contract ổn định để UI branch. Phương án bền vững là reason code typed + resource phía
 frontend, triển khai additive trước rồi mới retire message khi consumer ledger bằng 0.
 
-## 6. B0R deliverables sau owner UI acceptance
+## 6. B0R deliverables và tiến độ
 
-1. route + HTTP verb + authorization policy manifest cho mọi controller;
-2. representative status/error/JSON/export characterization;
-3. RBAC legacy reconciliation assertions ở mục 3;
-4. generic endpoint/repository consumer ledger;
-5. module/file reading map cập nhật và xóa documentation drift;
-6. chạy unit `473+`, integration default + LocalDB `20/20`, EF zero-delta và full backend verify;
-7. chỉ sau B0R PASS mới mở B1a-1.
+- [x] MVC manifest cho `112` endpoint: route + HTTP verb + effective authorization policy.
+- [ ] Representative status/error/JSON/export characterization còn phải đối chiếu coverage hiện hữu.
+- [x] RBAC legacy reconciliation assertions ở mục 3.
+- [x] Generic endpoint/repository consumer ledger ở mục 4.
+- [x] Module map bỏ residual `SQLController`; reading guide chi tiết còn đồng bộ ở wave tài liệu.
+- [x] Full backend verify PASS; focused `23/23`, unit `476/476`, default integration `14/6 skip`, LocalDB `20/20`, EF zero-delta.
+- [ ] Chỉ sau B0R PASS và owner UI acceptance mới mở B1a-1.
 
 ## 7. Boundary an toàn
 
-- Không sửa production backend trước owner UI final acceptance.
+- Không move/xóa hoặc đổi runtime behavior production backend trước owner UI final acceptance;
+  test, execution record và comment-only cleanup được phép chuẩn bị an toàn.
 - Không đổi Shared wire shape, route, policy, status code, database schema hoặc migration trong B0R.
 - Không stage/overwrite các dirty file ngoài scope được liệt kê trong continuation record.
 - Nếu B1 phát hiện schema/data change thật, dừng backend refactor record và chuyển sang DB-safety

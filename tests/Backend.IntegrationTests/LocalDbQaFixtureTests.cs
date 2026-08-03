@@ -206,6 +206,8 @@ public sealed class LocalDbQaFixtureTests
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [sys].[procedures] WHERE [name] = N'sp_Authen_Login';", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[AspNetUsers] WHERE [Id] BETWEEN 1000001001 AND 1000001006 AND [AccountStatus] = N'Active';", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[PermissionGroups] WHERE [Id] IN ({canonicalGroupIds}) AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[PermissionGroups] WHERE [Id] = '{CanonicalRbac.LegacyProcurementAdminGroupId:D}' AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[UserGroupMemberships] WHERE [PermissionGroupId] = '{CanonicalRbac.LegacyProcurementAdminGroupId:D}' AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[UserGroupMemberships] WHERE [AccountId] BETWEEN 1000001001 AND 1000001006 AND [UserId] = [AccountId] AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Periods] WHERE [Id] = '20000000-0000-0000-0000-000000000001' AND [MemberCompanyCode] = N'77500' AND [State] = 0 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[Periods] WHERE [Id] = '{QaTestData.PreviousSettlementPeriodId:D}' AND [MemberCompanyCode] = N'77500' AND [State] = {(int)BackendPeriodState.Pricing} AND [IsDeleted] = 0;", cancellationToken),
@@ -223,6 +225,8 @@ public sealed class LocalDbQaFixtureTests
         Assert.Equal(0, snapshot.LegacyLoginStoredProcedure);
         Assert.Equal(6, snapshot.Accounts);
         Assert.Equal(CanonicalRbac.Personas.Count, snapshot.RequiredRoles);
+        Assert.Equal(0, snapshot.ActiveLegacyProcurementGroups);
+        Assert.Equal(0, snapshot.ActiveLegacyProcurementMemberships);
         Assert.Equal(6, snapshot.UserRoleMappings);
         Assert.Equal(1, snapshot.CurrentPeriods);
         Assert.Equal(1, snapshot.SettlementPeriods);
@@ -279,6 +283,8 @@ public sealed class LocalDbQaFixtureTests
         int LegacyLoginStoredProcedure,
         int Accounts,
         int RequiredRoles,
+        int ActiveLegacyProcurementGroups,
+        int ActiveLegacyProcurementMemberships,
         int UserRoleMappings,
         int CurrentPeriods,
         int SettlementPeriods,

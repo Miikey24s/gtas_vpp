@@ -535,7 +535,7 @@ namespace gtas_vpp_be.Service.Services
         }
 
         // ════════════════════════════════════════════════════════════
-        //  Nhóm quyền (PermissionGroup) — 2 group.
+        //  Nhóm quyền (PermissionGroup) — các persona canonical hiện hành.
         // ════════════════════════════════════════════════════════════
         private static async Task SeedPermissionGroup(VPPMigrationDbContext context)
         {
@@ -841,7 +841,7 @@ namespace gtas_vpp_be.Service.Services
 
         // ════════════════════════════════════════════════════════════
         //  Ánh xạ group-page-component (GroupPageComponentMapping).
-        //  Quyền action và UI chính xác cho bốn persona canonical.
+        //  Quyền action và UI chính xác cho các persona canonical.
         // ════════════════════════════════════════════════════════════
         private static async Task SeedGroupPageComponentMapping(VPPMigrationDbContext context)
         {

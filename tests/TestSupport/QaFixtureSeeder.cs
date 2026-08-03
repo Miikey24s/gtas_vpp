@@ -140,7 +140,7 @@ internal static class QaFixtureSeeder
         if (!isCanonical)
         {
             throw new InvalidOperationException(
-                "QA fixture requires the four reconciled canonical flat personas.");
+                $"QA fixture requires {CanonicalRbac.Personas.Count} reconciled canonical flat personas.");
         }
     }
 

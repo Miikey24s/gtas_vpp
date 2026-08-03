@@ -130,11 +130,13 @@ are case-insensitive. Standardizing every JSON call is a separate compatibility 
 These findings are intentionally not fixed by ARCH-001 because they change behavior
 or require a larger compatibility cutover.
 
+Current-tree refresh `2026-08-04`: historical `SQLController` no longer exists and has no callsite;
+the B0R HTTP manifest now locks the active controller surface instead of keeping that stale residual.
+
 | Residual | Risk | Follow-up owner |
 |---|---|---|
 | FE user-group request omits department while BE upsert expects it; an update can clear the department | authorization data integrity | AUTH-001/AUTH-002, with controller and contract tests |
 | Duplicate Auth/Permission request and response DTO families | silent shape divergence | AUTH-001 migration to one canonical permission contract |
-| `SQLController` mixes Newtonsoft serialization with `Ok(string)` | possible double-encoded JSON | ARCH-002 typed endpoint migration |
 | DTOs contain no-op disposal patterns and several apparently dead contracts | public-surface clutter | ARCH-002, only after consumer/public API audit |
 | Some response/wire DTOs expose formatted/computed display fields | locale and presentation coupling on the wire | UI/API compatibility task; preserve for now |
 | Money uses both `long` and `decimal`; `DateTime` semantics are not uniform | precision/time-zone ambiguity | PRICE/SET/ARCH tasks with migration and API compatibility plan |

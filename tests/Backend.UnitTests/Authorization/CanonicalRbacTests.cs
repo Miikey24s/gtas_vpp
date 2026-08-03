@@ -21,6 +21,14 @@ public sealed class CanonicalRbacTests
     }
 
     [Fact]
+    public void Personas_ExcludeLegacyProcurementGroup()
+    {
+        Assert.DoesNotContain(
+            CanonicalRbac.LegacyProcurementAdminGroupId,
+            CanonicalRbac.Personas.Select(persona => persona.GroupId));
+    }
+
+    [Fact]
     public void PermissionCatalog_ContainsOnlyExplicitBackendActions()
     {
         Assert.Equal(
