@@ -1,7 +1,12 @@
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
+using gtas_vpp_shared.DTOs.Req;
+using gtas_vpp_shared.DTOs.Res.Auth;
+using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_test_support;
 using Microsoft.Playwright;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using Xunit;
 
@@ -106,8 +111,18 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         await Page.GetByText("Không có mục chờ", new() { Exact = false }).WaitForAsync();
         await Page.GetByText("Không có đơn bổ sung nào cần duyệt.", new() { Exact = false }).WaitForAsync();
 
-        await AssertSupplementEndStateAsync(TestAccounts.Employee, "Đã duyệt", ApprovalReason, "Duyệt đơn");
-        await AssertSupplementEndStateAsync(TestAccounts.DepartmentPeer, "Đã từ chối", RejectionReason, "Từ chối đơn");
+        await AssertSupplementEndStateAsync(
+            TestAccounts.Employee,
+            "Đã duyệt",
+            ApprovalReason,
+            "APPROVE",
+            ApprovalReason);
+        await AssertSupplementEndStateAsync(
+            TestAccounts.DepartmentPeer,
+            "Đã từ chối",
+            RejectionReason,
+            "REJECT",
+            ManagerRejectionReason);
 
         failedRequests.Should().BeEmpty();
         consoleErrors.Should().BeEmpty();
@@ -356,7 +371,8 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         QaTestAccount account,
         string expectedStatus,
         string creationReason,
-        string expectedDecisionAction)
+        string expectedDecisionAction,
+        string expectedDecisionReason)
     {
         await SwitchUserAsync(account);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=0&orderView=supplement");
@@ -366,10 +382,73 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
         await supplementCard.GetByText(expectedStatus, new() { Exact = true }).WaitForAsync();
 
         await supplementCard.Locator("button[title='Xem lịch sử phiên bản']").ClickAsync();
-        var historyDialog = Page.Locator(".rz-dialog:visible").Last;
-        await historyDialog.GetByText("Vòng đời đơn yêu cầu", new() { Exact = false }).WaitForAsync();
-        await historyDialog.GetByText(creationReason, new() { Exact = false }).First.WaitForAsync();
-        await historyDialog.GetByText(expectedDecisionAction, new() { Exact = false }).WaitForAsync();
-        await historyDialog.GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true }).ClickAsync();
+        await WaitForUrlMatchAsync(
+            new Regex(".*/dashboard\\?tab=1&orderId=.*", RegexOptions.IgnoreCase),
+            TimeSpan.FromSeconds(120));
+
+        var orderId = ReadOrderIdFromHistoryUrl(Page.Url);
+        var drawer = Page.Locator(".vpp-history-drawer");
+        await drawer.Locator(".vpp-history-drawer-code h2").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible
+        });
+        await drawer.Locator(".vpp-history-drawer-summary").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible
+        });
+        await Page.WaitForFunctionAsync(
+            "() => document.activeElement?.classList.contains('vpp-history-drawer')");
+
+        (await drawer.Locator(".vpp-history-order-note p").InnerTextAsync())
+            .Should().Contain(creationReason);
+        (await drawer.Locator(".vpp-history-drawer-code .vpp-status-badge").InnerTextAsync())
+            .Should().Contain(expectedStatus);
+
+        var history = await GetOrderHistoryAsync(account, orderId);
+        history.CurrentRequestId.Should().Be(orderId);
+        history.Timeline.Should().Contain(
+            item => item.Action == "CREATE" && item.Reason == creationReason,
+            "the supplement reason must remain in its immutable creation event");
+        history.Timeline.Should().Contain(
+            item => item.Action == expectedDecisionAction && item.Reason == expectedDecisionReason,
+            "the final decision must remain queryable from the request audit endpoint");
+    }
+
+    private async Task<VppRequestHistoryResDTO> GetOrderHistoryAsync(QaTestAccount account, Guid orderId)
+    {
+        BackendBaseUrl.Should().NotBeNullOrWhiteSpace();
+        using var client = new HttpClient { BaseAddress = new Uri(BackendBaseUrl!) };
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/Auth/login",
+            new AuthenticationLoginRequest(account.Username, account.Password),
+            TestContext.Current.CancellationToken);
+        loginResponse.EnsureSuccessStatusCode();
+
+        var login = await loginResponse.Content.ReadFromJsonAsync<AuthenticationResultDTO>(
+            TestContext.Current.CancellationToken);
+        login?.AccessToken.Should().NotBeNullOrWhiteSpace();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            login!.AccessToken);
+
+        return await client.GetFromJsonAsync<VppRequestHistoryResDTO>(
+                   $"/api/VPPRequest/orders/{orderId:D}/history",
+                   TestContext.Current.CancellationToken)
+               ?? throw new InvalidOperationException(
+                   $"Order history endpoint returned no payload for '{orderId:D}'.");
+    }
+
+    private static Guid ReadOrderIdFromHistoryUrl(string url)
+    {
+        var match = Regex.Match(
+            url,
+            "[?&]orderId=(?<id>[0-9a-f-]{36})(?:&|$)",
+            RegexOptions.IgnoreCase);
+        if (!match.Success || !Guid.TryParse(match.Groups["id"].Value, out var orderId))
+        {
+            throw new InvalidOperationException($"History deep-link did not contain a valid orderId. URL: {url}");
+        }
+
+        return orderId;
     }
 }
