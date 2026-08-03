@@ -22,7 +22,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public PermissionState PermissionState { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
-        [Inject] public IBrowserFileDownloadService FileDownloads { get; set; } = default!;
+        [Inject] public RequestsExportClient Exports { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [SupplyParameterFromQuery(Name = "orderView")] public string? OrderViewQuery { get; set; }
 
@@ -347,8 +347,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             ExportingOrderFormat = format;
             try
             {
-                var result = await FileDownloads.DownloadFromApiAsync(
-                    $"{Config.VppApi.Orders}/{row.Id}/{format.ApiSuffix()}");
+                var result = await Exports.ExportOrderAsync(row.Id, format);
                 Toast.Success(Loc["Order"], Loc["ExportCompleted", result.FileName, FileSizeFormatter.Format(result.Size)]);
             }
             catch (Exception ex)

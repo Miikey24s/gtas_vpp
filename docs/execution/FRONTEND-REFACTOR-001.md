@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 CORE SEAMS + DRAFT/SETTLEMENT STATE OWNERSHIP CLEANUP COMPLETE; CLOSURE DECISIONS PENDING`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 CORE SEAMS + TARGETED OWNERSHIP + ORDER EXPORT COMPLETE; CORRECTION DECISION PENDING`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `334/334`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft/editor/submission, pending approval mapping và Settlement projection/request mapping đã tách khỏi page | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `338/338`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Draft và Settlement state đã về đúng feature. Tiếp theo gom order export endpoint vào feature client; sau đó chốt rõ correction phải re-preview hay tự refresh trước khi đóng FR7 | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Order export đã về feature client và aggregate source gate đã khóa. Còn chốt correction phải re-preview thủ công hay tự refresh trước khi đóng FR7 | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -528,6 +528,7 @@ Tên bên dưới là responsibility guide, không phải yêu cầu tạo đủ
 
 - `RequestsQueryClient`: My Orders, History, Product Catalog, Department Summary, filter values.
 - `RequestsCommandClient`: create/update/cancel/recreate/supplement approve/reject.
+- `RequestsExportClient`: endpoint order PDF/XLSX trên download pipeline dùng chung.
 - `OrderEditorSession`: selected items, step và validation UI state; route-derived mode vẫn thuộc page.
 - `OrderDraftStore`: local draft serialization/storage/recovery; page giữ timer, dirty flag và notification.
 - `OrderSubmissionCoordinator`: dispatch create/update/recreate và trả outcome typed; không sở hữu toast/navigation.
@@ -694,7 +695,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 core seams và feature ownership đã triển khai; còn order export owner và một decision correction trước khi đóng wave**.
+- Current status: **FR0–FR6 hoàn tất; FR7 core seams, targeted ownership và export owner đã triển khai; chỉ còn decision correction trước khi đóng wave**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -866,11 +867,16 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 - FR7 closure decision: sau confirm/correct, state xóa key và giữ preview; `CanConfirm` vì vậy khóa action cho
   đến khi có preview mới. Tự động rotate key hoặc re-preview sẽ đổi workflow hiện tại, nên không sửa âm thầm
   trong behavior-preserving refactor; cần owner chốt `re-preview bắt buộc` hay `tự refresh sau thành công`.
+- FR7 order export owner: hai route không còn lặp `Config.VppApi.Orders`; `RequestsExportClient` sở hữu
+  endpoint/suffix còn `IBrowserFileDownloadService` tiếp tục stream đúng pipeline. Aggregate architecture gate
+  quét toàn bộ `Components/Pages/VPPRequest` cấm generic transport, direct download service và raw API/config
+  endpoint. Focused `11/11`, full frontend `338/338`, solution Release build `0 warning/error`; isolated Order
+  Exports tải file thật pass `1/1`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: gom hai implementation order export trùng endpoint vào feature-owned export client,
-  giữ nguyên download pipeline/MIME/file bytes; sau đó xử lý decision correction và chạy gate đóng FR7.
-  Không tách thêm Step2 hoặc draft timer nếu chỉ tạo abstraction một-consumer mà không giảm rủi ro rõ ràng.
+- Next exact action: owner chốt correction workflow: `re-preview bắt buộc` (giữ behavior, cần copy/disabled-state
+  rõ hơn) hoặc `tự refresh preview + key sau confirm/correct` (đổi behavior nhưng dùng được ngay). Sau decision,
+  chạy gate đóng FR7. Không tách thêm Step2/draft timer chỉ vì LOC.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

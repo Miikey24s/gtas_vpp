@@ -82,6 +82,7 @@ builder.Services.AddScoped<NotificationApiClient>();
 builder.Services.AddScoped<INotificationRealtimeClient, NotificationRealtimeClient>();
 builder.Services.AddScoped<RequestsQueryClient>();
 builder.Services.AddScoped<RequestsCommandClient>();
+builder.Services.AddScoped<RequestsExportClient>();
 builder.Services.AddScoped<OrderDraftStore>();
 builder.Services.AddScoped<OrderSubmissionCoordinator>();
 builder.Services.AddScoped<SettlementApiClient>();

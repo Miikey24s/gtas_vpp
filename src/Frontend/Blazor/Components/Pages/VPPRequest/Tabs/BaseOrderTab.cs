@@ -34,7 +34,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] protected RequestsQueryClient Requests { get; set; } = default!;
         [Inject] protected IStringLocalizer<App> BaseLoc { get; set; } = default!;
         [Inject] protected IToastService Toast { get; set; } = default!;
-        [Inject] protected IBrowserFileDownloadService FileDownloads { get; set; } = default!;
+        [Inject] protected RequestsExportClient Exports { get; set; } = default!;
         [Inject] protected PermissionState PermissionState { get; set; } = default!;
         [Inject] protected Microsoft.JSInterop.IJSRuntime JSRuntime { get; set; } = default!;
 
@@ -301,8 +301,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             ExportingOrderFormat = format;
             try
             {
-                var result = await FileDownloads.DownloadFromApiAsync(
-                    $"{Config.VppApi.Orders}/{row.Id}/{format.ApiSuffix()}");
+                var result = await Exports.ExportOrderAsync(row.Id, format);
                 Toast.Success(BaseLoc["Order"], BaseLoc["ExportCompleted", result.FileName, FileSizeFormatter.Format(result.Size)]);
             }
             catch (Exception ex)

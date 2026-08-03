@@ -10,8 +10,8 @@ public interface IBrowserFileDownloadService
 }
 
 /// <summary>
-/// Entry point duy nhất cho download file từ Blazor Server. Route vẫn sở hữu
-/// endpoint, permission và feedback; service chỉ sở hữu transport API → browser.
+/// Entry point duy nhất cho download file từ Blazor Server. Feature client sở hữu
+/// endpoint; route giữ permission/feedback, service chỉ sở hữu transport API → browser.
 /// </summary>
 public sealed class BrowserFileDownloadService(
     IAPIServices apiServices,

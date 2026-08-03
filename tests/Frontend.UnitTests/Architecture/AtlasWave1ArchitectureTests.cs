@@ -558,6 +558,8 @@ public sealed class AtlasWave1ArchitectureTests
         var historyCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/HistoryOrderWorkspaceTabBase.cs");
         var historyDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor");
         var requestsClient = ReadFrontendSource("Features/Requests/Api/RequestsQueryClient.cs");
+        var exportClient = ReadFrontendSource("Features/Requests/Api/RequestsExportClient.cs");
+        var program = ReadFrontendSource("Program.cs");
         // Sau C-7, hai grid của màn Lịch sử nằm trong hai component con thay vì Tab_History.razor.
         var historyOrders = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderList.razor");
         var historyDetail = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderDetailSheet.razor");
@@ -569,6 +571,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("PreviousOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", ordersCode, StringComparison.Ordinal);
         Assert.Contains("RequestsCommandClient", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsExportClient", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("RequestsExportClient", baseOrderTab, StringComparison.Ordinal);
+        Assert.DoesNotContain("IBrowserFileDownloadService", ordersCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IBrowserFileDownloadService", baseOrderTab, StringComparison.Ordinal);
+        Assert.DoesNotContain("Config.VppApi.Orders", ordersCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Config.VppApi.Orders", baseOrderTab, StringComparison.Ordinal);
         Assert.DoesNotContain("GetFromApi", ordersCode, StringComparison.Ordinal);
         Assert.DoesNotContain("PostFromApi", ordersCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", ordersCode, StringComparison.Ordinal);
@@ -578,12 +586,57 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("IAPIServices", historyDialog, StringComparison.Ordinal);
         Assert.Contains("GetHistoryOrdersAsync", requestsClient, StringComparison.Ordinal);
         Assert.Contains("GetOrderFilterValuesAsync", requestsClient, StringComparison.Ordinal);
+        Assert.Contains("/api/VPPRequest/orders", exportClient, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportFormat.Pdf => \"export.pdf\"", exportClient, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportFormat.Excel => \"export.xlsx\"", exportClient, StringComparison.Ordinal);
+        Assert.Contains("ArgumentOutOfRangeException", exportClient, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<RequestsExportClient>", program, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", orders, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"true\"", historyOrders, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDetail, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.Workspace", detail, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"@UsePaging\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("AllowVirtualization=\"false\"", orderItemsSurface, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VppRequestPages_DoNotOwnTransportOrApiEndpointLiterals()
+    {
+        var pagesRoot = Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Frontend",
+            "Blazor",
+            "Components",
+            "Pages",
+            "VPPRequest");
+        var forbidden = new[]
+        {
+            "IAPIServices",
+            "IHttpClientFactory",
+            "IBrowserFileDownloadService",
+            "/api/",
+            "Config.VppApi",
+            "Config.RequestApi",
+            "Config.LibraryApi"
+        };
+        var violations = Directory
+            .EnumerateFiles(pagesRoot, "*.*", SearchOption.AllDirectories)
+            .Where(path => path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase))
+            .Select(path => new
+            {
+                Path = Path.GetRelativePath(pagesRoot, path),
+                Source = File.ReadAllText(path)
+            })
+            .SelectMany(file => forbidden
+                .Where(token => file.Source.Contains(token, StringComparison.Ordinal))
+                .Select(token => $"{file.Path}: {token}"))
+            .ToArray();
+
+        Assert.True(
+            violations.Length == 0,
+            $"VPP request pages must use feature-owned clients: {string.Join(", ", violations)}");
     }
 
     [Fact]
