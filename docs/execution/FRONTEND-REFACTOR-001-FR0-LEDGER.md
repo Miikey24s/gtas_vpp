@@ -146,7 +146,7 @@ chrome, không phải elevation shadow. Không nới selector global và không 
 | Empty `Dispose()` ở Item/Department Library | `DELETE` | Không sở hữu resource |
 | Product Catalog parameter `claims` | `DELETE` | Được truyền nhưng không đọc |
 | Product Catalog nested `ProductItem`, `CategoryItem` | `MERGE` | Trùng subset Shared DTO; chọn Shared DTO hoặc projection có mapping rõ |
-| `ProductCatalogPage` test page object | `DELETE` | Repo scan chỉ thấy declaration |
+| `ProductCatalogPage` test page object | `DELETE_COMPLETE` | Repo scan chỉ thấy declaration; đã xóa trong FR8B focused slice, không có consumer |
 | `GlobalStorageModel`/Sidebar legacy storage chain | `NEEDS_VERIFY` | Cần kiểm compatibility với browser storage key cũ |
 | `VppInlineAlert` và `VppInlineNotice` | `MERGE_NEEDS_VERIFY` | Visual gần nhau nhưng copy/consumer contract khác |
 

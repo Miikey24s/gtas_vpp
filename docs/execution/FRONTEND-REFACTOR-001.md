@@ -945,6 +945,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `::deep` vì switch là child component và ghi rõ lý do bằng comment tiếng Việt ngắn. Architecture focused
   `1/1`, full frontend `364/364`, solution Release build `0 warning/error`; Lookup màu track/thumb và
   User Administration responsive route-real pass `2/2` trên fixture cô lập.
+- FR8B test-only cleanup: xóa `tests/Frontend.UiTests/Pages/Order/ProductCatalogPage.cs` sau repo-wide scan
+  xác nhận chỉ còn declaration, không có consumer. Không sửa production source, test hiện hữu hoặc dirty
+  `ProductCatalogTests.cs`; focused Product Catalog route/responsive tests, full frontend `364/364` và
+  Release build giữ nguyên. Đây là deletion độc lập để giảm page-object rác, không đổi discovered test name
+  hay assertion intent.
 - FR8C code-reading sync: cập nhật `docs/CODE-READING-GUIDE.md` và `docs/architecture/ARCH-001-MODULE-MAP.md`
   theo feature/platform ownership hiện tại (`Program` composition, `Platform/State`, `Platform/Browser`,
   `Notifications/State`, account components), sửa reference `CurrentUserState` và bỏ test-count cũ. Đây là
