@@ -4,49 +4,6 @@ namespace gtas_vpp_fe.Helpers
     {
         // Cấu hình HTTP client.
         public const string HttpClientName = "VPP_API";
-        public const string ApiBase = "/api";
-        public const string ApiLibraryBase = "/api/Library";
-        public const string ApiCatalogItems = "/api/catalog/items";
-        public const string ApiVppBase = "/api/VPPRequest";
-
-        public static class VppApi
-        {
-            public const string ApiVppBase = "/api/VPPRequest";
-            public const string Categories = $"{ApiVppBase}/categories";
-            public const string Products = $"{ApiVppBase}/products";
-            public const string MyOrders = $"{ApiVppBase}/my-orders";
-            public const string MyOrdersSummary = $"{ApiVppBase}/my-orders-summary";
-            public const string MyOrderHistory = $"{ApiVppBase}/my-order-history";
-            public const string MyOrderHistorySummary = $"{ApiVppBase}/my-order-history-summary";
-            public const string DepartmentOrderHistory = $"{ApiVppBase}/department-order-history";
-            public const string DepartmentOrderHistorySummary = $"{ApiVppBase}/department-order-history-summary";
-            public const string DepartmentOrders = $"{ApiVppBase}/department-orders";
-            public const string Orders = $"{ApiVppBase}/orders";
-            public const string PreviousItems = $"{ApiVppBase}/orders/previous-items";
-            public const string PendingAdditional = $"{ApiVppBase}/additional-orders/pending";
-        }
-
-        public static class LibraryApi
-        {
-            public const string LookupCategories = $"{ApiLibraryBase}/lookup-categories";
-            public const string LookupValues = $"{ApiLibraryBase}/lookup-values";
-            public const string VppCategories = $"{ApiLibraryBase}/vpp-categories";
-            public const string VppItems = $"{ApiLibraryBase}/vpp-items";
-            public const string Suppliers = $"{ApiLibraryBase}/suppliers";
-            public const string SupplierProductMappings = $"{ApiLibraryBase}/supplier-product-mappings";
-            public const string Departments = $"{ApiLibraryBase}/departments";
-            public const string VPPPriceBase = $"{ApiBase}/vppprice";
-            public const string VPPPrice_ByVpp = $"{VPPPriceBase}/by-vpp";
-            public const string VPPPrice_BySupplier = $"{VPPPriceBase}/by-supplier";
-            public const string VPPPrice_ItemPrices = $"{VPPPriceBase}/item-prices";
-            public const string VPPPrice_SetDefault = $"{VPPPriceBase}/{{0}}/set-default";
-            public const string PriceList = $"{ApiBase}/vpppricelist";
-            public const string PriceList_SetDefault = $"{PriceList}/{{0}}/set-default";
-            public const string PriceList_Clone = $"{PriceList}/clone";
-            public const string PriceList_Publish = $"{PriceList}/{{0}}/publish";
-            public const string PriceList_Expire = $"{PriceList}/{{0}}/expire";
-            public const string PriceList_Compare = $"{PriceList}/compare";
-        }
 
         // Cấu hình route.
         public const string LoginPagePath = "/Account/Login";

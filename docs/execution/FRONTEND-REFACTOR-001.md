@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 CORE SEAMS + TARGETED OWNERSHIP + ORDER EXPORT COMPLETE; CORRECTION DECISION PENDING`
+- Status: `IN PROGRESS — FR0–FR6 COMPLETE; FR7 STRUCTURE COMPLETE, CORRECTION UX/E2E PENDING; FR8A PROVEN CLEANUP STARTED`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -34,7 +34,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `338/338`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Order export đã về feature client và aggregate source gate đã khóa. Còn chốt correction phải re-preview thủ công hay tự refresh trước khi đóng FR7 | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR8A đã xóa endpoint registry zero-consumer. FR7 còn owner chốt correction, sau đó triển khai UX và mutation E2E trước khi đóng wave | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -436,7 +436,7 @@ giữ tên rõ và API nhỏ.
 | `Newtonsoft.Json` + Serilog package family | `DELETE_CANDIDATE/NEEDS_AUDIT` | Bỏ package/using không dùng | `dotnet list package --include-transitive`, build, deploy/health smoke |
 | 13 zero-reference static asset | `DELETE_CANDIDATE` | Xóa một asset slice | Source/docs scan, browser network, App static manifest, screenshot parity |
 | Prefix naming cũ | `MIGRATE_ON_TOUCH` | Rename theo feature, không mass rename | Build + route/path architecture + focused UI tests |
-| 41 raw API literal + `Config` endpoint cluster | `MIGRATE_ON_TOUCH` | Chuyển vào feature client | Request URL/headers/status characterization |
+| 41 raw API literal + `Config` endpoint cluster | `DELETE_COMPLETE` | Typed feature client đã sở hữu endpoint; resolver và global endpoint catalog được xóa ở FR8A | Full usage scan + architecture ratchet + frontend tests/build |
 | `Components/Shared` overlap | `NEEDS_AUDIT` | Move/merge theo ownership và consumer | Consumer ledger + two-consumer rule |
 | `VppColumnPicker` non-public Radzen reflection | `KEEP/ISOLATE` | Ghi compatibility note, focused test, review khi nâng Radzen | Radzen version + column picker browser test |
 | Global CSS/JS hotspot | `MIGRATE_ON_TOUCH` | Tách theo responsibility gần cuối | DOM/computed-style/interaction/long-session parity |
@@ -695,7 +695,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 core seams, targeted ownership và export owner đã triển khai; chỉ còn decision correction trước khi đóng wave**.
+- Current status: **FR0–FR6 hoàn tất; FR7 structural ownership đã triển khai; correction UX + mutation E2E còn pending. FR8A đã bắt đầu bằng cleanup zero-consumer độc lập**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -877,11 +877,17 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   contract đã coi đây là abort hợp lệ. Sau khi thêm đúng path + đúng failure type, toàn bộ Atlas runtime pass
   `2/2`: 28 màn × 4 viewport, representative Dark/Print/axe. Đây là evidence kỹ thuật mới, chưa thay owner
   visual acceptance và chưa tạo golden baseline.
+- FR8A endpoint authority cleanup: `LibraryEndpointResolver` và test chỉ còn tự tham chiếu sau khi mọi
+  consumer đã chuyển sang typed feature client. Xóa resolver cùng `Config.VppApi`, `Config.LibraryApi` và
+  bốn API base constant zero-consumer; thêm architecture ratchet cấm `Config` sở hữu endpoint catalog.
+  Full usage scan không còn production consumer; focused `2/2`, full frontend `338/338`, solution Release
+  build `0 warning/error`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: owner chốt correction workflow: `re-preview bắt buộc` (giữ behavior, cần copy/disabled-state
-  rõ hơn) hoặc `tự refresh preview + key sau confirm/correct` (đổi behavior nhưng dùng được ngay). Sau decision,
-  chạy gate đóng FR7. Không tách thêm Step2/draft timer chỉ vì LOC.
+- Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +
+  CTA preview lại, chỉ bật correction sau khi có snapshot/key mới; sau đó bổ sung mutation E2E confirm/correct
+  và chạy gate đóng FR7. Trong lúc chờ decision, FR8A tiếp tục các cleanup độc lập đã có usage evidence.
+  Không tách thêm Step2/draft timer chỉ vì LOC.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,
