@@ -4,9 +4,9 @@ using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Features.Settlement.Api;
 using gtas_vpp_fe.Features.Settlement.Projection;
+using gtas_vpp_fe.Features.Settlement.Submission;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
-using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
@@ -278,15 +278,13 @@ public partial class PeriodSettlementPanel : IDisposable
         isPreviewLoading = true;
         try
         {
-            var preview = await Settlement.PreviewAsync(new SettlementPreviewReqDTO
-            {
-                Year = Year,
-                Month = Month,
-                PrimarySupplierId = supplierId,
-                PriceListId = priceListId,
-                PriceAsOfUtc = DateTime.UtcNow,
-                Exceptions = State.Exceptions.Select(CloneException).ToList()
-            });
+            var preview = await Settlement.PreviewAsync(SettlementRequestFactory.BuildPreview(
+                Year,
+                Month,
+                supplierId,
+                priceListId,
+                DateTime.UtcNow,
+                State.Exceptions));
 
             State.SelectedSupplierId = preview?.PrimarySupplierId;
             State.SetPreview(preview);
@@ -537,7 +535,12 @@ public partial class PeriodSettlementPanel : IDisposable
         isSettling = true;
         try
         {
-            await Settlement.ConfirmAsync(BuildConfirmRequest(Preview));
+            await Settlement.ConfirmAsync(SettlementRequestFactory.BuildConfirm(
+                Year,
+                Month,
+                Preview,
+                State.IdempotencyKey!,
+                State.Exceptions));
             State.CompleteConfirmation();
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
             await LoadStatusAsync();
@@ -594,18 +597,15 @@ public partial class PeriodSettlementPanel : IDisposable
         isCorrecting = true;
         try
         {
-            await Settlement.CorrectAsync(status.SettlementId.Value, new SettlementCorrectionReqDTO
-            {
-                Year = Year,
-                Month = Month,
-                PriceAsOfUtc = Preview.PriceAsOfUtc,
-                InputHash = Preview.InputHash,
-                PrimarySupplierId = Preview.PrimarySupplierId!.Value,
-                PriceListId = Preview.PrimaryPriceListId!.Value,
-                IdempotencyKey = State.IdempotencyKey!,
-                Exceptions = State.Exceptions.Select(CloneException).ToList(),
-                Reason = reason
-            });
+            await Settlement.CorrectAsync(
+                status.SettlementId.Value,
+                SettlementRequestFactory.BuildCorrection(
+                    Year,
+                    Month,
+                    Preview,
+                    State.IdempotencyKey!,
+                    State.Exceptions,
+                    reason));
             State.CompleteConfirmation();
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
             await LoadStatusAsync();
@@ -620,25 +620,6 @@ public partial class PeriodSettlementPanel : IDisposable
             isCorrecting = false;
         }
     }
-
-    private SettlementConfirmReqDTO BuildConfirmRequest(SettlementPreviewResDTO preview) => new()
-    {
-        Year = Year,
-        Month = Month,
-        PriceAsOfUtc = preview.PriceAsOfUtc,
-        InputHash = preview.InputHash,
-        PrimarySupplierId = preview.PrimarySupplierId!.Value,
-        PriceListId = preview.PrimaryPriceListId!.Value,
-        IdempotencyKey = State.IdempotencyKey!,
-        Exceptions = State.Exceptions.Select(CloneException).ToList()
-    };
-
-    private static SettlementExceptionReqDTO CloneException(SettlementExceptionReqDTO source) => new()
-    {
-        VppId = source.VppId,
-        SupplierId = source.SupplierId,
-        Reason = source.Reason?.Trim()
-    };
 
     private string ResolvePeriodScope(int year, int month)
     {

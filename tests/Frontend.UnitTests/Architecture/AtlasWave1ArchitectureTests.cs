@@ -153,6 +153,7 @@ public sealed class AtlasWave1ArchitectureTests
         var settlement = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var settlementCode = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
         var settlementClient = ReadFrontendSource("Features/Settlement/Api/SettlementApiClient.cs");
+        var settlementRequestFactory = ReadFrontendSource("Features/Settlement/Submission/SettlementRequestFactory.cs");
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PeriodSettlementPanel", workspace, StringComparison.Ordinal);
@@ -172,7 +173,8 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("HasPeriodBlockers", settlement, StringComparison.Ordinal);
         Assert.Contains("Preview?.Blockers", settlementCode, StringComparison.Ordinal);
         Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
-        Assert.Contains("InputHash = preview.InputHash", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("SettlementRequestFactory.BuildConfirm", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("InputHash = preview.InputHash", settlementRequestFactory, StringComparison.Ordinal);
         Assert.Contains("SettlementApiClient", settlementCode, StringComparison.Ordinal);
         Assert.Contains("CatalogApiClient", settlementCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", settlementCode, StringComparison.Ordinal);
@@ -216,6 +218,7 @@ public sealed class AtlasWave1ArchitectureTests
         var code = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
         var client = ReadFrontendSource("Features/Settlement/Api/SettlementApiClient.cs");
         var projection = ReadFrontendSource("Features/Settlement/Projection/SettlementWorkspaceProjection.cs");
+        var requestFactory = ReadFrontendSource("Features/Settlement/Submission/SettlementRequestFactory.cs");
 
         Assert.Contains("OnSupplierChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("OnPriceListChangedAsync", page, StringComparison.Ordinal);
@@ -224,15 +227,26 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("Settlement.PreviewAsync", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.BuildDepartmentRows", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.FilterItems", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementRequestFactory.BuildPreview", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementRequestFactory.BuildConfirm", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementRequestFactory.BuildCorrection", code, StringComparison.Ordinal);
+        Assert.Contains("reason.Length is < 5 or > 500", code, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesClientFilters", code, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesItemFilters", code, StringComparison.Ordinal);
-        Assert.Contains("PrimarySupplierId = supplierId", code, StringComparison.Ordinal);
-        Assert.Contains("PriceListId = priceListId", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("new SettlementPreviewReqDTO", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("new SettlementConfirmReqDTO", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("new SettlementCorrectionReqDTO", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildConfirmRequest", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("CloneException", code, StringComparison.Ordinal);
         Assert.DoesNotContain("isSupplierDialogOpen", code, StringComparison.Ordinal);
         Assert.DoesNotContain("Config.LibraryApi.VPPPrice_ItemPrices", code, StringComparison.Ordinal);
         Assert.Contains("/period-demand?year={year}&month={month}", client, StringComparison.Ordinal);
         Assert.Contains("/all-orders?year={year}&month={month}", client, StringComparison.Ordinal);
         Assert.Contains("SettlementDepartmentStatus.Pending", projection, StringComparison.Ordinal);
+        Assert.Contains("PrimarySupplierId = primarySupplierId", requestFactory, StringComparison.Ordinal);
+        Assert.Contains("PriceListId = priceListId", requestFactory, StringComparison.Ordinal);
+        Assert.Contains("SettlementCorrectionReqDTO", requestFactory, StringComparison.Ordinal);
+        Assert.Contains("correctionReason.Trim()", requestFactory, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION + ORDER EDITOR SESSION + SUBMISSION COORDINATOR COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION/REQUEST FACTORY + ORDER EDITOR SESSION + SUBMISSION COORDINATOR COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `324/324`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, editor session, submission mapping/dispatch và Settlement projection/filter đã tách khỏi page | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `328/328`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, editor session, submission mapping/dispatch và Settlement projection/request mapping đã tách khỏi page | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR7 transport, draft store, editor session, submission factory/coordinator và Settlement projection đã hoàn tất. Tiếp theo tách request factory thuần cho Settlement confirm/correct | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR7 transport, draft/editor/submission và Settlement projection/request factory đã hoàn tất. Tiếp theo tách pending-approval filter + decision request mapping thuần | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -536,6 +536,7 @@ Tên bên dưới là responsibility guide, không phải yêu cầu tạo đủ
 ### Settlement
 
 - `SettlementApiClient`: status, demand, preview, confirm, correct, export.
+- `SettlementRequestFactory`: preview/confirm/correct Shared DTO mapping và exception deep clone.
 - Page/panel giữ selection/filter/view mode; view-model builder giữ derived row/summary thuần.
 - Confirmation/correction là explicit method/use case; không giấu trong generic `SaveAsync`.
 
@@ -692,7 +693,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory/coordinator, Settlement projection và Order Editor Session hoàn tất; Settlement confirm/correct extraction còn tiếp tục**.
+- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory/coordinator, Settlement projection/request factory và Order Editor Session hoàn tất; pending approval cleanup còn tiếp tục**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -843,11 +844,17 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   tiếp tục chấp nhận response nullable như behavior cũ. Focused submission/architecture `11/11`, full
   frontend `324/324`, solution Release build `0 warning/error`; isolated create supplement,
   edit-cancel-restore và recreate-from-blank pass `3/3`.
+- FR7 Settlement request factory: preview/confirm/correction Shared DTO mapping chuyển sang factory thuần;
+  Year/Month vẫn từ component, snapshot identity từ preview, idempotency key truyền nguyên trạng và exception
+  được deep-clone theo đúng thứ tự với reason trim. Panel tiếp tục sở hữu reason validation, dialog, toast và
+  state transition. Focused Settlement/architecture `35/35`, full frontend `328/328`, solution Release build
+  `0 warning/error`; route-real DS3 Settlement pass `1/1`. Fixture chưa có E2E mutation chuyên biệt cho
+  confirm/correct nên phần đó chỉ được khóa bằng factory/API/state tests hiện tại.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tách factory thuần cho Settlement confirm/correct payload; panel vẫn sở hữu dialog,
-  localization, toast và navigation state. Giữ nguyên `InputHash`, `PriceAsOfUtc`, supplier/price-list,
-  exceptions, correction reason và idempotency behavior.
+- Next exact action: tách pending-approval filter builder và approve/reject request factory thuần; tab vẫn
+  sở hữu dialog, processing state, toast và reload. Giữ nguyên filter escaping, row version, rejection reason,
+  per-order/per-action idempotency reuse và command endpoints.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,
