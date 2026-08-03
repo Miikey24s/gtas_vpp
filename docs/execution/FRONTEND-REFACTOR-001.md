@@ -940,6 +940,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `2/2` (Library search/toggle/reset/geometry và Permission options/motion); ảnh runtime 1920x1080 đã được xem
   trực tiếp, popover/checkbox/scroll/footer không vỡ. Lượt chạy rộng hai class đạt `6/14`; tám test còn lại
   timeout ở CTA/action ngoài picker nên được ghi nhận riêng và không dùng làm verdict cho CSS ownership slice.
+- FR8A active-toggle CSS ownership: chuyển block `.vpp-admin-active-switch` và Radzen switch variables khỏi
+  global `vpp-admin.css` về companion scoped CSS của `DesignSystem/Composites/VppAdminActiveToggle`; giữ
+  `::deep` vì switch là child component và ghi rõ lý do bằng comment tiếng Việt ngắn. Architecture focused
+  `1/1`, full frontend `364/364`, solution Release build `0 warning/error`; Lookup màu track/thumb và
+  User Administration responsive route-real pass `2/2` trên fixture cô lập.
 - FR8C code-reading sync: cập nhật `docs/CODE-READING-GUIDE.md` và `docs/architecture/ARCH-001-MODULE-MAP.md`
   theo feature/platform ownership hiện tại (`Program` composition, `Platform/State`, `Platform/Browser`,
   `Notifications/State`, account components), sửa reference `CurrentUserState` và bỏ test-count cũ. Đây là

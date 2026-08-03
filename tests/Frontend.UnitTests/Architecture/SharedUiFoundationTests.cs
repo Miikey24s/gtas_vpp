@@ -890,10 +890,12 @@ public sealed class SharedUiFoundationTests
         var adminStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
         var lookup = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor"));
         var activeToggle = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppAdminActiveToggle.razor"));
+        var activeToggleStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppAdminActiveToggle.razor.css"));
 
-        Assert.Contains(".vpp-admin-active-switch .rz-switch", adminStyles, StringComparison.Ordinal);
-        Assert.Contains("--rz-switch-checked-background-color: color-mix(in srgb, var(--vpp-success) 82%, var(--vpp-bg-elevated));", adminStyles, StringComparison.Ordinal);
-        Assert.Contains("--rz-switch-checked-circle-background-color: var(--vpp-color-white);", adminStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-admin-active-switch", adminStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-admin-active-switch ::deep .rz-switch", activeToggleStyles, StringComparison.Ordinal);
+        Assert.Contains("--rz-switch-checked-background-color: color-mix(in srgb, var(--vpp-success) 82%, var(--vpp-bg-elevated));", activeToggleStyles, StringComparison.Ordinal);
+        Assert.Contains("--rz-switch-checked-circle-background-color: var(--vpp-color-white);", activeToggleStyles, StringComparison.Ordinal);
         Assert.Contains("<RadzenSwitch TValue=\"bool\"", activeToggle, StringComparison.Ordinal);
         Assert.Equal(2, lookup.Split("<VppAdminActiveToggle", StringSplitOptions.None).Length - 1);
     }

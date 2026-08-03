@@ -1,0 +1,15 @@
+.vpp-admin-active-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+}
+
+/* RadzenSwitch render DOM trong child component nên cần xuyên boundary CSS isolation. */
+.vpp-admin-active-switch ::deep .rz-switch {
+    --rz-switch-checked-background-color: color-mix(in srgb, var(--vpp-success) 82%, var(--vpp-bg-elevated));
+    --rz-switch-checked-circle-background-color: var(--vpp-color-white);
+    margin: 0;
+    transform: scale(0.86);
+    transform-origin: center;
+}
