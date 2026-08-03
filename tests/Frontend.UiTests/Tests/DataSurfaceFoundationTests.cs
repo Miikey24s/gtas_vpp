@@ -217,14 +217,14 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                     (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
                     (await surface.GetAttributeAsync("data-vpp-data-density")).Should().Be("compact");
                     (await surface.Locator(".vpp-data-toolbar").CountAsync()).Should().Be(1);
-                    (await surface.Locator(".vpp-data-toolbar .vpp-library-primary-action").CountAsync()).Should().Be(0,
+                    (await surface.Locator(".vpp-data-toolbar .vpp-collection-header-add").CountAsync()).Should().Be(0,
                         "admin toolbars contain query/display controls only");
                     (await surface.Locator(".vpp-data-grid").CountAsync()).Should().BeGreaterThanOrEqualTo(1);
                 }
 
                 (await Page.Locator(".vpp-collection-header .vpp-collection-header-add:visible").CountAsync())
                     .Should().Be(route.CreateActions, "create actions belong to collection headers");
-                (await Page.Locator("th.rz-col-actions .vpp-library-primary-action").CountAsync())
+                (await Page.Locator("th.rz-col-actions .vpp-collection-header-add").CountAsync())
                     .Should().Be(0, "row-action headers remain plain table headers");
 
                 if (viewport.Width == 768 && route.Label is "price-lists" or "users")

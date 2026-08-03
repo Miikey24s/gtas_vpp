@@ -88,7 +88,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         (await surface.Locator(".vpp-data-toolbar").CountAsync()).Should().Be(1);
         (await surface.Locator(".vpp-column-picker-trigger").CountAsync()).Should().Be(1);
-        var createButton = surface.Locator(".vpp-library-primary-action");
+        var createButton = surface.Locator(".vpp-collection-header-add");
         await createButton.WaitForAsync();
 
         var geometry = await surface.EvaluateAsync<double[]>("""
@@ -97,7 +97,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 const workspace = element.closest('[data-vpp-workspace-pattern="collection"]');
                 const panel = element.closest('.rz-tabview-panel');
                 const toolbar = element.querySelector('.vpp-data-toolbar');
-                const create = element.querySelector('.vpp-library-primary-action');
+                const create = element.querySelector('.vpp-collection-header-add');
                 const grid = element.querySelector('.vpp-data-grid');
                 const header = grid?.querySelector('thead');
                 const firstRow = grid?.querySelector('tbody > tr');
@@ -131,8 +131,8 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var emptyState = grid.Locator(".rz-datatable-emptymessage");
         ((await statusBadges.CountAsync()) > 0 || (await emptyState.CountAsync()) > 0).Should().BeTrue(
             "the isolated fixture may be empty, but the typed grid must settle to rows or its empty state");
-        (await surface.Locator(".vpp-data-toolbar .vpp-library-primary-action").CountAsync()).Should().Be(0);
-        (await surface.Locator("th.rz-col-actions .vpp-library-primary-action").CountAsync()).Should().Be(0);
+        (await surface.Locator(".vpp-data-toolbar .vpp-collection-header-add").CountAsync()).Should().Be(0);
+        (await surface.Locator("th.rz-col-actions .vpp-collection-header-add").CountAsync()).Should().Be(0);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.GotoAsync($"{BaseUrl}library?tab=1", new() { WaitUntil = WaitUntilState.Load });
 
         var surface = Page.Locator("[data-testid='category-admin-data-surface']");
-        var createButton = surface.Locator(".vpp-library-primary-action");
+        var createButton = surface.Locator(".vpp-collection-header-add");
         await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await createButton.ClickAsync();
 
@@ -178,7 +178,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.GotoAsync($"{BaseUrl}library?tab=3", new() { WaitUntil = WaitUntilState.Load });
 
         var surface = Page.Locator("[data-testid='supplier-admin-data-surface']");
-        var createButton = surface.Locator(".vpp-library-primary-action");
+        var createButton = surface.Locator(".vpp-collection-header-add");
         await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await createButton.ClickAsync();
 
@@ -199,7 +199,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.GotoAsync($"{BaseUrl}library?tab=2", new() { WaitUntil = WaitUntilState.Load });
 
         var surface = Page.Locator("[data-testid='item-admin-data-surface']");
-        var createButton = surface.Locator(".vpp-library-primary-action");
+        var createButton = surface.Locator(".vpp-collection-header-add");
         await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await createButton.ClickAsync();
 
@@ -219,7 +219,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.SetViewportSizeAsync(1366, 768);
         await Page.GotoAsync($"{BaseUrl}library?tab=5", new() { WaitUntil = WaitUntilState.Load });
         var surface = Page.Locator("[data-testid='department-admin-data-surface']");
-        var createButton = surface.Locator(".vpp-library-primary-action");
+        var createButton = surface.Locator(".vpp-collection-header-add");
         await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await createButton.ClickAsync();
         var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--standard:visible");
@@ -338,7 +338,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists", new() { WaitUntil = WaitUntilState.Load });
 
         var surface = Page.Locator("[data-testid='price-lists-data-surface']");
-        var createButton = surface.Locator(".vpp-library-primary-action");
+        var createButton = surface.Locator(".vpp-collection-header-add");
         await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await createButton.ClickAsync();
 
@@ -737,7 +737,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 Scale = ScreenshotScale.Css
             });
         }
-        await surface.Locator(".vpp-library-primary-action").ClickAsync();
+        await surface.Locator(".vpp-collection-header-add").ClickAsync();
 
         var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -794,7 +794,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
 
         var valueSurface = Page.Locator("[data-testid='lookup-values-data-surface']");
-        await valueSurface.Locator(".vpp-library-primary-action").ClickAsync();
+        await valueSurface.Locator(".vpp-collection-header-add").ClickAsync();
         var valueDialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
         await valueDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await valueDialog.Locator("[data-testid='lookup-value-editor']").CountAsync()).Should().Be(1);
@@ -822,7 +822,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             await sidebarBackdrop.ClickAsync();
             await sidebarBackdrop.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
         }
-        await surface.Locator(".vpp-library-primary-action").ClickAsync();
+        await surface.Locator(".vpp-collection-header-add").ClickAsync();
         dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var mobileBox = await dialog.BoundingBoxAsync();

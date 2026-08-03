@@ -189,7 +189,10 @@ public sealed class AccountShellSmokeTests : TestBase
             viewportMetrics[1] + 1,
             $"the desktop registration route should fit without page scrolling (page={viewportMetrics[0]}, viewport={viewportMetrics[1]}, card={viewportMetrics[2]})");
 
-        await Page.Locator(".vpp-account-language-switch").ClickAsync();
+        // Chọn đúng option EN; click wrapper chỉ chạm vào option đang active và không đổi culture.
+        await Page.Locator(".vpp-account-language-switch")
+            .GetByRole(AriaRole.Button, new() { Name = "EN", Exact = true })
+            .ClickAsync();
         await Page.GetByRole(AriaRole.Heading, new() { Name = "Create account" }).WaitForAsync();
         var englishButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Create account");
         await englishButton.ClickAsync();

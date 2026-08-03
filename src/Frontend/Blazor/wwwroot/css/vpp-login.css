@@ -498,8 +498,8 @@
 .vpp-account-page-compact .vpp-login-shell {
     align-items: center;
     justify-content: center;
-    /* Padding dọc nén để form Register 5 field + description + alert lọt viewport 1366x768 (screenshot luận văn). */
-    padding: 12px clamp(20px, 4vw, 48px);
+    /* Chừa đúng khoảng đệm tối thiểu để Register không tạo scroll trang ở 1366x768. */
+    padding: 10px clamp(20px, 4vw, 48px);
     overflow-y: auto;
     background: transparent;
 }

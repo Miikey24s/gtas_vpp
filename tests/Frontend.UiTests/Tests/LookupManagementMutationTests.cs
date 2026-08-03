@@ -17,7 +17,7 @@ public sealed class LookupManagementMutationTests : TestBase, IMutatingUiTest
         var code = $"QA_{Guid.NewGuid():N}"[..11].ToUpperInvariant();
         var surface = Page.Locator("[data-testid='lookup-categories-data-surface']");
         await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        await surface.Locator(".vpp-library-primary-action").ClickAsync();
+        await surface.Locator(".vpp-collection-header-add").ClickAsync();
 
         var editor = Page.Locator(".rz-dialog.vpp-admin-dialog--compact:visible");
         await editor.WaitForAsync(new() { State = WaitForSelectorState.Visible });

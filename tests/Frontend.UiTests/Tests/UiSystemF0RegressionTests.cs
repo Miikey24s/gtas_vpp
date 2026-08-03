@@ -22,7 +22,7 @@ public sealed class UiSystemF0RegressionTests : TestBase, IAuthenticatedUiTest
     [
         new("history", "dashboard?tab=1", ".vpp-history-page", ".vpp-history-loading-state"),
         new("library-departments", "library?tab=5", ".vpp-admin-data-surface"),
-        new("permission", "permission?tab=1", ".vpp-permission-matrix")
+        new("permission", "permission?tab=1", "[data-testid='permission-groups-data-surface']")
     ];
 
     [Fact]

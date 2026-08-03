@@ -170,7 +170,7 @@ public sealed class ShellResponsiveTests : TestBase, IAuthenticatedUiTest
         await Page.SetViewportSizeAsync(1920, 1080);
 
         await CaptureRouteAsync(directory, "ui-users.png", "permission?tab=0", "[data-testid='permission-users-data-surface']");
-        await CaptureRouteAsync(directory, "ui-permission-groups.png", "permission?tab=1", ".vpp-permission-matrix");
+        await CaptureRouteAsync(directory, "ui-permission-groups.png", "permission?tab=1", "[data-testid='permission-groups-data-surface']");
         await CaptureRouteAsync(directory, "ui-report.png", "report", ".vpp-report-page");
 
         await SwitchUserAsync(TestAccounts.Procurement);

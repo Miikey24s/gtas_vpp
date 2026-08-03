@@ -13,7 +13,7 @@ public sealed class UiSystemF1ThemeTests : TestBase, IAuthenticatedUiTest
         new("my-orders", "dashboard?tab=0", ".vpp-orders-story"),
         new("history", "dashboard?tab=1", ".vpp-history-page", ".vpp-history-loading-state"),
         new("library-departments", "library?tab=5", ".vpp-admin-data-surface", ".vpp-global-loader"),
-        new("permission", "permission?tab=1", ".vpp-permission-matrix", ".vpp-global-loader")
+        new("permission", "permission?tab=1", "[data-testid='permission-groups-data-surface']", ".vpp-global-loader")
     ];
 
     [Fact]
@@ -220,6 +220,8 @@ public sealed class UiSystemF1ThemeTests : TestBase, IAuthenticatedUiTest
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true
                 && (uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.Equals("/_blazor/negotiate", StringComparison.OrdinalIgnoreCase)
+                    // Enhanced navigation có thể hủy bootstrap cũ khi route kế tiếp bắt đầu.
+                    || uri.AbsolutePath.Equals("/_blazor/initializers", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
