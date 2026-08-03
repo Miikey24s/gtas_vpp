@@ -118,6 +118,36 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void ColumnPicker_OwnsTheIsolatedRadzenReflectionWorkaround()
+    {
+        var componentRoot = Path.Combine(GetFrontendRoot(), "Components");
+        var pickerPath = Path.Combine(
+            componentRoot,
+            "DesignSystem",
+            "Composites",
+            "VppColumnPicker.razor");
+        var source = File.ReadAllText(pickerPath);
+
+        Assert.False(File.Exists(Path.Combine(componentRoot, "Shared", "VppColumnPicker.razor")));
+        Assert.Contains("BindingFlags.Instance | BindingFlags.NonPublic", source, StringComparison.Ordinal);
+        Assert.Contains("\"SetVisible\"", source, StringComparison.Ordinal);
+        Assert.Contains("\"ChangeState\"", source, StringComparison.Ordinal);
+
+        var otherReflectionConsumers = Directory
+            .EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
+            .Where(path => !Path.GetFullPath(path).Equals(
+                Path.GetFullPath(pickerPath),
+                StringComparison.OrdinalIgnoreCase))
+            .Where(path => File.ReadAllText(path).Contains(
+                "BindingFlags.NonPublic",
+                StringComparison.Ordinal))
+            .Select(path => Path.GetRelativePath(componentRoot, path))
+            .ToArray();
+
+        Assert.Empty(otherReflectionConsumers);
+    }
+
+    [Fact]
     public void NotificationState_SeparatesApiRealtimeAndUiStateOwnership()
     {
         var root = GetFrontendRoot();
