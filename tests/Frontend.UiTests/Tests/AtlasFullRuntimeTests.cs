@@ -193,6 +193,8 @@ public sealed class AtlasFullRuntimeTests : TestBase, IAuthenticatedUiTest
                 && request.Failure?.Contains("ERR_ABORTED", StringComparison.OrdinalIgnoreCase) == true
                 && (uri.AbsolutePath.Equals("/_blazor/disconnect", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.Equals("/_blazor/negotiate", StringComparison.OrdinalIgnoreCase)
+                    // Enhanced navigation có thể hủy bootstrap request cũ khi route mới bắt đầu.
+                    || uri.AbsolutePath.Equals("/_blazor/initializers", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".woff", StringComparison.OrdinalIgnoreCase)
                     || uri.AbsolutePath.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)

@@ -872,6 +872,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   quét toàn bộ `Components/Pages/VPPRequest` cấm generic transport, direct download service và raw API/config
   endpoint. Focused `11/11`, full frontend `338/338`, solution Release build `0 warning/error`; isolated Order
   Exports tải file thật pass `1/1`.
+- Final-acceptance harness preflight: `AtlasFullRuntimeTests` ban đầu chỉ fail do test chưa allowlist request
+  `/_blazor/initializers` bị `ERR_ABORTED` khi enhanced navigation hủy bootstrap cũ; các browser test cùng
+  contract đã coi đây là abort hợp lệ. Sau khi thêm đúng path + đúng failure type, toàn bộ Atlas runtime pass
+  `2/2`: 28 màn × 4 viewport, representative Dark/Print/axe. Đây là evidence kỹ thuật mới, chưa thay owner
+  visual acceptance và chưa tạo golden baseline.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow: `re-preview bắt buộc` (giữ behavior, cần copy/disabled-state
