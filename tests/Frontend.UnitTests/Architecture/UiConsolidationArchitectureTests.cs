@@ -187,7 +187,7 @@ public sealed class UiConsolidationArchitectureTests
         var root = GetFrontendRoot();
         var settlement = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor");
         var settlementCode = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor.cs");
-        var config = Read(root, "Helpers", "Config.cs");
+        var settlementClient = Read(root, "Features", "Settlement", "Api", "SettlementApiClient.cs");
 
         Assert.Contains("<VppCollectionHeader", settlement, StringComparison.Ordinal);
         Assert.Contains("<Actions>", settlement, StringComparison.Ordinal);
@@ -197,9 +197,11 @@ public sealed class UiConsolidationArchitectureTests
         Assert.Contains("VppFileExportActions", settlement, StringComparison.Ordinal);
         Assert.Contains("status is { IsSettled: true, SettlementId: not null }", settlementCode, StringComparison.Ordinal);
         Assert.Contains("exportingSettlementFormat.HasValue || !CanExportSettlement", settlementCode, StringComparison.Ordinal);
-        Assert.Contains("IBrowserFileDownloadService", settlementCode, StringComparison.Ordinal);
-        Assert.Contains("export.pdf", config, StringComparison.Ordinal);
-        Assert.Contains("export.xlsx", config, StringComparison.Ordinal);
+        Assert.Contains("Settlement.ExportAsync", settlementCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IBrowserFileDownloadService", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("IBrowserFileDownloadService", settlementClient, StringComparison.Ordinal);
+        Assert.Contains("export.pdf", settlementClient, StringComparison.Ordinal);
+        Assert.Contains("export.xlsx", settlementClient, StringComparison.Ordinal);
     }
 
     private static string Read(string root, params string[] parts)

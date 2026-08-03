@@ -152,12 +152,15 @@ public sealed class AtlasWave1ArchitectureTests
         var workspace = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodOperationsWorkspace.razor");
         var settlement = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var settlementCode = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
+        var settlementClient = ReadFrontendSource("Features/Settlement/Api/SettlementApiClient.cs");
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PeriodSettlementPanel", workspace, StringComparison.Ordinal);
         Assert.Contains("CurrentPeriodYear=\"@currentPeriodYear\"", workspace, StringComparison.Ordinal);
         Assert.Contains("PreviousPeriodYear=\"@previousPeriodYear\"", workspace, StringComparison.Ordinal);
         Assert.Contains("State.SetPeriod(previousPeriodYear, previousPeriodMonth)", workspace, StringComparison.Ordinal);
+        Assert.Contains("RequestsQueryClient", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("DefaultYear", settlementCode, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppWorkflowStepper", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-period-workspace-header", workspace, StringComparison.Ordinal);
@@ -170,6 +173,11 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("Preview?.Blockers", settlementCode, StringComparison.Ordinal);
         Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
         Assert.Contains("InputHash = preview.InputHash", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("SettlementApiClient", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("CatalogApiClient", settlementCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("IAPIServices", settlementCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Config.RequestApi.PeriodSettlement", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("/api/periodsettlement", settlementClient, StringComparison.Ordinal);
         Assert.DoesNotContain("Phương án chốt", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("SettlementViewPreview", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("<Footer>", settlement, StringComparison.Ordinal);
@@ -206,16 +214,19 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var page = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var code = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
+        var client = ReadFrontendSource("Features/Settlement/Api/SettlementApiClient.cs");
 
         Assert.Contains("OnSupplierChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("OnPriceListChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("AggregatedVppItemResDTO", page, StringComparison.Ordinal);
-        Assert.Contains("Config.VppApi.PeriodDemand", code, StringComparison.Ordinal);
-        Assert.Contains("Config.RequestApi.PeriodSettlement.Preview", code, StringComparison.Ordinal);
+        Assert.Contains("Settlement.GetDemandAsync", code, StringComparison.Ordinal);
+        Assert.Contains("Settlement.PreviewAsync", code, StringComparison.Ordinal);
         Assert.Contains("PrimarySupplierId = supplierId", code, StringComparison.Ordinal);
         Assert.Contains("PriceListId = priceListId", code, StringComparison.Ordinal);
         Assert.DoesNotContain("isSupplierDialogOpen", code, StringComparison.Ordinal);
         Assert.DoesNotContain("Config.LibraryApi.VPPPrice_ItemPrices", code, StringComparison.Ordinal);
+        Assert.Contains("/period-demand?year={year}&month={month}", client, StringComparison.Ordinal);
+        Assert.Contains("/all-orders?year={year}&month={month}", client, StringComparison.Ordinal);
     }
 
     [Fact]

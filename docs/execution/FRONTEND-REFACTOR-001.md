@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 REQUEST COMMANDS COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 REQUEST COMMANDS + SETTLEMENT TRANSPORT COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `296/296`; 83 UI test được phát hiện. Account/shell, Catalog/Pricing, Identity/Notifications, Requests read và Requests commands đã có transport owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `303/303`; 83 UI test được phát hiện. Account/shell, Catalog/Pricing, Identity/Notifications, Requests và Settlement đã có transport owner rõ; `verify -Scope frontend` pass tại checkpoint FR2 | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR7 Requests command transport đã hoàn tất. Tiếp theo tạo `SettlementApiClient`, migrate status/demand/preview/confirm/correct/export rồi characterization state/idempotency | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR7 transport đã hoàn tất. Tiếp theo tách state/coordinator thuần của Order Editor và Settlement theo seam có test, không đổi markup/nghiệp vụ | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -691,7 +691,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 Requests command transport hoàn tất, Settlement chưa bắt đầu**.
+- Current status: **FR0–FR6 hoàn tất; FR7 Requests command và Settlement transport hoàn tất; coordinator/state decomposition còn tiếp tục**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -807,11 +807,19 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   E2E pass `4/5`; test workflow approve/reject timeout ở dialog lịch sử cuối cùng và clean baseline
   `b568d8fc` fail cùng locator/stack trace, nên được ghi là nợ E2E có sẵn chứ không phải regression của
   command transport.
+- FR7 Settlement transport: `SettlementApiClient` sở hữu status, demand, full order snapshot, preview,
+  confirm, correction và PDF/XLSX export; period workspace dùng `RequestsQueryClient` cho period info và
+  panel dùng `CatalogApiClient` cho department directory. Panel/workspace không còn generic transport,
+  raw settlement endpoint hoặc endpoint constant cạnh tranh trong `Config`. Characterization khóa đổi kỳ,
+  preview sai kỳ, idempotency retry, complete-confirmation context và request/response/export contracts.
+  Focused `42/42`, full frontend `303/303`, solution Release build `0 warning/error`; route-real DS3
+  Settlement pass `1/1`. Atlas aggregate test timeout ở nút Report `Xuất CSV`; clean baseline `b7ec8433`
+  fail cùng locator/stack trace, nên không phải regression của Settlement slice.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tạo `SettlementApiClient`, migrate status/demand/order snapshot/preview/confirm/
-  correct/export khỏi `PeriodSettlementPanel` và `PeriodOperationsWorkspace`; thêm characterization cho
-  `PeriodSettlementState`, giữ nguyên `InputHash`, `PriceAsOfUtc`, row version và idempotency behavior.
+- Next exact action: chọn một seam coordinator/state nhỏ trong FR7: ưu tiên tách `OrderDraftStore` khỏi
+  `Page_OrderCreate` hoặc projection thuần cho Settlement department rows; giữ component làm orchestration,
+  giữ nguyên route, Shared DTO, `InputHash`, `PriceAsOfUtc`, row version và idempotency behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

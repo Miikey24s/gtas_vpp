@@ -1,6 +1,8 @@
 using System.Globalization;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
+using gtas_vpp_fe.Features.CatalogPricing.Api;
+using gtas_vpp_fe.Features.Settlement.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -19,10 +21,10 @@ public partial class PeriodSettlementPanel : IDisposable
     private const string ItemsView = "items";
     private const string DepartmentsView = "departments";
 
-    [Inject] private IAPIServices ApiServices { get; set; } = default!;
+    [Inject] private SettlementApiClient Settlement { get; set; } = default!;
+    [Inject] private CatalogApiClient Catalog { get; set; } = default!;
     [Inject] private IToastService Toast { get; set; } = default!;
     [Inject] private DialogService DialogService { get; set; } = default!;
-    [Inject] private IBrowserFileDownloadService FileDownloads { get; set; } = default!;
     [Inject] private PeriodSettlementState State { get; set; } = default!;
 
     [Parameter] public int Year { get; set; }
@@ -272,8 +274,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task LoadStatusAsync()
     {
-        status = await ApiServices.GetFromApiAsync<PeriodSettlementResDTO>(
-            string.Format(Config.RequestApi.PeriodSettlement.Status, Year, Month));
+        status = await Settlement.GetStatusAsync(Year, Month);
         canCorrect = status is { IsSettled: true, SettlementId: not null };
     }
 
@@ -282,17 +283,15 @@ public partial class PeriodSettlementPanel : IDisposable
         isPreviewLoading = true;
         try
         {
-            var preview = await ApiServices.PostFromApiAsync<SettlementPreviewResDTO>(
-                Config.RequestApi.PeriodSettlement.Preview,
-                new SettlementPreviewReqDTO
-                {
-                    Year = Year,
-                    Month = Month,
-                    PrimarySupplierId = supplierId,
-                    PriceListId = priceListId,
-                    PriceAsOfUtc = DateTime.UtcNow,
-                    Exceptions = State.Exceptions.Select(CloneException).ToList()
-                });
+            var preview = await Settlement.PreviewAsync(new SettlementPreviewReqDTO
+            {
+                Year = Year,
+                Month = Month,
+                PrimarySupplierId = supplierId,
+                PriceListId = priceListId,
+                PriceAsOfUtc = DateTime.UtcNow,
+                Exceptions = State.Exceptions.Select(CloneException).ToList()
+            });
 
             State.SelectedSupplierId = preview?.PrimarySupplierId;
             State.SetPreview(preview);
@@ -305,40 +304,17 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task LoadAllPeriodOrdersAsync()
     {
-        const int batchSize = 500;
-        var snapshot = new List<VppRequestResDTO>();
-        var skip = 0;
-        var expected = int.MaxValue;
-
-        while (skip < expected)
-        {
-            var endpoint = $"{Config.VppApi.AllOrders}?year={Year}&month={Month}&skip={skip}&top={batchSize}&orderby=DepartmentCode%20asc";
-            var (data, count, _, _, _) = await ApiServices
-                .GetFromApiWithAmountStatsAsync<List<VppRequestResDTO>>(endpoint);
-            var batch = data ?? [];
-            expected = count;
-            snapshot.AddRange(batch);
-            if (batch.Count == 0 || batch.Count < batchSize)
-            {
-                break;
-            }
-
-            skip += batch.Count;
-        }
-
-        periodOrdersSnapshot = snapshot;
+        periodOrdersSnapshot = (await Settlement.GetPeriodOrdersSnapshotAsync(Year, Month)).ToList();
     }
 
     private async Task LoadPeriodDemandAsync()
     {
-        periodDemand = await ApiServices.GetFromApiAsync<AggregatedVppResDTO>(
-            $"{Config.VppApi.PeriodDemand}?year={Year}&month={Month}");
+        periodDemand = await Settlement.GetDemandAsync(Year, Month);
     }
 
     private async Task LoadDepartmentDirectoryAsync()
     {
-        departmentDirectory = await ApiServices.GetFromApiAsync<List<DepartmentResDTO>>(
-            $"{Config.LibraryApi.Departments}?top=1000&showDeleted=false&orderby=Name") ?? [];
+        departmentDirectory = await Catalog.GetActiveDepartmentsAsync(1000, "Name") ?? [];
     }
 
     private bool MatchesClientFilters(VppRequestResDTO order)
@@ -598,9 +574,7 @@ public partial class PeriodSettlementPanel : IDisposable
         isSettling = true;
         try
         {
-            await ApiServices.PostFromApiAsync<SettlementRevisionResDTO>(
-                Config.RequestApi.PeriodSettlement.Confirm,
-                BuildConfirmRequest(Preview));
+            await Settlement.ConfirmAsync(BuildConfirmRequest(Preview));
             State.CompleteConfirmation();
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
             await LoadStatusAsync();
@@ -627,13 +601,7 @@ public partial class PeriodSettlementPanel : IDisposable
         exportingSettlementFormat = format;
         try
         {
-            var endpoint = format switch
-            {
-                VppFileExportFormat.Pdf => string.Format(Config.RequestApi.PeriodSettlement.ExportPdf, settlementId),
-                VppFileExportFormat.Excel => string.Format(Config.RequestApi.PeriodSettlement.ExportExcel, settlementId),
-                _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
-            };
-            var result = await FileDownloads.DownloadFromApiAsync(endpoint);
+            var result = await Settlement.ExportAsync(settlementId, format);
             Toast.Success(Loc["PeriodSettlement"], Loc["ExportCompleted", result.FileName, FileSizeFormatter.Format(result.Size)]);
         }
         catch (Exception ex)
@@ -663,20 +631,18 @@ public partial class PeriodSettlementPanel : IDisposable
         isCorrecting = true;
         try
         {
-            await ApiServices.PostFromApiAsync<SettlementRevisionResDTO>(
-                string.Format(Config.RequestApi.PeriodSettlement.Correct, status.SettlementId.Value),
-                new SettlementCorrectionReqDTO
-                {
-                    Year = Year,
-                    Month = Month,
-                    PriceAsOfUtc = Preview.PriceAsOfUtc,
-                    InputHash = Preview.InputHash,
-                    PrimarySupplierId = Preview.PrimarySupplierId!.Value,
-                    PriceListId = Preview.PrimaryPriceListId!.Value,
-                    IdempotencyKey = State.IdempotencyKey!,
-                    Exceptions = State.Exceptions.Select(CloneException).ToList(),
-                    Reason = reason
-                });
+            await Settlement.CorrectAsync(status.SettlementId.Value, new SettlementCorrectionReqDTO
+            {
+                Year = Year,
+                Month = Month,
+                PriceAsOfUtc = Preview.PriceAsOfUtc,
+                InputHash = Preview.InputHash,
+                PrimarySupplierId = Preview.PrimarySupplierId!.Value,
+                PriceListId = Preview.PrimaryPriceListId!.Value,
+                IdempotencyKey = State.IdempotencyKey!,
+                Exceptions = State.Exceptions.Select(CloneException).ToList(),
+                Reason = reason
+            });
             State.CompleteConfirmation();
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
             await LoadStatusAsync();

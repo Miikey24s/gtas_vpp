@@ -21,10 +21,7 @@ namespace gtas_vpp_fe.Helpers
             public const string DepartmentOrderHistory = $"{ApiVppBase}/department-order-history";
             public const string DepartmentOrderHistorySummary = $"{ApiVppBase}/department-order-history-summary";
             public const string DepartmentOrders = $"{ApiVppBase}/department-orders";
-            public const string AllOrders = $"{ApiVppBase}/all-orders";
             public const string Orders = $"{ApiVppBase}/orders";
-            public const string PeriodInfo = $"{ApiVppBase}/period-info";
-            public const string PeriodDemand = $"{ApiVppBase}/period-demand";
             public const string PreviousItems = $"{ApiVppBase}/orders/previous-items";
             public const string PendingAdditional = $"{ApiVppBase}/additional-orders/pending";
         }
@@ -49,23 +46,6 @@ namespace gtas_vpp_fe.Helpers
             public const string PriceList_Publish = $"{PriceList}/{{0}}/publish";
             public const string PriceList_Expire = $"{PriceList}/{{0}}/expire";
             public const string PriceList_Compare = $"{PriceList}/compare";
-        }
-
-        public static class RequestApi
-        {
-            public static class PeriodSettlement
-            {
-                public const string Base = $"{ApiBase}/periodsettlement";
-                public const string Settle = $"{Base}/settle";
-                public const string Preview = $"{Base}/preview";
-                public const string Confirm = $"{Base}/confirm";
-                public const string Current = $"{Base}/current/{{0}}/{{1}}";
-                public const string Correct = $"{Base}/{{0}}/correct";
-                public const string ExportPdf = $"{Base}/{{0}}/export.pdf";
-                public const string ExportExcel = $"{Base}/{{0}}/export.xlsx";
-                public const string Status = $"{Base}/{{0}}/{{1}}";
-                public const string ListAll = Base;
-            }
         }
 
         // Cấu hình route.

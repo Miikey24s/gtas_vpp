@@ -126,10 +126,12 @@ public sealed class CatalogApiClientTests
         var client = new CatalogApiClient(api);
 
         await client.GetActiveDepartmentsAsync();
+        await client.GetActiveDepartmentsAsync(1000, "Name");
         await client.GetDepartmentsAsync(new CatalogQuery(0, 15, "IT"));
         await client.GetDepartmentDependencyImpactAsync(id);
 
         Assert.Contains("/api/Library/departments?showDeleted=false", endpoints);
+        Assert.Contains("/api/Library/departments?top=1000&showDeleted=false&orderby=Name", endpoints);
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/departments?showDeleted=true&", StringComparison.Ordinal));
         Assert.Contains($"/api/Library/departments/{id}/dependency-impact", endpoints);
     }

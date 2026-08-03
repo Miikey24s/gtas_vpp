@@ -93,8 +93,11 @@ public sealed class CatalogApiClient(IAPIServices api)
             "Code",
             "Name");
 
-    public Task<List<DepartmentResDTO>?> GetActiveDepartmentsAsync() =>
-        api.GetFromApiAsync<List<DepartmentResDTO>>($"{DepartmentEndpoint}?showDeleted=false");
+    public Task<List<DepartmentResDTO>?> GetActiveDepartmentsAsync(
+        int? top = null,
+        string? orderBy = null) =>
+        api.GetFromApiAsync<List<DepartmentResDTO>>(
+            BuildActiveDepartmentsEndpoint(top, orderBy));
 
     public Task<LibraryDependencyImpactResDTO?> GetDepartmentDependencyImpactAsync(Guid id) =>
         api.GetFromApiAsync<LibraryDependencyImpactResDTO>($"{DepartmentEndpoint}/{id}/dependency-impact");
@@ -221,5 +224,22 @@ public sealed class CatalogApiClient(IAPIServices api)
         }
 
         return $"{ItemEndpoint}?{string.Join("&", queryParams)}";
+    }
+
+    internal static string BuildActiveDepartmentsEndpoint(int? top, string? orderBy)
+    {
+        var queryParams = new List<string>();
+        if (top.HasValue)
+        {
+            queryParams.Add($"top={Math.Max(1, top.Value)}");
+        }
+
+        queryParams.Add("showDeleted=false");
+        if (!string.IsNullOrWhiteSpace(orderBy))
+        {
+            queryParams.Add($"orderby={Uri.EscapeDataString(orderBy)}");
+        }
+
+        return $"{DepartmentEndpoint}?{string.Join("&", queryParams)}";
     }
 }

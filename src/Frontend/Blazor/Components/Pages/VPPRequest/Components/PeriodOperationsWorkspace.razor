@@ -1,7 +1,7 @@
 @using System.Security.Claims
-@using gtas_vpp_fe.Services
+@using gtas_vpp_fe.Features.Requests.Api
 @using gtas_vpp_shared.DTOs.Res.VPP
-@inject IAPIServices ApiServices
+@inject RequestsQueryClient Requests
 @inject PeriodSettlementState State
 
 @if (isLoadingPeriod)
@@ -36,7 +36,7 @@ else
     {
         try
         {
-            var period = await ApiServices.GetFromApiAsync<VppPeriodInfoResDTO>(Config.VppApi.PeriodInfo);
+            var period = await Requests.GetPeriodInfoAsync();
             if (period is not null)
             {
                 currentPeriodYear = period.CurrentPeriodYear;
