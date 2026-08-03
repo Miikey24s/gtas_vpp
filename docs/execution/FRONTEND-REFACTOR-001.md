@@ -32,7 +32,7 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `354/354`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `356/356`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
 | Việc làm ngay | FR8A đã xóa endpoint registry/package thừa và dọn `Components/Shared` về 0 source owner. FR7 còn owner chốt correction, sau đó triển khai UX và mutation E2E trước khi đóng wave | [Continuation](#plan-detail-continuation) |
 
@@ -909,6 +909,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `Features/Notifications/State`, đồng bộ namespace consumer/test và architecture ratchet cấm quay lại path
   cũ. Feature Notifications giờ có ba owner tách biệt `Api`, `Realtime`, `State`; focused `45/45`, full frontend
   `354/354`, solution Release build sạch và isolated user-menu/notification panel pass `2/2`.
+- FR8A theme-state ownership: chuyển `ThemeState` khỏi thư mục service phẳng vào `Platform/State`, thêm unit
+  contract khóa default/dark/idempotent notification và architecture ratchet khóa owner mới. Focused `7/7`,
+  full frontend `356/356`, solution Release build sạch; user-menu/theme interaction pass `1/1`. Aggregate theme
+  route audit còn timeout ở `.vpp-permission-matrix`; worktree sạch tại `ac04b5b4` fail đúng locator này nên
+  được giữ là permission-fixture debt có sẵn, không phải regression của slice.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +

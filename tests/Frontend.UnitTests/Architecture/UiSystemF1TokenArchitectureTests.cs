@@ -113,6 +113,19 @@ public sealed class UiSystemF1TokenArchitectureTests
     }
 
     [Fact]
+    public void ThemeState_IsOwnedByTheCrossFeaturePlatformLayer()
+    {
+        var root = GetFrontendRoot();
+        var statePath = Path.Combine(root, "Platform", "State", "ThemeState.cs");
+        var state = File.ReadAllText(statePath);
+        var app = File.ReadAllText(Path.Combine(root, "Components", "App.razor"));
+
+        Assert.Contains("namespace gtas_vpp_fe.Platform.State;", state, StringComparison.Ordinal);
+        Assert.Contains("@using gtas_vpp_fe.Platform.State", app, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(root, "Services", "ThemeState.cs")));
+    }
+
+    [Fact]
     public void OpenAiVisualContract_AllowsGradientsOnlyForFunctionalFeedback()
     {
         var root = GetFrontendRoot();
