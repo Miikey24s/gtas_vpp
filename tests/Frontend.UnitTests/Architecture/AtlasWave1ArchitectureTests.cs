@@ -237,7 +237,8 @@ public sealed class AtlasWave1ArchitectureTests
         var projection = ReadFrontendSource("Features/Settlement/Projection/SettlementWorkspaceProjection.cs");
         var requestFactory = ReadFrontendSource("Features/Settlement/Submission/SettlementRequestFactory.cs");
         var state = ReadFrontendSource("Features/Settlement/State/PeriodSettlementState.cs");
-        var program = ReadFrontendSource("Program.cs");
+        var registrations = ReadFrontendSource(
+            "Platform/Composition/FrontendServiceCollectionExtensions.cs");
 
         Assert.Contains("OnSupplierChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("OnPriceListChangedAsync", page, StringComparison.Ordinal);
@@ -267,10 +268,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("SettlementCorrectionReqDTO", requestFactory, StringComparison.Ordinal);
         Assert.Contains("correctionReason.Trim()", requestFactory, StringComparison.Ordinal);
         Assert.Contains("namespace gtas_vpp_fe.Features.Settlement.State;", state, StringComparison.Ordinal);
-        Assert.Contains("AddScoped<PeriodSettlementState>", program, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<PeriodSettlementState>", registrations, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "Components.Pages.VPPRequest.Components.PeriodSettlementState",
-            program,
+            registrations,
             StringComparison.Ordinal);
         Assert.False(File.Exists(Path.Combine(
             FindRepositoryRoot(),
@@ -470,7 +471,8 @@ public sealed class AtlasWave1ArchitectureTests
         var editorSession = ReadFrontendSource("Features/Requests/Editor/OrderEditorSession.cs");
         var submissionCoordinator = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionCoordinator.cs");
         var submissionFactory = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionRequestFactory.cs");
-        var program = ReadFrontendSource("Program.cs");
+        var registrations = ReadFrontendSource(
+            "Platform/Composition/FrontendServiceCollectionExtensions.cs");
 
         Assert.Contains("<VppWorkflowStepper", page, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-order-flow-header", page, StringComparison.Ordinal);
@@ -510,8 +512,8 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("localStorage.getItem", draftStore, StringComparison.Ordinal);
         Assert.Contains("OrderDraftStoragePolicy.CanRestore", draftStore, StringComparison.Ordinal);
         Assert.Contains("namespace gtas_vpp_fe.Features.Requests.Drafts;", draftPolicy, StringComparison.Ordinal);
-        Assert.Contains("AddScoped<OrderDraftStore>", program, StringComparison.Ordinal);
-        Assert.Contains("AddScoped<OrderSubmissionCoordinator>", program, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<OrderDraftStore>", registrations, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<OrderSubmissionCoordinator>", registrations, StringComparison.Ordinal);
         Assert.Contains("OrderSubmissionOperation.Create", submissionCoordinator, StringComparison.Ordinal);
         Assert.Contains("OrderSubmissionOperation.Update", submissionCoordinator, StringComparison.Ordinal);
         Assert.Contains("OrderSubmissionOperation.Recreate", submissionCoordinator, StringComparison.Ordinal);
@@ -559,7 +561,8 @@ public sealed class AtlasWave1ArchitectureTests
         var historyDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor");
         var requestsClient = ReadFrontendSource("Features/Requests/Api/RequestsQueryClient.cs");
         var exportClient = ReadFrontendSource("Features/Requests/Api/RequestsExportClient.cs");
-        var program = ReadFrontendSource("Program.cs");
+        var registrations = ReadFrontendSource(
+            "Platform/Composition/FrontendServiceCollectionExtensions.cs");
         // Sau C-7, hai grid của màn Lịch sử nằm trong hai component con thay vì Tab_History.razor.
         var historyOrders = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderList.razor");
         var historyDetail = ReadFrontendSource("Components/Pages/VPPRequest/Components/HistoryOrderDetailSheet.razor");
@@ -590,7 +593,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("VppFileExportFormat.Pdf => \"export.pdf\"", exportClient, StringComparison.Ordinal);
         Assert.Contains("VppFileExportFormat.Excel => \"export.xlsx\"", exportClient, StringComparison.Ordinal);
         Assert.Contains("ArgumentOutOfRangeException", exportClient, StringComparison.Ordinal);
-        Assert.Contains("AddScoped<RequestsExportClient>", program, StringComparison.Ordinal);
+        Assert.Contains("AddScoped<RequestsExportClient>", registrations, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", orders, StringComparison.Ordinal);
         Assert.Contains("AllowPaging=\"true\"", historyOrders, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDetail, StringComparison.Ordinal);

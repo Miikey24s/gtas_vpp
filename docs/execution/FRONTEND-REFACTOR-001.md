@@ -32,7 +32,7 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `356/356`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `362/362`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
 | Việc làm ngay | FR8A đã xóa endpoint registry/package thừa và dọn `Components/Shared` về 0 source owner. FR7 còn owner chốt correction, sau đó triển khai UX và mutation E2E trước khi đóng wave | [Continuation](#plan-detail-continuation) |
 
@@ -914,6 +914,13 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   full frontend `356/356`, solution Release build sạch; user-menu/theme interaction pass `1/1`. Aggregate theme
   route audit còn timeout ở `.vpp-permission-matrix`; worktree sạch tại `ac04b5b4` fail đúng locator này nên
   được giữ là permission-fixture debt có sẵn, không phải regression của slice.
+- FR8A composition root: rút `Program.cs` từ 233 xuống 16 dòng vật lý và chuyển chi tiết vào ba owner
+  `FrontendRuntimeSettings`, `FrontendServiceCollectionExtensions`, `FrontendApplicationExtensions`. Lifetime,
+  HTTP timeout/handler, cookie, Data Protection, localization, middleware order và endpoint map đều được giữ
+  tường minh, không dùng assembly scanning. Focused composition/config `46/46`, full frontend `362/362`,
+  solution Release build sạch, exact-file format gate pass và isolated account/logout/not-found pass `3/3`.
+  Repository verify qua agent setup `63/63` rồi dừng ở format debt của ba file sạch ngoài slice
+  (`SettlementRequestFactory`, `AtlasFullRuntimeTests`, `SettlementWorkspaceProjectionTests`); xử lý riêng.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +

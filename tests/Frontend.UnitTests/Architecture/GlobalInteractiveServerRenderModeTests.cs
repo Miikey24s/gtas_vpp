@@ -34,16 +34,24 @@ public sealed class GlobalInteractiveServerRenderModeTests
     [Fact]
     public void ServerRegistration_DoesNotEnableWebAssemblyRendering()
     {
-        var programSource = ReadSource("Program.cs");
+        var serviceRegistration = ReadSource(
+            "Platform",
+            "Composition",
+            "FrontendServiceCollectionExtensions.cs");
+        var endpointMapping = ReadSource(
+            "Platform",
+            "Composition",
+            "FrontendApplicationExtensions.cs");
+        var compositionSource = serviceRegistration + endpointMapping;
 
-        Assert.Contains("AddInteractiveServerComponents", programSource, StringComparison.Ordinal);
-        Assert.Contains("AddInteractiveServerRenderMode", programSource, StringComparison.Ordinal);
-        Assert.DoesNotContain("AddInteractiveWebAssemblyComponents", programSource, StringComparison.Ordinal);
-        Assert.DoesNotContain("AddInteractiveWebAssemblyRenderMode", programSource, StringComparison.Ordinal);
-        Assert.Contains("options.MaximumReceiveMessageSize = 64 * 1024", programSource, StringComparison.Ordinal);
-        Assert.DoesNotContain("50 * 1024 * 1024", programSource, StringComparison.Ordinal);
-        Assert.Contains("options.ClientTimeoutInterval = TimeSpan.FromSeconds(60)", programSource, StringComparison.Ordinal);
-        Assert.Contains("options.HandshakeTimeout = TimeSpan.FromSeconds(30)", programSource, StringComparison.Ordinal);
+        Assert.Contains("AddInteractiveServerComponents", serviceRegistration, StringComparison.Ordinal);
+        Assert.Contains("AddInteractiveServerRenderMode", endpointMapping, StringComparison.Ordinal);
+        Assert.DoesNotContain("AddInteractiveWebAssemblyComponents", compositionSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("AddInteractiveWebAssemblyRenderMode", compositionSource, StringComparison.Ordinal);
+        Assert.Contains("options.MaximumReceiveMessageSize = 64 * 1024", serviceRegistration, StringComparison.Ordinal);
+        Assert.DoesNotContain("50 * 1024 * 1024", serviceRegistration, StringComparison.Ordinal);
+        Assert.Contains("options.ClientTimeoutInterval = TimeSpan.FromSeconds(60)", serviceRegistration, StringComparison.Ordinal);
+        Assert.Contains("options.HandshakeTimeout = TimeSpan.FromSeconds(30)", serviceRegistration, StringComparison.Ordinal);
     }
 
     private static string ReadSource(params string[] relativeSegments)
