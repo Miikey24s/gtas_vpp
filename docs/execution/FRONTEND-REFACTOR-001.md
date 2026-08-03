@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0–FR6 COMPLETE; FR7 CORE MUTATION E2E COMPLETE, CORRECTION UX PENDING; FR8A/FR8B COMPLETE; FR8C ROUTE MANIFEST + DOC RECONCILIATION COMPLETE, OWNER FINAL VISUAL ACCEPTANCE PENDING`
+- Status: `IN PROGRESS — FR0–FR6 COMPLETE; FR7 CORE MUTATION E2E + CORRECTION UX A COMPLETE; FR8A/FR8B COMPLETE; FR8C ROUTE MANIFEST + DOC RECONCILIATION COMPLETE, OWNER FINAL VISUAL ACCEPTANCE PENDING`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -36,7 +36,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `373/373`; 84 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR8A/FR8B cleanup độc lập, core mutation E2E hai người dùng và FR8C manifest + docs reconciliation đã hoàn tất. FR7 còn quyết định UX sau mutation; theo dõi History detail-render debt trước owner final visual acceptance | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Correction UX A, mutation E2E, FR8C docs/manifest và technical runtime board đã hoàn tất. Chờ owner duyệt visual board; sau đó mở B0R backend và giữ debt localization raw message ở backlog riêng | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -138,9 +138,10 @@ contract và sequencing; không nhân bản ledger đang thay đổi theo source
 | Frontend unit/architecture | `373/373` hiện tại (`372/372` tại checkpoint `a75f5b6b` trước manifest-handle ratchet) |
 | Frontend verify | Build `0 warning/error`, unit `373/373`, UI smoke `2/2`, vulnerability/leak audit PASS |
 | Logical route coverage | `44` key trong `RouteAcceptanceManifest`; manifest là technical ledger, không thay owner visual approval |
-| Settlement mutation | `1/1`: confirm revision 1, four-eyes rejection, correction revision 2, history immutable |
+| Settlement mutation | `1/1`: confirm revision 1, four-eyes rejection, correction revision 2, history immutable; post-success fresh-preview CTA + new key gate pass |
 | History route gate | Full targeted test `3/3` sau bounded chart retry và render-settle hardening khi đóng detail popover |
-| Owner visual status | Final runtime review, correction UX A/B và golden thesis/slide vẫn pending |
+| Runtime visual board | `ShellResponsiveTests` `1/1`; 17 settled screenshots ở `1920×1080`, selector/loading gate đã được sửa và kiểm bằng mắt |
+| Owner visual status | Technical board đã sẵn sàng; owner final visual approval, golden thesis/slide và localization raw-message decision vẫn pending |
 
 ### Historical FR0 inventory snapshot — 2026-08-02
 
@@ -439,6 +440,26 @@ giữ tên rõ và API nhỏ.
   bị ép thêm lifecycle ceremony. Blazor dispose `IJSObjectReference`, còn DOM cleanup không gọi JS
   interop từ `Dispose`. `LongSessionStabilityTests` là gate trước khi retire observer/listener cũ.
 
+## 7.10. Correction UX A và runtime board — 2026-08-04
+
+- Owner chọn **A — sau khi correction thành công phải `Xem trước lại` trước lần correction tiếp theo**.
+  Preview mới tạo snapshot và idempotency key mới; không auto-replay correction trên snapshot cũ.
+- `PeriodSettlementState` expose `RequiresFreshPreviewForSubmission`; `PeriodSettlementPanel` ẩn
+  correction action sau mutation, hiện notice + CTA `Xem trước lại`, rồi chỉ mở lại action khi preview
+  mới hoàn tất. Copy VI/EN dùng resource key riêng; comment source chỉ giải thích vì sao snapshot cũ
+  hết hiệu lực.
+- Mutation E2E `1/1` đã kiểm confirm revision 1, four-eyes rejection, manager correction revision 2,
+  notice sau correction, CTA preview lại và correction gate mở lại. Full frontend verify pass trên
+  checkpoint trước board: agent setup `63/63`, Release build sạch, unit `373/373`, UI smoke `2/2`,
+  audit/vulnerability/Gitleaks pass.
+- Screenshot harness được đồng bộ với data-surface canonical (`period-settlement-data-surface`,
+  `vpp-approval-operation-workspace`) và chờ mọi visible `aria-busy`/Radzen/history loading state tắt
+  trước capture. `ShellResponsiveTests` pass `1/1`, tạo 17 ảnh settled trong thư mục ignored
+  `tmp/ui-final-acceptance-2026-08-04/`; đây là evidence để owner duyệt, chưa phải golden.
+- Board còn một điểm cần owner quyết định riêng: Order Create đang hiển thị raw English
+  `CanCreateOrderReason` từ backend trong giao diện tiếng Việt. Không đổi API/logic âm thầm trong slice
+  correction; ghi vào backend/localization backlog.
+
 ## 8. Cleanup classification — HISTORICAL FR0 SNAPSHOT
 
 > Bảng này là phân loại ứng viên tại FR0, không phải backlog hiện tại. Không làm lại các dòng đã có
@@ -520,9 +541,9 @@ dùng worktree riêng và không chạm cùng module.
 | Wave | Trạng thái hiện tại | Gate còn mở |
 |---|---|---|
 | FR0–FR6 | `COMPLETE` | Không mở lại baseline; chỉ sửa khi có regression được chứng minh |
-| FR7 | `CORE MUTATION E2E COMPLETE` | Owner chọn correction UX A/B; sau đó thêm assertion post-success |
+| FR7 | `CORE MUTATION E2E + CORRECTION UX A COMPLETE` | Owner visual acceptance vẫn là gate riêng; không còn frontend mutation gate |
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
-| FR8C | `MANIFEST + DOC RECONCILIATION COMPLETE` | Owner final visual acceptance; golden chỉ tạo sau approval |
+| FR8C | `MANIFEST + DOC RECONCILIATION + TECHNICAL BOARD COMPLETE` | Owner final visual acceptance; golden chỉ tạo sau approval |
 
 `RouteAcceptanceManifest` là ledger coverage kỹ thuật hiện hành. Nó không tự biến Atlas smoke thành
 functional acceptance, không thay browser route-real review và không chốt ảnh thesis/slide.
@@ -726,6 +747,7 @@ file path hoặc sơ đồ kiến trúc cuối trước khi frontend/backend ref
 | FE-D3 | `APPROVED 2026-08-03` | `CurrentUserState` canonical, tách `UiBusyState`, typed feature clients; migrate-on-touch, không big-bang |
 | FE-D4 | `APPROVED 2026-08-03` | English identifiers + Vietnamese why-only comments; bỏ ticket/wave/history khỏi source khi chạm |
 | FE-D5 | `APPROVED 2026-08-03` | Final golden/slide screenshots chỉ sau owner final UI acceptance |
+| FE-D6 | `APPROVED 2026-08-04` | Correction thành công bắt buộc `Xem trước lại`; preview mới tạo snapshot và idempotency key mới trước correction tiếp theo |
 
 FE-D2..D5 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
 
@@ -733,9 +755,8 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 structural ownership và core mutation E2E đã hoàn tất, chỉ còn correction UX chờ owner quyết định. FR8A/FR8B hoàn tất; FR8C-A route manifest 44 key đã khóa bằng test, còn doc reconciliation; `Components/Shared` đã về 0 source owner**.
-  Provisional baseline chưa phải
-  golden hoặc owner final visual acceptance.
+- Current status: **FR0–FR6 hoàn tất; FR7 structural ownership, core mutation E2E và correction UX A đã hoàn tất. FR8A/FR8B/FR8C hoàn tất; route manifest 44 key, code-reading sync và settled runtime board đã có; `Components/Shared` đã về 0 source owner**.
+  Provisional baseline chưa phải golden; owner final visual acceptance vẫn là gate riêng.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
   `ProductCatalogTests.cs` và hai text extraction artifact; không stage/overwrite.
@@ -1066,11 +1087,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   được suy ra từ manifest.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: chờ owner chốt correction workflow và chuẩn bị final runtime review board. Khuyến nghị
-  `re-preview bắt buộc`: sau mỗi revision thành công,
-  thay nút correction bị khóa bằng notice + CTA `Xem trước lại`; chỉ bật correction khi preview sinh key mới.
-  Core mutation E2E confirm/correct/four-eyes đã pass và sau quyết định UX chỉ cần thêm assertion post-success
-  tương ứng. FR8A/FR8B cleanup độc lập đã hết candidate có zero-consumer evidence; không tách `PermissionRealtimeService`,
+- Next exact action: owner rà board route thật và chốt final visual acceptance; sau approval mới mở B0R
+  backend. Correction A đã triển khai: sau mỗi revision thành công, nút correction được thay bằng notice
+  + CTA `Xem trước lại`, chỉ bật correction khi preview sinh key mới. Core mutation E2E confirm/correct/
+  four-eyes và post-success CTA đều pass. FR8A/FR8B cleanup độc lập đã hết candidate có zero-consumer
+  evidence; không tách `PermissionRealtimeService`,
   `vpp-interactions.js`, Step2 hoặc draft timer khi chưa có lifecycle/final-acceptance gate.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.

@@ -473,6 +473,21 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Hai dirty file hiện hữu `vpp-polish.css` và `ProductCatalogTests.cs` phải được bảo toàn và xác minh
   trong FR0 trước khi gọi baseline tạm đã khóa.
 
+### 7.10 — Correction UX A và technical final board — 2026-08-04
+
+- Owner đã chốt phương án A: sau khi correction settlement thành công, snapshot cũ hết hiệu lực; UI
+  phải hiện notice + `Xem trước lại`, tạo idempotency key mới, rồi mới mở lại correction action.
+- Production implementation nằm ở `PeriodSettlementPanel` + `PeriodSettlementState`; mutation E2E
+  `1/1` kiểm confirm, four-eyes rejection, correction revision 2, notice/CTA sau correction và mở lại
+  correction gate. Đây là behavior/UX correction riêng, không đổi API/DTO/database/RBAC.
+- Technical runtime board `ShellResponsiveTests` pass `1/1` với 17 ảnh settled tại
+  `tmp/ui-final-acceptance-2026-08-04/`; harness đã đổi selector về canonical workspace và chờ
+  `aria-busy`/Radzen/history loading state tắt trước capture. Ảnh chỉ là evidence để owner duyệt,
+  chưa được gọi là golden thesis/slide.
+- Owner vẫn cần rà route thật và chốt final visual acceptance. Điểm quan sát cần quyết định riêng:
+  Order Create hiển thị raw English `CanCreateOrderReason` trong UI tiếng Việt; giữ nguyên cho đến khi
+  có correction/localization decision thuộc backend.
+
 ---
 
 ## 8. Rủi ro và recovery
