@@ -57,7 +57,7 @@ pwsh .\tests\Frontend.UiTests\bin\Release\net10.0\playwright.ps1 install chromiu
 
 ### 1. Safety contracts mac dinh
 
-Lenh nay portable va duoc CI chay. Ba test can LocalDB se `SKIP` neu khong co
+Lenh nay portable va duoc CI chay. Sau test can LocalDB se `SKIP` neu khong co
 opt-in; cac test fail-closed van phai pass.
 
 ```powershell

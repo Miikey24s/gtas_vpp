@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: NOT_STARTED — READY_FOR_OWNER_APPROVAL
+- Status: PLANNED — REFRESHED; WAITING FOR FRONTEND CORRECTION + UI FINAL ACCEPTANCE
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -8,12 +8,14 @@
 - Branch: `codex/ai-agent-foundation`
 - Base commit: `46560f6020824cbea9e02bcb8bb06131f1efd501`
 - Planned at: `2026-07-29T05:17:46+07:00`
+- Refreshed against: `39fe956a` at `2026-08-04`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`
 - Related sequencing: `docs/execution/FRONTEND-REFACTOR-001.md`
 - Supersedes: phần **R-1 backend** và quy ước comment backend trong
   `docs/execution/REFACTOR-001.md`; lịch sử R-0/R-2 của record cũ vẫn giữ nguyên
-- User approval required: Yes, trước khi sửa production source
+- User approval required: không còn decision kiến trúc backend; production implementation chỉ bắt đầu
+  sau correction UX/E2E và owner UI final acceptance
 
 <a id="plan-overview"></a>
 
@@ -24,12 +26,12 @@
 | Kết quả cần đạt | Backend vẫn chạy y như hiện tại nhưng người mới có thể lần từ API → use case → database nhanh, tên dễ hiểu, class có trách nhiệm rõ, không còn rác đã chứng minh | [Objective](#plan-detail-objective) |
 | Phạm vi | `src/Backend`, backend tests và tài liệu đọc code; không redesign UI, không đổi API/JSON/quyền/nghiệp vụ/schema | [Scope](#plan-detail-scope) |
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
-| Các bước chính | B0 sửa baseline/khóa contract → B1a dead code → B1b metadata/local cleanup → B2 pilot Reports → B3 Catalog/Pricing → B4 Requests → B5 Settlement → B6 Identity/Access → B7 Platform → B8 persistence/final review | [Waves](#plan-detail-waves) |
+| Các bước chính | B0R refresh/khóa contract → B1a-1 dead code nhỏ → B1a-2 bỏ `BaseServices` có characterization → B1b metadata/local cleanup → B2 Reports → B3 Catalog/Pricing → B4 Requests → B5 Settlement → B6 Identity/Access → B7 Platform → B8 persistence/final review | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English, ưu tiên từ đầy đủ và từ vựng nghiệp vụ; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**, không mặc định gắn số mục luận văn vào source | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | Architecture/final review: `gpt-5.6-sol` high/xhigh; lát cơ học rõ: `gpt-5.6-terra` medium/high. Snapshot weekly-only còn 10 full + 1 medium; thiếu cửa sổ 5 giờ nên khởi động `SLICE_ONLY`, đo lại sau B1 | [Routing](#plan-detail-routing) |
-| Kiểm tra | Backend unit 429/429; integration mặc định 14 pass/6 skip. Khi bật đúng disposable LocalDB gate: 19 pass/1 fail do test còn kỳ vọng 4 role legacy trong khi RBAC hiện có 3 persona. B0 phải sửa baseline trước refactor | [Verification](#plan-detail-verification) |
+| Model/quota routing | Official resolver hiện chọn `gpt-5.6-sol` cho kiến trúc/review khó và `gpt-5.6-terra` cho lát cơ học rõ. Quota probe ngày 03/08 trả 404 nên capacity chưa được xác minh; chỉ mở B0R độc lập rồi probe/đo lại trước B1 | [Routing](#plan-detail-routing) |
+| Kiểm tra | Backend unit 473/473; integration mặc định 14 pass/6 skip; disposable LocalDB 20/20; EF không có pending model; agent setup 63/63. Số test là snapshot, không phải invariant | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Mass move/rename làm diff khó review; generic endpoint có hidden consumer; hai DbContext dễ gây model drift; migration/generated file bị hiểu nhầm là rác | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Owner duyệt 3 quyết định ở [mục 13](#plan-detail-decisions); sau đó chỉ chạy B0 làm slice hiệu chuẩn, đo lại trước B1 | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Chốt correction UX + mutation E2E → owner UI final acceptance → chạy B0R và reforecast → mới vào B1 | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -79,36 +81,40 @@ Refactor backend để một sinh viên năm 4 có thể:
 - Không mass-format, mass-namespace-rename hoặc move toàn bộ repository trong một commit.
 - Không refactor frontend/UI trong record này.
 
-## 2. Evidence baseline — 2026-07-29
+## 2. Evidence baseline — historical 2026-07-29, refreshed 2026-08-04
 
 ### Repository và build gates
 
 | Evidence | Kết quả hiện tại |
 |---|---|
-| Backend source inventory | 155 file C# non-generated, khoảng 29.263 dòng khi bỏ `.Designer.cs` và model snapshot khỏi phép đo hotspot; toàn backend có 178 file C# tracked |
-| `./scripts/gtas.cmd test-backend` | PASS — 429/429 |
+| Backend source inventory | 186 file C# tracked; 163 file non-generated, khoảng 31.923 dòng. `Migrations` có 47 file/38.021 dòng chủ yếu là schema history/generated và không được coi là rác |
+| `./scripts/gtas.cmd test-backend` | PASS — 473/473 |
 | Backend integration default | PASS — 14 pass, 6 skip có điều kiện; kết quả này chưa đủ chứng minh SQL Server behavior |
-| Backend integration với `GTAS_QA_SQL_INTEGRATION=1` | **PRE-EXISTING FAIL** — 19 pass, 1 fail: `LocalDbQaFixtureTests.AssertSnapshot` kỳ vọng `4`, thực tế `1`; fixture còn assumption 4 role legacy trong khi `CanonicalRbac` hiện có 3 persona |
+| Backend integration với `GTAS_QA_SQL_INTEGRATION=1` | PASS — 20 pass, 0 skip trên harness-owned disposable LocalDB; fixture đã derive số role từ `CanonicalRbac.Personas` |
 | EF pending-model check | PASS — không có thay đổi model sau migration gần nhất |
-| `dotnet format whitespace ... --verify-no-changes --include src/Backend` | PASS |
-| `dotnet format analyzers ... --severity warn --verify-no-changes --include src/Backend` | PASS |
+| `dotnet format whitespace ... --verify-no-changes --include src/Backend` | PASS qua solution-wide `dotnet format --verify-no-changes` trong full backend verify |
+| `dotnet format analyzers ... --severity warn --verify-no-changes --include src/Backend` | PASS qua solution-wide `dotnet format --verify-no-changes` trong full backend verify |
 | Current project graph | Khớp `ARCH-001-MODULE-MAP.md` |
-| `./scripts/gtas.cmd verify -Scope backend` | PRE-EXISTING BLOCKER — dừng ở `model-routing-eval` của dirty AI-harness change, 62 pass/1 fail; chưa chạy tới backend gates |
+| `./scripts/ai/Test-AgentSetup.ps1` | PASS — 63/63; blocker `model-routing-eval` cũ đã được sửa |
+| `./scripts/gtas.cmd verify -Scope backend` | PASS — build 0 warning/error, agent setup 63/63, unit 473/473, integration portable 14 pass/6 conditional skip, EF zero delta, vulnerability/leak audit pass |
 
-Số test chỉ là snapshot ngày lập plan, không phải invariant lâu dài.
+Số test chỉ là snapshot ngày refresh, không phải invariant lâu dài.
 
 ### Hotspots đã đo
 
 | File | Dòng xấp xỉ | Vấn đề đọc hiểu chính |
 |---|---:|---|
-| `Application/Services/VPPRequestService.cs` | 2.306 | Query, create/update/cancel, supplement approval, period logic, mapping và helper nằm chung |
-| `Application/Services/PeriodSettlementService.cs` | 1.254 | Preview, confirm/correct, revision query, legacy settlement và snapshot logic cùng class |
-| `Api/Controllers/VPPRequestController.cs` | 1.145 | 26 actions + nhiều helper; transport, filter/query, export, notification và dashboard query bị trộn |
-| `Application/Services/DemoWorkbookSeeder.cs` | 1.108 | Parse, validate, reconcile và write demo data trong một file |
-| `Api/Controllers/LibraryController.cs` | 1.058 | Typed query tồn tại song song generic CRUD/PATCH và direct `VPPContext` access |
+| `Application/Services/VPPRequestService.cs` | 2.557 | Query, create/update/cancel, supplement approval, period logic, mapping và helper nằm chung |
+| `Application/Services/DemoWorkbookSeeder.cs` | 1.475 | Parse, validate, reconcile và write demo data trong một file |
+| `Application/Services/PeriodSettlementService.cs` | 1.311 | Preview, confirm/correct, revision query, legacy settlement và snapshot logic cùng class |
+| `Api/Controllers/VPPRequestController.cs` | 1.194 | Transport, filter/query, export, notification và dashboard query bị trộn; còn direct EF cho dashboard |
+| `Api/Controllers/LibraryController.cs` | 1.168 | Typed query tồn tại song song generic CRUD/PATCH và direct `VPPContext` access |
+| `Api/Controllers/PermissionController.cs` | 1.090 | Permission/user query, mapping và transaction qua `IUnitOfWork.VPPContext` trong controller |
+| `Api/Authorization/AccountLifecycleService.cs` | 1.028 | Account lifecycle và security branching là hotspot Identity/Access mới |
 | `Application/Services/SeedData.cs` | 960 | Reference seed, demo seed, SQL script, prices-file parsing và validation |
-| `Api/Program.cs` | 818 | Logging, config validation, DI, auth, middleware, migration/seed runner và deployment guards |
-| `Api/Controllers/PermissionController.cs` | 756 | Permission query, user query, mapping và generic repository access trong controller |
+| `Application/Services/AuthBootstrap/AuthBootstrapProvisioner.cs` | 847 | Bootstrap, mapping và reconciliation cần owner module rõ |
+| `Api/Authorization/MembershipAdministrationService.cs` | 845 | Membership mutation và authorization logic cần characterization security |
+| `Api/Program.cs` | 816 | Logging, config validation, DI, auth, middleware, migration/seed runner và deployment guards |
 
 Số dòng chỉ là **tín hiệu hotspot**, không phải tiêu chí tự động buộc tách class.
 
@@ -117,7 +123,7 @@ Số dòng chỉ là **tín hiệu hotspot**, không phải tiêu chí tự đ�
 - Năm private method `UpdateOrderLegacyAsync`, `CancelOrderLegacyAsync`,
   `ApproveAdditionalOrderLegacyAsync`, `RejectAdditionalOrderLegacyAsync`,
   `GetCurrentPeriodInfoLegacyAsync` chỉ xuất hiện tại chính declaration.
-- `ObjectHelpers` và `PasswordHelpers` không có consumer nào ngoài file định nghĩa.
+- `ObjectHelpers` và `PasswordHelpers` vẫn không có consumer nào ngoài file định nghĩa.
 - `Api/gtas_vpp_be.http` còn route mẫu `weatherforecast` và `api/sql/Test/test` không tồn tại.
 - `Api/readme.md` còn lệnh EF theo layout project cũ.
 - `Api/.gitignore` và `Api/.gitattributes` lặp gần như toàn bộ root metadata.
@@ -130,6 +136,10 @@ Số dòng chỉ là **tín hiệu hotspot**, không phải tiêu chí tự đ�
 - Runtime `VPPContext` và `VPPMigrationDbContext` có phần lớn mapping bị lặp; audit phát hiện tên
   constraint period đã drift giữa hai context. Đây là lý do phải thêm model/config parity gate, không
   phải lý do hợp nhất context ngay lập tức.
+- `BaseServices`/`IBaseServices` vẫn có consumer thật qua `VPPRequestService`, DI và tests; không còn là
+  dead-code deletion chung với B1a-1. Cần characterization riêng trước khi bỏ inheritance/extra UoW.
+- Poppins/OFL, demo TSV/JSON, SQL scripts và export builders có resource/runtime consumer; mặc định
+  `KEEP` cho đến khi ledger chứng minh replacement và output parity.
 
 <a id="plan-detail-readability"></a>
 
@@ -190,8 +200,8 @@ có owner/task.
 
 ### Tooling ratchet
 
-- Giữ built-in .NET/Roslyn analyzers; chưa thêm analyzer package thứ ba ở B0/B1.
-- B0 lập report cho high-signal rule như unused private member, naming và complexity; ban đầu dùng
+- Giữ built-in .NET/Roslyn analyzers; chưa thêm analyzer package thứ ba ở B0R/B1.
+- B0R lập report cho high-signal rule như unused private member, naming và complexity; ban đầu dùng
   suggestion/warning hoặc changed-file ratchet.
 - Chỉ nâng rule thành error sau khi baseline sạch và false-positive thấp.
 - Mechanical format phải là commit riêng; không trộn với move/split/business-sensitive refactor.
@@ -292,15 +302,15 @@ src/Backend/
 - Không tạo `Commands/Queries/Handlers` ba tầng nếu module nhỏ chỉ cần một typed service rõ.
 - Không tạo generic repository mới. Generic path hiện hữu được giữ tạm cho compatibility và retire
   theo module sau consumer audit.
-- Chưa hợp nhất `VPPContext` và `VPPMigrationDbContext`. B0 phải ghi rõ vai trò; chỉ extract mapping
+- Chưa hợp nhất `VPPContext` và `VPPMigrationDbContext`. B0R phải ghi rõ vai trò; chỉ extract mapping
   chung nếu EF pending-model check chứng minh zero delta.
 
 ## 6. Cleanup classification
 
 | Candidate | Class | Hành động dự kiến | Gate trước khi làm |
 |---|---|---|---|
-| Năm private `*LegacyAsync` trong `VPPRequestService` | DELETE_CANDIDATE | Xóa trong B1 | Usage count = 1; focused tests + 429 backend tests |
-| `ObjectHelpers.cs`, `PasswordHelpers.cs` | DELETE_CANDIDATE | Xóa trong B1 | Repo-wide usage chỉ declaration; build/test |
+| Năm private `*LegacyAsync` trong `VPPRequestService` | DELETE_CANDIDATE | Xóa trong B1a-1 | Usage count = 1; focused tests + all current backend tests |
+| `ObjectHelpers.cs`, `PasswordHelpers.cs` | DELETE_CANDIDATE | Xóa trong B1a-1 | Repo-wide usage chỉ declaration; build/test |
 | `Api/gtas_vpp_be.http` | REPLACE | Viết lại thành request smoke hiện hành, không chứa credential | Route inventory/test |
 | `Api/readme.md` | MERGE/DELETE | Đưa lệnh đúng vào root/backend guide rồi xóa file stale | Documentation link check |
 | `Api/.gitignore`, `Api/.gitattributes` | DELETE_CANDIDATE | Hợp nhất vào root metadata | `git check-ignore`, attr comparison |
@@ -311,25 +321,24 @@ src/Backend/
 | EF `.Designer.cs`, snapshot, applied migrations | KEEP | Không coi là rác | DB safety skill + explicit migration task nếu cần |
 | Poppins fonts, demo TSV, SQL scripts | KEEP/NEEDS_AUDIT | Giữ vì có csproj/runtime consumer; chỉ thay khi có replacement verified | Build output/resource/seed tests |
 | `GenericRepository`, `BaseGenericController`, generic Library writes | MIGRATE_ON_TOUCH | Không xóa big-bang; typed path + consumer cutover từng module | Route/consumer/authorization/parity tests |
-| `BaseServices`/`IBaseServices`/`IUnitOfWorkFactory`/`UnitOfWorkFactory`/`JiraSettings` chain | DELETE_CANDIDATE/NEEDS_AUDIT | B0 lập consumer ledger; B1a hoặc B4 bỏ inheritance/dead chain nếu xác nhận không còn behavior. Giữ phần `Config` còn consumer riêng | Focused service/config tests + DI smoke |
+| `BaseServices`/`IBaseServices` và related UoW/config chain | MIGRATE_ON_TOUCH/NEEDS_CHARACTERIZATION | B0R lập consumer ledger; B1a-2 chỉ bỏ inheritance/extra UoW sau khi khóa construction/transaction behavior. Xóa từng related type riêng nếu usage thật bằng 0 | Focused service/config/transaction tests + DI smoke |
 | Hai DbContext có mapping trùng | NEEDS_AUDIT | Document trước; không merge ở B1 | EF no-pending-model + LocalDB parity |
 
 <a id="plan-detail-routing"></a>
 
 ## 7. Model, effort và quota routing
 
-### Snapshot
+### Refresh 2026-08-04
 
-- Probe: `2026-07-28T22:05:14Z` (05:05 ngày 29/07 tại Việt Nam).
-- Coverage: weekly-only; 16 aggregate account, 11 available; 10 weekly-full + 1 medium.
-- Không có matching consumption history cho một backend refactor cỡ 26K LOC và không có cửa sổ
-  5 giờ trong snapshot.
-- Forecast toàn plan: khoảng `60–140% Plus-equivalent`, confidence thấp; giữ safety envelope đến
-  khoảng `200%` trước khi chốt full execution.
-- Quyết định chính thức: `SLICE_ONLY` cho **B0**, đo aggregate delta sau checkpoint rồi reforecast
-  trước B1.
-  Weekly pool nhìn chung khỏe, nhưng chưa được tuyên bố `ENOUGH` cho toàn plan khi thiếu short-window
-  coverage.
+- Local quota probe đã được retry nhưng trả HTTP 404; coverage hiện tại không khả dụng. Snapshot ngày
+  29/07 chỉ còn giá trị lịch sử và không được dùng để tuyên bố capacity hiện tại.
+- Official model resolver hiện chọn `gpt-5.6-sol`. Theo guidance chính thức, không dùng model mạnh nhất
+  cho mọi lát: Sol dành cho architecture, security/business ambiguity và final review; Terra dành cho
+  implementation cơ học, rõ contract và high-volume.
+- Cost range trong bảng wave là planning heuristic rộng, confidence thấp; chưa có matching consumption
+  history mới nên không được coi là quota commitment.
+- Quyết định checkpoint: sau UI final acceptance chỉ mở **B0R** vì đây là slice độc lập, có giá trị thật;
+  probe/đo aggregate delta lại trước B1. Chưa tuyên bố `ENOUGH` cho toàn backend plan.
 
 `Khuyến nghị routing` không có nghĩa model của root task đã tự đổi.
 
@@ -339,16 +348,17 @@ src/Backend/
 
 | Wave | Outcome | Scope chính | Model + effort khuyến nghị | Cost forecast | Review/handoff gate |
 |---|---|---|---|---:|---|
-| **B0 — Contract & reading baseline** | Khóa hành vi và sửa baseline test trước khi move/split | Derive expected role codes từ `CanonicalRbac.Personas`; assert đúng 3 active persona, legacy procurement role inactive và membership/mapping được reconcile; sửa stale fixture message; route+verb+policy + representative status/error manifest; DI/resource smoke; module/consumer ledger; backend reading map; analyzer report | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | 2–5% | LocalDB 20/20, 0 skip; manifest ổn định; baseline commands xanh hoặc exact verify waiver được owner duyệt |
-| **B1a — Proven dead code** | Xóa code không có caller, không đổi behavior | 5 request legacy methods, 2 unused helpers, dead price-seed cluster; audit/remove dead `BaseServices` chain theo consumer ledger | `gpt-5.6-terra` medium/high, review `sol` high | 2–5% | Mỗi deletion có usage proof; focused + full backend tests; resource output parity |
+| **B0R — Refresh contract & reading baseline** | Khóa HEAD hiện tại trước khi move/split; không làm lại role-count fix đã hoàn tất | Refresh inventory/analyzer/test gates; assert trực tiếp legacy procurement role inactive + membership/mapping reconciliation; manifest route+verb+policy và representative status/error/serialization/export; DI/resource smoke; generic endpoint consumer ledger; backend module/file map trong code-reading guide | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | 2–5% | All current unit/integration gates xanh; all opt-in LocalDB tests pass, 0 skip/fail; EF zero delta; full verify xanh |
+| **B1a-1 — Proven dead code nhỏ** | Production slice đầu tiên dễ review/rollback | Xóa 5 request legacy methods + `ObjectHelpers` + `PasswordHelpers`; không đổi API, DTO, schema, DI hay nghiệp vụ | `gpt-5.6-terra` medium/high, review `sol` high | 1–3% | Usage proof; focused request/controller tests + all current backend tests |
+| **B1a-2 — Retire BaseServices boundary** | Bỏ inheritance và extra UnitOfWork chỉ sau khi behavior đã khóa | Characterize `VPPRequestService` construction/UoW behavior; bỏ `BaseServices`/`IBaseServices` và cập nhật DI/tests nếu consumer ledger về 0 | `gpt-5.6-terra` high, review `sol` high | 2–5% | Constructor/transaction/DI smoke; focused lifecycle/race tests + all current backend tests |
 | **B1b — Metadata & local cleanup** | Source tree sạch, tài liệu local đúng | Stale `.http`/readme, ghost csproj include, nested Git metadata, ignored artifact cleanup | `gpt-5.6-terra` medium | 1–3% | `git check-ignore`/attrs/build/docs links; không đổi logging/deploy behavior |
-| **B2 — Reports pilot** | Chốt pattern module trên luồng read-heavy ít mutation | Trước split, thêm behavior tests cho 4 endpoint gồm permission scope, success/error envelope, content type/file name; sau đó thin `ReportsController`, tách deterministic query/export/workbook. `ReportInsights` vẫn thuộc Reports và chỉ refactor khi test đủ | `gpt-5.6-terra` high, review `sol` high | 4–10% | Route/JSON/status/content parity; direct 401/403; report tests; no DB model delta |
+| **B2 — Reports pilot** | Chốt pattern module trên seam read-heavy đã có service/export coverage tốt | Bổ sung `ReportsController` route/policy/direct 401/403/status-error manifest; sau đó thin controller và gom report query/builders/insights theo module. Giữ `SimpleWorkbookBuilder`/`ExportFileContract` ở Platform/Files vì Order và Settlement cùng dùng | `gpt-5.6-terra` high, review `sol` high | 4–10% | Route/JSON/status/content parity; direct 401/403; CSV/XLSX/PDF filename/MIME/signature; no DB model delta |
 | **B3 — Catalog & Pricing** | Typed read/write paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, price resolver; retire generic writes từng consumer | `gpt-5.6-sol` high cho design, `terra` high implement | 8–18% | Consumer ledger 0 trước delete; LocalDB price/catalog tests; permission parity |
 | **B4 — Requests** | Luồng đơn dễ trình bày và không còn god service/controller | Query/history, create-update-cancel, supplement workflow, demand, export/notification boundary | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | 15–35% | Idempotency/concurrency/revision/history tests; route/auth/JSON parity; focused LocalDB |
 | **B5 — Settlement** | Preview/confirm/correct/revision tách theo use case | `PeriodSettlementService`; snapshot pricing/evidence; correction/four-eyes; query services | `gpt-5.6-sol` xhigh, `terra` high implement | 10–25% | Snapshot/hash/idempotency/four-eyes tests; SQL Server integration; no schema delta |
-| **B6 — Identity & Access** | Security logic có ownership rõ, controller không query context | Auth/session adapter, account lifecycle, membership administration, permission query/mutation | `gpt-5.6-sol` xhigh, `terra` high implement | 10–25% | Role/action/scope matrix; direct API 401/403; session invalidation; no secret/log regression |
+| **B6 — Identity & Access** | Security logic có ownership rõ, controller không query context | `PermissionController`, `AccountLifecycleService`, `MembershipAdministrationService`, `AuthBootstrapProvisioner`; giữ `Api/Authorization` là owner hiện hữu cho đến khi move thật sự cải thiện navigation, không mass-move để khớp cây mẫu | `gpt-5.6-sol` xhigh, `terra` high implement | 10–25% | Role/action/scope matrix; direct API 401/403; session invalidation; bootstrap/reconciliation; no secret/log regression |
 | **B7 — Platform, composition & operations** | `Program.cs`/hosting/logging dễ đọc mà không đổi deployment behavior | Mỗi B2–B6 đã sở hữu `Add<Module>()`; B7 chỉ compose, tách DB init runner, cấu hình log path với Development/migrator/production contract, worker/notification/platform cleanup | `gpt-5.6-sol` high/xhigh | 5–12% | Composition-root smoke; deployment/log-volume contract; worker tests; all module registrations resolve |
-| **B8 — Persistence mapping & final review** | Giảm mapping drift hoặc ghi nhận waiver có bằng chứng; hoàn tất guide/adapters | DB-safety checkpoint riêng cho shared `IEntityTypeConfiguration<T>` nếu zero-delta; xóa adapter hết consumer; namespace/folder cleanup; final code-reading review | `gpt-5.6-sol` xhigh | 5–12% | LocalDB 20/20, 0 skip; fresh migrate/reseed/reset; EF no delta; full backend verify; route/wire/dependency manifest |
+| **B8 — Persistence mapping & final review** | Giảm mapping drift hoặc ghi nhận waiver có bằng chứng; hoàn tất guide/adapters | DB-safety checkpoint riêng cho shared `IEntityTypeConfiguration<T>` nếu zero-delta; xóa adapter hết consumer; namespace/folder cleanup; final code-reading review | `gpt-5.6-sol` xhigh | 5–12% | All current opt-in LocalDB tests pass, 0 skip/fail; fresh migrate/reseed/reset; EF no delta; full backend verify; route/wire/dependency manifest |
 
 Chỉ đổi model ở ranh giới wave/checkpoint; một implementer chính giữ context, reviewer/subagent chỉ
 audit hoặc verify độc lập.
@@ -409,6 +419,7 @@ Các tên dưới đây là hướng trách nhiệm, không phải yêu cầu t�
 
 ```powershell
 ./scripts/gtas.cmd preflight -Scope backend
+./scripts/ai/Test-AgentSetup.ps1
 ./scripts/gtas.cmd test-backend
 dotnet format whitespace gtas_vpp.slnx --verify-no-changes --no-restore --include src/Backend tests/Backend.UnitTests
 dotnet format analyzers gtas_vpp.slnx --verify-no-changes --no-restore --include src/Backend tests/Backend.UnitTests --severity warn
@@ -417,7 +428,7 @@ git diff --check
 
 ### Disposable SQL Server gate
 
-Bắt buộc cho B0 baseline, mọi wave chạm EF query/context/seed/SQL/resource và final handoff; không
+Bắt buộc cho B0R baseline, mọi wave chạm EF query/context/seed/SQL/resource và final handoff; không
 bắt buộc cho pure metadata/docs slice như B1b nếu diff chứng minh không đụng runtime resource.
 
 ```powershell
@@ -435,7 +446,8 @@ finally {
 }
 ```
 
-Expected gate sau B0: **20 pass, 0 skip, 0 fail**.
+Expected gate: **toàn bộ test LocalDB hiện hành pass, 0 skip, 0 fail**. Snapshot refresh ngày 04/08 là
+20/20; con số này không phải invariant nếu suite được bổ sung test đúng.
 
 ### Gate theo loại thay đổi
 
@@ -443,35 +455,31 @@ Expected gate sau B0: **20 pass, 0 skip, 0 fail**.
 |---|---|
 | Controller/file move | Route + HTTP verb + authorization policy manifest; API contract tests |
 | Shared DTO/mapping touch ngoài dự kiến | STOP; serialization manifest + owner-approved compatibility task |
-| EF query/persistence/seed/resource refactor | Focused unit + opt-in disposable LocalDB **20 pass, 0 skip** |
+| EF query/persistence/seed/resource refactor | Focused unit + toàn bộ opt-in disposable LocalDB pass, 0 skip/fail |
 | DbContext/model/config touch | EF pending-model check; nếu có delta thì STOP và chuyển DB task |
 | Authorization/account | Direct endpoint 401/403, action/scope matrix, session invalidation, audit/log privacy |
 | Request/settlement mutation | Transaction, concurrency, rowversion, idempotency, replay, history/snapshot invariants |
 | Log/config/platform | Development + migrator + production configuration contract tests; secret scan |
-| Final wave | Opt-in LocalDB **20 pass, 0 skip** + `./scripts/gtas.cmd verify -Scope backend` + full diff review |
+| Final wave | Toàn bộ opt-in LocalDB pass, 0 skip/fail + `./scripts/gtas.cmd verify -Scope backend` + full diff review |
 
-### Characterization gaps cần bổ sung ở B0
+### Characterization gaps cần bổ sung ở B0R
 
 - Chưa có test manifest khóa toàn bộ controller route/verb/policy trước khi split/move.
 - Generic endpoint consumer ledger chưa canonical.
-- Integration suite mặc định skip 6 LocalDB cases. Opt-in disposable gate hiện 19/20 vì query/assert
-  còn dùng bốn role legacy. B0 phải derive từ `CanonicalRbac.Personas`, assert 3 active flat persona,
-  legacy procurement role inactive và membership/mapping reconciliation; không chỉ đổi `4 → 3`.
+- Integration suite mặc định skip 6 LocalDB cases. Role count/ID đã derive từ `CanonicalRbac.Personas`
+  và opt-in gate hiện 20/20; B0R còn phải assert trực tiếp legacy procurement role inactive và
+  membership/mapping reconciliation để khóa đầy đủ authority, không làm lại fix count.
 - `ReportsController` chưa có behavior coverage đủ cho pilot; B2 chỉ bắt đầu sau khi permission scope,
   error envelope, content type/file name và direct 401/403 đã được characterization.
 - Analyzer CLI warn-level đang sạch nhưng `.editorconfig` mới chủ yếu khóa whitespace; unused private
   member/naming/complexity chưa thành ratchet.
 
-### Xử lý `verify` đang đỏ ngoài scope
+### Full verify policy
 
-Trước B1, cần một trong hai:
-
-1. owner/AI-harness task sửa `model-routing-eval`, hoặc
-2. owner duyệt waiver tạm ghi đúng signature `62 pass/1 fail: model-routing-eval`, trong khi B0/B1
-   chạy thủ công toàn bộ backend gates ở trên.
-
-Waiver chỉ được dùng tạm cho B0/B1. Không được gọi wave PASS nếu xuất hiện thêm failure, signature
-thay đổi hoặc backend gate bị skip; trước B2 và final handoff, `verify -Scope backend` phải xanh hoàn toàn.
+Blocker lịch sử `62 pass/1 fail: model-routing-eval` đã được sửa; refresh hiện tại có agent setup
+63/63. Không còn waiver cố định theo signature cũ. Trước khi gọi bất kỳ production wave nào PASS,
+`./scripts/gtas.cmd verify -Scope backend` phải được chạy trên HEAD của wave và xanh hoàn toàn; nếu fail
+ngoài scope thì ghi exact signature, tách owner task và dừng wave thay vì dùng waiver lịch sử.
 
 <a id="plan-detail-risks"></a>
 
@@ -496,71 +504,60 @@ recovery chuyển sang DB execution record có backup/restore/forward-correction
 
 ## 12. Thứ tự ba công việc
 
-### Owner sequencing update — 2026-08-02
+### Current sequencing — refreshed 2026-08-04
 
-Owner đã thay thế yêu cầu phải final-accept UI trước khi refactor frontend. Thứ tự portfolio mới là:
+Frontend structural refactor đã đi qua FR0–FR6, FR7 structural ownership và FR8A/FR8B cleanup. Thứ tự
+portfolio hiện hành là:
 
-1. checkpoint correction UI đang dirty, chưa cần final acceptance;
-2. thực thi `FRONTEND-REFACTOR-001` trên provisional baseline, correction sau này được phép kéo theo
-   follow-up refactor;
-3. owner final UI acceptance và chốt golden/screenshot cuối;
-4. thực thi backend B0→B8;
-5. đồng bộ luận văn và hoàn thiện slide.
+1. owner chốt correction UX; khuyến nghị phương án A: sau confirm/correct phải bấm `Xem trước lại`;
+2. triển khai mutation E2E hai user cho confirm/correct/four-eyes và đóng FR7 mutation gate;
+3. hoàn tất FR8C route/docs rồi owner UI final acceptance, chốt golden/screenshot cuối;
+4. chạy backend **B0R**, probe/đo lại capacity, rồi thực thi B1→B8 theo từng slice nhỏ;
+5. đồng bộ code-reading guide/luận văn và hoàn thiện slide.
 
-Phần khuyến nghị lịch sử bên dưới được giữ để giải thích quyết định cũ, nhưng không còn là authority
-sequencing hiện hành.
-
-### Khuyến nghị mặc định cho một implementer chính
-
-1. **Hoàn tất `UI-SYSTEM-001`** — đây là work-in-progress đã mở; đóng baseline/guard trước để không
-   giữ hai initiative lớn cùng lúc.
-2. **Refactor frontend** — làm ngay sau UI system vì phụ thuộc design/component contract và context
-   UI còn nóng; tránh sửa cùng component hai lần.
-3. **Thực thi backend refactor** theo B0→B7 — backend độc lập vì cam kết không đổi API/schema.
-
-Việc **lập plan backend ngay bây giờ** không xung đột với thứ tự trên. Nếu owner muốn tận dụng hôm nay
-trước khi quay lại UI vào ngày mai, chỉ nên chạy **B0**, đo/reforecast rồi mới quyết định B1; không mở
-B2+ song song với một wave UI đang active.
-
-Phương án thay thế nếu deadline bảo vệ backend gần hơn: `UI-SYSTEM-001 → backend refactor → frontend
-refactor`. Không khuyến nghị `backend full → UI → frontend` khi UI task đang dở vì tăng work-in-progress
-và context drift.
+Backend plan được refresh read-only ngay bây giờ để tránh dùng baseline sai, nhưng không move/xóa production
+backend trước UI final acceptance. Nếu UI correction làm đổi Shared/API contract ngoài dự kiến, backend
+plan phải refresh dependency boundary thêm một lần trước B0R.
 
 <a id="plan-detail-decisions"></a>
 
-## 13. Owner decisions cần chốt trước implementation
+## 13. Decisions đã chốt
 
-| ID | Khuyến nghị | Nếu không duyệt |
-|---|---|---|
-| BR-D1 | Giữ modular monolith/4 project; không rewrite Clean Architecture hoặc microservices | Cần task kiến trúc mới, estimate/risk hoàn toàn khác |
-| BR-D2 | Comment VI why-only; bỏ quy tắc mặc định gắn `§` luận văn trong source, giữ mapping ở reading guide | Source tiếp tục mang academic reference dễ stale và “lộ” |
-| BR-D3 | `SUPERSEDED 2026-08-02` — dùng sequencing update ở mục 12 và `FRONTEND-REFACTOR-001` mục 13 | Không còn là decision pending |
+| ID | Status | Decision | Authority |
+|---|---|---|---|
+| BR-D1 | APPROVED/REPO AUTHORITY | Giữ modular monolith/4 project; không rewrite Clean Architecture hoặc microservices | `src/Backend/AGENTS.md`, `ARCH-001` |
+| BR-D2 | APPROVED/REPO AUTHORITY | Identifier English; comment tiếng Việt why-only; mapping luận văn nằm trong reading guide | Root/backend `AGENTS.md` |
+| BR-D3 | SUPERSEDED 2026-08-02 | Dùng sequencing hiện hành ở mục 12 và `FRONTEND-REFACTOR-001` | Owner sequencing update |
 
-Không còn câu hỏi blocking để hoàn thiện plan. Ba quyết định trên chỉ block **implementation**, không
-block audit/read-only hoặc việc owner review plan.
+Không còn backend architecture decision pending. Correction UX A/B và UI final acceptance là dependency
+gate của portfolio, không phải câu hỏi kiến trúc backend.
 
 <a id="plan-detail-continuation"></a>
 
 ## 14. Continuation note
 
-- Current status: Plan hoàn chỉnh, chờ owner duyệt BR-D1..BR-D3.
-- Current branch/HEAD: `codex/ai-agent-foundation` @ `46560f60`.
+- Current status: Plan đã refresh; chờ correction UX/E2E và owner UI final acceptance trước production B0R.
+- Current branch/HEAD: `codex/ai-agent-foundation` @ `39fe956a`.
 - Pre-existing dirty files outside this task: `.agents/skills/gtas-vpp-ui-system/*`, `AGENTS.md`,
-  `docs/ai/*`, `docs/planning/05-EXECUTION-TEMPLATE.md`, `scripts/ai/Test-AgentSetup.ps1`.
-- Last completed evidence: backend 429/429; integration default 14 pass/6 skip; disposable LocalDB
-  19 pass/1 pre-existing fixture failure (`Expected 4`, `Actual 1`); EF no pending model; backend
-  format/analyzer warn-level pass; full verify dừng sớm ở pre-existing `model-routing-eval` 62/63.
-- Next exact backend action: chờ frontend refactor + owner final UI acceptance theo sequencing mới;
-  sau đó implement B0 role-authority fix + route/verb/policy/status/error manifest + DI/resource
-  ledger; đạt LocalDB 20/20 rồi đo/reforecast trước B1.
-- Do not redo: source inventory, official-practice research, dead-code usage scan và baseline gates.
+  `LVTN/NguyenAnNam_DH52201078.docx`, `docs/ai/*`, `docs/planning/05-EXECUTION-TEMPLATE.md`,
+  `scripts/ai/Test-AgentSetup.ps1`, `src/Frontend/Blazor/wwwroot/css/vpp-polish.css`,
+  `tests/Frontend.UiTests/Tests/Order/ProductCatalogTests.cs` và hai text extraction untracked.
+- Last completed evidence: backend unit 473/473; integration default 14 pass/6 skip; disposable LocalDB
+  20/20; EF no pending model; agent setup 63/63; preflight PASS; full backend verify PASS. Mỗi production
+  wave vẫn phải rerun gate trên HEAD của chính wave trước khi gọi PASS.
+- Next exact backend action: sau UI final acceptance, chạy B0R manifest/ledger/reading-map + explicit
+  legacy-role reconciliation characterization; probe/đo lại rồi mới vào B1a-1.
+- Do not redo: role-count hardcode fix, model-routing-eval fix, source inventory refresh và dead-code
+  usage scan; chỉ refresh lại nếu HEAD/backend dependency đã đổi trước B0R.
 - Do not touch: UI-SYSTEM-001 source, frontend, Shared wire shape, migration history hoặc user-owned
-  dirty files trong B0/B1.
+  dirty files trong B0R/B1.
 
 ## 15. Research sources
 
-- [OpenAI — Using GPT-5.6 / current model-family guidance](https://developers.openai.com/api/docs/guides/latest-model)
+- [OpenAI — Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol.md)
+- [OpenAI — Prompt guidance for GPT-5.6](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6.md)
 - [Microsoft — Common web application architectures](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures)
+- [Microsoft — Architectural principles](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles)
 - [Microsoft — Develop ASP.NET Core MVC apps, controllers and feature organization](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/develop-asp-net-core-mvc-apps)
 - [Microsoft — C# identifier naming conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names)
 - [Microsoft — Common C# coding conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
