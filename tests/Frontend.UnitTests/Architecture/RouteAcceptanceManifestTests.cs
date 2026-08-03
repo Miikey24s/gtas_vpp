@@ -1,4 +1,5 @@
 using gtas_vpp_fe.Helpers;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace gtas_vpp_fe.Tests.Architecture;
@@ -58,6 +59,30 @@ public sealed class RouteAcceptanceManifestTests
                 Assert.Contains(entry.RepresentativeRouteKey!, routeKeys);
                 Assert.NotEqual(entry.RouteKey, entry.RepresentativeRouteKey, StringComparer.OrdinalIgnoreCase);
             }
+        }
+    }
+
+    [Fact]
+    public void Manifest_TestHandlesExistInTheirEvidenceSources()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+
+        foreach (var entry in RouteAcceptanceManifest.Entries)
+        {
+            var evidencePath = Path.Combine(
+                repositoryRoot,
+                entry.EvidencePath.Replace('/', Path.DirectorySeparatorChar));
+            var source = File.ReadAllText(evidencePath);
+            var separatorIndex = entry.TestHandle.IndexOf('.', StringComparison.Ordinal);
+
+            Assert.True(separatorIndex > 0, $"Test handle must use Type.Method form: {entry.RouteKey}");
+            var typeName = entry.TestHandle[..separatorIndex];
+            var methodName = entry.TestHandle[(separatorIndex + 1)..];
+
+            Assert.Contains($"class {typeName}", source, StringComparison.Ordinal);
+            Assert.True(
+                Regex.IsMatch(source, $@"\b{Regex.Escape(methodName)}\s*\(", RegexOptions.CultureInvariant),
+                $"Test handle is not declared in its evidence source for {entry.RouteKey}: {entry.TestHandle}");
         }
     }
 

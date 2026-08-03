@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `3.00` — 2026-08-02
+> **Phiên bản:** `3.01` — 2026-08-04
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -14,7 +14,7 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F0–F7 IMPLEMENTED; FRONTEND READABILITY REFACTOR AUTHORIZED; OWNER FINAL VISUAL REVIEW PENDING`.
+> **Trạng thái:** `F0–F7 IMPLEMENTED; FRONTEND READABILITY REFACTOR IN PROGRESS; FR8C DOCS RECONCILED; OWNER FINAL VISUAL REVIEW PENDING`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -407,7 +407,11 @@ Mỗi vùng chỉ trả lời một câu hỏi: **đang ở đâu → điều g�
 - Copy VI/EN phải viết theo ngữ cảnh và cùng nghĩa; không ghép resource máy móc hoặc để technical term lọt lên UI.
 - Agent phải cập nhật living plan ngay khi feedback tạo thành quy tắc shared/global, thay vì chỉ sửa screenshot đang được nhắc tới.
 
-### 6.5 Thứ tự triển khai đề xuất trước khi sửa code
+### 6.5 [HISTORICAL/COMPLETED] Thứ tự triển khai đề xuất trước khi sửa code
+
+> Đây là proposal trước khi UI-SYSTEM F0–F7 được triển khai. Giữ lại để giải thích quyết định lịch sử;
+> không dùng các nhãn W0–W4 bên dưới làm backlog hiện tại. Current handoff nằm ở
+> `docs/execution/FRONTEND-REFACTOR-001.md` và manifest 44 logical route.
 
 1. **W0.1 Shared foundation:** audit icon loading, notification/error pipeline, typography/spacing/link/button tokens và height/overflow contract.
 2. **W0.2 Account shell:** Login, Forgot/Reset/Change Password, Register, logout menu; chốt brand lockup và các state lỗi/thành công.
@@ -464,7 +468,10 @@ Contract này giữ toàn bộ geometry/nghiệp vụ owner đã duyệt từ c�
 - Loading lần đầu dùng geometry-matched skeleton; refresh sau đó giữ last-known content. Empty, filter-empty, error/retry, disabled và success dùng chung primitive, localized VI/EN và không hiển thị raw technical code.
 - Browser route thật với Radzen DOM, screenshot, bounding boxes, console/network và interaction là verification authority. Fixture/source assertion chỉ là lớp regression bổ sung.
 
-### 6.7 Mockup-first approval gate và full page inventory
+### 6.7 [HISTORICAL/COMPLETED] Mockup-first approval gate và full page inventory
+
+> Atlas/mockup inventory là evidence và design history. Browser Blazor thật vẫn là visual authority cuối;
+> bảng 44 logical route/query key hiện được quản lý riêng trong `RouteAcceptanceManifest`.
 
 Không mở rộng redesign production sang route mới trước khi owner duyệt mockup. Mockup là prototype/evidence ngoài production source; không tạo UI Lab trong repository và không sửa React paused.
 
@@ -602,9 +609,11 @@ Takeaway
 
 ---
 
-## 8. Implementation waves
+## 8. Implementation waves — HISTORICAL PROPOSAL
 
-`M0–M8` mockup approval ở Section 6.7 là gate trước các implementation wave bên dưới. Existing change-set đang chờ review được giữ nguyên; không dùng việc lập mockup để tự động hoàn tác hoặc commit các file hiện có.
+`M0–M8` mockup approval ở Section 6.7 là proposal lịch sử. Existing change-set đang chờ review được giữ nguyên;
+không dùng bảng W0–W8 bên dưới làm current execution queue. Current frontend refactor status nằm ở
+`FRONTEND-REFACTOR-001`; manifest 44 key chỉ là technical coverage, không thay owner visual acceptance.
 
 | Wave | Phạm vi | Gate trước khi sang wave tiếp |
 |---|---|---|
@@ -635,7 +644,12 @@ Full scope không bị cắt; thứ tự chỉ bảo vệ các route có giá tr
 
 ---
 
-## 9. Route ledger
+## 9. Route ledger — HISTORICAL VISUAL/WAVE SNAPSHOT
+
+> Các bảng trong mục này ghi lại Atlas/visual wave và quyết định theo từng thời điểm, không phải canonical
+> status hiện tại. Không gộp 28 screen visual với 44 logical route/query key: coverage kỹ thuật hiện tại xem
+> [`RouteAcceptanceManifest`](../../tests/Frontend.UnitTests/Architecture/RouteAcceptanceManifest.cs), còn
+> visual approval vẫn ở mục 14 và runtime browser.
 
 ### Atlas Blazor wave 1 — 2026-07-26
 
@@ -661,9 +675,9 @@ quyền và dữ liệu. Frontend hiện tại được giữ khi đã tốt hơ
 | 13B Giá mặt hàng | `/library?tab=6&pricingTab=prices` | ISOLATED_QA_PASS — OWNER_REVIEW | Bảng giá là context; NCC suy ra; search/danh mục/trạng thái ánh xạ lọc full authorized dataset |
 | 14 Người dùng | `/permission?tab=0` | ISOLATED_QA_PASS — OWNER_REVIEW | Search/filter backend; activation/reset/deactivate thật; inspector không lộ secret |
 | 15 Nhóm và quyền | `/permission?tab=1` | VERIFIED — OWNER_REVIEW | Ma trận 18×3 read-only + UI mapping; mutation toggle pass theo `GroupCode=DEV` |
-| 16 Báo cáo | `/report` | ISOLATED_QA_PASS — OWNER_REVIEW | Analytics workspace; KPI/chart, hai static evidence frame có footer, insight detail và CSV/XLSX thật |
+| 16 Báo cáo | `/report` | ISOLATED_QA_PASS — OWNER_REVIEW | Analytics workspace; KPI/chart, static evidence frame có footer, insight detail và PDF/XLSX/CSV thật |
 | 17 Trạng thái hệ thống | shared state primitives | ISOLATED_QA_PASS — OWNER_REVIEW | Inbox/reconnect/denied/error/empty/loading có semantics/focus thống nhất |
-| Đổi mật khẩu tự nguyện | `/Account/ChangePassword` | SOURCE_COMPLETE_RUNTIME_PENDING | Entry point trong `UserMenu`; account shell bảo vệ bằng `[Authorize]` |
+| Đổi mật khẩu tự nguyện | `/Account/ChangePassword` | APPROVED — RUNTIME EVIDENCE | Entry point trong `UserMenu`; account shell bảo vệ bằng `[Authorize]` |
 
 Wave 1 không tạo endpoint, role, trường dữ liệu hoặc hành động giả để khớp ảnh Atlas. Ba persona hiện hành là
 `EMPLOYEE`, `MANAGER`, `DEV`; trên giao diện `DEV` được diễn giải là **Quản trị hệ thống (DEV)**.
@@ -1171,7 +1185,7 @@ Status hợp lệ:
 | Additional approval queue | SOURCE_COMPLETE_RUNTIME_PENDING | Sort chờ lâu nhất, detail/action tách component |
 | Supplier/price comparison | SOURCE_COMPLETE_RUNTIME_PENDING | Supplier-first; đơn giá thật từ item-prices + giá ngoại lệ từ preview |
 | Settlement preview | IMPLEMENTED — QA PASS | Supplier/price-list decision, exceptions và input hash dùng API thật; post-mutation explicit re-preview còn chờ owner decision |
-| Confirm settlement | IMPLEMENTED — QA PASS | Immutable snapshot + idempotency/four-eyes backend contract; mutation E2E hai user còn pending |
+| Confirm settlement | IMPLEMENTED — QA PASS | Immutable snapshot + idempotency/four-eyes backend contract; mutation E2E hai user đã pass ngày 2026-08-04 |
 | Settled/revision view | IMPLEMENTED — CORRECTION UX PENDING | Status/export/current correction target đã có; cần notice + `Xem trước lại` trước correction kế tiếp |
 
 ### W5 — Library
@@ -1257,6 +1271,10 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 ---
 
 ## 11. Feedback learning protocol
+
+> **Append-only historical log:** các decision/feedback row bên dưới giữ nguyên để giải thích vì sao UI
+> đã đổi. Nếu một row cũ mâu thuẫn với current contract, ưu tiên mục 6.6, mục 14 và
+> `FRONTEND-REFACTOR-001`; riêng role/group chỉ hiển thị ở sidebar, không áp dụng lại role badge trong header.
 
 ### Phân loại feedback
 
@@ -1651,7 +1669,7 @@ Correction runtime ngày 2026-07-31 cho Quản lý người dùng: account `Pend
 
 Mutation evidence ngày 2026-08-04 cho Chốt kỳ: LocalDB cô lập tạo kỳ trước `Pricing` có đơn hợp lệ; `Procurement` chốt revision 1, cùng user bị four-eyes từ chối mà không sinh revision, sau đó `Manager` tạo correction revision 2. API history xác nhận revision cũ bất biến và chỉ revision mới là current. Test reload trước correction để không tự quyết định UX sau mutation; notice + `Xem trước lại` hay auto re-preview vẫn chờ owner chốt và không phải owner visual acceptance.
 
-Evidence đóng record: solution Release build `0 warning`; frontend unit `202/202`; settlement confirmation `4/4`; route-real isolated History + Department Summary `2/2`, User Admin `1/1`, Chốt kỳ `1/1`, My Orders shell/period summary `1/1`. Screenshot đã được kiểm tra bằng mắt tại `390×844`, `1366×768`, `1920×1080`; artifact thô nằm trong thư mục temp ignored, không commit.
+Evidence đóng record (historical snapshot của 2026-08-02): solution Release build `0 warning`; frontend unit `202/202`; settlement confirmation `4/4`; route-real isolated History + Department Summary `2/2`, User Admin `1/1`, Chốt kỳ `1/1`, My Orders shell/period summary `1/1`. Screenshot đã được kiểm tra bằng mắt tại `390×844`, `1366×768`, `1920×1080`; artifact thô nằm trong thư mục temp ignored, không commit. Không dùng các số này thay cho checkpoint 2026-08-04 ở `FRONTEND-REFACTOR-001`.
 
 ### 14.3 Owner review record — Duyệt đơn bổ sung — 2026-08-01
 
@@ -1718,14 +1736,16 @@ Khi tiếp tục UI renovation trong thread/session mới:
 2. Đọc toàn bộ file này.
 3. Đọc `src/Frontend/Blazor/AGENTS.md`, UI repo skill, `.github/copilot-instructions.md` và route source.
 4. Kiểm tra `git status`, branch và diff chưa commit.
-5. Đọc ledger, feedback log và retrofit queue mới nhất.
-6. Chọn đúng route `PENDING`/`CHANGES_REQUESTED` theo thứ tự đã duyệt.
-7. Không suy luận rằng Figma đã cover đủ route.
+5. Đọc `docs/execution/FRONTEND-REFACTOR-001.md`, `RouteAcceptanceManifest.cs` và evidence mới nhất;
+   các bảng W0–W8 ở mục 9 chỉ là historical snapshot.
+6. Xác định gate còn mở: History detail-render stability, correction UX owner decision và final visual board;
+   không tự chọn một dòng `PENDING` cũ trong route ledger.
+7. Không suy luận rằng Figma/Atlas đã cover đủ logical route.
 8. Không tạo thêm UI Lab/project preview trong repository; React POC cũ chỉ tồn tại ở archive tag và không đổi architecture render mode của Blazor.
 9. Không thay đổi API/DB/nghiệp vụ chỉ để đạt visual.
-10. Cập nhật file này trước khi báo route hoàn tất.
+10. Cập nhật current handoff ở execution record và file này trước khi báo route/wave hoàn tất.
 
-### 10.1 Local development loop bằng dotnet-watch
+### 16.1 Local development loop bằng dotnet-watch
 
 Mỗi phiên làm UI bắt đầu như sau:
 
@@ -1746,9 +1766,9 @@ Sau khi Aspire khởi động:
 
 Trong vòng lặp watch không chạy migration/mutation tùy tiện. Dữ liệu phải đến từ TEST/isolated fixture đã chuẩn bị trước; các test mutation vẫn cần explicit opt-in theo Section 3.2.
 
-### 10.2 Bước đầu tiên của renovation
+### 16.2 Bước đầu tiên của renovation
 
-**W0.0 — Baseline capture, không sửa code:**
+**W0.0 — Baseline capture (historical protocol, không phải next action hiện tại):**
 
 - Chạy `.\scripts\gtas.cmd run`.
 - Kiểm tra shell, login, theme/language switch và resource frontend.
@@ -1757,7 +1777,8 @@ Trong vòng lặp watch không chạy migration/mutation tùy tiện. Dữ liệ
 - Đánh dấu issue theo ba nhóm: correctness, usability, visual polish.
 - Chỉ sau khi baseline được lưu mới bắt đầu W0 shared foundation hoặc route đầu tiên.
 
-Baseline là bằng chứng so sánh; không được sửa screenshot để khớp thiết kế, không được xóa baseline vì route mới trông khác.
+Baseline là bằng chứng so sánh; không được sửa screenshot để khớp thiết kế, không được xóa baseline vì route mới trông khác. Ở checkpoint hiện tại,
+ưu tiên đọc current handoff của `FRONTEND-REFACTOR-001` trước khi chạy lại baseline.
 
 Prompt tiếp tục ngắn:
 

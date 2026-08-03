@@ -141,9 +141,9 @@ public static class RouteAcceptanceManifest
             "dashboard.period.settle",
             "/dashboard?tab=5&periodTab=settle",
             RouteAcceptanceClassification.Tested,
-            "Settlement is covered by the authenticated 28-screen runtime matrix.",
-            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
-            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+            "Settlement is covered by the runtime matrix and the two-user mutation test preserves immutable revisions and four-eyes behavior.",
+            "tests/Frontend.UiTests/Tests/Settlement/PeriodSettlementMutationTests.cs",
+            "PeriodSettlementMutationTests.Settlement_ConfirmThenCorrection_RequiresAnotherAuthorizedUserAndPreservesRevisions"),
         new(
             "dashboard.order-create.new",
             "/dashboard/order-create",
@@ -276,7 +276,7 @@ public static class RouteAcceptanceManifest
             "/",
             RouteAcceptanceClassification.Redirect,
             "The home route resolves the first accessible destination before rendering the authenticated shell.",
-            "src/Frontend/Blazor/Components/Pages/Home.razor",
+            "tests/Frontend.UnitTests/Architecture/RouteCatalogConsistencyTests.cs",
             "RouteCatalogConsistencyTests.Catalog_CoversEveryRazorPageDirective"),
         new(
             "login",
@@ -348,7 +348,7 @@ public static class RouteAcceptanceManifest
             "/Error",
             RouteAcceptanceClassification.JustifiedEquivalent,
             "Error and not-found are anonymous system-state routes with the same shell/content-state contract; the route directive remains catalogued.",
-            "src/Frontend/Blazor/Components/Pages/Error.razor",
+            "tests/Frontend.UnitTests/Architecture/RouteCatalogConsistencyTests.cs",
             "RouteCatalogConsistencyTests.Catalog_CoversEveryRazorPageDirective",
             "not-found")
     ];

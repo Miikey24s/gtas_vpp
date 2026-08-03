@@ -1,7 +1,11 @@
 const historyViewportObservers = new WeakMap();
 const historyChartLabelTimers = new WeakMap();
+const historyChartLabelFrames = new WeakMap();
 const historyChartLabelConfigs = new WeakMap();
 const historyPositionFrames = new WeakMap();
+const historyChartLabelInitialDelayMs = 240;
+const historyChartLabelRetryDelayMs = 100;
+const historyChartLabelRetryLimit = 12;
 const transientSurfaceSelector = [
     '.vpp-history-kpi-popover'
 ].join(',');
@@ -17,67 +21,106 @@ function formatHistoryChartValue(value) {
 function drawHistoryChartLabels(root) {
     const config = historyChartLabelConfigs.get(root);
     const svg = root?.querySelector('.vpp-history-chart svg');
-    if (!config || !svg) return;
+    if (!config || !root?.isConnected) return true;
+    if (!svg) return false;
 
-    svg.querySelectorAll('.vpp-history-chart-value-label').forEach(label => label.remove());
     const series = [
         { selector: '.rz-series-0', values: config.regularValues, visible: config.showRegular, labelColor: '#ffffff' },
         { selector: '.rz-series-1', values: config.additionalValues, visible: config.showAdditional, labelColor: 'var(--vpp-text-primary)' }
     ];
+    const labelsToRender = [];
 
-    series.forEach(({ selector, values, visible, labelColor }) => {
-        if (!visible) return;
+    for (const { selector, values, visible, labelColor } of series) {
+        if (!visible) continue;
+        const positiveValues = values
+            .map((value, index) => ({ index, value: Number(value ?? 0) }))
+            .filter(({ value }) => Number.isFinite(value) && value > 0);
+        if (positiveValues.length === 0) continue;
+
         const group = svg.querySelector(selector);
-        if (!group) return;
+        if (!group) return false;
         const paths = [...group.querySelectorAll('path')];
 
-        paths.forEach((path, index) => {
-            const value = Number(values[index] ?? 0);
-            if (!Number.isFinite(value) || value <= 0) return;
-
-            const bounds = path.getBBox();
-            if (bounds.width < 18 || bounds.height < 12) return;
+        for (const { index, value } of positiveValues) {
+            const path = paths[index];
+            if (!path) return false;
+            let bounds;
+            try {
+                bounds = path.getBBox();
+            } catch {
+                return false;
+            }
+            if (![bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite)
+                || bounds.width <= 0
+                || bounds.height <= 0) return false;
+            if (bounds.width < 18 || bounds.height < 12) continue;
             const text = formatHistoryChartValue(value);
             const widthLimitedSize = (bounds.width - 8) / Math.max(1, text.length * .62);
             const heightLimitedSize = bounds.height - 4;
             const fontSize = Math.min(12, widthLimitedSize, heightLimitedSize);
-            if (fontSize < 8.5) return;
+            if (fontSize < 8.5) continue;
 
-            const label = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-            label.classList.add('vpp-history-chart-value-label');
-            label.setAttribute('x', `${bounds.x}`);
-            label.setAttribute('y', `${bounds.y}`);
-            label.setAttribute('width', `${bounds.width}`);
-            label.setAttribute('height', `${bounds.height}`);
-            label.setAttribute('aria-hidden', 'true');
-            label.style.pointerEvents = 'none';
-            const valueLabel = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
-            valueLabel.style.display = 'flex';
-            valueLabel.style.width = '100%';
-            valueLabel.style.height = '100%';
-            valueLabel.style.alignItems = 'center';
-            valueLabel.style.justifyContent = 'center';
-            valueLabel.style.overflow = 'hidden';
-            valueLabel.style.color = labelColor;
-            valueLabel.style.fontFamily = 'var(--vpp-font-sidebar)';
-            valueLabel.style.fontSize = `${fontSize}px`;
-            valueLabel.style.fontWeight = '600';
-            valueLabel.style.lineHeight = '1';
-            valueLabel.style.whiteSpace = 'nowrap';
-            valueLabel.textContent = text;
-            label.appendChild(valueLabel);
-            group.appendChild(label);
-        });
+            labelsToRender.push({ group, bounds, text, fontSize, labelColor });
+        }
+    }
+
+    svg.querySelectorAll('.vpp-history-chart-value-label').forEach(label => label.remove());
+    labelsToRender.forEach(({ group, bounds, text, fontSize, labelColor }) => {
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+        label.classList.add('vpp-history-chart-value-label');
+        label.setAttribute('x', `${bounds.x}`);
+        label.setAttribute('y', `${bounds.y}`);
+        label.setAttribute('width', `${bounds.width}`);
+        label.setAttribute('height', `${bounds.height}`);
+        label.setAttribute('aria-hidden', 'true');
+        label.style.pointerEvents = 'none';
+        const valueLabel = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
+        valueLabel.style.display = 'flex';
+        valueLabel.style.width = '100%';
+        valueLabel.style.height = '100%';
+        valueLabel.style.alignItems = 'center';
+        valueLabel.style.justifyContent = 'center';
+        valueLabel.style.overflow = 'hidden';
+        valueLabel.style.color = labelColor;
+        valueLabel.style.fontFamily = 'var(--vpp-font-sidebar)';
+        valueLabel.style.fontSize = `${fontSize}px`;
+        valueLabel.style.fontWeight = '600';
+        valueLabel.style.lineHeight = '1';
+        valueLabel.style.whiteSpace = 'nowrap';
+        valueLabel.textContent = text;
+        label.appendChild(valueLabel);
+        group.appendChild(label);
     });
+
+    return true;
 }
 
-function scheduleHistoryChartLabels(root) {
+function cancelHistoryChartLabelSchedule(root) {
     const previousTimer = historyChartLabelTimers.get(root);
-    if (previousTimer) window.clearTimeout(previousTimer);
+    if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+    const previousFrame = historyChartLabelFrames.get(root);
+    if (previousFrame !== undefined) window.cancelAnimationFrame(previousFrame);
+    historyChartLabelTimers.delete(root);
+    historyChartLabelFrames.delete(root);
+}
+
+function scheduleHistoryChartLabels(root, attempt = 0) {
+    cancelHistoryChartLabelSchedule(root);
+    const delay = attempt === 0
+        ? historyChartLabelInitialDelayMs
+        : historyChartLabelRetryDelayMs;
     const timer = window.setTimeout(() => {
-        window.requestAnimationFrame(() => drawHistoryChartLabels(root));
         historyChartLabelTimers.delete(root);
-    }, 240);
+        const frame = window.requestAnimationFrame(() => {
+            historyChartLabelFrames.delete(root);
+            const labelsReady = drawHistoryChartLabels(root);
+            // Radzen có thể hoàn tất SVG sau lifecycle của component cha; chỉ thử lại trong giới hạn.
+            if (!labelsReady && attempt < historyChartLabelRetryLimit) {
+                scheduleHistoryChartLabels(root, attempt + 1);
+            }
+        });
+        historyChartLabelFrames.set(root, frame);
+    }, delay);
     historyChartLabelTimers.set(root, timer);
 }
 
@@ -175,14 +218,12 @@ export function observeHistoryViewport(root, dotNetReference) {
 
 export function disposeHistoryViewport(root) {
     const dispose = root ? historyViewportObservers.get(root) : null;
-    if (!dispose) return;
-    dispose();
-    const chartLabelTimer = historyChartLabelTimers.get(root);
-    if (chartLabelTimer) window.clearTimeout(chartLabelTimer);
+    if (dispose) dispose();
+    if (!root) return;
+    cancelHistoryChartLabelSchedule(root);
     const positionFrame = historyPositionFrames.get(root);
     if (positionFrame) window.cancelAnimationFrame(positionFrame);
     historyPositionFrames.delete(root);
-    historyChartLabelTimers.delete(root);
     historyChartLabelConfigs.delete(root);
     historyViewportObservers.delete(root);
 }

@@ -1228,6 +1228,9 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain(".vpp-history-code-popover", historyScript, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-history-note-popover", historyScript, StringComparison.Ordinal);
         Assert.Contains("renderHistoryChartLabels", historyScript, StringComparison.Ordinal);
+        Assert.Contains("const historyChartLabelRetryLimit = 12;", historyScript, StringComparison.Ordinal);
+        Assert.Contains("scheduleHistoryChartLabels(root, attempt + 1);", historyScript, StringComparison.Ordinal);
+        Assert.Contains("cancelHistoryChartLabelSchedule(root);", historyScript, StringComparison.Ordinal);
         Assert.Contains("panel.style.setProperty('max-width'", cellValueScript, StringComparison.Ordinal);
         Assert.Contains("notation: 'compact'", historyScript, StringComparison.Ordinal);
     }

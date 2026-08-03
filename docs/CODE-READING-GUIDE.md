@@ -5,13 +5,17 @@ giao diện, tra bảng ở mục 2 là biết ngay màn đó nằm ở file nà
 tắc nghiệp vụ nào.
 
 - Quy tắc làm việc: `AGENTS.md`
-- Kế hoạch triển khai: `docs/execution/ATLAS-001.md`
+- Kế hoạch UI canonical: `docs/execution/UI-SYSTEM-001.md`
+- Kế hoạch refactor frontend/current handoff: `docs/execution/FRONTEND-REFACTOR-001.md`
+- Kế hoạch refactor backend khi chuyển phase: `docs/execution/BACKEND-REFACTOR-001.md`
+- Atlas/route visual history: `docs/execution/ATLAS-001.md` (historical, không còn là current authority)
 - Thiết kế 28 màn: `docs/design/atlas/` (read-only)
 - Nguồn nghiệp vụ: `LVTN/NguyenAnNam_DH52201078.docx`
 
-> Trạng thái: đã đồng bộ với implementation ATLAS-001 và các checkpoint frontend refactor đến
-> FR8A/FR8B cùng settlement mutation E2E ngày 2026-08-04. FR8C-A đã khóa ledger máy đọc được đủ 44 route;
-> phần hòa giải các bảng tài liệu lịch sử vẫn còn;
+> Trạng thái: đã đồng bộ với implementation Blazor/Radzen và checkpoint frontend refactor đến
+> FR8A/FR8B cùng settlement mutation E2E ngày 2026-08-04. FR8C đã khóa ledger máy đọc được đủ 44 route
+> và hòa giải các bảng tài liệu lịch sử; chart-label gate đã đi qua `3/3` lượt targeted, nhưng full History
+> còn một detail-render flake; owner final visual acceptance là gate riêng;
 > các mục không có số hình là route/state thật nhưng chưa được luận văn gán hình riêng.
 
 Ledger máy đọc được cho toàn bộ 44 key nằm tại
@@ -54,6 +58,10 @@ văn §2.3.1.1, câu cuối.
 `Hình` là số hình trong luận văn. `Board` là nhóm màn trong Atlas. Đường dẫn component tính từ
 `src/Frontend/Blazor/Components/`.
 
+> Bảng này phục vụ đọc code theo nghiệp vụ, không phải ledger exhaustive. Coverage và canonical path của
+> mọi logical route/query variant chỉ xem ở
+> `tests/Frontend.UnitTests/Architecture/RouteAcceptanceManifest.cs`.
+
 ### M0 — Nền tảng giao diện
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
@@ -66,10 +74,9 @@ Các điểm cần biết sau đợt đồng bộ W-B.2 (2026-07-26):
   `ProtectedLocalStorage["VPP_SidebarExpanded"]` (giống theme). Lần đầu vào app, JS
   `vppViewport.isDesktop` (trong `wwwroot/js/vpp-interactions.js`) quyết định mở hay thu gọn.
   Xem `LeftSidebar.razor.cs` → `LoadSidebarStateAsync` / `SetSidebarExpandedAsync`.
-- **Role badge + breadcrumb trong header**: `LeftSidebar.razor.cs` → `RoleBadgeLabel` map
-  `CurrentUserState.Current?.GroupId` sang 3 persona của `CanonicalRbac` rồi qua `Loc["RoleEmployee|RoleManager|RoleDev"]`
-  (không in raw GroupName `"DEV"`); `HeaderPathSegments` dựng đường dẫn `cha › con` từ URL.
-  W-B.2b đã hoàn tất: desktop dùng cùng hàng header 72px cho breadcrumb/tab chrome.
+- **Role/group context**: role hiện hành nằm ở dòng phụ của sidebar do `LeftSidebar.razor.cs`/`UserMenu.razor`
+  sở hữu; header không lặp role badge hoặc breadcrumb. Không suy luận role từ text UI — backend policy và
+  `CanonicalRbac` mới là authorization authority.
 - **Trạng thái dùng chung**: `DesignSystem/Primitives/VppContentState.razor` nhận
   `VppContentStateKind` typed cho loading/empty/filter-empty/error/denied/disabled/success/warning.
   Primitive tự gắn `role`, `aria-live` và `aria-busy` theo semantics; các adapter string cũ đã được xóa
@@ -105,10 +112,10 @@ không biến state UI thành authority phân quyền backend.
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-29 | `my-orders` | `/dashboard` | `Pages/VPPRequest/Tabs/Tab_Orders.razor`, `Components/VppOrderWorkspacePanel.razor` | `GET /api/VPPRequest/my-orders`, `my-orders-summary`, `period-info`; `GET orders/{id}/export.pdf`, `orders/{id}/export.xlsx` (tải phiếu đơn, không chứa giá) | §2.3.1.2, §3.3.1.2 |
-| 3-30 | `order-create` | `/dashboard/order-create` | `Pages/VPPRequest/Page_OrderCreate.razor`, `OrderCreateStep2.razor`, `OrderCreateStep3.razor` | `GET products`, `products/lookup`, `orders/previous-items`; `POST orders` | §2.3.1.2, §2.3.1.3, §3.3.2.1 |
-| 3-31 | `history` | `/dashboard` tab Lịch sử | `Pages/VPPRequest/Tabs/Tab_History.razor` (coordinator giữ state) + 5 component con presentational trong `Components/`: `HistoryScopeBar`, `HistoryKpiCards`, `HistoryTrendChart`, `HistoryOrderList`, `HistoryOrderDetailSheet` | `GET my-order-history`, `my-order-history-summary`, `orders/{id}`, `orders/{id}/history` | §3.3.2.2 |
-| 3-32 | `catalog` | `/dashboard` tab Danh mục | `Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | `GET /api/VPPRequest/products`, `categories` | §3.3.2.3 |
+| 3-29 | `my-orders` | `/dashboard?tab=0` | `Pages/VPPRequest/Tabs/Tab_Orders.razor`, `Pages/VPPRequest/Components/VppOrderWorkspacePanel.razor` | `GET /api/VPPRequest/my-orders`, `my-orders-summary`, `period-info`; `GET orders/{id}/export.pdf`, `orders/{id}/export.xlsx` (tải phiếu đơn, không chứa giá) | §2.3.1.2, §3.3.1.2 |
+| 3-30 | `order-create` | `/dashboard/order-create` | `Pages/VPPRequest/Page_OrderCreate.razor`, `Pages/VPPRequest/OrderCreateStep2.razor`, `Pages/VPPRequest/OrderCreateStep3.razor` | `GET products`, `products/lookup`, `orders/previous-items`; `POST orders` | §2.3.1.2, §2.3.1.3, §3.3.2.1 |
+| 3-31 | `history` | `/dashboard?tab=1` | `Pages/VPPRequest/Tabs/Tab_History.razor` (coordinator giữ state) + `Pages/VPPRequest/Components/HistoryWorkspaceShell.razor` và các component con `HistoryScopeBar`, `HistoryKpiCards`, `HistoryTrendChart`, `HistoryOrderList`, `HistoryOrderDetailSheet` | `GET my-order-history`, `my-order-history-summary`, `orders/{id}`, `orders/{id}/history` | §3.3.2.2 |
+| 3-32 | `catalog` | `/dashboard?tab=2` | `Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | `GET /api/VPPRequest/products`, `categories` | §3.3.2.3 |
 
 **Ràng buộc quyền quan trọng:** màn nhân viên không hiển thị đơn giá, thành tiền hay tạm tính. Đây là
 ràng buộc nghiệp vụ, không phải lựa chọn thẩm mỹ — đừng "thêm cột giá cho đẹp".
@@ -117,7 +124,7 @@ ràng buộc nghiệp vụ, không phải lựa chọn thẩm mỹ — đừng "
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-33 | `department-summary` | `/dashboard` tab Quản lý | `Pages/VPPRequest/Tabs/Tab_DepartmentSummary.razor` | `GET /api/VPPRequest/department-orders` | §3.3.3.1 |
+| 3-33 | `department-summary` | `/dashboard?tab=3&managementTab=department` | `Pages/VPPRequest/Tabs/Tab_DepartmentSummary.razor` + `Pages/VPPRequest/Components/HistoryWorkspaceShell.razor`/shared History components | `GET /api/VPPRequest/department-orders` | §3.3.3.1 |
 
 ### M4 — Vận hành kỳ
 
@@ -125,11 +132,11 @@ Luồng bốn bước: `Rà soát kỳ → Gom nhu cầu → Chọn nguồn cung
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-34 | `supplement-approval` | `/dashboard?tab=5&periodTab=pending` | `Tabs/Tab_AdminApproval.razor` (coordinator), `Components/PendingApprovalWorkspace.razor`, `Dialog_RejectSupplement.razor` | `GET additional-orders/pending`; `POST additional-orders/{id}/approve`, `/reject` | §2.3.1.4, §3.3.3.2 |
-| 3-35 | `period-review` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodOperationsWorkspace.razor`, `PeriodSettlementPanel.razor` | `GET all-orders`; `GET /api/PeriodSettlement/{y}/{m}`; `POST preview/confirm` | §2.3.1.5, §3.3.3.3 |
-| — | `period-demand` | `/dashboard?tab=5&periodTab=demand` | Legacy URL chuyển vào `PeriodSettlementPanel.razor`; dữ liệu gom được thể hiện qua selector `Theo đơn / Theo phòng ban` | `GET all-orders`; `GET period-demand` | §3.3.3.4 |
-| 3-36 | `supply-allocation` | `/dashboard?tab=5&periodTab=supply` | Legacy URL chuyển vào supplier decision/dialog của `PeriodSettlementPanel.razor` | `POST /api/PeriodSettlement/preview` | §2.3.1.8, §3.3.3.4 |
-| 3-37 | `settlement-flow` | `/dashboard?tab=5&periodTab=settle` | `Components/PeriodSettlementPanel.razor` | `POST preview`, `confirm`, `{id}/correct`; `GET current/{y}/{m}`, `revisions/{y}/{m}` | §2.3.1.8, §2.3.1.9, §3.3.3.5 |
+| 3-34 | `supplement-approval` | `/dashboard?tab=5&periodTab=pending` | `Pages/VPPRequest/Tabs/Tab_AdminApproval.razor` (coordinator), `Pages/VPPRequest/Components/PendingApprovalWorkspace.razor`, `Pages/VPPRequest/Components/Dialog_RejectSupplement.razor` | `GET additional-orders/pending`; `POST additional-orders/{id}/approve`, `/reject` | §2.3.1.4, §3.3.3.2 |
+| 3-35 | `period-review` | `/dashboard?tab=5&periodTab=review` | `Pages/VPPRequest/Components/PeriodOperationsWorkspace.razor`, `Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | `GET all-orders`; `GET /api/PeriodSettlement/{y}/{m}`; `POST preview/confirm` | §2.3.1.5, §3.3.3.3 |
+| — | `period-demand` | `/dashboard?tab=5&periodTab=demand` | Legacy URL chuyển vào `Pages/VPPRequest/Components/PeriodSettlementPanel.razor`; dữ liệu gom dùng view `SettlementByDepartment` / `SettlementByItem` | `GET all-orders`; `GET period-demand` | §3.3.3.4 |
+| 3-36 | `supply-allocation` | `/dashboard?tab=5&periodTab=supply` | Legacy URL chuyển vào supplier decision/dialog của `Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | `POST /api/PeriodSettlement/preview` | §2.3.1.8, §3.3.3.4 |
+| 3-37 | `settlement-flow` | `/dashboard?tab=5&periodTab=settle` | `Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | `POST preview`, `confirm`, `{id}/correct`; `GET current/{y}/{m}`, `revisions/{y}/{m}` | §2.3.1.8, §2.3.1.9, §3.3.3.5 |
 
 ### M5A + M5B — Thư viện dữ liệu
 
@@ -160,8 +167,9 @@ record inspector cũ đã được xóa để tránh chồng CRUD, CSS và permi
 | 3-40 | `users` | `/permission` | `Pages/Permission/Tabs/Tab_User.razor` | `GET users` (search + `accountStatus`), `groups`; `POST admin/activate`, `admin/reset-password`; `PUT memberships`; `POST memberships/deactivate` | §3.3.4.3 |
 | 3-41 | `permissions` | `/permission` | `Pages/Permission/Tabs/Tab_PagePermission.razor` | `GET groups`, `groups/{id}/page-components`; `PUT groups/{id}` | §3.3.4.4 |
 
-`Tab_User` hỗ trợ lời mời passwordless, gán nhóm quyền/phòng ban, kích hoạt, gửi link đặt lại mật khẩu
-và vô hiệu hóa membership qua dialog typed. UI chỉ nhận DTO quản trị an toàn; `SessionVersion`, password
+`Tab_User` hỗ trợ lời mời passwordless, gán nhóm quyền/phòng ban bằng dropdown inline
+(`ApplyInlineMembershipAsync`), kích hoạt, gửi link đặt lại mật khẩu và vô hiệu hóa membership. Dialog typed
+chỉ dùng cho lời mời; UI chỉ nhận DTO quản trị an toàn; `SessionVersion`, password
 hash, security stamp và token không được render hoặc đưa vào form.
 
 `Tab_PagePermission` có hai lớp cố ý tách biệt:
@@ -174,11 +182,12 @@ hash, security stamp và token không được render hoặc đưa vào form.
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-42 | `reports` | `/report` | `Pages/Report.razor` | `GET /api/Reports/summary`, `insights`, `export` (CSV), `export.xlsx` | §3.3.5.1, §3.4 |
+| 3-42 | `reports` | `/report` | `Pages/Report.razor` | `GET /api/Reports/summary`, `insights`, `export.pdf`, `export.xlsx`, `export.csv` | §3.3.5.1, §3.4 |
 
-**Chỉ có CSV và XLSX. Không có PDF** (quyết định D3).
+**Report hỗ trợ PDF, XLSX và CSV**; format được map qua `VppFileExportFormat`/`ReportsApiClient`, không
+suy luận từ extension rải trong page.
 
-`Report.razor` dùng cùng `scope/year/month` cho summary và hai export. Search phòng ban chỉ lọc
+`Report.razor` dùng cùng `scope/year/month` cho summary và ba export. Search phòng ban chỉ lọc
 client-side `DepartmentBreakdown`; bảng chỉ hiển thị field DTO thật. Trend bind `TotalAmount`. Khi
 `SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại. Trend
 chỉ render khi có ít nhất 2 điểm (smooth từ 3 điểm); donut bỏ giá trị 0. Thiếu dữ liệu dùng empty state,
@@ -195,13 +204,26 @@ không cố render SVG suy biến.
 audit, component gắn `data-vpp-grid-region="true"`; `wwwroot/js/vpp-interactions.js` chuẩn hóa role của
 wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 sinh ra.
 
-**Evidence hiện tại:** Release build sạch; frontend unit/architecture `372/372`; 28 screen × 4 viewport
-runtime pass, representative Dark/Print/axe pass, Atlas export/account/user-menu smoke và real-file
-download gates pass. Backend gate và owner visual approval vẫn là checkpoint riêng; ảnh runtime chỉ khóa
-vào thesis/slide sau khi owner chấp thuận UI cuối.
-E2E tải thật report CSV/XLSX và order PDF/XLSX; mutation cô lập pass permission toggle, vòng đời đơn
-thường, duyệt/từ chối đơn bổ sung và chốt kỳ hai người dùng. Settlement E2E chứng minh revision 1 được giữ
-bất biến, cùng người bị four-eyes từ chối và người thứ hai tạo correction revision 2.
+**Evidence index hiện tại:** `RouteAcceptanceManifest` giữ 44 logical route/query key; frontend unit/architecture
+`373/373` và checkpoint verify gần nhất pass build/unit/UI smoke. E2E tải thật cover report PDF/XLSX/CSV và
+order PDF/XLSX; settlement mutation cô lập chứng minh revision 1 bất biến, cùng người bị four-eyes từ chối
+và người thứ hai tạo correction revision 2. History chart đã đi qua assertion ở các lượt targeted sau bounded retry;
+riêng một lượt fail muộn ở detail-code nên full History stability vẫn là debt riêng;
+backend gate và owner visual approval vẫn là checkpoint riêng. Ảnh runtime chỉ khóa vào thesis/slide sau khi
+owner chấp thuận UI cuối.
+
+### Feature owner quick map
+
+Để lần theo code khi trình bày, route/page chỉ là coordinator; API, state và mutation owner nằm ở feature:
+
+| Flow | API/state owner chính |
+|---|---|
+| My Orders / History / Catalog | `Features/Requests/Api/RequestsQueryClient`, `Features/Requests/{Editor,Drafts,Submission}`, `Pages/VPPRequest/Components/HistoryWorkspaceShell` |
+| Order create/edit | `Features/Requests/Drafts/OrderDraftStore`, `Features/Requests/Api/RequestsCommandClient`, `Features/Requests/Submission/OrderSubmissionCoordinator` |
+| Period / Settlement | `Features/Settlement/Api/SettlementApiClient`, `Features/Settlement/State/PeriodSettlementState`, `Features/Settlement/Submission/SettlementRequestFactory` |
+| Library / Pricing | typed clients dưới `Features/CatalogPricing/Api/` và state/query gần từng tab |
+| Users / Permissions | `Features/IdentityAccess/Api/` và `Features/IdentityAccess/State/` |
+| Reports / download | `Features/Reports/Api/ReportsApiClient` và `Platform/Browser/` |
 
 ---
 
