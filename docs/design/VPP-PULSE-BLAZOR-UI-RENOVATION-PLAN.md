@@ -1738,7 +1738,7 @@ Khi tiếp tục UI renovation trong thread/session mới:
 4. Kiểm tra `git status`, branch và diff chưa commit.
 5. Đọc `docs/execution/FRONTEND-REFACTOR-001.md`, `RouteAcceptanceManifest.cs` và evidence mới nhất;
    các bảng W0–W8 ở mục 9 chỉ là historical snapshot.
-6. Xác định gate còn mở: History detail-render stability, correction UX owner decision và final visual board;
+6. Xác định gate còn mở: correction UX owner decision và final visual board;
    không tự chọn một dòng `PENDING` cũ trong route ledger.
 7. Không suy luận rằng Figma/Atlas đã cover đủ logical route.
 8. Không tạo thêm UI Lab/project preview trong repository; React POC cũ chỉ tồn tại ở archive tag và không đổi architecture render mode của Blazor.

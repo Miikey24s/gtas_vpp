@@ -620,6 +620,9 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await detailNotePopover.GetByRole(AriaRole.Button, new() { Name = "Sao chép", Exact = true }).WaitForAsync();
         await drawer.Locator(".vpp-history-order-meta").ClickAsync();
         await detailNotePopover.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+        // Đóng transient surface làm Blazor dựng lại cell; xả hai frame trước khi đọc
+        // locator đã giữ từ trước để không bắt đúng khoảng trống giữa hai render.
+        await WaitForRenderSettleAsync();
         (await detailItemCode.InnerTextAsync()).Should().NotBeNullOrWhiteSpace();
         var identityOrder = await detailItem.EvaluateAsync<bool>("""
             item => {

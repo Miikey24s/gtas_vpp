@@ -139,7 +139,7 @@ contract và sequencing; không nhân bản ledger đang thay đổi theo source
 | Frontend verify | Build `0 warning/error`, unit `373/373`, UI smoke `2/2`, vulnerability/leak audit PASS |
 | Logical route coverage | `44` key trong `RouteAcceptanceManifest`; manifest là technical ledger, không thay owner visual approval |
 | Settlement mutation | `1/1`: confirm revision 1, four-eyes rejection, correction revision 2, history immutable |
-| History chart gate | `3/3` lượt targeted đã đi qua assertion nhãn chart sau bounded retry; full test `2/3` vì một lượt fail muộn ở detail-code |
+| History route gate | Full targeted test `3/3` sau bounded chart retry và render-settle hardening khi đóng detail popover |
 | Owner visual status | Final runtime review, correction UX A/B và golden thesis/slide vẫn pending |
 
 ### Historical FR0 inventory snapshot — 2026-08-02
@@ -522,7 +522,7 @@ dùng worktree riêng và không chạm cùng module.
 | FR0–FR6 | `COMPLETE` | Không mở lại baseline; chỉ sửa khi có regression được chứng minh |
 | FR7 | `CORE MUTATION E2E COMPLETE` | Owner chọn correction UX A/B; sau đó thêm assertion post-success |
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
-| FR8C | `MANIFEST + DOC RECONCILIATION COMPLETE` | Lặp targeted History, full frontend verification và owner final visual acceptance |
+| FR8C | `MANIFEST + DOC RECONCILIATION COMPLETE` | Owner final visual acceptance; golden chỉ tạo sau approval |
 
 `RouteAcceptanceManifest` là ledger coverage kỹ thuật hiện hành. Nó không tự biến Atlas smoke thành
 functional acceptance, không thay browser route-real review và không chốt ảnh thesis/slide.
@@ -677,10 +677,10 @@ regression của cleanup. Debt vẫn phải được xử lý trước final UI 
 
 ### Current verification state — 2026-08-04
 
-Checkpoint mới nhất nằm ở bảng [Current checkpoint](#current-checkpoint-2026-08-04). History chart đã được
-thêm bounded retry để chờ Radzen hoàn tất geometry; chart-label assertion đạt `3/3` lượt targeted, còn full
-History test đạt `2/3` do một lượt fail muộn ở detail-code. Không dùng evidence này để tuyên bố owner visual
-acceptance đã pass.
+Checkpoint mới nhất nằm ở bảng [Current checkpoint](#current-checkpoint-2026-08-04). History chart dùng
+bounded retry để chờ Radzen hoàn tất geometry; test đóng detail popover xả hai animation frame trước khi đọc
+cell vừa được Blazor dựng lại. Full targeted History pass `3/3`; evidence này vẫn không thay owner visual
+acceptance.
 
 <a id="plan-detail-risks"></a>
 
@@ -931,6 +931,9 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   chart-label assertion; một run giữa fail sau đó tại `detail-code` line 623, nên cần giữ debt detail-render
   riêng và không gọi full History suite ổn định chỉ từ chart evidence. DS3 settlement `5/5`, mutation settlement
   `1/1`, backend LocalDB `20/20` và frontend unit hiện tại `373/373` pass.
+- History test-hardening follow-up: sau khi note popover detached, test dùng `WaitForRenderSettleAsync()`
+  (double-rAF có sẵn trong harness) rồi giữ nguyên assertion code/detail. UI test project build sạch và full
+  targeted History pass `3/3`; debt detail-render ở trên được đóng mà không thêm sleep hoặc nới selector.
 - FR7 order export owner: hai route không còn lặp `Config.VppApi.Orders`; `RequestsExportClient` sở hữu
   endpoint/suffix còn `IBrowserFileDownloadService` tiếp tục stream đúng pipeline. Aggregate architecture gate
   quét toàn bộ `Components/Pages/VPPRequest` cấm generic transport, direct download service và raw API/config
@@ -1063,8 +1066,8 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   được suy ra từ manifest.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: rerun focused/full frontend gates có scope phù hợp, theo dõi debt detail-render riêng,
-  sau đó chờ owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: sau mỗi revision thành công,
+- Next exact action: chờ owner chốt correction workflow và chuẩn bị final runtime review board. Khuyến nghị
+  `re-preview bắt buộc`: sau mỗi revision thành công,
   thay nút correction bị khóa bằng notice + CTA `Xem trước lại`; chỉ bật correction khi preview sinh key mới.
   Core mutation E2E confirm/correct/four-eyes đã pass và sau quyết định UX chỉ cần thêm assertion post-success
   tương ứng. FR8A/FR8B cleanup độc lập đã hết candidate có zero-consumer evidence; không tách `PermissionRealtimeService`,
