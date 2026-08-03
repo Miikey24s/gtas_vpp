@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION + ORDER EDITOR SESSION COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `315/315`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, submission mapping và Settlement projection/filter đã tách khỏi page | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `320/320`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, submission mapping, editor session và Settlement projection/filter đã tách khỏi page | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR7 transport, `OrderDraftStore`, submission request factory và Settlement projection đã hoàn tất. Tiếp theo tách một `OrderEditorSession` nhỏ cho mode/step/selection | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR7 transport, `OrderDraftStore`, submission request factory, `OrderEditorSession` và Settlement projection đã hoàn tất. Tiếp theo tách `OrderSubmissionCoordinator` nhỏ, giữ toast/navigation ở page | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -691,7 +691,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory và Settlement projection hoàn tất; editor session còn tiếp tục**.
+- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory, Settlement projection và Order Editor Session hoàn tất; submission coordination còn tiếp tục**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -822,7 +822,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   full frontend `308/308`; isolated Order Create lifecycle mutation pass `1/1`.
 - FR7 submission request factory: create/update/recreate DTO mapping chuyển sang factory thuần, khóa period,
   base request, row version, idempotency, item order/quantity và trim reason theo đúng từng mode. Hai nguồn
-  additional hiện hữu (`IsAdditional` route state và `Context.IsAdditional` wizard state) được giữ tách biệt
+  additional hiện hữu (`IsAdditional` route state và `Editor.IsAdditional` session state) được giữ tách biệt
   để không đổi payload khi query-only navigation làm chúng lệch. Focused `30/30`, full frontend `312/312`,
   solution Release build `0 warning/error`; Order Create lifecycle mutation pass `1/1` sau parity patch.
 - FR7 Settlement projection: department option, item option/filter, department filter/group/totals và status
@@ -830,11 +830,17 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   localization/status tone. Focused Settlement/architecture `34/34`, full frontend `315/315`, solution
   Release build `0 warning/error`; route-real DS3 Settlement pass `1/1` trên isolated fixture. Test chọn kỳ
   dùng selector CSS có mục đích vì dialog có hai button cùng accessible name `Hủy`.
+- FR7 Order Editor Session: `OrderCreateContext` data bag và step index `0/1` được thay bằng
+  `OrderEditorSession` + enum typed. Session sở hữu step, selection, quantity/note mutation và validation
+  thuần; page tiếp tục sở hữu route mode, auth/permission, period authority, draft timer/storage, command,
+  toast và navigation. Hai nguồn additional legacy vẫn tách biệt; recreate vẫn khởi tạo danh sách rỗng.
+  Focused session/architecture `6/6`, full frontend `320/320`, solution Release build `0 warning/error`;
+  isolated edit-cancel-restore và recreate-from-blank lifecycle pass `2/2`.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tách một `OrderEditorSession` nhỏ cho mode/step/selection; giữ page làm orchestration,
-  giữ nguyên route, Shared DTO, `InputHash`,
-  `PriceAsOfUtc`, row version và idempotency behavior.
+- Next exact action: tách `OrderSubmissionCoordinator` để điều phối create/update/recreate và trả kết quả
+  typed; page vẫn sở hữu localization, toast/navigation và refresh period. Giữ nguyên period authority,
+  hai nguồn additional, base request, row version, idempotency và chỉ xóa draft sau create thành công.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

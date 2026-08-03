@@ -1,11 +1,12 @@
 @page "/dashboard/order-create"
+@using gtas_vpp_fe.Features.Requests.Editor
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Share
 
 <PageTitle>GTAS VPP - @OrderModeTitle</PageTitle>
 
-<CascadingValue Value="Context">
+<CascadingValue Value="Editor">
     @if (IsPageLoading)
     {
         <div class="vpp-wizard">
@@ -28,7 +29,7 @@
             }
 
             <section class="vpp-wizard-stage">
-                @if (currentStep == 0)
+                @if (Editor.CurrentStep == OrderEditorStep.Products)
                 {
                     <OrderCreateStep2 TargetPeriodLabel="@TargetPeriodText"
                                       BackRequested="@GoBack"

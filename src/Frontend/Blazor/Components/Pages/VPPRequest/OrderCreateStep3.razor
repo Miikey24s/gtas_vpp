@@ -1,3 +1,5 @@
+@using gtas_vpp_fe.Features.Requests.Editor
+
 <div class="wizard-step wizard-step-review">
     <section class="vpp-order-review-panel" aria-labelledby="order-review-title">
         <header class="vpp-order-review-header">
@@ -6,8 +8,8 @@
                 <p>@Loc["ReviewOrderBeforeSubmitDescription"]</p>
             </div>
             <div class="vpp-order-draft-badges">
-                <VppStatusBadge Text="@Loc["ItemsCount", Context.SelectedItems.Count]" Tone="VppStatusTone.Info" />
-                @if (Context.IsAdditional)
+                <VppStatusBadge Text="@Loc["ItemsCount", Editor.SelectedItemCount]" Tone="VppStatusTone.Info" />
+                @if (Editor.IsAdditional)
                 {
                     <VppStatusBadge Text="@Loc["AdditionalOrder"]" Tone="VppStatusTone.Warning" />
                 }
@@ -15,10 +17,10 @@
         </header>
 
         <dl class="vpp-order-review-summary">
-            <div><dt>@Loc["TotalLineItems"]</dt><dd>@Context.SelectedItems.Count</dd></div>
-            <div><dt>@Loc["TotalQuantity"]</dt><dd>@Context.TotalQty</dd></div>
+            <div><dt>@Loc["TotalLineItems"]</dt><dd>@Editor.SelectedItemCount</dd></div>
+            <div><dt>@Loc["TotalQuantity"]</dt><dd>@Editor.TotalQuantity</dd></div>
             <div class="@(IsSupplementReasonMissing ? "is-missing" : null)">
-                <dt>@(Context.IsAdditional ? Loc["SupplementReason"] : Loc["OrderNote"])</dt>
+                <dt>@(Editor.IsAdditional ? Loc["SupplementReason"] : Loc["OrderNote"])</dt>
                 <dd>@OrderNote</dd>
             </div>
         </dl>
@@ -34,7 +36,7 @@
             </button>
         }
 
-        @if (Context.SelectedItems.Count == 0)
+        @if (Editor.SelectedItemCount == 0)
         {
             <VppContentState State="VppContentStateKind.Empty"
                              Icon="remove_shopping_cart"
@@ -44,8 +46,8 @@
         else
         {
             <div class="vpp-order-review-grid-frame">
-                <RadzenDataGrid TItem="OrderCreateContext.SelectedItem"
-                                Data="@Context.SelectedItems"
+                <RadzenDataGrid TItem="OrderEditorSession.SelectedItem"
+                                Data="@Editor.SelectedItems"
                                 AllowVirtualization="true"
                                 VirtualizationOverscanCount="4"
                                 AllowPaging="false"
@@ -56,10 +58,10 @@
                                 GridLines="DataGridGridLines.Horizontal"
                                 class="vpp-order-review-grid">
                     <Columns>
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="#" Width="56px" TextAlign="TextAlign.Center">
-                            <Template Context="item">@(Context.SelectedItems.IndexOf(item) + 1)</Template>
+                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Title="#" Width="56px" TextAlign="TextAlign.Center">
+                            <Template Context="item">@Editor.GetItemNumber(item)</Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="VppName" Title="@Loc["ItemName"]">
+                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="VppName" Title="@Loc["ItemName"]">
                             <Template Context="item">
                                 <div class="vpp-order-builder-item-cell">
                                     <strong>@item.VppName</strong>
@@ -67,12 +69,12 @@
                                 </div>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Qty" Title="@Loc["Quantity"]" Width="130px" TextAlign="TextAlign.Right" />
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="UomName" Title="@Loc["UOM"]" Width="120px" TextAlign="TextAlign.Center" />
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Property="Description" Title="@Loc["ItemNote"]" Width="320px">
+                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="Quantity" Title="@Loc["Quantity"]" Width="130px" TextAlign="TextAlign.Right" />
+                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="UomName" Title="@Loc["UOM"]" Width="120px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="Description" Title="@Loc["ItemNote"]" Width="320px">
                             <Template Context="item">@(string.IsNullOrWhiteSpace(item.Description) ? "–" : item.Description)</Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="OrderCreateContext.SelectedItem" Title="" Width="56px" TextAlign="TextAlign.Center">
+                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Title="" Width="56px" TextAlign="TextAlign.Center">
                             <Template Context="item">
                                 <button type="button"
                                         class="vpp-order-draft-remove"
@@ -86,26 +88,22 @@
                     </Columns>
                 </RadzenDataGrid>
             </div>
-            <footer class="vpp-order-builder-data-footer">@Loc["SelectedItemsSummary", Context.SelectedItems.Count, Context.TotalQty]</footer>
+            <footer class="vpp-order-builder-data-footer">@Loc["SelectedItemsSummary", Editor.SelectedItemCount, Editor.TotalQuantity]</footer>
         }
     </section>
 </div>
 
 @code {
-    [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+    [CascadingParameter] public OrderEditorSession Editor { get; set; } = default!;
     [Parameter] public EventCallback SupplementReasonRequested { get; set; }
 
-    private string OrderNote => Context.IsAdditional
-        ? Context.SupplementReason ?? "–"
-        : Context.Description ?? "–";
+    private string OrderNote => Editor.IsAdditional
+        ? Editor.SupplementReason ?? "–"
+        : Editor.Description ?? "–";
 
-    private bool IsSupplementReasonMissing => Context.IsAdditional
-        && (string.IsNullOrWhiteSpace(Context.SupplementReason)
-            || Context.SupplementReason.Trim().Length < 5);
+    private bool IsSupplementReasonMissing => Editor.IsAdditional
+        && (string.IsNullOrWhiteSpace(Editor.SupplementReason)
+            || Editor.SupplementReason.Trim().Length < 5);
 
-    private void RemoveItem(OrderCreateContext.SelectedItem item)
-    {
-        Context.SelectedItems.Remove(item);
-        Context.NotifyStateChanged();
-    }
+    private void RemoveItem(OrderEditorSession.SelectedItem item) => Editor.RemoveItem(item);
 }

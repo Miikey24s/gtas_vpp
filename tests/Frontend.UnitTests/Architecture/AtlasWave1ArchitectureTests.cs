@@ -414,8 +414,10 @@ public sealed class AtlasWave1ArchitectureTests
         var page = ReadFrontendSource("Components/Pages/VPPRequest/Page_OrderCreate.razor");
         var pageCode = ReadFrontendSource("Components/Pages/VPPRequest/Page_OrderCreate.razor.cs");
         var selection = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep2.razor");
+        var review = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep3.razor");
         var commandClient = ReadFrontendSource("Features/Requests/Api/RequestsCommandClient.cs");
         var draftStore = ReadFrontendSource("Features/Requests/Drafts/OrderDraftStore.cs");
+        var editorSession = ReadFrontendSource("Features/Requests/Editor/OrderEditorSession.cs");
         var submissionFactory = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionRequestFactory.cs");
         var program = ReadFrontendSource("Program.cs");
 
@@ -439,7 +441,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("RequestsQueryClient", pageCode, StringComparison.Ordinal);
         Assert.Contains("RequestsCommandClient", pageCode, StringComparison.Ordinal);
         Assert.Contains("OrderDraftStore", pageCode, StringComparison.Ordinal);
+        Assert.Contains("OrderEditorSession", pageCode, StringComparison.Ordinal);
         Assert.Contains("OrderSubmissionRequestFactory", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("currentStep", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("OrderCreateContext", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("new VppRequestCreateReqDTO", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("new VppRequestUpdateReqDTO", pageCode, StringComparison.Ordinal);
@@ -455,12 +460,27 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("BuildCreateRequest", submissionFactory, StringComparison.Ordinal);
         Assert.Contains("BuildUpdateRequest", submissionFactory, StringComparison.Ordinal);
         Assert.Contains("BuildRecreateRequest", submissionFactory, StringComparison.Ordinal);
+        Assert.Contains("OrderEditorStep", editorSession, StringComparison.Ordinal);
+        Assert.Contains("ValidateForSubmission", editorSession, StringComparison.Ordinal);
+        Assert.Contains("OrderEditorSession", selection, StringComparison.Ordinal);
+        Assert.Contains("OrderEditorSession", review, StringComparison.Ordinal);
+        Assert.DoesNotContain("OrderCreateContext", selection, StringComparison.Ordinal);
+        Assert.DoesNotContain("OrderCreateContext", review, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", selection, StringComparison.Ordinal);
         Assert.Contains("VppItemResDTO", selection, StringComparison.Ordinal);
         Assert.Contains("@implements IDisposable", selection, StringComparison.Ordinal);
         Assert.DoesNotContain("class ProductOption", selection, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", selection, StringComparison.Ordinal);
         Assert.Contains("/orders/{orderId}/recreate", commandClient, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Frontend",
+            "Blazor",
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "OrderCreateContext.cs")));
     }
 
     [Fact]

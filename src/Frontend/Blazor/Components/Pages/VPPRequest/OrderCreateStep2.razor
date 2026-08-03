@@ -1,6 +1,7 @@
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_shared.DTOs.Res.Library
 @using gtas_vpp_fe.Features.Requests.Api
+@using gtas_vpp_fe.Features.Requests.Editor
 @implements IDisposable
 @inject IJSRuntime JSRuntime
 
@@ -12,7 +13,7 @@
             <header class="vpp-order-builder-section-header">
                 <div>
                     <h2 id="order-catalog-title">@Loc["OrderableCatalog"]</h2>
-                    <p>@Loc["OrderableCatalogCount", Context.SelectedItems.Count, ProductCount]</p>
+                    <p>@Loc["OrderableCatalogCount", Editor.SelectedItemCount, ProductCount]</p>
                 </div>
             </header>
 
@@ -140,7 +141,7 @@
                     <p>@Loc["Period"] @TargetPeriodLabel</p>
                 </div>
                 <div class="vpp-order-draft-badges">
-                    <VppStatusBadge Text="@Loc["ItemsCount", Context.SelectedItems.Count]" Tone="VppStatusTone.Info" />
+                    <VppStatusBadge Text="@Loc["ItemsCount", Editor.SelectedItemCount]" Tone="VppStatusTone.Info" />
                     <VppStatusBadge Text="@Loc["Draft"]" Tone="VppStatusTone.Warning" />
                 </div>
             </header>
@@ -152,7 +153,7 @@
                 <span>@Loc["Actions"]</span>
             </div>
 
-            @if (Context.SelectedItems.Count == 0)
+            @if (Editor.SelectedItemCount == 0)
             {
                 <div class="vpp-order-draft-empty">
                     <VppIcon Name="add_shopping_cart" />
@@ -163,7 +164,7 @@
             else
             {
                 <div class="vpp-order-draft-list">
-                    @foreach (var item in Context.SelectedItems)
+                    @foreach (var item in Editor.SelectedItems)
                     {
                         <article class="vpp-order-draft-item" @key="item.VppId">
                             <div class="vpp-order-draft-item-main">
@@ -172,13 +173,13 @@
                                     <small>@item.VppCode</small>
                                 </div>
                                 <div class="vpp-order-quantity-stepper" aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")">
-                                    <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Qty <= 1)">−</button>
+                                    <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Quantity <= 1)">−</button>
                                     <input type="number"
                                            class="vpp-order-quantity-input"
                                            min="1"
                                            max="9999"
                                            step="1"
-                                           value="@item.Qty"
+                                           value="@item.Quantity"
                                            inputmode="numeric"
                                            aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")"
                                            @onchange="args => SetQuantity(item, args.Value)" />
@@ -244,8 +245,8 @@
             }
 
             <div class="vpp-order-draft-summary">
-                <span>@Loc["ItemsCount", Context.SelectedItems.Count]</span>
-                <strong>@Loc["TotalQuantity"] @Context.TotalQty</strong>
+                <span>@Loc["ItemsCount", Editor.SelectedItemCount]</span>
+                <strong>@Loc["TotalQuantity"] @Editor.TotalQuantity</strong>
             </div>
 
             <footer class="vpp-order-draft-actions">
@@ -316,7 +317,7 @@
 </div>
 
 @code {
-    [CascadingParameter] public OrderCreateContext Context { get; set; } = default!;
+    [CascadingParameter] public OrderEditorSession Editor { get; set; } = default!;
     [Parameter] public EventCallback NextRequested { get; set; }
     [Parameter] public EventCallback BackRequested { get; set; }
     [Parameter] public EventCallback SaveDraftRequested { get; set; }
@@ -350,12 +351,12 @@
         || !string.IsNullOrWhiteSpace(CategoryFilter)
         || !string.IsNullOrWhiteSpace(UnitFilter);
 
-    private bool CanContinue => Context.SelectedItems.Count > 0;
-    private string OrderNoteLabel => Context.IsAdditional ? Loc["SupplementReason"].Value : Loc["OrderNote"].Value;
-    private string OrderNotePlaceholder => Context.IsAdditional ? Loc["SupplementReasonPlaceholder"].Value : Loc["OrderNotePlaceholder"].Value;
-    private string? OrderNote => Context.IsAdditional ? Context.SupplementReason : Context.Description;
+    private bool CanContinue => Editor.SelectedItemCount > 0;
+    private string OrderNoteLabel => Editor.IsAdditional ? Loc["SupplementReason"].Value : Loc["OrderNote"].Value;
+    private string OrderNotePlaceholder => Editor.IsAdditional ? Loc["SupplementReasonPlaceholder"].Value : Loc["OrderNotePlaceholder"].Value;
+    private string? OrderNote => Editor.IsAdditional ? Editor.SupplementReason : Editor.Description;
     // Atlas order-note-popover: dòng phụ "Đơn kỳ MM/yyyy"; nhánh đơn bổ sung giữ ngữ cảnh "Đơn đang tạo".
-    private string OrderNoteContextLabel => Context.IsAdditional
+    private string OrderNoteContextLabel => Editor.IsAdditional
         ? Loc["OrderBeingCreated"].Value
         : string.Format(Loc["OrderNotePeriodFormat"].Value, TargetPeriodLabel);
 
@@ -367,13 +368,13 @@
     private int GetProductRowNumber(VppItemResDTO row)
         => ProductOptions.IndexOf(row) + 1;
 
-    private void SnapshotItemNote(OrderCreateContext.SelectedItem item)
+    private void SnapshotItemNote(OrderEditorSession.SelectedItem item)
     {
         _itemNoteSnapshotId = item.VppId;
         _itemNoteSnapshot = item.Description;
     }
 
-    private void RevertItemNote(OrderCreateContext.SelectedItem item)
+    private void RevertItemNote(OrderEditorSession.SelectedItem item)
     {
         if (item.VppId == _itemNoteSnapshotId)
         {
@@ -521,82 +522,58 @@
         }
     }
 
-    private bool IsSelected(Guid id) => Context.SelectedItems.Any(item => item.VppId == id);
+    private bool IsSelected(Guid id) => Editor.IsSelected(id);
 
     private async Task AddProductAsync(VppItemResDTO row)
     {
-        if (!IsSelected(row.Id))
+        if (Editor.TryAddItem(new OrderEditorSession.SelectedItem
         {
-            Context.SelectedItems.Add(new OrderCreateContext.SelectedItem
-            {
-                VppId = row.Id,
-                VppCode = row.VppCode,
-                VppName = row.VppName,
-                UomCode = row.UomCode,
-                UomName = row.UomName,
-                Qty = 1
-            });
+            VppId = row.Id,
+            VppCode = row.VppCode,
+            VppName = row.VppName,
+            UomCode = row.UomCode,
+            UomName = row.UomName,
+            Quantity = 1
+        }))
+        {
             await RefreshSelectionAsync();
         }
     }
 
     private async Task RemoveProductAsync(Guid id)
     {
-        var item = Context.SelectedItems.FirstOrDefault(selected => selected.VppId == id);
+        var item = Editor.FindSelectedItem(id);
         if (item is not null)
         {
             await RemoveItemAsync(item);
         }
     }
 
-    private async Task RemoveItemAsync(OrderCreateContext.SelectedItem item)
+    private async Task RemoveItemAsync(OrderEditorSession.SelectedItem item)
     {
-        Context.SelectedItems.Remove(item);
-        await RefreshSelectionAsync();
-    }
-
-    private void ChangeQuantity(OrderCreateContext.SelectedItem item, int delta)
-    {
-        item.Qty = Math.Clamp(item.Qty + delta, 1, 9999);
-        Context.NotifyStateChanged();
-    }
-
-    private void SetQuantity(OrderCreateContext.SelectedItem item, object? value)
-    {
-        var parsed = int.TryParse(value?.ToString(), out var quantity) ? quantity : 1;
-        item.Qty = Math.Clamp(parsed, 1, 9999);
-        Context.NotifyStateChanged();
-    }
-
-    private void UpdateItemNote(OrderCreateContext.SelectedItem item, string? value)
-    {
-        item.Description = value;
-        Context.NotifyStateChanged();
-    }
-
-    private void UpdateOrderNote(string? value)
-    {
-        if (Context.IsAdditional)
+        if (Editor.RemoveItem(item))
         {
-            Context.SupplementReason = value;
+            await RefreshSelectionAsync();
         }
-        else
-        {
-            Context.Description = value;
-        }
-        Context.NotifyStateChanged();
     }
 
-    private async Task RefreshSelectionAsync()
-    {
-        Context.NotifyStateChanged();
-        await InvokeAsync(StateHasChanged);
-    }
+    private void ChangeQuantity(OrderEditorSession.SelectedItem item, int delta) =>
+        Editor.ChangeQuantity(item, delta);
 
-    private static string GetItemLabel(OrderCreateContext.SelectedItem item)
+    private void SetQuantity(OrderEditorSession.SelectedItem item, object? value) =>
+        Editor.SetQuantity(item, value);
+
+    private void UpdateItemNote(OrderEditorSession.SelectedItem item, string? value) =>
+        Editor.UpdateItemDescription(item, value);
+
+    private void UpdateOrderNote(string? value) => Editor.UpdateOrderNote(value);
+
+    private Task RefreshSelectionAsync() => InvokeAsync(StateHasChanged);
+
+    private static string GetItemLabel(OrderEditorSession.SelectedItem item)
         => !string.IsNullOrWhiteSpace(item.VppName) ? item.VppName : item.VppCode ?? string.Empty;
 
-    private string GetItemNotePopoverId(OrderCreateContext.SelectedItem item)
+    private string GetItemNotePopoverId(OrderEditorSession.SelectedItem item)
         => $"vpp-item-note-{_instanceId}-{item.VppId:N}";
 
     public void Dispose()

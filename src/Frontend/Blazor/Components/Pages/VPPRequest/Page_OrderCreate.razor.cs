@@ -2,6 +2,7 @@ using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Features.Requests.Drafts;
+using gtas_vpp_fe.Features.Requests.Editor;
 using gtas_vpp_fe.Features.Requests.Submission;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
@@ -54,16 +55,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public bool IsCopyFromPrevious => !string.IsNullOrWhiteSpace(CopyFromParam) && CopyFromParam.Equals("previous", StringComparison.OrdinalIgnoreCase);
         public DateTime? LastDraftSavedAt { get; set; }
         public bool DraftRecovered { get; set; }
-        public int currentStep { get; set; }
-        public int StepCount => 2;
-
         private IReadOnlyList<VppWorkflowStep> OrderWorkflowSteps =>
         [
-            new("products", 1, Loc["SelectProducts"], currentStep == 0 ? VppWorkflowStepState.Active : VppWorkflowStepState.Complete),
-            new("review", 2, Loc["ReviewSubmit"], currentStep == 1 ? VppWorkflowStepState.Active : VppWorkflowStepState.Pending)
+            new(
+                "products",
+                1,
+                Loc["SelectProducts"],
+                Editor.CurrentStep == OrderEditorStep.Products
+                    ? VppWorkflowStepState.Active
+                    : VppWorkflowStepState.Complete),
+            new(
+                "review",
+                2,
+                Loc["ReviewSubmit"],
+                Editor.CurrentStep == OrderEditorStep.Review
+                    ? VppWorkflowStepState.Active
+                    : VppWorkflowStepState.Pending)
         ];
 
-        public OrderCreateContext Context { get; set; } = new();
+        public OrderEditorSession Editor { get; } = new();
         public IEnumerable<Claim> Claims { get; set; } = new List<Claim>();
         private bool _showSupplementReasonForm;
         private bool _supplementReasonTouched;
@@ -103,14 +113,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
         }
 
-        public int SelectedItemCount => Context.SelectedItems.Count;
+        public int SelectedItemCount => Editor.SelectedItemCount;
 
         public string ItemsStatusText => string.Format(Loc["WizardItemsBadgeFormat"].Value, SelectedItemCount);
         public string QtyStatusText => string.Format(
             System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("vi", StringComparison.OrdinalIgnoreCase)
                 ? Loc["WizardTotalQtyBadgeFormat"].Value
                 : Loc["WizardQtyBadgeFormat"].Value,
-            Context.TotalQty);
+            Editor.TotalQuantity);
         public string DraftRecoveredText => Loc["DraftRestored"].Value.ToLower();
 
         public string OrderModeTitle => IsRecreate
@@ -119,7 +129,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             ? Loc["EditOrder"].Value
             : IsCopyFromPrevious
                 ? Loc["CopyOrder"].Value
-                : Context.IsAdditional
+                : Editor.IsAdditional
                     ? Loc["AdditionalOrder"].Value
                     : Loc["CreateOrder"].Value;
 
@@ -129,7 +139,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             ? Loc["WizardEditingExistingRequest"].Value
             : IsCopyFromPrevious
                 ? Loc["WizardCopiedFromPreviousOrder"].Value
-                : Context.IsAdditional
+                : Editor.IsAdditional
                     ? Loc["WizardModeAdditionalFlow"].Value
                     : Loc["WizardRegularRequest"].Value;
 
@@ -139,7 +149,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             ? Loc["WizardOrderModeSummaryEdit"].Value
             : IsCopyFromPrevious
                 ? Loc["WizardOrderModeSummaryCopy"].Value
-                : Context.IsAdditional
+                : Editor.IsAdditional
                     ? Loc["WizardOrderModeSummaryAdditional"].Value
                     : Loc["WizardOrderModeSummaryCreate"].Value;
 
@@ -157,11 +167,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         public bool CanSubmitForPeriod => IsEdit || IsRecreate
             ? _editingAllowed
             : PeriodInfo is not null
-              && (Context.IsAdditional ? PeriodInfo.CanCreateAdditional : PeriodInfo.CanCreateOrder);
+              && (Editor.IsAdditional ? PeriodInfo.CanCreateAdditional : PeriodInfo.CanCreateOrder);
 
         public string PeriodActionReason => IsEdit || IsRecreate
             ? Loc["OrderNoLongerEditable"].Value
-            : Context.IsAdditional
+            : Editor.IsAdditional
                 ? PeriodInfo?.CanCreateAdditionalReason ?? Loc["SupplementUnavailable"].Value
                 : PeriodInfo?.CanCreateOrderReason ?? Loc["RegularRequestUnavailable"].Value;
 
@@ -177,30 +187,30 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 ? string.Format(Loc["LastSavedAtFormat"], DateFormatter.Format(LastDraftSavedAt, DateFormatter.TimeOnly))
                 : Loc["BrowserKeepsLocalDraftWhileYouWork"].Value;
 
-        public string CurrentStepTitle => currentStep switch
+        public string CurrentStepTitle => Editor.CurrentStep switch
         {
-            0 => Loc["SelectProducts"].Value,
+            OrderEditorStep.Products => Loc["SelectProducts"].Value,
             _ => Loc["ReviewSubmit"].Value
         };
 
-        public string CurrentStepHint => currentStep switch
+        public string CurrentStepHint => Editor.CurrentStep switch
         {
-            0 => Loc["CurrentStepHintProducts"].Value,
+            OrderEditorStep.Products => Loc["CurrentStepHintProducts"].Value,
             _ => Loc["CurrentStepHintReview"].Value
         };
 
-        public string FooterStatusText => currentStep switch
+        public string FooterStatusText => Editor.CurrentStep switch
         {
-            0 when SelectedItemCount == 0 => Loc["NoItemsSelectedYetStartCatalogLeft"].Value,
-            0 => string.Format(Loc["SelectedItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty),
+            OrderEditorStep.Products when SelectedItemCount == 0 => Loc["NoItemsSelectedYetStartCatalogLeft"].Value,
+            OrderEditorStep.Products => string.Format(Loc["SelectedItemsTotalQuantityFormat"], SelectedItemCount, Editor.TotalQuantity),
             _ => SelectedItemCount == 0
                 ? Loc["AddAtLeastOneItemBeforeSubmitting"].Value
-                : string.Format(Loc["ReadyToSubmitItemsTotalQuantityFormat"], SelectedItemCount, Context.TotalQty)
+                : string.Format(Loc["ReadyToSubmitItemsTotalQuantityFormat"], SelectedItemCount, Editor.TotalQuantity)
         };
 
         public string PrimaryActionText => IsRecreate
                 ? Loc["RecreateOrder"].Value
-            : Context.IsAdditional
+            : Editor.IsAdditional
                 ? Loc["SubmitForApproval"].Value
             : IsEdit
                 ? Loc["UpdateOrder"].Value
@@ -248,16 +258,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 // P1: Lấy dữ liệu kỳ có thẩm quyền từ BE trước mọi thao tác nhạy với kỳ.
                 await LoadPeriodInfoAsync();
 
-                // Khởi tạo context.
-                Context.Mode = IsRecreate
-                    ? "recreate"
-                    : IsEdit
-                        ? "edit"
-                        : (IsCopyFromPrevious ? "copy" : (IsAdditional ? "additional" : "new"));
-                Context.EditOrderId = OrderId;
-                Context.IsAdditional = IsAdditional;
-                Context.BaseRequestId = PeriodInfo?.BaseRequestId;
-                Context.BaseRequestCode = PeriodInfo?.BaseRequestCode;
+                Editor.IsAdditional = IsAdditional;
+                Editor.BaseRequestId = PeriodInfo?.BaseRequestId;
+                Editor.BaseRequestCode = PeriodInfo?.BaseRequestCode;
 
                 if ((IsEdit || IsRecreate) && OrderId.HasValue)
                 {
@@ -296,67 +299,59 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 await TryRestoreDraftAsync();
             }
 
-            Context.OnStateChanged += () => MarkDraftDirty();
+            Editor.Changed += OnEditorChanged;
             await InvokeAsync(StateHasChanged);
         }
 
-        private Task OnWizardStepChange(int step)
-        {
-            currentStep = step;
-            Context.NotifyStateChanged();
-            return Task.CompletedTask;
-        }
-
-        private void GoToStep(int step)
-        {
-            if (step < 0 || step >= StepCount)
-            {
-                return;
-            }
-
-            currentStep = step;
-            Context.NotifyStateChanged();
-        }
-
         private void OnOrderWorkflowStepSelected(string stepKey)
-            => GoToStep(string.Equals(stepKey, "review", StringComparison.Ordinal) ? 1 : 0);
+            => Editor.SelectStep(
+                string.Equals(stepKey, "review", StringComparison.Ordinal)
+                    ? OrderEditorStep.Review
+                    : OrderEditorStep.Products);
 
         private Task GoNextStepAsync()
         {
-            if (currentStep < StepCount - 1)
-            {
-                currentStep++;
-                Context.NotifyStateChanged();
-            }
-
+            Editor.MoveNext();
             return Task.CompletedTask;
         }
 
-        private void GoPreviousStep()
-        {
-            if (currentStep <= 0) return;
+        private void GoPreviousStep() => Editor.MovePrevious();
 
-            currentStep--;
-            Context.NotifyStateChanged();
-        }
-
-        private bool ValidateBeforeSubmit()
+        private bool HandleEditorValidation()
         {
-            // Đơn bổ sung bắt buộc có mô tả/lý do.
-            if (Context.IsAdditional
-                && (string.IsNullOrWhiteSpace(Context.SupplementReason)
-                    || Context.SupplementReason.Trim().Length < 5
-                    || Context.SupplementReason.Trim().Length > 500))
+            switch (Editor.ValidateForSubmission())
             {
-                OpenSupplementReasonForm();
-                return false;
+                case OrderEditorValidationError.SupplementReasonRequired:
+                    OpenSupplementReasonForm();
+                    return false;
+                case OrderEditorValidationError.EmptySelection:
+                    Toast.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = Loc["Order"],
+                        Detail = Loc["PleaseSelectAtLeastOneProduct"],
+                        Duration = 3000
+                    });
+                    return false;
+                case OrderEditorValidationError.InvalidItem:
+                    Toast.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = Loc["Order"],
+                        Detail = Loc["InvalidProductOrQuantity"],
+                        Duration = 3000
+                    });
+                    return false;
+                default:
+                    return true;
             }
-            return true;
         }
+
+        private void OnEditorChanged() => MarkDraftDirty();
 
         private void OpenSupplementReasonForm()
         {
-            _supplementReasonDraft = Context.SupplementReason;
+            _supplementReasonDraft = Editor.SupplementReason;
             _supplementReasonTouched = false;
             _showSupplementReasonForm = true;
         }
@@ -381,8 +376,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 return;
             }
 
-            Context.SupplementReason = _supplementReasonDraft!.Trim();
-            Context.NotifyStateChanged();
+            Editor.SupplementReason = _supplementReasonDraft!.Trim();
+            Editor.NotifyChanged();
             CloseSupplementReasonForm();
         }
 
@@ -424,32 +419,31 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     return;
                 }
 
-                Context.RowVersion = editingOrder.RowVersion;
+                Editor.RowVersion = editingOrder.RowVersion;
                 _editingAllowed = IsRecreate
                     ? editingOrder.CanRecreate
                     : editingOrder.CanEdit;
                 _isAdditionalOverride = editingOrder.IsAdditionalOrder;
                 _hasLoadedOrder = true;
-                Context.IsAdditional = _isAdditionalOverride;
-                Context.BaseRequestId = editingOrder.BaseRequestId;
+                Editor.IsAdditional = _isAdditionalOverride;
+                Editor.BaseRequestId = editingOrder.BaseRequestId;
 
                 if (!IsRecreate)
                 {
-                    Context.Description = editingOrder.Description;
-                    Context.SupplementReason = editingOrder.SupplementReason;
-                    Context.BaseRequestId = editingOrder.BaseRequestId;
-                    Context.SelectedItems = (editingOrder.Items ?? new())
-                        .Select(x => new OrderCreateContext.SelectedItem
+                    Editor.Description = editingOrder.Description;
+                    Editor.SupplementReason = editingOrder.SupplementReason;
+                    Editor.BaseRequestId = editingOrder.BaseRequestId;
+                    Editor.ReplaceItems((editingOrder.Items ?? new())
+                        .Select(x => new OrderEditorSession.SelectedItem
                         {
                             VppId = x.VppId,
                             VppCode = x.VppCode,
                             VppName = x.VppName,
                             UomCode = x.UomCode,
                             UomName = x.UomName,
-                            Qty = x.Qty,
+                            Quantity = x.Qty,
                             Description = x.Description
-                        })
-                        .ToList();
+                        }));
                 }
             }
             catch (Exception ex)
@@ -481,25 +475,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     return;
                 }
 
-                Context.Description = previousOrder.Description;
-                Context.SelectedItems = (previousOrder.Items ?? new())
-                    .Select(x => new OrderCreateContext.SelectedItem
+                Editor.Description = previousOrder.Description;
+                Editor.ReplaceItems((previousOrder.Items ?? new())
+                    .Select(x => new OrderEditorSession.SelectedItem
                     {
                         VppId = x.VppId,
                         VppCode = x.VppCode,
                         VppName = x.VppName,
                         UomCode = x.UomCode,
                         UomName = x.UomName,
-                        Qty = x.Qty,
+                        Quantity = x.Qty,
                         Description = x.Description
-                    })
-                    .ToList();
+                    }));
 
                 Toast.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = Loc["CopyPrevious"],
-                    Detail = string.Format(Loc["CopiedItemsFromPreviousOrderFormat"], Context.SelectedItems.Count),
+                    Detail = string.Format(Loc["CopiedItemsFromPreviousOrderFormat"], Editor.SelectedItemCount),
                     Duration = 4000
                 });
             }
@@ -536,16 +529,16 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 {
                     UserId = CurrentUserId,
                     PeriodId = periodId,
-                    Description = Context.Description,
-                    SupplementReason = Context.SupplementReason,
-                    Items = Context.SelectedItems.Select(item => new OrderDraftItemSnapshot
+                    Description = Editor.Description,
+                    SupplementReason = Editor.SupplementReason,
+                    Items = Editor.SelectedItems.Select(item => new OrderDraftItemSnapshot
                     {
                         VppId = item.VppId,
                         VppCode = item.VppCode,
                         VppName = item.VppName,
                         UomCode = item.UomCode,
                         UomName = item.UomName,
-                        Qty = item.Qty,
+                        Qty = item.Quantity,
                         Description = item.Description
                     }).ToList(),
                     SavedAtUtc = DateTime.UtcNow
@@ -588,23 +581,22 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     DateTime.UtcNow);
                 if (draft is null) return;
 
-                Context.Description = draft.Description;
-                Context.SupplementReason = draft.SupplementReason;
-                Context.SelectedItems = draft.Items.Select(item => new OrderCreateContext.SelectedItem
+                Editor.Description = draft.Description;
+                Editor.SupplementReason = draft.SupplementReason;
+                Editor.ReplaceItems(draft.Items.Select(item => new OrderEditorSession.SelectedItem
                 {
                     VppId = item.VppId,
                     VppCode = item.VppCode,
                     VppName = item.VppName,
                     UomCode = item.UomCode,
                     UomName = item.UomName,
-                    Qty = item.Qty,
+                    Quantity = item.Qty,
                     Description = item.Description
-                }).ToList();
+                }));
                 LastDraftSavedAt = draft.SavedAtUtc.ToLocalTime();
-                DraftRecovered = Context.SelectedItems.Count > 0
-                    || !string.IsNullOrWhiteSpace(Context.Description)
-                    || !string.IsNullOrWhiteSpace(Context.SupplementReason);
-                Context.DraftRecovered = DraftRecovered;
+                DraftRecovered = Editor.SelectedItemCount > 0
+                    || !string.IsNullOrWhiteSpace(Editor.Description)
+                    || !string.IsNullOrWhiteSpace(Editor.SupplementReason);
                 _draftDirty = false;
             }
             catch { }
@@ -651,32 +643,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 return;
             }
 
-            if (!ValidateBeforeSubmit())
+            if (!HandleEditorValidation())
             {
-                return;
-            }
-
-            if (Context.SelectedItems.Count == 0)
-            {
-                Toast.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = Loc["Order"],
-                    Detail = Loc["PleaseSelectAtLeastOneProduct"],
-                    Duration = 3000
-                });
-                return;
-            }
-
-            if (Context.SelectedItems.Any(x => x.VppId == Guid.Empty || x.Qty <= 0))
-            {
-                Toast.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = Loc["Order"],
-                    Detail = Loc["InvalidProductOrQuantity"],
-                    Duration = 3000
-                });
                 return;
             }
 
@@ -705,12 +673,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 var period = new DateTime(PeriodInfo.CurrentPeriodYear, PeriodInfo.CurrentPeriodMonth, 1);
 
                 var submission = new OrderSubmissionSnapshot(
-                    Context.Description,
-                    Context.SupplementReason,
+                    Editor.Description,
+                    Editor.SupplementReason,
                     _submissionIdempotencyKey,
-                    Context.SelectedItems.Select(item => new OrderSubmissionItem(
+                    Editor.SelectedItems.Select(item => new OrderSubmissionItem(
                         item.VppId,
-                        item.Qty,
+                        item.Quantity,
                         item.Description)).ToArray());
 
                 if (IsRecreate)
@@ -719,8 +687,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         OrderId!.Value,
                         OrderSubmissionRequestFactory.BuildRecreateRequest(
                             submission,
-                            Context.IsAdditional,
-                            Context.RowVersion));
+                            Editor.IsAdditional,
+                            Editor.RowVersion));
                 }
                 else if (IsEdit)
                 {
@@ -730,7 +698,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                             submission,
                             OrderId.Value,
                             IsAdditional,
-                            Context.RowVersion));
+                            Editor.RowVersion));
                 }
                 else
                 {
@@ -739,7 +707,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         period.Year,
                         period.Month,
                         IsAdditional,
-                        Context.IsAdditional,
+                        Editor.IsAdditional,
                         PeriodInfo.BaseRequestId));
                     if (!string.IsNullOrWhiteSpace(DraftStorageKey))
                     {
@@ -787,6 +755,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         public void Dispose()
         {
+            Editor.Changed -= OnEditorChanged;
             _draftAutoSaveCts?.Cancel();
             _draftAutoSaveTimer?.Dispose();
             _draftAutoSaveCts?.Dispose();
