@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT STORE COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `308/308`; 83 UI test được phát hiện. Account/shell, Catalog/Pricing, Identity/Notifications, Requests và Settlement đã có transport owner rõ; order draft persistence đã tách khỏi page | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `312/312`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft persistence và submission DTO mapping đã tách khỏi page | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR7 transport và `OrderDraftStore` đã hoàn tất. Tiếp theo tách submission request builder/coordinator hoặc Settlement projection thuần theo seam có test | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR7 transport, `OrderDraftStore` và submission request factory đã hoàn tất. Tiếp theo tách Settlement projection/filter thuần hoặc Order Editor session nhỏ | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -691,7 +691,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 transport và Order Draft Store hoàn tất; submission/editor và Settlement projection decomposition còn tiếp tục**.
+- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store và submission request factory hoàn tất; editor session/Settlement projection còn tiếp tục**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -820,11 +820,16 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   dispatcher. Key, PascalCase JSON shape, edit/recreate/copy semantics và create-only removal giữ nguyên;
   payload legacy `Items=null` được normalize về danh sách rỗng như behavior trước refactor. Focused `35/35`,
   full frontend `308/308`; isolated Order Create lifecycle mutation pass `1/1`.
+- FR7 submission request factory: create/update/recreate DTO mapping chuyển sang factory thuần, khóa period,
+  base request, row version, idempotency, item order/quantity và trim reason theo đúng từng mode. Hai nguồn
+  additional hiện hữu (`IsAdditional` route state và `Context.IsAdditional` wizard state) được giữ tách biệt
+  để không đổi payload khi query-only navigation làm chúng lệch. Focused `30/30`, full frontend `312/312`,
+  solution Release build `0 warning/error`; Order Create lifecycle mutation pass `1/1` sau parity patch.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tách request-building thuần khỏi `Page_OrderCreate.SubmitAsync` hoặc projection thuần
-  cho Settlement department rows; giữ component làm orchestration, giữ nguyên route, Shared DTO,
-  `InputHash`, `PriceAsOfUtc`, row version và idempotency behavior.
+- Next exact action: tách projection/filter thuần cho Settlement department rows hoặc một `OrderEditorSession`
+  nhỏ cho mode/step/selection; giữ component làm orchestration, giữ nguyên route, Shared DTO, `InputHash`,
+  `PriceAsOfUtc`, row version và idempotency behavior.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

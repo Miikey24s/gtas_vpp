@@ -2,9 +2,9 @@ using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Features.Requests.Drafts;
+using gtas_vpp_fe.Features.Requests.Submission;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.Constants;
-using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_shared.DTOs.Share;
 using Microsoft.AspNetCore.Components;
@@ -704,58 +704,43 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
                 var period = new DateTime(PeriodInfo.CurrentPeriodYear, PeriodInfo.CurrentPeriodMonth, 1);
 
-                var requestItems = Context.SelectedItems.Select(x => new VppRequestDetailItemReqDTO
-                {
-                    VppId = x.VppId,
-                    Qty = x.Qty,
-                    Description = x.Description
-                }).ToList();
+                var submission = new OrderSubmissionSnapshot(
+                    Context.Description,
+                    Context.SupplementReason,
+                    _submissionIdempotencyKey,
+                    Context.SelectedItems.Select(item => new OrderSubmissionItem(
+                        item.VppId,
+                        item.Qty,
+                        item.Description)).ToArray());
 
                 if (IsRecreate)
                 {
-                    var recreateReq = new VppRequestRecreateReqDTO
-                    {
-                        Description = Context.Description,
-                        SupplementReason = Context.IsAdditional
-                            ? Context.SupplementReason?.Trim()
-                            : null,
-                        RowVersion = Context.RowVersion,
-                        IdempotencyKey = _submissionIdempotencyKey,
-                        Items = requestItems
-                    };
-
-                    await Commands.RecreateAsync(OrderId!.Value, recreateReq);
+                    await Commands.RecreateAsync(
+                        OrderId!.Value,
+                        OrderSubmissionRequestFactory.BuildRecreateRequest(
+                            submission,
+                            Context.IsAdditional,
+                            Context.RowVersion));
                 }
                 else if (IsEdit)
                 {
-                    var updateReq = new VppRequestUpdateReqDTO
-                    {
-                        Id = OrderId!.Value,
-                        Description = Context.Description,
-                        IsAdditionalOrder = IsAdditional,
-                        SupplementReason = Context.SupplementReason,
-                        RowVersion = Context.RowVersion,
-                        IdempotencyKey = _submissionIdempotencyKey,
-                        Items = requestItems
-                    };
-
-                    await Commands.UpdateAsync(OrderId!.Value, updateReq);
+                    await Commands.UpdateAsync(
+                        OrderId!.Value,
+                        OrderSubmissionRequestFactory.BuildUpdateRequest(
+                            submission,
+                            OrderId.Value,
+                            IsAdditional,
+                            Context.RowVersion));
                 }
                 else
                 {
-                    var createReq = new VppRequestCreateReqDTO
-                    {
-                        Year = period.Year,
-                        Month = period.Month,
-                        Description = Context.Description,
-                        IsAdditionalOrder = IsAdditional,
-                        BaseRequestId = Context.IsAdditional ? PeriodInfo.BaseRequestId : null,
-                        SupplementReason = Context.IsAdditional ? Context.SupplementReason?.Trim() : null,
-                        IdempotencyKey = _submissionIdempotencyKey,
-                        Items = requestItems
-                    };
-
-                    await Commands.CreateAsync(createReq);
+                    await Commands.CreateAsync(OrderSubmissionRequestFactory.BuildCreateRequest(
+                        submission,
+                        period.Year,
+                        period.Month,
+                        IsAdditional,
+                        Context.IsAdditional,
+                        PeriodInfo.BaseRequestId));
                     if (!string.IsNullOrWhiteSpace(DraftStorageKey))
                     {
                         await Drafts.RemoveAsync(DraftStorageKey);

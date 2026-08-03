@@ -410,6 +410,7 @@ public sealed class AtlasWave1ArchitectureTests
         var selection = ReadFrontendSource("Components/Pages/VPPRequest/OrderCreateStep2.razor");
         var commandClient = ReadFrontendSource("Features/Requests/Api/RequestsCommandClient.cs");
         var draftStore = ReadFrontendSource("Features/Requests/Drafts/OrderDraftStore.cs");
+        var submissionFactory = ReadFrontendSource("Features/Requests/Submission/OrderSubmissionRequestFactory.cs");
         var program = ReadFrontendSource("Program.cs");
 
         Assert.Contains("<VppWorkflowStepper", page, StringComparison.Ordinal);
@@ -432,7 +433,11 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("RequestsQueryClient", pageCode, StringComparison.Ordinal);
         Assert.Contains("RequestsCommandClient", pageCode, StringComparison.Ordinal);
         Assert.Contains("OrderDraftStore", pageCode, StringComparison.Ordinal);
+        Assert.Contains("OrderSubmissionRequestFactory", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("new VppRequestCreateReqDTO", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("new VppRequestUpdateReqDTO", pageCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("new VppRequestRecreateReqDTO", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("JsonSerializer", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("localStorage.setItem", pageCode, StringComparison.Ordinal);
         Assert.DoesNotContain("localStorage.getItem", pageCode, StringComparison.Ordinal);
@@ -441,6 +446,9 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("localStorage.getItem", draftStore, StringComparison.Ordinal);
         Assert.Contains("OrderDraftStoragePolicy.CanRestore", draftStore, StringComparison.Ordinal);
         Assert.Contains("AddScoped<OrderDraftStore>", program, StringComparison.Ordinal);
+        Assert.Contains("BuildCreateRequest", submissionFactory, StringComparison.Ordinal);
+        Assert.Contains("BuildUpdateRequest", submissionFactory, StringComparison.Ordinal);
+        Assert.Contains("BuildRecreateRequest", submissionFactory, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", selection, StringComparison.Ordinal);
         Assert.Contains("VppItemResDTO", selection, StringComparison.Ordinal);
         Assert.Contains("@implements IDisposable", selection, StringComparison.Ordinal);
