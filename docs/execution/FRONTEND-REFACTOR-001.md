@@ -932,6 +932,14 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `Platform/Browser`; Reports, Requests và Settlement chỉ consume interface, không tạo stream/JS pipeline cạnh
   tranh. Architecture/export client focused `18/18`, full frontend `364/364`, solution Release build sạch và
   real-file export E2E `2/2`.
+- FR8A column-picker CSS ownership: chuyển toàn bộ selector và responsive rule
+  `.vpp-column-picker-*` khỏi global `wwwroot/css/vpp-admin.css` về companion scoped CSS 320 dòng của
+  `DesignSystem/Composites/VppColumnPicker`; chỉ dùng `::deep` tại boundary icon con do `VppIcon` render.
+  Architecture ratchet xác nhận global selector count bằng 0; focused shared foundation `41/41`, full frontend
+  `364/364`, solution Release build `0 warning/error`. Hai browser flow trực tiếp mở và thao tác picker pass
+  `2/2` (Library search/toggle/reset/geometry và Permission options/motion); ảnh runtime 1920x1080 đã được xem
+  trực tiếp, popover/checkbox/scroll/footer không vỡ. Lượt chạy rộng hai class đạt `6/14`; tám test còn lại
+  timeout ở CTA/action ngoài picker nên được ghi nhận riêng và không dùng làm verdict cho CSS ownership slice.
 - FR8C code-reading sync: cập nhật `docs/CODE-READING-GUIDE.md` và `docs/architecture/ARCH-001-MODULE-MAP.md`
   theo feature/platform ownership hiện tại (`Program` composition, `Platform/State`, `Platform/Browser`,
   `Notifications/State`, account components), sửa reference `CurrentUserState` và bỏ test-count cũ. Đây là

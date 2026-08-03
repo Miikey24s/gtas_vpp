@@ -126,12 +126,22 @@ public sealed class SharedUiFoundationTests
             "DesignSystem",
             "Composites",
             "VppColumnPicker.razor");
+        var pickerCssPath = Path.Combine(
+            componentRoot,
+            "DesignSystem",
+            "Composites",
+            "VppColumnPicker.razor.css");
         var source = File.ReadAllText(pickerPath);
+        var scopedCss = File.ReadAllText(pickerCssPath);
+        var adminCss = File.ReadAllText(Path.Combine(GetFrontendRoot(), "wwwroot", "css", "vpp-admin.css"));
 
         Assert.False(File.Exists(Path.Combine(componentRoot, "Shared", "VppColumnPicker.razor")));
         Assert.Contains("BindingFlags.Instance | BindingFlags.NonPublic", source, StringComparison.Ordinal);
         Assert.Contains("\"SetVisible\"", source, StringComparison.Ordinal);
         Assert.Contains("\"ChangeState\"", source, StringComparison.Ordinal);
+        Assert.Contains(".vpp-column-picker-trigger", scopedCss, StringComparison.Ordinal);
+        Assert.Contains("::deep .vpp-icon", scopedCss, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-column-picker-", adminCss, StringComparison.Ordinal);
 
         var otherReflectionConsumers = Directory
             .EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
