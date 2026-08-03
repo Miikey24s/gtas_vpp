@@ -189,7 +189,7 @@ không cố render SVG suy biến.
 audit, component gắn `data-vpp-grid-region="true"`; `wwwroot/js/vpp-interactions.js` chuẩn hóa role của
 wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 sinh ra.
 
-**Evidence hiện tại:** Release build sạch; frontend unit/architecture `365/365`; 28 screen × 4 viewport
+**Evidence hiện tại:** Release build sạch; frontend unit/architecture `366/366`; 28 screen × 4 viewport
 runtime pass, representative Dark/Print/axe pass, Atlas export/account/user-menu smoke và real-file
 download gates pass. Backend gate và owner visual approval vẫn là checkpoint riêng; ảnh runtime chỉ khóa
 vào thesis/slide sau khi owner chấp thuận UI cuối.

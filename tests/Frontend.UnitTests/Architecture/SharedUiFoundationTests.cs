@@ -185,6 +185,30 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("@using gtas_vpp_fe.Features.IdentityAccess.State", imports, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ProductionSource_DoesNotRetainRetiredAtlasSelectors()
+    {
+        var frontendRoot = GetFrontendRoot();
+        var authoredExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".cs",
+            ".razor",
+            ".css",
+            ".js"
+        };
+
+        var offenders = Directory
+            .EnumerateFiles(frontendRoot, "*.*", SearchOption.AllDirectories)
+            .Where(path => authoredExtensions.Contains(Path.GetExtension(path)))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => File.ReadAllText(path).Contains("vpp-atlas-", StringComparison.Ordinal))
+            .Select(path => Path.GetRelativePath(frontendRoot, path))
+            .ToArray();
+
+        Assert.Empty(offenders);
+    }
+
     [Theory]
     [InlineData("Primitives", "VppInlineAlert.razor")]
     [InlineData("Primitives", "VppAlertTone.cs")]

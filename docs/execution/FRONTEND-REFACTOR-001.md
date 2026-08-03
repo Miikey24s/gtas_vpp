@@ -32,7 +32,7 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `365/365`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `366/366`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
 | Việc làm ngay | FR8A/FR8B đã dọn CSS owner, test helper rác và chuyển identity/permission state về feature. Tiếp tục audit residual độc lập; FR7 vẫn chờ owner chốt correction UX rồi mới chạy mutation E2E đóng wave | [Continuation](#plan-detail-continuation) |
 
@@ -945,6 +945,13 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `::deep` vì switch là child component và ghi rõ lý do bằng comment tiếng Việt ngắn. Architecture focused
   `1/1`, full frontend `364/364`, solution Release build `0 warning/error`; Lookup màu track/thumb và
   User Administration responsive route-real pass `2/2` trên fixture cô lập.
+- FR8A retired Atlas CSS cleanup: xóa 387 dòng thuộc 23 selector `.vpp-atlas-*` (67 occurrence) khỏi
+  global `vpp-admin.css` sau tracked scan xác nhận production consumer bằng 0. History/Department Summary và
+  Pending Approval đã dùng canonical `HistoryWorkspaceShell`/`PendingApprovalWorkspace`; architecture ratchet
+  cấm selector legacy quay lại. Full frontend `366/366`, solution Release build `0 warning/error`; Department
+  Summary, Pending Approval và all-28 runtime pass `3/3`. Dark/Print/axe ban đầu timeout tại user-menu action
+  ngoài CSS slice, sau đó pass `1/1` trên fixture mới. `vpp-order-view-*` giữ lại cho audit riêng vì còn
+  assertion legacy.
 - FR8B test-only cleanup: xóa `tests/Frontend.UiTests/Pages/Order/ProductCatalogPage.cs` sau repo-wide scan
   xác nhận chỉ còn declaration, không có consumer. Không sửa production source, test hiện hữu hoặc dirty
   `ProductCatalogTests.cs`; focused Product Catalog route/responsive tests, full frontend `364/364` và
