@@ -62,8 +62,13 @@ internal static class QaFixtureSeeder
         await EnsureUsersAsync(context, accounts, secrets, cancellationToken);
         await EnsureUserGroupsAsync(context, accounts, cancellationToken);
         await EnsureSecurityAuditsAsync(context, accounts, cancellationToken);
-        var period = await EnsureCurrentPeriodAsync(context, cancellationToken);
-        await EnsureScopeRequestsAsync(context, accounts, period, cancellationToken);
+        var currentPeriod = await EnsureCurrentPeriodAsync(context, cancellationToken);
+        var settlementPeriod = await EnsurePreviousSettlementPeriodAsync(
+            context,
+            currentPeriod,
+            cancellationToken);
+        await EnsureScopeRequestsAsync(context, accounts, currentPeriod, cancellationToken);
+        await EnsureSettlementRequestAsync(context, accounts.Procurement, settlementPeriod, cancellationToken);
 
         await context.Database.ExecuteSqlInterpolatedAsync($"""
             UPDATE [dbo].[__GTASQARun]
@@ -403,6 +408,52 @@ internal static class QaFixtureSeeder
         return period;
     }
 
+    private static async Task<VppPeriod> EnsurePreviousSettlementPeriodAsync(
+        VPPMigrationDbContext context,
+        VppPeriod currentPeriod,
+        CancellationToken cancellationToken)
+    {
+        var calculator = new PeriodCalculator(deadlineDay: 5);
+        var previousAnchor = new DateTime(currentPeriod.Year, currentPeriod.Month, 1).AddMonths(-1);
+        var previous = new Period(previousAnchor.Year, previousAnchor.Month);
+        var companyCode = QaTestData.CompanyCode.ToString();
+        var period = await context.Periods.SingleOrDefaultAsync(
+            x => x.MemberCompanyCode == companyCode
+                 && x.Year == previous.Year
+                 && x.Month == previous.Month
+                 && !x.IsDeleted,
+            cancellationToken);
+
+        if (period is null)
+        {
+            period = new VppPeriod { Id = QaTestData.PreviousSettlementPeriodId };
+            context.Periods.Add(period);
+        }
+
+        period.MemberCompanyCode = companyCode;
+        period.TimeZoneId = "Asia/Ho_Chi_Minh";
+        period.Year = previous.Year;
+        period.Month = previous.Month;
+        period.StartAtUtc = calculator.StartAtUtc(previous);
+        period.SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(previous);
+        period.SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
+            previous,
+            TimeSpan.FromDays(2));
+        period.State = VppPeriodState.Pricing;
+        period.LastTransitionUserId = SeedUserId;
+        period.LastTransitionAtUtc = SeedTimestamp;
+        period.LastTransitionReason = "QA settlement fixture ready for pricing";
+        period.Description = "QA-001 deterministic previous period for settlement mutation tests";
+        period.CreatedByUserId = SeedUserId;
+        period.CreatedAtUtc = SeedTimestamp;
+        period.UpdatedByUserId = SeedUserId;
+        period.UpdatedAtUtc = SeedTimestamp;
+        period.IsDeleted = false;
+
+        await context.SaveChangesAsync(cancellationToken);
+        return period;
+    }
+
     private static async Task EnsureScopeRequestsAsync(
         VPPMigrationDbContext context,
         QaTestAccounts accounts,
@@ -557,6 +608,87 @@ internal static class QaFixtureSeeder
             detail.UpdatedAtUtc = requestTimestamp;
             detail.IsDeleted = false;
         }
+    }
+
+    private static async Task EnsureSettlementRequestAsync(
+        VPPMigrationDbContext context,
+        QaTestAccount owner,
+        VppPeriod period,
+        CancellationToken cancellationToken)
+    {
+        // Kỳ trước cần một đơn hợp lệ để E2E kiểm chứng chốt kỳ và four-eyes trên dữ liệu cô lập.
+        var product = await context.VppItems
+            .Where(item => !item.IsDeleted)
+            .OrderBy(item => item.Id)
+            .Select(item => new { item.Id })
+            .FirstAsync(cancellationToken);
+        var price = await context.SupplierProductMappings
+            .Where(mapping => mapping.VppItemId == product.Id && mapping.IsDefault && !mapping.IsDeleted)
+            .Select(mapping => (long?)mapping.Price)
+            .FirstOrDefaultAsync(cancellationToken) ?? 25_000L;
+        var requestTimestamp = period.StartAtUtc.AddHours(1);
+
+        var header = await context.Requests.SingleOrDefaultAsync(
+            request => request.Id == QaTestData.SettlementRequestId,
+            cancellationToken);
+        if (header is null)
+        {
+            header = new VppRequest { Id = QaTestData.SettlementRequestId };
+            context.Requests.Add(header);
+        }
+
+        header.VppCode = $"QA-SETTLEMENT-{period.Year:D4}{period.Month:D2}";
+        header.Year = period.Year;
+        header.Month = period.Month;
+        header.PeriodId = period.Id;
+        header.RequestSeriesId = QaTestData.SettlementRequestId;
+        header.RevisionNumber = 1;
+        header.IsCurrentRevision = true;
+        header.SupersedesRequestId = null;
+        header.SupersededByRequestId = null;
+        header.BaseRequestId = null;
+        header.BaseRequestSeriesId = null;
+        header.SupplementSequence = null;
+        header.SupplementAttemptNumber = null;
+        header.SupplementReason = null;
+        header.Status = (int)VPPStatus.Submitted;
+        header.DepartmentCode = owner.DepartmentCode;
+        header.MemberCompanyCode = QaTestData.CompanyCode.ToString();
+        header.SubmittedDate = requestTimestamp;
+        header.IsAdditionalOrder = false;
+        header.CancelledById = null;
+        header.CancelledAt = null;
+        header.CancelReason = null;
+        header.IdempotencyKey = null;
+        header.CommandPayloadHash = null;
+        header.Description = "QA-001 deterministic settlement request";
+        header.CreatedByUserId = owner.UserId;
+        header.CreatedAtUtc = requestTimestamp;
+        header.UpdatedByUserId = owner.UserId;
+        header.UpdatedAtUtc = requestTimestamp;
+        header.IsDeleted = false;
+
+        var detail = await context.RequestDetails.SingleOrDefaultAsync(
+            requestDetail => requestDetail.Id == QaTestData.SettlementRequestDetailId,
+            cancellationToken);
+        if (detail is null)
+        {
+            detail = new VppRequestDetail { Id = QaTestData.SettlementRequestDetailId };
+            context.RequestDetails.Add(detail);
+        }
+
+        detail.VppId = product.Id;
+        detail.Qty = 4;
+        detail.CurrentSinglePrice = price;
+        detail.RequestId = header.Id;
+        detail.Description = "QA-001 deterministic settlement request line";
+        detail.CreatedByUserId = owner.UserId;
+        detail.CreatedAtUtc = requestTimestamp;
+        detail.UpdatedByUserId = owner.UserId;
+        detail.UpdatedAtUtc = requestTimestamp;
+        detail.IsDeleted = false;
+
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private sealed record RequestDefinition(

@@ -1,0 +1,355 @@
+namespace gtas_vpp_fe.Tests.Architecture;
+
+/// <summary>
+/// Bản đồ nghiệm thu test-only cho từng logical route. Không đưa trạng thái nghiệm thu vào runtime
+/// vì đây là bằng chứng QA thay đổi theo từng đợt kiểm tra, không phải metadata điều hướng của app.
+/// </summary>
+public enum RouteAcceptanceClassification
+{
+    Tested,
+    Redirect,
+    DynamicSample,
+    JustifiedEquivalent
+}
+
+public sealed record RouteAcceptanceEntry(
+    string RouteKey,
+    string Path,
+    RouteAcceptanceClassification Classification,
+    string Evidence,
+    string EvidencePath,
+    string TestHandle,
+    string? RepresentativeRouteKey = null);
+
+public static class RouteAcceptanceManifest
+{
+    public static IReadOnlyList<RouteAcceptanceEntry> Entries { get; } =
+    [
+        // Nhóm route đã xác thực và các biến thể dashboard.
+        new(
+            "account.change-password",
+            "/Account/ChangePassword",
+            RouteAcceptanceClassification.Tested,
+            "Authenticated account shell renders the change-password route in the 28-screen matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "account.change-password.required",
+            "/Account/ChangePassword?required=1",
+            RouteAcceptanceClassification.JustifiedEquivalent,
+            "The forced-change query keeps the same ChangePassword component and account shell.",
+            "tests/Frontend.UnitTests/Architecture/RouteCatalogConsistencyTests.cs",
+            "RouteCatalogConsistencyTests.NavigationMetadata_CoversEveryLogicalQueryVariant",
+            "account.change-password"),
+        new(
+            "dashboard.my-orders",
+            "/dashboard?tab=0",
+            RouteAcceptanceClassification.Tested,
+            "My Orders workspace is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.my-orders.current",
+            "/dashboard?tab=0&orderView=current",
+            RouteAcceptanceClassification.JustifiedEquivalent,
+            "The current-order query is a view variant of the tested My Orders workspace.",
+            "tests/Frontend.UiTests/Tests/Order/UiSelectorAndHistoryNavigationTests.cs",
+            "UiSelectorAndHistoryNavigationTests.Selectors_StayEqualAndHistoryActionDeepLinksToSelectedDetail",
+            "dashboard.my-orders"),
+        new(
+            "dashboard.my-orders.supplement",
+            "/dashboard?tab=0&orderView=supplement",
+            RouteAcceptanceClassification.JustifiedEquivalent,
+            "The supplement-order query uses the tested My Orders workspace and its dedicated lifecycle flow.",
+            "tests/Frontend.UiTests/Tests/Order/OrderManagementTests.cs",
+            "OrderManagementTests.Employees_CreateSupplements_ManagerApprovesAndRejects_WithAuditableEndStates",
+            "dashboard.my-orders"),
+        new(
+            "dashboard.my-orders.previous",
+            "/dashboard?tab=0&orderView=previous",
+            RouteAcceptanceClassification.JustifiedEquivalent,
+            "The previous-order query is a catalogued view variant of the tested My Orders workspace.",
+            "tests/Frontend.UnitTests/Architecture/RouteCatalogConsistencyTests.cs",
+            "RouteCatalogConsistencyTests.NavigationMetadata_CoversEveryLogicalQueryVariant",
+            "dashboard.my-orders"),
+        new(
+            "dashboard.history",
+            "/dashboard?tab=1",
+            RouteAcceptanceClassification.Tested,
+            "History workspace is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.catalog",
+            "/dashboard?tab=2",
+            RouteAcceptanceClassification.Tested,
+            "Product Catalog is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.management.department",
+            "/dashboard?tab=3&managementTab=department",
+            RouteAcceptanceClassification.Tested,
+            "Department Summary is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.management.all",
+            "/dashboard?tab=3&managementTab=all",
+            RouteAcceptanceClassification.Redirect,
+            "The legacy company-summary URL redirects to the unified period workspace.",
+            "tests/Frontend.UnitTests/Architecture/ShellNavigationCatalogTests.cs",
+            "ShellNavigationCatalogTests.DefaultsAndCompatibilityAliasesPreserveCurrentShellBehavior",
+            "dashboard.period-operations"),
+        new(
+            "dashboard.period-operations",
+            "/dashboard?tab=5",
+            RouteAcceptanceClassification.JustifiedEquivalent,
+            "The unified period workspace host is exercised through its canonical period-state variants.",
+            "tests/Frontend.UiTests/Tests/Ds3WorkflowTests.cs",
+            "Ds3WorkflowTests.PeriodSettlement_UsesItemAndDepartmentViewsWithInlineSupplierSelection",
+            "dashboard.period.review"),
+        new(
+            "dashboard.period.pending-approval",
+            "/dashboard?tab=5&periodTab=pending",
+            RouteAcceptanceClassification.Tested,
+            "Pending Approval is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.period.review",
+            "/dashboard?tab=5&periodTab=review",
+            RouteAcceptanceClassification.Tested,
+            "Period Review is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.period.demand",
+            "/dashboard?tab=5&periodTab=demand",
+            RouteAcceptanceClassification.Tested,
+            "Demand aggregation is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.period.supply",
+            "/dashboard?tab=5&periodTab=supply",
+            RouteAcceptanceClassification.Tested,
+            "Supply allocation is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.period.settle",
+            "/dashboard?tab=5&periodTab=settle",
+            RouteAcceptanceClassification.Tested,
+            "Settlement is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.order-create.new",
+            "/dashboard/order-create",
+            RouteAcceptanceClassification.Tested,
+            "The regular order-create route is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "dashboard.order-create.additional",
+            "/dashboard/order-create?isAdditional=true",
+            RouteAcceptanceClassification.Tested,
+            "The additional-order query is exercised by the direct additional-order workflow test.",
+            "tests/Frontend.UiTests/Tests/F4OwnerReviewTests.cs",
+            "F4OwnerReviewTests.AdditionalOrder_DirectQuantityAndReviewRemainUsable"),
+        new(
+            "dashboard.order-create.copy-previous",
+            "/dashboard/order-create?copyFrom=previous",
+            RouteAcceptanceClassification.JustifiedEquivalent,
+            "Copy-previous is a typed order-create query variant that shares the tested wizard host.",
+            "tests/Frontend.UnitTests/Architecture/RouteCatalogConsistencyTests.cs",
+            "RouteCatalogConsistencyTests.NavigationMetadata_CoversEveryLogicalQueryVariant",
+            "dashboard.order-create.new"),
+        new(
+            "dashboard.order-create.edit",
+            "/dashboard/order-create?orderId={SAMPLE_ORDER_ID}",
+            RouteAcceptanceClassification.DynamicSample,
+            "A disposable editable order id is supplied by the isolated lifecycle test.",
+            "tests/Frontend.UiTests/Tests/Order/OrderCreateTests.cs",
+            "OrderCreateTests.Employee_CanEditCancelAndRestoreRegularLifecycle",
+            "dashboard.order-create.new"),
+        new(
+            "dashboard.order-create.recreate",
+            "/dashboard/order-create?orderId={SAMPLE_CANCELLED_ORDER_ID}&mode=recreate",
+            RouteAcceptanceClassification.DynamicSample,
+            "A disposable cancelled-order id is supplied by the isolated recreate lifecycle test.",
+            "tests/Frontend.UiTests/Tests/Order/OrderCreateTests.cs",
+            "OrderCreateTests.Employee_CanRecreateCancelledRegularFromBlankWizard",
+            "dashboard.order-create.new"),
+
+        // Nhóm catalog, pricing và phân quyền.
+        new(
+            "library.classes",
+            "/library?tab=0",
+            RouteAcceptanceClassification.Tested,
+            "Class definitions are covered by the runtime matrix and the bounded master-detail test.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "library.categories",
+            "/library?tab=1",
+            RouteAcceptanceClassification.Tested,
+            "Categories are covered by the runtime matrix and the bounded data-surface test.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "library.items",
+            "/library?tab=2",
+            RouteAcceptanceClassification.Tested,
+            "Items are covered by the runtime matrix and the item editor/grid tests.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "library.suppliers",
+            "/library?tab=3",
+            RouteAcceptanceClassification.Tested,
+            "Suppliers are covered by the runtime matrix and the supplier editor test.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "library.departments",
+            "/library?tab=5",
+            RouteAcceptanceClassification.Tested,
+            "Departments are covered by the runtime matrix and the department editor test.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "library.pricing.price-lists",
+            "/library?tab=6&pricingTab=price-lists",
+            RouteAcceptanceClassification.Tested,
+            "Price lists are covered by the runtime matrix and pricing motif tests.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "library.pricing.prices",
+            "/library?tab=6&pricingTab=prices",
+            RouteAcceptanceClassification.Tested,
+            "Prices are covered by the runtime matrix and pricing motif tests.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "library.pricing.prices.selected-list",
+            "/library?tab=6&pricingTab=prices&priceListId={SAMPLE_PRICE_LIST_ID}",
+            RouteAcceptanceClassification.DynamicSample,
+            "A disposable visible price-list id is required for the selected-list context.",
+            "tests/Frontend.UnitTests/Architecture/RouteCatalogConsistencyTests.cs",
+            "RouteCatalogConsistencyTests.NavigationMetadata_CoversEveryLogicalQueryVariant",
+            "library.pricing.prices"),
+        new(
+            "permission.user",
+            "/permission?tab=0",
+            RouteAcceptanceClassification.Tested,
+            "User administration is covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "permission.component",
+            "/permission?tab=1",
+            RouteAcceptanceClassification.Tested,
+            "Permission groups are covered by the authenticated 28-screen runtime matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "permission.security-audit",
+            "/permission?tab=2",
+            RouteAcceptanceClassification.Tested,
+            "Security audit has dedicated read-only, filter and responsive route tests.",
+            "tests/Frontend.UiTests/Tests/AdminSecurityAuditTests.cs",
+            "AdminSecurityAuditTests.SecurityAudit_IsReadOnlyFilterableAndResponsive"),
+        new(
+            "report",
+            "/report",
+            RouteAcceptanceClassification.Tested,
+            "Reports are covered by the authenticated 28-screen matrix and export tests.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+
+        // Nhóm route anonymous và route xử lý chuyển tiếp.
+        new(
+            "home",
+            "/",
+            RouteAcceptanceClassification.Redirect,
+            "The home route resolves the first accessible destination before rendering the authenticated shell.",
+            "src/Frontend/Blazor/Components/Pages/Home.razor",
+            "RouteCatalogConsistencyTests.Catalog_CoversEveryRazorPageDirective"),
+        new(
+            "login",
+            "/Account/Login",
+            RouteAcceptanceClassification.Tested,
+            "Login is covered by the anonymous account matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "account.forgot-password",
+            "/Account/ForgotPassword",
+            RouteAcceptanceClassification.Tested,
+            "Forgot-password is covered by the anonymous account matrix.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "account.reset-password",
+            "/Account/ResetPassword",
+            RouteAcceptanceClassification.Tested,
+            "Reset-password invalid-link and shell states are covered by account smoke tests.",
+            "tests/Frontend.UiTests/Tests/AccountShellSmokeTests.cs",
+            "AccountShellSmokeTests.AnonymousAccountRoutes_ShareTheResponsiveAccountShell"),
+        new(
+            "account.register",
+            "/Account/Register",
+            RouteAcceptanceClassification.Tested,
+            "Registration is covered by the anonymous account matrix and lifecycle test.",
+            "tests/Frontend.UiTests/Tests/AtlasFullRuntimeTests.cs",
+            "AtlasFullRuntimeTests.All28AtlasScreens_RenderWithoutPageOverflowOrBrowserFailures"),
+        new(
+            "account.confirm-email",
+            "/Account/ConfirmEmail?userId={SAMPLE_USER_ID}&token={SAMPLE_TOKEN}",
+            RouteAcceptanceClassification.DynamicSample,
+            "A disposable confirmation token is required for the process route; the account shell is smoke-tested.",
+            "tests/Frontend.UiTests/Tests/AccountShellSmokeTests.cs",
+            "AccountShellSmokeTests.AnonymousAccountRoutes_ShareTheResponsiveAccountShell"),
+        new(
+            "account.resend-confirmation",
+            "/Account/ResendConfirmation",
+            RouteAcceptanceClassification.Tested,
+            "Resend-confirmation is covered by the anonymous account shell matrix.",
+            "tests/Frontend.UiTests/Tests/AccountShellSmokeTests.cs",
+            "AccountShellSmokeTests.AnonymousAccountRoutes_ShareTheResponsiveAccountShell"),
+        new(
+            "login-process",
+            "/loginprocess",
+            RouteAcceptanceClassification.Redirect,
+            "The login process route owns the branded progress shell and returns to the login flow.",
+            "tests/Frontend.UiTests/Tests/AccountShellSmokeTests.cs",
+            "AccountShellSmokeTests.AnonymousAccountRoutes_ShareTheResponsiveAccountShell",
+            "login"),
+        new(
+            "logout-process",
+            "/logoutprocess",
+            RouteAcceptanceClassification.Redirect,
+            "Logout completes the session clear and redirects to login without a blank page.",
+            "tests/Frontend.UiTests/Tests/LogoutFlowTests.cs",
+            "LogoutFlowTests.LogoutProcess_ReturnsToLoginWithoutLeavingABlankPage",
+            "login"),
+        new(
+            "not-found",
+            "/not-found",
+            RouteAcceptanceClassification.Tested,
+            "The not-found state and return-to-dashboard action have a dedicated runtime test.",
+            "tests/Frontend.UiTests/Tests/GlobalRenderFlowTests.cs",
+            "GlobalRenderFlowTests.NotFoundAction_IsInteractiveAndReturnsAuthenticatedUserToDashboard"),
+        new(
+            "error",
+            "/Error",
+            RouteAcceptanceClassification.JustifiedEquivalent,
+            "Error and not-found are anonymous system-state routes with the same shell/content-state contract; the route directive remains catalogued.",
+            "src/Frontend/Blazor/Components/Pages/Error.razor",
+            "RouteCatalogConsistencyTests.Catalog_CoversEveryRazorPageDirective",
+            "not-found")
+    ];
+}

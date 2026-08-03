@@ -1649,6 +1649,8 @@ approval riêng.
 
 Correction runtime ngày 2026-07-31 cho Quản lý người dùng: account `PendingApproval` chỉ hiển thị action `Duyệt` có nhãn; nút bật sau khi chọn đủ nhóm quyền và phòng ban, còn access switch chỉ xuất hiện sau kích hoạt. Mọi trạng thái khóa phải có lý do đọc được; guard chống tự sửa membership vẫn giữ nguyên ở UI và backend.
 
+Mutation evidence ngày 2026-08-04 cho Chốt kỳ: LocalDB cô lập tạo kỳ trước `Pricing` có đơn hợp lệ; `Procurement` chốt revision 1, cùng user bị four-eyes từ chối mà không sinh revision, sau đó `Manager` tạo correction revision 2. API history xác nhận revision cũ bất biến và chỉ revision mới là current. Test reload trước correction để không tự quyết định UX sau mutation; notice + `Xem trước lại` hay auto re-preview vẫn chờ owner chốt và không phải owner visual acceptance.
+
 Evidence đóng record: solution Release build `0 warning`; frontend unit `202/202`; settlement confirmation `4/4`; route-real isolated History + Department Summary `2/2`, User Admin `1/1`, Chốt kỳ `1/1`, My Orders shell/period summary `1/1`. Screenshot đã được kiểm tra bằng mắt tại `390×844`, `1366×768`, `1920×1080`; artifact thô nằm trong thư mục temp ignored, không commit.
 
 ### 14.3 Owner review record — Duyệt đơn bổ sung — 2026-08-01

@@ -55,6 +55,7 @@ public abstract class TestBase : IAsyncLifetime
                 // test still gets its own fresh LocalDB + app.
                 _ownedStack = await IsolatedE2EStack.StartAsync(cancellationToken);
                 BaseUrl = _ownedStack.BaseUrl;
+                BackendBaseUrl = _ownedStack.BackendBaseUrl;
                 _accounts = _ownedStack.Fixture.Accounts;
             }
             else if (requiresAuthenticatedFixture

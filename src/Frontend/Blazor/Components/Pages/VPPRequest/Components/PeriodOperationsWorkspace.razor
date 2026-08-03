@@ -18,14 +18,14 @@ else
                            PreviousPeriodYear="@previousPeriodYear"
                            PreviousPeriodMonth="@previousPeriodMonth"
                            PeriodChanged="@ChangePeriodAsync"
-                           OnSettled="@Settled" />
+                           SettlementChanged="@SettlementChanged" />
 }
 
 @code {
     [Parameter] public IEnumerable<Claim>? Claims { get; set; }
     [Parameter] public string ActiveStep { get; set; } = "review";
     [Parameter] public EventCallback<string> NavigateRequested { get; set; }
-    [Parameter] public EventCallback Settled { get; set; }
+    [Parameter] public EventCallback SettlementChanged { get; set; }
 
     private bool isLoadingPeriod = true;
     private int currentPeriodYear;

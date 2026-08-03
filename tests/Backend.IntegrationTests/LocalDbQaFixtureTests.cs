@@ -4,6 +4,8 @@ using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
+using BackendPeriodState = gtas_vpp_be.Model.VPP.VppPeriodState;
+using SharedVppStatus = gtas_vpp_shared.Enums.VPPStatus;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -206,6 +208,8 @@ public sealed class LocalDbQaFixtureTests
             await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[PermissionGroups] WHERE [Id] IN ({canonicalGroupIds}) AND [ParentGroupId] IS NULL AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[UserGroupMemberships] WHERE [AccountId] BETWEEN 1000001001 AND 1000001006 AND [UserId] = [AccountId] AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Periods] WHERE [Id] = '20000000-0000-0000-0000-000000000001' AND [MemberCompanyCode] = N'77500' AND [State] = 0 AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[Periods] WHERE [Id] = '{QaTestData.PreviousSettlementPeriodId:D}' AND [MemberCompanyCode] = N'77500' AND [State] = {(int)BackendPeriodState.Pricing} AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] = '{QaTestData.SettlementRequestId:D}' AND [PeriodId] = '{QaTestData.PreviousSettlementPeriodId:D}' AND [Status] = {(int)SharedVppStatus.Submitted} AND [IsCurrentRevision] = 1 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003');", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003') AND [PeriodId] IS NOT NULL AND [RequestSeriesId] = [Id] AND [RevisionNumber] = 1 AND [IsCurrentRevision] = 1;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [CreatedByUserId] = 1000001001 AND [IsDeleted] = 0;", cancellationToken),
@@ -221,11 +225,13 @@ public sealed class LocalDbQaFixtureTests
         Assert.Equal(CanonicalRbac.Personas.Count, snapshot.RequiredRoles);
         Assert.Equal(6, snapshot.UserRoleMappings);
         Assert.Equal(1, snapshot.CurrentPeriods);
+        Assert.Equal(1, snapshot.SettlementPeriods);
+        Assert.Equal(1, snapshot.SettlementRequests);
         Assert.Equal(3, snapshot.ScopeRequests);
         Assert.Equal(3, snapshot.PeriodAwareCurrentRevisions);
         Assert.Equal(1, snapshot.OwnScopeRows);
-        Assert.Equal(2, snapshot.DepartmentScopeRows);
-        Assert.Equal(3, snapshot.CompanyScopeRows);
+        Assert.Equal(3, snapshot.DepartmentScopeRows);
+        Assert.Equal(4, snapshot.CompanyScopeRows);
     }
 
     private static async Task<int> ScalarIntAsync(
@@ -275,6 +281,8 @@ public sealed class LocalDbQaFixtureTests
         int RequiredRoles,
         int UserRoleMappings,
         int CurrentPeriods,
+        int SettlementPeriods,
+        int SettlementRequests,
         int ScopeRequests,
         int PeriodAwareCurrentRevisions,
         int OwnScopeRows,

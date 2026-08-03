@@ -182,7 +182,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             NavigationManager.NavigateTo($"/dashboard?tab=5&periodTab={periodTab}");
         }
 
-        private async Task OnSettledRefresh()
+        private async Task RefreshAfterSettlementChangeAsync()
         {
             if (CanShowApprovals)
             {

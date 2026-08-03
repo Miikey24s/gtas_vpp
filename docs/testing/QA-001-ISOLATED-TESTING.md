@@ -149,6 +149,12 @@ Email dung domain `example.invalid`; password khong co gia tri co dinh va khong
 duoc ghi vao tai lieu/log. Ba request co GUID co dinh cung tao lan luot own,
 department va company scope de integration test co the doi chieu chinh xac.
 
+Fixture settlement toi thieu cung duoc tao lai o moi run: ky lien truoc cua ky hien tai o trang thai
+`Pricing`, kem mot request regular `Submitted` va mot dong hang co gia phu boi bang gia mac dinh. Du lieu
+nay chi phuc vu kiem chung route chot ky/correction; test phai doc revision qua API va khong duoc suy ra
+thanh cong chi tu badge UI. ID on dinh nam trong `QaTestData`, con database/run van moi va disposable cho
+tung fixture.
+
 ## CI va gioi han alternative
 
 Workflow Linux build solution va chay 14 safety contracts; 3 LocalDB integration

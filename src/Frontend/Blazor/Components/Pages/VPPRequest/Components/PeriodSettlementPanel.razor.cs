@@ -36,7 +36,7 @@ public partial class PeriodSettlementPanel : IDisposable
     [Parameter] public int PreviousPeriodYear { get; set; }
     [Parameter] public int PreviousPeriodMonth { get; set; }
     [Parameter] public EventCallback<PeriodTargetSelection> PeriodChanged { get; set; }
-    [Parameter] public EventCallback OnSettled { get; set; }
+    [Parameter] public EventCallback SettlementChanged { get; set; }
 
     private CancellationTokenSource? searchDebounce;
     private List<VppRequestResDTO> periodOrdersSnapshot = [];
@@ -546,7 +546,7 @@ public partial class PeriodSettlementPanel : IDisposable
             await LoadStatusAsync();
             State.RequireFreshPreviewForNextSubmission();
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
-            await OnSettled.InvokeAsync();
+            await SettlementChanged.InvokeAsync();
         }
         catch (Exception ex)
         {
@@ -611,7 +611,7 @@ public partial class PeriodSettlementPanel : IDisposable
             await LoadStatusAsync();
             State.RequireFreshPreviewForNextSubmission();
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
-            await OnSettled.InvokeAsync();
+            await SettlementChanged.InvokeAsync();
         }
         catch (Exception ex)
         {

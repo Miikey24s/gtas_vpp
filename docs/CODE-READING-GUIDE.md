@@ -10,8 +10,14 @@ tắc nghiệp vụ nào.
 - Nguồn nghiệp vụ: `LVTN/NguyenAnNam_DH52201078.docx`
 
 > Trạng thái: đã đồng bộ với implementation ATLAS-001 và các checkpoint frontend refactor đến
-> các slice FR8A/FR8B ngày 2026-08-03. Các mục không có số hình vẫn là route/state thật nhưng chưa được luận văn
-> gán hình riêng.
+> FR8A/FR8B cùng settlement mutation E2E ngày 2026-08-04. FR8C-A đã khóa ledger máy đọc được đủ 44 route;
+> phần hòa giải các bảng tài liệu lịch sử vẫn còn;
+> các mục không có số hình là route/state thật nhưng chưa được luận văn gán hình riêng.
+
+Ledger máy đọc được cho toàn bộ 44 key nằm tại
+`tests/Frontend.UnitTests/Architecture/RouteAcceptanceManifest.cs`; test khóa parity với
+`Helpers/RouteCatalog.cs`. Classification trong manifest là bằng chứng kỹ thuật (`Tested`, `Redirect`,
+`DynamicSample`, `JustifiedEquivalent`), không thay cho owner visual acceptance.
 
 ---
 
@@ -123,7 +129,7 @@ Luồng bốn bước: `Rà soát kỳ → Gom nhu cầu → Chọn nguồn cung
 | 3-35 | `period-review` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodOperationsWorkspace.razor`, `PeriodSettlementPanel.razor` | `GET all-orders`; `GET /api/PeriodSettlement/{y}/{m}`; `POST preview/confirm` | §2.3.1.5, §3.3.3.3 |
 | — | `period-demand` | `/dashboard?tab=5&periodTab=demand` | Legacy URL chuyển vào `PeriodSettlementPanel.razor`; dữ liệu gom được thể hiện qua selector `Theo đơn / Theo phòng ban` | `GET all-orders`; `GET period-demand` | §3.3.3.4 |
 | 3-36 | `supply-allocation` | `/dashboard?tab=5&periodTab=supply` | Legacy URL chuyển vào supplier decision/dialog của `PeriodSettlementPanel.razor` | `POST /api/PeriodSettlement/preview` | §2.3.1.8, §3.3.3.4 |
-| 3-37 | `settlement-flow` | `/dashboard?tab=5&periodTab=review` | `Components/PeriodSettlementPanel.razor` | `POST preview`, `confirm`, `{id}/correct`; `GET current/{y}/{m}`, `revisions/{y}/{m}` | §2.3.1.8, §2.3.1.9, §3.3.3.5 |
+| 3-37 | `settlement-flow` | `/dashboard?tab=5&periodTab=settle` | `Components/PeriodSettlementPanel.razor` | `POST preview`, `confirm`, `{id}/correct`; `GET current/{y}/{m}`, `revisions/{y}/{m}` | §2.3.1.8, §2.3.1.9, §3.3.3.5 |
 
 ### M5A + M5B — Thư viện dữ liệu
 
@@ -184,17 +190,18 @@ không cố render SVG suy biến.
 |---|---|---|---|---|---|
 | 3-43 | `system-states` | mọi route | `DesignSystem/Primitives/VppContentState.razor`, `Layout/NotificationCenter.razor`, `Layout/ReconnectModal.razor`, `DesignSystem/Primitives/SkeletonGrid.razor` | `NotificationsController` | §3.3.5.2 |
 
-`Helpers/RouteCatalog.cs` là danh sách route/state dùng cho shell và test contract; bốn state vận hành kỳ
-`pending/review/demand/supply` cùng các route account anonymous đều được khai báo rõ. Với DataGrid đã
+`Helpers/RouteCatalog.cs` là danh sách route/state dùng cho shell và test contract; năm state vận hành kỳ
+`pending/review/demand/supply/settle` cùng các route account anonymous đều được khai báo rõ. Với DataGrid đã
 audit, component gắn `data-vpp-grid-region="true"`; `wwwroot/js/vpp-interactions.js` chuẩn hóa role của
 wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 sinh ra.
 
-**Evidence hiện tại:** Release build sạch; frontend unit/architecture `366/366`; 28 screen × 4 viewport
+**Evidence hiện tại:** Release build sạch; frontend unit/architecture `372/372`; 28 screen × 4 viewport
 runtime pass, representative Dark/Print/axe pass, Atlas export/account/user-menu smoke và real-file
 download gates pass. Backend gate và owner visual approval vẫn là checkpoint riêng; ảnh runtime chỉ khóa
 vào thesis/slide sau khi owner chấp thuận UI cuối.
 E2E tải thật report CSV/XLSX và order PDF/XLSX; mutation cô lập pass permission toggle, vòng đời đơn
-thường và duyệt/từ chối đơn bổ sung.
+thường, duyệt/từ chối đơn bổ sung và chốt kỳ hai người dùng. Settlement E2E chứng minh revision 1 được giữ
+bất biến, cùng người bị four-eyes từ chối và người thứ hai tạo correction revision 2.
 
 ---
 

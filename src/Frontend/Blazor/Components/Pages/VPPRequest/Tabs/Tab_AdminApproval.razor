@@ -17,7 +17,7 @@
         <PeriodOperationsWorkspace Claims="@claims"
                                    ActiveStep="@ActivePeriodTab"
                                    NavigateRequested="@NavigateToPeriodTab"
-                                   Settled="@OnSettledRefresh" />
+                                   SettlementChanged="@RefreshAfterSettlementChangeAsync" />
     }
     else if (ShowApprovalsContent)
     {
