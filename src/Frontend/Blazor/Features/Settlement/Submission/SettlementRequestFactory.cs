@@ -12,14 +12,14 @@ public static class SettlementRequestFactory
         Guid? priceListId,
         DateTime priceAsOfUtc,
         IEnumerable<SettlementExceptionReqDTO> exceptions) => new()
-    {
-        Year = year,
-        Month = month,
-        PrimarySupplierId = primarySupplierId,
-        PriceListId = priceListId,
-        PriceAsOfUtc = priceAsOfUtc,
-        Exceptions = CloneExceptions(exceptions)
-    };
+        {
+            Year = year,
+            Month = month,
+            PrimarySupplierId = primarySupplierId,
+            PriceListId = priceListId,
+            PriceAsOfUtc = priceAsOfUtc,
+            Exceptions = CloneExceptions(exceptions)
+        };
 
     public static SettlementConfirmReqDTO BuildConfirm(
         int year,
@@ -27,16 +27,16 @@ public static class SettlementRequestFactory
         SettlementPreviewResDTO preview,
         string idempotencyKey,
         IEnumerable<SettlementExceptionReqDTO> exceptions) => new()
-    {
-        Year = year,
-        Month = month,
-        PriceAsOfUtc = preview.PriceAsOfUtc,
-        InputHash = preview.InputHash,
-        PrimarySupplierId = preview.PrimarySupplierId!.Value,
-        PriceListId = preview.PrimaryPriceListId!.Value,
-        IdempotencyKey = idempotencyKey,
-        Exceptions = CloneExceptions(exceptions)
-    };
+        {
+            Year = year,
+            Month = month,
+            PriceAsOfUtc = preview.PriceAsOfUtc,
+            InputHash = preview.InputHash,
+            PrimarySupplierId = preview.PrimarySupplierId!.Value,
+            PriceListId = preview.PrimaryPriceListId!.Value,
+            IdempotencyKey = idempotencyKey,
+            Exceptions = CloneExceptions(exceptions)
+        };
 
     public static SettlementCorrectionReqDTO BuildCorrection(
         int year,

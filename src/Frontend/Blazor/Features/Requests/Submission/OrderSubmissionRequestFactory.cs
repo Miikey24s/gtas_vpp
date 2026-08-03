@@ -22,44 +22,44 @@ public static class OrderSubmissionRequestFactory
         bool isAdditionalOrder,
         bool includeAdditionalContext,
         Guid? baseRequestId) => new()
-    {
-        Year = year,
-        Month = month,
-        Description = submission.Description,
-        IsAdditionalOrder = isAdditionalOrder,
-        BaseRequestId = includeAdditionalContext ? baseRequestId : null,
-        SupplementReason = includeAdditionalContext ? submission.SupplementReason?.Trim() : null,
-        IdempotencyKey = submission.IdempotencyKey,
-        Items = BuildItems(submission.Items)
-    };
+        {
+            Year = year,
+            Month = month,
+            Description = submission.Description,
+            IsAdditionalOrder = isAdditionalOrder,
+            BaseRequestId = includeAdditionalContext ? baseRequestId : null,
+            SupplementReason = includeAdditionalContext ? submission.SupplementReason?.Trim() : null,
+            IdempotencyKey = submission.IdempotencyKey,
+            Items = BuildItems(submission.Items)
+        };
 
     public static VppRequestUpdateReqDTO BuildUpdateRequest(
         OrderSubmissionSnapshot submission,
         Guid orderId,
         bool isAdditional,
         byte[]? rowVersion) => new()
-    {
-        Id = orderId,
-        Description = submission.Description,
-        IsAdditionalOrder = isAdditional,
-        // Giữ payload update hiện hành; backend tiếp tục là nơi kiểm tra nghiệp vụ của lý do bổ sung.
-        SupplementReason = submission.SupplementReason,
-        RowVersion = rowVersion,
-        IdempotencyKey = submission.IdempotencyKey,
-        Items = BuildItems(submission.Items)
-    };
+        {
+            Id = orderId,
+            Description = submission.Description,
+            IsAdditionalOrder = isAdditional,
+            // Giữ payload update hiện hành; backend tiếp tục là nơi kiểm tra nghiệp vụ của lý do bổ sung.
+            SupplementReason = submission.SupplementReason,
+            RowVersion = rowVersion,
+            IdempotencyKey = submission.IdempotencyKey,
+            Items = BuildItems(submission.Items)
+        };
 
     public static VppRequestRecreateReqDTO BuildRecreateRequest(
         OrderSubmissionSnapshot submission,
         bool isAdditional,
         byte[]? rowVersion) => new()
-    {
-        Description = submission.Description,
-        SupplementReason = isAdditional ? submission.SupplementReason?.Trim() : null,
-        RowVersion = rowVersion,
-        IdempotencyKey = submission.IdempotencyKey,
-        Items = BuildItems(submission.Items)
-    };
+        {
+            Description = submission.Description,
+            SupplementReason = isAdditional ? submission.SupplementReason?.Trim() : null,
+            RowVersion = rowVersion,
+            IdempotencyKey = submission.IdempotencyKey,
+            Items = BuildItems(submission.Items)
+        };
 
     private static List<VppRequestDetailItemReqDTO> BuildItems(
         IEnumerable<OrderSubmissionItem> items) =>

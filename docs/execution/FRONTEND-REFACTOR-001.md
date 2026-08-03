@@ -919,8 +919,10 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   HTTP timeout/handler, cookie, Data Protection, localization, middleware order và endpoint map đều được giữ
   tường minh, không dùng assembly scanning. Focused composition/config `46/46`, full frontend `362/362`,
   solution Release build sạch, exact-file format gate pass và isolated account/logout/not-found pass `3/3`.
-  Repository verify qua agent setup `63/63` rồi dừng ở format debt của ba file sạch ngoài slice
-  (`SettlementRequestFactory`, `AtlasFullRuntimeTests`, `SettlementWorkspaceProjectionTests`); xử lý riêng.
+- FR8A formatting hardening: chuẩn hóa initializer indentation ở `OrderSubmissionRequestFactory`,
+  `SettlementRequestFactory` và `SettlementWorkspaceProjectionTests`; behavior-focused factory/projection tests
+  pass `11/11`. Sau checkpoint này, full `verify -Scope frontend` PASS: agent setup `63/63`, Release build sạch,
+  frontend unit `362/362`, UI smoke `2/2`, vulnerability audit và redacted Gitleaks scan đều pass.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +

@@ -118,15 +118,15 @@ public sealed class SettlementWorkspaceProjectionTests
         int totalQuantity,
         long totalAmount,
         string requestCode) => new()
-    {
-        DepartmentCode = departmentCode,
-        Status = status,
-        IsAdditionalOrder = isAdditional,
-        TotalLines = totalLines,
-        TotalQty = totalQuantity,
-        TotalAmount = totalAmount,
-        VppCode = requestCode,
-        RequesterName = $"Người đặt {departmentCode}",
-        Description = $"Đơn {departmentCode}"
-    };
+        {
+            DepartmentCode = departmentCode,
+            Status = status,
+            IsAdditionalOrder = isAdditional,
+            TotalLines = totalLines,
+            TotalQty = totalQuantity,
+            TotalAmount = totalAmount,
+            VppCode = requestCode,
+            RequesterName = $"Người đặt {departmentCode}",
+            Description = $"Đơn {departmentCode}"
+        };
 }
