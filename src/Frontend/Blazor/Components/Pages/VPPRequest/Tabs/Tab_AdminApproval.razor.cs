@@ -3,8 +3,8 @@ using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_fe.Features.Requests.Api;
+using gtas_vpp_fe.Features.Requests.Approval;
 using gtas_vpp_shared.Constants;
-using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
@@ -27,7 +27,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] private RequestsCommandClient Commands { get; set; } = default!;
 
         private readonly HashSet<Guid> _processingOrderIds = new();
-        private readonly Dictionary<(Guid OrderId, string Action), string> _decisionIdempotencyKeys = new();
+        private readonly SupplementDecisionRequestFactory _decisionRequests = new();
         private string ActivePeriodTab { get; set; } = PeriodReviewTab;
         private bool _pendingOrdersLoaded;
         private bool _pendingDepartmentOptionsLoaded;
@@ -204,11 +204,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             StateHasChanged();
             try
             {
-                var request = new ApproveOrderReqDTO
-                {
-                    RowVersion = order.RowVersion,
-                    IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "approve")
-                };
+                var request = _decisionRequests.BuildApprove(order.Id, order.RowVersion);
                 await Commands.ApproveAdditionalAsync(order.Id, request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
                 await ReloadPendingWorkspaceAsync();
@@ -238,12 +234,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             StateHasChanged();
             try
             {
-                var request = new RejectOrderReqDTO
-                {
-                    Reason = rejectionReason,
-                    RowVersion = order.RowVersion,
-                    IdempotencyKey = GetDecisionIdempotencyKey(order.Id, "reject")
-                };
+                var request = _decisionRequests.BuildReject(
+                    order.Id,
+                    order.RowVersion,
+                    rejectionReason);
                 await Commands.RejectAdditionalAsync(order.Id, request);
                 Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
                 await ReloadPendingWorkspaceAsync();
@@ -287,31 +281,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             await SynchronizePendingSelectionAsync();
         }
 
-        private string? BuildPendingFilter()
-        {
-            var filters = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(PendingSearchText))
-            {
-                var escapedSearch = EscapeFilterValue(PendingSearchText);
-                filters.Add($"((VppCode != null && VppCode.ToLower().Contains(\"{escapedSearch}\")) || "
-                    + $"(RequesterName != null && RequesterName.ToLower().Contains(\"{escapedSearch}\")) || "
-                    + $"(DepartmentCode != null && DepartmentCode.ToLower().Contains(\"{escapedSearch}\")) || "
-                    + $"(Description != null && Description.ToLower().Contains(\"{escapedSearch}\")))");
-            }
-
-            if (!string.IsNullOrWhiteSpace(PendingDepartmentCode))
-            {
-                var escapedDepartment = EscapeFilterValue(PendingDepartmentCode);
-                filters.Add($"(DepartmentCode != null && DepartmentCode.ToLower() == \"{escapedDepartment}\")");
-            }
-
-            return filters.Count == 0 ? null : string.Join(" && ", filters);
-        }
-
-        private static string EscapeFilterValue(string value) => value.Trim().ToLowerInvariant()
-                .Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("\"", "\\\"", StringComparison.Ordinal);
+        private string? BuildPendingFilter() => PendingApprovalFilterBuilder.Build(
+            PendingSearchText,
+            PendingDepartmentCode);
 
         private async Task OnPendingLoadDataAsync(LoadDataArgs args)
         {
@@ -382,17 +354,5 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private bool IsProcessing(Guid orderId) => _processingOrderIds.Contains(orderId);
 
-        private string GetDecisionIdempotencyKey(Guid orderId, string action)
-        {
-            var key = (orderId, action);
-            if (_decisionIdempotencyKeys.TryGetValue(key, out var existing))
-            {
-                return existing;
-            }
-
-            var created = Guid.NewGuid().ToString("N");
-            _decisionIdempotencyKeys[key] = created;
-            return created;
-        }
     }
 }

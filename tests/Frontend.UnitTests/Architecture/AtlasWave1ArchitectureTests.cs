@@ -192,6 +192,8 @@ public sealed class AtlasWave1ArchitectureTests
         var host = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_AdminApproval.razor");
         var hostCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_AdminApproval.razor.cs");
         var approvals = ReadFrontendSource("Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor");
+        var filterBuilder = ReadFrontendSource("Features/Requests/Approval/PendingApprovalFilterBuilder.cs");
+        var decisionFactory = ReadFrontendSource("Features/Requests/Approval/SupplementDecisionRequestFactory.cs");
 
         Assert.Contains("<PeriodOperationsWorkspace", host, StringComparison.Ordinal);
         Assert.Contains("<PendingApprovalWorkspace", host, StringComparison.Ordinal);
@@ -204,11 +206,26 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("ShortCode", approvals, StringComparison.Ordinal);
         Assert.Contains("SynchronizePendingSelectionAsync", hostCode, StringComparison.Ordinal);
         Assert.Contains("RequestsCommandClient", hostCode, StringComparison.Ordinal);
+        Assert.Contains("PendingApprovalFilterBuilder.Build", hostCode, StringComparison.Ordinal);
+        Assert.Contains("SupplementDecisionRequestFactory", hostCode, StringComparison.Ordinal);
+        Assert.Contains("_decisionRequests.BuildApprove", hostCode, StringComparison.Ordinal);
+        Assert.Contains("_decisionRequests.BuildReject", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("new ApproveOrderReqDTO", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("new RejectOrderReqDTO", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("EscapeFilterValue", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("_decisionIdempotencyKeys", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppCode.ToLower().Contains", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("DepartmentCode.ToLower() ==", hostCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Guid.NewGuid().ToString(\"N\")", hostCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", hostCode, StringComparison.Ordinal);
         Assert.DoesNotContain("PostFromApi", hostCode, StringComparison.Ordinal);
         Assert.Contains("FillAvailableSpace=\"true\"", approvals, StringComparison.Ordinal);
         Assert.DoesNotContain("RadzenDataGrid", host, StringComparison.Ordinal);
         Assert.True(host.Split('\n').Length < 100);
+        Assert.Contains("VppCode.ToLower().Contains", filterBuilder, StringComparison.Ordinal);
+        Assert.Contains("DepartmentCode.ToLower() ==", filterBuilder, StringComparison.Ordinal);
+        Assert.Contains("ApproveOrderReqDTO", decisionFactory, StringComparison.Ordinal);
+        Assert.Contains("RejectOrderReqDTO", decisionFactory, StringComparison.Ordinal);
     }
 
     [Fact]

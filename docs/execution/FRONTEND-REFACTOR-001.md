@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION/REQUEST FACTORY + ORDER EDITOR SESSION + SUBMISSION COORDINATOR COMPLETE`
+- Status: `IN PROGRESS — FR0/FR1/FR2/FR3/FR4/FR5/FR6 COMPLETE; FR7 TRANSPORT + ORDER DRAFT + SUBMISSION FACTORY + SETTLEMENT PROJECTION/REQUEST FACTORY + ORDER EDITOR SESSION + SUBMISSION COORDINATOR + PENDING APPROVAL HELPERS COMPLETE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `328/328`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft, editor session, submission mapping/dispatch và Settlement projection/request mapping đã tách khỏi page | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `334/334`; 83 UI test được phát hiện. Requests/Settlement có transport owner rõ; order draft/editor/submission, pending approval mapping và Settlement projection/request mapping đã tách khỏi page | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR7 transport, draft/editor/submission và Settlement projection/request factory đã hoàn tất. Tiếp theo tách pending-approval filter + decision request mapping thuần | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Các seam chính của FR7 đã tách. Tiếp theo audit đóng FR7: source scan phần orchestration còn lại, chạy gate tổng hợp và chỉ mở thêm slice khi còn hotspot có giá trị rõ | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -531,6 +531,7 @@ Tên bên dưới là responsibility guide, không phải yêu cầu tạo đủ
 - `OrderEditorSession`: selected items, step và validation UI state; route-derived mode vẫn thuộc page.
 - `OrderDraftStore`: local draft serialization/storage/recovery; page giữ timer, dirty flag và notification.
 - `OrderSubmissionCoordinator`: dispatch create/update/recreate và trả outcome typed; không sở hữu toast/navigation.
+- `PendingApprovalFilterBuilder` + decision request factory: filter escaping và approve/reject retry payload.
 - History split theo query/filter/list selection/detail/export; không tạo base class lớn mới.
 
 ### Settlement
@@ -693,7 +694,7 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 transport, Order Draft Store, submission request factory/coordinator, Settlement projection/request factory và Order Editor Session hoàn tất; pending approval cleanup còn tiếp tục**.
+- Current status: **FR0–FR6 hoàn tất; các seam chính của FR7 đã triển khai; đang audit đóng FR7 trước khi chuyển FR8**.
   Provisional baseline chưa phải
   golden hoặc owner final visual acceptance.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
@@ -850,11 +851,19 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   state transition. Focused Settlement/architecture `35/35`, full frontend `328/328`, solution Release build
   `0 warning/error`; route-real DS3 Settlement pass `1/1`. Fixture chưa có E2E mutation chuyên biệt cho
   confirm/correct nên phần đó chỉ được khóa bằng factory/API/state tests hiện tại.
+- FR7 pending approval helpers: exact 4-field search/department filter và escaping chuyển sang
+  `PendingApprovalFilterBuilder`; approve/reject DTO + retry key theo `(OrderId, Action)` chuyển sang factory
+  instance do component sở hữu. Dialog, processing state, toast và reload vẫn ở tab. Focused `8/8`, full
+  frontend `334/334`, solution Release build `0 warning/error`; pending list-detail route pass `1/1`.
+  Mutation flow tạo/duyệt/từ chối đã đi qua nhưng test `1/2` timeout ở dialog lịch sử cuối cùng; clean baseline
+  `b568d8fc` fail cùng locator/stack trace nên đây vẫn là nợ E2E có sẵn.
+- Backend-review backlog, không sửa trong FR7: pending query hiện luôn gửi default `orderby`, khiến controller
+  đi qua nhánh filter/sort in-memory; rà lại khi review `BACKEND-REFACTOR-001` thay vì đổi behavior ở frontend.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: tách pending-approval filter builder và approve/reject request factory thuần; tab vẫn
-  sở hữu dialog, processing state, toast và reload. Giữ nguyên filter escaping, row version, rejection reason,
-  per-order/per-action idempotency reuse và command endpoints.
+- Next exact action: audit đóng FR7 bằng source scan + gate Requests/Settlement tổng hợp; nếu không còn hotspot
+  bắt buộc thì đánh dấu FR7 complete và chuyển FR8 shell/CSS/JS/tests/docs. Không tách thêm Step2 hoặc draft
+  timer nếu chỉ tạo abstraction một-consumer mà không giảm rủi ro/độ khó đọc rõ ràng.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,
