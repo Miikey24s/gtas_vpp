@@ -732,6 +732,7 @@ public sealed class SharedUiFoundationTests
         var submissionFactory = File.ReadAllText(Path.Combine(root, "Features", "Requests", "Submission", "OrderSubmissionRequestFactory.cs"));
         var orderItemsSurface = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor"));
         var orderItemsStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppOrderItemsSurface.razor.css"));
+        var fileExportStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppFileExportActions.razor.css"));
         var adminStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
         var kpiStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-kpi.css"));
         var gridStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-datagrid.css"));
@@ -791,7 +792,9 @@ public sealed class SharedUiFoundationTests
         Assert.Equal(2, orderItemsSurface.Split("<VppFilterSelect", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("vpp-order-view-filters", orderPanel, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-items-toolbar", orderItemsStyles, StringComparison.Ordinal);
-        var retiredOrderItemsSelectors = new[]
+        Assert.Contains("<VppFileExportActions", orderPanel, StringComparison.Ordinal);
+        Assert.Contains(".vpp-file-export-actions", fileExportStyles, StringComparison.Ordinal);
+        var retiredOrderWorkspaceSelectors = new[]
         {
             ".vpp-department-data-surface",
             ".vpp-order-view-grid-frame",
@@ -799,10 +802,14 @@ public sealed class SharedUiFoundationTests
             ".vpp-order-view-search",
             ".vpp-order-view-select",
             ".vpp-order-view-clear",
-            ".vpp-order-view-data-footer"
+            ".vpp-order-view-data-footer",
+            ".vpp-orders-story-commands",
+            ".vpp-orders-story-actions",
+            ".vpp-orders-export-actions",
+            ".vpp-orders-export-button"
         };
         var legacyGlobalStyles = $"{adminStyles}{Environment.NewLine}{kpiStyles}";
-        foreach (var retiredSelector in retiredOrderItemsSelectors)
+        foreach (var retiredSelector in retiredOrderWorkspaceSelectors)
         {
             Assert.DoesNotContain(retiredSelector, legacyGlobalStyles, StringComparison.Ordinal);
         }

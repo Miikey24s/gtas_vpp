@@ -958,6 +958,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `VppOrderItemsSurface.razor.css`. Architecture ratchet cấm đúng nhóm đã retire nhưng không cấm ba selector
   còn dùng. Full frontend `366/366`, solution Release build `0 warning/error`; My Orders responsive, History
   interaction/scroll parity và Department Summary responsive route-real pass `3/3` trên fixture cô lập.
+- FR8A retired My Orders action/export CSS: xóa 89 dòng thuộc bốn nhóm
+  `story-commands/story-actions/export-actions/export-button` sau repo scan xác nhận production consumer bằng
+  0. Action hiện thuộc `vpp-data-card-actions`; PDF/XLSX thuộc `VppFileExportActions` với scoped responsive CSS.
+  Architecture ratchet khóa owner thay thế và cấm selector cũ quay lại. Full frontend `370/370`, solution
+  Release build `0 warning/error`; My Orders 4 viewport và real-file Order Exports pass `2/2` trên fixture cô lập.
 - FR8B test-only cleanup: xóa `tests/Frontend.UiTests/Pages/Order/ProductCatalogPage.cs` sau repo-wide scan
   xác nhận chỉ còn declaration, không có consumer. Không sửa production source, test hiện hữu hoặc dirty
   `ProductCatalogTests.cs`; focused Product Catalog route/responsive tests, full frontend `364/364` và

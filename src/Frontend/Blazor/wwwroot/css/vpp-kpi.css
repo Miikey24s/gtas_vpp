@@ -75,13 +75,6 @@
     font-size: 1.25rem;
 }
 
-.vpp-orders-story-commands {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: flex-end;
-}
-
 .vpp-orders-period-label {
     display: block;
     color: var(--vpp-text-secondary);
@@ -153,12 +146,6 @@
     text-align: end;
 }
 
-.vpp-orders-story-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--vpp-space-2);
-}
-
 .vpp-orders-story-controls {
     display: grid;
     align-items: center;
@@ -171,10 +158,6 @@
     justify-self: start;
 }
 
-.vpp-orders-story-commands {
-    justify-self: end;
-}
-
 .vpp-orders-view-switchbar {
     flex: 0 0 auto;
     min-width: 0;
@@ -182,46 +165,6 @@
     border: 0;
     border-radius: 0;
     background: transparent;
-}
-
-.vpp-orders-story-actions .rz-button,
-.vpp-orders-export-button {
-    width: auto;
-    min-width: 0;
-    min-height: var(--vpp-control-height);
-    border-radius: var(--vpp-radius-button);
-}
-
-.vpp-orders-export-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--vpp-space-2);
-}
-
-.vpp-orders-export-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--vpp-space-2);
-    padding: 0 var(--vpp-space-3);
-    border: 1px solid var(--vpp-border-default);
-    color: var(--vpp-text-secondary);
-    background: var(--vpp-bg-elevated);
-    font: inherit;
-    font-size: var(--vpp-text-sm);
-}
-
-.vpp-orders-export-button .vpp-icon {
-    font-size: 1.1rem;
-}
-
-.vpp-orders-export-button:disabled {
-    cursor: not-allowed;
-    color: color-mix(in srgb, var(--vpp-text-secondary) 88%, var(--vpp-text-primary));
-    background: var(--vpp-bg-surface);
-    border-color: var(--vpp-border-strong);
-    opacity: 0.82;
 }
 
 .vpp-orders-selected-view {
@@ -535,19 +478,6 @@
         align-items: stretch;
         flex-wrap: wrap;
     }
-
-    .vpp-orders-story-commands {
-        justify-self: start;
-        justify-content: flex-start;
-    }
-
-    .vpp-orders-export-actions {
-        justify-content: flex-start;
-    }
-
-    .vpp-orders-story-actions .rz-button {
-        justify-content: center;
-    }
 }
 
 @media (max-width: 767px) {
@@ -567,19 +497,6 @@
         padding: var(--vpp-space-2) 0 0;
         border-block-start: var(--vpp-border-width) solid var(--vpp-border-default);
         border-inline-start: 0;
-    }
-
-    .vpp-orders-story-commands,
-    .vpp-orders-story-actions,
-    .vpp-orders-export-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-        width: 100%;
-    }
-
-    .vpp-orders-story-actions .rz-button,
-    .vpp-orders-export-button {
-        width: 100%;
     }
 
     .vpp-orders-story-controls {
@@ -613,18 +530,12 @@
         align-items: flex-start;
         flex-direction: column;
     }
-
 }
 
 @media print {
     .vpp-orders-story {
         padding: 12pt;
         background: #fff;
-    }
-
-    .vpp-orders-story-commands,
-    .vpp-orders-story-actions {
-        display: none;
     }
 
     .vpp-orders-story,
