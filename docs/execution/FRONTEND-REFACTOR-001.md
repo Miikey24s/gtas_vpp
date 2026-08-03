@@ -214,7 +214,7 @@ Số file/dòng/test là snapshot hiện tại, không phải invariant lâu dà
 - New internal code dùng casing .NET hiện hành (`VppRequest`, `UserId`, `FileName`). Không mass-rename
   public Shared DTO/JSON/route/query/permission code hoặc type legacy nếu có compatibility impact.
 - Prefix `Page_`, `Tab_`, `Component_`, `Dialog_` được migrate-on-touch sang tên có nghĩa như
-  `OrderCreatePage`, `UserAdministration`, `PermissionBatchDialog`; không rename cả tree cùng lúc.
+  `OrderEditorSession`, `UserAdministration`, `PermissionBatchDialog`; không rename cả tree cùng lúc.
 
 ### Comment tiếng Việt, không biến source thành bài giảng
 
@@ -950,6 +950,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `ProductCatalogTests.cs`; focused Product Catalog route/responsive tests, full frontend `364/364` và
   Release build giữ nguyên. Đây là deletion độc lập để giảm page-object rác, không đổi discovered test name
   hay assertion intent.
+- FR8B Order page-object cleanup: xóa bốn helper `DepartmentSummaryPage`, `HistoryPage`, `OrderCreatePage`
+  và `OrderManagementPage` (136 dòng vật lý) sau repo-wide scan xác nhận chỉ còn declaration/constructor. Build và
+  UI test project/solution Release pass `0 warning/error`, discovery giữ `83` test và full frontend giữ
+  `365/365`; `LoginPage`/`PermissionManagementPage` có consumer thật nên tiếp tục giữ. QA-001 được cập nhật
+  để ghi rõ reference `OrderCreatePage.FillNotesAsync` chỉ là historical residual đã retire.
 - FR8A IdentityAccess state ownership: chuyển `CurrentUserState`, `PermissionState` và
   `PermissionRefreshSignal` khỏi flat `Services/` vào `Features/IdentityAccess/State/`; chuyển hai state test
   tương ứng về `tests/Frontend.UnitTests/Features/IdentityAccess/State/`, cập nhật consumer usings và giữ
