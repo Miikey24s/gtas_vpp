@@ -15,6 +15,8 @@ public sealed class PeriodSettlementState
     public SettlementPreviewResDTO? Preview { get; private set; }
     public List<SettlementExceptionReqDTO> Exceptions { get; } = [];
     public string? IdempotencyKey { get; private set; }
+    public bool RequiresFreshPreviewForSubmission => Preview is not null
+        && string.IsNullOrWhiteSpace(IdempotencyKey);
     public Guid? SelectedSupplierId { get; set; }
 
     public event Action? Changed;

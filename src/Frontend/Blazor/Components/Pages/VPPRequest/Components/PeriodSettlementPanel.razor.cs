@@ -96,8 +96,10 @@ public partial class PeriodSettlementPanel : IDisposable
             : !string.IsNullOrWhiteSpace(selectedOrderType) || selectedStatus.HasValue || !string.IsNullOrWhiteSpace(selectedDepartment));
 
     private bool HasPeriodBlockers => Preview?.Blockers.Count > 0 || status?.PendingAdditionalCount > 0;
-    private string SettlementPageClass => HasPeriodBlockers
-        ? "vpp-period-settlement-page has-blockers"
+    private bool RequiresFreshPreview => hasCorrectionTarget && State.RequiresFreshPreviewForSubmission;
+    private bool HasPeriodFeedback => HasPeriodBlockers || RequiresFreshPreview;
+    private string SettlementPageClass => HasPeriodFeedback
+        ? "vpp-period-settlement-page has-feedback"
         : "vpp-period-settlement-page";
 
     private string FooterConditionText
@@ -496,6 +498,26 @@ public partial class PeriodSettlementPanel : IDisposable
         if (reason is string correctionReason)
         {
             await CorrectAsync(correctionReason);
+        }
+    }
+
+    private async Task RefreshPreviewAsync()
+    {
+        if (!RequiresFreshPreview || isPreviewLoading)
+        {
+            return;
+        }
+
+        var supplierId = Preview?.PrimarySupplierId;
+        var priceListId = Preview?.PrimaryPriceListId;
+        try
+        {
+            // Correction thành công làm snapshot cũ hết hiệu lực; preview lại tạo key mới.
+            await LoadPreviewAsync(supplierId, priceListId);
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex, Loc);
         }
     }
 

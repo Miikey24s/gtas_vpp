@@ -68,10 +68,12 @@ public sealed class PeriodSettlementStateTests
 
         Assert.Null(state.IdempotencyKey);
         Assert.Same(preview, state.Preview);
+        Assert.True(state.RequiresFreshPreviewForSubmission);
 
         state.SetPreview(new SettlementPreviewResDTO { Year = 2026, Month = 7, InputHash = "fresh" });
 
         Assert.NotNull(state.IdempotencyKey);
+        Assert.False(state.RequiresFreshPreviewForSubmission);
         Assert.NotEqual(submittedKey, state.IdempotencyKey);
         Assert.Equal("fresh", state.Preview?.InputHash);
     }

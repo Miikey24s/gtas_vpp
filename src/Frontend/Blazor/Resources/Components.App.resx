@@ -810,7 +810,8 @@
   <data name="SettlePreviewCoverageSummary" xml:space="preserve"><value>{0}: phủ {1}/{2} mặt hàng, tổng {3} VND.</value></data>
   <data name="SettleSupplierFallback" xml:space="preserve"><value>Nhà cung cấp</value></data>
   <data name="CorrectionReasonLengthWarning" xml:space="preserve"><value>Lý do hiệu chỉnh phải có từ 5 đến 500 ký tự.</value></data>
-  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>Hãy chạy lại bước xem trước trước khi hiệu chỉnh kết quả chốt kỳ.</value></data>
+  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>Bản xem trước cũ đã hết hiệu lực sau khi lưu phiên bản. Hãy xem trước lại trước lần hiệu chỉnh tiếp theo.</value></data>
+  <data name="CorrectionRerunPreviewAction" xml:space="preserve"><value>Xem trước lại</value></data>
   <data name="CorrectionConfirmFormat" xml:space="preserve"><value>Tạo phiên bản hiệu chỉnh cho kỳ {0:D2}/{1}?</value></data>
   <data name="CorrectionDialogTitle" xml:space="preserve"><value>Hiệu chỉnh kết quả chốt kỳ</value></data>
   <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>Không tìm thấy phiên bản kết quả chốt kỳ hiện hành.</value></data>

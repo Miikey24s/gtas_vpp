@@ -41,8 +41,10 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
 
         var revisionsAfterConfirm = await WaitForRevisionCountAsync(procurementApi, targetYear, targetMonth, 1);
         await Page.GetByText("Đã chốt kỳ", new() { Exact = true }).WaitForAsync();
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Tạo phiên bản hiệu chỉnh", Exact = true })
-            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Page.GetByTestId("settlement-preview-refresh")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Xem trước lại", Exact = true })
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
 
         var firstRevision = revisionsAfterConfirm.Single();
         firstRevision.RevisionNumber.Should().Be(1);
@@ -67,6 +69,7 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
         await SubmitCorrectionAsync(ManagerCorrectionReason);
         await Page.GetByText("Đã tạo phiên bản hiệu chỉnh", new() { Exact = false })
             .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await RequireFreshPreviewAndReopenCorrectionGateAsync();
 
         using var managerApi = await CreateAuthorizedApiClientAsync(TestAccounts.Manager);
         var revisions = await WaitForRevisionCountAsync(managerApi, targetYear, targetMonth, 2);
@@ -134,6 +137,7 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
 
     private async Task SubmitCorrectionAsync(string reason)
     {
+        await EnsureFreshPreviewAsync();
         var correctionButton = await WaitForEnabledActionAsync("Tạo phiên bản hiệu chỉnh");
         await correctionButton.ClickAsync();
 
@@ -145,6 +149,58 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
                 new() { Name = "Tạo phiên bản hiệu chỉnh", Exact = true })
             .ClickAsync();
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 60_000 });
+    }
+
+    private async Task EnsureFreshPreviewAsync()
+    {
+        var refreshBar = Page.Locator("[data-testid='settlement-preview-refresh']:visible");
+        await Page.WaitForFunctionAsync("""
+            () => {
+                const refresh = document.querySelector('[data-testid="settlement-preview-refresh"]');
+                const action = [...document.querySelectorAll('.vpp-settlement-decision-action button')]
+                    .find(button => button.textContent?.includes('Tạo phiên bản hiệu chỉnh'));
+                const refreshVisible = refresh && getComputedStyle(refresh).display !== 'none'
+                    && getComputedStyle(refresh).visibility !== 'hidden';
+                return refreshVisible || !!action && !action.disabled;
+            }
+            """);
+
+        if (await refreshBar.CountAsync() > 0)
+        {
+            await refreshBar.GetByRole(
+                    AriaRole.Button,
+                    new() { Name = "Xem trước lại", Exact = true })
+                .ClickAsync();
+            await refreshBar.WaitForAsync(new()
+            {
+                State = WaitForSelectorState.Hidden,
+                Timeout = 60_000
+            });
+        }
+    }
+
+    private async Task RequireFreshPreviewAndReopenCorrectionGateAsync()
+    {
+        var refreshBar = Page.Locator("[data-testid='settlement-preview-refresh']:visible");
+        await refreshBar.WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 60_000
+        });
+        await refreshBar.GetByText(
+                "Bản xem trước cũ đã hết hiệu lực",
+                new() { Exact = false })
+            .WaitForAsync();
+        await refreshBar.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Xem trước lại", Exact = true })
+            .ClickAsync();
+        await refreshBar.WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Hidden,
+            Timeout = 60_000
+        });
+        await WaitForEnabledActionAsync("Tạo phiên bản hiệu chỉnh");
     }
 
     private async Task<HttpClient> CreateAuthorizedApiClientAsync(QaTestAccount account)

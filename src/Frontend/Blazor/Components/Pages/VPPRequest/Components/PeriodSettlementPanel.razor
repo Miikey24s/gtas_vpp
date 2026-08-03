@@ -71,7 +71,10 @@
         <div class="vpp-settlement-decision-action">
             @if (hasCorrectionTarget)
             {
-                <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanSubmitCurrentPreview || isCorrecting)" Click="@OpenCorrectionDialog" />
+                @if (!RequiresFreshPreview)
+                {
+                    <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanSubmitCurrentPreview || isCorrecting)" Click="@OpenCorrectionDialog" />
+                }
             }
             else
             {
@@ -80,7 +83,22 @@
         </div>
     </section>
 
-    @if (HasPeriodBlockers)
+    @if (RequiresFreshPreview)
+    {
+        <div class="vpp-settlement-preview-refresh" role="status" aria-live="polite" data-testid="settlement-preview-refresh">
+            <div class="vpp-settlement-preview-refresh-copy">
+                <VppIcon Name="@VppIcons.Refresh" />
+                <span>@Loc["CorrectionRerunPreviewWarning"]</span>
+            </div>
+            <RadzenButton Icon="@VppIcons.Refresh"
+                          Text="@Loc["CorrectionRerunPreviewAction"]"
+                          ButtonStyle="ButtonStyle.Light"
+                          IsBusy="@isPreviewLoading"
+                          Disabled="@isPreviewLoading"
+                          Click="@RefreshPreviewAsync" />
+        </div>
+    }
+    else if (HasPeriodBlockers)
     {
         <div class="vpp-settlement-blocker-bar" role="status" aria-live="polite">
             <VppIcon Name="@VppIcons.Warning" />
