@@ -9,23 +9,31 @@ tắc nghiệp vụ nào.
 - Thiết kế 28 màn: `docs/design/atlas/` (read-only)
 - Nguồn nghiệp vụ: `LVTN/NguyenAnNam_DH52201078.docx`
 
-> Trạng thái: đã đồng bộ với implementation ATLAS-001 hoàn tất ngày 2026-07-27. Các mục không có số
-> hình vẫn là route/state thật nhưng chưa được luận văn gán hình riêng.
+> Trạng thái: đã đồng bộ với implementation ATLAS-001 và các checkpoint frontend refactor đến
+> `e0e275be` (2026-08-03). Các mục không có số hình vẫn là route/state thật nhưng chưa được luận văn
+> gán hình riêng.
 
 ---
 
-## 1. Ba tầng của một màn hình
+## 1. Luồng chính của một màn hình
 
-Mọi màn trong hệ thống đều đi qua đúng ba tầng. Khi bị hỏi "chỗ này code ở đâu", trả lời theo thứ tự này:
+Khi bị hỏi "chỗ này code ở đâu", lần theo các lớp chính theo thứ tự này:
 
 ```
 Trình duyệt
-  └─ Blazor component (.razor)        ← giao diện + trạng thái màn hình
-       └─ HttpClient gọi REST API
-            └─ Controller (.cs)       ← kiểm tra quyền, nhận/trả DTO
-                 └─ Service (.cs)     ← luật nghiệp vụ thật sự nằm ở đây
-                      └─ EF Core → SQL Server
+  └─ Blazor component (.razor)        ← giao diện + điều phối trạng thái màn hình
+       └─ typed feature client/state   ← API endpoint + request/query mapping
+            └─ HttpClient/transport
+                 └─ Controller (.cs)  ← kiểm tra quyền, nhận/trả DTO
+                      └─ Service (.cs)  ← luật nghiệp vụ thật sự nằm ở đây
+                           └─ EF Core → SQL Server
 ```
+
+Ở frontend, `Program.cs` chỉ là composition outline. Registration, pipeline và endpoint map nằm ở
+`Platform/Composition/`; state dùng chung cross-feature nằm ở `Platform/State/`; download API → browser
+chỉ có một owner ở `Platform/Browser/`. Các API client/state đã refactor nằm dưới `Features/<Feature>/`
+để người đọc lần theo route → feature → Shared DTO. Một số identity/permission state cũ vẫn còn trong
+`Services/` và chỉ chuyển theo migration-on-touch, không mass-move chỉ để đồng đều tên thư mục.
 
 Điểm hay bị hỏi khi bảo vệ: **ẩn nút trên giao diện không phải là phân quyền**. Giao diện chỉ ẩn cho
 gọn mắt; quyền thật được kiểm ở từng action của controller bằng `[Authorize(Policy = ...)]`. Xem luận
@@ -51,14 +59,14 @@ Các điểm cần biết sau đợt đồng bộ W-B.2 (2026-07-26):
   `vppViewport.isDesktop` (trong `wwwroot/js/vpp-interactions.js`) quyết định mở hay thu gọn.
   Xem `LeftSidebar.razor.cs` → `LoadSidebarStateAsync` / `SetSidebarExpandedAsync`.
 - **Role badge + breadcrumb trong header**: `LeftSidebar.razor.cs` → `RoleBadgeLabel` map
-  `glb.UserInfo.GroupId` sang 3 persona của `CanonicalRbac` rồi qua `Loc["RoleEmployee|RoleManager|RoleDev"]`
+  `CurrentUserState.Current?.GroupId` sang 3 persona của `CanonicalRbac` rồi qua `Loc["RoleEmployee|RoleManager|RoleDev"]`
   (không in raw GroupName `"DEV"`); `HeaderPathSegments` dựng đường dẫn `cha › con` từ URL.
   W-B.2b đã hoàn tất: desktop dùng cùng hàng header 72px cho breadcrumb/tab chrome.
 - **Trạng thái dùng chung**: `DesignSystem/Primitives/VppContentState.razor` nhận
   `VppContentStateKind` typed cho loading/empty/filter-empty/error/denied/disabled/success/warning.
   Primitive tự gắn `role`, `aria-live` và `aria-busy` theo semantics; các adapter string cũ đã được xóa
   sau khi consumer về 0. `NotificationCenter.razor` đưa focus vào panel và trả focus về trigger khi đóng.
-- **Icon điều hướng** đặt tên ngữ nghĩa trong `Shared/VppIcons.cs`; sibling tĩnh phải khác glyph
+- **Icon điều hướng** đặt tên ngữ nghĩa trong `DesignSystem/Primitives/VppIcons.cs`; sibling tĩnh phải khác glyph
   (quyết định D13 — Atlas render động nên được phép trùng, Blazor thì không).
 - **Token quan trọng** trong `wwwroot/css/vpp-tokens.css`: nút chuẩn `--vpp-control-height: 36px`,
   compact `30px`; màu semantic ở light mode dùng tông sâu đạt AA (khối `:root:not(.rz-theme-dark)`),
@@ -76,6 +84,9 @@ Các điểm cần biết sau đợt đồng bộ W-B.2 (2026-07-26):
 | — | `register` | `/Account/Register` | `Pages/Authen/Register.razor` | `AccountController` | — |
 
 Toàn bộ account route dùng trực tiếp pattern `DesignSystem/Patterns/VppAccountWorkspace.razor`; adapter `VppAccountShell` đã được retire sau khi consumer về 0.
+
+Hai primitive chỉ phục vụ account flow (`VppLanguageSwitch`, `VppPasswordField`) thuộc
+`Features/IdentityAccess/Components/`, không nằm trong shared bucket.
 
 ### M2 — Vòng đời đơn của nhân viên
 
@@ -164,15 +175,17 @@ không cố render SVG suy biến.
 
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
-| 3-43 | `system-states` | mọi route | `DesignSystem/Primitives/VppContentState.razor`, `Layout/NotificationCenter.razor`, `Layout/ReconnectModal.razor`, `Shared/SkeletonGrid.razor` | `NotificationsController` | §3.3.5.2 |
+| 3-43 | `system-states` | mọi route | `DesignSystem/Primitives/VppContentState.razor`, `Layout/NotificationCenter.razor`, `Layout/ReconnectModal.razor`, `DesignSystem/Primitives/SkeletonGrid.razor` | `NotificationsController` | §3.3.5.2 |
 
 `Helpers/RouteCatalog.cs` là danh sách route/state dùng cho shell và test contract; bốn state vận hành kỳ
 `pending/review/demand/supply` cùng các route account anonymous đều được khai báo rõ. Với DataGrid đã
 audit, component gắn `data-vpp-grid-region="true"`; `wwwroot/js/vpp-interactions.js` chuẩn hóa role của
 wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 sinh ra.
 
-**Evidence W-H:** Release build sạch; backend `422/422`, frontend `180/180`; 28 screen × 4 viewport
-runtime pass, representative Dark/Print/axe pass, 17 ảnh runtime ở `TestResults/atlas-w-h-final3/`.
+**Evidence hiện tại:** Release build sạch; frontend unit/architecture `364/364`; 28 screen × 4 viewport
+runtime pass, representative Dark/Print/axe pass, Atlas export/account/user-menu smoke và real-file
+download gates pass. Backend gate và owner visual approval vẫn là checkpoint riêng; ảnh runtime chỉ khóa
+vào thesis/slide sau khi owner chấp thuận UI cuối.
 E2E tải thật report CSV/XLSX và order PDF/XLSX; mutation cô lập pass permission toggle, vòng đời đơn
 thường và duyệt/từ chối đơn bổ sung.
 

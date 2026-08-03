@@ -932,6 +932,10 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `Platform/Browser`; Reports, Requests và Settlement chỉ consume interface, không tạo stream/JS pipeline cạnh
   tranh. Architecture/export client focused `18/18`, full frontend `364/364`, solution Release build sạch và
   real-file export E2E `2/2`.
+- FR8C code-reading sync: cập nhật `docs/CODE-READING-GUIDE.md` và `docs/architecture/ARCH-001-MODULE-MAP.md`
+  theo feature/platform ownership hiện tại (`Program` composition, `Platform/State`, `Platform/Browser`,
+  `Notifications/State`, account components), sửa reference `CurrentUserState` và bỏ test-count cũ. Đây là
+  handoff đọc code cho thesis/slide; không thay đổi runtime.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +
