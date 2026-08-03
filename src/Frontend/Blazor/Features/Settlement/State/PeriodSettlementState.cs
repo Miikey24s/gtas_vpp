@@ -75,8 +75,11 @@ public sealed class PeriodSettlementState
         }
     }
 
-    /// <summary>Sau khi chốt/hiệu chỉnh thành công, lần preview kế tiếp phải dùng key mới.</summary>
-    public void CompleteConfirmation()
+    /// <summary>
+    /// Sau khi chốt/hiệu chỉnh thành công, khóa lần gửi kế tiếp cho đến khi
+    /// một preview mới tạo idempotency key mới.
+    /// </summary>
+    public void RequireFreshPreviewForNextSubmission()
     {
         IdempotencyKey = null;
         Changed?.Invoke();

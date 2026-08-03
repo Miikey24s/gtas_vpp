@@ -1170,9 +1170,9 @@ Status hợp lệ:
 | Period review | SOURCE_COMPLETE_RUNTIME_PENDING | Hero + readiness blockers từ preview thật |
 | Additional approval queue | SOURCE_COMPLETE_RUNTIME_PENDING | Sort chờ lâu nhất, detail/action tách component |
 | Supplier/price comparison | SOURCE_COMPLETE_RUNTIME_PENDING | Supplier-first; đơn giá thật từ item-prices + giá ngoại lệ từ preview |
-| Settlement preview | SOURCE_COMPLETE_RUNTIME_PENDING | Exceptions/evidence/hash |
-| Confirm settlement | SOURCE_COMPLETE_RUNTIME_PENDING | Immutable snapshot warning |
-| Settled/revision view | PENDING | Reconciliation + audit timeline |
+| Settlement preview | IMPLEMENTED — QA PASS | Supplier/price-list decision, exceptions và input hash dùng API thật; post-mutation explicit re-preview còn chờ owner decision |
+| Confirm settlement | IMPLEMENTED — QA PASS | Immutable snapshot + idempotency/four-eyes backend contract; mutation E2E hai user còn pending |
+| Settled/revision view | IMPLEMENTED — CORRECTION UX PENDING | Status/export/current correction target đã có; cần notice + `Xem trước lại` trước correction kế tiếp |
 
 ### W5 — Library
 

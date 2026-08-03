@@ -250,6 +250,16 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("SettlementRequestFactory.BuildPreview", code, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildConfirm", code, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildCorrection", code, StringComparison.Ordinal);
+        Assert.Contains("private bool CanSubmitCurrentPreview", code, StringComparison.Ordinal);
+        Assert.Contains("hasCorrectionTarget = status is", code, StringComparison.Ordinal);
+        Assert.Contains("&& !isPreviewLoading", code, StringComparison.Ordinal);
+        Assert.Contains("RequireFreshPreviewForNextSubmission", code, StringComparison.Ordinal);
+        Assert.Equal(
+            2,
+            System.Text.RegularExpressions.Regex.Matches(
+                code,
+                @"await LoadStatusAsync\(\);\s+State\.RequireFreshPreviewForNextSubmission\(\);")
+            .Count);
         Assert.Contains("reason.Length is < 5 or > 500", code, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesClientFilters", code, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesItemFilters", code, StringComparison.Ordinal);

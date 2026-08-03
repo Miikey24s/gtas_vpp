@@ -69,13 +69,13 @@
             <strong>@FormatMoney(Preview?.PrimaryQuote?.GrandTotal ?? status?.GrandTotal ?? 0)</strong>
         </div>
         <div class="vpp-settlement-decision-action">
-            @if (canCorrect)
+            @if (hasCorrectionTarget)
             {
-                <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanConfirm || isCorrecting)" Click="@OpenCorrectionDialog" />
+                <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanSubmitCurrentPreview || isCorrecting)" Click="@OpenCorrectionDialog" />
             }
             else
             {
-                <RadzenButton Icon="lock" Text="@Loc["SettlePeriod"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(!CanConfirm || isSettling)" Click="@SettleAsync" />
+                <RadzenButton Icon="lock" Text="@Loc["SettlePeriod"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(!CanSubmitCurrentPreview || isSettling)" Click="@SettleAsync" />
             }
         </div>
     </section>

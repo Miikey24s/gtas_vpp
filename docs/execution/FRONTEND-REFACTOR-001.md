@@ -32,9 +32,9 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `366/366`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `370/370`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | FR8A/FR8B đã dọn CSS owner, test helper rác và chuyển identity/permission state về feature. Tiếp tục audit residual độc lập; FR7 vẫn chờ owner chốt correction UX rồi mới chạy mutation E2E đóng wave | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | FR8A/FR8B cleanup độc lập đã hoàn tất. Correction state đã được harden để không gửi snapshot cũ và giữ retry idempotent; FR7 còn chờ owner chốt UX `Xem trước lại` rồi mới triển khai mutation E2E đóng wave | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -864,9 +864,19 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `Features/Requests/Drafts`; `PeriodSettlementState` chuyển khỏi route component vào
   `Features/Settlement/State`, DI dùng typed namespace ngắn. Focused state/draft/architecture `39/39`, full
   frontend `334/334`, solution Release build `0 warning/error`; DS3 Settlement route pass `1/1`.
-- FR7 closure decision: sau confirm/correct, state xóa key và giữ preview; `CanConfirm` vì vậy khóa action cho
-  đến khi có preview mới. Tự động rotate key hoặc re-preview sẽ đổi workflow hiện tại, nên không sửa âm thầm
-  trong behavior-preserving refactor; cần owner chốt `re-preview bắt buộc` hay `tự refresh sau thành công`.
+- FR7 closure decision: sau confirm/correct, state xóa key và giữ preview; `CanSubmitCurrentPreview` vì vậy
+  khóa action cho đến khi có preview mới. Tự động rotate key hoặc re-preview sẽ đổi workflow hiện tại, nên
+  không sửa âm thầm trong behavior-preserving refactor; cần owner chốt `re-preview bắt buộc` hay
+  `tự refresh sau thành công`.
+- FR7 correction audit + behavior-preserving hardening: backend tự tính lại `InputHash`; correction kế tiếp
+  cần current revision target và idempotency key mới, nhưng việc bắt người dùng chủ động xem preview là UX/
+  human-review gate. Phương án A `Xem trước lại` vẫn được khuyến nghị và chưa triển khai khi chưa có owner
+  approval. Trong phần không đổi workflow, `CompleteConfirmation` được đổi thành
+  `RequireFreshPreviewForNextSubmission`, `CanConfirm` thành `CanSubmitCurrentPreview`, `canCorrect` thành
+  `hasCorrectionTarget`; submit bị khóa khi preview mới đang tải. Sau mutation, status phải refresh thành công
+  trước khi key bị xóa để retry cùng command vẫn giữ idempotent nếu refresh lỗi. Focused state/architecture
+  `5/5`, full frontend `370/370`, solution Release build `0 warning/error`; DS3 Settlement route-real pass
+  `5/5` gồm unified workflow và bốn viewport.
 - FR7 order export owner: hai route không còn lặp `Config.VppApi.Orders`; `RequestsExportClient` sở hữu
   endpoint/suffix còn `IBrowserFileDownloadService` tiếp tục stream đúng pipeline. Aggregate architecture gate
   quét toàn bộ `Components/Pages/VPPRequest` cấm generic transport, direct download service và raw API/config
@@ -991,10 +1001,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   test-count cũ. Đây là handoff đọc code cho thesis/slide; không thay đổi runtime.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +
-  CTA preview lại, chỉ bật correction sau khi có snapshot/key mới; sau đó bổ sung mutation E2E confirm/correct
-  và chạy gate đóng FR7. Trong lúc chờ decision, FR8A tiếp tục các cleanup độc lập đã có usage evidence.
-  Không tách thêm Step2/draft timer chỉ vì LOC.
+- Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: sau mỗi revision thành
+  công, thay nút correction bị khóa bằng notice + CTA `Xem trước lại`; chỉ bật correction khi preview sinh key
+  mới. Sau đó bổ sung mutation E2E hai user cho confirm/correct/four-eyes và chạy gate đóng FR7. FR8A/FR8B
+  cleanup độc lập đã hết candidate có zero-consumer evidence; không tách `PermissionRealtimeService`,
+  `vpp-interactions.js`, Step2 hoặc draft timer khi chưa có lifecycle/final-acceptance gate.
 - Do not redo: UI-SYSTEM F0–F7, data-surface DS0–DS4/R1, source inventory, current best-practice
   research và unit/build baseline.
 - Do not touch in FR0/FR1: backend, Shared DTO wire shape, database/migrations, React archive,

@@ -49,7 +49,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isSettling;
     private bool isCorrecting;
     private VppFileExportFormat? exportingSettlementFormat;
-    private bool canCorrect;
+    private bool hasCorrectionTarget;
     private bool showCustomPeriodPicker;
     private bool hasExplicitSupplierSelection;
     private bool hasExplicitPriceListSelection;
@@ -69,7 +69,8 @@ public partial class PeriodSettlementPanel : IDisposable
     private SettlementPreviewResDTO? Preview => State.Preview is { } preview
         && preview.Year == Year && preview.Month == Month ? preview : null;
 
-    private bool CanConfirm => !isLoading
+    private bool CanSubmitCurrentPreview => !isLoading
+        && !isPreviewLoading
         && status?.PendingAdditionalCount == 0
         && Preview is { PrimaryQuote: { IsEligible: true }, Blockers.Count: 0 }
         && !string.IsNullOrWhiteSpace(State.IdempotencyKey);
@@ -122,7 +123,7 @@ public partial class PeriodSettlementPanel : IDisposable
                     status.PriceListName ?? "-");
             }
 
-            return CanConfirm
+            return CanSubmitCurrentPreview
                 ? Loc["SettlementReadyCondition"].Value
                 : Loc["SettlementSelectSupplierCondition"].Value;
         }
@@ -271,7 +272,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private async Task LoadStatusAsync()
     {
         status = await Settlement.GetStatusAsync(Year, Month);
-        canCorrect = status is { IsSettled: true, SettlementId: not null };
+        hasCorrectionTarget = status is { IsSettled: true, SettlementId: not null };
     }
 
     private async Task LoadPreviewAsync(Guid? supplierId = null, Guid? priceListId = null)
@@ -519,7 +520,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task SettleAsync()
     {
-        if (!CanConfirm || Preview is null)
+        if (!CanSubmitCurrentPreview || Preview is null)
         {
             return;
         }
@@ -542,9 +543,9 @@ public partial class PeriodSettlementPanel : IDisposable
                 Preview,
                 State.IdempotencyKey!,
                 State.Exceptions));
-            State.CompleteConfirmation();
-            Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
             await LoadStatusAsync();
+            State.RequireFreshPreviewForNextSubmission();
+            Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
             await OnSettled.InvokeAsync();
         }
         catch (Exception ex)
@@ -583,7 +584,7 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task CorrectAsync(string correctionReason)
     {
-        if (!CanConfirm || Preview is null || status?.SettlementId is null)
+        if (!CanSubmitCurrentPreview || Preview is null || status?.SettlementId is null)
         {
             return;
         }
@@ -607,9 +608,9 @@ public partial class PeriodSettlementPanel : IDisposable
                     State.IdempotencyKey!,
                     State.Exceptions,
                     reason));
-            State.CompleteConfirmation();
-            Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
             await LoadStatusAsync();
+            State.RequireFreshPreviewForNextSubmission();
+            Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
             await OnSettled.InvokeAsync();
         }
         catch (Exception ex)

@@ -56,16 +56,23 @@ public sealed class PeriodSettlementStateTests
     }
 
     [Fact]
-    public void CompleteConfirmation_ClearsKeyButKeepsConfirmedPreviewContext()
+    public void RequireFreshPreviewForNextSubmission_KeepsContextAndRotatesKeyOnNextPreview()
     {
-        var preview = new SettlementPreviewResDTO { Year = 2026, Month = 7, InputHash = "confirmed" };
+        var preview = new SettlementPreviewResDTO { Year = 2026, Month = 7, InputHash = "submitted" };
         var state = new PeriodSettlementState();
         state.SetPeriod(2026, 7);
         state.SetPreview(preview);
+        var submittedKey = state.IdempotencyKey;
 
-        state.CompleteConfirmation();
+        state.RequireFreshPreviewForNextSubmission();
 
         Assert.Null(state.IdempotencyKey);
         Assert.Same(preview, state.Preview);
+
+        state.SetPreview(new SettlementPreviewResDTO { Year = 2026, Month = 7, InputHash = "fresh" });
+
+        Assert.NotNull(state.IdempotencyKey);
+        Assert.NotEqual(submittedKey, state.IdempotencyKey);
+        Assert.Equal("fresh", state.Preview?.InputHash);
     }
 }
