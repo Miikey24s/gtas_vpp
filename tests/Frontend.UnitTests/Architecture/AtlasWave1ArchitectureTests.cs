@@ -568,7 +568,6 @@ public sealed class AtlasWave1ArchitectureTests
         var ordersCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/Tab_Orders.razor.cs");
         var baseOrderTab = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/BaseOrderTab.cs");
         var historyCode = ReadFrontendSource("Components/Pages/VPPRequest/Tabs/HistoryOrderWorkspaceTabBase.cs");
-        var historyDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor");
         var requestsClient = ReadFrontendSource("Features/Requests/Api/RequestsQueryClient.cs");
         var exportClient = ReadFrontendSource("Features/Requests/Api/RequestsExportClient.cs");
         var registrations = ReadFrontendSource(
@@ -596,7 +595,26 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("IAPIServices", baseOrderTab, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildEndpoint", baseOrderTab, StringComparison.Ordinal);
         Assert.DoesNotContain("_apiServices", historyCode, StringComparison.Ordinal);
-        Assert.DoesNotContain("IAPIServices", historyDialog, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Frontend",
+            "Blazor",
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "Dialog_RequestHistory.razor")));
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "Frontend",
+            "Blazor",
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "Dialog_RequestHistory.razor.css")));
         Assert.Contains("GetHistoryOrdersAsync", requestsClient, StringComparison.Ordinal);
         Assert.Contains("GetOrderFilterValuesAsync", requestsClient, StringComparison.Ordinal);
         Assert.Contains("/api/VPPRequest/orders", exportClient, StringComparison.Ordinal);

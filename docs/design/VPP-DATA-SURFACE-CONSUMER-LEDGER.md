@@ -23,7 +23,6 @@ Source hiện có **19 file / 23 DataGrid thật**. Generic type reference trong
 | `Components/Pages/Permission/Tabs/Tab_PagePermission.razor` | 1 | Permission group collection | `ServerPaging` | `Compact` | Full-width group table; permission detail loads in batch editor |
 | `Components/Pages/Permission/Tabs/Tab_User.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
 | `Components/Pages/Report.razor` | 2 | Analytics evidence tables | `Static` | `Compact` | Analytics workspace + bounded static frames complete |
-| `Components/Pages/VPPRequest/Components/Dialog_RequestHistory.razor` | 1 | Dialog history | `Static` | `Compact` | Deferred dialog exception; không thuộc reference route DS2 |
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Canonical approval List-Detail; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `RichTwoLine` master; `Compact` detail | Collection header/filter/default selection/footer complete |
 | `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 2 | Chốt kỳ theo đơn / theo phòng ban | `ServerPaging` + `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |

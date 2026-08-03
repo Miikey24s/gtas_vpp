@@ -608,20 +608,12 @@
   <data name="KeepOrder" xml:space="preserve"><value>Giữ đơn</value></data>
   <data name="ViewRequestHistory" xml:space="preserve"><value>Xem lịch sử phiên bản</value></data>
   <data name="ViewRequestHistoryAria" xml:space="preserve"><value>Xem lịch sử phiên bản của đơn {0}</value></data>
-  <data name="RequestLifecycle" xml:space="preserve"><value>Vòng đời đơn yêu cầu</value></data>
   <data name="HistoryLoadFailed" xml:space="preserve"><value>Không tải được lịch sử đơn</value></data>
   <data name="HistoryLoadErrorDescription" xml:space="preserve"><value>Kiểm tra kết nối rồi thử tải lại. Dữ liệu đang hiển thị sẽ được giữ nguyên nếu có.</value></data>
   <data name="HistoryDetailsLoadFailed" xml:space="preserve"><value>Không tải được chi tiết đơn</value></data>
   <data name="HistoryDetailsErrorDescription" xml:space="preserve"><value>Thông tin đơn vẫn được giữ lại. Hãy thử tải lại phần chi tiết.</value></data>
-  <data name="NoRequestHistory" xml:space="preserve"><value>Đơn chưa có lịch sử phiên bản.</value></data>
   <data name="Retry" xml:space="preserve"><value>Thử tải lại</value></data>
-  <data name="RevisionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
-  <data name="TimelineEventCount" xml:space="preserve"><value>{0} sự kiện</value></data>
-  <data name="RequestTimeline" xml:space="preserve"><value>Dòng thời gian</value></data>
-  <data name="NoTimelineEvents" xml:space="preserve"><value>Chưa có sự kiện nào.</value></data>
-  <data name="RevisionShort" xml:space="preserve"><value>Phiên bản {0}</value></data>
   <data name="Reason" xml:space="preserve"><value>Lý do</value></data>
-  <data name="RequestRevisions" xml:space="preserve"><value>Các phiên bản của đơn</value></data>
   <data name="Revision" xml:space="preserve"><value>Phiên bản</value></data>
   <data name="UpdatedAt" xml:space="preserve"><value>Cập nhật lúc</value></data>
   <data name="RejectReason" xml:space="preserve"><value>Lý do từ chối</value></data>
@@ -640,13 +632,6 @@
   <data name="OrderRecreatedSuccess" xml:space="preserve"><value>Đã tạo lại đơn với nội dung mới.</value></data>
   <data name="WizardRecreatingCancelledRequest" xml:space="preserve"><value>Tạo lại từ đơn đã hủy</value></data>
   <data name="WizardOrderModeSummaryRecreate" xml:space="preserve"><value>Chọn lại mặt hàng và số lượng; đơn mới vẫn thuộc cùng chuỗi lịch sử.</value></data>
-  <data name="RequestAction_CREATE" xml:space="preserve"><value>Tạo đơn</value></data>
-  <data name="RequestAction_UPDATE" xml:space="preserve"><value>Cập nhật đơn</value></data>
-  <data name="RequestAction_RESTORE" xml:space="preserve"><value>Hoàn tác hủy</value></data>
-  <data name="RequestAction_RECREATE" xml:space="preserve"><value>Tạo lại đơn</value></data>
-  <data name="RequestAction_CANCEL" xml:space="preserve"><value>Hủy đơn</value></data>
-  <data name="RequestAction_APPROVE" xml:space="preserve"><value>Duyệt đơn</value></data>
-  <data name="RequestAction_REJECT" xml:space="preserve"><value>Từ chối đơn</value></data>
   <data name="HistoryTimeRange" xml:space="preserve"><value>Khoảng thời gian</value></data>
   <data name="HistoryAllPeriods" xml:space="preserve"><value>Tất cả kỳ</value></data>
   <data name="HistoryCurrentPeriod" xml:space="preserve"><value>Kỳ này</value></data>
