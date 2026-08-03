@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: PLANNED — REFRESHED; FRONTEND CORRECTION A COMPLETE; WAITING FOR OWNER UI FINAL ACCEPTANCE
+- Status: PLANNED — B0R READ-ONLY LEDGER PREPARED; WAITING FOR OWNER UI FINAL ACCEPTANCE
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -10,7 +10,8 @@
 - Planned at: `2026-07-29T05:17:46+07:00`
 - Refreshed against: `be82b1c9` at `2026-08-04`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
-  `docs/architecture/ARCH-001-MODULE-MAP.md`
+  `docs/architecture/ARCH-001-MODULE-MAP.md`,
+  [`BACKEND-REFACTOR-001-B0R-LEDGER.md`](./BACKEND-REFACTOR-001-B0R-LEDGER.md)
 - Related sequencing: `docs/execution/FRONTEND-REFACTOR-001.md`
 - Supersedes: phần **R-1 backend** và quy ước comment backend trong
   `docs/execution/REFACTOR-001.md`; lịch sử R-0/R-2 của record cũ vẫn giữ nguyên
@@ -31,7 +32,7 @@
 | Model/quota routing | Official resolver hiện chọn `gpt-5.6-sol` cho kiến trúc/review khó và `gpt-5.6-terra` cho lát cơ học rõ. Quota probe ngày 03/08 trả 404 nên capacity chưa được xác minh; chỉ mở B0R độc lập rồi probe/đo lại trước B1 | [Routing](#plan-detail-routing) |
 | Kiểm tra | Backend unit 473/473; integration mặc định 14 pass/6 skip; disposable LocalDB 20/20; EF không có pending model; agent setup 63/63. Số test là snapshot, không phải invariant | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Mass move/rename làm diff khó review; generic endpoint có hidden consumer; hai DbContext dễ gây model drift; migration/generated file bị hiểu nhầm là rác | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Owner duyệt technical visual board → chạy B0R và reforecast → mới vào B1; raw English period reason ghi vào localization backlog | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Owner duyệt technical visual board → thực thi B0R characterization từ ledger → reforecast → mới vào B1; raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -539,14 +540,15 @@ gate của portfolio, không phải câu hỏi kiến trúc backend.
 ## 14. Continuation note
 
 - Current status: Plan đã refresh; frontend correction A, mutation E2E và technical runtime board đã
-  pass. Chờ owner UI final acceptance trước production B0R.
-- Current branch/HEAD: `codex/ai-agent-foundation` @ `be82b1c9`.
+  pass. B0R read-only ledger đã chuẩn bị; chờ owner UI final acceptance trước production characterization.
+- Backend source baseline: `codex/ai-agent-foundation` @ `5b060c4d`.
 - Pre-existing dirty files outside this task: `.agents/skills/gtas-vpp-ui-system/*`, `AGENTS.md`,
   `LVTN/NguyenAnNam_DH52201078.docx`, `docs/ai/*`, `docs/planning/05-EXECUTION-TEMPLATE.md`,
   `scripts/ai/Test-AgentSetup.ps1`, `src/Frontend/Blazor/wwwroot/css/vpp-polish.css`,
   `tests/Frontend.UiTests/Tests/Order/ProductCatalogTests.cs` và hai text extraction untracked.
-- Last completed evidence: backend unit 473/473; integration default 14 pass/6 skip; disposable LocalDB
-  20/20; EF no pending model; agent setup 63/63; preflight PASS; full backend verify PASS. Mỗi production
+- Last completed evidence trên baseline hiện tại: backend unit 473/473; integration default 14 pass/6
+  skip; disposable LocalDB 20/20; EF no pending model; agent setup 63/63; preflight PASS; full backend
+  verify PASS. Mỗi production
   wave vẫn phải rerun gate trên HEAD của chính wave trước khi gọi PASS.
 - Next exact backend action: sau UI final acceptance, chạy B0R manifest/ledger/reading-map + explicit
   legacy-role reconciliation characterization; probe/đo lại rồi mới vào B1a-1. Raw English
