@@ -162,6 +162,17 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void ComponentsSharedFolder_HasNoRemainingSourceOwner()
+    {
+        var sharedRoot = Path.Combine(GetFrontendRoot(), "Components", "Shared");
+        var remainingFiles = Directory.Exists(sharedRoot)
+            ? Directory.EnumerateFiles(sharedRoot, "*", SearchOption.AllDirectories).ToArray()
+            : [];
+
+        Assert.Empty(remainingFiles);
+    }
+
+    [Fact]
     public void NotificationState_SeparatesApiRealtimeAndUiStateOwnership()
     {
         var root = GetFrontendRoot();

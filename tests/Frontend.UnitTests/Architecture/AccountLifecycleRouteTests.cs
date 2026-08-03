@@ -89,6 +89,37 @@ public sealed class AccountLifecycleRouteTests
         Assert.Contains("NavigateTo(Config.PerformLogoutPath, true)", source, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("VppLanguageSwitch.razor")]
+    [InlineData("VppPasswordField.razor")]
+    public void AccountOnlyComponents_AreOwnedByIdentityAccess(string fileName)
+    {
+        var frontendRoot = Path.Combine(FindRepositoryRoot(), "src", "Frontend", "Blazor");
+
+        Assert.True(File.Exists(Path.Combine(
+            frontendRoot,
+            "Features",
+            "IdentityAccess",
+            "Components",
+            fileName)));
+        Assert.False(File.Exists(Path.Combine(
+            frontendRoot,
+            "Components",
+            "Shared",
+            fileName)));
+    }
+
+    [Fact]
+    public void ProjectRootImports_CoverComponentsAndFeatureRazorFiles()
+    {
+        var frontendRoot = Path.Combine(FindRepositoryRoot(), "src", "Frontend", "Blazor");
+        var imports = File.ReadAllText(Path.Combine(frontendRoot, "_Imports.razor"));
+
+        Assert.False(File.Exists(Path.Combine(frontendRoot, "Components", "_Imports.razor")));
+        Assert.Contains("gtas_vpp_fe.Features.IdentityAccess.Components", imports, StringComparison.Ordinal);
+        Assert.DoesNotContain("gtas_vpp_fe.Components.Shared", imports, StringComparison.Ordinal);
+    }
+
     private static string ReadSource(params string[] relativeSegments)
     {
         var root = FindRepositoryRoot();
