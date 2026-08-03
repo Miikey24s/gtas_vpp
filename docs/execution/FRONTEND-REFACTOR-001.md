@@ -32,7 +32,7 @@
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `362/362`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
+| Baseline hiện tại | Release build sạch; frontend unit/architecture `364/364`; 83 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
 | Việc làm ngay | FR8A đã xóa endpoint registry/package thừa và dọn `Components/Shared` về 0 source owner. FR7 còn owner chốt correction, sau đó triển khai UX và mutation E2E trước khi đóng wave | [Continuation](#plan-detail-continuation) |
 
@@ -923,6 +923,11 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   `SettlementRequestFactory` và `SettlementWorkspaceProjectionTests`; behavior-focused factory/projection tests
   pass `11/11`. Sau checkpoint này, full `verify -Scope frontend` PASS: agent setup `63/63`, Release build sạch,
   frontend unit `362/362`, UI smoke `2/2`, vulnerability audit và redacted Gitleaks scan đều pass.
+- FR8A static-asset cleanup: xóa có kiểm chứng 11 legacy asset và 42 Bootstrap sibling zero-consumer; giữ
+  `Artboard*.jpg` cho khả năng dùng trong thesis/slide, asset login hiện hành, font có owner và chỉ
+  `bootstrap.min.css` + source map trong app-local distribution. Architecture asset `2/2`, full frontend
+  `364/364`, solution Release build sạch; publish tree không còn candidate app-local, Atlas runtime `2/2`,
+  account shell + authenticated user menu `2/2`. Bootstrap min CSS vẫn tải qua link canonical, không có 404.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
 - Next exact action: owner chốt correction workflow. Khuyến nghị `re-preview bắt buộc`: hiển thị cảnh báo +
