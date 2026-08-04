@@ -1,6 +1,6 @@
 # UI-DATA-SURFACE-001 — Chuẩn hóa data surface
 
-> Trạng thái: `DS0–DS4 + R1 DONE — FINAL OWNER REVIEW AFTER F7`
+> Trạng thái: `DS0–DS4 + R1 DONE — OWNER FINAL VISUAL ACCEPTANCE APPROVED 2026-08-04`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), triển khai lần lượt trong F5, F6 và F7.
 > Phạm vi: frontend Blazor/Radzen; không đổi API, database, RBAC hoặc nghiệp vụ.
 
@@ -27,8 +27,8 @@ Khung, chiều cao theo profile, hover, focus, popup, footer và outer inset dù
 | DS0 — Contract | `DONE — OWNER APPROVED 2026-07-29` | Khóa motif, density, footer mode và consumer ledger | Một board nhìn là hiểu toàn hệ thống | **Sol · XHigh** — quyết định kiến trúc dài hạn | Đã duyệt motif và hai density profile |
 | DS1 — Foundation | `DONE — OWNER APPROVED 2026-07-29` | Tạo shared frame/toolbar/footer/popover + token/bridge | Một chỗ chỉnh visual/interaction | **Sol · High** | Đã duyệt 2 route đại diện |
 | DS2 — Reference | `DONE — OWNER APPROVED 2026-07-29` | History list, My Orders/History detail, Catalog | Nhóm M0–M2 thành mẫu canonical | **Terra · High**, **Sol · High review** | Đã duyệt và mở DS3 |
-| DS3 — Workflow | `IMPLEMENTED — OWNER REVIEW` | Create Order, Department Summary, Chốt kỳ hợp nhất | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Chốt kỳ đã có route-real board desktop/mobile; chờ owner review tổng thể |
-| DS4 — Admin | `IMPLEMENTED — POST-AUDIT CORRECTED 2026-07-30` | Library, Users, Permission và màn quản trị danh mục | Có column picker, paging chuẩn và data lifecycle được khóa bằng route thật | **Terra · High**, **Sol · XHigh review** | API có dữ liệu và mọi tab Library phải render row thật sau interactive handoff |
+| DS3 — Workflow | `DONE — OWNER APPROVED 2026-08-04` | Create Order, Department Summary, Chốt kỳ hợp nhất | Các workflow chính cùng motif | **Terra · High**, **Sol · High review** | Route-real board desktop/mobile và final runtime đã được owner chấp thuận |
+| DS4 — Admin | `DONE — OWNER APPROVED 2026-08-04` | Library, Users, Permission và màn quản trị danh mục | Có column picker, paging chuẩn và data lifecycle được khóa bằng route thật | **Terra · High**, **Sol · XHigh review** | API có dữ liệu, mọi tab Library render row thật và final runtime đã được owner chấp thuận |
 | R1 — Refactor | `DONE — 2026-07-29` | Xóa adapter/CSS/state hết consumer; bỏ orchestration popup trùng | Code sạch hơn nhưng UI/behavior giữ nguyên | **Sol · XHigh plan/review**, **Terra · High migration** | Build/unit + popup/virtualization browser parity pass |
 
 ### Bốn quyết định owner đã duyệt

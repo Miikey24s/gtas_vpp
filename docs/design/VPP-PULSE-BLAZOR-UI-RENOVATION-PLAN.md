@@ -2,7 +2,7 @@
 
 > **Trạng thái:** `ACTIVE — BLAZOR/RADZEN AUTHORITY; REACT POC ARCHIVED`
 >
-> **Phiên bản:** `3.01` — 2026-08-04
+> **Phiên bản:** `3.02` — 2026-08-04
 >
 > **Mục tiêu:** Làm nguồn thực thi ưu tiên cho frontend Blazor/Radzen. React POC cũ được bảo toàn bằng archive tag, không còn nằm trong source hoạt động.
 >
@@ -14,7 +14,7 @@
 
 ## 0. Bản một ánh nhìn — UI system scalable
 
-> **Trạng thái:** `F0–F7 IMPLEMENTED; FRONTEND READABILITY REFACTOR IN PROGRESS; FR8C DOCS RECONCILED; OWNER FINAL VISUAL REVIEW PENDING`.
+> **Trạng thái:** `F0–F7 + FRONTEND REFACTOR COMPLETE; OWNER FINAL VISUAL ACCEPTANCE APPROVED 2026-08-04; GOLDEN DEFERRED`.
 
 | Câu hỏi | Quyết định ngắn gọn | Xem chi tiết |
 |---|---|---|
@@ -24,10 +24,10 @@
 | Dùng model nào? | Bảng F0–F7 giữ routing lịch sử riêng của `UI-SYSTEM-001`; plan mới phải dùng authority/quota guidance hiện hành trong execution record của chính nó. | [Frontend refactor routing](../execution/FRONTEND-REFACTOR-001.md#plan-detail-routing) |
 | Sau mỗi wave có gì? | F0–F4 hình thành khung; F5 hoàn chỉnh nhóm màn M0–M2; F6 đưa M3–M8 lên khung; F7 harden và đóng `UI-SYSTEM-001`. | [Bảng wave canonical](../execution/UI-SYSTEM-001.md#5-kế-hoạch-thực-thi-f0f7) |
 | Duyệt trực quan thế nào? | Mỗi wave có một `Wave Review Board` nhìn trong một màn hình; dùng screenshot runtime, contact sheet, state board hoặc diagram đúng bản chất wave, kèm trace ngắn khi interaction quan trọng. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
-| Bước code hiện tại? | F0–F7, DS0–DS4 và R1 đã triển khai. Owner cho phép mở `FRONTEND-REFACTOR-001` trước final visual review; runtime hiện tại là baseline tạm, correction UI sau này vẫn được phép và refactor tiếp khi cần. | [Frontend refactor timing](../execution/FRONTEND-REFACTOR-001.md#plan-detail-timing) |
+| Bước code hiện tại? | F0–F7, DS0–DS4, R1 và `FRONTEND-REFACTOR-001` đã hoàn tất; current runtime + final board đã được owner chấp thuận. Backend refactor là phase đang mở. | [Frontend refactor continuation](../execution/FRONTEND-REFACTOR-001.md#plan-detail-continuation) |
 | Kiểm tra bằng gì? | Build/test chỉ là gate code; nghiệm thu cuối trên route Blazor thật ở 4 viewport, VI/EN, Light/Dark, state, console/network và accessibility. | [Validation](../execution/UI-SYSTEM-001.md#6-validation-và-definition-of-done) |
 | Rủi ro chính? | CSS override chồng chéo, abstraction quá sớm, component reflection, refactor big-bang và làm lệch nghiệp vụ. Tất cả đều có gate/migration nhỏ để hoàn tác được. | [Rủi ro và recovery](../execution/UI-SYSTEM-001.md#8-rủi-ro-và-recovery) |
-| Cần owner duyệt gì? | Sau F7, owner rà lại toàn bộ màn hình một lần bằng final review board: responsive, VI/EN, Light/Dark, motion/animation, keyboard, state và nghiệp vụ đại diện. | [Visual review contract](../execution/UI-SYSTEM-001.md#51-visual-review-contract) |
+| Cần owner duyệt gì? | Final review board đã được chấp thuận ngày 2026-08-04. Golden/contact sheet và ảnh luận văn/slide sẽ khóa sau khi visual tái tạo được từ clean HEAD. | [Owner acceptance record](../execution/UI-SYSTEM-001.md#9-owner-approval-gate) |
 
 Execution record chi tiết: [`UI-SYSTEM-001`](../execution/UI-SYSTEM-001.md).
 
@@ -197,7 +197,9 @@ Quyết định auth cho POC:
   tiếp tục quyết định visual/interaction.
 - Refactor source không được trộn với redesign trong cùng slice. Correction UI mới phải có evidence
   riêng rồi structural follow-up cập nhật phần bị ảnh hưởng.
-- Golden baseline, ảnh luận văn cuối và screenshot slide cuối vẫn chờ owner final visual acceptance.
+- Owner đã chấp thuận current runtime + final board ngày 2026-08-04. Golden baseline, ảnh luận văn cuối
+  và screenshot slide cuối được hoãn đến clean reproducible HEAD và phase chốt luận văn/slide; raw
+  English reason là localization backlog riêng.
 
 ### 3.2 Dữ liệu và môi trường
 
@@ -1231,7 +1233,7 @@ Status hợp lệ:
 | Mobile/tablet | VERIFIED | 28 screen tại 390/768, không page overflow |
 | Accessibility | VERIFIED | Focus/labels/live regions + representative axe pass |
 | Performance | REGRESSION_PASS | 112 route/viewport render không console/network failure; paging/virtualization giữ nguyên |
-| Final visual regression | EVIDENCE_CAPTURED | 17 PNG runtime sạch; chưa gọi golden baseline trước owner approval |
+| Final visual regression | OWNER_APPROVED — GOLDEN_DEFERRED | 17 PNG settled làm review evidence; tạo golden sau khi clean HEAD tái tạo đúng visual đã duyệt |
 
 ---
 
@@ -1302,7 +1304,7 @@ Không xử lý hàng loạt nhiều route rồi mới xin duyệt nếu thay đ
 | 2026-07-29 | My Orders view selector | Chỉ giữ selector ngang và contextual action; bỏ dòng tóm tắt `Đơn đã gửi · n mặt hàng · tổng số lượng n` và bỏ card/wrapper bao ngoài selector | Nhãn selector và bảng đơn đã cung cấp đủ context; summary + outer card tạo thêm một tầng visual không có giá trị | My Orders route | Xóa summary markup/computed copy; switchbar trở thành layout container trong suốt, selector tự sở hữu surface | `dashboard?tab=0` | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Canonical select + pager page-size dropdown | `VppFilterSelect` là visual contract cho select toàn dự án; page-size dùng cùng chiều cao, radius, hover/focus, popup và selected indicator. Vì page-size luôn có giá trị, trigger đóng giữ nền trung tính; xanh chỉ dùng khi mở/focus và cho option hiện tại trong popup | Owner phát hiện page-size select vừa lệch chrome Radzen, vừa bị nền xanh vĩnh viễn nếu coi mọi giá trị là active | Global select interaction | Ánh xạ pager trigger và Radzen dropdown portal vào cùng token/chrome; khóa neutral/hover bằng browser computed-style; giữ form-specific override có chủ đích | Mọi data pager và Radzen dropdown popup; Catalog/History/Department/Period/Admin là consumer đại diện | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | Shared data-surface grid seam | Khung data surface sở hữu bo góc ngoài; `RadzenDataGrid` nằm dưới toolbar phải vuông, không tự bo hai góc trên tại đường nối toolbar → header bảng | Owner phát hiện Catalog xuất hiện hai góc cong thừa ngay trên hàng tên cột, làm bề mặt ghép trông như hai card chồng nhau | Shared data-surface bridge | Scope `--rz-grid-border-radius: 0` cho `.vpp-data-grid` bên trong `VppDataSurfaceFrame`; thêm architecture + computed-style browser gate | Catalog và mọi grid đã opt-in vào shared data surface | IMPLEMENTED — OWNER REVIEW |
-| 2026-07-29 | Global art direction + execution mode | Retire `T001`; OpenAI/Codex minimal system thay Apple làm visual research chính. Dùng system colors/font, restrained type scale, token spacing/radius, icon outline, một CTA chính và motion có mục đích; không sao chép pixel ChatGPT | Owner muốn làm toàn bộ UI một lượt chuẩn và cho rằng OpenAI phù hợp hơn với cách GPT-5.6/Codex mở rộng codebase | Global | Hoàn tất F5–F7 + DS4/R1; khôi phục full QA; thêm OpenAI visual/motion contract và final runtime board | Toàn bộ M0–M8, shell, transient surfaces, animations, docs/toolchain | IMPLEMENTED — OWNER FINAL REVIEW |
+| 2026-07-29 | Global art direction + execution mode | Retire `T001`; OpenAI/Codex minimal system thay Apple làm visual research chính. Dùng system colors/font, restrained type scale, token spacing/radius, icon outline, một CTA chính và motion có mục đích; không sao chép pixel ChatGPT | Owner muốn làm toàn bộ UI một lượt chuẩn và cho rằng OpenAI phù hợp hơn với cách GPT-5.6/Codex mở rộng codebase | Global | Hoàn tất F5–F7 + DS4/R1; khôi phục full QA; thêm OpenAI visual/motion contract và final runtime board | Toàn bộ M0–M8, shell, transient surfaces, animations, docs/toolchain | IMPLEMENTED — OWNER APPROVED 2026-08-04 |
 | 2026-07-29 | DS2 Catalog + primary header flattening | Catalog bỏ block giới thiệu lặp, dùng đúng motif `filter → header có # → rows → footer/pager`; server paging luôn hiện trong viewport. Primary header không còn tab con/breadcrumb; `Quản lý` được thay trực tiếp bằng `Tổng hợp phòng ban` | Owner review phát hiện Catalog thiếu footer/cột số thứ tự dù API đã paging và nested header-tab tạo hierarchy thừa | Catalog route + global authenticated header | Sửa grid thành flex data/pager, thêm page-aware row number; xóa breadcrumb model/markup/CSS và dùng label primary trực tiếp | Catalog, dashboard/order-create, period, pricing và mọi header consumer | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-29 | DS3 History + Department Summary viewport correction | Cả hai route dùng cùng shell full-height; chi tiết đơn bắt đầu ngang mép trên KPI và cùng chạm đáy viewport với danh sách. Không dùng `text-box` trim cho nội dung phiếu/badge tiếng Việt vì có thể xén dấu hoặc đỉnh glyph | Owner review phát hiện Department Summary bị đứt chuỗi height, detail bắt đầu cao hơn KPI và phần trên chữ bị cắt | Shared History workspace + dashboard shell routing | Áp `vpp-history-shell` cho History và Department Summary; đổi detail sang grid row KPI → đáy; bỏ local glyph trim và khóa bằng route geometry | History, Department Summary, future HistoryWorkspaceShell consumers | IMPLEMENTED — OWNER REVIEW |
 | 2026-07-28 | F4 owner review round 6 — collapsed user popup | Sidebar mở rộng giữ account popup trong sidebar; sidebar thu gọn phải mở popup sang bên phải rail và bám đáy, không dùng panel rộng phủ lên icon/navigation | Owner phát hiện popup user ở rail thu gọn không còn giống behavior trước và che cả sidebar lẫn main content | Global shell interaction | Tách anchor theo shell state; thêm browser geometry gate cho expanded motion và collapsed no-overlap/bottom anchor | Account menu ở mọi authenticated route, desktop collapsed shell | IMPLEMENTED — OWNER_REVIEW |
@@ -1632,7 +1634,7 @@ Gate thiết kế mới:
 - [x] Tách chế độ duyệt fluid khỏi capture cố định; 84/84 kiểm tra responsive desktop pass ở zoom trình duyệt 100%.
 - [x] M0 hiển thị đầy đủ hierarchy cha–con–cháu; M1 Login/Logout bám thiết kế account hiện tại; copy VI dùng ngữ cảnh nghiệp vụ thay vì dịch thô.
 - [x] Gate lịch sử M0/board đã được thỏa trong ATLAS/UI-SYSTEM trước khi rollout shared primitives và
-  route production; final visual acceptance toàn hệ thống vẫn là gate riêng đang pending.
+  route production; final visual acceptance toàn hệ thống được owner chấp thuận ngày 2026-08-04.
 
 ### 14.1 Checkpoint triển khai Atlas M0–M2
 
@@ -1647,10 +1649,9 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
 
-Checkpoint hiện tại: F0–F7 đã hoàn tất implementation. Owner final visual review vẫn pending, nhưng
-owner đã cho phép bắt đầu `FRONTEND-REFACTOR-001` trên provisional baseline. Không đổi backend API
-endpoint/contract/behavior, database, RBAC, LVTN hoặc React trong frontend refactor nếu không có
-approval riêng.
+Checkpoint hiện tại: F0–F7 và `FRONTEND-REFACTOR-001` đã hoàn tất; owner chấp thuận current runtime +
+final board ngày 2026-08-04. Golden artifact được hoãn đến clean reproducible HEAD và phase chốt
+luận văn/slide. Không đổi API/database/RBAC chỉ để khớp visual trong correction về sau.
 
 > **Lưu ý lịch sử:** các evidence cũ trong file có thể chứa tên thư mục đã retire hoặc lệnh `.sln` của snapshot cũ. Lệnh hiện hành nằm ở Section 12 và dùng `gtas_vpp.slnx`; không sao chép command lịch sử để chạy mù quáng.
 
@@ -1667,7 +1668,7 @@ approval riêng.
 
 Correction runtime ngày 2026-07-31 cho Quản lý người dùng: account `PendingApproval` chỉ hiển thị action `Duyệt` có nhãn; nút bật sau khi chọn đủ nhóm quyền và phòng ban, còn access switch chỉ xuất hiện sau kích hoạt. Mọi trạng thái khóa phải có lý do đọc được; guard chống tự sửa membership vẫn giữ nguyên ở UI và backend.
 
-Mutation evidence ngày 2026-08-04 cho Chốt kỳ: LocalDB cô lập tạo kỳ trước `Pricing` có đơn hợp lệ; `Procurement` chốt revision 1, cùng user bị four-eyes từ chối mà không sinh revision, sau đó `Manager` tạo correction revision 2. API history xác nhận revision cũ bất biến và chỉ revision mới là current. Test reload trước correction để không tự quyết định UX sau mutation; notice + `Xem trước lại` hay auto re-preview vẫn chờ owner chốt và không phải owner visual acceptance.
+Mutation evidence ngày 2026-08-04 cho Chốt kỳ: LocalDB cô lập tạo kỳ trước `Pricing` có đơn hợp lệ; `Procurement` chốt revision 1, cùng user bị four-eyes từ chối mà không sinh revision, sau đó `Manager` tạo correction revision 2. API history xác nhận revision cũ bất biến và chỉ revision mới là current. Owner chọn phương án A: notice + `Xem trước lại` bắt buộc tạo snapshot/idempotency key mới trước correction tiếp theo.
 
 Evidence đóng record (historical snapshot của 2026-08-02): solution Release build `0 warning`; frontend unit `202/202`; settlement confirmation `4/4`; route-real isolated History + Department Summary `2/2`, User Admin `1/1`, Chốt kỳ `1/1`, My Orders shell/period summary `1/1`. Screenshot đã được kiểm tra bằng mắt tại `390×844`, `1366×768`, `1920×1080`; artifact thô nằm trong thư mục temp ignored, không commit. Không dùng các số này thay cho checkpoint 2026-08-04 ở `FRONTEND-REFACTOR-001`.
 
@@ -1677,6 +1678,15 @@ Evidence đóng record (historical snapshot của 2026-08-02): solution Release 
 - Master hiển thị full mã đơn, người đặt, phòng ban, kỳ, số mặt hàng và trạng thái; detail hiển thị full code, hai badge loại/trạng thái, metadata, lý do, bảng mặt hàng và PDF/XLSX có nhãn rõ.
 - Pager của master và footer quyết định của detail bám đáy từng surface; error state tách khỏi empty/success để lỗi tải không bị hiểu nhầm là hết đơn chờ duyệt.
 - Evidence: Release build `0 warning`; frontend unit `213/213`; focused isolated Playwright `1/1` tại `390×844`, `768×1024`, `1366×768`, `1920×1080`, không tràn ngang document. Screenshot đã được kiểm tra bằng mắt; artifact thô nằm trong temp ignored.
+
+### 14.4 Owner final visual acceptance — 2026-08-04
+
+- Owner chấp thuận current authenticated Blazor runtime và final board, không yêu cầu correction visual mới.
+- Evidence gồm route manifest 44 key, frontend verify PASS, settlement mutation E2E `1/1`,
+  `ShellResponsiveTests` `1/1` và 17 PNG settled trong thư mục ignored.
+- Raw English `CanCreateOrderReason` được chấp nhận như localization backlog riêng, không chặn UI acceptance.
+- Không tạo golden package ngay: board phản ánh owner-owned `vpp-polish.css` diff chưa có trong clean HEAD.
+  Canonicalize/capture lại từ reproducible HEAD khi chọn representative contact sheet và ảnh luận văn/slide.
 
 ---
 
@@ -1738,8 +1748,8 @@ Khi tiếp tục UI renovation trong thread/session mới:
 4. Kiểm tra `git status`, branch và diff chưa commit.
 5. Đọc `docs/execution/FRONTEND-REFACTOR-001.md`, `RouteAcceptanceManifest.cs` và evidence mới nhất;
    các bảng W0–W8 ở mục 9 chỉ là historical snapshot.
-6. Xác định gate còn mở: correction UX owner decision và final visual board;
-   không tự chọn một dòng `PENDING` cũ trong route ledger.
+6. Final visual board đã được owner duyệt; nếu mở correction UI mới, tạo execution slice riêng và không
+   tự chọn một dòng `PENDING` cũ trong route ledger lịch sử.
 7. Không suy luận rằng Figma/Atlas đã cover đủ logical route.
 8. Không tạo thêm UI Lab/project preview trong repository; React POC cũ chỉ tồn tại ở archive tag và không đổi architecture render mode của Blazor.
 9. Không thay đổi API/DB/nghiệp vụ chỉ để đạt visual.

@@ -1,6 +1,6 @@
 # UI-SYSTEM-001 — Scalable Blazor/Radzen UI System Refactor
 
-- Status: `IMPLEMENTED — F0–F7 DONE; FRONTEND READABILITY REFACTOR AUTHORIZED; OWNER FINAL VISUAL REVIEW PENDING`
+- Status: `COMPLETE — F0–F7 DONE; FRONTEND REFACTOR DONE; OWNER FINAL VISUAL ACCEPTANCE APPROVED 2026-08-04; GOLDEN DEFERRED`
 - Priority: P1
 - Lập kế hoạch: 2026-07-28 (Asia/Ho_Chi_Minh)
 - Frontend authority: `src/Frontend/Blazor/`
@@ -17,6 +17,10 @@
 > đầu trước lượt duyệt visual cuối. Runtime hiện tại là baseline tạm; correction UI sau này vẫn được
 > phép và có thể kéo theo refactor tiếp. Quyết định này không biến screenshot hiện tại thành golden
 > baseline và không hạ gate route-real/browser của record này.
+>
+> Owner decision 2026-08-04: current authenticated Blazor runtime và final review board được chấp
+> thuận làm visual reference hiện hành. Golden regression package/contact sheet được hoãn đến lúc
+> source visual đã tái tạo được từ clean HEAD và chọn ảnh luận văn/slide; không commit 17 PNG thô.
 
 ---
 
@@ -177,14 +181,14 @@ Không thêm `!important` mới nếu chưa chứng minh specificity hoặc thir
 
 | Wave | Trạng thái | Model + effort · lý do | Thực hiện | Sau wave anh có gì | Visual review | Gate để mở wave sau |
 |---|---|---|---|---|---|---|
-| F0 — Baseline & guard | `DONE — OWNER REVIEW` | **Sol · High** — cascade/architecture mơ hồ, sai nền sẽ lan toàn plan. | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên ở desktop; breakpoint 390/768 không còn chừa gutter cho sidebar đã ẩn. | Contact sheet before/after 4 route + diagram cascade trong evidence local ignored. | Focused architecture, route-real matrix và full frontend verify đã pass. |
+| F0 — Baseline & guard | `DONE — OWNER APPROVED 2026-08-04` | **Sol · High** — cascade/architecture mơ hồ, sai nền sẽ lan toàn plan. | Sửa CSS load order; audit route/query metadata; lập component/debt catalog; thêm architecture checks. | **Nền kỹ thuật:** baseline đáng tin, UI gần như giữ nguyên ở desktop; breakpoint 390/768 không còn chừa gutter cho sidebar đã ẩn. | Contact sheet before/after 4 route + diagram cascade trong evidence local ignored. | Focused architecture, route-real matrix và full frontend verify đã pass. |
 | F1 — Token & bridge | `DONE — OWNER CONFIRMED` | **Sol · High** — token/bridge ảnh hưởng mọi component phía sau. | Chuẩn hóa semantic token Light/Dark, Radzen bridge và phân loại legacy CSS. | **Nền visual:** màu, spacing, typography, radius và shadow có một nơi rõ để chỉnh. | Theme board 4 route thật đặt Light/Dark cạnh nhau. | Hex authored giảm `131 → 108`; inline/`!important` không tăng; resolved bridge, route health và representative axe pass. |
 | F2 — Primitive & state | `DONE — SOL REVIEWED` | **Terra · High** implement; **Sol · High** review — khóa API/state contract và regression visual. | Tạo `VppContentState` typed; migrate History + Catalog; giữ adapter còn consumer; sửa class CSS compatibility và khôi phục retry icon. | **Khung cơ bản dùng được:** error và filter-empty đầu tiên đã thống nhất typed API. | Runtime isolated History + Catalog; evidence thô ignored. | Build `0 warning/error`, frontend `180/180`, isolated Playwright `3/3`; fix ở `139e151`. |
 | F3 — Composite | `DONE — OWNER APPROVED` | **Sol · High** — phải suy luận behavior chung từ hai consumer thật, rủi ro abstraction sai. | Trích xuất order-detail filter-to-footer typed dùng chung; shared composite sở hữu focus/hover, popup positioning, row feedback, scrollbar gutter, virtualization và footer; route chỉ giữ header/action/API/nghiệp vụ. | **Luồng mẫu hoàn chỉnh:** My Orders và History giống nhau cả interaction + scroll; chỉ header nghiệp vụ và độ rộng route khác nhau. Danh sách đơn History vẫn giữ paging/footer riêng. | Runtime isolated: popup board hai route + fixture 500 dòng; evidence local ignored. | Owner mở F4; build/frontend + direct parity + long-scroll gate đã pass. |
 | F4 — Pattern | `DONE — OWNER OPENED FULL ROLLOUT 2026-07-29` | **Sol · XHigh** — checkpoint kiến trúc khó nhất, ảnh hưởng scalability dài hạn. | Khóa `page outer inset`; tạo sáu pattern typed/slot-based; chuẩn hóa shell seam, directional indicator, navigation rhythm và transient-surface motion toàn cục. | **Khung scalable hoàn chỉnh:** agent có bản đồ chọn pattern; page giữ cùng nhịp với header/sidebar; interaction nổi dùng một ngôn ngữ; route vẫn sở hữu API/permission/nghiệp vụ. Đây chưa phải toàn bộ màn đã migrate. | Runtime board 6 archetype + 12 route consumer; shell expanded/collapsed; hover/indicator và popup filter; evidence local ignored. | Owner yêu cầu tiếp tục toàn plan; mọi correction F4 trở thành regression contract của F5–F7. |
 | F5 — M0–M2 reference | `DONE — 2026-07-29` | **Terra · High** implement; **Sol · High** review từng slice — giữ chuẩn reference. | Shell/account/system transition, catalog, order create, My Orders và History dùng OpenAI/Codex contract; route đã đúng pattern được harden thay vì rewrite. | **UI nhóm người dùng chính hoàn chỉnh** trên UI system mới và trở thành mẫu cho agent. | Runtime browser matrix 4 viewport; account VI/EN; shell motion; data/filter/detail và Create Order lifecycle. | Release build + frontend `198/198`; focused M0–M2 browser matrix `14/14`, Create Order lifecycle `1/1`, not-found flow `1/1`. |
 | F6 — M3–M8 rollout | `DONE — FINAL REVIEW DEFERRED TO F7` | **Terra · High** — rollout lớn nhưng pattern đã ổn định. | Migrate management, period, library, permission, report và system state; gỡ replacement cũ khi hết consumer. | **Toàn bộ UI trong scope hiện tại** chạy trên khung mới. | Contact sheet chia theo subwave/nhóm nghiệp vụ; trace cho period/permission. | F6A/F6B có build, unit/architecture, route-real và visual evidence; owner review tổng thể dồn sau F7. |
-| F7 — Hardening | `DONE — OWNER FINAL REVIEW` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, đồng bộ motion, axe/Print và chuẩn bị visual baseline để owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh về implementation:** sẵn sàng cho lượt rà toàn bộ màn hình và các correction cuối của owner. | Final board: 4 viewport, Light/Dark/Print, account/data/workflow/transient surface và QA scorecard. | Gate frontend tương đương pass; `verify` wrapper chỉ bị chặn bởi một AI-harness eval ngoài scope UI. |
+| F7 — Hardening | `DONE — OWNER APPROVED 2026-08-04` | **Sol · XHigh** — final review cần bắt regression/debt xuyên toàn hệ thống. | Dọn legacy còn replacement, đồng bộ motion, axe/Print và chuẩn bị visual baseline để owner duyệt. | **`UI-SYSTEM-001` hoàn chỉnh về implementation:** final runtime board đã được owner chấp thuận; golden artifact được hoãn có chủ đích. | Final board: 4 viewport, Light/Dark/Print, account/data/workflow/transient surface và QA scorecard. | Gate frontend tương đương pass; `verify` wrapper chỉ bị chặn bởi một AI-harness eval ngoài scope UI. |
 
 Routing trên áp dụng riêng cho execution lịch sử của `UI-SYSTEM-001`; chỉ đổi model ở ranh giới
 wave/checkpoint lớn. `Sol review` là lượt review độc lập, không phải hai agent cùng sửa một worktree.
@@ -482,11 +486,13 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   correction gate. Đây là behavior/UX correction riêng, không đổi API/DTO/database/RBAC.
 - Technical runtime board `ShellResponsiveTests` pass `1/1` với 17 ảnh settled tại
   `tmp/ui-final-acceptance-2026-08-04/`; harness đã đổi selector về canonical workspace và chờ
-  `aria-busy`/Radzen/history loading state tắt trước capture. Ảnh chỉ là evidence để owner duyệt,
-  chưa được gọi là golden thesis/slide.
-- Owner vẫn cần rà route thật và chốt final visual acceptance. Điểm quan sát cần quyết định riêng:
-  Order Create hiển thị raw English `CanCreateOrderReason` trong UI tiếng Việt; giữ nguyên cho đến khi
-  có correction/localization decision thuộc backend.
+  `aria-busy`/Radzen/history loading state tắt trước capture. Owner chấp thuận current runtime và board
+  này ngày 2026-08-04; đây là visual reference hiện hành, chưa phải golden artifact.
+- Raw English `CanCreateOrderReason` ở Order Create được chấp nhận như known localization backlog,
+  không làm mất hiệu lực nghiệm thu UI và sẽ được xử lý ở boundary backend/localization riêng.
+- Chưa tạo golden ngay vì board được capture cùng owner-owned diff trong `vpp-polish.css` chưa nằm trong
+  clean HEAD. Khi chốt ảnh luận văn/slide, canonicalize diff hoặc capture lại từ clean reproducible HEAD,
+  rồi chỉ giữ representative board/contact sheet nếu thật sự hữu ích.
 
 ---
 
@@ -510,11 +516,11 @@ Ba gate mở plan đã được owner duyệt trong các checkpoint trước:
 - [x] Kiến trúc hybrid và quy tắc `2 consumer trước abstraction`.
 - [x] Thứ tự F0–F7 và nguyên tắc migrate dần, không rewrite big-bang.
 - [x] Slice đầu tiên F0.1–F0.3: CSS order, route metadata và regression baseline.
-- [ ] Owner rà final board + route thật và ghi correction cuối nếu có.
+- [x] Owner chấp thuận current runtime + final board ngày 2026-08-04; không yêu cầu correction visual mới.
 
-Implementation F0–F7 đã hoàn tất và commit local theo slice. Checkbox final visual review không còn
-block việc bắt đầu readability refactor, nhưng vẫn block golden baseline, screenshot luận văn cuối và
-final visual acceptance. Push/PR chỉ khi owner yêu cầu rõ.
+Implementation F0–F7, frontend readability refactor và final visual acceptance đã hoàn tất. Golden
+artifact và ảnh luận văn/slide cuối là deliverable về sau, không còn block backend refactor. Push/PR chỉ
+khi owner yêu cầu rõ.
 
 ---
 

@@ -15,7 +15,7 @@ tắc nghiệp vụ nào.
 > Trạng thái: đã đồng bộ với implementation Blazor/Radzen và checkpoint frontend refactor đến
 > FR8A/FR8B cùng settlement mutation E2E ngày 2026-08-04. FR8C đã khóa ledger máy đọc được đủ 44 route
 > và hòa giải các bảng tài liệu lịch sử; History full test đã pass `3/3` sau bounded chart retry và
-> render-settle hardening; owner final visual acceptance là gate riêng;
+> render-settle hardening; owner đã chấp thuận current runtime + final board ngày 2026-08-04;
 > các mục không có số hình là route/state thật nhưng chưa được luận văn gán hình riêng.
 
 Ledger máy đọc được cho toàn bộ 44 key nằm tại
@@ -208,9 +208,8 @@ wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 
 `373/373` và checkpoint verify gần nhất pass build/unit/UI smoke. E2E tải thật cover report PDF/XLSX/CSV và
 order PDF/XLSX; settlement mutation cô lập chứng minh revision 1 bất biến, cùng người bị four-eyes từ chối
 và người thứ hai tạo correction revision 2. History full test pass `3/3` sau bounded chart retry và double-rAF
-render settle khi đóng transient detail popover;
-backend gate và owner visual approval vẫn là checkpoint riêng. Ảnh runtime chỉ khóa vào thesis/slide sau khi
-owner chấp thuận UI cuối.
+render settle khi đóng transient detail popover. Owner visual approval đã hoàn tất; backend refactor và việc
+khóa ảnh runtime vào thesis/slide vẫn là hai checkpoint riêng.
 
 ### Feature owner quick map
 

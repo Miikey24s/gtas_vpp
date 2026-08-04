@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `IN PROGRESS — FR0–FR6 COMPLETE; FR7 CORE MUTATION E2E + CORRECTION UX A COMPLETE; FR8A/FR8B COMPLETE; FR8C ROUTE MANIFEST + DOC RECONCILIATION COMPLETE, OWNER FINAL VISUAL ACCEPTANCE PENDING`
+- Status: `COMPLETE — FR0–FR8C DONE; CORRECTION UX A + MUTATION E2E PASS; OWNER FINAL VISUAL ACCEPTANCE APPROVED 2026-08-04; GOLDEN DEFERRED`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -17,9 +17,8 @@
 - Supersedes: phần **R-2 frontend** trong `docs/execution/REFACTOR-001.md`; lịch sử R-0 và các
   decision đã hoàn thành vẫn được giữ nguyên
 - Does not supersede: visual, interaction, motif và route-real QA authority của `UI-SYSTEM-001`
-- User approval required: owner đã duyệt **hướng bắt đầu refactor trước lượt duyệt UI cuối**;
-  technical refactor/docs có thể tiếp tục theo checkpoint, còn correction UX và final visual acceptance
-  vẫn là approval gate của owner
+- User approval: owner đã duyệt **hướng bắt đầu refactor trước lượt duyệt UI cuối**, correction UX A và
+  current runtime/final board; frontend acceptance gate đã đóng ngày 2026-08-04
 
 <a id="plan-overview"></a>
 
@@ -28,7 +27,7 @@
 | Mục | Tóm tắt dễ hiểu | Chi tiết |
 |---|---|---|
 | Kết quả cần đạt | Frontend nhìn và chạy như hiện tại, nhưng một sinh viên năm 4 có thể lần từ route → page → state → API client → Shared DTO, hiểu file nào sở hữu việc gì và trình bày được luồng chính | [Objective](#plan-detail-objective) |
-| Quyết định thời điểm | Refactor được bắt đầu **trước** final visual acceptance. UI hiện tại là baseline tạm; nếu owner sửa UI sau đó thì thực hiện correction riêng rồi refactor tiếp phần bị ảnh hưởng | [Timing contract](#plan-detail-timing) |
+| Quyết định thời điểm | Refactor được bắt đầu **trước** final visual acceptance; owner đã chấp thuận current runtime sau khi FR8C hoàn tất. Correction sau này vẫn tách riêng rồi refactor tiếp phần bị ảnh hưởng | [Timing contract](#plan-detail-timing) |
 | Phạm vi | Blazor/Radzen frontend, frontend tests và tài liệu đọc code; không đổi API/DTO/database/RBAC/nghiệp vụ, không khôi phục React | [Scope](#plan-detail-scope) |
 | Phương án | Giữ một project Blazor, giữ design system hiện có; tổ chức dần theo feature `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, cộng `Platform` dùng chung | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
@@ -36,7 +35,7 @@
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `373/373`; 84 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Correction UX A, mutation E2E, FR8C docs/manifest và technical runtime board đã hoàn tất. Chờ owner duyệt visual board; sau đó mở B0R backend và giữ debt localization raw message ở backlog riêng | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Frontend refactor và owner visual acceptance đã hoàn tất. Triển khai B0R-D1/B0R-D2 rồi mở backend B1a-1; giữ raw English reason ở localization backlog riêng | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -119,6 +118,9 @@ Owner xác nhận không cần chờ final UI acceptance mới refactor. Quyết
 6. Hai file đang dirty `wwwroot/css/vpp-polish.css` và
    `tests/Frontend.UiTests/Tests/Order/ProductCatalogTests.cs` thuộc correction hiện hữu; FR0 phải
    đọc/giữ nguyên diff này, không overwrite hoặc gọi baseline đã khóa trước khi focused QA pass.
+7. Owner chấp thuận current runtime và final board ngày 2026-08-04. Golden artifact được hoãn đến khi
+   visual đã tái tạo được từ clean HEAD và bắt đầu chọn ảnh luận văn/slide; approval hiện tại vẫn mở
+   backend refactor.
 
 Nguyên tắc “hai chiếc mũ” vẫn giữ: một commit là refactor hoặc UI behavior change, không đồng thời cả
 hai nếu diff không thể review độc lập.
@@ -141,7 +143,7 @@ contract và sequencing; không nhân bản ledger đang thay đổi theo source
 | Settlement mutation | `1/1`: confirm revision 1, four-eyes rejection, correction revision 2, history immutable; post-success fresh-preview CTA + new key gate pass |
 | History route gate | Full targeted test `3/3` sau bounded chart retry và render-settle hardening khi đóng detail popover |
 | Runtime visual board | `ShellResponsiveTests` `1/1`; 17 settled screenshots ở `1920×1080`, selector/loading gate đã được sửa và kiểm bằng mắt |
-| Owner visual status | Technical board đã sẵn sàng; owner final visual approval, golden thesis/slide và localization raw-message decision vẫn pending |
+| Owner visual status | `APPROVED 2026-08-04` cho current runtime + final board; golden thesis/slide deferred; raw-message localization là backend backlog riêng |
 
 ### Historical FR0 inventory snapshot — 2026-08-02
 
@@ -455,10 +457,11 @@ giữ tên rõ và API nhỏ.
 - Screenshot harness được đồng bộ với data-surface canonical (`period-settlement-data-surface`,
   `vpp-approval-operation-workspace`) và chờ mọi visible `aria-busy`/Radzen/history loading state tắt
   trước capture. `ShellResponsiveTests` pass `1/1`, tạo 17 ảnh settled trong thư mục ignored
-  `tmp/ui-final-acceptance-2026-08-04/`; đây là evidence để owner duyệt, chưa phải golden.
-- Board còn một điểm cần owner quyết định riêng: Order Create đang hiển thị raw English
-  `CanCreateOrderReason` từ backend trong giao diện tiếng Việt. Không đổi API/logic âm thầm trong slice
-  correction; ghi vào backend/localization backlog.
+  `tmp/ui-final-acceptance-2026-08-04/`; owner chấp thuận current runtime + board ngày 2026-08-04.
+- Board còn raw English `CanCreateOrderReason` từ backend trong giao diện tiếng Việt. Owner chấp nhận
+  đây là known localization backlog; không đổi API/logic âm thầm trong frontend correction.
+- Golden package/contact sheet được hoãn vì owner-owned diff `vpp-polish.css` chưa nằm trong clean HEAD;
+  canonicalize hoặc capture lại từ reproducible HEAD trước khi khóa ảnh luận văn/slide.
 
 ## 8. Cleanup classification — HISTORICAL FR0 SNAPSHOT
 
@@ -541,9 +544,9 @@ dùng worktree riêng và không chạm cùng module.
 | Wave | Trạng thái hiện tại | Gate còn mở |
 |---|---|---|
 | FR0–FR6 | `COMPLETE` | Không mở lại baseline; chỉ sửa khi có regression được chứng minh |
-| FR7 | `CORE MUTATION E2E + CORRECTION UX A COMPLETE` | Owner visual acceptance vẫn là gate riêng; không còn frontend mutation gate |
+| FR7 | `CORE MUTATION E2E + CORRECTION UX A COMPLETE` | Không còn frontend mutation gate |
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
-| FR8C | `MANIFEST + DOC RECONCILIATION + TECHNICAL BOARD COMPLETE` | Owner final visual acceptance; golden chỉ tạo sau approval |
+| FR8C | `COMPLETE — OWNER APPROVED 2026-08-04` | Golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 
 `RouteAcceptanceManifest` là ledger coverage kỹ thuật hiện hành. Nó không tự biến Atlas smoke thành
 functional acceptance, không thay browser route-real review và không chốt ảnh thesis/slide.
@@ -731,8 +734,9 @@ Owner đã thay thế yêu cầu “chốt UI hoàn toàn rồi mới refactor f
 1. **Checkpoint correction UI đang dở** — hiểu và giữ hai dirty file hiện hữu; chưa cần final acceptance.
 2. **Frontend refactor FR0→FR8** — từng lát giữ baseline tạm; correction UI mới vẫn được phép xen ở
    boundary rõ rồi refactor tiếp.
-3. **Owner final UI acceptance** — rà toàn bộ route, sửa correction cuối và chỉ lúc này mới chốt golden.
-4. **Backend refactor B0→B8** theo `BACKEND-REFACTOR-001`.
+3. **Owner final UI acceptance — hoàn tất 2026-08-04** — current runtime + final board đã được duyệt;
+   golden artifact được hoãn có chủ đích.
+4. **Backend refactor B0→B8 — đang thực hiện** theo `BACKEND-REFACTOR-001`.
 5. **Luận văn + slide finalization** — cập nhật source map, test evidence, screenshot và sơ đồ cuối.
 
 Storyboard slide, dàn ý chương trình bày và glossary có thể làm sớm. Không chốt screenshot, test count,
@@ -748,15 +752,16 @@ file path hoặc sơ đồ kiến trúc cuối trước khi frontend/backend ref
 | FE-D4 | `APPROVED 2026-08-03` | English identifiers + Vietnamese why-only comments; bỏ ticket/wave/history khỏi source khi chạm |
 | FE-D5 | `APPROVED 2026-08-03` | Final golden/slide screenshots chỉ sau owner final UI acceptance |
 | FE-D6 | `APPROVED 2026-08-04` | Correction thành công bắt buộc `Xem trước lại`; preview mới tạo snapshot và idempotency key mới trước correction tiếp theo |
+| FE-D7 | `APPROVED 2026-08-04` | Chấp thuận current authenticated runtime + final board; raw English reason là localization backlog riêng; golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 
-FE-D2..D5 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
+FE-D2..D7 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
 
 <a id="plan-detail-continuation"></a>
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR6 hoàn tất; FR7 structural ownership, core mutation E2E và correction UX A đã hoàn tất. FR8A/FR8B/FR8C hoàn tất; route manifest 44 key, code-reading sync và settled runtime board đã có; `Components/Shared` đã về 0 source owner**.
-  Provisional baseline chưa phải golden; owner final visual acceptance vẫn là gate riêng.
+- Current status: **FR0–FR8C, core mutation E2E, correction UX A và owner final visual acceptance đã hoàn tất; route manifest 44 key, code-reading sync và settled runtime board đã có; `Components/Shared` đã về 0 source owner**.
+  Current runtime là visual reference được duyệt; golden artifact chưa tạo và không block backend.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
   `ProductCatalogTests.cs` và hai text extraction artifact; không stage/overwrite.
@@ -1087,8 +1092,8 @@ FE-D2..D5 là authority cho implementation hiện tại; thay đổi material c�
   được suy ra từ manifest.
 - Quota: sanitized probe tiếp tục trả `404`; capacity chưa xác nhận. Thực thi theo checkpoint nhỏ theo
   chỉ đạo owner, không hạ model/effort hoặc bỏ gate để vừa quota.
-- Next exact action: owner rà board route thật và chốt final visual acceptance; sau approval mới mở B0R
-  backend. Correction A đã triển khai: sau mỗi revision thành công, nút correction được thay bằng notice
+- Next exact action: triển khai B0R-D1/B0R-D2 đã được owner duyệt, chạy authorization gate rồi mở B1a-1.
+  Correction A đã triển khai: sau mỗi revision thành công, nút correction được thay bằng notice
   + CTA `Xem trước lại`, chỉ bật correction khi preview sinh key mới. Core mutation E2E confirm/correct/
   four-eyes và post-success CTA đều pass. FR8A/FR8B cleanup độc lập đã hết candidate có zero-consumer
   evidence; không tách `PermissionRealtimeService`,
