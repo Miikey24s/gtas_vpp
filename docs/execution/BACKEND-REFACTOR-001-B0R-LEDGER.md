@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R COMPLETE — D1/D2 OWNER-APPROVED + IMPLEMENTED; UI ACCEPTED; B1a-1 OPEN`
+- Status: `B0R + B1a-1 COMPLETE — D1/D2 IMPLEMENTED; PROVEN DEAD CODE REMOVED; REFORECAST NEXT`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
@@ -13,13 +13,13 @@
 |---|---|
 | Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit `525/525`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
 | Kiến trúc | Giữ `API → Application → Domain`; Shared là wire contract; không tạo project/microservice mới |
-| Xóa an toàn đầu tiên | 5 private `*LegacyAsync` trong `VPPRequestService`, `ObjectHelpers.cs`, `PasswordHelpers.cs` có usage chỉ là declaration |
+| Xóa an toàn đầu tiên | B1a-1 đã xóa 5 private `*LegacyAsync`, `ObjectHelpers.cs`, `PasswordHelpers.cs`; post-delete usage scan 0 |
 | Chưa được xóa | `BaseServices`, `IBaseServices`, `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật |
 | RBAC contract | Canonical có 3 persona; Procurement legacy alias về Manager; test đã khóa legacy ID không thuộc persona và không còn group/membership active sau reconciliation |
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production đầu tiên | B1a-1 xóa dead code nhỏ; không trộn `BaseServices`, helper closure B1a-1b hoặc localization cutover |
+| Bước production tiếp theo | Chưa mở: đo/reforecast trước B1a-2; audit helper closure B1a-1b riêng, không trộn `BaseServices` hoặc localization cutover |
 
 ## 1. Baseline đã kiểm chứng
 
@@ -72,17 +72,17 @@ chạy data repair thật.
 
 ## 4. Cleanup ledger
 
-### `DELETE_CANDIDATE` — B1a-1
+### `DELETED` — B1a-1 hoàn tất 2026-08-04
 
-| Candidate | Evidence hiện tại | Gate trước delete |
+| Candidate | Evidence trước delete | Kết quả |
 |---|---|---|
-| `UpdateOrderLegacyAsync` | declaration duy nhất trong `VPPRequestService` | request service/controller focused + full backend |
-| `CancelOrderLegacyAsync` | declaration duy nhất | cancellation/lifecycle focused + full backend |
-| `ApproveAdditionalOrderLegacyAsync` | declaration duy nhất | supplement approval/four-eyes focused + full backend |
-| `RejectAdditionalOrderLegacyAsync` | declaration duy nhất | supplement reject/audit focused + full backend |
-| `GetCurrentPeriodInfoLegacyAsync` | declaration duy nhất | period info/policy focused + full backend |
-| `Application/Helpers/ObjectHelpers.cs` | repo-wide usage chỉ declaration | build, unit, integration, format |
-| `Application/Helpers/PasswordHelpers.cs` | empty class, usage chỉ declaration | build, unit, integration, format |
+| `UpdateOrderLegacyAsync` | declaration duy nhất trong `VPPRequestService` | deleted; request service/controller focused pass |
+| `CancelOrderLegacyAsync` | declaration duy nhất | deleted; cancellation/lifecycle focused pass |
+| `ApproveAdditionalOrderLegacyAsync` | declaration duy nhất | deleted; supplement approval/four-eyes focused pass |
+| `RejectAdditionalOrderLegacyAsync` | declaration duy nhất | deleted; supplement reject/audit focused pass |
+| `GetCurrentPeriodInfoLegacyAsync` | declaration duy nhất | deleted; period info/policy focused pass |
+| `Application/Helpers/ObjectHelpers.cs` | repo-wide usage chỉ declaration | file deleted; 6 extension handle còn 0 |
+| `Application/Helpers/PasswordHelpers.cs` | empty class, usage chỉ declaration | file deleted; type handle còn 0 |
 
 ### `KEEP / CHARACTERIZE FIRST`
 
@@ -116,12 +116,13 @@ Frontend hiện vẫn dùng generic Library cho lookup/category/supplier/departm
 create/update/archive/hard-delete/default/publish/expire/clone. Các endpoint pricing không có frontend
 caller vẫn được xem là public/hidden contract cho đến consumer audit ở B3, không được xóa từ search FE.
 
-### B1a-1 execution card — ready nhưng chưa được mở gate
+### B1a-1 execution record — COMPLETE 2026-08-04
 
-Current base: `e6d3c5ee`. Repo-wide search loại `bin/obj` cho thấy mỗi handle dưới đây chỉ còn declaration;
-hai helper không có reflection/fully-qualified caller và SDK dùng default compile items nên không sửa csproj.
+Execution base: `693cb58c`. Repo-wide search loại `bin/obj` cho thấy mỗi handle dưới đây chỉ còn
+declaration; hai helper không có reflection/fully-qualified caller và SDK dùng default compile items nên
+không sửa csproj.
 
-| Xóa trên current base | Boundary hiện tại |
+| Xóa trên execution base | Boundary lịch sử trước delete |
 |---|---|
 | `UpdateOrderLegacyAsync` | `VPPRequestService.cs:902-954` |
 | `CancelOrderLegacyAsync` | `VPPRequestService.cs:1269-1270` |
@@ -148,6 +149,15 @@ $b1aFocusedFilter = "FullyQualifiedName~VPPRequestLifecycleTests|" +
 dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --filter $b1aFocusedFilter
 ./scripts/gtas.cmd verify -Scope backend
 ```
+
+Kết quả thực thi:
+
+- post-delete repo-wide search: 0 handle cho 5 method legacy, 2 helper type và 6 extension method;
+- focused lifecycle/request/controller/period gate: `119/119`;
+- full backend verify: build `0 warning/error`, unit `525/525`, integration mặc định `14 pass/6 skip`,
+  EF zero-delta, format, vulnerability và Gitleaks PASS;
+- `TransitionStatus`, `GetCurrentAndPreviousPeriod`, `IsDeadlinePassed` và closure liên quan được giữ cho
+  B1a-1b audit; không mở rộng scope hoặc sửa reflection test trong commit này.
 
 Rollback boundary: một commit chỉ xóa đúng 5 method + 2 file; không DTO/route/policy/schema/migration.
 
@@ -203,11 +213,12 @@ không âm thầm đổi semantics `404`/`403` hoặc schema/index.
   integration `14/6 skip`, EF zero-delta, format, vulnerability và Gitleaks; LocalDB `20/20` giữ từ
   HTTP/RBAC slice vì behavior slice chỉ thêm unit/docs.
 - [x] Owner chốt B0R-D1/B0R-D2 phương án A và UI final acceptance; authorization ratchet pass, B1a-1 mở.
+- [x] B1a-1 xóa đúng 5 legacy method + 2 helper file; focused `119/119` và full backend verify PASS.
 
 ## 7. Boundary an toàn
 
 - B0R chỉ đổi hai authorization behavior đã được owner duyệt; không đổi Shared wire shape, database hoặc
-  nghiệp vụ đặt hàng. B1a-1 tiếp tục là behavior-preserving dead-code slice riêng.
+  nghiệp vụ đặt hàng. B1a-1 đã hoàn tất như behavior-preserving dead-code slice riêng.
 - Ngoài B0R-D1/D2 đã được owner duyệt, không đổi Shared wire shape, route, status code, database schema
   hoặc migration trong B0R.
 - Không stage/overwrite các dirty file ngoài scope được liệt kê trong continuation record.
