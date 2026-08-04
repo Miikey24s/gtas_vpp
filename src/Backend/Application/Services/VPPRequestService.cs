@@ -1914,9 +1914,6 @@ namespace gtas_vpp_be.Service.Services
 
         // ─── Hàm hỗ trợ nội bộ ────────────────────────────────────────────────
 
-        private bool IsDeadlinePassed(int year, int month)
-            => _periodCalculator.IsDeadlinePassed(_dateTimeProvider.Now, new Period(year, month));
-
         private async Task<VppPeriod> EnsurePeriodAsync(string memberCompanyCode, Period period)
         {
             if (_periodService is not null)
@@ -2085,28 +2082,8 @@ namespace gtas_vpp_be.Service.Services
             return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
         }
 
-        private static int TransitionStatus(int currentStatus, OrderAction action, string invalidMessage)
-        {
-            try
-            {
-                return OrderStateMachine.Transition(currentStatus, action);
-            }
-            catch (InvalidOperationException ex)
-            {
-                throw new InvalidOperationException(invalidMessage, ex);
-            }
-        }
-
         private string GenerateVppCode(int year, int month)
             => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}";
-
-        private (int curYear, int curMonth, int prevYear, int prevMonth) GetCurrentAndPreviousPeriod()
-        {
-            var now = _dateTimeProvider.Now;
-            var current = _periodCalculator.Current(now);
-            var previous = _periodCalculator.Previous(now);
-            return (current.Year, current.Month, previous.Year, previous.Month);
-        }
 
         /// <summary>
         /// Từ chối Year/Month rõ ràng không hợp lệ từ client (F-09). Year/Month của đơn

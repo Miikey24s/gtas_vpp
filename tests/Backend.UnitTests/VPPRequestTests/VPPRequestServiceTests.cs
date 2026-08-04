@@ -59,28 +59,6 @@ public class VPPRequestServiceTests
         Assert.Contains("Duplicate product", exception.Message);
     }
 
-    [Fact]
-    public void IsDeadlinePassed_DateBeforeDeadline_ReturnsFalse()
-    {
-        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = CreateService(context, new DateTime(2026, 4, 4, 23, 59, 59));
-
-        var result = InvokeIsDeadlinePassed(service, 2026, 4);
-
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void IsDeadlinePassed_DateAfterDeadline_ReturnsTrue()
-    {
-        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = CreateService(context, new DateTime(2026, 4, 6));
-
-        var result = InvokeIsDeadlinePassed(service, 2026, 3);
-
-        Assert.True(result);
-    }
-
     // NOTE: Obsolete test removed — VppCode format đã đổi sang
     // "VPP-{Year:D4}{Month:D2}-{Guid:N}" (24 chars, no userId leak) trong P0.3.
     // Coverage chuyển sang VppCodeGeneratorTests.cs (3 test: format/uniqueness/no-userId).
@@ -437,11 +415,6 @@ public class VPPRequestServiceTests
             ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
         }
     }
-
-    private static bool InvokeIsDeadlinePassed(VPPRequestService service, int year, int month)
-        => (bool)typeof(VPPRequestService)
-            .GetMethod("IsDeadlinePassed", BindingFlags.NonPublic | BindingFlags.Instance)!
-            .Invoke(service, new object[] { year, month })!;
 
     private static string InvokeGenerateVppCode(VPPRequestService service, int year, int month, int userId)
         => (string)typeof(VPPRequestService)
