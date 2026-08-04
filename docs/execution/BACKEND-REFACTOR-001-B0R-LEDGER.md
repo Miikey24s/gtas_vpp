@@ -1,7 +1,7 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `CHARACTERIZATION COMPLETE — 2 AUTH DECISIONS + UI ACCEPTANCE PENDING; PRODUCTION B1 CHƯA MỞ`
-- Slice base: `codex/ai-agent-foundation` @ `7ef42ac6`
+- Status: `B0R COMPLETE / B1a-1 READY — 2 AUTH DECISIONS + UI ACCEPTANCE PENDING; PRODUCTION B1 CHƯA MỞ`
+- Characterization HEAD / B1a-1 base: `codex/ai-agent-foundation` @ `e6d3c5ee`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -115,6 +115,41 @@ Frontend hiện vẫn dùng generic Library cho lookup/category/supplier/departm
 `supplier-product-mappings`. Typed catalog item đã dùng đủ create/update/status/delete; Price List dùng
 create/update/archive/hard-delete/default/publish/expire/clone. Các endpoint pricing không có frontend
 caller vẫn được xem là public/hidden contract cho đến consumer audit ở B3, không được xóa từ search FE.
+
+### B1a-1 execution card — ready nhưng chưa được mở gate
+
+Current base: `e6d3c5ee`. Repo-wide search loại `bin/obj` cho thấy mỗi handle dưới đây chỉ còn declaration;
+hai helper không có reflection/fully-qualified caller và SDK dùng default compile items nên không sửa csproj.
+
+| Xóa trên current base | Boundary hiện tại |
+|---|---|
+| `UpdateOrderLegacyAsync` | `VPPRequestService.cs:902-954` |
+| `CancelOrderLegacyAsync` | `VPPRequestService.cs:1269-1270` |
+| `ApproveAdditionalOrderLegacyAsync` | `VPPRequestService.cs:1862-1897` |
+| `RejectAdditionalOrderLegacyAsync` | `VPPRequestService.cs:1912-1947` |
+| `GetCurrentPeriodInfoLegacyAsync` | `VPPRequestService.cs:2046-2085` |
+| `ObjectHelpers.cs` | xóa toàn file; 6 extension method đều declaration-only |
+| `PasswordHelpers.cs` | xóa toàn file rỗng |
+
+Không mở rộng cùng commit: sau khi xóa các method trên, `TransitionStatus`,
+`GetCurrentAndPreviousPeriod` và `IsDeadlinePassed` có thể trở thành declaration/test-only. Chuỗi này
+liên quan `OrderStateMachine` và reflection test, nên chuyển sang B1a-1b với usage audit riêng thay vì
+âm thầm kéo scope. Rủi ro duy nhất của hai public helper là binary consumer ngoài repo; Application
+không được đóng gói như public package và không có evidence consumer này.
+
+Focused gate trước full verify:
+
+```powershell
+$b1aFocusedFilter = "FullyQualifiedName~VPPRequestLifecycleTests|" +
+    "FullyQualifiedName~VPPRequestServiceTests|" +
+    "FullyQualifiedName~CreateOrderRaceConditionTests|" +
+    "FullyQualifiedName~VPPRequestControllerTests|" +
+    "FullyQualifiedName~PeriodCalculatorTests"
+dotnet test tests/Backend.UnitTests/gtas_vpp_be.Tests.csproj -c Release --filter $b1aFocusedFilter
+./scripts/gtas.cmd verify -Scope backend
+```
+
+Rollback boundary: một commit chỉ xóa đúng 5 method + 2 file; không DTO/route/policy/schema/migration.
 
 ## 5. Contract và documentation drift
 

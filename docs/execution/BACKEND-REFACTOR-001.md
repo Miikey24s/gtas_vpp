@@ -331,15 +331,18 @@ src/Backend/
 
 ### Refresh 2026-08-04
 
-- Local quota probe đã được retry nhưng trả HTTP 404; coverage hiện tại không khả dụng. Snapshot ngày
-  29/07 chỉ còn giá trị lịch sử và không được dùng để tuyên bố capacity hiện tại.
+- Local quota probe được retry lại ngày 04/08 nhưng endpoint scheduler vẫn trả HTTP 404; coverage hiện
+  tại không khả dụng. Sanitized cache gần nhất được capture lúc `2026-07-29 05:05 +07`, đã stale và
+  không được dùng để tuyên bố capacity hiện tại.
 - Official model resolver hiện chọn `gpt-5.6-sol`. Theo guidance chính thức, không dùng model mạnh nhất
   cho mọi lát: Sol dành cho architecture, security/business ambiguity và final review; Terra dành cho
   implementation cơ học, rõ contract và high-volume.
 - Cost range trong bảng wave là planning heuristic rộng, confidence thấp; chưa có matching consumption
   history mới nên không được coi là quota commitment.
-- Quyết định checkpoint: sau UI final acceptance chỉ mở **B0R** vì đây là slice độc lập, có giá trị thật;
-  probe/đo aggregate delta lại trước B1. Chưa tuyên bố `ENOUGH` cho toàn backend plan.
+- B0R đã hoàn tất. Với live coverage hiện không xác minh được, kết luận cho B1→B8 là `WAIT`, không tuyên
+  bố `ENOUGH`. Sau owner gate chỉ B1a-1 đủ điều kiện `SLICE_ONLY`: scope độc lập, low-single-digit
+  heuristic với buffer 2× và confidence thấp; giữ `gpt-5.6-terra` high + review `gpt-5.6-sol` high,
+  rồi đo aggregate delta trước B1a-2.
 
 `Khuyến nghị routing` không có nghĩa model của root task đã tự đổi.
 
@@ -554,8 +557,8 @@ UI final acceptance vẫn là dependency gate của portfolio.
 - Last completed evidence: focused behavior `83/83`, backend unit `520/520`; integration default 14 pass/6
   skip, disposable LocalDB 20/20 từ HTTP/RBAC slice và final full backend verify PASS. Mỗi production
   wave vẫn phải rerun gate trên HEAD của chính wave trước khi gọi PASS.
-- Next exact backend action: owner chốt UI visual board + B0R-D1/B0R-D2; sau đó probe/đo lại rồi
-  mới vào B1a-1. Raw English
+- Next exact backend action: owner chốt UI visual board + B0R-D1/B0R-D2; B1a-1 execution card đã khóa
+  exact deletion scope trong B0R ledger. Sau gate, probe/đo lại rồi mới triển khai. Raw English
   `CanCreateOrderReason` là localization backlog cần phân loại ở B0R, không tự sửa trong frontend.
 - Do not redo: role-count hardcode fix, model-routing-eval fix, source inventory refresh và dead-code
   usage scan; chỉ refresh lại nếu HEAD/backend dependency đã đổi trước B0R.
