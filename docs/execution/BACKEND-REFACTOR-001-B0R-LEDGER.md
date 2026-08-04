@@ -1,8 +1,8 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1a-1 + B1a-1b + B1a-2a + B1a-2b1 COMPLETE — B1a-2b2 REFORECAST`
+- Status: `B0R + B1a COMPLETE — B1b-A REFORECAST`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
-- Latest backend refactor commit: `6cfc8a62`
+- Latest backend refactor commit: `9f387ff8`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -12,22 +12,22 @@
 
 | Mục | Kết luận hiện tại |
 |---|---|
-| Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit hiện tại `506/506`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
+| Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit hiện tại `503/503`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
 | Kiến trúc | Giữ `API → Application → Domain`; Shared là wire contract; không tạo project/microservice mới |
 | Xóa an toàn đầu tiên | B1a-1 và B1a-1b đã xóa dead request closure đã chứng minh; post-delete usage scan 0 |
-| Chưa được xóa | `BaseServices`, `IBaseServices`, `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật |
+| Chưa được xóa | `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật; migration/generated/wire contracts giữ theo authority riêng |
 | RBAC contract | Canonical có 3 persona; Procurement legacy alias về Manager; test đã khóa legacy ID không thuộc persona và không còn group/membership active sau reconciliation |
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | Reforecast B1a-2b2 orphan cleanup; request service đã detach, không trộn localization cutover hoặc framework cleanup khác |
+| Bước production tiếp theo | Reforecast B1b-A repo metadata cleanup; local ignored artifacts và `.http` smoke vẫn là gate riêng |
 
 ## 1. Baseline đã kiểm chứng
 
 | Gate | Kết quả trên HEAD khảo sát |
 |---|---|
 | `./scripts/gtas.cmd preflight -Scope backend` | PASS |
-| `./scripts/gtas.cmd test-backend` | PASS — `506/506` sau B1a-2a characterization |
+| `./scripts/gtas.cmd test-backend` | PASS — `503/503` sau B1a-2b2 orphan-test cleanup |
 | Integration mặc định | PASS — `14`, skip đúng `6` opt-in LocalDB |
 | `GTAS_QA_SQL_INTEGRATION=1` | PASS — `20/20`, `0` skip |
 | `./scripts/gtas.cmd verify -Scope backend` | PASS — build sạch, unit/integration, EF pending-model, format, vulnerability và Gitleaks |
@@ -89,16 +89,15 @@ chạy data repair thật.
 
 | Boundary | Consumer thật | Quyết định |
 |---|---|---|
-| `BaseServices` / `IBaseServices` | `VPPRequestService`, DI, constructor-heavy tests | B1a-2 riêng; khóa construction/UoW/DI trước khi bỏ inheritance |
+| `BaseServices` / `IBaseServices` | consumer production/test đã về 0 sau detach | deleted tại B1a-2b2; strict DI và routing safety vẫn xanh |
 | `GenericRepository<T>` / `IGenericRepository<T>` | `PermissionController`, `BaseGenericController`, Library/tests | không xóa chung; retire theo typed module consumer ledger |
 | `BaseGenericController` | `LibraryController`, `VPPRequestController` | migrate-on-touch; không mass rewrite controller |
 | migration designer/snapshot | EF schema history | giữ nguyên; chỉ thay qua DB-safety workflow |
 | `VppColumn`/wire DTO legacy spelling | public JSON contract | giữ cho đến compatibility task có manifest |
 | `prices.txt` + private seed cluster | không có runtime caller đã xác nhận, nhưng liên quan reference seed lịch sử | audit/xóa riêng ở B1b; không trộn vào dead-method slice |
 
-`VPPRequestService` hiện không đọc member kế thừa `_unitOfWork`, `Claims`, `JiraIssue` hoặc `WriteLog`,
-nhưng constructor base vẫn tạo một UoW phụ. Đây là lý do B1a-2 có giá trị, đồng thời là lý do không xóa
-thẳng khi chưa có DI/transaction characterization.
+`VPPRequestService` đã được characterize rồi detach khỏi base. Extra UoW activation và toàn bộ
+BaseServices/factory/resolver/Jira chain đã được xóa trong hai commit rollback độc lập.
 
 ### Generic repository/controller consumer ledger canonical
 
@@ -203,10 +202,9 @@ nhưng phải tách hai checkpoint:
 2. **B1a-2b1 — COMPLETE @ `6cfc8a62`:** bỏ `VPPRequestService : BaseServices`, `base(...)` và sáu
    dependency base; cập nhật tám constructor test sites. Không sửa `Program`, config hoặc legacy chain để
    rollback độc lập.
-3. **B1a-2b2 — REFORECAST:** xóa `BaseServices`/`IBaseServices`, `UnitOfWorkFactory`,
+3. **B1a-2b2 — COMPLETE @ `9f387ff8`:** xóa `BaseServices`/`IBaseServices`, `UnitOfWorkFactory`,
    `EnvironmentResolver` chain, `JiraSettings`; cập nhật DI, appsettings và helper/safety tests. Giữ
-   `IUnitOfWork`, `IDynamicDbContextFactory`, `IUserNameResolver`; giữ `AddHttpContextAccessor()` để audit
-   riêng ở B1b.
+   `IUnitOfWork`, `IDynamicDbContextFactory`, `IUserNameResolver` và `AddHttpContextAccessor()`.
 
 Evidence B1a-2a: class mới `3/3`, focused Release `231/231`, backend `506/506`, integration `14 pass/6
 skip`, EF zero delta và security gates PASS. Reviewer nêu P3 vì `Program` top-level; test đã đổi sang exact
@@ -222,6 +220,12 @@ verify build `0 warning/error`, unit `506/506`, integration `14 pass/6 skip`, EF
 vulnerability/Gitleaks PASS; independent review không có P0-P3. Checkpoint dùng `34%` aggregate pool, nằm
 trong forecast rộng 25–65%. Public CLR inheritance/constructor đã đổi nhưng repo/package consumer evidence
 vẫn bằng 0. Legacy chain hiện orphan và chỉ được xóa trong b2.
+
+Evidence B1a-2b2: production/TestSupport consumer scan 0; focused routing/config/construction `41/41`;
+full backend verify build `0 warning/error`, unit `503/503`, integration `14 pass/6 skip`, EF zero delta,
+vulnerability/Gitleaks PASS; independent review không có P0-P3. Checkpoint dùng `21%` aggregate pool,
+thấp hơn forecast 25–55%. Các hit còn lại chỉ là historical docs hoặc namespace test cũ, không phải type
+consumer.
 
 ### B1b execution card — AUDITED / NOT OPEN
 

@@ -51,8 +51,8 @@ chuyển trong slice lifecycle phù hợp, không mass-move chỉ để đồng 
 Ở backend Requests, `VPPRequestController` gọi `IVPPRequestService`; implementation
 `VPPRequestService` hiện chỉ nhận `IUnitOfWork`, clock, configuration và các policy/service tùy chọn thực
 sự dùng. Service không còn kế thừa `BaseServices`, nên mỗi activation không còn tạo một UnitOfWork phụ.
-Legacy BaseServices/factory/resolver/Jira registrations đã thành orphan và chờ cleanup B1a-2b2; chúng
-không còn nằm trên đường đọc code của nghiệp vụ đơn.
+Legacy BaseServices/factory/resolver/Jira chain đã được xóa tại B1a-2b2; đường đọc code nghiệp vụ đơn giờ
+đi thẳng qua injected `IUnitOfWork`, không còn base infrastructure trung gian.
 
 Điểm hay bị hỏi khi bảo vệ: **ẩn nút trên giao diện không phải là phân quyền**. Giao diện chỉ ẩn cho
 gọn mắt; quyền thật được kiểm ở từng action của controller bằng `[Authorize(Policy = ...)]`. Xem luận
