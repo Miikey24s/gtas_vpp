@@ -1,8 +1,8 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1a COMPLETE — B1b-A REFORECAST`
+- Status: `B0R + B1a + B1b-A COMPLETE — B1b-B REFORECAST`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
-- Latest backend refactor commit: `9f387ff8`
+- Latest backend refactor commit: `a3f871de`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -20,7 +20,7 @@
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | Reforecast B1b-A repo metadata cleanup; local ignored artifacts và `.http` smoke vẫn là gate riêng |
+| Bước production tiếp theo | Reforecast B1b-B read-only `.http` smoke; local ignored artifacts vẫn là ownership/lock gate riêng |
 
 ## 1. Baseline đã kiểm chứng
 
@@ -227,13 +227,14 @@ vulnerability/Gitleaks PASS; independent review không có P0-P3. Checkpoint dù
 thấp hơn forecast 25–55%. Các hit còn lại chỉ là historical docs hoặc namespace test cũ, không phải type
 consumer.
 
-### B1b execution card — AUDITED / NOT OPEN
+### B1b execution card
 
-- **B1b-A repo metadata:** nested `.gitattributes` trùng byte-for-byte với root; nested `.gitignore`
-  được root cover; ghost csproj include không tồn tại; `Api/readme.md` dùng lệnh EF layout cũ. Đây là một
-  metadata slice riêng với `git check-ignore`, attr comparison, docs link check, build và backend verify.
+- **B1b-A repo metadata — COMPLETE @ `a3f871de`:** đã xóa nested `.gitattributes`, nested `.gitignore`,
+  stale `Api/readme.md` và ghost csproj include. Root attributes hash trùng; 195 effective ignore rule có
+  0 rule thiếu; representative `check-ignore`/`check-attr`, XML, API build và full backend verify PASS.
+  Checkpoint dùng `34%` aggregate pool, cao hơn estimate 8–25% nhưng nằm trong buffer 50%.
 - **B1b-B HTTP smoke:** thay `gtas_vpp_be.http` stale bằng health + authenticated read-only requests,
-  bearer placeholder, không credential và không mutation.
+  bearer placeholder, không credential và không mutation; phải reforecast riêng.
 - `Api/logs`, `bin`, `obj`, `*.csproj.user` là ignored local artifacts, không nằm trong repo metadata
   slice. Chỉ cleanup sau fresh process/PID/lock ownership check và scope rõ; không xóa opportunistic.
 
