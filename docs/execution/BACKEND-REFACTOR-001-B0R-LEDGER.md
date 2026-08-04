@@ -1,7 +1,7 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `CHARACTERIZATION IN PROGRESS — HTTP/RBAC + FULL VERIFY PASS; PRODUCTION B1 CHỜ OWNER UI FINAL ACCEPTANCE`
-- Slice base: `codex/ai-agent-foundation` @ `69397af9`
+- Status: `CHARACTERIZATION COMPLETE — 2 AUTH DECISIONS + UI ACCEPTANCE PENDING; PRODUCTION B1 CHƯA MỞ`
+- Slice base: `codex/ai-agent-foundation` @ `7ef42ac6`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -11,7 +11,7 @@
 
 | Mục | Kết luận hiện tại |
 |---|---|
-| Baseline | Focused HTTP/RBAC `23/23`; backend unit `476/476`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20`; full backend verify PASS |
+| Baseline | Characterization focused `83/83`; backend unit `520/520`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20`; final full backend verify PASS |
 | Kiến trúc | Giữ `API → Application → Domain`; Shared là wire contract; không tạo project/microservice mới |
 | Xóa an toàn đầu tiên | 5 private `*LegacyAsync` trong `VPPRequestService`, `ObjectHelpers.cs`, `PasswordHelpers.cs` có usage chỉ là declaration |
 | Chưa được xóa | `BaseServices`, `IBaseServices`, `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật |
@@ -26,7 +26,7 @@
 | Gate | Kết quả trên HEAD khảo sát |
 |---|---|
 | `./scripts/gtas.cmd preflight -Scope backend` | PASS |
-| Backend unit trong full verify | PASS — `476/476` |
+| `./scripts/gtas.cmd test-backend` | PASS — `520/520` |
 | Integration mặc định | PASS — `14`, skip đúng `6` opt-in LocalDB |
 | `GTAS_QA_SQL_INTEGRATION=1` | PASS — `20/20`, `0` skip |
 | `./scripts/gtas.cmd verify -Scope backend` | PASS — build sạch, unit/integration, EF pending-model, format, vulnerability và Gitleaks |
@@ -93,10 +93,28 @@ chạy data repair thật.
 | `BaseGenericController` | `LibraryController`, `VPPRequestController` | migrate-on-touch; không mass rewrite controller |
 | migration designer/snapshot | EF schema history | giữ nguyên; chỉ thay qua DB-safety workflow |
 | `VppColumn`/wire DTO legacy spelling | public JSON contract | giữ cho đến compatibility task có manifest |
+| `prices.txt` + private seed cluster | không có runtime caller đã xác nhận, nhưng liên quan reference seed lịch sử | audit/xóa riêng ở B1b; không trộn vào dead-method slice |
 
 `VPPRequestService` hiện không đọc member kế thừa `_unitOfWork`, `Claims`, `JiraIssue` hoặc `WriteLog`,
 nhưng constructor base vẫn tạo một UoW phụ. Đây là lý do B1a-2 có giá trị, đồng thời là lý do không xóa
 thẳng khi chưa có DI/transaction characterization.
+
+### Generic repository/controller consumer ledger canonical
+
+| Member/boundary | Production consumer hiện tại | Quyết định |
+|---|---|---|
+| `AddAsync` | generic create của `LibraryController` | giữ đến B3 typed cutover |
+| `UpdateAsync` | generic PUT/PATCH của Library; permission mapping update | không xóa chung; tách theo consumer |
+| `ReadAsync` | Library; `VPPRequestController` đọc `VppCategory`; `PermissionController` | còn consumer thật |
+| `GetByIdAsync` | Library và Permission | còn consumer thật |
+| `UpdateRangeAsync` | không có production caller | candidate thu hẹp interface ở B3, không trộn B1a-1 |
+| `DeleteAsync` | chỉ nằm sau protected generic delete; không có production callsite trực tiếp | characterize generic status/consumer trước khi retire |
+| `BaseGenericController` | `LibraryController`, `VPPRequestController` | giữ; migrate-on-touch theo module |
+
+Frontend hiện vẫn dùng generic Library cho lookup/category/supplier/department CRUD và PATCH/DELETE
+`supplier-product-mappings`. Typed catalog item đã dùng đủ create/update/status/delete; Price List dùng
+create/update/archive/hard-delete/default/publish/expire/clone. Các endpoint pricing không có frontend
+caller vẫn được xem là public/hidden contract cho đến consumer audit ở B3, không được xóa từ search FE.
 
 ## 5. Contract và documentation drift
 
@@ -111,15 +129,43 @@ Không nên chỉ dịch trực tiếp raw backend message sang tiếng Việt: 
 string không phải contract ổn định để UI branch. Phương án bền vững là reason code typed + resource phía
 frontend, triển khai additive trước rồi mới retire message khi consumer ledger bằng 0.
 
+### Behavior characterization đã thêm
+
+- Reports: cả 5 endpoint khóa missing-identity `401`, scope-denied/invalid-scope `403`, mapping
+  `own/department/all`, insight rate-limit, summary/insight composition và CSV/XLSX/PDF file contract.
+- Request reads: detail/history/PDF/XLSX khóa cùng-company resource scope; detail khóa ba nhánh
+  owner/department/all; pending supplement khóa decision permission và claim-derived company/department.
+- Supplement decisions: approve/reject khóa missing `UserID`, cross-company `403` và service-level
+  department/company scope cho cả hai quyết định.
+- Error/JSON: Shared wire manifest/serialization giữ shape; ProblemDetails khóa exact property set và
+  mapping 400/403/404/409/422/500, gồm argument, business và EF concurrency exception.
+
+Controller unit test gọi action trực tiếp nên không chạy authorization middleware. HTTP manifest khóa
+outer policy metadata; runtime unauthenticated-policy integration qua host được hoãn đến auth-host/B6,
+không dựng `WebApplicationFactory` chỉ cho B1a-1.
+
+### Hai authorization mismatch cần owner duyệt
+
+| ID | Current behavior | Khuyến nghị | Tác động nếu duyệt |
+|---|---|---|---|
+| B0R-D1 | `order-filter-values?scope=pending` chỉ chấp nhận `REQUEST_APPROVE`, trong khi pending grid chấp nhận `APPROVE` **hoặc** `REJECT` | dùng cùng điều kiện `APPROVE OR REJECT` như grid | reviewer chỉ có quyền reject vẫn lọc được đúng dữ liệu họ đã được xem; không mở thêm company/department scope |
+| B0R-D2 | history có outer policy `REQUEST_VIEW_OWN`, còn detail/PDF/XLSX dùng authenticated + resource scope | cho history dùng cùng authenticated + `CanViewOrderAsync` như ba endpoint đọc cùng resource | người có `VIEW_DEPARTMENT`/`VIEW_ALL` được xem history đúng scope ngay cả khi không có `VIEW_OWN`; cần duyệt vì thay đổi authorization behavior |
+
+Chưa thêm test ratchet cho hai behavior trên và chưa sửa production source cho đến khi owner chọn.
+
 ## 6. B0R deliverables và tiến độ
 
 - [x] MVC manifest cho `112` endpoint: route + HTTP verb + effective authorization policy.
-- [ ] Representative status/error/JSON/export characterization còn phải đối chiếu coverage hiện hữu.
+- [x] Representative status/error/JSON/export characterization cho Reports, request resource scope,
+  supplement decisions, Shared wire shape và ProblemDetails; generic Catalog/Pricing controller parity
+  được hoãn đến trước B3 vì không liên quan B1a-1.
 - [x] RBAC legacy reconciliation assertions ở mục 3.
 - [x] Generic endpoint/repository consumer ledger ở mục 4.
 - [x] Module map bỏ residual `SQLController`; reading guide chi tiết còn đồng bộ ở wave tài liệu.
-- [x] Full backend verify PASS; focused `23/23`, unit `476/476`, default integration `14/6 skip`, LocalDB `20/20`, EF zero-delta.
-- [ ] Chỉ sau B0R PASS và owner UI acceptance mới mở B1a-1.
+- [x] Final full backend verify PASS: agent setup `63/63`, build sạch, unit `520/520`, default
+  integration `14/6 skip`, EF zero-delta, format, vulnerability và Gitleaks; LocalDB `20/20` giữ từ
+  HTTP/RBAC slice vì behavior slice chỉ thêm unit/docs.
+- [ ] Owner chốt B0R-D1/B0R-D2 và UI final acceptance; sau đó mới mở B1a-1.
 
 ## 7. Boundary an toàn
 

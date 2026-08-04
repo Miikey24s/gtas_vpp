@@ -547,9 +547,12 @@ public sealed class VPPRequestLifecycleTests
     }
 
     [Theory]
-    [InlineData("HR", false, "77500")]
-    [InlineData("IT", true, "88000")]
-    public async Task Approve_OutsideDepartmentOrCompanyScope_IsBlocked(
+    [InlineData(true, "HR", false, "77500")]
+    [InlineData(true, "IT", true, "88000")]
+    [InlineData(false, "HR", false, "77500")]
+    [InlineData(false, "IT", true, "88000")]
+    public async Task SupplementDecision_OutsideDepartmentOrCompanyScope_IsBlocked(
+        bool approve,
         string actorDepartment,
         bool canApproveCrossDepartment,
         string actorCompany)
@@ -560,10 +563,15 @@ public sealed class VPPRequestLifecycleTests
         var service = CreateService(context);
         var supplement = await CreateSupplementAsync(service, vppId);
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            service.ApproveAdditionalOrderAsync(
-                supplement.Id, ApproverId, new byte[] { 1 }, "scope-check", actorDepartment,
-                canApproveCrossDepartment, actorCompany));
+        Task Decision() => approve
+            ? service.ApproveAdditionalOrderAsync(
+                supplement.Id, ApproverId, new byte[] { 1 }, "scope-approve", actorDepartment,
+                canApproveCrossDepartment, actorCompany)
+            : service.RejectAdditionalOrderAsync(
+                supplement.Id, ApproverId, "Rejected outside scope", new byte[] { 1 },
+                "scope-reject", actorDepartment, canApproveCrossDepartment, actorCompany);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(Decision);
 
         Assert.Equal((int)VPPStatus.Pending,
             (await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id)).Status);

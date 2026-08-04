@@ -49,6 +49,31 @@ public sealed class ReportServiceTests
     }
 
     [Fact]
+    public async Task ExportCsv_ReturnsBomCsvWithCanonicalMetadata()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var productId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, productId);
+        await AddOrderAsync(context, productId, 10, "IT", "77500", 2, 100);
+        var service = new ReportService(context);
+
+        var export = await service.ExportCsvAsync(
+            ReportScopes.All, 10, "IT", "77500", 2026, 7);
+
+        Assert.Equal("GTAS-VPP-Bao-cao-all-2026-07.csv", export.FileName);
+        Assert.Equal("text/csv; charset=utf-8", export.ContentType);
+        Assert.True(export.Content.AsSpan().StartsWith(Encoding.UTF8.GetPreamble()));
+        var content = Encoding.UTF8.GetString(export.Content);
+        Assert.StartsWith("\uFEFFsep=,", content, StringComparison.Ordinal);
+        Assert.Contains(
+            "Kỳ,Phòng ban,Mã đơn,Trạng thái,Đơn bổ sung,Mã mặt hàng,Tên mặt hàng,Số lượng,Đơn giá,Thành tiền",
+            content,
+            StringComparison.Ordinal);
+        Assert.Contains($"TEST-VPP-{productId:N}", content, StringComparison.Ordinal);
+        Assert.Contains(",2,100,200", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task ExportWorkbook_ReturnsMultiSheetXlsxWithFormulaSafeMetadata()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

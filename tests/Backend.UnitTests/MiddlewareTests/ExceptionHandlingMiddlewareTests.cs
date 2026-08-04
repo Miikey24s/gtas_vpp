@@ -1,6 +1,7 @@
 using System.Text.Json;
 using gtas_vpp_be.Middleware;
 using gtas_vpp_be.Service.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +19,9 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new KeyNotFoundException("missing"), StatusCodes.Status404NotFound, "Not Found", "NotFound", "missing", false };
         yield return new object[] { new UnauthorizedAccessException("forbidden"), StatusCodes.Status403Forbidden, "Forbidden", "Forbidden", "forbidden", false };
         yield return new object[] { new ConflictException("stale period"), StatusCodes.Status409Conflict, "Conflict", "Conflict", "stale period", true };
+        yield return new object[] { new DbUpdateConcurrencyException("database details"), StatusCodes.Status409Conflict, "Conflict", "ConcurrencyConflict", "The data has been modified by another user. Please refresh the page and try again.", true };
+        yield return new object[] { new BusinessException("Kỳ đã được đóng."), StatusCodes.Status422UnprocessableEntity, "Unprocessable Entity", "BusinessRuleViolated", "Kỳ đã được đóng.", true };
+        yield return new object[] { new ArgumentOutOfRangeException("month"), StatusCodes.Status400BadRequest, "Bad Request", "RequestInvalid", "The request is invalid.", false };
         yield return new object[] { new InvalidOperationException("internal transaction details"), StatusCodes.Status400BadRequest, "Bad Request", "OperationInvalid", "The operation is not valid in its current state.", false };
         yield return new object[] { new Exception("broken"), StatusCodes.Status500InternalServerError, "Internal Server Error", "ServerError", "broken", false };
     }
@@ -63,6 +67,12 @@ public class ExceptionHandlingMiddlewareTests
         Assert.Equal(expectedTitle, problemDetails.Title);
         Assert.Equal(expectedStatus, problemDetails.Status);
         Assert.Equal(expectedDetail, problemDetails.Detail);
+        Assert.Equal(
+            ["detail", "errorCode", "safeDetail", "status", "title", "traceId", "type"],
+            document.RootElement
+                .EnumerateObject()
+                .Select(property => property.Name)
+                .Order(StringComparer.Ordinal));
         Assert.Equal(expectedCode, document.RootElement.GetProperty("errorCode").GetString());
         Assert.True(document.RootElement.TryGetProperty("traceId", out var traceId));
         Assert.False(string.IsNullOrWhiteSpace(traceId.GetString()));
