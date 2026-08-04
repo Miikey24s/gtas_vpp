@@ -110,9 +110,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.SupportedUICultures = supportedCultures;
     options.ApplyCurrentCultureToResponseHeaders = true;
 });
-builder.Services.Configure<JiraSettings>(Configuration.GetSection("JiraSettings"));
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
 builder.Services.AddSingleton(sp => VppRequestPolicy.FromConfiguration(
     sp.GetRequiredService<IConfiguration>()));
 builder.Services.AddSingleton(sp => new PeriodCalculator(
@@ -120,9 +118,7 @@ builder.Services.AddSingleton(sp => new PeriodCalculator(
 builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IBaseServices, BaseServices>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
 builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();
 builder.Services.AddHostedService<VppPeriodRecoveryWorker>();

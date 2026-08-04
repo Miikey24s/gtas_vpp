@@ -5,11 +5,8 @@ using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -69,11 +66,16 @@ public sealed class VPPRequestServiceConstructionTests
             .Select(line => line.Trim())
             .ToHashSet(StringComparer.Ordinal);
 
+        Assert.Contains("builder.Services.AddHttpContextAccessor();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();", programRegistrationLines);
-        Assert.Contains("builder.Services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();", programRegistrationLines);
-        Assert.Contains("builder.Services.AddScoped<IBaseServices, BaseServices>();", programRegistrationLines);
+        Assert.Contains("builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();", programRegistrationLines);
+        Assert.Contains("builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();", programRegistrationLines);
+        Assert.DoesNotContain("builder.Services.Configure<JiraSettings>(Configuration.GetSection(\"JiraSettings\"));", programRegistrationLines);
+        Assert.DoesNotContain("builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();", programRegistrationLines);
+        Assert.DoesNotContain("builder.Services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();", programRegistrationLines);
+        Assert.DoesNotContain("builder.Services.AddScoped<IBaseServices, BaseServices>();", programRegistrationLines);
 
         var constructorParameterTypes = typeof(VPPRequestService)
             .GetConstructors()
@@ -82,12 +84,18 @@ public sealed class VPPRequestServiceConstructionTests
             .Select(parameter => parameter.ParameterType)
             .ToHashSet();
 
-        Assert.DoesNotContain(typeof(IUnitOfWorkFactory), constructorParameterTypes);
-        Assert.DoesNotContain(typeof(IHttpContextAccessor), constructorParameterTypes);
-        Assert.DoesNotContain(typeof(IEnvironmentResolver), constructorParameterTypes);
-        Assert.DoesNotContain(typeof(IUserNameResolver), constructorParameterTypes);
-        Assert.DoesNotContain(typeof(ILogger<BaseServices>), constructorParameterTypes);
-        Assert.DoesNotContain(typeof(IOptions<JiraSettings>), constructorParameterTypes);
+        Assert.Equal(
+            new[]
+                {
+                    typeof(IUnitOfWork),
+                    typeof(IDateTimeProvider),
+                    typeof(IConfiguration),
+                    typeof(PeriodCalculator),
+                    typeof(VppRequestPolicy),
+                    typeof(IVppPeriodService)
+                }
+                .OrderBy(type => type.FullName),
+            constructorParameterTypes.OrderBy(type => type.FullName));
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -107,9 +115,7 @@ public sealed class VPPRequestServiceConstructionTests
         services.AddSingleton(binding);
         services.AddLogging();
         services.AddHttpContextAccessor();
-        services.Configure<JiraSettings>(configuration.GetSection("JiraSettings"));
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-        services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();
         services.AddSingleton(serviceProvider => VppRequestPolicy.FromConfiguration(
             serviceProvider.GetRequiredService<IConfiguration>()));
         services.AddSingleton(serviceProvider => new PeriodCalculator(
@@ -117,8 +123,6 @@ public sealed class VPPRequestServiceConstructionTests
         services.AddScoped<IUserNameResolver, UserNameResolver>();
         services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IUnitOfWorkFactory, UnitOfWorkFactory>();
-        services.AddScoped<IBaseServices, BaseServices>();
         services.AddScoped<IVPPRequestService, VPPRequestService>();
         services.AddScoped<IVppPeriodService, VppPeriodService>();
 

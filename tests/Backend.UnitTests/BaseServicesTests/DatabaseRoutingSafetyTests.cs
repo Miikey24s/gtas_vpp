@@ -50,7 +50,6 @@ public class DatabaseRoutingSafetyTests
 
         Assert.Equal((binding.DataSource, binding.DatabaseName), directIdentity);
         Assert.Equal(directIdentity, unitOfWorkIdentity);
-        Assert.Equal(DatabaseBinding.TestEnvironment, new EnvironmentResolver(binding).Resolve());
     }
 
     [Fact]
@@ -58,13 +57,9 @@ public class DatabaseRoutingSafetyTests
     {
         var createContext = typeof(IDynamicDbContextFactory)
             .GetMethod(nameof(IDynamicDbContextFactory.CreateVPPContext));
-        var createUnitOfWork = typeof(IUnitOfWorkFactory)
-            .GetMethod(nameof(IUnitOfWorkFactory.Create));
 
         Assert.NotNull(createContext);
         Assert.Empty(createContext.GetParameters());
-        Assert.NotNull(createUnitOfWork);
-        Assert.Empty(createUnitOfWork.GetParameters());
         Assert.DoesNotContain(
             typeof(IUnitOfWork).GetMethods(),
             method => string.Equals(method.Name, "Init", StringComparison.Ordinal));
