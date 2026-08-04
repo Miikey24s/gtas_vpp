@@ -1,8 +1,8 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1a-1 + B1a-1b COMPLETE — B1a-2 AUDITED; B1a-2a NEXT`
+- Status: `B0R + B1a-1 + B1a-1b + B1a-2a COMPLETE — B1a-2b REFORECAST`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
-- Latest backend refactor commit: `41145a08`
+- Latest backend refactor commit: `969b6662`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -12,7 +12,7 @@
 
 | Mục | Kết luận hiện tại |
 |---|---|
-| Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit hiện tại `503/503`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
+| Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit hiện tại `506/506`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
 | Kiến trúc | Giữ `API → Application → Domain`; Shared là wire contract; không tạo project/microservice mới |
 | Xóa an toàn đầu tiên | B1a-1 và B1a-1b đã xóa dead request closure đã chứng minh; post-delete usage scan 0 |
 | Chưa được xóa | `BaseServices`, `IBaseServices`, `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật |
@@ -20,14 +20,14 @@
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | B1a-2a characterization cho construction/UoW/DI; chưa retire `BaseServices` trước khi gate này xanh và không trộn localization cutover |
+| Bước production tiếp theo | Reforecast và khóa rollback boundary nhỏ nhất cho B1a-2b; chưa retire `BaseServices` theo forecast cũ và không trộn localization cutover |
 
 ## 1. Baseline đã kiểm chứng
 
 | Gate | Kết quả trên HEAD khảo sát |
 |---|---|
 | `./scripts/gtas.cmd preflight -Scope backend` | PASS |
-| `./scripts/gtas.cmd test-backend` | PASS — `503/503` sau B1a-1b dead-test closure |
+| `./scripts/gtas.cmd test-backend` | PASS — `506/506` sau B1a-2a characterization |
 | Integration mặc định | PASS — `14`, skip đúng `6` opt-in LocalDB |
 | `GTAS_QA_SQL_INTEGRATION=1` | PASS — `20/20`, `0` skip |
 | `./scripts/gtas.cmd verify -Scope backend` | PASS — build sạch, unit/integration, EF pending-model, format, vulnerability và Gitleaks |
@@ -196,7 +196,7 @@ vẫn thiếu nên routing tiếp tục theo `SLICE_ONLY`.
 Audit read-only trên HEAD `c2eda429` xác nhận có thể retire boundary mà không đổi API/DTO/schema/nghiệp vụ,
 nhưng phải tách hai checkpoint:
 
-1. **B1a-2a — Characterization:** thêm `VPPRequestServiceConstructionTests` để khóa service dùng
+1. **B1a-2a — COMPLETE @ `969b6662`:** thêm `VPPRequestServiceConstructionTests` để khóa service dùng
    `_scopedUow` cho query/transaction, UoW do base factory tạo chỉ là object phụ, và DI resolve được
    `IVPPRequestService` với `ValidateOnBuild=true`, `ValidateScopes=true`. Bảy test constructor hiện cho
    factory trả chính `_scopedUow`, nên đang che production tạo hai UoW khác nhau.
@@ -205,9 +205,14 @@ nhưng phải tách hai checkpoint:
    nhật DI, appsettings và constructor helpers/tests. Giữ `IUnitOfWork`, `IDynamicDbContextFactory`,
    `IUserNameResolver`; giữ `AddHttpContextAccessor()` để audit riêng ở B1b.
 
+Evidence B1a-2a: class mới `3/3`, focused Release `231/231`, backend `506/506`, integration `14 pass/6
+skip`, EF zero delta và security gates PASS. Reviewer nêu P3 vì `Program` top-level; test đã đổi sang exact
+trimmed registration-line contract, tên không overclaim full host, rerun `3/3` và review sạch P0-P3.
+
 Rủi ro đã biết: xóa các public CLR member kế thừa nhưng repo-wide usage bằng 0; extra UoW hiện lazy nên
-không mở context, nhưng không được DI quản lý/dispose. Audit focused hiện tại `112/112` PASS; implementation
-chỉ mở sau B1a-2a và tiếp tục theo quota `SLICE_ONLY`.
+không mở context, nhưng không được DI quản lý/dispose. B1a-2a tiêu thụ `38%` aggregate pool, cao hơn forecast
+4–15% và upper bound có buffer 30%; forecast cũ bị bác bỏ. B1a-2b phải reforecast/split theo rollback
+boundary nhỏ nhất trước khi mở production.
 
 ### B1b execution card — AUDITED / NOT OPEN
 
