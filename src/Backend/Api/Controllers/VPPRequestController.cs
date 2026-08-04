@@ -283,7 +283,6 @@ namespace gtas_vpp_be.Controllers
         }
 
         [HttpGet("orders/{id:guid}/history")]
-        [Authorize(Policy = Permissions.RequestViewOwn)]
         [ProducesResponseType<VppRequestHistoryResDTO>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -613,11 +612,7 @@ namespace gtas_vpp_be.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetPendingAdditionalOrders([FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
-            var canApprove = await _permissionService
-                .HasPermissionAsync(User, Permissions.RequestApprove);
-            var canReject = await _permissionService
-                .HasPermissionAsync(User, Permissions.RequestReject);
-            if (!canApprove && !canReject) return Forbid();
+            if (!await HasSupplementDecisionPermissionAsync()) return Forbid();
 
             var canViewAllDepartments = await _permissionService
                 .HasPermissionAsync(User, Permissions.RequestViewAll);
@@ -1139,18 +1134,18 @@ namespace gtas_vpp_be.Controllers
             return await _permissionService.HasPermissionAsync(User, Permissions.RequestViewAll);
         }
 
-        private Task<bool> CanAccessScopeAsync(string? scope)
-        {
-            var permission = scope?.Trim().ToLowerInvariant() switch
-            {
-                "my-orders" => Permissions.RequestViewOwn,
-                "department" => Permissions.RequestViewDepartment,
-                "pending" => Permissions.RequestApprove,
-                _ => Permissions.RequestViewAll
-            };
+        private async Task<bool> HasSupplementDecisionPermissionAsync() =>
+            await _permissionService.HasPermissionAsync(User, Permissions.RequestApprove)
+            || await _permissionService.HasPermissionAsync(User, Permissions.RequestReject);
 
-            return _permissionService.HasPermissionAsync(User, permission);
-        }
+        private Task<bool> CanAccessScopeAsync(string? scope) =>
+            scope?.Trim().ToLowerInvariant() switch
+            {
+                "my-orders" => _permissionService.HasPermissionAsync(User, Permissions.RequestViewOwn),
+                "department" => _permissionService.HasPermissionAsync(User, Permissions.RequestViewDepartment),
+                "pending" => HasSupplementDecisionPermissionAsync(),
+                _ => _permissionService.HasPermissionAsync(User, Permissions.RequestViewAll)
+            };
 
         private bool IsOwnedByCurrentUser(VppRequestResDTO order) =>
             CurrentUserId.HasValue && order.CreatedByUserId == CurrentUserId.Value;

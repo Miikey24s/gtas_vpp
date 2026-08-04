@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: B0R CHARACTERIZATION COMPLETE — 2 AUTH DECISIONS + UI ACCEPTANCE PENDING; B1 NOT OPEN
+- Status: B0R COMPLETE — OWNER-APPROVED AUTH CONTRACTS IMPLEMENTED; B1a-1 OPEN
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -8,15 +8,15 @@
 - Branch: `codex/ai-agent-foundation`
 - Base commit: `46560f6020824cbea9e02bcb8bb06131f1efd501`
 - Planned at: `2026-07-29T05:17:46+07:00`
-- Refreshed against: `be82b1c9` at `2026-08-04`
+- Refreshed against: `c653ac8c` at `2026-08-04`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`,
   [`BACKEND-REFACTOR-001-B0R-LEDGER.md`](./BACKEND-REFACTOR-001-B0R-LEDGER.md)
 - Related sequencing: `docs/execution/FRONTEND-REFACTOR-001.md`
 - Supersedes: phần **R-1 backend** và quy ước comment backend trong
   `docs/execution/REFACTOR-001.md`; lịch sử R-0/R-2 của record cũ vẫn giữ nguyên
-- User approval required: không còn decision kiến trúc backend; production implementation chỉ bắt đầu
-  sau owner UI final acceptance. Correction A đã có evidence và không làm đổi Shared/API boundary.
+- User approval: UI final acceptance và B0R-D1/B0R-D2 đã được owner chốt phương án A ngày 2026-08-04;
+  B1a-1 được mở theo execution card đã khóa.
 
 <a id="plan-overview"></a>
 
@@ -30,9 +30,9 @@
 | Các bước chính | B0R refresh/khóa contract → B1a-1 dead code nhỏ → B1a-2 bỏ `BaseServices` có characterization → B1b metadata/local cleanup → B2 Reports → B3 Catalog/Pricing → B4 Requests → B5 Settlement → B6 Identity/Access → B7 Platform → B8 persistence/final review | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English, ưu tiên từ đầy đủ và từ vựng nghiệp vụ; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**, không mặc định gắn số mục luận văn vào source | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Official resolver hiện chọn `gpt-5.6-sol` cho kiến trúc/review khó và `gpt-5.6-terra` cho lát cơ học rõ. Quota probe ngày 03/08 trả 404 nên capacity chưa được xác minh; chỉ mở B0R độc lập rồi probe/đo lại trước B1 | [Routing](#plan-detail-routing) |
-| Kiểm tra | Backend unit 520/520; integration mặc định 14 pass/6 skip; disposable LocalDB 20/20; EF không có pending model; agent setup 63/63. Số test là snapshot, không phải invariant | [Verification](#plan-detail-verification) |
+| Kiểm tra | Authorization/manifest focused 45/45; backend unit 525/525; integration mặc định 14 pass/6 skip; disposable LocalDB 20/20 từ B0R SQL slice; EF không có pending model; agent setup 63/63. Số test là snapshot, không phải invariant | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Mass move/rename làm diff khó review; generic endpoint có hidden consumer; hai DbContext dễ gây model drift; migration/generated file bị hiểu nhầm là rác | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Owner chốt UI visual board và B0R-D1/B0R-D2 → reforecast → mới vào B1a-1; raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Chạy B1a-1: xóa 5 method legacy + 2 helper file zero-consumer, focused tests và full backend verify; raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -89,7 +89,7 @@ Refactor backend để một sinh viên năm 4 có thể:
 | Evidence | Kết quả hiện tại |
 |---|---|
 | Backend source inventory | 186 file C# tracked; 163 file non-generated, khoảng 31.923 dòng. `Migrations` có 47 file/38.021 dòng chủ yếu là schema history/generated và không được coi là rác |
-| Backend unit trên B0R characterization | PASS — 520/520 |
+| Backend unit trên B0R characterization | PASS — 520/520 tại baseline; 525/525 sau authorization ratchet |
 | Backend integration default | PASS — 14 pass, 6 skip có điều kiện; kết quả này chưa đủ chứng minh SQL Server behavior |
 | Backend integration với `GTAS_QA_SQL_INTEGRATION=1` | PASS — 20 pass, 0 skip trên harness-owned disposable LocalDB; fixture đã derive số role từ `CanonicalRbac.Personas` |
 | EF pending-model check | PASS — không có thay đổi model sau migration gần nhất |
@@ -97,7 +97,7 @@ Refactor backend để một sinh viên năm 4 có thể:
 | `dotnet format analyzers ... --severity warn --verify-no-changes --include src/Backend` | PASS qua solution-wide `dotnet format --verify-no-changes` trong full backend verify |
 | Current project graph | Khớp `ARCH-001-MODULE-MAP.md` |
 | `./scripts/ai/Test-AgentSetup.ps1` | PASS — 63/63; blocker `model-routing-eval` cũ đã được sửa |
-| `./scripts/gtas.cmd verify -Scope backend` | PASS — build 0 warning/error, agent setup 63/63, unit 520/520, integration portable 14 pass/6 conditional skip, EF zero delta, vulnerability/leak audit pass |
+| `./scripts/gtas.cmd verify -Scope backend` | PASS — build 0 warning/error, agent setup 63/63, unit 525/525, integration portable 14 pass/6 conditional skip, EF zero delta, vulnerability/leak audit pass |
 
 Số test chỉ là snapshot ngày refresh, không phải invariant lâu dài.
 
@@ -475,8 +475,9 @@ Expected gate: **toàn bộ test LocalDB hiện hành pass, 0 skip, 0 fail**. Sn
   snapshot đã assert legacy Procurement group và membership đều inactive sau seed/reseed/reset.
 - Reports đã khóa đủ 5 action guard, scope permission, insight rate limit, CSV/XLSX/PDF contract;
   request resource scope/supplement decisions và ProblemDetails mapping cũng đã có representative tests.
-- Hai behavior authorization chờ owner: pending filter hiện chỉ nhận `REQUEST_APPROVE` dù grid nhận
-  approve/reject; history còn outer `REQUEST_VIEW_OWN` khác detail/PDF/XLSX resource scope.
+- Hai authorization contract đã được owner duyệt và triển khai: pending grid/filter dùng cùng
+  `REQUEST_APPROVE OR REQUEST_REJECT`; history dùng class authentication + `CanViewOrderAsync` giống
+  detail/PDF/XLSX. Ratchet test khóa reject-only pending filter và department/company history scope.
 - Analyzer CLI warn-level đang sạch nhưng `.editorconfig` mới chủ yếu khóa whitespace; unused private
   member/naming/complexity chưa thành ratchet.
 
@@ -517,10 +518,10 @@ portfolio hiện hành là:
 
 1. owner đã chốt correction UX A: sau confirm/correct phải bấm `Xem trước lại`;
 2. mutation E2E hai user cho confirm/correct/four-eyes và post-success fresh-preview gate đã pass;
-3. FR8C route/docs + technical runtime board đã hoàn tất; owner còn phải duyệt visual board và chốt
-   golden/screenshot cuối;
-4. B0R test/doc characterization đã hoàn tất; sau owner chốt UI + hai authorization decision,
-   probe/đo lại capacity rồi mới thực thi B1→B8 theo từng slice nhỏ;
+3. FR8C route/docs + technical runtime board đã hoàn tất; owner đã chấp thuận current runtime, còn
+   golden/screenshot cuối được hoãn đến clean reproducible HEAD;
+4. B0R characterization và hai authorization decision đã hoàn tất/triển khai; B1a-1 được mở như slice
+   độc lập, sau đó phải probe/đo lại capacity trước khi mở B1a-2;
 5. đồng bộ code-reading guide/luận văn và hoàn thiện slide; xử lý raw English period reason ở boundary
    backend/localization riêng, không trộn vào B0R characterization.
 
@@ -537,28 +538,29 @@ boundary thêm một lần trước B1.
 | BR-D1 | APPROVED/REPO AUTHORITY | Giữ modular monolith/4 project; không rewrite Clean Architecture hoặc microservices | `src/Backend/AGENTS.md`, `ARCH-001` |
 | BR-D2 | APPROVED/REPO AUTHORITY | Identifier English; comment tiếng Việt why-only; mapping luận văn nằm trong reading guide | Root/backend `AGENTS.md` |
 | BR-D3 | SUPERSEDED 2026-08-02 | Dùng sequencing hiện hành ở mục 12 và `FRONTEND-REFACTOR-001` | Owner sequencing update |
-| B0R-D1 | PENDING OWNER | Pending filter dùng `APPROVE OR REJECT` như pending grid | B0R ledger mục 5 |
-| B0R-D2 | PENDING OWNER | History dùng authenticated + resource scope như detail/PDF/XLSX | B0R ledger mục 5 |
+| B0R-D1 | APPROVED/IMPLEMENTED 2026-08-04 | Pending filter dùng `APPROVE OR REJECT` như pending grid | Owner phương án A + B0R ledger mục 5 |
+| B0R-D2 | APPROVED/IMPLEMENTED 2026-08-04 | History dùng authenticated + resource scope như detail/PDF/XLSX | Owner phương án A + B0R ledger mục 5 |
 
-Không còn backend architecture decision pending; còn hai authorization behavior decision ở B0R-D1/D2.
-UI final acceptance vẫn là dependency gate của portfolio.
+Không còn backend architecture/authorization decision pending cho B1a-1. Golden UI artifact và
+localization raw reason là backlog riêng, không block slice dead-code này.
 
 <a id="plan-detail-continuation"></a>
 
 ## 14. Continuation note
 
-- Current status: frontend correction A, mutation E2E và technical runtime board đã pass. B0R test/doc
-  characterization đã hoàn tất; production B1 chờ UI acceptance và B0R-D1/D2.
-- Backend slice base: `codex/ai-agent-foundation` @ `7ef42ac6`.
+- Current status: frontend correction A, mutation E2E, owner visual acceptance và B0R authorization
+  decisions đã hoàn tất. B1a-1 là production slice đang mở.
+- Authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`.
 - Pre-existing dirty files outside this task: `.agents/skills/gtas-vpp-ui-system/*`, `AGENTS.md`,
   `LVTN/NguyenAnNam_DH52201078.docx`, `docs/ai/*`, `docs/planning/05-EXECUTION-TEMPLATE.md`,
   `scripts/ai/Test-AgentSetup.ps1`, `src/Frontend/Blazor/wwwroot/css/vpp-polish.css`,
   `tests/Frontend.UiTests/Tests/Order/ProductCatalogTests.cs` và hai text extraction untracked.
-- Last completed evidence: focused behavior `83/83`, backend unit `520/520`; integration default 14 pass/6
+- Last completed evidence: authorization/manifest focused `45/45`, prior behavior characterization `83/83`,
+  backend unit `525/525`; integration default 14 pass/6
   skip, disposable LocalDB 20/20 từ HTTP/RBAC slice và final full backend verify PASS. Mỗi production
   wave vẫn phải rerun gate trên HEAD của chính wave trước khi gọi PASS.
-- Next exact backend action: owner chốt UI visual board + B0R-D1/B0R-D2; B1a-1 execution card đã khóa
-  exact deletion scope trong B0R ledger. Sau gate, probe/đo lại rồi mới triển khai. Raw English
+- Next exact backend action: triển khai B1a-1 theo exact deletion scope trong B0R ledger, chạy focused
+  tests + full backend verify, commit riêng; sau slice phải probe/đo lại trước B1a-2. Raw English
   `CanCreateOrderReason` là localization backlog cần phân loại ở B0R, không tự sửa trong frontend.
 - Do not redo: role-count hardcode fix, model-routing-eval fix, source inventory refresh và dead-code
   usage scan; chỉ refresh lại nếu HEAD/backend dependency đã đổi trước B0R.

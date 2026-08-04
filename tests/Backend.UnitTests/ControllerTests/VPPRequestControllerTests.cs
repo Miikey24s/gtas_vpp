@@ -315,6 +315,46 @@ public class VPPRequestControllerTests
         Assert.IsType<ForbidResult>(result);
     }
 
+    [Theory]
+    [InlineData("IT", Permissions.RequestViewDepartment)]
+    [InlineData("HR", Permissions.RequestViewAll)]
+    public async Task GetOrderHistory_AllowsDepartmentOrCompanyScopeWithoutViewOwn(
+        string orderDepartment,
+        string permission)
+    {
+        var orderId = Guid.NewGuid();
+        var order = new VppRequestResDTO
+        {
+            Id = orderId,
+            CreatedByUserId = 99,
+            DepartmentCode = orderDepartment,
+            MemberCompanyCode = "77500"
+        };
+        var expected = new VppRequestHistoryResDTO
+        {
+            CurrentRequestId = orderId,
+            Revisions = [order]
+        };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(item => item.GetOrderHistoryAsync(orderId)).ReturnsAsync(expected);
+        var permissionService = PermissionsAllowing(permission);
+        var controller = CreateControllerWithPermissions(
+            service.Object,
+            permissionService.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetOrderHistory(orderId);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(expected, ok.Value);
+        permissionService.Verify(item => item.HasPermissionAsync(
+            controller.User,
+            permission,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     [Fact]
     public async Task UpdateOrder_MissingRowVersion_ReturnsBadRequest()
     {
@@ -566,6 +606,83 @@ public class VPPRequestControllerTests
         permissionService.Verify(item => item.HasPermissionAsync(
             controller.User,
             permission,
+            It.IsAny<CancellationToken>()), Times.Once);
+        service.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(Permissions.RequestApprove)]
+    [InlineData(Permissions.RequestReject)]
+    public async Task GetOrderFilterValues_PendingScope_AllowsEitherDecisionPermission(
+        string decisionPermission)
+    {
+        var expected = new List<VppRequestResDTO>
+        {
+            new() { Id = Guid.NewGuid(), Status = 1 }
+        };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(item => item.GetPendingAdditionalOrdersAsync("77500", "IT", false))
+            .ReturnsAsync(expected);
+        var permissionService = PermissionsAllowing(decisionPermission);
+        var controller = CreateControllerWithPermissions(
+            service.Object,
+            permissionService.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetOrderFilterValues(
+            column: "StatusText",
+            scope: "pending",
+            year: null,
+            month: null,
+            status: null,
+            years: null,
+            months: null,
+            statuses: null,
+            departmentCode: null,
+            filter: null,
+            filters: null,
+            distinctFilter: null);
+
+        Assert.IsType<OkObjectResult>(result);
+        service.Verify(item => item.GetPendingAdditionalOrdersAsync("77500", "IT", false), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOrderFilterValues_PendingScope_WithoutDecisionPermission_ReturnsForbid()
+    {
+        var service = new Mock<IVPPRequestService>();
+        var permissionService = PermissionsAllowing();
+        var controller = CreateControllerWithPermissions(
+            service.Object,
+            permissionService.Object,
+            new Claim("UserID", "5615"),
+            new Claim("DepartmentCode", "IT"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetOrderFilterValues(
+            column: "StatusText",
+            scope: "pending",
+            year: null,
+            month: null,
+            status: null,
+            years: null,
+            months: null,
+            statuses: null,
+            departmentCode: null,
+            filter: null,
+            filters: null,
+            distinctFilter: null);
+
+        Assert.IsType<ForbidResult>(result);
+        permissionService.Verify(item => item.HasPermissionAsync(
+            controller.User,
+            Permissions.RequestApprove,
+            It.IsAny<CancellationToken>()), Times.Once);
+        permissionService.Verify(item => item.HasPermissionAsync(
+            controller.User,
+            Permissions.RequestReject,
             It.IsAny<CancellationToken>()), Times.Once);
         service.VerifyNoOtherCalls();
     }

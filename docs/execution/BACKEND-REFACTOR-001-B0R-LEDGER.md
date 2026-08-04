@@ -1,7 +1,7 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R COMPLETE / B1a-1 READY — 2 AUTH DECISIONS + UI ACCEPTANCE PENDING; PRODUCTION B1 CHƯA MỞ`
-- Characterization HEAD / B1a-1 base: `codex/ai-agent-foundation` @ `e6d3c5ee`
+- Status: `B0R COMPLETE — D1/D2 OWNER-APPROVED + IMPLEMENTED; UI ACCEPTED; B1a-1 OPEN`
+- Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -11,7 +11,7 @@
 
 | Mục | Kết luận hiện tại |
 |---|---|
-| Baseline | Characterization focused `83/83`; backend unit `520/520`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20`; final full backend verify PASS |
+| Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit `525/525`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
 | Kiến trúc | Giữ `API → Application → Domain`; Shared là wire contract; không tạo project/microservice mới |
 | Xóa an toàn đầu tiên | 5 private `*LegacyAsync` trong `VPPRequestService`, `ObjectHelpers.cs`, `PasswordHelpers.cs` có usage chỉ là declaration |
 | Chưa được xóa | `BaseServices`, `IBaseServices`, `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật |
@@ -19,14 +19,14 @@
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production đầu tiên | Sau owner UI acceptance và B0R full PASS: B1a-1 xóa dead code nhỏ; không trộn `BaseServices` hoặc localization cutover |
+| Bước production đầu tiên | B1a-1 xóa dead code nhỏ; không trộn `BaseServices`, helper closure B1a-1b hoặc localization cutover |
 
 ## 1. Baseline đã kiểm chứng
 
 | Gate | Kết quả trên HEAD khảo sát |
 |---|---|
 | `./scripts/gtas.cmd preflight -Scope backend` | PASS |
-| `./scripts/gtas.cmd test-backend` | PASS — `520/520` |
+| `./scripts/gtas.cmd test-backend` | PASS — `525/525` sau authorization ratchet |
 | Integration mặc định | PASS — `14`, skip đúng `6` opt-in LocalDB |
 | `GTAS_QA_SQL_INTEGRATION=1` | PASS — `20/20`, `0` skip |
 | `./scripts/gtas.cmd verify -Scope backend` | PASS — build sạch, unit/integration, EF pending-model, format, vulnerability và Gitleaks |
@@ -179,14 +179,16 @@ Controller unit test gọi action trực tiếp nên không chạy authorization
 outer policy metadata; runtime unauthenticated-policy integration qua host được hoãn đến auth-host/B6,
 không dựng `WebApplicationFactory` chỉ cho B1a-1.
 
-### Hai authorization mismatch cần owner duyệt
+### Hai authorization decision đã triển khai
 
-| ID | Current behavior | Khuyến nghị | Tác động nếu duyệt |
+| ID | Status | Contract đã chốt | Ratchet evidence |
 |---|---|---|---|
-| B0R-D1 | `order-filter-values?scope=pending` chỉ chấp nhận `REQUEST_APPROVE`, trong khi pending grid chấp nhận `APPROVE` **hoặc** `REJECT` | dùng cùng điều kiện `APPROVE OR REJECT` như grid | reviewer chỉ có quyền reject vẫn lọc được đúng dữ liệu họ đã được xem; không mở thêm company/department scope |
-| B0R-D2 | history có outer policy `REQUEST_VIEW_OWN`, còn detail/PDF/XLSX dùng authenticated + resource scope | cho history dùng cùng authenticated + `CanViewOrderAsync` như ba endpoint đọc cùng resource | người có `VIEW_DEPARTMENT`/`VIEW_ALL` được xem history đúng scope ngay cả khi không có `VIEW_OWN`; cần duyệt vì thay đổi authorization behavior |
+| B0R-D1 | `OWNER APPROVED A / IMPLEMENTED 2026-08-04` | `order-filter-values?scope=pending` và pending grid cùng chấp nhận `REQUEST_APPROVE OR REQUEST_REJECT`; quyền `REQUEST_VIEW_ALL` vẫn chỉ quyết định data scope | approve-only/reject-only đều `200`; thiếu cả hai quyền trả `403`; service nhận đúng company/department và `canViewAllDepartments=false` |
+| B0R-D2 | `OWNER APPROVED A / IMPLEMENTED 2026-08-04` | history dùng class-level authenticated + `CanViewOrderAsync`, đồng nhất với detail/PDF/XLSX | manifest đổi thành `AUTHENTICATED`; department/company scope không cần `VIEW_OWN`; same-company thiếu resource permission và other-company vẫn `403` |
 
-Chưa thêm test ratchet cho hai behavior trên và chưa sửa production source cho đến khi owner chọn.
+Security backlog cho B4: action history hiện tải full revisions trước resource authorization; cần tách seed/header
+authorization trước query đầy đủ và khóa invariant mọi revision trong cùng series có cùng resource scope. B0R
+không âm thầm đổi semantics `404`/`403` hoặc schema/index.
 
 ## 6. B0R deliverables và tiến độ
 
@@ -197,16 +199,17 @@ Chưa thêm test ratchet cho hai behavior trên và chưa sửa production sourc
 - [x] RBAC legacy reconciliation assertions ở mục 3.
 - [x] Generic endpoint/repository consumer ledger ở mục 4.
 - [x] Module map bỏ residual `SQLController`; reading guide chi tiết còn đồng bộ ở wave tài liệu.
-- [x] Final full backend verify PASS: agent setup `63/63`, build sạch, unit `520/520`, default
+- [x] Final full backend verify PASS: agent setup `63/63`, build sạch, unit `525/525`, default
   integration `14/6 skip`, EF zero-delta, format, vulnerability và Gitleaks; LocalDB `20/20` giữ từ
   HTTP/RBAC slice vì behavior slice chỉ thêm unit/docs.
-- [ ] Owner chốt B0R-D1/B0R-D2 và UI final acceptance; sau đó mới mở B1a-1.
+- [x] Owner chốt B0R-D1/B0R-D2 phương án A và UI final acceptance; authorization ratchet pass, B1a-1 mở.
 
 ## 7. Boundary an toàn
 
-- Không move/xóa hoặc đổi runtime behavior production backend trước owner UI final acceptance;
-  test, execution record và comment-only cleanup được phép chuẩn bị an toàn.
-- Không đổi Shared wire shape, route, policy, status code, database schema hoặc migration trong B0R.
+- B0R chỉ đổi hai authorization behavior đã được owner duyệt; không đổi Shared wire shape, database hoặc
+  nghiệp vụ đặt hàng. B1a-1 tiếp tục là behavior-preserving dead-code slice riêng.
+- Ngoài B0R-D1/D2 đã được owner duyệt, không đổi Shared wire shape, route, status code, database schema
+  hoặc migration trong B0R.
 - Không stage/overwrite các dirty file ngoài scope được liệt kê trong continuation record.
 - Nếu B1 phát hiện schema/data change thật, dừng backend refactor record và chuyển sang DB-safety
   execution record có recovery/backup/forward-correction phù hợp.

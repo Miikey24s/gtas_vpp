@@ -269,7 +269,7 @@ public sealed class BackendHttpContractManifestTests
         POST | /api/VPPRequest/orders/{id:guid}/cancel | POLICY:REQUEST_CANCEL_OWN
         GET | /api/VPPRequest/orders/{id:guid}/export.pdf | AUTHENTICATED
         GET | /api/VPPRequest/orders/{id:guid}/export.xlsx | AUTHENTICATED
-        GET | /api/VPPRequest/orders/{id:guid}/history | POLICY:REQUEST_VIEW_OWN
+        GET | /api/VPPRequest/orders/{id:guid}/history | AUTHENTICATED
         POST | /api/VPPRequest/orders/{id:guid}/recreate | POLICY:REQUEST_UPDATE_OWN
         POST | /api/VPPRequest/orders/{id:guid}/restore | POLICY:REQUEST_UPDATE_OWN
         GET | /api/VPPRequest/period-demand | POLICY:PERIOD_SETTLE
