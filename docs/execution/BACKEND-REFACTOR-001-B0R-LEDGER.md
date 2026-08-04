@@ -1,8 +1,8 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1a + B1b-A COMPLETE — B1b-B REFORECAST`
+- Status: `B0R + B1 COMPLETE — B2 WAIT FOR SAFE CAPACITY`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
-- Latest backend refactor commit: `a3f871de`
+- Latest backend refactor commit: `5806f8da`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -20,7 +20,7 @@
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | Reforecast B1b-B read-only `.http` smoke; local ignored artifacts vẫn là ownership/lock gate riêng |
+| Bước production tiếp theo | `WAIT`: force-refresh/reforecast B2 Reports pilot sau khi safe buffer trở lại; local ignored artifacts vẫn là ownership/lock gate riêng |
 
 ## 1. Baseline đã kiểm chứng
 
@@ -234,9 +234,14 @@ consumer.
   0 rule thiếu; representative `check-ignore`/`check-attr`, XML, API build và full backend verify PASS.
   Checkpoint dùng `34%` aggregate pool, cao hơn estimate 8–25% nhưng nằm trong buffer 50%.
 - **B1b-B HTTP smoke:** thay `gtas_vpp_be.http` stale bằng health + authenticated read-only requests,
-  bearer placeholder, không credential và không mutation; phải reforecast riêng.
+  bearer placeholder, không credential và không mutation — COMPLETE @ `5806f8da`. Static scan chỉ có bốn
+  `GET`, manifest `1/1`, API build `0 warning/error`, no-secret/stale-route scan PASS. Checkpoint dùng `4%`
+  aggregate pool.
 - `Api/logs`, `bin`, `obj`, `*.csproj.user` là ignored local artifacts, không nằm trong repo metadata
   slice. Chỉ cleanup sau fresh process/PID/lock ownership check và scope rõ; không xóa opportunistic.
+
+Post-B1b-B forced refresh chỉ còn weekly coverage và không đủ safe buffered bound cho B2; kết luận thực
+thi là `WAIT`, không hạ model/effort và không mở thêm slice chỉ để dùng hết quota.
 
 ## 5. Contract và documentation drift
 

@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: B0R + B1a + B1b-A COMPLETE — B1b-B REFORECAST
+- Status: B0R + B1 COMPLETE — B2 WAIT FOR SAFE CAPACITY
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -8,7 +8,7 @@
 - Branch: `codex/ai-agent-foundation`
 - Base commit: `46560f6020824cbea9e02bcb8bb06131f1efd501`
 - Planned at: `2026-07-29T05:17:46+07:00`
-- Refreshed against: `a3f871de` at `2026-08-04`
+- Refreshed against: `5806f8da` at `2026-08-04`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`,
   [`BACKEND-REFACTOR-001-B0R-LEDGER.md`](./BACKEND-REFACTOR-001-B0R-LEDGER.md)
@@ -16,7 +16,7 @@
 - Supersedes: phần **R-1 backend** và quy ước comment backend trong
   `docs/execution/REFACTOR-001.md`; lịch sử R-0/R-2 của record cũ vẫn giữ nguyên
 - User approval: UI final acceptance và B0R-D1/B0R-D2 đã được owner chốt phương án A ngày 2026-08-04;
-  toàn bộ B1a và B1b-A đã thực thi đúng execution card đã khóa.
+  toàn bộ B1a và B1b-A/B đã thực thi đúng execution card đã khóa.
 
 <a id="plan-overview"></a>
 
@@ -29,10 +29,10 @@
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | B0R refresh/khóa contract → B1a-1/B1a-1b dead closure → B1a-2a characterization → B1a-2b bỏ `BaseServices` → B1b metadata/local cleanup → B2 Reports → B3 Catalog/Pricing → B4 Requests → B5 Settlement → B6 Identity/Access → B7 Platform → B8 persistence/final review | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English, ưu tiên từ đầy đủ và từ vựng nghiệp vụ; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**, không mặc định gắn số mục luận văn vào source | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | `gpt-5.6-sol` cho architecture/review khó, `gpt-5.6-terra` cho lát cơ học rõ. B1b-A `terra/medium` đo `34%` aggregate; bắt buộc force-refresh trước B1b-B | [Routing](#plan-detail-routing) |
+| Model/quota routing | `gpt-5.6-sol` cho architecture/review khó, `gpt-5.6-terra` cho lát cơ học rõ. B1b-B `terra/medium` đo `4%`; post-gate capacity không còn safe buffer cho B2 nên `WAIT` | [Routing](#plan-detail-routing) |
 | Kiểm tra | Authorization/manifest focused 45/45; B1a-1b focused 91/91; B1a-2a focused 231/231; B1a-2b1 72/72; B1a-2b2 41/41; backend unit 503/503; integration mặc định 14 pass/6 skip; disposable LocalDB 20/20 từ B0R SQL slice; EF không có pending model; agent setup 63/63. Số test là snapshot, không phải invariant | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Mass move/rename làm diff khó review; generic endpoint có hidden consumer; hai DbContext dễ gây model drift; migration/generated file bị hiểu nhầm là rác | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Live reforecast B1b-B; chỉ thay `.http` bằng request smoke read-only nếu buffer đủ. Local artifact cleanup không tự mở. Raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | `WAIT` đến khi force-refresh cho thấy đủ safe buffer cho B2 Reports pilot; không tự mở local artifact cleanup. Raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -313,7 +313,7 @@ src/Backend/
 | Năm private `*LegacyAsync` trong `VPPRequestService` | DELETED 2026-08-04 | B1a-1 đã xóa đúng scope | Focused `119/119`; backend unit `525/525`; full backend verify PASS |
 | `ObjectHelpers.cs`, `PasswordHelpers.cs` | DELETED 2026-08-04 | B1a-1 đã xóa hai file zero-consumer | Repo-wide search 0 handle; build/integration/format/audit PASS |
 | `TransitionStatus`, `GetCurrentAndPreviousPeriod`, service `IsDeadlinePassed`, `OrderStateMachine` closure | DELETED 2026-08-04 | B1a-1b đã xóa 3 helper, state-machine file/test và 2 reflection test; giữ public `PeriodCalculator.IsDeadlinePassed` để audit riêng | Search 0; focused `91/91`; backend `503/503`; full verify + independent review PASS |
-| `Api/gtas_vpp_be.http` | REPLACE | Viết lại thành request smoke hiện hành, không chứa credential | Route inventory/test |
+| `Api/gtas_vpp_be.http` | REPLACED 2026-08-04 | Health + authenticated read-only request smoke, chỉ placeholder, không mutation | GET-only/no-secret scan; manifest `1/1`; API build PASS |
 | `Api/readme.md` | DELETED 2026-08-04 | Root `scripts/gtas.cmd`/backend instructions đã là command authority; stale local readme đã xóa | Documentation link check + backend verify PASS |
 | `Api/.gitignore`, `Api/.gitattributes` | DELETED 2026-08-04 | Root metadata cover đầy đủ; nested duplicates đã xóa | 195 ignore rule covered; `check-ignore`/attrs PASS |
 | `Api/logs`, `bin`, `obj`, `*.csproj.user` | LOCAL_CLEANUP | B1b xóa local ignored artifact sau khi xác minh lock; không đổi production log behavior trong cleanup slice | Xác minh process owner/lock trước cleanup |
@@ -357,6 +357,9 @@ src/Backend/
 - B1b-A metadata checkpoint dùng `gpt-5.6-terra` medium và đo `34%` aggregate, cao hơn estimate 8–25%
   nhưng trong buffer 50%; full backend verify pass. B1b-B tiếp tục phải force-refresh riêng, không dùng
   metadata size để suy luận chi phí giả tạo.
+- B1b-B `.http` checkpoint đo `4%` aggregate; route/secret/build gates pass. Post-gate forced refresh vẫn
+  chỉ có weekly coverage và không đủ safe buffered bound cho B2 Reports pilot. Kết luận hiện tại là
+  `WAIT`, không tự hạ model/effort hoặc mở một slice không nằm trong safe plan.
 
 `Khuyến nghị routing` không có nghĩa model của root task đã tự đổi.
 
@@ -373,7 +376,7 @@ src/Backend/
 | **B1a-2b1 — COMPLETE 2026-08-04** | Detach request service và loại extra UnitOfWork activation | Đã bỏ inheritance/base constructor và sáu dependency; cập nhật tám constructor test sites; giữ legacy registrations cho rollback độc lập | `gpt-5.6-terra` high, review `sol` xhigh | Actual aggregate checkpoint `34%` | Focused `72/72`; backend `506/506`; full verify + review PASS |
 | **B1a-2b2 — COMPLETE 2026-08-04** | Xóa legacy code/config sau khi request service không còn consumer | Đã xóa BaseServices/factory/resolver/Jira chain; cập nhật Program/appsettings/helper/routing tests; giữ framework runtime dependencies | `gpt-5.6-terra` high, review `sol` xhigh | Actual aggregate checkpoint `21%` | Consumer search 0; focused `41/41`; backend `503/503`; full verify + review PASS |
 | **B1b-A — COMPLETE 2026-08-04** | Repo metadata không còn duplicate/ghost/stale command file | Đã xóa nested Git metadata, stale API readme và ghost csproj include | `gpt-5.6-terra` medium | Actual aggregate checkpoint `34%` | Ignore/attr/XML/API build; backend `503/503`; full verify PASS |
-| **B1b-B — Read-only HTTP smoke** | `.http` dùng route hiện hành, không credential/mutation | Health + authenticated read-only examples với bearer placeholder; không đụng local artifacts | `gpt-5.6-terra` medium | Reforecast riêng | Route manifest/search + build; no secret/mutation |
+| **B1b-B — COMPLETE 2026-08-04** | `.http` dùng route hiện hành, không credential/mutation | Health + authenticated read-only examples với bearer/order placeholders; không đụng local artifacts | `gpt-5.6-terra` medium | Actual aggregate checkpoint `4%` | GET-only/no-secret scan; manifest `1/1`; API build PASS |
 | **B2 — Reports pilot** | Chốt pattern module trên seam read-heavy đã có service/export coverage tốt | Bổ sung `ReportsController` route/policy/direct 401/403/status-error manifest; sau đó thin controller và gom report query/builders/insights theo module. Giữ `SimpleWorkbookBuilder`/`ExportFileContract` ở Platform/Files vì Order và Settlement cùng dùng | `gpt-5.6-terra` high, review `sol` high | 4–10% | Route/JSON/status/content parity; direct 401/403; CSV/XLSX/PDF filename/MIME/signature; no DB model delta |
 | **B3 — Catalog & Pricing** | Typed read/write paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, price resolver; retire generic writes từng consumer | `gpt-5.6-sol` high cho design, `terra` high implement | 8–18% | Consumer ledger 0 trước delete; LocalDB price/catalog tests; permission parity |
 | **B4 — Requests** | Luồng đơn dễ trình bày và không còn god service/controller | Query/history, create-update-cancel, supplement workflow, demand, export/notification boundary | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | 15–35% | Idempotency/concurrency/revision/history tests; route/auth/JSON parity; focused LocalDB |
@@ -538,8 +541,8 @@ portfolio hiện hành là:
 2. mutation E2E hai user cho confirm/correct/four-eyes và post-success fresh-preview gate đã pass;
 3. FR8C route/docs + technical runtime board đã hoàn tất; owner đã chấp thuận current runtime, còn
    golden/screenshot cuối được hoãn đến clean reproducible HEAD;
-4. B0R characterization, hai authorization decision, toàn bộ B1a và B1b-A đã hoàn tất; bước kế tiếp là
-   reforecast B1b-B read-only `.http` smoke, local artifact cleanup vẫn tách riêng;
+4. B0R characterization, hai authorization decision và toàn bộ B1 đã hoàn tất; post-B1b-B capacity gate
+   chuyển `WAIT` trước B2, local artifact cleanup vẫn tách riêng;
 5. đồng bộ code-reading guide/luận văn và hoàn thiện slide; xử lý raw English period reason ở boundary
    backend/localization riêng, không trộn vào B0R characterization.
 
@@ -559,16 +562,16 @@ boundary thêm một lần trước B1.
 | B0R-D1 | APPROVED/IMPLEMENTED 2026-08-04 | Pending filter dùng `APPROVE OR REJECT` như pending grid | Owner phương án A + B0R ledger mục 5 |
 | B0R-D2 | APPROVED/IMPLEMENTED 2026-08-04 | History dùng authenticated + resource scope như detail/PDF/XLSX | Owner phương án A + B0R ledger mục 5 |
 
-Không còn backend architecture/authorization decision pending cho B1a/B1b-A. B1b-B vẫn giữ ở live
-reforecast gate; golden UI artifact và localization raw reason là backlog riêng.
+Không còn backend architecture/authorization decision pending cho B1. B2 vẫn giữ ở live capacity gate;
+golden UI artifact và localization raw reason là backlog riêng.
 
 <a id="plan-detail-continuation"></a>
 
 ## 14. Continuation note
 
-- Current status: frontend correction A, mutation E2E, owner visual acceptance, B0R authorization,
-  toàn bộ B1a và B1b-A metadata cleanup đã hoàn tất.
-- B1b-A commit: `codex/ai-agent-foundation` @ `a3f871de`.
+- Current status: frontend correction A, mutation E2E, owner visual acceptance, B0R authorization và
+  toàn bộ B1 backend cleanup đã hoàn tất.
+- B1b-B commit: `codex/ai-agent-foundation` @ `5806f8da`.
 - Pre-existing dirty files outside this task: `.agents/skills/gtas-vpp-ui-system/*`, `AGENTS.md`,
   `LVTN/NguyenAnNam_DH52201078.docx`, `docs/ai/*`, `docs/planning/05-EXECUTION-TEMPLATE.md`,
   `scripts/ai/Test-AgentSetup.ps1`, `src/Frontend/Blazor/wwwroot/css/vpp-polish.css`,
@@ -577,8 +580,8 @@ reforecast gate; golden UI artifact và localization raw reason là backlog riê
   B1a-1b `91/91`, B1a-2a `231/231`, B1a-2b1 `72/72`, B1a-2b2 `41/41`, backend unit `503/503`; integration default 14 pass/6
   skip, disposable LocalDB 20/20 từ HTTP/RBAC slice và final full backend verify PASS. Mỗi production
   wave vẫn phải rerun gate trên HEAD của chính wave trước khi gọi PASS.
-- Next exact backend action: force-refresh/reforecast B1b-B; nếu capacity đủ thì chỉ replace `.http`
-  bằng read-only smoke examples, còn không giữ `WAIT`. Raw English
+- Next exact backend action: `WAIT`; ở lần resume tiếp theo force-refresh/reforecast B2 Reports pilot,
+  chỉ mở khi safe buffered bound đủ. Raw English
   `CanCreateOrderReason` là localization backlog cần phân loại ở B0R, không tự sửa trong frontend.
 - Do not redo: role-count hardcode fix, model-routing-eval fix, source inventory refresh và dead-code
   usage scan; chỉ refresh lại nếu HEAD/backend dependency đã đổi trước B0R.
