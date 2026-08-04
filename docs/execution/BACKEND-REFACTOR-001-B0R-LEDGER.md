@@ -1,7 +1,8 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1a-1 COMPLETE — B1a-1b AUDITED; IMPLEMENTATION WAIT FOR LIVE CAPACITY`
+- Status: `B0R + B1a-1 + B1a-1b COMPLETE — B1a-2 AUDITED; B1a-2a NEXT`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
+- Latest backend refactor commit: `41145a08`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -11,22 +12,22 @@
 
 | Mục | Kết luận hiện tại |
 |---|---|
-| Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit `525/525`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
+| Baseline | Characterization focused `83/83`; authorization/manifest focused `45/45`; backend unit hiện tại `503/503`; integration mặc định `14 pass / 6 skip`; LocalDB disposable `20/20` từ SQL slice; final full backend verify PASS |
 | Kiến trúc | Giữ `API → Application → Domain`; Shared là wire contract; không tạo project/microservice mới |
-| Xóa an toàn đầu tiên | B1a-1 đã xóa 5 private `*LegacyAsync`, `ObjectHelpers.cs`, `PasswordHelpers.cs`; post-delete usage scan 0 |
+| Xóa an toàn đầu tiên | B1a-1 và B1a-1b đã xóa dead request closure đã chứng minh; post-delete usage scan 0 |
 | Chưa được xóa | `BaseServices`, `IBaseServices`, `GenericRepository`, `IGenericRepository`, `BaseGenericController` còn consumer thật |
 | RBAC contract | Canonical có 3 persona; Procurement legacy alias về Manager; test đã khóa legacy ID không thuộc persona và không còn group/membership active sau reconciliation |
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | Chưa mở: khôi phục quota measurement/reforecast rồi mới chạy B1a-1b; B1a-2 vẫn characterize riêng, không trộn localization cutover |
+| Bước production tiếp theo | B1a-2a characterization cho construction/UoW/DI; chưa retire `BaseServices` trước khi gate này xanh và không trộn localization cutover |
 
 ## 1. Baseline đã kiểm chứng
 
 | Gate | Kết quả trên HEAD khảo sát |
 |---|---|
 | `./scripts/gtas.cmd preflight -Scope backend` | PASS |
-| `./scripts/gtas.cmd test-backend` | PASS — `525/525` sau authorization ratchet |
+| `./scripts/gtas.cmd test-backend` | PASS — `503/503` sau B1a-1b dead-test closure |
 | Integration mặc định | PASS — `14`, skip đúng `6` opt-in LocalDB |
 | `GTAS_QA_SQL_INTEGRATION=1` | PASS — `20/20`, `0` skip |
 | `./scripts/gtas.cmd verify -Scope backend` | PASS — build sạch, unit/integration, EF pending-model, format, vulnerability và Gitleaks |
@@ -159,29 +160,64 @@ Kết quả thực thi:
 
 Rollback boundary: một commit chỉ xóa đúng 5 method + 2 file; không DTO/route/policy/schema/migration.
 
-### B1a-1b execution card — AUDITED / NOT OPEN
+### B1a-1b execution card — COMPLETE 2026-08-04
 
-Audit read-only trên HEAD `dd171412` xác nhận behavior-preserving boundary nhỏ nhất:
+Audit read-only trên HEAD `dd171412` xác nhận behavior-preserving boundary nhỏ nhất; implementation
+được chốt tại commit `41145a08`:
 
-| Scope nếu được mở | Evidence consumer |
+| Scope đã thực hiện | Evidence consumer |
 |---|---|
 | Xóa private `IsDeadlinePassed`, `TransitionStatus`, `GetCurrentAndPreviousPeriod` khỏi `VPPRequestService` | không còn production caller sau B1a-1 |
 | Xóa `Application/Domain/OrderStateMachine.cs` (`OrderStateMachine`, `OrderAction`) | chỉ còn `TransitionStatus` và test riêng |
 | Xóa `OrderStateMachineTests.cs` | chỉ test production type đã hết caller |
 | Xóa 2 test `IsDeadlinePassed_*` và reflection helper `InvokeIsDeadlinePassed` trong `VPPRequestServiceTests` | reflection consumer duy nhất của private wrapper |
 
-Không mở rộng sang public `PeriodCalculator.IsDeadlinePassed`: sau wrapper cleanup method này chỉ còn
-domain test, nhưng phải audit cùng các convenience API công khai khác thay vì xóa opportunistic. Active
-workflow đã dùng trực tiếp current/previous, persisted period boundary và status guard của từng use case.
+Không mở rộng sang public `PeriodCalculator.IsDeadlinePassed`: method và domain test biên deadline vẫn
+được giữ để audit cùng các convenience API công khai khác, thay vì xóa opportunistic.
 
-Gate đề xuất: `VPPRequestServiceTests`, `VPPRequestLifecycleTests`, `CreateOrderRaceConditionTests`,
-`PeriodCalculatorTests`, `VppPeriodPolicyTests`, sau đó full backend verify. Rủi ro còn lại là binary
-consumer ngoài repo của public `OrderStateMachine`/`OrderAction`; repository không publish Application
-như package và không có evidence consumer này.
+Evidence sau implementation:
 
-Capacity gate: live quota probe tiếp tục `404`; measurement script không có trong `.ai-harness/bin`;
-cache aggregate 2026-07-29 (`11/16` coverage) đã stale. Vì vậy card này chỉ ở trạng thái audit, chưa được
-phép implementation hoặc gán forecast chính xác.
+- repo-wide search `OrderStateMachine`, `OrderAction`, `TransitionStatus`,
+  `GetCurrentAndPreviousPeriod`, private wrapper/reflection helper: `0` consumer;
+- focused request/lifecycle/race/period/policy: `91/91`;
+- full backend verify: build `0 warning/error`, unit `503/503`, integration `14 pass/6 skip`, EF zero
+  delta, vulnerability và Gitleaks PASS;
+- independent `gpt-5.6-sol` xhigh review: không có finding P0-P3;
+- residual duy nhất là binary consumer ngoài repo của hai public CLR type đã xóa; Application không được
+  publish như package và không có consumer evidence.
+
+Quota evidence ngày 2026-08-04: owner cho phép bật local scheduler; probe schema v2 và measurement command
+đã hoạt động lại mà không restart gateway. Checkpoint B1a-1b dùng `12%` aggregate weekly pool. Đây là
+calibration của toàn checkpoint, không phải billing/model attribution chính xác; short-window coverage
+vẫn thiếu nên routing tiếp tục theo `SLICE_ONLY`.
+
+### B1a-2 execution card — AUDITED / NEXT CHARACTERIZATION
+
+Audit read-only trên HEAD `c2eda429` xác nhận có thể retire boundary mà không đổi API/DTO/schema/nghiệp vụ,
+nhưng phải tách hai checkpoint:
+
+1. **B1a-2a — Characterization:** thêm `VPPRequestServiceConstructionTests` để khóa service dùng
+   `_scopedUow` cho query/transaction, UoW do base factory tạo chỉ là object phụ, và DI resolve được
+   `IVPPRequestService` với `ValidateOnBuild=true`, `ValidateScopes=true`. Bảy test constructor hiện cho
+   factory trả chính `_scopedUow`, nên đang che production tạo hai UoW khác nhau.
+2. **B1a-2b — Retire:** bỏ `VPPRequestService : BaseServices`, `base(...)` và sáu dependency base; xóa
+   `BaseServices`/`IBaseServices`, `UnitOfWorkFactory`, `EnvironmentResolver` chain, `JiraSettings`; cập
+   nhật DI, appsettings và constructor helpers/tests. Giữ `IUnitOfWork`, `IDynamicDbContextFactory`,
+   `IUserNameResolver`; giữ `AddHttpContextAccessor()` để audit riêng ở B1b.
+
+Rủi ro đã biết: xóa các public CLR member kế thừa nhưng repo-wide usage bằng 0; extra UoW hiện lazy nên
+không mở context, nhưng không được DI quản lý/dispose. Audit focused hiện tại `112/112` PASS; implementation
+chỉ mở sau B1a-2a và tiếp tục theo quota `SLICE_ONLY`.
+
+### B1b execution card — AUDITED / NOT OPEN
+
+- **B1b-A repo metadata:** nested `.gitattributes` trùng byte-for-byte với root; nested `.gitignore`
+  được root cover; ghost csproj include không tồn tại; `Api/readme.md` dùng lệnh EF layout cũ. Đây là một
+  metadata slice riêng với `git check-ignore`, attr comparison, docs link check, build và backend verify.
+- **B1b-B HTTP smoke:** thay `gtas_vpp_be.http` stale bằng health + authenticated read-only requests,
+  bearer placeholder, không credential và không mutation.
+- `Api/logs`, `bin`, `obj`, `*.csproj.user` là ignored local artifacts, không nằm trong repo metadata
+  slice. Chỉ cleanup sau fresh process/PID/lock ownership check và scope rõ; không xóa opportunistic.
 
 ## 5. Contract và documentation drift
 
