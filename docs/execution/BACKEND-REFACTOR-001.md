@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: B0R + B1a-1 + B1a-1b + B1a-2a COMPLETE — B1a-2b REFORECAST
+- Status: B0R + B1a-1 + B1a-1b + B1a-2a + B1a-2b1 COMPLETE — B1a-2b2 REFORECAST
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -8,7 +8,7 @@
 - Branch: `codex/ai-agent-foundation`
 - Base commit: `46560f6020824cbea9e02bcb8bb06131f1efd501`
 - Planned at: `2026-07-29T05:17:46+07:00`
-- Refreshed against: `969b6662` at `2026-08-04`
+- Refreshed against: `6cfc8a62` at `2026-08-04`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`,
   [`BACKEND-REFACTOR-001-B0R-LEDGER.md`](./BACKEND-REFACTOR-001-B0R-LEDGER.md)
@@ -16,7 +16,7 @@
 - Supersedes: phần **R-1 backend** và quy ước comment backend trong
   `docs/execution/REFACTOR-001.md`; lịch sử R-0/R-2 của record cũ vẫn giữ nguyên
 - User approval: UI final acceptance và B0R-D1/B0R-D2 đã được owner chốt phương án A ngày 2026-08-04;
-  B1a-1/B1a-1b/B1a-2a đã thực thi đúng execution card đã khóa.
+  B1a-1/B1a-1b/B1a-2a/B1a-2b1 đã thực thi đúng execution card đã khóa.
 
 <a id="plan-overview"></a>
 
@@ -29,10 +29,10 @@
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | B0R refresh/khóa contract → B1a-1/B1a-1b dead closure → B1a-2a characterization → B1a-2b bỏ `BaseServices` → B1b metadata/local cleanup → B2 Reports → B3 Catalog/Pricing → B4 Requests → B5 Settlement → B6 Identity/Access → B7 Platform → B8 persistence/final review | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English, ưu tiên từ đầy đủ và từ vựng nghiệp vụ; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**, không mặc định gắn số mục luận văn vào source | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | `gpt-5.6-sol` cho architecture/review khó, `gpt-5.6-terra` cho lát cơ học rõ. B1a-2a đo `38%` aggregate, vượt forecast/buffer cũ; B1a-2b phải reforecast và có thể chia rollback boundary nhỏ hơn | [Routing](#plan-detail-routing) |
+| Model/quota routing | `gpt-5.6-sol` cho architecture/review khó, `gpt-5.6-terra` cho lát cơ học rõ. B1a-2b1 đo `34%` aggregate và đã pass; B1a-2b2 phải reforecast từ ba mẫu trước khi xóa orphan chain | [Routing](#plan-detail-routing) |
 | Kiểm tra | Authorization/manifest focused 45/45; B1a-1b focused 91/91; B1a-2a focused 231/231; backend unit 506/506; integration mặc định 14 pass/6 skip; disposable LocalDB 20/20 từ B0R SQL slice; EF không có pending model; agent setup 63/63. Số test là snapshot, không phải invariant | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Mass move/rename làm diff khó review; generic endpoint có hidden consumer; hai DbContext dễ gây model drift; migration/generated file bị hiểu nhầm là rác | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Reforecast B1a-2b từ measurement thật và khóa slice nhỏ nhất có rollback rõ; chỉ sau gate này mới detach/retire `BaseServices`. Raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Reforecast B1a-2b2; nếu budget gate cho phép thì xóa zero-consumer BaseServices/factory/resolver/Jira chain trong một commit riêng. Raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -323,7 +323,8 @@ src/Backend/
 | EF `.Designer.cs`, snapshot, applied migrations | KEEP | Không coi là rác | DB safety skill + explicit migration task nếu cần |
 | Poppins fonts, demo TSV, SQL scripts | KEEP/NEEDS_AUDIT | Giữ vì có csproj/runtime consumer; chỉ thay khi có replacement verified | Build output/resource/seed tests |
 | `GenericRepository`, `BaseGenericController`, generic Library writes | MIGRATE_ON_TOUCH | Không xóa big-bang; typed path + consumer cutover từng module | Route/consumer/authorization/parity tests |
-| `BaseServices`/`IBaseServices` và related UoW/config chain | CHARACTERIZED / RETIRE PENDING | B1a-2a đã khóa construction/UoW/DI; B1a-2b mới bỏ inheritance, extra UoW và zero-consumer chain. Giữ `IDynamicDbContextFactory`, `IUnitOfWork`, `IUserNameResolver` | Reforecast/split rollback boundary; consumer search 0; focused service/config/transaction + strict DI |
+| `VPPRequestService : BaseServices` và extra UoW activation | DETACHED 2026-08-04 | B1a-2b1 đã bỏ inheritance/base constructor và sáu dependency; request service chỉ giữ dependency thực sự dùng | Focused `72/72`; backend `506/506`; full verify + independent review PASS |
+| `BaseServices`/`IBaseServices` và factory/resolver/Jira chain | ORPHANED / DELETE PENDING | B1a-2b2 xóa declaration, registration, config và helper/safety tests sau reforecast. Giữ `IDynamicDbContextFactory`, `IUnitOfWork`, `IUserNameResolver` | Post-b1 consumer ledger; strict DI; focused config/routing + full backend verify |
 | Hai DbContext có mapping trùng | NEEDS_AUDIT | Document trước; không merge ở B1 | EF no-pending-model + LocalDB parity |
 
 <a id="plan-detail-routing"></a>
@@ -346,9 +347,10 @@ src/Backend/
 - B1a-2a test-only checkpoint đo `38%` aggregate, vượt forecast 4–15% và upper bound 30% sau buffer 100%.
   Forecast miss này có thể gồm reasoning/review/full-verify và concurrent-pool noise, nhưng đủ để bác bỏ
   estimate cũ thay vì rationalize sau sự kiện.
-- Matching history mới chỉ có hai mẫu và short-window coverage vẫn thiếu. Kết luận cho B1a-2b là
-  `REFORECAST / SLICE_ONLY`: khóa một rollback boundary độc lập nhỏ hơn nếu cần, không tự hạ model/effort
-  và không tuyên bố `ENOUGH` cho full plan.
+- B1a-2b1 detach checkpoint đo `34%` aggregate, nằm trong forecast rộng 25–65%; full verify và review đều
+  pass. Sau b1 có ba mẫu aggregate `12%`, `38%`, `34%`; short-window coverage vẫn thiếu và history còn
+  ít. Kết luận cho B1a-2b2 là `REFORECAST / SLICE_ONLY` hoặc `WAIT` theo live budget gate; không tự hạ
+  model/effort và không tuyên bố `ENOUGH` cho full plan.
 
 `Khuyến nghị routing` không có nghĩa model của root task đã tự đổi.
 
@@ -362,7 +364,8 @@ src/Backend/
 | **B1a-1 — COMPLETE 2026-08-04** | Production slice đầu tiên dễ review/rollback | Đã xóa 5 request legacy methods + `ObjectHelpers` + `PasswordHelpers`; không đổi API, DTO, schema, DI hay nghiệp vụ | `gpt-5.6-terra` medium/high, review `sol` high | 1–3% heuristic | Usage proof 0; focused `119/119`; backend `525/525`; full verify PASS |
 | **B1a-1b — COMPLETE 2026-08-04** | Dọn helper closure do B1a-1 để lại mà không kéo public API khác theo | Đã xóa 3 private helper; `OrderStateMachine`/`OrderAction` + test; 2 reflection test + helper. Giữ `PeriodCalculator.IsDeadlinePassed` | `gpt-5.6-terra` high, review `gpt-5.6-sol` xhigh | Actual aggregate checkpoint `12%` | Search 0; focused `91/91`; backend `503/503`; full verify + independent review PASS |
 | **B1a-2a — COMPLETE 2026-08-04** | Khóa đúng construction/UoW/DI trước khi xóa inheritance | Đã thêm 3 construction tests chứng minh `_scopedUow` là active path, base factory tạo extra lazy UoW và request DI contract resolve strict scopes | `gpt-5.6-terra` high, review `sol` xhigh | Actual aggregate checkpoint `38%`; prior forecast rejected | Class `3/3`; focused `231/231`; backend `506/506`; full verify + review PASS |
-| **B1a-2b — Retire BaseServices boundary** | Bỏ inheritance và extra UnitOfWork sau gate 2a | Bỏ base constructor dependencies; xóa zero-consumer BaseServices/factory/resolver/Jira chain; cập nhật DI/config/tests; giữ framework/runtime dependencies đã nêu trong ledger | `gpt-5.6-terra` high, review `sol` xhigh | REFORECAST; cân nhắc split detach/orphan cleanup | Consumer search 0; strict DI; focused + full backend verify |
+| **B1a-2b1 — COMPLETE 2026-08-04** | Detach request service và loại extra UnitOfWork activation | Đã bỏ inheritance/base constructor và sáu dependency; cập nhật tám constructor test sites; giữ legacy registrations cho rollback độc lập | `gpt-5.6-terra` high, review `sol` xhigh | Actual aggregate checkpoint `34%` | Focused `72/72`; backend `506/506`; full verify + review PASS |
+| **B1a-2b2 — Delete orphan chain** | Xóa legacy code/config sau khi request service không còn consumer | Xóa BaseServices/factory/resolver/Jira chain; cập nhật Program/appsettings/helper/routing tests; giữ framework runtime dependencies | `gpt-5.6-terra` high, review `sol` xhigh | Reforecast từ 3 mẫu | Consumer search 0; strict DI; focused config/routing + full backend verify |
 | **B1b — Metadata & local cleanup** | Source tree sạch, tài liệu local đúng | B1b-A nested Git metadata/ghost csproj/stale readme; B1b-B read-only `.http` smoke. Local artifacts cần process/lock gate riêng | `gpt-5.6-terra` medium | 1–5% broad | `git check-ignore`/attrs/build/docs links; không đổi logging/deploy behavior |
 | **B2 — Reports pilot** | Chốt pattern module trên seam read-heavy đã có service/export coverage tốt | Bổ sung `ReportsController` route/policy/direct 401/403/status-error manifest; sau đó thin controller và gom report query/builders/insights theo module. Giữ `SimpleWorkbookBuilder`/`ExportFileContract` ở Platform/Files vì Order và Settlement cùng dùng | `gpt-5.6-terra` high, review `sol` high | 4–10% | Route/JSON/status/content parity; direct 401/403; CSV/XLSX/PDF filename/MIME/signature; no DB model delta |
 | **B3 — Catalog & Pricing** | Typed read/write paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, price resolver; retire generic writes từng consumer | `gpt-5.6-sol` high cho design, `terra` high implement | 8–18% | Consumer ledger 0 trước delete; LocalDB price/catalog tests; permission parity |
@@ -528,8 +531,8 @@ portfolio hiện hành là:
 2. mutation E2E hai user cho confirm/correct/four-eyes và post-success fresh-preview gate đã pass;
 3. FR8C route/docs + technical runtime board đã hoàn tất; owner đã chấp thuận current runtime, còn
    golden/screenshot cuối được hoãn đến clean reproducible HEAD;
-4. B0R characterization, hai authorization decision, B1a-1, B1a-1b và B1a-2a đã hoàn tất; measurement
-   B1a-2a vượt forecast cũ nên bước kế tiếp là reforecast/split B1a-2b trước production;
+4. B0R characterization, hai authorization decision, B1a-1, B1a-1b, B1a-2a và B1a-2b1 đã hoàn tất;
+   request service không còn BaseServices/extra UoW, bước kế tiếp là reforecast B1a-2b2 orphan cleanup;
 5. đồng bộ code-reading guide/luận văn và hoàn thiện slide; xử lý raw English period reason ở boundary
    backend/localization riêng, không trộn vào B0R characterization.
 
@@ -549,17 +552,16 @@ boundary thêm một lần trước B1.
 | B0R-D1 | APPROVED/IMPLEMENTED 2026-08-04 | Pending filter dùng `APPROVE OR REJECT` như pending grid | Owner phương án A + B0R ledger mục 5 |
 | B0R-D2 | APPROVED/IMPLEMENTED 2026-08-04 | History dùng authenticated + resource scope như detail/PDF/XLSX | Owner phương án A + B0R ledger mục 5 |
 
-Không còn backend architecture/authorization decision pending cho B1a-1/B1a-1b/B1a-2a. B1a-2b vẫn giữ
-ở reforecast/rollback-boundary gate vì measurement thật vượt estimate cũ. Golden UI artifact và
-localization raw reason là backlog riêng.
+Không còn backend architecture/authorization decision pending cho B1a-1/B1a-1b/B1a-2a/B1a-2b1.
+B1a-2b2 vẫn giữ ở live reforecast gate; golden UI artifact và localization raw reason là backlog riêng.
 
 <a id="plan-detail-continuation"></a>
 
 ## 14. Continuation note
 
 - Current status: frontend correction A, mutation E2E, owner visual acceptance, B0R authorization,
-  B1a-1/B1a-1b dead-code closure và B1a-2a construction characterization đã hoàn tất.
-- B1a-2a commit: `codex/ai-agent-foundation` @ `969b6662`.
+  B1a-1/B1a-1b dead-code closure, B1a-2a characterization và B1a-2b1 detach đã hoàn tất.
+- B1a-2b1 commit: `codex/ai-agent-foundation` @ `6cfc8a62`.
 - Pre-existing dirty files outside this task: `.agents/skills/gtas-vpp-ui-system/*`, `AGENTS.md`,
   `LVTN/NguyenAnNam_DH52201078.docx`, `docs/ai/*`, `docs/planning/05-EXECUTION-TEMPLATE.md`,
   `scripts/ai/Test-AgentSetup.ps1`, `src/Frontend/Blazor/wwwroot/css/vpp-polish.css`,
@@ -568,8 +570,8 @@ localization raw reason là backlog riêng.
   B1a-1b focused `91/91`, B1a-2a focused `231/231`, backend unit `506/506`; integration default 14 pass/6
   skip, disposable LocalDB 20/20 từ HTTP/RBAC slice và final full backend verify PASS. Mỗi production
   wave vẫn phải rerun gate trên HEAD của chính wave trước khi gọi PASS.
-- Next exact backend action: reforecast và khóa exact B1a-2b rollback boundary (có thể tách detach service
-  khỏi orphan cleanup); chỉ sau gate đó mới mở production. Raw English
+- Next exact backend action: reforecast B1a-2b2; nếu capacity đủ cho independent slice thì xóa orphan
+  BaseServices/factory/resolver/Jira chain, còn không giữ `WAIT`. Raw English
   `CanCreateOrderReason` là localization backlog cần phân loại ở B0R, không tự sửa trong frontend.
 - Do not redo: role-count hardcode fix, model-routing-eval fix, source inventory refresh và dead-code
   usage scan; chỉ refresh lại nếu HEAD/backend dependency đã đổi trước B0R.

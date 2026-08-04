@@ -16,7 +16,8 @@ tắc nghiệp vụ nào.
 > FR8A/FR8B cùng settlement mutation E2E ngày 2026-08-04. FR8C đã khóa ledger máy đọc được đủ 44 route
 > và hòa giải các bảng tài liệu lịch sử; History full test đã pass `3/3` sau bounded chart retry và
 > render-settle hardening; owner đã chấp thuận current runtime + final board ngày 2026-08-04;
-> các mục không có số hình là route/state thật nhưng chưa được luận văn gán hình riêng.
+> backend reading checkpoint đã đồng bộ qua B1a-2b1 request-service detach; các mục không có số hình là
+> route/state thật nhưng chưa được luận văn gán hình riêng.
 
 Ledger máy đọc được cho toàn bộ 44 key nằm tại
 `tests/Frontend.UnitTests/Architecture/RouteAcceptanceManifest.cs`; test khóa parity với
@@ -46,6 +47,12 @@ Các API client/state đã refactor nằm dưới `Features/<Feature>/` để ng
 Shared DTO. Identity/profile/permission state hiện nằm trong `Features/IdentityAccess/State/`. `Services/`
 vẫn còn transport dùng chung và residual có owner riêng như `PermissionRealtimeService`; các file đó chỉ
 chuyển trong slice lifecycle phù hợp, không mass-move chỉ để đồng đều tên thư mục.
+
+Ở backend Requests, `VPPRequestController` gọi `IVPPRequestService`; implementation
+`VPPRequestService` hiện chỉ nhận `IUnitOfWork`, clock, configuration và các policy/service tùy chọn thực
+sự dùng. Service không còn kế thừa `BaseServices`, nên mỗi activation không còn tạo một UnitOfWork phụ.
+Legacy BaseServices/factory/resolver/Jira registrations đã thành orphan và chờ cleanup B1a-2b2; chúng
+không còn nằm trên đường đọc code của nghiệp vụ đơn.
 
 Điểm hay bị hỏi khi bảo vệ: **ẩn nút trên giao diện không phải là phân quyền**. Giao diện chỉ ẩn cho
 gọn mắt; quyền thật được kiểm ở từng action của controller bằng `[Authorize(Policy = ...)]`. Xem luận

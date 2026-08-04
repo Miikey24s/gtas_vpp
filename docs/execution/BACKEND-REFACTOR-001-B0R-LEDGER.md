@@ -1,8 +1,8 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1a-1 + B1a-1b + B1a-2a COMPLETE — B1a-2b REFORECAST`
+- Status: `B0R + B1a-1 + B1a-1b + B1a-2a + B1a-2b1 COMPLETE — B1a-2b2 REFORECAST`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
-- Latest backend refactor commit: `969b6662`
+- Latest backend refactor commit: `6cfc8a62`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -20,7 +20,7 @@
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | Reforecast và khóa rollback boundary nhỏ nhất cho B1a-2b; chưa retire `BaseServices` theo forecast cũ và không trộn localization cutover |
+| Bước production tiếp theo | Reforecast B1a-2b2 orphan cleanup; request service đã detach, không trộn localization cutover hoặc framework cleanup khác |
 
 ## 1. Baseline đã kiểm chứng
 
@@ -200,10 +200,13 @@ nhưng phải tách hai checkpoint:
    `_scopedUow` cho query/transaction, UoW do base factory tạo chỉ là object phụ, và DI resolve được
    `IVPPRequestService` với `ValidateOnBuild=true`, `ValidateScopes=true`. Bảy test constructor hiện cho
    factory trả chính `_scopedUow`, nên đang che production tạo hai UoW khác nhau.
-2. **B1a-2b — Retire:** bỏ `VPPRequestService : BaseServices`, `base(...)` và sáu dependency base; xóa
-   `BaseServices`/`IBaseServices`, `UnitOfWorkFactory`, `EnvironmentResolver` chain, `JiraSettings`; cập
-   nhật DI, appsettings và constructor helpers/tests. Giữ `IUnitOfWork`, `IDynamicDbContextFactory`,
-   `IUserNameResolver`; giữ `AddHttpContextAccessor()` để audit riêng ở B1b.
+2. **B1a-2b1 — COMPLETE @ `6cfc8a62`:** bỏ `VPPRequestService : BaseServices`, `base(...)` và sáu
+   dependency base; cập nhật tám constructor test sites. Không sửa `Program`, config hoặc legacy chain để
+   rollback độc lập.
+3. **B1a-2b2 — REFORECAST:** xóa `BaseServices`/`IBaseServices`, `UnitOfWorkFactory`,
+   `EnvironmentResolver` chain, `JiraSettings`; cập nhật DI, appsettings và helper/safety tests. Giữ
+   `IUnitOfWork`, `IDynamicDbContextFactory`, `IUserNameResolver`; giữ `AddHttpContextAccessor()` để audit
+   riêng ở B1b.
 
 Evidence B1a-2a: class mới `3/3`, focused Release `231/231`, backend `506/506`, integration `14 pass/6
 skip`, EF zero delta và security gates PASS. Reviewer nêu P3 vì `Program` top-level; test đã đổi sang exact
@@ -213,6 +216,12 @@ Rủi ro đã biết: xóa các public CLR member kế thừa nhưng repo-wide u
 không mở context, nhưng không được DI quản lý/dispose. B1a-2a tiêu thụ `38%` aggregate pool, cao hơn forecast
 4–15% và upper bound có buffer 30%; forecast cũ bị bác bỏ. B1a-2b phải reforecast/split theo rollback
 boundary nhỏ nhất trước khi mở production.
+
+Evidence B1a-2b1: exact production search 0 base dependency; focused `72/72`; API build và full backend
+verify build `0 warning/error`, unit `506/506`, integration `14 pass/6 skip`, EF zero delta,
+vulnerability/Gitleaks PASS; independent review không có P0-P3. Checkpoint dùng `34%` aggregate pool, nằm
+trong forecast rộng 25–65%. Public CLR inheritance/constructor đã đổi nhưng repo/package consumer evidence
+vẫn bằng 0. Legacy chain hiện orphan và chỉ được xóa trong b2.
 
 ### B1b execution card — AUDITED / NOT OPEN
 
