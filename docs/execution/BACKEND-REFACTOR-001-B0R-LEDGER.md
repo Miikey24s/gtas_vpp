@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1a-1 COMPLETE — D1/D2 IMPLEMENTED; PROVEN DEAD CODE REMOVED; REFORECAST NEXT`
+- Status: `B0R + B1a-1 COMPLETE — B1a-1b AUDITED; IMPLEMENTATION WAIT FOR LIVE CAPACITY`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
@@ -19,7 +19,7 @@
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | Chưa mở: đo/reforecast trước B1a-2; audit helper closure B1a-1b riêng, không trộn `BaseServices` hoặc localization cutover |
+| Bước production tiếp theo | Chưa mở: khôi phục quota measurement/reforecast rồi mới chạy B1a-1b; B1a-2 vẫn characterize riêng, không trộn localization cutover |
 
 ## 1. Baseline đã kiểm chứng
 
@@ -132,11 +132,9 @@ không sửa csproj.
 | `ObjectHelpers.cs` | xóa toàn file; 6 extension method đều declaration-only |
 | `PasswordHelpers.cs` | xóa toàn file rỗng |
 
-Không mở rộng cùng commit: sau khi xóa các method trên, `TransitionStatus`,
-`GetCurrentAndPreviousPeriod` và `IsDeadlinePassed` có thể trở thành declaration/test-only. Chuỗi này
-liên quan `OrderStateMachine` và reflection test, nên chuyển sang B1a-1b với usage audit riêng thay vì
-âm thầm kéo scope. Rủi ro duy nhất của hai public helper là binary consumer ngoài repo; Application
-không được đóng gói như public package và không có evidence consumer này.
+B1a-1 không mở rộng sang `TransitionStatus`, `GetCurrentAndPreviousPeriod`, `IsDeadlinePassed`,
+`OrderStateMachine` hoặc reflection test. Audit B1a-1b bên dưới xác nhận closure chính xác; tách commit
+giữ rollback/review rõ và tránh xóa public type opportunistic.
 
 Focused gate trước full verify:
 
@@ -160,6 +158,30 @@ Kết quả thực thi:
   B1a-1b audit; không mở rộng scope hoặc sửa reflection test trong commit này.
 
 Rollback boundary: một commit chỉ xóa đúng 5 method + 2 file; không DTO/route/policy/schema/migration.
+
+### B1a-1b execution card — AUDITED / NOT OPEN
+
+Audit read-only trên HEAD `dd171412` xác nhận behavior-preserving boundary nhỏ nhất:
+
+| Scope nếu được mở | Evidence consumer |
+|---|---|
+| Xóa private `IsDeadlinePassed`, `TransitionStatus`, `GetCurrentAndPreviousPeriod` khỏi `VPPRequestService` | không còn production caller sau B1a-1 |
+| Xóa `Application/Domain/OrderStateMachine.cs` (`OrderStateMachine`, `OrderAction`) | chỉ còn `TransitionStatus` và test riêng |
+| Xóa `OrderStateMachineTests.cs` | chỉ test production type đã hết caller |
+| Xóa 2 test `IsDeadlinePassed_*` và reflection helper `InvokeIsDeadlinePassed` trong `VPPRequestServiceTests` | reflection consumer duy nhất của private wrapper |
+
+Không mở rộng sang public `PeriodCalculator.IsDeadlinePassed`: sau wrapper cleanup method này chỉ còn
+domain test, nhưng phải audit cùng các convenience API công khai khác thay vì xóa opportunistic. Active
+workflow đã dùng trực tiếp current/previous, persisted period boundary và status guard của từng use case.
+
+Gate đề xuất: `VPPRequestServiceTests`, `VPPRequestLifecycleTests`, `CreateOrderRaceConditionTests`,
+`PeriodCalculatorTests`, `VppPeriodPolicyTests`, sau đó full backend verify. Rủi ro còn lại là binary
+consumer ngoài repo của public `OrderStateMachine`/`OrderAction`; repository không publish Application
+như package và không có evidence consumer này.
+
+Capacity gate: live quota probe tiếp tục `404`; measurement script không có trong `.ai-harness/bin`;
+cache aggregate 2026-07-29 (`11/16` coverage) đã stale. Vì vậy card này chỉ ở trạng thái audit, chưa được
+phép implementation hoặc gán forecast chính xác.
 
 ## 5. Contract và documentation drift
 
