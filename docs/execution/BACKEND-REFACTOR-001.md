@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: B0R + B1 COMPLETE — B2 WAIT FOR SAFE CAPACITY
+- Status: B0R + B1 COMPLETE — B2R AUDIT COMPLETE / B2 PRODUCTION WAIT
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -8,7 +8,7 @@
 - Branch: `codex/ai-agent-foundation`
 - Base commit: `46560f6020824cbea9e02bcb8bb06131f1efd501`
 - Planned at: `2026-07-29T05:17:46+07:00`
-- Refreshed against: `5806f8da` at `2026-08-04`
+- Refreshed against: `cb5fe163` at `2026-08-04`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`,
   [`BACKEND-REFACTOR-001-B0R-LEDGER.md`](./BACKEND-REFACTOR-001-B0R-LEDGER.md)
@@ -29,10 +29,10 @@
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | B0R refresh/khóa contract → B1a-1/B1a-1b dead closure → B1a-2a characterization → B1a-2b bỏ `BaseServices` → B1b metadata/local cleanup → B2 Reports → B3 Catalog/Pricing → B4 Requests → B5 Settlement → B6 Identity/Access → B7 Platform → B8 persistence/final review | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English, ưu tiên từ đầy đủ và từ vựng nghiệp vụ; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**, không mặc định gắn số mục luận văn vào source | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | `gpt-5.6-sol` cho architecture/review khó, `gpt-5.6-terra` cho lát cơ học rõ. B1b-B `terra/medium` đo `4%`; post-gate capacity không còn safe buffer cho B2 nên `WAIT` | [Routing](#plan-detail-routing) |
+| Model/quota routing | `gpt-5.6-sol` cho architecture/review khó, `gpt-5.6-terra` cho lát cơ học rõ. B2R audit đã hoàn tất read-only; forced refresh chỉ có weekly coverage, thiếu cửa sổ 5 giờ nên B2 production vẫn `WAIT` | [Routing](#plan-detail-routing) |
 | Kiểm tra | Authorization/manifest focused 45/45; B1a-1b focused 91/91; B1a-2a focused 231/231; B1a-2b1 72/72; B1a-2b2 41/41; backend unit 503/503; integration mặc định 14 pass/6 skip; disposable LocalDB 20/20 từ B0R SQL slice; EF không có pending model; agent setup 63/63. Số test là snapshot, không phải invariant | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Mass move/rename làm diff khó review; generic endpoint có hidden consumer; hai DbContext dễ gây model drift; migration/generated file bị hiểu nhầm là rác | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | `WAIT` đến khi force-refresh cho thấy đủ safe buffer cho B2 Reports pilot; không tự mở local artifact cleanup. Raw English period reason giữ ở compatibility backlog | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | `WAIT`; lần resume kế tiếp force-refresh và chỉ mở **B2a characterization** nếu safe buffered bound đủ. Không làm lại route/auth tests đã có, không tự mở local artifact cleanup | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -360,6 +360,10 @@ src/Backend/
 - B1b-B `.http` checkpoint đo `4%` aggregate; route/secret/build gates pass. Post-gate forced refresh vẫn
   chỉ có weekly coverage và không đủ safe buffered bound cho B2 Reports pilot. Kết luận hiện tại là
   `WAIT`, không tự hạ model/effort hoặc mở một slice không nằm trong safe plan.
+- B2R read-only audit chạy trên `cb5fe163`: snapshot force-refresh tại `2026-08-04T03:11:49Z` còn
+  `61%` weekly aggregate, chỉ `2/13` account khả dụng và thiếu cửa sổ 5 giờ cho toàn bộ account. Đây là
+  execution snapshot có thể thay đổi, không phải repository invariant; coverage hiện tại không đủ để
+  tuyên bố một B2 production checkpoint có safe buffer.
 
 `Khuyến nghị routing` không có nghĩa model của root task đã tự đổi.
 
@@ -377,7 +381,7 @@ src/Backend/
 | **B1a-2b2 — COMPLETE 2026-08-04** | Xóa legacy code/config sau khi request service không còn consumer | Đã xóa BaseServices/factory/resolver/Jira chain; cập nhật Program/appsettings/helper/routing tests; giữ framework runtime dependencies | `gpt-5.6-terra` high, review `sol` xhigh | Actual aggregate checkpoint `21%` | Consumer search 0; focused `41/41`; backend `503/503`; full verify + review PASS |
 | **B1b-A — COMPLETE 2026-08-04** | Repo metadata không còn duplicate/ghost/stale command file | Đã xóa nested Git metadata, stale API readme và ghost csproj include | `gpt-5.6-terra` medium | Actual aggregate checkpoint `34%` | Ignore/attr/XML/API build; backend `503/503`; full verify PASS |
 | **B1b-B — COMPLETE 2026-08-04** | `.http` dùng route hiện hành, không credential/mutation | Health + authenticated read-only examples với bearer/order placeholders; không đụng local artifacts | `gpt-5.6-terra` medium | Actual aggregate checkpoint `4%` | GET-only/no-secret scan; manifest `1/1`; API build PASS |
-| **B2 — Reports pilot** | Chốt pattern module trên seam read-heavy đã có service/export coverage tốt | Bổ sung `ReportsController` route/policy/direct 401/403/status-error manifest; sau đó thin controller và gom report query/builders/insights theo module. Giữ `SimpleWorkbookBuilder`/`ExportFileContract` ở Platform/Files vì Order và Settlement cùng dùng | `gpt-5.6-terra` high, review `sol` high | 4–10% | Route/JSON/status/content parity; direct 401/403; CSV/XLSX/PDF filename/MIME/signature; no DB model delta |
+| **B2 — Reports pilot** (`B2R` audit complete; production `WAIT`) | Chốt pattern module trên seam read-heavy mà không viết lại characterization đã có | `B2a` khóa gap service/settlement; `B2b` làm rõ query context và bỏ logic settlement/CSV lặp; `B2c` gom ownership theo module + `AddReportsModule`; `B2d` verify/handoff. Giữ `SimpleWorkbookBuilder`/`ExportFileContract` ở Platform/Files vì Order và Settlement cùng dùng | `gpt-5.6-terra` high implement, review `gpt-5.6-sol` high | Reforecast từng checkpoint; planning band rộng `15–50%` aggregate/checkpoint, không cộng thành full-wave bound khi thiếu cửa sổ 5 giờ | Existing route/auth/ProblemDetails/frontend route parity; focused service tests; CSV/XLSX/PDF bytes/name/MIME/signature; DI resolve; EF no model delta |
 | **B3 — Catalog & Pricing** | Typed read/write paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, price resolver; retire generic writes từng consumer | `gpt-5.6-sol` high cho design, `terra` high implement | 8–18% | Consumer ledger 0 trước delete; LocalDB price/catalog tests; permission parity |
 | **B4 — Requests** | Luồng đơn dễ trình bày và không còn god service/controller | Query/history, create-update-cancel, supplement workflow, demand, export/notification boundary | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | 15–35% | Idempotency/concurrency/revision/history tests; route/auth/JSON parity; focused LocalDB |
 | **B5 — Settlement** | Preview/confirm/correct/revision tách theo use case | `PeriodSettlementService`; snapshot pricing/evidence; correction/four-eyes; query services | `gpt-5.6-sol` xhigh, `terra` high implement | 10–25% | Snapshot/hash/idempotency/four-eyes tests; SQL Server integration; no schema delta |
@@ -387,6 +391,71 @@ src/Backend/
 
 Chỉ đổi model ở ranh giới wave/checkpoint; một implementer chính giữ context, reviewer/subagent chỉ
 audit hoặc verify độc lập.
+
+### B2 Reports execution card — audited 2026-08-04
+
+#### Bằng chứng hiện tại
+
+- `ReportsController` đã là controller transport tương đối mỏng với đúng `5` GET endpoint. MVC manifest
+  đã khóa route/verb/effective authorization; controller tests đã khóa missing identity `401`,
+  invalid/denied scope `403`, claim-derived user/department/company, insight rate limit và ba file result.
+- `ExceptionHandlingMiddlewareTests` đã khóa ProblemDetails `400` cho `ArgumentException`,
+  `ArgumentOutOfRangeException` và `InvalidOperationException`; frontend `ReportsApiClientTests` đã khóa
+  query encoding cùng mapping `summary`, `insights`, CSV, XLSX và PDF. Vì vậy B2 **không** thêm lại các
+  test route/policy/status này chỉ để tăng số lượng test.
+- Audit validation trên baseline: backend focused `41/41`, frontend Reports client `6/6`, không fail/skip.
+- Hotspot thật là `ReportService` (`521` dòng): bốn method lặp sáu primitive parameter, tên `Code` không
+  nói rõ nghĩa, scope/filter setup bị lặp, và current-settlement query/allocation mapping bị lặp giữa
+  summary với workbook. CSV projection/building cũng nằm chung với query orchestration.
+- `ReportWorkbookBuilder`, `ReportPdfBuilder` và provider stack `ReportInsights/` đã có trách nhiệm riêng;
+  B2 không redesign AI provider hoặc đổi dependency/model. `SimpleWorkbookBuilder` và
+  `ExportFileContract` có consumer ngoài Reports nên thuộc shared file platform, không chuyển vào module.
+
+#### B2a — characterization gap (checkpoint đầu tiên, hiện `WAIT`)
+
+1. Thêm direct service tests cho validation matrix: invalid scope, thiếu company, thiếu department khi
+   scope department, year/month ngoài khoảng.
+2. Khóa current-revision selection khi đồng thời có revision cũ và current revision.
+3. Khóa workbook allocation theo `own`/`department` để việc tái sử dụng settlement reader không làm rò
+   dữ liệu khác scope.
+4. Giữ `MaxExportRows = 50_000`; chỉ thêm test row-limit nếu fixture bounded không làm suite chậm hoặc
+   tốn bộ nhớ bất hợp lý. Nếu chưa có test phù hợp, guard này là explicit review gate và không được move
+   hoặc đổi trong B2b.
+
+Gate: focused `ReportServiceTests`, `ReportsControllerTests`, `ExceptionHandlingMiddlewareTests`,
+`BackendHttpContractManifestTests` và frontend `ReportsApiClientTests`; không sửa production ở checkpoint
+test-only này.
+
+#### B2b — readability seam
+
+1. Đổi internal parameter `Code` thành `departmentCode`; repo search hiện không có named-argument consumer.
+2. Tạo immutable `ReportQueryContext` (scope, server-derived user/department/company, year, month) để bốn
+   operation không chuyền sáu primitive rời. Comment tiếng Việt tối đa một câu chỉ nhấn mạnh
+   department/company lấy từ authenticated claims, không tin client input.
+3. Extract một typed current-settlement reader/snapshot dùng chung cho summary và workbook. Không tạo
+   generic repository/CQRS; tên class phải nói đúng nghiệp vụ Reports.
+4. Extract CSV projection/encoding thành pure builder nếu diff sau bước 3 vẫn nhỏ và test độc lập rõ.
+   `IReportService` có thể giữ vai trò facade để controller/API không đổi.
+
+Gate: output DTO/JSON không đổi; totals và allocation scope parity; CSV BOM/formula safety; XLSX/PDF
+signature/metadata; no pending EF model change.
+
+#### B2c — module ownership và composition
+
+- Migration-on-touch các file Reports vào `Api/Features/Reports` và `Application/Reports` sau khi B2b xanh;
+  giữ insights dưới `Application/Reports/Insights`.
+- Thêm `AddReportsModule` sở hữu `IReportService` và report-insight registrations; `Program.cs` chỉ gọi
+  module extension. Không tạo extension một dòng cho từng class.
+- Không split `ReportsController` chỉ vì `171` dòng; chỉ tách khi một action có reason-to-change riêng và
+  route manifest chứng minh parity.
+
+#### B2d — verify và handoff
+
+- Chạy focused gates, `./scripts/gtas.cmd verify -Scope backend`, EF pending-model, diff review và
+  `git diff --check` trên HEAD của wave.
+- Cập nhật `docs/CODE-READING-GUIDE.md` bằng luồng Report: route → scope authorization → query context →
+  summary/settlement snapshot → export/insight.
+- Mỗi checkpoint commit riêng và reforecast quota trước checkpoint kế; không mở B3 cùng change-set.
 
 ## 9. Module decomposition guide
 
@@ -561,17 +630,18 @@ boundary thêm một lần trước B1.
 | BR-D3 | SUPERSEDED 2026-08-02 | Dùng sequencing hiện hành ở mục 12 và `FRONTEND-REFACTOR-001` | Owner sequencing update |
 | B0R-D1 | APPROVED/IMPLEMENTED 2026-08-04 | Pending filter dùng `APPROVE OR REJECT` như pending grid | Owner phương án A + B0R ledger mục 5 |
 | B0R-D2 | APPROVED/IMPLEMENTED 2026-08-04 | History dùng authenticated + resource scope như detail/PDF/XLSX | Owner phương án A + B0R ledger mục 5 |
+| B2-D1 | APPROVED/IN FORCE 2026-08-04 | Phương án A: hoàn tất read-only audit/execution card; chỉ mở B2a production khi live quota có safe buffered bound | Owner: “oke A đi” |
 
-Không còn backend architecture/authorization decision pending cho B1. B2 vẫn giữ ở live capacity gate;
-golden UI artifact và localization raw reason là backlog riêng.
+Không còn backend architecture/authorization decision pending cho B1. B2R audit đã khóa scope và thứ tự;
+B2a production vẫn giữ ở live capacity gate. Golden UI artifact và localization raw reason là backlog riêng.
 
 <a id="plan-detail-continuation"></a>
 
 ## 14. Continuation note
 
-- Current status: frontend correction A, mutation E2E, owner visual acceptance, B0R authorization và
-  toàn bộ B1 backend cleanup đã hoàn tất.
-- B1b-B commit: `codex/ai-agent-foundation` @ `5806f8da`.
+- Current status: frontend correction A, mutation E2E, owner visual acceptance, B0R authorization,
+  toàn bộ B1 backend cleanup và B2R read-only audit đã hoàn tất.
+- Latest completed production backend checkpoint: `codex/ai-agent-foundation` @ `cb5fe163`.
 - Pre-existing dirty files outside this task: `.agents/skills/gtas-vpp-ui-system/*`, `AGENTS.md`,
   `LVTN/NguyenAnNam_DH52201078.docx`, `docs/ai/*`, `docs/planning/05-EXECUTION-TEMPLATE.md`,
   `scripts/ai/Test-AgentSetup.ps1`, `src/Frontend/Blazor/wwwroot/css/vpp-polish.css`,
@@ -580,8 +650,9 @@ golden UI artifact và localization raw reason là backlog riêng.
   B1a-1b `91/91`, B1a-2a `231/231`, B1a-2b1 `72/72`, B1a-2b2 `41/41`, backend unit `503/503`; integration default 14 pass/6
   skip, disposable LocalDB 20/20 từ HTTP/RBAC slice và final full backend verify PASS. Mỗi production
   wave vẫn phải rerun gate trên HEAD của chính wave trước khi gọi PASS.
-- Next exact backend action: `WAIT`; ở lần resume tiếp theo force-refresh/reforecast B2 Reports pilot,
-  chỉ mở khi safe buffered bound đủ. Raw English
+- Next exact backend action: `WAIT`; ở lần resume tiếp theo force-refresh/reforecast riêng B2a
+  characterization, chỉ mở khi safe buffered bound đủ. Không làm lại route/policy/401/403/ProblemDetails
+  characterization đã có. Raw English
   `CanCreateOrderReason` là localization backlog cần phân loại ở B0R, không tự sửa trong frontend.
 - Do not redo: role-count hardcode fix, model-routing-eval fix, source inventory refresh và dead-code
   usage scan; chỉ refresh lại nếu HEAD/backend dependency đã đổi trước B0R.

@@ -1,8 +1,8 @@
 # BACKEND-REFACTOR-001 B0R — Contract, ownership và cleanup ledger
 
-- Status: `B0R + B1 COMPLETE — B2 WAIT FOR SAFE CAPACITY`
+- Status: `B0R + B1 COMPLETE — B2R AUDIT COMPLETE / B2 PRODUCTION WAIT`
 - Characterization HEAD: `e6d3c5ee`; authorization slice base: `codex/ai-agent-foundation` @ `c653ac8c`
-- Latest backend refactor commit: `5806f8da`
+- Latest production backend refactor commit: `cb5fe163`
 - Khảo sát ngày: `2026-08-04`
 - Authority: [`BACKEND-REFACTOR-001.md`](./BACKEND-REFACTOR-001.md),
   [`ARCH-001-MODULE-MAP.md`](../architecture/ARCH-001-MODULE-MAP.md),
@@ -20,7 +20,7 @@
 | HTTP contract | Manifest MVC khóa `112` endpoint theo verb + route + effective authorization; không khóa tên/controller nội bộ để vẫn cho phép refactor |
 | Documentation drift | Residual `SQLController` đã được gỡ khỏi module map sau repo-wide search xác nhận không còn file/callsite |
 | Localization debt | Backend trả raw English `CanCreateOrderReason`/`CanCreateAdditionalReason`; UI tiếng Việt có thể lộ English như board Order Create |
-| Bước production tiếp theo | `WAIT`: force-refresh/reforecast B2 Reports pilot sau khi safe buffer trở lại; local ignored artifacts vẫn là ownership/lock gate riêng |
+| Bước production tiếp theo | `WAIT`: B2R audit đã xong; force-refresh/reforecast riêng B2a characterization khi safe buffer trở lại. Không làm lại route/auth/error tests đã có; local ignored artifacts vẫn là ownership/lock gate riêng |
 
 ## 1. Baseline đã kiểm chứng
 
@@ -242,6 +242,21 @@ consumer.
 
 Post-B1b-B forced refresh chỉ còn weekly coverage và không đủ safe buffered bound cho B2; kết luận thực
 thi là `WAIT`, không hạ model/effort và không mở thêm slice chỉ để dùng hết quota.
+
+### B2R Reports audit — COMPLETE 2026-08-04
+
+- Forced refresh tại `2026-08-04T03:11:49Z`: weekly aggregate còn `61%`, `2/13` account khả dụng,
+  cửa sổ 5 giờ không có coverage. Snapshot này chỉ là execution evidence; không phải capacity invariant.
+- Existing characterization đã đủ cho `5` GET route, effective authorization, direct `401/403`, scope
+  mapping, insight rate limit, ProblemDetails và frontend route/export mapping. B2 không tạo duplicate tests.
+- Audit validation đã chạy lại: backend focused `41/41`, frontend Reports client `6/6`, không fail/skip.
+- Hotspot production được chọn đúng là `ReportService` (`521` dòng), không phải controller: sáu primitive
+  parameter lặp, tên `Code`, duplicate scope/filter setup, duplicate current-settlement allocation mapping
+  và CSV query/building cùng một class.
+- Gap trước refactor: service validation matrix; current-vs-old settlement revision; workbook allocation
+  scope. Row-limit guard `50.000` chỉ thêm test nếu fixture bounded; nếu không thì giữ nguyên như review gate.
+- Thứ tự đã khóa theo B2-D1: `B2a` characterization test-only → `B2b` query context + settlement/CSV seam
+  → `B2c` module ownership/DI → `B2d` full verify/reading guide. Production hiện vẫn `WAIT`.
 
 ## 5. Contract và documentation drift
 
