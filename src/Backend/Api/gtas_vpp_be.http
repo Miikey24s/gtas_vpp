@@ -1,19 +1,23 @@
-@gtas_vpp_be_HostAddress = https://localhost:7267
+@host = https://localhost:7267
+# Dán test token có quyền phù hợp; không dùng credential thật trong file này.
+@accessToken = paste-test-token-here
+@orderId = 00000000-0000-0000-0000-000000000000
 
-GET {{gtas_vpp_be_HostAddress}}/weatherforecast/
+### Anonymous health smoke
+GET {{host}}/health
 Accept: application/json
 
-###
+### Requires REQUEST_VIEW_OWN
+GET {{host}}/api/VPPRequest/period-info
+Accept: application/json
+Authorization: Bearer {{accessToken}}
 
-GET {{gtas_vpp_be_HostAddress}}/api/sql/Test/test
+### Requires PERMISSION_VIEW
+GET {{host}}/api/Permission/groups
+Accept: application/json
+Authorization: Bearer {{accessToken}}
 
-###
-
-GET {{gtas_vpp_be_HostAddress}}/api/permission/groups
-
-###
-
-@id=string
-GET {{gtas_vpp_be_HostAddress}}/api/Permission/groups/{5823b49b-5925-4a89-846a-09063a36040c}
-
-###
+### Authenticated order history; replace the placeholder order ID when needed.
+GET {{host}}/api/VPPRequest/orders/{{orderId}}/history
+Accept: application/json
+Authorization: Bearer {{accessToken}}
