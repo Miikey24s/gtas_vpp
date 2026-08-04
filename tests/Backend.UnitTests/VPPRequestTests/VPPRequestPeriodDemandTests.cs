@@ -6,8 +6,6 @@ using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.VppItemRequestTests;
@@ -148,7 +146,6 @@ public sealed class VPPRequestPeriodDemandTests
     private static VPPRequestService CreateService(VPPContext context)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
-        var factory = ServiceTestHelpers.CreateUnitOfWorkFactoryMock(unitOfWork.Object);
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -158,14 +155,8 @@ public sealed class VPPRequestPeriodDemandTests
             })
             .Build();
         return new VPPRequestService(
-            factory.Object,
-            ServiceTestHelpers.CreateHttpContextAccessor(),
             unitOfWork.Object,
             new FakeDateTimeProvider(OpenPeriodNow),
-            configuration,
-            ServiceTestHelpers.CreateEnvironmentResolver(),
-            new UserNameResolver(),
-            NullLogger<gtas_vpp_be.Service.Services.BaseServices>.Instance,
-            Options.Create(new JiraSettings()));
+            configuration);
     }
 }

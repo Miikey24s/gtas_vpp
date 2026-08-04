@@ -5,9 +5,10 @@ using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -17,32 +18,26 @@ namespace gtas_vpp_be.Tests.VppItemRequestTests;
 public sealed class VPPRequestServiceConstructionTests
 {
     [Fact]
-    public async Task Query_UsesScopedUnitOfWork_AndLeavesFactoryCreatedUnitOfWorkUntouched()
+    public async Task Query_UsesInjectedScopedUnitOfWork()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var scopedUow = new Mock<IUnitOfWork>(MockBehavior.Strict);
         scopedUow.SetupGet(unitOfWork => unitOfWork.VPPContext).Returns(context);
-        var factoryCreatedUow = new Mock<IUnitOfWork>(MockBehavior.Strict);
-        var factory = CreateFactory(factoryCreatedUow.Object);
-        var service = CreateService(factory.Object, scopedUow.Object);
+        var service = CreateService(scopedUow.Object);
 
         var orders = await service.GetMyOrdersAsync(5615, null, null, null);
 
         Assert.Empty(orders);
-        factory.Verify(item => item.Create(), Times.Once);
         scopedUow.VerifyGet(item => item.VPPContext, Times.Once);
-        VerifyFactoryCreatedUnitOfWorkWasNotUsed(factoryCreatedUow);
     }
 
     [Fact]
-    public async Task Transaction_UsesScopedUnitOfWork_AndLeavesFactoryCreatedUnitOfWorkUntouched()
+    public async Task Transaction_UsesInjectedScopedUnitOfWork()
     {
         var scopedUow = new Mock<IUnitOfWork>(MockBehavior.Strict);
         scopedUow.Setup(unitOfWork => unitOfWork.BeginTransactionAsync()).Returns(Task.CompletedTask);
         scopedUow.Setup(unitOfWork => unitOfWork.RollbackAsync()).Returns(Task.CompletedTask);
-        var factoryCreatedUow = new Mock<IUnitOfWork>(MockBehavior.Strict);
-        var factory = CreateFactory(factoryCreatedUow.Object);
-        var service = CreateService(factory.Object, scopedUow.Object);
+        var service = CreateService(scopedUow.Object);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() => service.CreateOrderAsync(
             new VppRequestCreateReqDTO
@@ -57,10 +52,8 @@ public sealed class VPPRequestServiceConstructionTests
             memberCompanyCode: "77500"));
 
         Assert.Contains("current period", exception.Message, StringComparison.Ordinal);
-        factory.Verify(item => item.Create(), Times.Once);
         scopedUow.Verify(item => item.BeginTransactionAsync(), Times.Once);
         scopedUow.Verify(item => item.RollbackAsync(), Times.Once);
-        VerifyFactoryCreatedUnitOfWorkWasNotUsed(factoryCreatedUow);
     }
 
     [Fact]
@@ -81,6 +74,20 @@ public sealed class VPPRequestServiceConstructionTests
         Assert.Contains("builder.Services.AddScoped<IBaseServices, BaseServices>();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();", programRegistrationLines);
+
+        var constructorParameterTypes = typeof(VPPRequestService)
+            .GetConstructors()
+            .Single()
+            .GetParameters()
+            .Select(parameter => parameter.ParameterType)
+            .ToHashSet();
+
+        Assert.DoesNotContain(typeof(IUnitOfWorkFactory), constructorParameterTypes);
+        Assert.DoesNotContain(typeof(IHttpContextAccessor), constructorParameterTypes);
+        Assert.DoesNotContain(typeof(IEnvironmentResolver), constructorParameterTypes);
+        Assert.DoesNotContain(typeof(IUserNameResolver), constructorParameterTypes);
+        Assert.DoesNotContain(typeof(ILogger<BaseServices>), constructorParameterTypes);
+        Assert.DoesNotContain(typeof(IOptions<JiraSettings>), constructorParameterTypes);
 
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -127,16 +134,7 @@ public sealed class VPPRequestServiceConstructionTests
         Assert.IsType<VPPRequestService>(service);
     }
 
-    private static Mock<IUnitOfWorkFactory> CreateFactory(IUnitOfWork factoryCreatedUow)
-    {
-        var factory = new Mock<IUnitOfWorkFactory>(MockBehavior.Strict);
-        factory.Setup(item => item.Create()).Returns(factoryCreatedUow);
-        return factory;
-    }
-
-    private static VPPRequestService CreateService(
-        IUnitOfWorkFactory factory,
-        IUnitOfWork scopedUow)
+    private static VPPRequestService CreateService(IUnitOfWork scopedUow)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -146,30 +144,9 @@ public sealed class VPPRequestServiceConstructionTests
             .Build();
 
         return new VPPRequestService(
-            factory,
-            ServiceTestHelpers.CreateHttpContextAccessor(),
             scopedUow,
             new FakeDateTimeProvider(new DateTime(2026, 4, 1, 9, 0, 0)),
-            configuration,
-            ServiceTestHelpers.CreateEnvironmentResolver(),
-            new UserNameResolver(),
-            NullLogger<BaseServices>.Instance,
-            Options.Create(new JiraSettings()));
-    }
-
-    private static void VerifyFactoryCreatedUnitOfWorkWasNotUsed(Mock<IUnitOfWork> factoryCreatedUow)
-    {
-        factoryCreatedUow.VerifyGet(item => item.VPPContext, Times.Never);
-        factoryCreatedUow.Verify(item => item.BeginTransaction(), Times.Never);
-        factoryCreatedUow.Verify(item => item.BeginTransactionAsync(), Times.Never);
-        factoryCreatedUow.Verify(item => item.Commit(), Times.Never);
-        factoryCreatedUow.Verify(item => item.CommitAsync(), Times.Never);
-        factoryCreatedUow.Verify(item => item.Rollback(), Times.Never);
-        factoryCreatedUow.Verify(item => item.RollbackAsync(), Times.Never);
-        factoryCreatedUow.Verify(item => item.SaveChanges(), Times.Never);
-        factoryCreatedUow.Verify(item => item.SaveChangesAsync(), Times.Never);
-        factoryCreatedUow.Verify(item => item.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-        factoryCreatedUow.VerifyNoOtherCalls();
+            configuration);
     }
 
     private static string FindRepositoryRoot()

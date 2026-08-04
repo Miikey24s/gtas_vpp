@@ -8,13 +8,10 @@ using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -240,8 +237,6 @@ public class CreateOrderRaceConditionTests
     private static VPPRequestService CreateService(SqliteTestDatabase database, DateTime now, AsyncBarrier? barrier = null)
     {
         var unitOfWork = new TestUnitOfWork(database.CreateContext(), barrier);
-        var factory = new Mock<IUnitOfWorkFactory>();
-        factory.Setup(x => x.Create()).Returns(unitOfWork);
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -250,15 +245,9 @@ public class CreateOrderRaceConditionTests
             .Build();
 
         return new VPPRequestService(
-            factory.Object,
-            new HttpContextAccessor(),
             unitOfWork,
             new FakeDateTimeProvider(now),
-            config,
-                ServiceTestHelpers.CreateEnvironmentResolver(),
-            new UserNameResolver(),
-            NullLogger<BaseServices>.Instance,
-            Options.Create(new JiraSettings()));
+            config);
     }
 
     private static VppRequestCreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid vppId)

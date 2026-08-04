@@ -5,8 +5,6 @@ using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.VppItemRequestTests;
@@ -50,7 +48,6 @@ public class CreateOrderAfterSettlementTests
     private static VPPRequestService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
-        var factory = ServiceTestHelpers.CreateUnitOfWorkFactoryMock(unitOfWork.Object);
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -59,15 +56,9 @@ public class CreateOrderAfterSettlementTests
             .Build();
 
         return new VPPRequestService(
-            factory.Object,
-            ServiceTestHelpers.CreateHttpContextAccessor(),
             unitOfWork.Object,
             new FakeDateTimeProvider(now),
-            config,
-                ServiceTestHelpers.CreateEnvironmentResolver(),
-            new UserNameResolver(),
-            NullLogger<BaseServices>.Instance,
-            Options.Create(new JiraSettings()));
+            config);
     }
 
     private static VppRequestCreateReqDTO CreateOrderRequest(int year, int month, bool isAdditionalOrder, Guid vppId)

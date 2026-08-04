@@ -8,12 +8,9 @@ using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Mapster;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -81,7 +78,7 @@ namespace gtas_vpp_be.Service.Services
         Task RejectAdditionalOrderAsync(Guid id, int adminId, string? reason, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
     }
 
-    public class VPPRequestService : BaseServices, IVPPRequestService
+    public class VPPRequestService : IVPPRequestService
     {
         private readonly IUnitOfWork _scopedUow;
         private readonly IDateTimeProvider _dateTimeProvider;
@@ -91,19 +88,12 @@ namespace gtas_vpp_be.Service.Services
         private readonly IVppPeriodService? _periodService;
 
         public VPPRequestService(
-            IUnitOfWorkFactory uowFactory,
-            IHttpContextAccessor httpContextAccessor,
             IUnitOfWork scopedUow,
             IDateTimeProvider dateTimeProvider,
             IConfiguration config,
-            IEnvironmentResolver environmentResolver,
-            IUserNameResolver userNameResolver,
-            ILogger<BaseServices> baseLogger,
-            IOptions<JiraSettings> jiraSettings,
             PeriodCalculator? periodCalculator = null,
             VppRequestPolicy? policy = null,
             IVppPeriodService? periodService = null)
-            : base(uowFactory, httpContextAccessor, environmentResolver, userNameResolver, baseLogger, jiraSettings)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
