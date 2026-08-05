@@ -32,10 +32,35 @@ public sealed class PermissionStateTests
         Assert.True(fixture.State.HasVisibleComponent(
             Config.Page_ComponentCode.PageCode.Dashboard,
             Permissions.RequestProductCatalog));
+        Assert.False(fixture.State.HasMenuAccess(Permissions.MenuDashboard));
         Assert.Equal(
             "/dashboard?tab=2",
             fixture.State.GetFirstAccessibleRouteForPage(Config.Page_ComponentCode.PageCode.Dashboard));
         Assert.Equal(1, notifications);
+    }
+
+    [Fact]
+    public async Task MenuAccess_RequiresExplicitVisibleSidebarMapping()
+    {
+        var fixture = CreateFixture();
+        fixture.Snapshot.Pages.Add(new PermissionSnapshotPageResDTO
+        {
+            PageCode = Config.Page_ComponentCode.PageCode.Sidebar,
+            Components =
+            [
+                new PermissionComponentResDTO
+                {
+                    ComponentCode = Permissions.MenuDashboard,
+                    IsVisible = true,
+                    IsEnable = true
+                }
+            ]
+        });
+
+        await fixture.State.RefreshAsync();
+
+        Assert.True(fixture.State.HasMenuAccess(Permissions.MenuDashboard));
+        Assert.False(fixture.State.HasMenuAccess(Permissions.MenuLibrary));
     }
 
     [Fact]

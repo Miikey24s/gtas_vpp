@@ -89,25 +89,59 @@ public sealed class CanonicalRbacTests
     [Fact]
     public void UiMatrix_IsExplicitAndKeepsAdministrativeAreasSeparated()
     {
-        var employee = CanonicalRbac.GetUiComponents(CanonicalRbac.Employee.GroupId);
-        Assert.DoesNotContain(Permissions.RequestDepartmentSummary, employee);
-        Assert.DoesNotContain(Permissions.RequestAdminApproval, employee);
-        Assert.DoesNotContain(Permissions.MenuPermission, employee);
+        AssertUi(
+            CanonicalRbac.Employee.GroupId,
+            Permissions.MenuDashboard,
+            Permissions.MenuReport,
+            Permissions.RequestOrder,
+            Permissions.RequestHistory,
+            Permissions.RequestProductCatalog,
+            Permissions.ReportView);
 
-        var manager = CanonicalRbac.GetUiComponents(CanonicalRbac.Manager.GroupId);
-        Assert.Contains(Permissions.RequestDepartmentSummary, manager);
-        Assert.Contains(Permissions.RequestAllOrdersSummary, manager);
-        Assert.Contains(Permissions.RequestAdminApproval, manager);
-        Assert.Contains(Permissions.PeriodSettle, manager);
-        Assert.DoesNotContain(Permissions.MenuPermission, manager);
+        AssertUi(
+            CanonicalRbac.Manager.GroupId,
+            Permissions.MenuDashboard,
+            Permissions.MenuLibrary,
+            Permissions.MenuReport,
+            Permissions.RequestOrder,
+            Permissions.RequestHistory,
+            Permissions.RequestProductCatalog,
+            Permissions.RequestDepartmentSummary,
+            Permissions.RequestAllOrdersSummary,
+            Permissions.RequestAdminApproval,
+            Permissions.LibraryClass,
+            Permissions.LibraryCategory,
+            Permissions.LibraryItem,
+            Permissions.LibrarySupplier,
+            Permissions.LibraryPrice,
+            Permissions.LibraryPriceList,
+            Permissions.LibraryDepartment,
+            Permissions.ReportView,
+            Permissions.PeriodSettle);
 
-        var dev = CanonicalRbac.GetUiComponents(CanonicalRbac.Dev.GroupId);
-        Assert.Contains(Permissions.MenuPermission, dev);
-        Assert.Contains(Permissions.PermissionUser, dev);
-        Assert.Contains(Permissions.PermissionComponent, dev);
-        Assert.Contains(Permissions.RequestAllOrdersSummary, dev);
-        Assert.Contains(Permissions.RequestAdminApproval, dev);
-        Assert.Contains(Permissions.PeriodSettle, dev);
+        AssertUi(
+            CanonicalRbac.Dev.GroupId,
+            Permissions.MenuDashboard,
+            Permissions.MenuLibrary,
+            Permissions.MenuReport,
+            Permissions.MenuPermission,
+            Permissions.RequestOrder,
+            Permissions.RequestHistory,
+            Permissions.RequestProductCatalog,
+            Permissions.RequestDepartmentSummary,
+            Permissions.RequestAllOrdersSummary,
+            Permissions.RequestAdminApproval,
+            Permissions.LibraryClass,
+            Permissions.LibraryCategory,
+            Permissions.LibraryItem,
+            Permissions.LibrarySupplier,
+            Permissions.LibraryPrice,
+            Permissions.LibraryPriceList,
+            Permissions.LibraryDepartment,
+            Permissions.ReportView,
+            Permissions.PeriodSettle,
+            Permissions.PermissionUser,
+            Permissions.PermissionComponent);
     }
 
     [Fact]
@@ -138,5 +172,12 @@ public sealed class CanonicalRbacTests
         Assert.Equal(
             expected.Order(StringComparer.Ordinal),
             CanonicalRbac.GetActionPermissions(groupId).Order(StringComparer.Ordinal));
+    }
+
+    private static void AssertUi(Guid groupId, params string[] expected)
+    {
+        Assert.Equal(
+            expected.Order(StringComparer.Ordinal),
+            CanonicalRbac.GetUiComponents(groupId).Order(StringComparer.Ordinal));
     }
 }

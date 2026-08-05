@@ -235,6 +235,8 @@ $env:GTAS_E2E_MUTATION_OPT_IN = 'I_UNDERSTAND_THIS_MUTATES_QA_DATA'
 
 Ba persona canonical là `EMPLOYEE / Nhân viên`, `MANAGER / Quản lý` và `DEV / Phát triển`. UI chỉ hiển thị action theo permission/API hiện hành; refactor UI không đổi role, seed, authorization, domain guard hoặc production boundary. Khi tài liệu lịch sử phía dưới còn nhắc `DEPARTMENT_APPROVER`, `PROCUREMENT_ADMIN` hoặc `SYSTEM_ADMIN`, coi đó là snapshot đã superseded, không phải lệnh triển khai hiện tại.
 
+**Owner correction — 2026-08-05:** `EMPLOYEE` chỉ nhìn thấy workspace đơn cá nhân, danh mục mặt hàng trong Dashboard và báo cáo phạm vi cá nhân; không hiển thị `/library` hoặc `/permission`. `MANAGER` sở hữu Library và các màn quản lý/vận hành nhưng không sở hữu Permission. `DEV` giữ toàn bộ workspace và quản trị hệ thống. Backend action `LIBRARY_VIEW` của Employee chỉ phục vụ dữ liệu tham chiếu cần cho luồng đặt hàng, không được suy diễn thành quyền nhìn thấy workspace quản trị Library. Sidebar phải fail-closed khi thiếu mapping `SIDEBAR`, không tự mở menu bằng fallback.
+
 ---
 
 ## 4. Art direction

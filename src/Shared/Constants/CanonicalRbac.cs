@@ -119,20 +119,14 @@ public static class CanonicalRbac
     private static readonly IReadOnlyDictionary<Guid, IReadOnlyList<string>> UiMatrix =
         new Dictionary<Guid, IReadOnlyList<string>>
         {
+            // Nhân viên tra cứu mặt hàng trong Dashboard; Library là workspace
+            // quản trị dữ liệu nên chỉ Manager/DEV được nhìn thấy trong shell.
             [Employee.GroupId] = Explicit(
                 Permissions.MenuDashboard,
-                Permissions.MenuLibrary,
                 Permissions.MenuReport,
                 Permissions.RequestOrder,
                 Permissions.RequestHistory,
                 Permissions.RequestProductCatalog,
-                Permissions.LibraryClass,
-                Permissions.LibraryCategory,
-                Permissions.LibraryItem,
-                Permissions.LibrarySupplier,
-                Permissions.LibraryPrice,
-                Permissions.LibraryPriceList,
-                Permissions.LibraryDepartment,
                 Permissions.ReportView),
             [Manager.GroupId] = Explicit(
                 Permissions.MenuDashboard,

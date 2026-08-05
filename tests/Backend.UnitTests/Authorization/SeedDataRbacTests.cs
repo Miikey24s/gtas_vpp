@@ -71,6 +71,19 @@ public sealed class SeedDataRbacTests
             UpdatedByUserId = 5615,
             UpdatedAtUtc = DateTime.UtcNow
         });
+        var libraryMenuMappingId = await MappingIdAsync(context, Permissions.MenuLibrary);
+        context.GroupPageComponentMappings.Add(new GroupPageComponentMapping
+        {
+            PermissionGroupId = CanonicalRbac.Employee.GroupId,
+            PageComponentMappingId = libraryMenuMappingId,
+            MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
+            IsEnable = true,
+            IsVisible = true,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = DateTime.UtcNow
+        });
         await context.SaveChangesAsync();
 
         await InvokeSeedAsync(context, "SeedPermissionGroup");
@@ -94,6 +107,12 @@ public sealed class SeedDataRbacTests
             && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode);
         Assert.False(excess.IsEnable);
         Assert.False(excess.IsVisible);
+        var excessLibraryMenu = await context.GroupPageComponentMappings.SingleAsync(x =>
+            x.PermissionGroupId == CanonicalRbac.Employee.GroupId
+            && x.PageComponentMappingId == libraryMenuMappingId
+            && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode);
+        Assert.False(excessLibraryMenu.IsEnable);
+        Assert.False(excessLibraryMenu.IsVisible);
         await AssertActiveComponentsAsync(context, CanonicalRbac.Employee.GroupId);
     }
 

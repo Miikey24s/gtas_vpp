@@ -174,6 +174,11 @@ public sealed class PermissionState : IDisposable
         return GetVisibleComponents(pageCode).Count > 0;
     }
 
+    public bool HasMenuAccess(string menuCode)
+    {
+        return HasVisibleComponent(Config.Page_ComponentCode.PageCode.Sidebar, menuCode);
+    }
+
     public bool HasPermission(string componentCode)
     {
         return EffectivePermissions.Contains(componentCode);

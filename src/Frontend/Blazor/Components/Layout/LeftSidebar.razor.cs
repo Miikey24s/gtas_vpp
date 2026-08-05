@@ -610,7 +610,7 @@ namespace gtas_vpp_fe.Components.Layout
         }
 
         private bool CanViewSection(ShellNavigationCatalog.Section section)
-            => (section.MenuPermission is null || HasSidebarMenu(section.MenuPermission))
+            => (section.MenuPermission is null || PermissionState.HasMenuAccess(section.MenuPermission))
                 && section.Items.Any(CanViewShellItem);
 
         private bool CanViewShellItem(ShellNavigationCatalog.Item item)
@@ -623,13 +623,6 @@ namespace gtas_vpp_fe.Components.Layout
             return Permissions.IsActionCode(item.Permission)
                 ? PermissionState.HasPermission(item.Permission)
                 : PermissionState.HasVisibleComponent(item.Route.PageCode, item.Permission);
-        }
-
-        private bool HasSidebarMenu(string permission)
-        {
-            var sidebarPermission = PermissionState.GetPagePermission(Config.Page_ComponentCode.PageCode.Sidebar);
-            return sidebarPermission.Components.Count == 0
-                || PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Sidebar, permission);
         }
 
         private void OnPermissionStateChanged()
