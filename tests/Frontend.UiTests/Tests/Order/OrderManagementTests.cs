@@ -19,20 +19,20 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
     private const string ManagerRejectionReason = "Thiếu căn cứ số lượng LEAN-05";
 
     [Fact]
-    public async Task Manager_CreatesStandaloneSupplementWithoutRegularOrder()
+    public async Task ManagerPersona_CreatesStandaloneSupplementWithoutRegularOrder()
     {
         const string reason = "Bổ sung độc lập khi chưa có đơn thường";
 
         await Page.SetViewportSizeAsync(1366, 768);
-        await LoginAsAsync(TestAccounts.Manager);
-        using var api = await CreateAuthorizedApiClientAsync(TestAccounts.Manager);
+        await LoginAsAsync(TestAccounts.Procurement);
+        using var api = await CreateAuthorizedApiClientAsync(TestAccounts.Procurement);
 
         var periodBeforeCreate = await api.GetFromJsonAsync<VppPeriodInfoResDTO>(
             "/api/VPPRequest/period-info",
             TestContext.Current.CancellationToken);
         periodBeforeCreate.Should().NotBeNull();
         periodBeforeCreate!.HasCurrentPeriodOrder.Should().BeFalse(
-            "QA manager intentionally has no regular order in the isolated fixture");
+            "QA procurement account intentionally has no regular order in the isolated fixture");
         periodBeforeCreate.BaseRequestId.Should().BeNull();
         periodBeforeCreate.CanCreateAdditional.Should().BeTrue(
             "a supplement no longer depends on a regular order");

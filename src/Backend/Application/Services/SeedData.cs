@@ -21,7 +21,7 @@ namespace gtas_vpp_be.Service.Services
         // là đã áp dụng, và bootstrap reference production không được phụ thuộc
         // vào demo fixture tùy chọn.
         private const string ReferenceSeedVersion = "2026-07-15-reference-2-flat-rbac";
-        private const string DemoSeedVersion = "2026-07-31-demo-3-normal-workflows";
+        private const string DemoSeedVersion = "2026-08-05-demo-4-persona-workflows";
         private static readonly Guid DefaultPriceListId = Guid.Parse("00000000-0000-0000-0000-000000000700");
 
         // ── Mã định danh trang ─────────────────────────────────────
@@ -124,6 +124,17 @@ namespace gtas_vpp_be.Service.Services
             // khi reconcile dữ liệu canonical.
             Log.Information("[SeedData] Reconciling normalized workbook demo fixture...");
             await DemoWorkbookSeeder.SeedAsync(context, options, cancellationToken);
+
+            if (options is not null)
+            {
+                await DemoPersonaScenarioSeeder.SeedAsync(
+                    context,
+                    new DemoPersonaSeedOptions(
+                        DevUsername: options.OwnerUsername,
+                        NowUtc: options.NowUtc,
+                        AutoResolveUniquePersonas: options.AutoResolveOwner),
+                    cancellationToken);
+            }
 
             await MarkSeedVersionAppliedAsync(context, DemoSeedVersion);
 

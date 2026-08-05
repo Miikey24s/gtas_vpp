@@ -68,6 +68,14 @@ internal static class QaFixtureSeeder
             currentPeriod,
             cancellationToken);
         await EnsureScopeRequestsAsync(context, accounts, currentPeriod, cancellationToken);
+        await DemoPersonaScenarioSeeder.SeedAsync(
+            context,
+            new DemoPersonaSeedOptions(
+                accounts.Employee.Username,
+                accounts.Manager.Username,
+                accounts.SystemAdmin.Username,
+                currentPeriod.StartAtUtc.AddDays(10)),
+            cancellationToken);
         await EnsureSettlementRequestAsync(context, accounts.Procurement, settlementPeriod, cancellationToken);
 
         await context.Database.ExecuteSqlInterpolatedAsync($"""

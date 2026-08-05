@@ -38,7 +38,7 @@
 - `None`: không migrate, không seed.
 - `Migrate`: chỉ áp dụng EF migrations.
 - `MigrateAndReference`: migrate và seed permission/reference idempotent; lựa chọn mặc định nên dùng.
-- `MigrateAndDemo`: thêm catalog, phòng ban, bảng giá và đơn hàng đã chuẩn hoá từ workbook; chỉ cho database TEST/DEMO, cần `AllowDemoData=true` và một owner active. Tài khoản phụ là hồ sơ giả, không có mật khẩu và bị khóa đăng nhập.
+- `MigrateAndDemo`: thêm catalog, phòng ban, bảng giá và đơn hàng đã chuẩn hoá từ workbook; chỉ cho database TEST/DEMO, cần `AllowDemoData=true` và một owner active. Nếu database có đúng một account active cho mỗi persona `EMPLOYEE`, `MANAGER`, `DEV`, seed còn bổ sung lịch sử riêng và các trạng thái workflow dễ trình diễn cho cả ba; nếu persona bị thiếu hoặc trùng account thì phần này được bỏ qua để không tự chọn nhầm người dùng. Tài khoản phụ là hồ sơ giả, không có mật khẩu và bị khóa đăng nhập.
 
 ## Bootstrap System Admin local
 

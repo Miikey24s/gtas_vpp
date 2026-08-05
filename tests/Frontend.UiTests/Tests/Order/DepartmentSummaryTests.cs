@@ -28,7 +28,7 @@ public sealed class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
         var totalOrders = Page.Locator(".vpp-history-kpis:visible").Last
             .Locator(".vpp-history-kpi-trigger strong").Nth(1);
         await totalOrders.WaitForAsync();
-        (await totalOrders.InnerTextAsync()).Trim().Should().Be("2");
+        (await totalOrders.InnerTextAsync()).Trim().Should().Be("4");
         (await grid.InnerTextAsync()).Should().NotContain("QA-D02", "another department must stay out of manager scope");
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");

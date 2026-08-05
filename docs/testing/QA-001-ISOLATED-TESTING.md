@@ -146,8 +146,11 @@ Fixture tao sau persona khong phai du lieu that:
 | System admin | `qa_sysadmin` | quan tri/E2E mac dinh |
 
 Email dung domain `example.invalid`; password khong co gia tri co dinh va khong
-duoc ghi vao tai lieu/log. Ba request co GUID co dinh cung tao lan luot own,
-department va company scope de integration test co the doi chieu chinh xac.
+duoc ghi vao tai lieu/log. Ngoai ba request scope co GUID co dinh, fixture tao 24
+request persona-owned cho Employee, Manager va System admin: moi account co 5 don
+thuong tren ky hien tai/lich su va 3 don bo sung o trang thai Approved, Rejected,
+Cancelled. Khong seed Pending de hang doi duyet van deterministic cho mutation test.
+Employee chi doc duoc 8 request cua chinh minh; hai API department tra `403`.
 
 Fixture settlement toi thieu cung duoc tao lai o moi run: ky lien truoc cua ky hien tai o trang thai
 `Pricing`, kem mot request regular `Submitted` va mot dong hang co gia phu boi bang gia mac dinh. Du lieu

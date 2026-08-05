@@ -260,7 +260,10 @@ public sealed class LocalDbQaFixtureTests
             await ScalarIntAsync(fixture.ConnectionString, $"SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] = '{QaTestData.SettlementRequestId:D}' AND [PeriodId] = '{QaTestData.PreviousSettlementPeriodId:D}' AND [Status] = {(int)SharedVppStatus.Submitted} AND [IsCurrentRevision] = 1 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003');", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [Id] IN ('40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', '40000000-0000-0000-0000-000000000003') AND [PeriodId] IS NOT NULL AND [RequestSeriesId] = [Id] AND [RevisionNumber] = 1 AND [IsCurrentRevision] = 1;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [CreatedByUserId] IN (1000001001, 1000001004, 1000001006) AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [CreatedByUserId] = 1000001001 AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [CreatedByUserId] = 1000001004 AND [IsDeleted] = 0;", cancellationToken),
+            await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [CreatedByUserId] = 1000001006 AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [DepartmentCode] = N'QA-D01' AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [MemberCompanyCode] = N'77500' AND [IsDeleted] = 0;", cancellationToken));
     }
@@ -312,9 +315,12 @@ public sealed class LocalDbQaFixtureTests
         Assert.Equal(1, snapshot.SettlementRequests);
         Assert.Equal(3, snapshot.ScopeRequests);
         Assert.Equal(3, snapshot.PeriodAwareCurrentRevisions);
-        Assert.Equal(1, snapshot.OwnScopeRows);
-        Assert.Equal(3, snapshot.DepartmentScopeRows);
-        Assert.Equal(4, snapshot.CompanyScopeRows);
+        Assert.Equal(24, snapshot.PersonaWorkflowRows);
+        Assert.Equal(8, snapshot.OwnScopeRows);
+        Assert.Equal(8, snapshot.ManagerOwnRows);
+        Assert.Equal(8, snapshot.DevOwnRows);
+        Assert.Equal(26, snapshot.DepartmentScopeRows);
+        Assert.Equal(27, snapshot.CompanyScopeRows);
     }
 
     private static async Task<int> ScalarIntAsync(
@@ -370,7 +376,10 @@ public sealed class LocalDbQaFixtureTests
         int SettlementRequests,
         int ScopeRequests,
         int PeriodAwareCurrentRevisions,
+        int PersonaWorkflowRows,
         int OwnScopeRows,
+        int ManagerOwnRows,
+        int DevOwnRows,
         int DepartmentScopeRows,
         int CompanyScopeRows);
 
