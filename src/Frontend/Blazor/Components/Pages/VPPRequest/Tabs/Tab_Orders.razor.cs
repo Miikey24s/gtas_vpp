@@ -82,7 +82,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             ? string.Format(Loc["OrderItemsSummaryFormat"].Value, SupplementTotalLines, SupplementTotalQty)
             : CanCreateSupplement
                 ? Loc["SupplementAvailableDescription"].Value
-                : Loc["SupplementUnavailable"].Value;
+                : SupplementUnavailableDescription;
 
         protected IReadOnlyList<VppSegmentedOption<int>> OrderViewOptions =>
         [
@@ -123,10 +123,51 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool CanCreateRegular => CanCreate && PeriodInfo?.CanCreateOrder == true;
         private bool CanCreateSupplement => CanCreate && PeriodInfo?.CanCreateAdditional == true;
         private bool CanCopyPrevious => CanCreate && PeriodInfo?.CanCopyPrevious == true;
-        private bool ShowSupplementAction => CanCreate && PeriodInfo is { HasCurrentPeriodOrder: true, MaxAdditionalOrders: > 0 };
+        // Luôn cho người có quyền thấy CTA trong đúng tab; capability từ backend
+        // quyết định enabled/disabled để người dùng hiểu vì sao chưa thể tạo.
+        private bool ShowSupplementAction => CanCreate && PeriodInfo is not null;
         private string SupplementActionHint => CanCreateSupplement
             ? Loc["RequestAdditional"].Value
-            : Loc["SupplementUnavailable"].Value;
+            : SupplementUnavailableDescription;
+        private string SupplementUnavailableDescription
+        {
+            get
+            {
+                if (PeriodInfo is null)
+                {
+                    return Loc["SupplementUnavailable"].Value;
+                }
+
+                if (!PeriodInfo.HasCurrentPeriodOrder)
+                {
+                    return string.Format(
+                        Loc["SupplementRequiresRegularOrderFormat"].Value,
+                        CurrentOrderPeriodText);
+                }
+
+                if (PeriodInfo.HasPendingAdditional)
+                {
+                    return Loc["SupplementPendingMustResolve"].Value;
+                }
+
+                if (PeriodInfo.RemainingApprovedSupplementQuota <= 0)
+                {
+                    return Loc["SupplementApprovedQuotaFull"].Value;
+                }
+
+                if (PeriodInfo.RemainingSupplementAttempts <= 0)
+                {
+                    return Loc["SupplementAttemptLimitFull"].Value;
+                }
+
+                if (!PeriodInfo.IsSubmissionOpen || PeriodInfo.IsDeadlinePassed)
+                {
+                    return Loc["SupplementSubmissionClosed"].Value;
+                }
+
+                return Loc["SupplementBaseOrderIneligible"].Value;
+            }
+        }
         private string? CurrentEmptyActionText => CanCreateRegular
             ? Loc["CreateOrderThisCycle"].Value
             : CanCopyPrevious

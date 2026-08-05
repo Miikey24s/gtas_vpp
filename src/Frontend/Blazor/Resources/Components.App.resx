@@ -563,6 +563,12 @@
   <data name="SupplementQuotaSummary" xml:space="preserve"><value>Còn {0}/{1} lượt bổ sung được duyệt</value></data>
   <data name="SupplementAttemptSummary" xml:space="preserve"><value>Còn {0}/{1} lần gửi bổ sung</value></data>
   <data name="SupplementUnavailable" xml:space="preserve"><value>Hiện chưa thể tạo đơn bổ sung.</value></data>
+  <data name="SupplementRequiresRegularOrderFormat" xml:space="preserve"><value>Bạn cần tạo và gửi đơn thường của kỳ {0} trước khi tạo đơn bổ sung.</value></data>
+  <data name="SupplementPendingMustResolve" xml:space="preserve"><value>Đang có một đơn bổ sung chờ duyệt. Hãy chờ xử lý hoặc hủy đơn đó trước khi tạo đơn mới.</value></data>
+  <data name="SupplementApprovedQuotaFull" xml:space="preserve"><value>Đã dùng hết hạn mức đơn bổ sung được duyệt của kỳ này.</value></data>
+  <data name="SupplementAttemptLimitFull" xml:space="preserve"><value>Đã dùng hết số lần được phép gửi đơn bổ sung của kỳ này.</value></data>
+  <data name="SupplementSubmissionClosed" xml:space="preserve"><value>Thời hạn tạo đơn bổ sung của kỳ này đã kết thúc.</value></data>
+  <data name="SupplementBaseOrderIneligible" xml:space="preserve"><value>Đơn thường của kỳ này không còn ở trạng thái cho phép tạo đơn bổ sung.</value></data>
   <data name="OrdersStoryEmptyTitle" xml:space="preserve"><value>Bạn chưa gửi đơn</value></data>
   <data name="OrdersStoryActiveTitle" xml:space="preserve"><value>Đơn đã gửi</value></data>
   <data name="OrdersStoryOpenDescriptionFormat" xml:space="preserve"><value>Còn {0} ngày để gửi đơn, hạn chót {1}.</value></data>

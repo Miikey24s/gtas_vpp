@@ -9,6 +9,51 @@ namespace gtas_vpp_fe.UITests.Tests.Order;
 public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task LongStatusBadge_FitsInsideTheHistoryStatusColumn()
+    {
+        await Page.SetViewportSizeAsync(1120, 768);
+        await LoginAsAsync(TestAccounts.Employee);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=1");
+
+        var badge = Page.Locator(".vpp-history-grid .vpp-status-badge").First;
+        await badge.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+        var geometry = await badge.EvaluateAsync<double[]>("""
+            badge => {
+                // Fixture đang ở kỳ mở; dùng đúng nhãn dài production để kiểm tra
+                // geometry của cell mà không thay đổi dữ liệu QA phía server.
+                badge.textContent = 'Đã gửi (đã khóa kỳ)';
+                const badgeRect = badge.getBoundingClientRect();
+                const cellRect = badge.closest('td')?.getBoundingClientRect();
+                return [
+                    badge.scrollWidth,
+                    badge.clientWidth,
+                    badgeRect.left,
+                    badgeRect.right,
+                    cellRect?.left ?? Number.NaN,
+                    cellRect?.right ?? Number.NaN
+                ];
+            }
+            """);
+
+        geometry[0].Should().BeLessThanOrEqualTo(geometry[1] + 1,
+            "toàn bộ nhãn trạng thái phải nằm trong badge, không bị ellipsis hoặc crop");
+        geometry[2].Should().BeGreaterThanOrEqualTo(geometry[4] - 1);
+        geometry[3].Should().BeLessThanOrEqualTo(geometry[5] + 1);
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.Locator(".vpp-history-orders-card").ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "history-long-status-badge-1120x768.png"),
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+    }
+
+    [Fact]
     public async Task LongDetailGrid_KeepsVirtualRowsBelowFixedHeader()
     {
         await Page.SetViewportSizeAsync(1366, 768);

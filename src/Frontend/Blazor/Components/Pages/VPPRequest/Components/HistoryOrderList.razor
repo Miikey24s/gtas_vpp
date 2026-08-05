@@ -119,7 +119,7 @@
                             </span>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-status vpp-history-col-center" HeaderCssClass="vpp-history-col-status vpp-history-col-center">
                         @* Render trạng thái qua resx để badge và bộ lọc dùng chung một copy ("Đã từ chối"...). *@
                         <Template Context="row"><VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" /></Template>
                     </RadzenDataGridColumn>

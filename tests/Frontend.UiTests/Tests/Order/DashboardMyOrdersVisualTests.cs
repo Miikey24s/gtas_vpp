@@ -10,6 +10,47 @@ namespace gtas_vpp_fe.UITests.Tests.Order;
 public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task SupplementView_ShowsTheCapabilityDrivenCreateAction()
+    {
+        await LoginAsAsync(TestAccounts.Employee);
+
+        foreach (var viewport in new[]
+                 {
+                     new ViewportSize { Width = 390, Height = 844 },
+                     new ViewportSize { Width = 768, Height = 1024 },
+                     new ViewportSize { Width = 1366, Height = 768 },
+                     new ViewportSize { Width = 1920, Height = 1080 }
+                 })
+        {
+            await Page.SetViewportSizeAsync(viewport.Width, viewport.Height);
+            await Page.GotoAsync($"{BaseUrl}dashboard?tab=0&orderView=supplement");
+
+            var panel = Page.GetByTestId("supplement-order-panel");
+            var action = panel.GetByTestId("create-supplement");
+            await action.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+            (await action.InnerTextAsync()).Should().Contain("Tạo đơn bổ sung");
+            (await action.IsEnabledAsync()).Should().BeTrue(
+                "fixture có đơn thường hợp lệ nên capability backend phải mở CTA");
+            (await Page.EvaluateAsync<bool>(
+                "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
+                .Should().BeFalse($"tab đơn bổ sung không được tràn ngang ở {viewport.Width}px");
+
+            var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+            if (viewport.Width == 1920 && !string.IsNullOrWhiteSpace(evidenceDirectory))
+            {
+                Directory.CreateDirectory(evidenceDirectory);
+                await Page.ScreenshotAsync(new()
+                {
+                    Path = Path.Combine(evidenceDirectory, "supplement-create-action-1920x1080.png"),
+                    FullPage = false,
+                    Animations = ScreenshotAnimations.Disabled
+                });
+            }
+        }
+    }
+
+    [Fact]
     public async Task MyOrders_KeepsTheShellInsetWhenSidebarChangesState()
     {
         await Page.SetViewportSizeAsync(1920, 1080);

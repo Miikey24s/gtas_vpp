@@ -98,6 +98,8 @@
                                           Icon="@VppIcons.Add"
                                           ButtonStyle="ButtonStyle.Primary"
                                           Click="@(async _ => await EmptyActionClick.InvokeAsync())"
+                                          Disabled="@EmptyActionDisabled"
+                                          Title="@EmptyActionTitle"
                                           data-testid="@EffectiveEmptyActionTestId" />
                         }
                     }
@@ -226,6 +228,8 @@
     [Parameter] public string EmptyDescription { get; set; } = string.Empty;
     [Parameter] public string? EmptyActionText { get; set; }
     [Parameter] public EventCallback EmptyActionClick { get; set; }
+    [Parameter] public bool EmptyActionDisabled { get; set; }
+    [Parameter] public string? EmptyActionTitle { get; set; }
     [Parameter] public string? EmptyActionTestId { get; set; }
     [Parameter] public int? ActiveCodeNumber { get; set; }
     [Parameter] public int? ActiveNoteNumber { get; set; }
