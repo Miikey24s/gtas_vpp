@@ -30,38 +30,76 @@ public sealed class SettlementWorkspaceProjectionTests
         var rows = SettlementWorkspaceProjection.BuildDepartmentRows(
             orders,
             departments,
-            new SettlementDepartmentFilter("", "", null, ""));
+            new SettlementOrderGroupFilter("", "", null, ""));
 
         Assert.Equal(4, rows.Count);
         var alpha = Assert.Single(rows, row => row.DepartmentCode == "A");
         Assert.Equal("Phòng Alpha", alpha.DepartmentName);
-        Assert.Equal("Người đặt A", alpha.RequesterNames);
         Assert.Equal(2, alpha.OrderCount);
         Assert.Equal(1, alpha.RegularOrderCount);
         Assert.Equal(1, alpha.AdditionalOrderCount);
         Assert.Equal(3, alpha.TotalLines);
         Assert.Equal(15, alpha.TotalQuantity);
         Assert.Equal(150, alpha.TotalAmount);
-        Assert.Equal(SettlementDepartmentStatus.Pending, alpha.Status);
+        Assert.Equal(SettlementOrderGroupStatus.Pending, alpha.Status);
         Assert.Equal(
-            SettlementDepartmentStatus.Approved,
+            SettlementOrderGroupStatus.Approved,
             Assert.Single(rows, row => row.DepartmentCode == "B").Status);
         Assert.Equal(
-            SettlementDepartmentStatus.NeedsReview,
+            SettlementOrderGroupStatus.NeedsReview,
             Assert.Single(rows, row => row.DepartmentCode == "C").Status);
         Assert.Equal(
-            SettlementDepartmentStatus.Submitted,
+            SettlementOrderGroupStatus.Submitted,
             Assert.Single(rows, row => row.DepartmentCode == "D").Status);
 
         var additionalOnly = SettlementWorkspaceProjection.BuildDepartmentRows(
             orders,
             departments,
-            new SettlementDepartmentFilter("alpha", "additional", null, "A"));
+            new SettlementOrderGroupFilter("alpha", "additional", null, "A"));
         var filteredAlpha = Assert.Single(additionalOnly);
         Assert.Equal(1, filteredAlpha.OrderCount);
         Assert.Equal(0, filteredAlpha.RegularOrderCount);
         Assert.Equal(1, filteredAlpha.AdditionalOrderCount);
-        Assert.Equal(SettlementDepartmentStatus.Approved, filteredAlpha.Status);
+        Assert.Equal(SettlementOrderGroupStatus.Approved, filteredAlpha.Status);
+    }
+
+    [Fact]
+    public void BuildRequesterRows_GroupsOrdersByUserAndKeepsDepartmentContext()
+    {
+        var departments = new List<DepartmentResDTO>
+        {
+            new() { Code = "IT", Name = "Công nghệ thông tin" },
+            new() { Code = "HR", Name = "Nhân sự" }
+        };
+        var orders = new List<VppRequestResDTO>
+        {
+            CreateOrder("IT", 7, false, 2, 5, 50, "REQ-1", 101, "Nguyễn An Nam"),
+            CreateOrder("IT", 7, true, 3, 7, 70, "REQ-2", 101, "Nguyễn An Nam"),
+            CreateOrder("HR", 6, false, 4, 9, 90, "REQ-3", 202, "Trần Minh Anh")
+        };
+
+        var rows = SettlementWorkspaceProjection.BuildRequesterRows(
+            orders,
+            departments,
+            new SettlementOrderGroupFilter("", "", null, ""));
+
+        Assert.Equal(2, rows.Count);
+        var nam = Assert.Single(rows, row => row.UserId == 101);
+        Assert.Equal("Nguyễn An Nam", nam.RequesterName);
+        Assert.Equal("Công nghệ thông tin · IT", nam.DepartmentSummary);
+        Assert.Equal(2, nam.OrderCount);
+        Assert.Equal(1, nam.RegularOrderCount);
+        Assert.Equal(1, nam.AdditionalOrderCount);
+        Assert.Equal(5, nam.TotalLines);
+        Assert.Equal(12, nam.TotalQuantity);
+        Assert.Equal(120, nam.TotalAmount);
+        Assert.Equal(SettlementOrderGroupStatus.Approved, nam.Status);
+
+        var filtered = SettlementWorkspaceProjection.BuildRequesterRows(
+            orders,
+            departments,
+            new SettlementOrderGroupFilter("minh anh", "regular", 6, "HR"));
+        Assert.Equal(202, Assert.Single(filtered).UserId);
     }
 
     [Fact]
@@ -118,7 +156,9 @@ public sealed class SettlementWorkspaceProjectionTests
         int totalLines,
         int totalQuantity,
         long totalAmount,
-        string requestCode) => new()
+        string requestCode,
+        int userId = 1,
+        string? requesterName = null) => new()
         {
             DepartmentCode = departmentCode,
             Status = status,
@@ -127,7 +167,8 @@ public sealed class SettlementWorkspaceProjectionTests
             TotalQty = totalQuantity,
             TotalAmount = totalAmount,
             VppCode = requestCode,
-            RequesterName = $"Người đặt {departmentCode}",
+            CreatedByUserId = userId,
+            RequesterName = requesterName ?? $"Người đặt {departmentCode}",
             Description = $"Đơn {departmentCode}"
         };
 }

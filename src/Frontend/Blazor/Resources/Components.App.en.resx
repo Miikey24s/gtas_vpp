@@ -1040,7 +1040,8 @@
   <data name="SettlementViewMode" xml:space="preserve"><value>Settlement view mode</value></data>
   <data name="SettlementSupplierDecision" xml:space="preserve"><value>Supplier and price list used for settlement</value></data>
   <data name="SettlementAllDepartments" xml:space="preserve"><value>All departments</value></data>
-  <data name="SettlementDepartmentRequester" xml:space="preserve"><value>Department / Requester</value></data>
+  <data name="SettlementDepartmentSearchPlaceholder" xml:space="preserve"><value>Search department or request code</value></data>
+  <data name="SettlementRequesterSearchPlaceholder" xml:space="preserve"><value>Search user or request code</value></data>
   <data name="SettlementNotSelected" xml:space="preserve"><value>Not selected</value></data>
   <data name="SettlementReadyCondition" xml:space="preserve"><value>The current preview is ready for settlement.</value></data>
   <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Select a supplier with sufficient coverage to continue.</value></data>
@@ -1048,6 +1049,7 @@
   <data name="SettlementCustomPeriod" xml:space="preserve"><value>Custom</value></data>
   <data name="SettlementByItem" xml:space="preserve"><value>Items</value></data>
   <data name="SettlementByDepartment" xml:space="preserve"><value>Departments</value></data>
+  <data name="SettlementByRequester" xml:space="preserve"><value>Users</value></data>
   <data name="SettlementNeedsReview" xml:space="preserve"><value>Needs review</value></data>
   <data name="ViewFullscreen" xml:space="preserve"><value>View fullscreen</value></data>
   <data name="ExitFullscreen" xml:space="preserve"><value>Exit fullscreen</value></data>

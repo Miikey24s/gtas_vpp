@@ -170,6 +170,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("VppFilterSelect TValue=\"Guid?\"", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementByItem", settlementCode, StringComparison.Ordinal);
         Assert.Contains("SettlementByDepartment", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("SettlementByRequester", settlementCode, StringComparison.Ordinal);
         Assert.Contains("HasPeriodBlockers", settlement, StringComparison.Ordinal);
         Assert.Contains("Preview?.Blockers", settlementCode, StringComparison.Ordinal);
         Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
@@ -246,10 +247,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("Settlement.GetDemandAsync", code, StringComparison.Ordinal);
         Assert.Contains("Settlement.PreviewAsync", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.BuildDepartmentRows", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementWorkspaceProjection.BuildRequesterRows", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.FilterItems", code, StringComparison.Ordinal);
-        Assert.Contains("SettlementDepartmentRequester", page, StringComparison.Ordinal);
-        Assert.Contains("FormatRequesterNames", page, StringComparison.Ordinal);
-        Assert.Contains("RequesterNames", projection, StringComparison.Ordinal);
+        Assert.Contains("TItem=\"RequesterSettlementRow\"", page, StringComparison.Ordinal);
+        Assert.Contains("RequesterName", projection, StringComparison.Ordinal);
+        Assert.DoesNotContain("SettlementDepartmentRequester", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("FormatRequesterNames", page, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildPreview", code, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildConfirm", code, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildCorrection", code, StringComparison.Ordinal);
@@ -278,7 +281,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("Config.LibraryApi.VPPPrice_ItemPrices", code, StringComparison.Ordinal);
         Assert.Contains("/period-demand?year={year}&month={month}", client, StringComparison.Ordinal);
         Assert.Contains("/all-orders?year={year}&month={month}", client, StringComparison.Ordinal);
-        Assert.Contains("SettlementDepartmentStatus.Pending", projection, StringComparison.Ordinal);
+        Assert.Contains("SettlementOrderGroupStatus.Pending", projection, StringComparison.Ordinal);
         Assert.Contains("PrimarySupplierId = primarySupplierId", requestFactory, StringComparison.Ordinal);
         Assert.Contains("PriceListId = priceListId", requestFactory, StringComparison.Ordinal);
         Assert.Contains("SettlementCorrectionReqDTO", requestFactory, StringComparison.Ordinal);

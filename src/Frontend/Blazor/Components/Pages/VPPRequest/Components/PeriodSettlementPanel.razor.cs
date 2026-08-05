@@ -22,6 +22,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private const string CustomPeriodScope = "custom";
     private const string ItemsView = "items";
     private const string DepartmentsView = "departments";
+    private const string RequestersView = "requesters";
 
     [Inject] private SettlementApiClient Settlement { get; set; } = default!;
     [Inject] private CatalogApiClient Catalog { get; set; } = default!;
@@ -94,6 +95,20 @@ public partial class PeriodSettlementPanel : IDisposable
         || (viewMode == ItemsView
             ? !string.IsNullOrWhiteSpace(selectedItemCategory) || !string.IsNullOrWhiteSpace(selectedItemUom)
             : !string.IsNullOrWhiteSpace(selectedOrderType) || selectedStatus.HasValue || !string.IsNullOrWhiteSpace(selectedDepartment));
+
+    private string CurrentFilterClass => viewMode switch
+    {
+        ItemsView => "is-item-view",
+        RequestersView => "is-requester-view",
+        _ => "is-department-view"
+    };
+
+    private string CurrentSearchPlaceholder => viewMode switch
+    {
+        ItemsView => Loc["SearchCatalogItems"],
+        RequestersView => Loc["SettlementRequesterSearchPlaceholder"],
+        _ => Loc["SettlementDepartmentSearchPlaceholder"]
+    };
 
     private bool HasPeriodBlockers => Preview?.Blockers.Count > 0 || status?.PendingAdditionalCount > 0;
     private bool RequiresFreshPreview => hasCorrectionTarget && State.RequiresFreshPreviewForSubmission;
@@ -168,6 +183,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private IReadOnlyList<VppSegmentedOption<string>> ViewModeOptions =>
     [
         new(DepartmentsView, Loc["SettlementByDepartment"]),
+        new(RequestersView, Loc["SettlementByRequester"]),
         new(ItemsView, Loc["SettlementByItem"])
     ];
 
@@ -218,12 +234,24 @@ public partial class PeriodSettlementPanel : IDisposable
         SettlementWorkspaceProjection.BuildDepartmentRows(
                 periodOrdersSnapshot,
                 departmentDirectory,
-                new SettlementDepartmentFilter(
+                new SettlementOrderGroupFilter(
                     searchText,
                     selectedOrderType,
                     selectedStatus,
                     selectedDepartment))
             .Select(ToDepartmentSettlementRow)
+            .ToList();
+
+    private List<RequesterSettlementRow> FilteredRequesterRows =>
+        SettlementWorkspaceProjection.BuildRequesterRows(
+                periodOrdersSnapshot,
+                departmentDirectory,
+                new SettlementOrderGroupFilter(
+                    searchText,
+                    selectedOrderType,
+                    selectedStatus,
+                    selectedDepartment))
+            .Select(ToRequesterSettlementRow)
             .ToList();
 
     protected override void OnInitialized() => State.Changed += OnStateChanged;
@@ -316,18 +344,11 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private DepartmentSettlementRow ToDepartmentSettlementRow(SettlementDepartmentRow row)
     {
-        var statusValue = row.Status switch
-        {
-            SettlementDepartmentStatus.Pending => (Loc["Pending"].Value, VppStatusTone.Warning),
-            SettlementDepartmentStatus.Approved => (Loc["Approved"].Value, VppStatusTone.Success),
-            SettlementDepartmentStatus.NeedsReview => (Loc["SettlementNeedsReview"].Value, VppStatusTone.Warning),
-            _ => (Loc["Submitted"].Value, VppStatusTone.Info)
-        };
+        var statusValue = ResolveGroupStatus(row.Status);
 
         return new DepartmentSettlementRow(
             row.DepartmentCode,
             row.DepartmentName,
-            row.RequesterNames,
             row.OrderCount,
             row.RegularOrderCount,
             row.AdditionalOrderCount,
@@ -337,6 +358,31 @@ public partial class PeriodSettlementPanel : IDisposable
             statusValue.Item1,
             statusValue.Item2);
     }
+
+    private RequesterSettlementRow ToRequesterSettlementRow(SettlementRequesterRow row)
+    {
+        var statusValue = ResolveGroupStatus(row.Status);
+        return new RequesterSettlementRow(
+            row.UserId,
+            row.RequesterName,
+            row.DepartmentSummary,
+            row.OrderCount,
+            row.RegularOrderCount,
+            row.AdditionalOrderCount,
+            row.TotalLines,
+            row.TotalQuantity,
+            row.TotalAmount,
+            statusValue.Item1,
+            statusValue.Item2);
+    }
+
+    private (string Text, VppStatusTone Tone) ResolveGroupStatus(SettlementOrderGroupStatus status) => status switch
+    {
+        SettlementOrderGroupStatus.Pending => (Loc["Pending"].Value, VppStatusTone.Warning),
+        SettlementOrderGroupStatus.Approved => (Loc["Approved"].Value, VppStatusTone.Success),
+        SettlementOrderGroupStatus.NeedsReview => (Loc["SettlementNeedsReview"].Value, VppStatusTone.Warning),
+        _ => (Loc["Submitted"].Value, VppStatusTone.Info)
+    };
 
     private async Task OnSearchInputAsync(ChangeEventArgs args)
     {
@@ -662,19 +708,6 @@ public partial class PeriodSettlementPanel : IDisposable
     }
     private static string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
     private static string FormatMoney(long value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
-    private static string FormatRequesterNames(AggregatedVppItemResDTO item)
-    {
-        var names = item.Breakdown
-            .Select(entry => entry.RequesterName?.Trim())
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(name => name!)
-            .Distinct(StringComparer.CurrentCultureIgnoreCase)
-            .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase);
-
-        var result = string.Join(", ", names);
-        return string.IsNullOrWhiteSpace(result) ? "–" : result;
-    }
-
     public void Dispose()
     {
         State.Changed -= OnStateChanged;
@@ -685,7 +718,19 @@ public partial class PeriodSettlementPanel : IDisposable
     private sealed record DepartmentSettlementRow(
         string DepartmentCode,
         string DepartmentName,
-        string RequesterNames,
+        int OrderCount,
+        int RegularOrderCount,
+        int AdditionalOrderCount,
+        int TotalLines,
+        int TotalQuantity,
+        long TotalAmount,
+        string StatusText,
+        VppStatusTone StatusTone);
+
+    private sealed record RequesterSettlementRow(
+        int UserId,
+        string RequesterName,
+        string DepartmentSummary,
         int OrderCount,
         int RegularOrderCount,
         int AdditionalOrderCount,

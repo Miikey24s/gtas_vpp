@@ -1040,7 +1040,8 @@
   <data name="SettlementViewMode" xml:space="preserve"><value>Chế độ xem chốt kỳ</value></data>
   <data name="SettlementSupplierDecision" xml:space="preserve"><value>Nhà cung cấp và bảng giá dùng để chốt kỳ</value></data>
   <data name="SettlementAllDepartments" xml:space="preserve"><value>Tất cả phòng ban</value></data>
-  <data name="SettlementDepartmentRequester" xml:space="preserve"><value>Phòng ban / Người đặt</value></data>
+  <data name="SettlementDepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm phòng ban hoặc mã đơn</value></data>
+  <data name="SettlementRequesterSearchPlaceholder" xml:space="preserve"><value>Tìm người dùng hoặc mã đơn</value></data>
   <data name="SettlementNotSelected" xml:space="preserve"><value>Chưa chọn</value></data>
   <data name="SettlementReadyCondition" xml:space="preserve"><value>Đủ điều kiện chốt kỳ với bản xem trước hiện tại.</value></data>
   <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Chọn nhà cung cấp đủ độ phủ để tiếp tục.</value></data>
@@ -1048,6 +1049,7 @@
   <data name="SettlementCustomPeriod" xml:space="preserve"><value>Tùy chọn</value></data>
   <data name="SettlementByItem" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="SettlementByDepartment" xml:space="preserve"><value>Phòng ban</value></data>
+  <data name="SettlementByRequester" xml:space="preserve"><value>Người dùng</value></data>
   <data name="SettlementNeedsReview" xml:space="preserve"><value>Cần rà soát</value></data>
   <data name="ViewFullscreen" xml:space="preserve"><value>Xem toàn màn hình</value></data>
   <data name="ExitFullscreen" xml:space="preserve"><value>Thoát toàn màn hình</value></data>

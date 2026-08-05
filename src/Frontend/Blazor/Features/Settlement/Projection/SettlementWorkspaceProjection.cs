@@ -3,7 +3,7 @@ using gtas_vpp_shared.DTOs.Res.VPP;
 
 namespace gtas_vpp_fe.Features.Settlement.Projection;
 
-public sealed record SettlementDepartmentFilter(
+public sealed record SettlementOrderGroupFilter(
     string Search,
     string OrderType,
     int? Status,
@@ -14,7 +14,7 @@ public sealed record SettlementItemFilter(
     string Category,
     string Unit);
 
-public enum SettlementDepartmentStatus
+public enum SettlementOrderGroupStatus
 {
     Pending,
     Approved,
@@ -27,14 +27,25 @@ public sealed record SettlementDepartmentOption(string Code, string Name);
 public sealed record SettlementDepartmentRow(
     string DepartmentCode,
     string DepartmentName,
-    string RequesterNames,
     int OrderCount,
     int RegularOrderCount,
     int AdditionalOrderCount,
     int TotalLines,
     int TotalQuantity,
     long TotalAmount,
-    SettlementDepartmentStatus Status);
+    SettlementOrderGroupStatus Status);
+
+public sealed record SettlementRequesterRow(
+    int UserId,
+    string RequesterName,
+    string DepartmentSummary,
+    int OrderCount,
+    int RegularOrderCount,
+    int AdditionalOrderCount,
+    int TotalLines,
+    int TotalQuantity,
+    long TotalAmount,
+    SettlementOrderGroupStatus Status);
 
 public static class SettlementWorkspaceProjection
 {
@@ -86,11 +97,11 @@ public static class SettlementWorkspaceProjection
     public static List<SettlementDepartmentRow> BuildDepartmentRows(
         IEnumerable<VppRequestResDTO> orders,
         IReadOnlyList<DepartmentResDTO> departments,
-        SettlementDepartmentFilter filter)
+        SettlementOrderGroupFilter filter)
     {
         var search = filter.Search.Trim();
         return orders
-            .Where(order => MatchesDepartmentFilter(order, departments, filter, search))
+            .Where(order => MatchesOrderGroupFilter(order, departments, filter, search))
             .GroupBy(
                 order => DisplayDepartment(order.DepartmentCode),
                 StringComparer.CurrentCultureIgnoreCase)
@@ -99,10 +110,24 @@ public static class SettlementWorkspaceProjection
             .ToList();
     }
 
-    private static bool MatchesDepartmentFilter(
+    public static List<SettlementRequesterRow> BuildRequesterRows(
+        IEnumerable<VppRequestResDTO> orders,
+        IReadOnlyList<DepartmentResDTO> departments,
+        SettlementOrderGroupFilter filter)
+    {
+        var search = filter.Search.Trim();
+        return orders
+            .Where(order => MatchesOrderGroupFilter(order, departments, filter, search))
+            .GroupBy(GetRequesterGroupKey)
+            .Select(group => CreateRequesterRow(group.ToList(), departments))
+            .OrderBy(row => row.RequesterName, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+    }
+
+    private static bool MatchesOrderGroupFilter(
         VppRequestResDTO order,
         IReadOnlyList<DepartmentResDTO> departments,
-        SettlementDepartmentFilter filter,
+        SettlementOrderGroupFilter filter,
         string search) =>
         (string.IsNullOrWhiteSpace(search)
          || (order.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
@@ -129,37 +154,68 @@ public static class SettlementWorkspaceProjection
         IReadOnlyList<VppRequestResDTO> departmentOrders,
         IReadOnlyList<DepartmentResDTO> departments)
     {
-        var status = departmentOrders.Any(order => order.Status == 6)
-            ? SettlementDepartmentStatus.Pending
-            : departmentOrders.All(order => order.Status == 7)
-                ? SettlementDepartmentStatus.Approved
-                : departmentOrders.Any(order => order.Status is 4 or 8)
-                    ? SettlementDepartmentStatus.NeedsReview
-                    : SettlementDepartmentStatus.Submitted;
-
         return new SettlementDepartmentRow(
             departmentCode,
             GetDepartmentName(departmentCode, departments),
-            GetRequesterNames(departmentOrders),
             departmentOrders.Count,
             departmentOrders.Count(order => !order.IsAdditionalOrder),
             departmentOrders.Count(order => order.IsAdditionalOrder),
             departmentOrders.Sum(order => order.TotalLines),
             departmentOrders.Sum(order => order.TotalQty),
             departmentOrders.Sum(order => order.TotalAmount),
-            status);
+            ResolveGroupStatus(departmentOrders));
     }
 
-    private static string GetRequesterNames(IEnumerable<VppRequestResDTO> orders)
+    private static SettlementRequesterRow CreateRequesterRow(
+        IReadOnlyList<VppRequestResDTO> requesterOrders,
+        IReadOnlyList<DepartmentResDTO> departments)
     {
-        var names = orders
-            .Select(order => order.RequesterName?.Trim())
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(name => name!)
-            .Distinct(StringComparer.CurrentCultureIgnoreCase)
-            .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase);
+        var firstOrder = requesterOrders[0];
+        return new SettlementRequesterRow(
+            firstOrder.CreatedByUserId,
+            GetRequesterName(requesterOrders),
+            GetDepartmentSummary(requesterOrders, departments),
+            requesterOrders.Count,
+            requesterOrders.Count(order => !order.IsAdditionalOrder),
+            requesterOrders.Count(order => order.IsAdditionalOrder),
+            requesterOrders.Sum(order => order.TotalLines),
+            requesterOrders.Sum(order => order.TotalQty),
+            requesterOrders.Sum(order => order.TotalAmount),
+            ResolveGroupStatus(requesterOrders));
+    }
 
-        var result = string.Join(", ", names);
+    private static SettlementOrderGroupStatus ResolveGroupStatus(IReadOnlyList<VppRequestResDTO> orders) =>
+        orders.Any(order => order.Status == 6)
+            ? SettlementOrderGroupStatus.Pending
+            : orders.All(order => order.Status == 7)
+                ? SettlementOrderGroupStatus.Approved
+                : orders.Any(order => order.Status is 4 or 8)
+                    ? SettlementOrderGroupStatus.NeedsReview
+                    : SettlementOrderGroupStatus.Submitted;
+
+    private static string GetRequesterGroupKey(VppRequestResDTO order) =>
+        order.CreatedByUserId > 0
+            ? $"id:{order.CreatedByUserId}"
+            : $"name:{DisplayRequester(order.RequesterName).ToUpperInvariant()}";
+
+    private static string GetRequesterName(IEnumerable<VppRequestResDTO> orders) =>
+        orders
+            .Select(order => DisplayRequester(order.RequesterName))
+            .Where(name => name != "–")
+            .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
+            .FirstOrDefault() ?? "–";
+
+    private static string GetDepartmentSummary(
+        IEnumerable<VppRequestResDTO> orders,
+        IReadOnlyList<DepartmentResDTO> departments)
+    {
+        var labels = orders
+            .Select(order => DisplayDepartment(order.DepartmentCode))
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(code => GetDepartmentName(code, departments), StringComparer.CurrentCultureIgnoreCase)
+            .Select(code => $"{GetDepartmentName(code, departments)} · {code}");
+
+        var result = string.Join(", ", labels);
         return string.IsNullOrWhiteSpace(result) ? "–" : result;
     }
 
@@ -173,6 +229,9 @@ public static class SettlementWorkspaceProjection
 
     private static string DisplayDepartment(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "–" : value;
+
+    private static string DisplayRequester(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "–" : value.Trim();
 
     private static string GetDepartmentName(
         string? code,

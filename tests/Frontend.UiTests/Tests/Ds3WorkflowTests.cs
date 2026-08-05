@@ -120,6 +120,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
         var viewSelector = Page.Locator(".vpp-settlement-selector-row");
         (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Phòng ban", Exact = true }).CountAsync()).Should().Be(1);
+        (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Người dùng", Exact = true }).CountAsync()).Should().Be(1);
         (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select").CountAsync()).Should().Be(2);
         (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select-trigger.is-active").CountAsync()).Should().Be(0,
             "auto-selected supplier decisions stay neutral until the user actively changes them");
@@ -150,7 +151,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
     }
 
     [Fact]
-    public async Task PeriodSettlement_ShowsRequesterNamesInDepartmentAndItemViews()
+    public async Task PeriodSettlement_ShowsRequestersInDedicatedUserView()
     {
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
@@ -163,17 +164,27 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             State = WaitForSelectorState.Hidden,
             Timeout = 60_000
         });
-        await surface.GetByText("Phòng ban / Người đặt", new() { Exact = true }).WaitForAsync();
-        await surface.GetByText("QA Procurement").WaitForAsync();
-        await CaptureAsync("settlement-requesters-departments-1366x768.png");
+        await surface.GetByRole(AriaRole.Grid)
+            .GetByText("Phòng ban", new() { Exact = true })
+            .WaitForAsync();
+        (await surface.GetByText("Phòng ban / Người đặt", new() { Exact = true }).CountAsync()).Should().Be(0);
 
         await Page.Locator(".vpp-settlement-selector-row")
             .GetByRole(AriaRole.Button, new() { Name = "Mặt hàng", Exact = true })
             .ClickAsync();
         await Page.Locator(".vpp-period-filters.is-item-view").WaitForAsync();
-        await surface.GetByText("Người đặt", new() { Exact = true }).WaitForAsync();
+        (await surface.GetByText("Người đặt", new() { Exact = true }).CountAsync()).Should().Be(0);
+        await CaptureAsync("settlement-items-without-requester-column-1366x768.png");
+
+        await Page.Locator(".vpp-settlement-selector-row")
+            .GetByRole(AriaRole.Button, new() { Name = "Người dùng", Exact = true })
+            .ClickAsync();
+        await Page.Locator(".vpp-period-filters.is-requester-view").WaitForAsync();
+        await surface.GetByRole(AriaRole.Grid)
+            .GetByText("Người dùng", new() { Exact = true })
+            .WaitForAsync();
         await surface.GetByText("QA Procurement").WaitForAsync();
-        await CaptureAsync("settlement-requesters-items-1366x768.png");
+        await CaptureAsync("settlement-requesters-dedicated-view-1366x768.png");
     }
 
     [Theory]
@@ -212,6 +223,24 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             await AssertUnifiedWorkspaceRowsAsync(requireDesktopFilterRow: false);
             await CaptureAsync($"ds3-period-settlement-{legacyStep}-{width}x{height}.png");
         }
+
+        await Page.Locator(".vpp-settlement-selector-row")
+            .GetByRole(AriaRole.Button, new() { Name = "Người dùng", Exact = true })
+            .ClickAsync();
+        await Page.Locator(".vpp-period-filters.is-requester-view").WaitForAsync();
+        await Page.GetByText("QA Procurement", new() { Exact = true }).WaitForAsync();
+        var requesterContainment = await Page.EvaluateAsync<string>("""
+            () => {
+                const root = document.documentElement;
+                const main = document.querySelector('#main-content');
+                const noDocumentOverflow = root.scrollWidth <= root.clientWidth + 1;
+                const mainContained = !main || main.getBoundingClientRect().right <= root.clientWidth + 1;
+                return `${noDocumentOverflow}|${mainContained}`;
+            }
+            """);
+        requesterContainment.Should().Be("true|true");
+        await AssertUnifiedWorkspaceRowsAsync(requireDesktopFilterRow: false);
+        await CaptureAsync($"settlement-requesters-{width}x{height}.png");
     }
 
     private async Task AssertUnifiedWorkspaceRowsAsync(bool requireDesktopFilterRow)

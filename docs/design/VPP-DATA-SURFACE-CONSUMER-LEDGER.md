@@ -6,7 +6,7 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **18 file / 21 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance. Màn `Tab_AllOrdersSummary` cũ (2 grid) và dialog lịch sử đơn cũ (1 grid) đã về 0 consumer nên được xóa; URL legacy chỉ còn redirect về Chốt kỳ, còn lịch sử dùng workspace canonical.
+Source hiện có **18 file / 22 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance. Màn `Tab_AllOrdersSummary` cũ (2 grid) và dialog lịch sử đơn cũ (1 grid) đã về 0 consumer nên được xóa; URL legacy chỉ còn redirect về Chốt kỳ, còn lịch sử dùng workspace canonical.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -25,7 +25,7 @@ Source hiện có **18 file / 21 DataGrid thật**. Generic type reference trong
 | `Components/Pages/Report.razor` | 2 | Analytics evidence tables | `Static` | `Compact` | Analytics workspace + bounded static frames complete |
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Canonical approval List-Detail; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `RichTwoLine` master; `Compact` detail | Collection header/filter/default selection/footer complete |
-| `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 2 | Chốt kỳ theo đơn / theo phòng ban | `ServerPaging` + `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |
+| `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 3 | Chốt kỳ theo phòng ban / người dùng / mặt hàng | `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
 
