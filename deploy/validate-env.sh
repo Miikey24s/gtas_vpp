@@ -45,6 +45,24 @@ require_non_placeholder() {
 require_non_placeholder DB_SA_PASSWORD
 require_non_placeholder JWT_KEY
 
+validate_boolean() {
+  local key="$1"
+  local default_value="$2"
+  local value
+
+  value="$(read_env_value "$key" 2>/dev/null || printf '%s' "$default_value")"
+  case "${value,,}" in
+    true|false)
+      ;;
+    *)
+      errors+=("$key must be true or false")
+      ;;
+  esac
+}
+
+validate_boolean EMAIL_NOTIFICATIONS_ENABLED false
+validate_boolean EMAIL_SMTP_USE_SSL true
+
 if jwt_key="$(read_env_value JWT_KEY 2>/dev/null)"; then
   jwt_bytes="$(LC_ALL=C printf '%s' "$jwt_key" | wc -c | tr -d ' ')"
   if (( jwt_bytes < 32 )); then
@@ -87,6 +105,38 @@ case "${report_insights_enabled,,}" in
     errors+=("REPORT_INSIGHTS_ENABLED must be true or false")
     ;;
 esac
+
+email_enabled="$(read_env_value EMAIL_NOTIFICATIONS_ENABLED 2>/dev/null || printf 'false')"
+if [[ "${email_enabled,,}" == "true" ]]; then
+  require_non_placeholder PUBLIC_BASE_URL
+  require_non_placeholder EMAIL_FROM_ADDRESS
+  require_non_placeholder EMAIL_SMTP_HOST
+  require_non_placeholder EMAIL_SMTP_PORT
+  require_non_placeholder EMAIL_SMTP_USERNAME
+  require_non_placeholder EMAIL_SMTP_PASSWORD
+
+  public_base_url="$(read_env_value PUBLIC_BASE_URL 2>/dev/null || true)"
+  if [[ ! "$public_base_url" =~ ^https://[^/[:space:]]+/?$ ]]; then
+    errors+=("PUBLIC_BASE_URL must be an HTTPS origin without a path")
+  fi
+
+  from_address="$(read_env_value EMAIL_FROM_ADDRESS 2>/dev/null || true)"
+  if [[ ! "$from_address" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
+    errors+=("EMAIL_FROM_ADDRESS must be a valid sender address")
+  fi
+
+  smtp_port="$(read_env_value EMAIL_SMTP_PORT 2>/dev/null || true)"
+  if [[ ! "$smtp_port" =~ ^[0-9]+$ ]] || (( smtp_port < 1 || smtp_port > 65535 )); then
+    errors+=("EMAIL_SMTP_PORT must be a valid TCP port")
+  elif [[ "$smtp_port" == "25" || "$smtp_port" == "465" || "$smtp_port" == "587" ]]; then
+    errors+=("EMAIL_SMTP_PORT=$smtp_port is blocked on DigitalOcean Droplets; use provider port 2587")
+  fi
+
+  smtp_use_ssl="$(read_env_value EMAIL_SMTP_USE_SSL 2>/dev/null || printf 'true')"
+  if [[ "${smtp_use_ssl,,}" != "true" ]]; then
+    errors+=("EMAIL_SMTP_USE_SSL must be true when real email is enabled")
+  fi
+fi
 
 if (( ${#errors[@]} > 0 )); then
   printf 'Environment validation failed:\n' >&2

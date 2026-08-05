@@ -56,6 +56,21 @@ secret khi gói GitHub hiện tại hỗ trợ:
 - `ENV_FILE_CONTENT`: nội dung dotenv production.
 - `DB_SA_PASSWORD`: password SQL mới, ngẫu nhiên và riêng cho production.
 - `JWT_KEY`: signing key ngẫu nhiên tối thiểu 32 byte.
+- `EMAIL_SMTP_PASSWORD`: Resend API key loại `Sending access`, giới hạn cho
+  domain `notify.annam.id.vn`. Chỉ cần secret này khi bật email thật.
+
+Các giá trị email không nhạy cảm lưu dưới dạng GitHub environment variable:
+
+| Variable | Giá trị production |
+| --- | --- |
+| `EMAIL_NOTIFICATIONS_ENABLED` | `false` cho tới khi domain Resend đã verified |
+| `PUBLIC_BASE_URL` | `https://gtas-vpp.annam.id.vn` |
+| `EMAIL_FROM_ADDRESS` | `noreply@notify.annam.id.vn` |
+| `EMAIL_FROM_DISPLAY_NAME` | `GTAS VPP` |
+| `EMAIL_SMTP_HOST` | `smtp.resend.com` |
+| `EMAIL_SMTP_PORT` | `2587` |
+| `EMAIL_SMTP_USE_SSL` | `true` |
+| `EMAIL_SMTP_USERNAME` | `resend` |
 
 `ENV_FILE_CONTENT` tối thiểu có:
 
@@ -73,10 +88,75 @@ SQL quá yếu và trường hợp bật AI nhưng thiếu toàn bộ provider k
 in vào log. Khi bật AI, backend thử theo `ReportInsights:ProviderPriority`; cấu hình production
 nên ưu tiên một provider cloud (Groq/Gemini/OpenAI), còn Ollama chỉ phù hợp host có runtime local.
 
+## Email thật cho đăng ký, xác nhận và quên mật khẩu
+
+Chọn Resend cho bản production học tập này. DigitalOcean chặn outbound SMTP
+`25`, `465` và `587`; Resend có cổng STARTTLS thay thế `2587`, phù hợp adapter
+SMTP hiện tại mà không phải mở thêm inbound port trên Droplet.
+
+### 1. Đăng ký và xác minh domain
+
+1. Tạo tài khoản tại `https://resend.com/signup` và bật MFA nếu tài khoản hỗ trợ.
+2. Trong **Domains**, thêm `notify.annam.id.vn`. Dùng subdomain riêng giúp tách
+   uy tín gửi thư khỏi website chính.
+3. DNS của `annam.id.vn` hiện do INET quản lý (`ns1/ns2/ns3.inet.vn`). Đăng nhập
+   trang quản lý DNS INET và thêm đúng từng bản ghi SPF, DKIM, MX mà Resend sinh
+   ra. Không tự đoán hoặc dùng giá trị mẫu trong tài liệu vì region có thể khác.
+4. Quay lại Resend, chọn **Verify DNS Records** và chỉ tiếp tục khi trạng thái là
+   `Verified`. DNS thường cập nhật nhanh nhưng có thể mất tới 72 giờ.
+5. DMARC nên bắt đầu ở `p=none` để theo dõi; chỉ đổi sang `quarantine`/`reject`
+   sau khi email GTAS VPP đã gửi ổn định và header báo SPF/DKIM/DMARC pass.
+
+### 2. Tạo và lưu credential an toàn
+
+Trong **API Keys**, tạo key tên `GTAS VPP Production`, permission
+`Sending access`, giới hạn domain `notify.annam.id.vn`. Key chỉ hiển thị một lần;
+không dán vào chat, source code, `.env` trong Git hoặc command có `--body`.
+
+Lưu key bằng prompt ẩn của GitHub CLI:
+
+```powershell
+gh secret set EMAIL_SMTP_PASSWORD --env production
+```
+
+Sau khi secret đã lưu và domain đã verified, bật email:
+
+```powershell
+gh variable set EMAIL_NOTIFICATIONS_ENABLED --env production --body true
+```
+
+Nếu cần tắt khẩn cấp mà không xóa outbox hoặc credential:
+
+```powershell
+gh variable set EMAIL_NOTIFICATIONS_ENABLED --env production --body false
+```
+
+### 3. Deploy và kiểm tra end-to-end
+
+Workflow deploy chỉ nhận commit thuộc `Nam` có đủ hai check CI thành công, build
+image theo tag `sha-<commit>`, backup/verify database rồi mới migration. Sau khi
+bật email, chạy lại workflow `Build and Deploy to DigitalOcean` với đúng SHA đã
+qua CI. Kiểm tra bằng một địa chỉ email thật do bạn sở hữu:
+
+1. đăng ký tài khoản mới;
+2. xác nhận email từ link `https://gtas-vpp.annam.id.vn/Account/ConfirmEmail`;
+3. đăng nhập;
+4. thử **Quên mật khẩu**;
+5. xác minh email xuất hiện trong Resend Logs và không còn ở trạng thái `Pending`
+   trong `EmailOutboxMessages`.
+
+Không dùng địa chỉ của người khác cho smoke test. Nếu test lỗi, đặt
+`EMAIL_NOTIFICATIONS_ENABLED=false` trước; outbox bền vững sẽ giữ thư để retry
+sau khi cấu hình được sửa.
+
 ## Luồng CI/CD
 
-Mỗi push vào `Nam` có thay đổi source backend/frontend hoặc hạ tầng Production, hay lần
-chạy `workflow_dispatch`, thực hiện:
+Mỗi push vào `Nam` chạy workflow `Continuous Integration`. Chỉ khi cả `Secret scan
+(current tree)` và `build-and-test` thành công cho đúng commit mới kích hoạt workflow
+deploy. `workflow_dispatch` cũng phải chỉ rõ hoặc chọn một commit thuộc `Nam` đã có
+đủ hai check này; pipeline không cho bỏ qua CI.
+
+Luồng release thực hiện:
 
 1. restore, build Release và chạy backend/frontend tests;
 2. build hai image (backend và Blazor), push tag bất biến `sha-<commit>` lên GHCR;

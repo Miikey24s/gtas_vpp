@@ -8,6 +8,8 @@ namespace gtas_vpp_be.Service.Services;
 /// </summary>
 public static class ExportFileContract
 {
+    private const string PortableInvalidFileNameCharacters = "<>:\"/\\|?*";
+
     public const string PdfContentType = "application/pdf";
     public const string ExcelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     public const string CsvContentType = "text/csv; charset=utf-8";
@@ -52,9 +54,10 @@ public static class ExportFileContract
                 continue;
             }
 
+            // Linux cho phép một số ký tự mà Windows cấm. Export phải cho cùng
+            // một tên file an toàn ở local, CI Linux và trình duyệt production.
             if (char.IsControl(character)
-                || Path.GetInvalidFileNameChars().Contains(character)
-                || character is '/' or '\\')
+                || PortableInvalidFileNameCharacters.Contains(character))
             {
                 if (!lastWasSeparator && builder.Length > 0)
                 {

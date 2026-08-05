@@ -424,6 +424,10 @@ public sealed class DeploymentConfigurationContractTests
         Assert.Contains("ConnectionStrings__LiveEnv:", productionCompose);
         Assert.DoesNotContain("ConnectionStrings__TestEnv:", productionCompose);
         Assert.Contains("JwtSettings__Audience: \"gtas_vpp_live_clients\"", productionCompose);
+        Assert.Contains("EmailNotifications__Enabled:", productionCompose);
+        Assert.Contains("EmailNotifications__SmtpHost:", productionCompose);
+        Assert.Contains("EMAIL_SMTP_PORT:-2587", productionCompose);
+        Assert.Contains("EmailNotifications__Password:", productionCompose);
         Assert.DoesNotContain("DatabaseInitialization__AllowDemoData", productionCompose);
         var productionConnectionBindings = productionCompose
             .Split('\n')
