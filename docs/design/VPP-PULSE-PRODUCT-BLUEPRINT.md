@@ -218,7 +218,7 @@ Navigation vẫn permission-aware. Bốn persona flat:
 |---|---|---|
 | Department dashboard | Order count, pending, total lines/qty, deadline exposure | KPI + status segmented bar + action queue |
 | Department orders | Department, requester, request code, status, period, lines/qty, submitted date | Server-paged table + right detail panel |
-| Supplement approval detail | Base request, supplement reason/attempt/quota, changed items, actor/time | Diff summary + exact item table + approve/reject actions |
+| Supplement approval detail | Base request khi có, supplement reason/attempt/quota, changed items, actor/time | Diff summary + exact item table + approve/reject actions |
 | Reject dialog | Reason, consequence, attempt/quota note | Short modal with required validation |
 | Department data story | Which requesters/products drive demand or pending work | Ranked bars + annotated exception list + table drill-down |
 

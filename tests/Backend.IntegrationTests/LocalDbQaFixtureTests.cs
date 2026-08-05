@@ -3,6 +3,7 @@ using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_be.Model.VPP;
 using gtas_vpp_shared.Constants;
 using BackendPeriodState = gtas_vpp_be.Model.VPP.VppPeriodState;
 using SharedVppStatus = gtas_vpp_shared.Enums.VPPStatus;
@@ -141,6 +142,51 @@ public sealed class LocalDbQaFixtureTests
     }
 
     [Fact]
+    public async Task Pending_supplement_index_is_unique_per_user_and_period_without_requiring_a_base()
+    {
+        SkipUnlessOptedIn();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var fixture = await LocalDbQaFixture.CreateAsync(cancellationToken: cancellationToken);
+
+        try
+        {
+            using var unitOfWork = CreateUnitOfWork(fixture.ConnectionString);
+            var context = unitOfWork.VPPContext;
+            var period = await context.Set<VppPeriod>()
+                .SingleAsync(x => x.Id == QaTestData.CurrentPeriodId, cancellationToken);
+            var regular = await context.Set<VppRequest>()
+                .SingleAsync(x => x.Id == QaTestData.OwnRequestId, cancellationToken);
+            var now = DateTime.SpecifyKind(new DateTime(2026, 8, 5, 9, 0, 0), DateTimeKind.Utc);
+
+            context.Set<VppRequest>().Add(CreatePendingSupplement(
+                period,
+                regular,
+                baseRequestId: null,
+                baseRequestSeriesId: null,
+                attemptNumber: 1,
+                now));
+            await context.SaveChangesAsync(cancellationToken);
+
+            context.Set<VppRequest>().Add(CreatePendingSupplement(
+                period,
+                regular,
+                baseRequestId: regular.Id,
+                baseRequestSeriesId: regular.RequestSeriesId,
+                attemptNumber: 2,
+                now.AddMinutes(1)));
+
+            await Assert.ThrowsAsync<DbUpdateException>(
+                () => context.SaveChangesAsync(cancellationToken));
+        }
+        finally
+        {
+            await fixture.DisposeAsync();
+        }
+
+        Assert.False(await fixture.IsInstancePresentAsync(cancellationToken));
+    }
+
+    [Fact]
     public async Task Stale_manifest_recovery_validates_marker_and_removes_crash_state()
     {
         SkipUnlessOptedIn();
@@ -218,6 +264,39 @@ public sealed class LocalDbQaFixtureTests
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [DepartmentCode] = N'QA-D01' AND [IsDeleted] = 0;", cancellationToken),
             await ScalarIntAsync(fixture.ConnectionString, "SELECT COUNT(*) FROM [dbo].[Requests] WHERE [MemberCompanyCode] = N'77500' AND [IsDeleted] = 0;", cancellationToken));
     }
+
+    private static VppRequest CreatePendingSupplement(
+        VppPeriod period,
+        VppRequest regular,
+        Guid? baseRequestId,
+        Guid? baseRequestSeriesId,
+        int attemptNumber,
+        DateTime now)
+        => new()
+        {
+            Id = Guid.NewGuid(),
+            Year = period.Year,
+            Month = period.Month,
+            PeriodId = period.Id,
+            RequestSeriesId = Guid.NewGuid(),
+            RevisionNumber = 1,
+            IsCurrentRevision = true,
+            VppCode = $"QA-SUP-{Guid.NewGuid():N}",
+            Status = (int)SharedVppStatus.Pending,
+            IsAdditionalOrder = true,
+            BaseRequestId = baseRequestId,
+            BaseRequestSeriesId = baseRequestSeriesId,
+            SupplementAttemptNumber = attemptNumber,
+            SupplementSequence = attemptNumber,
+            SupplementReason = "Standalone supplement integration check",
+            DepartmentCode = regular.DepartmentCode,
+            MemberCompanyCode = regular.MemberCompanyCode,
+            CreatedByUserId = regular.CreatedByUserId,
+            CreatedAtUtc = now,
+            UpdatedByUserId = regular.CreatedByUserId,
+            UpdatedAtUtc = now,
+            SubmittedDate = now
+        };
 
     private static void AssertSnapshot(FixtureSnapshot snapshot)
     {

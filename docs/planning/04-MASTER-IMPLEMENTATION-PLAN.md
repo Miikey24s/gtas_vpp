@@ -480,18 +480,18 @@ original scope so reduced/folded alternatives remain auditable.
 | Field | Nội dung |
 |---|---|
 | Status / Priority / Difficulty | `NOT_STARTED` / P1 / L |
-| Mục tiêu | Link base request, reason/deadline/sequence, one pending, configurable quota và transactional approval/resubmit. |
+| Mục tiêu | Cho phép supplement độc lập; base request là lineage tùy chọn; giữ reason/deadline/sequence, one pending, configurable quota và transactional approval/resubmit. |
 | Lý do | Max 3/pending check race; thiếu business definition và UI lineage. |
 | Dependency | PER-001, REQ-001, AUTH-001, D-004/005, QA-001. |
 | Phạm vi / file dự kiến | Supplement model/migration/service/API/DTO, approval UI/timeline/notifications, tests. |
-| Frontend | Eligibility explanation, remaining quota, reason validator, base link, approve/reject reason, clear status badges. |
+| Frontend | Eligibility explanation không buộc đơn thường, remaining quota, reason validator, base link khi có, approve/reject reason, clear status badges. |
 | Backend | Atomic create/approve/reject/resubmit; resource scope; no self-approval if four-eyes. |
 | Database | BaseRequestId, Sequence, Reason, State, reviewer/audit, rowversion; pending uniqueness/app lock/quota và configurable `MaxAttempts`. |
-| Business rule | `MaxApproved=1` per user/base/period; one pending; rejected/cancelled không chiếm quota approved nhưng audit; `MaxAttempts` là anti-spam cap cấu hình riêng (mặc định 6 cho demo), áp dụng cả reject/resubmit; create trước submission deadline, approval trước SupplementApprovalDeadline; pending blocks settlement. |
-| Tests | Four concurrent create never exceed max/one pending; repeated reject→resubmit/cancel obeys MaxAttempts while approved quota remains correct; approval scope; stale/retry; deadline; no base request. |
+| Business rule | Theo ADR-014: base request là metadata tùy chọn; `MaxApproved` và `MaxAttempts` tính per user/period; one pending; rejected/cancelled không chiếm quota approved nhưng audit; create trước submission deadline, approval trước SupplementApprovalDeadline; pending blocks settlement. |
+| Tests | Concurrent create không vượt max/one pending; standalone → regular → linked attempt giữ counter chung; repeated reject→resubmit/cancel obeys MaxAttempts; approval scope; stale/retry; deadline. |
 | Verification | SQL concurrency integration, UI manager/employee flow, report reconciliation. |
 | Acceptance | Policy enforced DB/server, not only UI; lineage/audit complete; state colors/terms unambiguous. |
-| Rủi ro / rollback | Legacy supplement lacks base link/reason. Backfill nullable then enforce; manual exception report; no history delete. |
+| Rủi ro / rollback | Dữ liệu cũ có pending/attempt trùng khi bỏ base khỏi unique key; migration preflight phải dừng và báo cáo, không xóa history. |
 | Commit strategy | Schema/domain/tests → API → FE/notification. |
 | Cần người dùng xác nhận | Không — D-004/D-005 đã chốt. |
 

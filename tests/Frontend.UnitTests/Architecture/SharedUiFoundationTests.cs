@@ -748,7 +748,6 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("EmptyActionDisabled=\"@PrimaryActionDisabled\"", orderPanel, StringComparison.Ordinal);
         Assert.Contains("Disabled=\"@EmptyActionDisabled\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("ShowSupplementAction => CanCreate && PeriodInfo is not null", codeBehind, StringComparison.Ordinal);
-        Assert.Contains("SupplementRequiresRegularOrderFormat", codeBehind, StringComparison.Ordinal);
         Assert.Contains("PrimaryActionTestId=\"create-supplement\"", source, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", source, StringComparison.Ordinal);
         Assert.DoesNotContain("export-excel-coming-soon", source, StringComparison.Ordinal);

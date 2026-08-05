@@ -17,7 +17,7 @@ Người dùng có thể trả lời ngắn theo mẫu ở cuối file, ví dụ
 | D-002 | Single-company hay multi-company v1 | A — single-company | AUTH-001, AUTH-002, PER-001 | DECIDED |
 | D-003 | Chủ thể đơn thường và xử lý sau hủy | A — per user/revision; cuối kỳ gom toàn công ty và phân bổ lại | PER-001, REQ-001 | DECIDED |
 | D-004 | Role/approval/separation of duties | A — 4 flat personas; one active group + primary department | AUTH-001, AUTH-002, SUP-001, SET-002, UI-004, UI-005 | DECIDED |
-| D-005 | Policy đơn bổ sung | A — link đơn gốc, reason, one pending, max 3 cấu hình per user/base/period | PER-001, SUP-001, UI-005 | DECIDED |
+| D-005 | Policy đơn bổ sung ban đầu | Link đơn gốc, reason, one pending, quota per user/base/period | PER-001, SUP-001, UI-005 | SUPERSEDED IN PART BY D-014 |
 | D-006 | Granularity chọn NCC | B+ — một NCC chính cho giỏ hàng toàn công ty/kỳ (mỗi effective revision); ngoại lệ có reason | PRICE-001, SET-001 | DECIDED |
 | D-007 | Giá/VAT/hợp đồng | A — net price + VAT rate; snapshot net/VAT/gross | PRICE-001, SET-001, REPORT-001 | DECIDED |
 | D-008 | Registration identity, activation và recovery | A — self-register → PendingApproval → admin map/activate; username/email unique, employee code unique khi có; email hoặc admin fallback | AUTH-005, UI-007 | DECIDED |
@@ -25,6 +25,7 @@ Người dùng có thể trả lời ngắn theo mẫu ở cuối file, ví dụ
 | D-010 | Kênh notification và export bắt buộc | A+B — in-app + CSV/Excel + email; PDF/Teams/Zalo defer | REPORT-003, NOTIF-002, NOTIF-003 | DECIDED |
 | D-011 | Trạng thái production/secret/demo seed | Có DigitalOcean, đã `MigrateAndSeed`, credential legacy chỉ demo, user là owner | SEC-001, DEP-002 | DECIDED |
 | D-012 | Deadline bảo vệ và mức scope | A+ — core-first + polished UI; target 15/08/2026; local-first/server nếu green | DOC-002, REL-001 | DECIDED |
+| D-014 | Đơn bổ sung độc lập | A — không bắt buộc đơn thường; base chỉ là metadata tùy chọn; quota/attempt/pending tính per user/period | SUP-001, UI-005, DOC-002, REL-001 | DECIDED |
 
 Cột trên chỉ liệt kê **direct decision touchpoints** và phải đồng bộ với task registry. Khi decision đã `DECIDED`, task không còn bị block bởi quyết định đó; các task downstream hoặc P2/P3 bị cắt/chọn vẫn được nêu trong phần chi tiết nhưng không vì thế mà toàn bộ plan bị block.
 
@@ -149,6 +150,26 @@ Cột trên chỉ liệt kê **direct decision touchpoints** và phải đồng 
 **Nếu chưa quyết định:** Không thể thiết kế constraint/quota/report supplement rate.
 
 **Task bị ảnh hưởng:** `SUP-001`, `PER-001`, `REPORT-001`, `UI-005`.
+
+**Cập nhật 05/08/2026:** Phần bắt buộc phải có đơn gốc và quota theo
+`user/base/period` đã bị D-014 thay thế. Các luật reason, deadline, one-Pending,
+approval, audit và giới hạn cấu hình vẫn giữ nguyên.
+
+## D-014 — Cho phép đơn bổ sung độc lập
+
+**Bối cảnh.** Owner xác nhận người dùng phải có thể tạo đơn bổ sung ngay cả khi
+chưa tạo đơn thường; việc buộc tạo một đơn thường rỗng hoặc giả chỉ làm luồng khó
+hiểu và sai ý nghĩa nghiệp vụ.
+
+**Quyết định 05/08/2026:** Chọn A. Đơn bổ sung vẫn bắt buộc lý do nhưng không cần
+đơn thường. Nếu có đơn thường hiện hành hợp lệ, backend lưu liên kết base như
+metadata truy vết; nếu không có thì hai trường base để null. Đơn bổ sung độc lập
+không chiếm slot đơn thường, vì vậy người dùng vẫn có thể tạo đơn thường sau đó.
+Quota approved, số attempt và one-Pending áp dụng chung theo user/kỳ cho cả đơn
+bổ sung độc lập lẫn có liên kết. Đơn độc lập chỉ tham gia gom nhu cầu/chốt kỳ sau
+khi được duyệt.
+
+**Task bị ảnh hưởng:** `SUP-001`, `UI-005`, `DOC-002`, `REL-001`.
 
 ## D-006 — Chọn NCC cho toàn kỳ hay từng vật tư
 
@@ -318,4 +339,7 @@ Nếu tiến độ trượt, cắt P2/P3 trước, không cắt safety floor. Fu
 
 ## Snapshot quyết định
 
-Toàn bộ `D-001..D-012` đã được chốt cho thesis release; không còn decision blocker trong master plan. Normative ADR và quan hệ direct/downstream được khóa tại [`docs/decisions/000-index.md`](../decisions/000-index.md).
+Các quyết định đến `D-014` đã được ghi nhận cho thesis release; D-005 bị thay thế
+một phần bởi D-014. Không còn decision blocker cho chính sách đơn bổ sung hiện
+hành. Normative ADR và quan hệ direct/downstream được khóa tại
+[`docs/decisions/000-index.md`](../decisions/000-index.md).

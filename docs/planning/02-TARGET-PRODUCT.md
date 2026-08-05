@@ -84,7 +84,9 @@ flowchart LR
 
 - Bắt buộc link regular request gốc, reason, sequence và actor.
 - State: `Draft → PendingApproval → Approved | Rejected | Cancelled`; resubmit tạo revision theo policy.
-- Một pending tại một thời điểm; quota cấu hình per user/base request/period, mặc định 3 theo `D-005`; rejected/cancelled không chiếm quota cuối nhưng giữ audit.
+- Một pending tại một thời điểm; quota cấu hình per user/period, mặc định 3;
+  rejected/cancelled không chiếm quota cuối nhưng giữ audit. Theo `D-014`, đơn
+  bổ sung có thể độc lập; liên kết base request chỉ lưu khi có đơn thường hợp lệ.
 - Department Approver duyệt; Procurement thấy kết quả, không phải approver mặc định.
 - Tạo supplement không muộn hơn submission deadline; approval có thể tiếp tục đến `SupplementApprovalDeadline` cấu hình.
 - Period không được settle khi còn supplementary pending.

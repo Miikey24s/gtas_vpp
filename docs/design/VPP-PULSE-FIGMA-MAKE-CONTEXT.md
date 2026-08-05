@@ -85,8 +85,9 @@ Account:
 Order/request:
 
 - Trạng thái: Submitted, Cancelled, Pending, Approved, Rejected.
-- Đơn thường là base request. Đơn bổ sung bắt buộc liên kết base request hợp lệ.
-- Chỉ tối đa 1 đơn bổ sung được Approved cho mỗi đơn thường.
+- Đơn bổ sung có thể được tạo độc lập. Nếu có đơn thường hợp lệ, liên kết base
+  request là metadata truy vết tùy chọn, không phải điều kiện tạo.
+- Quota Approved, attempt và one-Pending tính chung theo người dùng/kỳ.
 - Tối đa 6 lần thử tạo/gửi lại supplement; tại một thời điểm không được có hai
   supplement Pending song song.
 - Supplement reason bắt buộc từ 5 đến 500 ký tự.

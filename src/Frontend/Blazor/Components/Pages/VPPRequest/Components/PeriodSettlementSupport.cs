@@ -22,7 +22,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
             {
                 "PENDING_SUPPLEMENTS" => $"Còn {argument} đơn bổ sung chờ duyệt.",
                 "NO_SUBMITTED_ITEMS" => "Chưa có mặt hàng hợp lệ để chốt kỳ.",
-                "SUPPLEMENT_WITHOUT_BASE" => "Có đơn bổ sung chưa liên kết được với đơn gốc.",
                 "INVALID_SUPPLIER_EXCEPTION" => "Có lựa chọn nhà cung cấp ngoại lệ chưa hợp lệ hoặc thiếu lý do.",
                 "PRIMARY_SUPPLIER_NOT_COVERED" => "Nhà cung cấp chính đã chọn không có bảng giá phủ nhu cầu kỳ này.",
                 "PRICE_BOOK_NOT_COVERED" => "Bảng giá đã chọn không phủ đủ nhu cầu kỳ này.",

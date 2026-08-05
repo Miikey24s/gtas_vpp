@@ -154,8 +154,9 @@ public sealed class VPPRequestLifecycleTests
         var periodInfo = await service.GetCurrentPeriodInfoAsync(RequesterId);
         Assert.True(periodInfo.HasCurrentPeriodOrder);
         Assert.False(periodInfo.CanCreateOrder);
-        Assert.False(periodInfo.CanCreateAdditional);
-        Assert.Contains("ineligible", periodInfo.CanCreateAdditionalReason);
+        Assert.True(periodInfo.CanCreateAdditional);
+        Assert.Null(periodInfo.CanCreateAdditionalReason);
+        Assert.Null(periodInfo.BaseRequestId);
 
         var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
             await service.GetOrderHistoryAsync(original.Id));
@@ -626,29 +627,81 @@ public sealed class VPPRequestLifecycleTests
     }
 
     [Fact]
-    public async Task CreateSupplement_WithoutCurrentBase_IsBlocked()
+    public async Task CreateSupplement_WithoutCurrentBase_CreatesStandalonePendingRequest()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        await SeedRequesterAsync(context);
+        var service = CreateService(context);
+
+        var beforeCreate = await service.GetCurrentPeriodInfoAsync(RequesterId);
+        Assert.False(beforeCreate.HasCurrentPeriodOrder);
+        Assert.True(beforeCreate.CanCreateAdditional);
+        Assert.Null(beforeCreate.BaseRequestId);
+
+        var created = await service.CreateOrderAsync(new VppRequestCreateReqDTO
+        {
+            Year = 2026,
+            Month = 4,
+            IsAdditionalOrder = true,
+            SupplementReason = "Needed for a new employee",
+            Items =
+            {
+                new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1, Description = "Paper" }
+            }
+        }, RequesterId, Department, Company);
+
+        Assert.True(created.IsAdditionalOrder);
+        Assert.Equal((int)VPPStatus.Pending, created.Status);
+        Assert.Null(created.BaseRequestId);
+        Assert.Null(created.BaseRequestSeriesId);
+        Assert.Equal(1, created.SupplementAttemptNumber);
+
+        var afterCreate = await service.GetCurrentPeriodInfoAsync(RequesterId);
+        Assert.True(afterCreate.HasPendingAdditional);
+        Assert.False(afterCreate.CanCreateAdditional);
+        Assert.Contains("pending", afterCreate.CanCreateAdditionalReason);
+    }
+
+    [Fact]
+    public async Task StandaloneSupplement_DoesNotConsumeRegularSlot_AndSharesPeriodAttemptCounter()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
 
-        var exception = await Assert.ThrowsAsync<BusinessException>(() =>
-            service.CreateOrderAsync(new VppRequestCreateReqDTO
-            {
-                Year = 2026,
-                Month = 4,
-                IsAdditionalOrder = true,
-                BaseRequestId = Guid.NewGuid(),
-                SupplementReason = "Needed for a new employee",
-                Items =
-                [
-                    new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1, Description = "Paper" }
-                ]
-            }, RequesterId, Department, Company));
+        var standalone = await service.CreateOrderAsync(new VppRequestCreateReqDTO
+        {
+            Year = 2026,
+            Month = 4,
+            IsAdditionalOrder = true,
+            SupplementReason = "Standalone first attempt",
+            Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
+        }, RequesterId, Department, Company);
+        var standaloneVersion = await SetRowVersionAsync(context, standalone.Id);
+        await service.RejectAdditionalOrderAsync(
+            standalone.Id,
+            ApproverId,
+            "Not required yet",
+            standaloneVersion,
+            "reject-standalone",
+            Department,
+            false,
+            Company);
 
-        Assert.Contains("current regular order", exception.Message);
-        Assert.Empty(context.Set<VppRequest>());
+        var regular = await CreateRegularAsync(service, vppId);
+        var linked = await CreateSupplementForBaseAsync(
+            service,
+            vppId,
+            regular.Id,
+            "Linked second attempt");
+
+        Assert.Equal(regular.Id, linked.BaseRequestId);
+        Assert.Equal(2, linked.SupplementAttemptNumber);
+        Assert.Equal(2, await context.Set<VppRequest>()
+            .CountAsync(x => x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted));
     }
 
     [Theory]

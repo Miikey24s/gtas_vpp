@@ -19,6 +19,52 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
     private const string ManagerRejectionReason = "Thiếu căn cứ số lượng LEAN-05";
 
     [Fact]
+    public async Task Manager_CreatesStandaloneSupplementWithoutRegularOrder()
+    {
+        const string reason = "Bổ sung độc lập khi chưa có đơn thường";
+
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsAsync(TestAccounts.Manager);
+        using var api = await CreateAuthorizedApiClientAsync(TestAccounts.Manager);
+
+        var periodBeforeCreate = await api.GetFromJsonAsync<VppPeriodInfoResDTO>(
+            "/api/VPPRequest/period-info",
+            TestContext.Current.CancellationToken);
+        periodBeforeCreate.Should().NotBeNull();
+        periodBeforeCreate!.HasCurrentPeriodOrder.Should().BeFalse(
+            "QA manager intentionally has no regular order in the isolated fixture");
+        periodBeforeCreate.BaseRequestId.Should().BeNull();
+        periodBeforeCreate.CanCreateAdditional.Should().BeTrue(
+            "a supplement no longer depends on a regular order");
+
+        await CreateSupplementAsync(reason, verifyRequiredReason: true);
+
+        var orders = await api.GetFromJsonAsync<List<VppRequestResDTO>>(
+                         "/api/VPPRequest/my-orders",
+                         TestContext.Current.CancellationToken)
+                     ?? [];
+        var standaloneSupplement = orders.Single(order =>
+            order.IsAdditionalOrder
+            && string.Equals(order.SupplementReason, reason, StringComparison.Ordinal));
+        standaloneSupplement.BaseRequestId.Should().BeNull();
+        standaloneSupplement.BaseRequestSeriesId.Should().BeNull();
+        standaloneSupplement.SupplementAttemptNumber.Should().Be(1);
+        standaloneSupplement.Status.Should().Be((int)gtas_vpp_shared.Enums.VPPStatus.Pending);
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "standalone-supplement-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+    }
+
+    [Fact]
     public async Task Employees_CreateSupplements_ManagerApprovesAndRejects_WithAuditableEndStates()
     {
         var consoleErrors = new List<string>();
@@ -416,26 +462,39 @@ public sealed class OrderManagementTests : TestBase, IMutatingUiTest
 
     private async Task<VppRequestHistoryResDTO> GetOrderHistoryAsync(QaTestAccount account, Guid orderId)
     {
-        BackendBaseUrl.Should().NotBeNullOrWhiteSpace();
-        using var client = new HttpClient { BaseAddress = new Uri(BackendBaseUrl!) };
-        using var loginResponse = await client.PostAsJsonAsync(
-            "/api/Auth/login",
-            new AuthenticationLoginRequest(account.Username, account.Password),
-            TestContext.Current.CancellationToken);
-        loginResponse.EnsureSuccessStatusCode();
-
-        var login = await loginResponse.Content.ReadFromJsonAsync<AuthenticationResultDTO>(
-            TestContext.Current.CancellationToken);
-        login?.AccessToken.Should().NotBeNullOrWhiteSpace();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            login!.AccessToken);
-
+        using var client = await CreateAuthorizedApiClientAsync(account);
         return await client.GetFromJsonAsync<VppRequestHistoryResDTO>(
                    $"/api/VPPRequest/orders/{orderId:D}/history",
                    TestContext.Current.CancellationToken)
                ?? throw new InvalidOperationException(
                    $"Order history endpoint returned no payload for '{orderId:D}'.");
+    }
+
+    private async Task<HttpClient> CreateAuthorizedApiClientAsync(QaTestAccount account)
+    {
+        BackendBaseUrl.Should().NotBeNullOrWhiteSpace();
+        var client = new HttpClient { BaseAddress = new Uri(BackendBaseUrl!) };
+        try
+        {
+            using var loginResponse = await client.PostAsJsonAsync(
+                "/api/Auth/login",
+                new AuthenticationLoginRequest(account.Username, account.Password),
+                TestContext.Current.CancellationToken);
+            loginResponse.EnsureSuccessStatusCode();
+
+            var login = await loginResponse.Content.ReadFromJsonAsync<AuthenticationResultDTO>(
+                TestContext.Current.CancellationToken);
+            login?.AccessToken.Should().NotBeNullOrWhiteSpace();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                login!.AccessToken);
+            return client;
+        }
+        catch
+        {
+            client.Dispose();
+            throw;
+        }
     }
 
     private static Guid ReadOrderIdFromHistoryUrl(string url)

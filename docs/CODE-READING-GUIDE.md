@@ -252,13 +252,24 @@ việc tạo hai đơn thường trùng trong cùng kỳ. Không dựa vào ki�
 ### 3.2 Đơn bổ sung — §2.3.1.4
 
 ```
-Nhân viên tạo đơn bổ sung (bắt buộc nêu lý do, gắn đơn gốc)
+Nhân viên tạo đơn bổ sung (bắt buộc nêu lý do; không bắt buộc có đơn thường)
   → chỉ được tạo trong cửa sổ nghiệp vụ cho phép
-  → không vượt giới hạn số lần, không có sẵn một đơn đang chờ xử lý
+  → quota/lượt thử/one-Pending tính chung theo người dùng + kỳ
+  → nếu có đơn thường hợp lệ, backend lưu BaseRequestId để truy vết; nếu không thì để null
   → Quản lý mở hàng chờ, xem chi tiết, rồi duyệt hoặc từ chối
   → từ chối bắt buộc nhập lý do
   → lưu quyết định + lý do + người xử lý + thời điểm vào đơn và nhật ký; người tạo nhận thông báo
 ```
+
+Hai từ dễ nhầm:
+
+- `standalone supplement`: đơn bổ sung độc lập, không có `BaseRequestId`;
+- `lineage`: quan hệ truy vết nguồn gốc. Ở đây base chỉ giúp biết đơn bổ sung liên
+  quan đơn thường nào khi quan hệ đó tồn tại, không còn là điều kiện được phép tạo.
+
+Luật hiện hành nằm trong ADR-014. Database có hai filtered unique index để chặn
+đồng thời: tối đa một `Pending` theo user/kỳ và không trùng
+`SupplementAttemptNumber` theo user/kỳ.
 
 Quyền cần: `REQUEST_APPROVE` / `REQUEST_REJECT` (định nghĩa ở
 `src/Shared/Constants/Permissions.cs`, gán vai trò ở `CanonicalRbac.cs`). Người dùng

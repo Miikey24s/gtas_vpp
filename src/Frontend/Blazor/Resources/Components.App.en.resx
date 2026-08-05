@@ -563,12 +563,10 @@
   <data name="SupplementQuotaSummary" xml:space="preserve"><value>{0}/{1} approved supplement slots remaining</value></data>
   <data name="SupplementAttemptSummary" xml:space="preserve"><value>{0}/{1} supplement attempts remaining</value></data>
   <data name="SupplementUnavailable" xml:space="preserve"><value>A supplement cannot be created right now.</value></data>
-  <data name="SupplementRequiresRegularOrderFormat" xml:space="preserve"><value>Create and submit the regular order for {0} before creating a supplement.</value></data>
   <data name="SupplementPendingMustResolve" xml:space="preserve"><value>A supplement is awaiting approval. Wait for its decision or cancel it before creating another one.</value></data>
   <data name="SupplementApprovedQuotaFull" xml:space="preserve"><value>The approved supplement quota for this cycle is full.</value></data>
   <data name="SupplementAttemptLimitFull" xml:space="preserve"><value>The supplement attempt limit for this cycle is full.</value></data>
   <data name="SupplementSubmissionClosed" xml:space="preserve"><value>The supplement submission window for this cycle has closed.</value></data>
-  <data name="SupplementBaseOrderIneligible" xml:space="preserve"><value>The regular order for this cycle is not eligible for a supplement.</value></data>
   <data name="OrdersStoryEmptyTitle" xml:space="preserve"><value>You have not submitted an order</value></data>
   <data name="OrdersStoryActiveTitle" xml:space="preserve"><value>Order submitted</value></data>
   <data name="OrdersStoryOpenDescriptionFormat" xml:space="preserve"><value>{0} day(s) remain to submit, with a deadline of {1}.</value></data>

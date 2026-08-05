@@ -26,9 +26,8 @@ namespace gtas_vpp_be.Model.VPP
         public Guid? SupersedesRequestId { get; set; }
         public Guid? SupersededByRequestId { get; set; }
 
-        // Nguồn gốc yêu cầu bổ sung và bộ đếm chính sách. BaseRequestSeriesId là
-        // khóa quota ổn định, còn BaseRequestId ghi đúng revision yêu cầu thường
-        // được dùng khi gửi yêu cầu bổ sung.
+        // Liên kết đơn gốc là metadata tùy chọn: đơn bổ sung vẫn hợp lệ khi người
+        // dùng chưa có đơn thường. Quota được tính theo người dùng và kỳ.
         public Guid? BaseRequestId { get; set; }
         public Guid? BaseRequestSeriesId { get; set; }
         public int? SupplementSequence { get; set; }

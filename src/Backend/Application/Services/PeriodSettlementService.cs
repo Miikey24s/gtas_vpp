@@ -93,10 +93,6 @@ namespace gtas_vpp_be.Service.Services
                 PendingAdditionalCount = pendingAdditionalCount
             };
 
-            foreach (var supplement in headers.Where(x => x.IsAdditionalOrder && !x.BaseRequestId.HasValue))
-            {
-                response.Blockers.Add($"SUPPLEMENT_WITHOUT_BASE:{supplement.Id}");
-            }
             if (pendingAdditionalCount > 0)
             {
                 response.Blockers.Add($"PENDING_SUPPLEMENTS:{pendingAdditionalCount}");

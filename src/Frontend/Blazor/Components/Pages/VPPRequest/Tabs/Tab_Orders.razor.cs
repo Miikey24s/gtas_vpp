@@ -138,13 +138,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     return Loc["SupplementUnavailable"].Value;
                 }
 
-                if (!PeriodInfo.HasCurrentPeriodOrder)
-                {
-                    return string.Format(
-                        Loc["SupplementRequiresRegularOrderFormat"].Value,
-                        CurrentOrderPeriodText);
-                }
-
                 if (PeriodInfo.HasPendingAdditional)
                 {
                     return Loc["SupplementPendingMustResolve"].Value;
@@ -165,7 +158,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     return Loc["SupplementSubmissionClosed"].Value;
                 }
 
-                return Loc["SupplementBaseOrderIneligible"].Value;
+                return Loc["SupplementUnavailable"].Value;
             }
         }
         private string? CurrentEmptyActionText => CanCreateRegular

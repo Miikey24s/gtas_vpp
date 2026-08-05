@@ -235,7 +235,9 @@ namespace gtas_vpp_be.Model
                     .HasDatabaseName("IX_Requests_UserPeriodStatus");
                 en.HasIndex(x => new { x.Year, x.Month, x.IsDeleted, x.Status, x.IsAdditionalOrder })
                     .HasDatabaseName("IX_Requests_PeriodStatus");
-                en.HasIndex(x => new { x.CreatedByUserId, x.PeriodId })
+                en.HasIndex(
+                        x => new { x.CreatedByUserId, x.PeriodId },
+                        "IX_Requests_OneRegularPerUserPeriod_Model")
                     .HasDatabaseName("UX_Requests_OneRegularPerUserPeriod")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 0")
                     .IsUnique();
@@ -243,11 +245,13 @@ namespace gtas_vpp_be.Model
                     .HasDatabaseName("UX_Requests_CurrentRevisionSeries")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1")
                     .IsUnique();
-                en.HasIndex(x => new { x.CreatedByUserId, x.PeriodId, x.BaseRequestSeriesId })
+                en.HasIndex(
+                        x => new { x.CreatedByUserId, x.PeriodId },
+                        "IX_Requests_OnePendingSupplement_Model")
                     .HasDatabaseName("UX_Requests_OnePendingSupplement")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [Status] = 6")
                     .IsUnique();
-                en.HasIndex(x => new { x.CreatedByUserId, x.PeriodId, x.BaseRequestSeriesId, x.SupplementAttemptNumber })
+                en.HasIndex(x => new { x.CreatedByUserId, x.PeriodId, x.SupplementAttemptNumber })
                     .HasDatabaseName("UX_Requests_SupplementAttempt")
                     .HasFilter("[IsDeleted] = 0 AND [IsCurrentRevision] = 1 AND [IsAdditionalOrder] = 1 AND [SupplementAttemptNumber] IS NOT NULL")
                     .IsUnique();

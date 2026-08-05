@@ -119,7 +119,8 @@ Cần phân biệt:
 
 Phải giải thích được:
 
-- vì sao đơn bổ sung phải gắn đơn gốc và có lý do;
+- vì sao đơn bổ sung bắt buộc có lý do nhưng không bắt buộc có đơn thường;
+- vì sao base request chỉ là metadata truy vết khi có;
 - vì sao không cho tồn tại nhiều đơn bổ sung `Pending` cùng lúc;
 - vì sao preview chưa phải chốt kỳ;
 - vì sao correction tạo revision mới thay vì sửa bản cũ.
@@ -187,7 +188,8 @@ Phân biệt:
 
 > Vấn đề của quy trình thủ công bằng bảng tính hoặc email là khó kiểm soát thời hạn, đơn bổ sung,
 > phiên bản, quyền truy cập và giá tại thời điểm chốt kỳ. GTAS VPP giải quyết bằng một quy trình tập
-> trung theo kỳ. Mỗi người có một đơn thường hiện hành; đơn bổ sung phải có lý do và được duyệt; bảng
+> trung theo kỳ. Mỗi người có tối đa một đơn thường hiện hành; đơn bổ sung có thể độc lập nhưng phải
+> có lý do và được duyệt; bảng
 > giá có vòng đời; kết quả chốt kỳ được lưu thành snapshot bất biến. Kiến trúc là modular monolith:
 > frontend Blazor gọi backend Web API qua DTO dùng chung, backend kiểm policy và nghiệp vụ trước khi
 > lưu SQL Server. Hệ thống có unit, integration, architecture và browser test để bảo vệ các luồng
@@ -243,9 +245,11 @@ Giải thích:
 
 #### Luồng đơn bổ sung
 
-> Người dùng phải có đơn gốc hợp lệ, còn thời hạn, nhập lý do và không có đơn bổ sung đang chờ. Đơn
-> được tạo ở trạng thái Pending. Người có quyền và khác người tạo mới được duyệt hoặc từ chối. Mọi
-> quyết định được lưu vào lịch sử và phát thông báo.
+> Người dùng còn thời hạn có thể tạo đơn bổ sung dù chưa có đơn thường, nhưng phải nhập lý do, còn
+> quota/lượt thử và không có đơn bổ sung đang chờ. Nếu đã có đơn thường hợp lệ, hệ thống lưu liên kết
+> base để truy vết; nếu chưa có thì đơn bổ sung vẫn hợp lệ. Đơn được tạo ở trạng thái Pending. Người
+> có quyền và khác người tạo mới được duyệt hoặc từ chối. Mọi quyết định được lưu vào lịch sử và phát
+> thông báo.
 
 #### Luồng chốt kỳ
 
@@ -411,8 +415,9 @@ không tạo được hai bản hợp lệ.
 
 #### Câu 17. Điều kiện tạo đơn bổ sung là gì?
 
-**Trả lời mẫu:** Phải có đơn gốc hợp lệ, còn cửa sổ nghiệp vụ, có lý do, còn quota/lượt thử và không có
-đơn bổ sung Pending cho cùng đơn gốc. Backend kiểm tra lại toàn bộ, frontend chỉ hiển thị capability.
+**Trả lời mẫu:** Không bắt buộc có đơn thường. Người dùng phải còn cửa sổ nghiệp vụ, nhập lý do hợp
+lệ, còn quota/lượt thử và không có đơn bổ sung Pending trong cùng kỳ. Nếu có đơn thường hợp lệ thì
+backend gắn base để truy vết; frontend chỉ hiển thị capability, backend mới là nơi quyết định cuối.
 
 #### Câu 18. Vì sao không cho có nhiều đơn bổ sung chờ duyệt?
 
@@ -423,7 +428,8 @@ Hệ thống yêu cầu xử lý đơn hiện tại trước, đồng thời có
 
 #### Câu 19. Tối đa ba đơn bổ sung có nghĩa là gì?
 
-**Trả lời mẫu:** Chính sách nghiệp vụ giới hạn số đơn bổ sung được duyệt cho một đơn gốc/kỳ. Hệ thống
+**Trả lời mẫu:** Chính sách nghiệp vụ giới hạn số đơn bổ sung được duyệt cho một người/kỳ, áp dụng
+chung cho cả đơn bổ sung độc lập và có liên kết base. Hệ thống
 còn có giới hạn lượt thử nội bộ để chống gửi lặp; hai khái niệm approved quota và attempt limit không
 hoàn toàn giống nhau.
 

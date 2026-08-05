@@ -617,47 +617,41 @@ namespace gtas_vpp_be.Service.Services
                     }
 
                     baseRequest = await requestSet
-                            .FirstOrDefaultAsync(x => x.CreatedByUserId == createdByUserId
-                                && x.MemberCompanyCode == memberCompanyCode
-                                && x.Year == req.Year && x.Month == req.Month
-                                && !x.IsAdditionalOrder && !x.IsDeleted
-                                && x.IsCurrentRevision
-                                && (req.BaseRequestId == null || x.Id == req.BaseRequestId));
-                    if (baseRequest is null)
-                        throw new BusinessException("A current regular order is required before creating a supplement.");
-                    if (baseRequest.Status is not ((int)VPPStatus.Submitted) and not ((int)VPPStatus.Approved))
-                        throw new BusinessException("The regular order is not eligible as a supplement base.");
+                        .FirstOrDefaultAsync(x => x.CreatedByUserId == createdByUserId
+                            && x.MemberCompanyCode == memberCompanyCode
+                            && x.Year == req.Year && x.Month == req.Month
+                            && !x.IsAdditionalOrder && !x.IsDeleted
+                            && x.IsCurrentRevision
+                            && (x.Status == (int)VPPStatus.Submitted
+                                || x.Status == (int)VPPStatus.Approved)
+                            && (req.BaseRequestId == null || x.Id == req.BaseRequestId));
+                    if (req.BaseRequestId.HasValue && baseRequest is null)
+                        throw new BusinessException("The selected regular order is not eligible as a supplement base.");
 
                     approvedSupplementCount = await requestSet.AsNoTracking()
                         .CountAsync(x => x.CreatedByUserId == createdByUserId
                             && x.MemberCompanyCode == memberCompanyCode
                             && (x.PeriodId == period.Id
                                 || (x.PeriodId == null && x.Year == req.Year && x.Month == req.Month))
-                            && (x.BaseRequestSeriesId == baseRequest.RequestSeriesId
-                                || x.BaseRequestSeriesId == null)
                             && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted
                             && x.Status == (int)VPPStatus.Approved);
                     if (approvedSupplementCount >= _policy.MaxApprovedSupplements)
-                        throw new BusinessException("The approved supplement quota for this regular order is full.");
+                        throw new BusinessException("The approved supplement quota for this period is full.");
 
                     supplementAttemptCount = await requestSet.AsNoTracking()
                         .CountAsync(x => x.CreatedByUserId == createdByUserId
                             && x.MemberCompanyCode == memberCompanyCode
                             && (x.PeriodId == period.Id
                                 || (x.PeriodId == null && x.Year == req.Year && x.Month == req.Month))
-                            && (x.BaseRequestSeriesId == baseRequest.RequestSeriesId
-                                || x.BaseRequestSeriesId == null)
                             && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted);
                     if (supplementAttemptCount >= _policy.MaxSupplementAttempts)
-                        throw new BusinessException("The supplement attempt limit for this regular order is full.");
+                        throw new BusinessException("The supplement attempt limit for this period is full.");
 
                     var hasPending = await requestSet.AsNoTracking().AnyAsync(x =>
                         x.CreatedByUserId == createdByUserId
                         && x.MemberCompanyCode == memberCompanyCode
                         && (x.PeriodId == period.Id
                             || (x.PeriodId == null && x.Year == req.Year && x.Month == req.Month))
-                        && (x.BaseRequestSeriesId == baseRequest.RequestSeriesId
-                            || x.BaseRequestSeriesId == null)
                         && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted
                         && x.Status == (int)VPPStatus.Pending);
                     if (hasPending)
@@ -1614,8 +1608,6 @@ namespace gtas_vpp_be.Service.Services
                     && x.MemberCompanyCode == header.MemberCompanyCode
                     && (x.PeriodId == period.Id
                         || (x.PeriodId == null && x.Year == header.Year && x.Month == header.Month))
-                    && (x.BaseRequestSeriesId == header.BaseRequestSeriesId
-                        || x.BaseRequestSeriesId == null)
                     && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted
                     && x.Status == (int)VPPStatus.Approved);
                 if (approvedCount >= _policy.MaxApprovedSupplements)
@@ -1822,27 +1814,25 @@ namespace gtas_vpp_be.Service.Services
                     || (x.PeriodId == null && x.Year == current.Year && x.Month == current.Month))
                 && !x.IsAdditionalOrder
                 && x.IsCurrentRevision && !x.IsDeleted);
-            var approvedCount = baseRequest is null ? 0 : await requestSet.AsNoTracking().CountAsync(x =>
+            var eligibleBaseRequest = baseRequest?.Status is
+                (int)VPPStatus.Submitted or (int)VPPStatus.Approved
+                    ? baseRequest
+                    : null;
+            var approvedCount = await requestSet.AsNoTracking().CountAsync(x =>
                 x.CreatedByUserId == userId && x.MemberCompanyCode == company
                 && (x.PeriodId == period.Id
                     || (x.PeriodId == null && x.Year == current.Year && x.Month == current.Month))
-                && (x.BaseRequestSeriesId == baseRequest.RequestSeriesId
-                    || x.BaseRequestSeriesId == null)
                 && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted
                 && x.Status == (int)VPPStatus.Approved);
-            var attemptCount = baseRequest is null ? 0 : await requestSet.AsNoTracking().CountAsync(x =>
+            var attemptCount = await requestSet.AsNoTracking().CountAsync(x =>
                 x.CreatedByUserId == userId && x.MemberCompanyCode == company
                 && (x.PeriodId == period.Id
                     || (x.PeriodId == null && x.Year == current.Year && x.Month == current.Month))
-                && (x.BaseRequestSeriesId == baseRequest.RequestSeriesId
-                    || x.BaseRequestSeriesId == null)
                 && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted);
-            var hasPending = baseRequest is not null && await requestSet.AsNoTracking().AnyAsync(x =>
+            var hasPending = await requestSet.AsNoTracking().AnyAsync(x =>
                 x.CreatedByUserId == userId && x.MemberCompanyCode == company
                 && (x.PeriodId == period.Id
                     || (x.PeriodId == null && x.Year == current.Year && x.Month == current.Month))
-                && (x.BaseRequestSeriesId == baseRequest.RequestSeriesId
-                    || x.BaseRequestSeriesId == null)
                 && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted
                 && x.Status == (int)VPPStatus.Pending);
             var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
@@ -1850,8 +1840,6 @@ namespace gtas_vpp_be.Service.Services
                 && nowUtc < period.SubmissionDeadlineUtc;
             var approvalOpen = nowUtc < period.SupplementApprovalDeadlineUtc
                 && period.State != VppPeriodState.Settled;
-            var baseEligibleForSupplement = baseRequest?.Status is
-                (int)VPPStatus.Submitted or (int)VPPStatus.Approved;
             var hasPreviousOrder = await requestSet.AsNoTracking().AnyAsync(x =>
                 x.CreatedByUserId == userId && x.Year == previous.Year && x.Month == previous.Month
                 && !x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted);
@@ -1872,8 +1860,8 @@ namespace gtas_vpp_be.Service.Services
                 IsDeadlinePassed = !submissionOpen,
                 IsSubmissionOpen = submissionOpen,
                 HasCurrentPeriodOrder = baseRequest is not null,
-                BaseRequestId = baseRequest?.Id,
-                BaseRequestCode = baseRequest?.VppCode,
+                BaseRequestId = eligibleBaseRequest?.Id,
+                BaseRequestCode = eligibleBaseRequest?.VppCode,
                 AdditionalOrderCount = approvedCount,
                 MaxAdditionalOrders = _policy.MaxApprovedSupplements,
                 ApprovedSupplementCount = approvedCount,
@@ -1886,14 +1874,10 @@ namespace gtas_vpp_be.Service.Services
                 CanCreateOrderReason = submissionOpen
                     ? (baseRequest is null ? null : "You already have a regular order for this period.")
                     : "The regular submission window is closed.",
-                CanCreateAdditional = submissionOpen && approvalOpen && baseEligibleForSupplement
+                CanCreateAdditional = submissionOpen && approvalOpen
                     && approvedCount < _policy.MaxApprovedSupplements
                     && attemptCount < _policy.MaxSupplementAttempts && !hasPending,
-                CanCreateAdditionalReason = baseRequest is null
-                    ? "Create and submit a regular order first."
-                    : !baseEligibleForSupplement
-                        ? "The regular request is cancelled or otherwise ineligible for supplements."
-                    : hasPending ? "Resolve the pending supplement first."
+                CanCreateAdditionalReason = hasPending ? "Resolve the pending supplement first."
                     : approvedCount >= _policy.MaxApprovedSupplements ? "The approved supplement quota is full."
                     : attemptCount >= _policy.MaxSupplementAttempts ? "The supplement attempt limit is full."
                     : submissionOpen ? null : "The supplement submission window is closed.",

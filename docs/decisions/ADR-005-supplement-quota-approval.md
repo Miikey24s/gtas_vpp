@@ -1,6 +1,6 @@
 # ADR-005 — Supplement quota and approval policy
 
-- Status: Accepted
+- Status: Superseded in part by ADR-014 (2026-08-05)
 - Date: 2026-07-15
 - Decision: D-005
 - Direct tasks: PER-001, SUP-001, UI-005
@@ -21,3 +21,9 @@ Creation closes with the regular submission deadline. An existing Pending item m
 - Four concurrent approvals cannot produce more than three approved records.
 - Self-approval is forbidden under ADR-004.
 - Values are configuration/policy, not scattered hard-coded UI constants.
+
+## Supersession note
+
+ADR-014 replaces only the mandatory-base and per-base quota key. A supplement may
+now be standalone, while reason, deadline, one-Pending, approval, audit,
+idempotency and configurable quota rules remain in force.

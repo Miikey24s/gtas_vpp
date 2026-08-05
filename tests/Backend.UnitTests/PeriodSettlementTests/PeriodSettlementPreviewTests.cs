@@ -15,14 +15,14 @@ public sealed class PeriodSettlementPreviewTests
     private static readonly DateTime AsOfUtc = new(2026, 7, 16, 5, 0, 0, DateTimeKind.Utc);
 
     [Fact]
-    public async Task Preview_AggregatesCurrentRegularAndApprovedSupplement_WithProvenanceHash()
+    public async Task Preview_AggregatesRegularAndApprovedStandaloneSupplement_WithProvenanceHash()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         await SeedPublishedBookAsync(context, vppId, 100m);
-        var regular = AddHeader(context, vppId, VPPStatus.Submitted, isAdditional: false, quantity: 2);
-        AddHeader(context, vppId, VPPStatus.Approved, isAdditional: true, quantity: 3, baseRequestId: regular.Id);
+        AddHeader(context, vppId, VPPStatus.Submitted, isAdditional: false, quantity: 2);
+        AddHeader(context, vppId, VPPStatus.Approved, isAdditional: true, quantity: 3);
         await context.SaveChangesAsync();
         var service = CreateService(context);
 
@@ -40,6 +40,7 @@ public sealed class PeriodSettlementPreviewTests
         Assert.Equal(result.PrimaryQuote!.SupplierId, result.PrimarySupplierId);
         Assert.False(string.IsNullOrWhiteSpace(result.InputHash));
         Assert.DoesNotContain(result.Blockers, x => x.StartsWith("NO_COMPLETE", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Blockers, x => x.StartsWith("SUPPLEMENT_WITHOUT_BASE", StringComparison.Ordinal));
     }
 
     [Fact]

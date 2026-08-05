@@ -1,6 +1,6 @@
 # LEAN-05 — Request and supplement core
 
-**Status:** DONE
+**Status:** DONE — standalone-supplement amendment verified 2026-08-05
 **Date:** 2026-07-16
 **Dependency:** LEAN-02 trusted access, LEAN-04 UI foundation
 **Next package:** LEAN-06 procurement and immutable settlement
@@ -18,10 +18,11 @@
   the same command and reject a different payload. A concurrent loser receives
   a conflict, including when another revision already superseded the requested
   row.
-- A supplement requires a base request in the same period and a reason of
-  5–500 characters. The default policy permits one pending supplement, at most
-  three approved supplements and six audited attempts per user/base/period,
-  with a separate approval-grace deadline.
+- A supplement requires a reason of 5–500 characters but may be created without
+  a regular request. An eligible regular request is optional lineage metadata.
+  The default policy permits one pending supplement, at most three approved
+  supplements and six audited attempts per user/period, with a separate
+  approval-grace deadline. See ADR-014.
 - Department approvers see their department queue unless they have explicit
   company-wide scope. Approval/rejection actions, actor, reason, revision and
   correlation data are recorded in the request audit timeline.
@@ -69,6 +70,22 @@
   `DEAD8CBF4C808ABBC1EB61DA21ABD87B2EEF98B158245F68AF86BCAFABCC68E6`.
 - EF reports no pending model changes.
 
+### Standalone-supplement amendment — 2026-08-05
+
+- Migration: `20260805035706_AllowStandaloneSupplements`.
+- The nullable base columns are preserved. Only the filtered uniqueness keys
+  change from base-aware to user/period-wide pending and attempt invariants.
+- Preflight errors `51020` and `51021` stop the migration if current data would
+  violate the new keys; the migration does not silently delete or renumber data.
+- Fresh LocalDB apply/seed and a disposable upgrade from
+  `20260721025501_AddBusinessDataTranslations` both succeeded. The upgrade
+  database was removed after verification.
+- Approved standalone supplements are included in settlement; a standalone
+  Pending supplement still blocks settlement through the existing workflow.
+- Recovery is either the reviewed index-only `Down` while compatible, or the
+  preferred production backup/restore/forward correction. Production apply is
+  still gated by a timestamp-matched backup and reconciliation.
+
 ## Acceptance evidence
 
 | Gate | Result |
@@ -86,6 +103,11 @@
 | Legacy LocalDB upgrade invariants | PASS — lineage/uniqueness/history checks above |
 | Gitleaks v8.30.1 current-tree scan | PASS — no leaks found |
 | `git diff --check` | PASS — exit 0; LF→CRLF advisories only |
+
+Amendment evidence on 2026-08-05: backend unit `504/504`, frontend unit
+`373/373`, LocalDB integration `21/21`, focused authenticated browser mutation
+`1/1`, migration upgrade PASS, generated SQL/rollback reviewed, and EF reports
+no pending model changes. Counts are snapshots, not permanent invariants.
 
 The E2E suite ran only with `GTAS_E2E_ISOLATED=1` and the explicit mutation
 acknowledgement. Plain authenticated and mutating runs remain fail-closed before
