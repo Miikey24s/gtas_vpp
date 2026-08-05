@@ -11,6 +11,7 @@ tắc nghiệp vụ nào.
 - Atlas/route visual history: `docs/execution/ATLAS-001.md` (historical, không còn là current authority)
 - Thiết kế 28 màn: `docs/design/atlas/` (read-only)
 - Nguồn nghiệp vụ: `LVTN/NguyenAnNam_DH52201078.docx`
+- Đề cương học và luyện phản biện: `docs/GTAS-VPP-DEFENSE-GUIDE.md`
 
 > Trạng thái: đã đồng bộ với implementation Blazor/Radzen và checkpoint frontend refactor đến
 > FR8A/FR8B cùng settlement mutation E2E ngày 2026-08-04. FR8C đã khóa ledger máy đọc được đủ 44 route
