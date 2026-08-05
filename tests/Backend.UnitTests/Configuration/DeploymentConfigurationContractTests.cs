@@ -399,6 +399,20 @@ public sealed class DeploymentConfigurationContractTests
         var repositoryRoot = FindRepositoryRoot();
         var localCompose = File.ReadAllText(Path.Combine(repositoryRoot, "docker-compose.yml"));
         var productionCompose = File.ReadAllText(Path.Combine(repositoryRoot, "docker-compose.prod.yml"));
+        var deployWorkflow = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            ".github",
+            "workflows",
+            "deploy.yml"));
+        var nginxConfig = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "deploy",
+            "nginx",
+            "gtas-vpp.conf"));
+        var nginxInstaller = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "deploy",
+            "install-nginx-config.sh"));
         var appHost = File.ReadAllText(Path.Combine(repositoryRoot, "src", "Hosting", "AppHost", "AppHost.cs"));
         var backendProgram = File.ReadAllText(Path.Combine(
             repositoryRoot,
@@ -429,6 +443,10 @@ public sealed class DeploymentConfigurationContractTests
         Assert.Contains("EMAIL_SMTP_PORT:-2587", productionCompose);
         Assert.Contains("EmailNotifications__Password:", productionCompose);
         Assert.DoesNotContain("DatabaseInitialization__AllowDemoData", productionCompose);
+        Assert.Contains("nginx:1.24-alpine", deployWorkflow);
+        Assert.Contains("listen 443 ssl http2;", nginxConfig);
+        Assert.DoesNotContain("http2 on;", nginxConfig);
+        Assert.Contains("systemctl enable --now nginx", nginxInstaller);
         var productionConnectionBindings = productionCompose
             .Split('\n')
             .Select(line => line.Trim())

@@ -18,12 +18,20 @@ if sudo test -f "$NGINX_TARGET"; then
   had_previous=true
 fi
 
+reload_or_start_nginx() {
+  if sudo systemctl is-active --quiet nginx; then
+    sudo systemctl reload nginx
+  else
+    sudo systemctl enable --now nginx
+  fi
+}
+
 restore_previous() {
   trap - ERR
   set +e
   if [[ "$had_previous" == "true" && -f "$backup" ]]; then
     sudo cp "$backup" "$NGINX_TARGET"
-    sudo nginx -t && sudo systemctl reload nginx
+    sudo nginx -t && reload_or_start_nginx
   fi
 }
 
@@ -32,7 +40,7 @@ trap 'restore_previous' ERR
 sudo install -m 0644 "$source_config" "$NGINX_TARGET"
 sudo ln -sfn "$NGINX_TARGET" /etc/nginx/sites-enabled/gtas-vpp
 sudo nginx -t
-sudo systemctl reload nginx
+reload_or_start_nginx
 
 PUBLIC_BASE_URL="$PUBLIC_BASE_URL" \
 SMOKE_RETRY_COUNT="${SMOKE_RETRY_COUNT:-10}" \
