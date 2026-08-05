@@ -35,6 +35,7 @@ public sealed class SettlementWorkspaceProjectionTests
         Assert.Equal(4, rows.Count);
         var alpha = Assert.Single(rows, row => row.DepartmentCode == "A");
         Assert.Equal("Phòng Alpha", alpha.DepartmentName);
+        Assert.Equal("Người đặt A", alpha.RequesterNames);
         Assert.Equal(2, alpha.OrderCount);
         Assert.Equal(1, alpha.RegularOrderCount);
         Assert.Equal(1, alpha.AdditionalOrderCount);

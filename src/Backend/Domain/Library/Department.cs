@@ -10,15 +10,13 @@ namespace gtas_vpp_be.Model.Library
 {
     [StructLayout(LayoutKind.Auto)]
     [Table("Departments")]
-    public class Department : BaseModel, ITranslatableBusinessEntity
+    public class Department : BaseModel
     {
         public string? Code { get; set; }
         public string? Name { get; set; }
-        public string OriginalLanguageCode { get; set; } = "vi";
         public Guid? ParentDepartmentId { get; set; }
         public virtual Department? ParentDepartment { get; set; }
         public virtual ICollection<Department>? ChildDepartments { get; set; }
         public virtual ICollection<UserGroupMembership>? UserGroupMemberships { get; set; }
-        public virtual ICollection<DepartmentTranslation> Translations { get; set; } = [];
     }
 }

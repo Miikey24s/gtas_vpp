@@ -7,7 +7,6 @@ using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,83 +17,55 @@ namespace gtas_vpp_be.Tests.LibraryTests;
 public class LibraryControllerTests
 {
     [Fact]
-    public async Task GenericGet_SupplierTable_SearchesApprovedTranslationWhenPaged()
+    public async Task GenericGet_SupplierTable_SearchesCanonicalNameWhenPaged()
     {
-        var previousCulture = CultureInfo.CurrentUICulture;
-        CultureInfo.CurrentUICulture = new CultureInfo("en-US");
-        try
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        var userNameResolver = new Mock<IUserNameResolver>();
+        var dateTimeProvider = new FakeDateTimeProvider(DateTime.UtcNow);
+        var supplier = new Supplier
         {
-            using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-            var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
-            var userNameResolver = new Mock<IUserNameResolver>();
-            var dateTimeProvider = new FakeDateTimeProvider(DateTime.UtcNow);
-            var supplier = new Supplier
-            {
-                Id = Guid.NewGuid(),
-                SupplierShortName = "VP",
-                SupplierName = "Nhà cung cấp văn phòng",
-                OriginalLanguageCode = "vi",
-                IsDeleted = false
-            };
-            context.Set<Supplier>().Add(supplier);
-            context.Set<SupplierTranslation>().Add(new SupplierTranslation
-            {
-                Id = Guid.NewGuid(),
-                SupplierId = supplier.Id,
-                LanguageCode = "en",
-                Name = "Office supplies partner",
-                Status = BusinessTranslationStatus.Approved,
-                Source = BusinessTranslationSource.Manual,
-                IsDeleted = false
-            });
-            await context.SaveChangesAsync();
+            Id = Guid.NewGuid(),
+            SupplierShortName = "VP",
+            SupplierName = "Nhà cung cấp văn phòng",
+            IsDeleted = false
+        };
+        context.Set<Supplier>().Add(supplier);
+        await context.SaveChangesAsync();
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(IGenericRepository<Supplier>)))
-                .Returns(new GenericRepository<Supplier>(unitOfWork.Object));
-            userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<Supplier>>(), context))
-                .ReturnsAsync((List<Supplier> list, gtas_vpp_be.Service.Helpers.Context.VPPContext ctx) => list);
+        var serviceProvider = new Mock<IServiceProvider>();
+        serviceProvider.Setup(x => x.GetService(typeof(IGenericRepository<Supplier>)))
+            .Returns(new GenericRepository<Supplier>(unitOfWork.Object));
+        userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<Supplier>>(), context))
+            .ReturnsAsync((List<Supplier> list, gtas_vpp_be.Service.Helpers.Context.VPPContext ctx) => list);
 
-            var localization = new BusinessDataLocalizationService(
-                unitOfWork.Object,
-                dateTimeProvider,
-                new RequestLanguageProvider());
-            var controller = new LibraryController(
-                serviceProvider.Object,
-                userNameResolver.Object,
-                unitOfWork.Object,
-                dateTimeProvider,
-                localization)
-            {
-                ControllerContext = new ControllerContext
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
-
-            var result = await controller.GenericGet(
-                tableCode: "suppliers",
-                id: null,
-                searchText: "Office",
-                lookupCategoryId: null,
-                filter: null,
-                skip: 0,
-                top: 20,
-                orderby: null,
-                distinct: null,
-                distinctFilter: null);
-
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var list = Assert.IsType<List<SupplierResDTO>>(okResult.Value);
-            var localized = Assert.Single(list);
-            Assert.Equal("Office supplies partner", localized.DisplayName);
-            Assert.Equal("en", localized.ResolvedLanguageCode);
-            Assert.False(localized.IsTranslationFallback);
-        }
-        finally
+        var controller = new LibraryController(
+            serviceProvider.Object,
+            userNameResolver.Object,
+            unitOfWork.Object,
+            dateTimeProvider)
         {
-            CultureInfo.CurrentUICulture = previousCulture;
-        }
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
+        };
+
+        var result = await controller.GenericGet(
+            tableCode: "suppliers",
+            id: null,
+            searchText: "văn phòng",
+            lookupCategoryId: null,
+            filter: null,
+            skip: 0,
+            top: 20,
+            orderby: null,
+            distinct: null,
+            distinctFilter: null);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var list = Assert.IsType<List<SupplierResDTO>>(okResult.Value);
+        Assert.Equal("Nhà cung cấp văn phòng", Assert.Single(list).SupplierName);
     }
 
     [Fact]

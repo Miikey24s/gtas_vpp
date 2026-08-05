@@ -1,4 +1,5 @@
 using gtas_vpp_test_support;
+using gtas_vpp_be.Model;
 using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
@@ -9,6 +10,8 @@ using BackendPeriodState = gtas_vpp_be.Model.VPP.VppPeriodState;
 using SharedVppStatus = gtas_vpp_shared.Enums.VPPStatus;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace gtas_vpp_be.IntegrationTests;
@@ -16,6 +19,30 @@ namespace gtas_vpp_be.IntegrationTests;
 public sealed class LocalDbQaFixtureTests
 {
     private const string OptInEnvironmentVariable = "GTAS_QA_SQL_INTEGRATION";
+
+    [Fact]
+    public async Task Business_data_translation_removal_rolls_back_and_reapplies_on_disposable_sql()
+    {
+        SkipUnlessOptedIn();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var fixture = await LocalDbQaFixture.CreateAsync(cancellationToken: cancellationToken);
+
+        Assert.Equal((0, 0), await ReadTranslationSchemaCountsAsync(fixture.ConnectionString, cancellationToken));
+
+        var options = new DbContextOptionsBuilder<VPPMigrationDbContext>()
+            .UseSqlServer(
+                fixture.ConnectionString,
+                sql => sql.MigrationsAssembly(Config.DatabaseSettings.MigrationsAssembly))
+            .Options;
+        await using var context = new VPPMigrationDbContext(options);
+        var migrator = context.GetService<IMigrator>();
+
+        await migrator.MigrateAsync("20260805035706_AllowStandaloneSupplements", cancellationToken);
+        Assert.Equal((7, 7), await ReadTranslationSchemaCountsAsync(fixture.ConnectionString, cancellationToken));
+
+        await migrator.MigrateAsync("20260805110930_RemoveBusinessDataTranslations", cancellationToken);
+        Assert.Equal((0, 0), await ReadTranslationSchemaCountsAsync(fixture.ConnectionString, cancellationToken));
+    }
 
     [Fact]
     public async Task Fixture_migrates_seeds_reseeds_resets_twice_and_cleans_up()
@@ -45,6 +72,30 @@ public sealed class LocalDbQaFixtureTests
 
         Assert.False(await fixture.IsInstancePresentAsync(cancellationToken));
         Assert.False(File.Exists(fixture.Options.ManifestPath));
+    }
+
+    private static async Task<(int TranslationTables, int LanguageColumns)> ReadTranslationSchemaCountsAsync(
+        string connectionString,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new SqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT
+                (SELECT COUNT(*) FROM sys.tables WHERE [name] IN
+                    ('DepartmentTranslations', 'LookupCategoryTranslations', 'LookupValueTranslations',
+                     'PriceListTranslations', 'SupplierTranslations', 'VppCategoryTranslations', 'VppItemTranslations')),
+                (SELECT COUNT(*) FROM sys.columns WHERE [name] = 'OriginalLanguageCode'
+                    AND [object_id] IN
+                    (OBJECT_ID('dbo.Departments'), OBJECT_ID('dbo.LookupCategories'), OBJECT_ID('dbo.LookupValues'),
+                     OBJECT_ID('dbo.PriceLists'), OBJECT_ID('dbo.Suppliers'), OBJECT_ID('dbo.VppCategories'), OBJECT_ID('dbo.VppItems')));
+            """;
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        Assert.True(await reader.ReadAsync(cancellationToken));
+        return (reader.GetInt32(0), reader.GetInt32(1));
     }
 
     [Fact]

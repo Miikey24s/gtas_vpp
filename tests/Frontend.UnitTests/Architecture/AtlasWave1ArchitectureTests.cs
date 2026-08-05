@@ -247,6 +247,9 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("Settlement.PreviewAsync", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.BuildDepartmentRows", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.FilterItems", code, StringComparison.Ordinal);
+        Assert.Contains("SettlementDepartmentRequester", page, StringComparison.Ordinal);
+        Assert.Contains("FormatRequesterNames", page, StringComparison.Ordinal);
+        Assert.Contains("RequesterNames", projection, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildPreview", code, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildConfirm", code, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildCorrection", code, StringComparison.Ordinal);

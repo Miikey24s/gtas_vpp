@@ -194,10 +194,6 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
             return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
         }
 
-        var translations = await context.LookupCategoryTranslations
-            .Where(x => x.LookupCategoryId == id)
-            .ToListAsync(cancellationToken);
-        context.LookupCategoryTranslations.RemoveRange(translations);
         context.LookupCategories.Remove(category);
         return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
     }
@@ -224,10 +220,6 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
             return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
         }
 
-        var translations = await context.LookupValueTranslations
-            .Where(x => x.LookupValueId == id)
-            .ToListAsync(cancellationToken);
-        context.LookupValueTranslations.RemoveRange(translations);
         context.LookupValues.Remove(value);
         return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
     }
@@ -244,8 +236,6 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
         var referenceCount = await context.VppItems.CountAsync(x => x.VppCategoryId == id, cancellationToken);
         if (referenceCount > 0) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
 
-        var translations = await context.VppCategoryTranslations.Where(x => x.VppCategoryId == id).ToListAsync(cancellationToken);
-        context.VppCategoryTranslations.RemoveRange(translations);
         context.VppCategories.Remove(category);
         return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
     }
@@ -265,8 +255,6 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
             + await context.SettlementItems.CountAsync(x => x.SupplierId == id, cancellationToken);
         if (referenceCount > 0) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
 
-        var translations = await context.SupplierTranslations.Where(x => x.SupplierId == id).ToListAsync(cancellationToken);
-        context.SupplierTranslations.RemoveRange(translations);
         context.Suppliers.Remove(supplier);
         return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
     }
@@ -303,8 +291,6 @@ public sealed class LibraryIntegrityService : ILibraryIntegrityService
             + await context.UserGroupMemberships.CountAsync(x => x.DepartmentId == id, cancellationToken);
         if (referenceCount > 0) return new LibraryHardDeleteResult(LibraryHardDeleteStatus.HasDependencies, referenceCount);
 
-        var translations = await context.DepartmentTranslations.Where(x => x.DepartmentId == id).ToListAsync(cancellationToken);
-        context.DepartmentTranslations.RemoveRange(translations);
         context.Departments.Remove(department);
         return new LibraryHardDeleteResult(LibraryHardDeleteStatus.Deleted, 0);
     }

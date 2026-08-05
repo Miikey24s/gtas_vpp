@@ -130,7 +130,7 @@ public class PriceListServiceTests
     }
 
     [Fact]
-    public async Task HardDelete_RequiresDeactivationAndRemovesOwnedTranslations()
+    public async Task HardDelete_RequiresDeactivationAndRemovesPriceList()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 5, 21, 9, 0, 0);
@@ -141,19 +141,9 @@ public class PriceListServiceTests
         Assert.Contains("deactivated", activeException.Message, StringComparison.OrdinalIgnoreCase);
 
         await service.SetDeletedAsync(id, true, 5615);
-        context.PriceListTranslations.Add(new PriceListTranslation
-        {
-            Id = Guid.NewGuid(),
-            PriceListId = id,
-            LanguageCode = "en",
-            Name = "Archive"
-        });
-        await context.SaveChangesAsync();
-
         await service.HardDeleteAsync(id);
 
         Assert.Null(await context.PriceLists.FindAsync(id));
-        Assert.Empty(context.PriceListTranslations.Where(x => x.PriceListId == id));
     }
 
     [Fact]

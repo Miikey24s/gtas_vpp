@@ -1,6 +1,8 @@
+using gtas_vpp_shared.DTOs.Share;
+
 namespace gtas_vpp_shared.DTOs.Res.Library
 {
-    public class PriceListResDTO : LocalizedBusinessDataResDTO
+    public class PriceListResDTO : BaseResDTO
     {
         public string? PriceListCode { get; set; }
         public string? PriceListName { get; set; }

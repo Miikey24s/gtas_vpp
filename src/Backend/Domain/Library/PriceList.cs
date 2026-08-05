@@ -8,16 +8,13 @@ namespace gtas_vpp_be.Model.Library
 {
     [StructLayout(LayoutKind.Auto)]
     [Table("PriceLists")]
-    public class PriceList : BaseModel, ITranslatableBusinessEntity
+    public class PriceList : BaseModel
     {
         [StringLength(50)]
         public string? PriceListCode { get; set; }
 
         [StringLength(200)]
         public string? PriceListName { get; set; }
-
-        [StringLength(5)]
-        public string OriginalLanguageCode { get; set; } = "vi";
 
         public bool IsDefault { get; set; }
 
@@ -54,7 +51,6 @@ namespace gtas_vpp_be.Model.Library
         public byte[] RowVersion { get; set; } = [];
 
         public virtual ICollection<SupplierProductMapping>? SupplierProductMappings { get; set; }
-        public virtual ICollection<PriceListTranslation> Translations { get; set; } = [];
 
         public PriceList() { }
     }

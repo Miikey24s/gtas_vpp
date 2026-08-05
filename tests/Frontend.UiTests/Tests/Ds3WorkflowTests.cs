@@ -11,6 +11,10 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
     [Fact]
     public async Task PeriodSettlement_UsesItemAndDepartmentViewsWithInlineSupplierSelection()
     {
+        var currentPeriod = DateTime.Today;
+        var previousPeriod = currentPeriod.AddMonths(-1);
+        var currentPeriodLabel = $"Kỳ {currentPeriod:MM/yyyy}";
+        var previousPeriodLabel = $"Kỳ {previousPeriod:MM/yyyy}";
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=review");
@@ -31,7 +35,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         var currentPeriodButton = periodSelector.GetByRole(AriaRole.Button, new() { Name = "Kỳ này", Exact = true });
         (await previousPeriodButton.GetAttributeAsync("aria-pressed")).Should().Be("true",
             "Chốt kỳ phải mở mặc định ở kỳ liền trước");
-        await surface.GetByText("Kỳ 06/2026", new() { Exact = true }).WaitForAsync();
+        await surface.GetByText(previousPeriodLabel, new() { Exact = true }).WaitForAsync();
 
         await currentPeriodButton.ClickAsync();
         await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
@@ -46,7 +50,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
                     && button.getAttribute('aria-pressed') === 'true')
             """);
         (await currentPeriodButton.GetAttributeAsync("aria-pressed")).Should().Be("true");
-        await surface.GetByText("Kỳ 07/2026", new() { Exact = true }).WaitForAsync();
+        await surface.GetByText(currentPeriodLabel, new() { Exact = true }).WaitForAsync();
         await WaitForRenderSettleAsync();
         await CaptureAsync("ds3-period-settlement-current-1366x768.png");
 
@@ -66,7 +70,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         (await activePeriodButtons.CountAsync()).Should().Be(1);
         (await activePeriodButtons.First.InnerTextAsync()).Trim().Should().Be("Kỳ trước");
         (await currentPeriodButton.GetAttributeAsync("aria-pressed")).Should().Be("false");
-        await surface.GetByText("Kỳ 06/2026", new() { Exact = true }).WaitForAsync();
+        await surface.GetByText(previousPeriodLabel, new() { Exact = true }).WaitForAsync();
         await WaitForRenderSettleAsync();
         await surface.GetByText("Chưa chốt kỳ", new() { Exact = true }).WaitForAsync();
         (await surface.GetByRole(AriaRole.Button, new() { Name = "Xuất PDF", Exact = true }).CountAsync()).Should().Be(0);
@@ -91,29 +95,9 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         periodPickerGeometry[1].Should().BeGreaterThan(120);
         periodPickerGeometry[2].Should().Be(1,
             "the settlement period picker must stay above the supplier decision strip");
-        if (await surface.Locator(".vpp-content-state:visible").CountAsync() > 0)
-        {
-            var periodSelectors = periodPicker.Locator(".vpp-filter-select-trigger");
-            await periodSelectors.Nth(0).ClickAsync();
-            await Page.Locator(".vpp-filter-select-popover:popover-open")
-                .GetByRole(AriaRole.Option, new() { Name = "Tháng 06", Exact = true })
-                .ClickAsync();
-            await periodSelectors.Nth(1).ClickAsync();
-            await Page.Locator(".vpp-filter-select-popover:popover-open")
-                .GetByRole(AriaRole.Option, new() { Name = "2026", Exact = true })
-                .ClickAsync();
-            await periodPicker.GetByRole(AriaRole.Button, new() { Name = "Áp dụng", Exact = true }).ClickAsync();
-            await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
-            {
-                State = WaitForSelectorState.Hidden,
-                Timeout = 60_000
-            });
-        }
-        else
-        {
-            await periodPicker.Locator(".vpp-period-picker-secondary").ClickAsync();
-            await periodPicker.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
-        }
+        await periodPicker.Locator(".vpp-period-picker-secondary").ClickAsync();
+        await periodPicker.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        await surface.GetByText(previousPeriodLabel, new() { Exact = true }).WaitForAsync();
 
         (await Page.Locator(".vpp-workflow-stepper:visible").CountAsync()).Should().Be(0);
         var settlementSelectors = Page.Locator(".vpp-settlement-selector-row .vpp-segmented-selector:visible");
@@ -163,6 +147,33 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         viewportContract.Should().Be("true|true");
         await CaptureAsync("ds3-period-settlement-unified-1366x768.png");
         await AssertSurfaceFillsContentHeightAsync(surface);
+    }
+
+    [Fact]
+    public async Task PeriodSettlement_ShowsRequesterNamesInDepartmentAndItemViews()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsDefaultUserAsync();
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=settle");
+
+        var surface = Page.Locator("[data-testid='period-settlement-data-surface']:visible");
+        await surface.WaitForAsync(new() { Timeout = 60_000 });
+        await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Hidden,
+            Timeout = 60_000
+        });
+        await surface.GetByText("Phòng ban / Người đặt", new() { Exact = true }).WaitForAsync();
+        await surface.GetByText("QA Procurement").WaitForAsync();
+        await CaptureAsync("settlement-requesters-departments-1366x768.png");
+
+        await Page.Locator(".vpp-settlement-selector-row")
+            .GetByRole(AriaRole.Button, new() { Name = "Mặt hàng", Exact = true })
+            .ClickAsync();
+        await Page.Locator(".vpp-period-filters.is-item-view").WaitForAsync();
+        await surface.GetByText("Người đặt", new() { Exact = true }).WaitForAsync();
+        await surface.GetByText("QA Procurement").WaitForAsync();
+        await CaptureAsync("settlement-requesters-items-1366x768.png");
     }
 
     [Theory]

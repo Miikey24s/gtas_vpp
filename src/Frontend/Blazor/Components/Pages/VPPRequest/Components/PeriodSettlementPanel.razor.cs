@@ -327,6 +327,7 @@ public partial class PeriodSettlementPanel : IDisposable
         return new DepartmentSettlementRow(
             row.DepartmentCode,
             row.DepartmentName,
+            row.RequesterNames,
             row.OrderCount,
             row.RegularOrderCount,
             row.AdditionalOrderCount,
@@ -661,6 +662,18 @@ public partial class PeriodSettlementPanel : IDisposable
     }
     private static string FormatMoney(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
     private static string FormatMoney(long value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
+    private static string FormatRequesterNames(AggregatedVppItemResDTO item)
+    {
+        var names = item.Breakdown
+            .Select(entry => entry.RequesterName?.Trim())
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!)
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase);
+
+        var result = string.Join(", ", names);
+        return string.IsNullOrWhiteSpace(result) ? "–" : result;
+    }
 
     public void Dispose()
     {
@@ -672,6 +685,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private sealed record DepartmentSettlementRow(
         string DepartmentCode,
         string DepartmentName,
+        string RequesterNames,
         int OrderCount,
         int RegularOrderCount,
         int AdditionalOrderCount,

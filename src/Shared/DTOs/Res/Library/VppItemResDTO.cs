@@ -1,8 +1,9 @@
 using gtas_vpp_shared.Constants;
+using gtas_vpp_shared.DTOs.Share;
 
 namespace gtas_vpp_shared.DTOs.Res.Library
 {
-    public class VppItemResDTO : LocalizedBusinessDataResDTO
+    public class VppItemResDTO : BaseResDTO
     {
         public string? VppCode { get; set; }
         public string? VppName { get; set; }

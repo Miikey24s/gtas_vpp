@@ -27,6 +27,7 @@ public sealed record SettlementDepartmentOption(string Code, string Name);
 public sealed record SettlementDepartmentRow(
     string DepartmentCode,
     string DepartmentName,
+    string RequesterNames,
     int OrderCount,
     int RegularOrderCount,
     int AdditionalOrderCount,
@@ -139,6 +140,7 @@ public static class SettlementWorkspaceProjection
         return new SettlementDepartmentRow(
             departmentCode,
             GetDepartmentName(departmentCode, departments),
+            GetRequesterNames(departmentOrders),
             departmentOrders.Count,
             departmentOrders.Count(order => !order.IsAdditionalOrder),
             departmentOrders.Count(order => order.IsAdditionalOrder),
@@ -146,6 +148,19 @@ public static class SettlementWorkspaceProjection
             departmentOrders.Sum(order => order.TotalQty),
             departmentOrders.Sum(order => order.TotalAmount),
             status);
+    }
+
+    private static string GetRequesterNames(IEnumerable<VppRequestResDTO> orders)
+    {
+        var names = orders
+            .Select(order => order.RequesterName?.Trim())
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!)
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase);
+
+        var result = string.Join(", ", names);
+        return string.IsNullOrWhiteSpace(result) ? "–" : result;
     }
 
     private static IReadOnlyList<string> GetDistinctValues(IEnumerable<string?> values) =>

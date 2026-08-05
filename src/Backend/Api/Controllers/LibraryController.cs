@@ -22,7 +22,6 @@ namespace gtas_vpp_be.Controllers
     public class LibraryController : BaseGenericController
     {
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly IBusinessDataLocalizationService? _businessDataLocalizationService;
         private readonly ILibraryIntegrityService _libraryIntegrityService;
 
         public LibraryController(
@@ -30,14 +29,12 @@ namespace gtas_vpp_be.Controllers
             IUserNameResolver userNameResolver,
             IUnitOfWork unitOfWork,
             IDateTimeProvider dateTimeProvider,
-            IBusinessDataLocalizationService? businessDataLocalizationService = null,
             ILibraryIntegrityService? libraryIntegrityService = null)
             : base(serviceProvider, userNameResolver, unitOfWork)
         {
             // P5/timezone: dùng provider chung để timestamp luôn theo Asia/Ho_Chi_Minh
             // ngay cả khi host chạy ở múi giờ khác (ví dụ cloud SGP hoặc UTC).
             _dateTimeProvider = dateTimeProvider;
-            _businessDataLocalizationService = businessDataLocalizationService;
             _libraryIntegrityService = libraryIntegrityService ?? new LibraryIntegrityService(unitOfWork);
         }
 
@@ -58,7 +55,6 @@ namespace gtas_vpp_be.Controllers
         {
             string cleanSearch = searchText?.Trim() ?? string.Empty;
             bool isShowDeleted = showDeleted ?? false;
-            string requestedLanguage = BusinessLanguages.Normalize(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
 
             // Xác định đây có phải request LoadData hay không (có tham số nâng cao).
             bool isLoadDataRequest = !string.IsNullOrEmpty(filter) || skip.HasValue || top.HasValue ||
@@ -79,13 +75,13 @@ namespace gtas_vpp_be.Controllers
             {
                 return tableCode.ToLower() switch
                 {
-                    "lookup-categories" => await LocalizeResultAsync(BusinessDataEntityTypes.LookupCategory, await GetTableDataWithFilteringAsync<LookupCategory, LookupCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch)),
-                    "lookup-values" => await LocalizeResultAsync(BusinessDataEntityTypes.LookupValue, await GetTableDataWithFilteringAsync<LookupValue, LookupValueResDTO>(filter, skip, top, orderby, distinct, distinctFilter, lookupCategoryId, isShowDeleted, cleanSearch)),
-                    "vpp-categories" => await LocalizeResultAsync(BusinessDataEntityTypes.VppCategory, await GetTableDataWithFilteringAsync<VppCategory, VppCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch)),
-                    "vpp-items" => await LocalizeResultAsync(BusinessDataEntityTypes.VppItem, await GetVppItemsWithFilteringAsync(filter, skip, top, orderby, distinct, distinctFilter, isShowDeleted, cleanSearch)),
-                    "suppliers" => await LocalizeResultAsync(BusinessDataEntityTypes.Supplier, await GetTableDataWithFilteringAsync<Supplier, SupplierResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch)),
+                    "lookup-categories" => await GetTableDataWithFilteringAsync<LookupCategory, LookupCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch),
+                    "lookup-values" => await GetTableDataWithFilteringAsync<LookupValue, LookupValueResDTO>(filter, skip, top, orderby, distinct, distinctFilter, lookupCategoryId, isShowDeleted, cleanSearch),
+                    "vpp-categories" => await GetTableDataWithFilteringAsync<VppCategory, VppCategoryResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch),
+                    "vpp-items" => await GetVppItemsWithFilteringAsync(filter, skip, top, orderby, distinct, distinctFilter, isShowDeleted, cleanSearch),
+                    "suppliers" => await GetTableDataWithFilteringAsync<Supplier, SupplierResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch),
                     "supplier-product-mappings" => await GetTableDataWithFilteringAsync<SupplierProductMapping, SupplierProductMappingResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted),
-                    "departments" => await LocalizeResultAsync(BusinessDataEntityTypes.Department, await GetTableDataWithFilteringAsync<Department, DepartmentResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch)),
+                    "departments" => await GetTableDataWithFilteringAsync<Department, DepartmentResDTO>(filter, skip, top, orderby, distinct, distinctFilter, null, isShowDeleted, cleanSearch),
                     _ => BadRequest(new { Message = $"Advanced filtering for Table Code '{tableCode}' is not supported." })
                 };
             }
@@ -93,60 +89,35 @@ namespace gtas_vpp_be.Controllers
             // Bộ lọc đơn giản ban đầu.
             return tableCode.ToLower() switch
             {
-                "lookup-categories" => await LocalizeResultAsync(BusinessDataEntityTypes.LookupCategory, await GetTableDataAsync<LookupCategory, LookupCategoryResDTO>(id, cleanSearch,
+                "lookup-categories" => await GetTableDataAsync<LookupCategory, LookupCategoryResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.Name != null && x.Name.Contains(cleanSearch))
                                    || (x.Code != null && x.Code.Contains(cleanSearch))
-                                   || (x.Description != null && x.Description.Contains(cleanSearch))
-                                   || x.Translations.Any(t => !t.IsDeleted
-                                       && t.Status == BusinessTranslationStatus.Approved
-                                       && t.LanguageCode == requestedLanguage
-                                       && (t.Name.Contains(cleanSearch)
-                                           || (t.Description != null && t.Description.Contains(cleanSearch)))),
-                    showDeleted: isShowDeleted)),
-                "lookup-values" => await LocalizeResultAsync(BusinessDataEntityTypes.LookupValue, await GetTableDataAsync<LookupValue, LookupValueResDTO>(id, cleanSearch,
+                                   || (x.Description != null && x.Description.Contains(cleanSearch)),
+                    showDeleted: isShowDeleted),
+                "lookup-values" => await GetTableDataAsync<LookupValue, LookupValueResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.Code != null && x.Code.Contains(cleanSearch))
                                    || (x.Value != null && x.Value.Contains(cleanSearch))
-                                   || (x.Description != null && x.Description.Contains(cleanSearch))
-                                   || x.Translations.Any(t => !t.IsDeleted
-                                       && t.Status == BusinessTranslationStatus.Approved
-                                       && t.LanguageCode == requestedLanguage
-                                       && (t.Name.Contains(cleanSearch)
-                                           || (t.Description != null && t.Description.Contains(cleanSearch)))),
-                    showDeleted: isShowDeleted)),
-                "vpp-categories" => await LocalizeResultAsync(BusinessDataEntityTypes.VppCategory, await GetTableDataAsync<VppCategory, VppCategoryResDTO>(id, cleanSearch,
+                                   || (x.Description != null && x.Description.Contains(cleanSearch)),
+                    showDeleted: isShowDeleted),
+                "vpp-categories" => await GetTableDataAsync<VppCategory, VppCategoryResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.VppCategoryCode != null && x.VppCategoryCode.Contains(cleanSearch))
-                                   || (x.VppCategoryName != null && x.VppCategoryName.Contains(cleanSearch))
-                                   || x.Translations.Any(t => !t.IsDeleted
-                                       && t.Status == BusinessTranslationStatus.Approved
-                                       && t.LanguageCode == requestedLanguage
-                                       && (t.Name.Contains(cleanSearch)
-                                           || (t.Description != null && t.Description.Contains(cleanSearch)))),
-                    showDeleted: isShowDeleted)),
-                "vpp-items" => await LocalizeResultAsync(BusinessDataEntityTypes.VppItem, await GetVppItemsAsync(id, cleanSearch, isShowDeleted)),
-                "suppliers" => await LocalizeResultAsync(BusinessDataEntityTypes.Supplier, await GetTableDataAsync<Supplier, SupplierResDTO>(id, cleanSearch,
+                                   || (x.VppCategoryName != null && x.VppCategoryName.Contains(cleanSearch)),
+                    showDeleted: isShowDeleted),
+                "vpp-items" => await GetVppItemsAsync(id, cleanSearch, isShowDeleted),
+                "suppliers" => await GetTableDataAsync<Supplier, SupplierResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.SupplierShortName != null && x.SupplierShortName.Contains(cleanSearch))
-                                   || (x.SupplierName != null && x.SupplierName.Contains(cleanSearch))
-                                   || x.Translations.Any(t => !t.IsDeleted
-                                       && t.Status == BusinessTranslationStatus.Approved
-                                       && t.LanguageCode == requestedLanguage
-                                       && (t.Name.Contains(cleanSearch)
-                                           || (t.Description != null && t.Description.Contains(cleanSearch)))),
-                    showDeleted: isShowDeleted)),
+                                   || (x.SupplierName != null && x.SupplierName.Contains(cleanSearch)),
+                    showDeleted: isShowDeleted),
                 "supplier-product-mappings" => await GetTableDataAsync<SupplierProductMapping, SupplierProductMappingResDTO>(id, cleanSearch, matchId: x => x.Id == id, showDeleted: isShowDeleted),
-                "departments" => await LocalizeResultAsync(BusinessDataEntityTypes.Department, await GetTableDataAsync<Department, DepartmentResDTO>(id, cleanSearch,
+                "departments" => await GetTableDataAsync<Department, DepartmentResDTO>(id, cleanSearch,
                     matchId: x => x.Id == id,
                     matchSearch: x => (x.Code != null && x.Code.Contains(cleanSearch))
-                                   || (x.Name != null && x.Name.Contains(cleanSearch))
-                                   || x.Translations.Any(t => !t.IsDeleted
-                                       && t.Status == BusinessTranslationStatus.Approved
-                                       && t.LanguageCode == requestedLanguage
-                                       && (t.Name.Contains(cleanSearch)
-                                           || (t.Description != null && t.Description.Contains(cleanSearch)))),
-                    showDeleted: isShowDeleted)),
+                                   || (x.Name != null && x.Name.Contains(cleanSearch)),
+                    showDeleted: isShowDeleted),
                 _ => BadRequest(new { Message = $"Table Code '{tableCode}' is not supported." })
             };
         }
@@ -179,14 +150,8 @@ namespace gtas_vpp_be.Controllers
 
             if (!string.IsNullOrWhiteSpace(cleanSearch))
             {
-                var requestedLanguage = BusinessLanguages.Normalize(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
                 vppQuery = vppQuery.Where(x => (x.VppName != null && x.VppName.Contains(cleanSearch))
-                                            || (x.VppCode != null && x.VppCode.Contains(cleanSearch))
-                                            || x.Translations.Any(t => !t.IsDeleted
-                                                && t.Status == BusinessTranslationStatus.Approved
-                                                && t.LanguageCode == requestedLanguage
-                                                && (t.Name.Contains(cleanSearch)
-                                                    || (t.Description != null && t.Description.Contains(cleanSearch)))));
+                                            || (x.VppCode != null && x.VppCode.Contains(cleanSearch)));
             }
 
             var totalCount = await vppQuery.CountAsync();
@@ -316,14 +281,8 @@ namespace gtas_vpp_be.Controllers
 
                 if (!string.IsNullOrWhiteSpace(searchText))
                 {
-                    var requestedLanguage = BusinessLanguages.Normalize(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
                     baseQuery = baseQuery.Where(x => (x.VppCode != null && x.VppCode.Contains(searchText))
-                        || (x.VppName != null && x.VppName.Contains(searchText))
-                        || x.Translations.Any(t => !t.IsDeleted
-                            && t.Status == BusinessTranslationStatus.Approved
-                            && t.LanguageCode == requestedLanguage
-                            && (t.Name.Contains(searchText)
-                                || (t.Description != null && t.Description.Contains(searchText)))));
+                        || (x.VppName != null && x.VppName.Contains(searchText)));
                 }
 
                 var query = baseQuery.Select(x => new VppItemResDTO
@@ -569,7 +528,7 @@ namespace gtas_vpp_be.Controllers
                         .Where(x => x.LookupCategoryId == lookupCategoryId.Value);
                 }
 
-                query = ApplyBusinessDataSearch(query, searchText);
+                query = ApplyLibrarySearch(query, searchText);
 
                 // Áp dụng biểu thức lọc Radzen qua Dynamic LINQ; biểu thức được dịch sang SQL
                 // khi nguồn là EF IQueryable và fallback an toàn nếu parse lỗi.
@@ -681,24 +640,18 @@ namespace gtas_vpp_be.Controllers
             }
         }
 
-        private static IQueryable<TModel> ApplyBusinessDataSearch<TModel>(
+        private static IQueryable<TModel> ApplyLibrarySearch<TModel>(
             IQueryable<TModel> query,
             string? searchText) where TModel : class
         {
             if (string.IsNullOrWhiteSpace(searchText)) return query;
 
-            var languageCode = BusinessLanguages.Normalize(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
             if (typeof(TModel) == typeof(LookupCategory))
             {
                 return (IQueryable<TModel>)((IQueryable<LookupCategory>)query).Where(x =>
                     (x.Code != null && x.Code.Contains(searchText))
                     || (x.Name != null && x.Name.Contains(searchText))
-                    || (x.Description != null && x.Description.Contains(searchText))
-                    || x.Translations.Any(t => !t.IsDeleted
-                        && t.Status == BusinessTranslationStatus.Approved
-                        && t.LanguageCode == languageCode
-                        && (t.Name.Contains(searchText)
-                            || (t.Description != null && t.Description.Contains(searchText)))));
+                    || (x.Description != null && x.Description.Contains(searchText)));
             }
 
             if (typeof(TModel) == typeof(LookupValue))
@@ -706,48 +659,28 @@ namespace gtas_vpp_be.Controllers
                 return (IQueryable<TModel>)((IQueryable<LookupValue>)query).Where(x =>
                     x.Code.Contains(searchText)
                     || x.Value.Contains(searchText)
-                    || (x.Description != null && x.Description.Contains(searchText))
-                    || x.Translations.Any(t => !t.IsDeleted
-                        && t.Status == BusinessTranslationStatus.Approved
-                        && t.LanguageCode == languageCode
-                        && (t.Name.Contains(searchText)
-                            || (t.Description != null && t.Description.Contains(searchText)))));
+                    || (x.Description != null && x.Description.Contains(searchText)));
             }
 
             if (typeof(TModel) == typeof(VppCategory))
             {
                 return (IQueryable<TModel>)((IQueryable<VppCategory>)query).Where(x =>
                     (x.VppCategoryCode != null && x.VppCategoryCode.Contains(searchText))
-                    || (x.VppCategoryName != null && x.VppCategoryName.Contains(searchText))
-                    || x.Translations.Any(t => !t.IsDeleted
-                        && t.Status == BusinessTranslationStatus.Approved
-                        && t.LanguageCode == languageCode
-                        && (t.Name.Contains(searchText)
-                            || (t.Description != null && t.Description.Contains(searchText)))));
+                    || (x.VppCategoryName != null && x.VppCategoryName.Contains(searchText)));
             }
 
             if (typeof(TModel) == typeof(Supplier))
             {
                 return (IQueryable<TModel>)((IQueryable<Supplier>)query).Where(x =>
                     (x.SupplierShortName != null && x.SupplierShortName.Contains(searchText))
-                    || (x.SupplierName != null && x.SupplierName.Contains(searchText))
-                    || x.Translations.Any(t => !t.IsDeleted
-                        && t.Status == BusinessTranslationStatus.Approved
-                        && t.LanguageCode == languageCode
-                        && (t.Name.Contains(searchText)
-                            || (t.Description != null && t.Description.Contains(searchText)))));
+                    || (x.SupplierName != null && x.SupplierName.Contains(searchText)));
             }
 
             if (typeof(TModel) == typeof(Department))
             {
                 return (IQueryable<TModel>)((IQueryable<Department>)query).Where(x =>
                     (x.Code != null && x.Code.Contains(searchText))
-                    || (x.Name != null && x.Name.Contains(searchText))
-                    || x.Translations.Any(t => !t.IsDeleted
-                        && t.Status == BusinessTranslationStatus.Approved
-                        && t.LanguageCode == languageCode
-                        && (t.Name.Contains(searchText)
-                            || (t.Description != null && t.Description.Contains(searchText)))));
+                    || (x.Name != null && x.Name.Contains(searchText)));
             }
 
             return query;
@@ -760,13 +693,13 @@ namespace gtas_vpp_be.Controllers
             bool isShowDeleted = showDeleted ?? false;
             return tableCode.ToLower() switch
             {
-                "lookup-categories" => await LocalizeResultAsync(BusinessDataEntityTypes.LookupCategory, await GetByIdAsync<LookupCategory, LookupCategoryResDTO>(id)),
-                "lookup-values" => await LocalizeResultAsync(BusinessDataEntityTypes.LookupValue, await GetByIdAsync<LookupValue, LookupValueResDTO>(id)),
-                "vpp-categories" => await LocalizeResultAsync(BusinessDataEntityTypes.VppCategory, await GetByIdAsync<VppCategory, VppCategoryResDTO>(id)),
-                "vpp-items" => await LocalizeResultAsync(BusinessDataEntityTypes.VppItem, await GetVppItemByIdAsync(id, isShowDeleted)),
-                "suppliers" => await LocalizeResultAsync(BusinessDataEntityTypes.Supplier, await GetByIdAsync<Supplier, SupplierResDTO>(id)),
+                "lookup-categories" => await GetByIdAsync<LookupCategory, LookupCategoryResDTO>(id),
+                "lookup-values" => await GetByIdAsync<LookupValue, LookupValueResDTO>(id),
+                "vpp-categories" => await GetByIdAsync<VppCategory, VppCategoryResDTO>(id),
+                "vpp-items" => await GetVppItemByIdAsync(id, isShowDeleted),
+                "suppliers" => await GetByIdAsync<Supplier, SupplierResDTO>(id),
                 "supplier-product-mappings" => await GetByIdAsync<SupplierProductMapping, SupplierProductMappingResDTO>(id),
-                "departments" => await LocalizeResultAsync(BusinessDataEntityTypes.Department, await GetByIdAsync<Department, DepartmentResDTO>(id)),
+                "departments" => await GetByIdAsync<Department, DepartmentResDTO>(id),
                 _ => BadRequest(new { Message = $"GetById for Table Code '{tableCode}' is not supported." })
             };
         }
@@ -971,82 +904,6 @@ namespace gtas_vpp_be.Controllers
                     }),
                 _ => BadRequest(new { Message = $"Hard delete for Table Code '{tableCode}' is not supported." })
             };
-        }
-
-        private async Task<IActionResult> LocalizeResultAsync(string entityType, IActionResult result)
-        {
-            if (result is not OkObjectResult ok || ok.Value is null) return result;
-
-            switch (ok.Value)
-            {
-                case IEnumerable<LookupCategoryResDTO> rows:
-                    await LocalizeDtosAsync(entityType, rows, x => x.Name);
-                    break;
-                case LookupCategoryResDTO row:
-                    await LocalizeDtosAsync(entityType, [row], x => x.Name);
-                    break;
-                case IEnumerable<LookupValueResDTO> rows:
-                    await LocalizeDtosAsync(entityType, rows, x => x.Value);
-                    break;
-                case LookupValueResDTO row:
-                    await LocalizeDtosAsync(entityType, [row], x => x.Value);
-                    break;
-                case IEnumerable<VppCategoryResDTO> rows:
-                    await LocalizeDtosAsync(entityType, rows, x => x.VppCategoryName);
-                    break;
-                case VppCategoryResDTO row:
-                    await LocalizeDtosAsync(entityType, [row], x => x.VppCategoryName);
-                    break;
-                case IEnumerable<VppItemResDTO> rows:
-                    await LocalizeDtosAsync(entityType, rows, x => x.VppName);
-                    break;
-                case VppItemResDTO row:
-                    await LocalizeDtosAsync(entityType, [row], x => x.VppName);
-                    break;
-                case IEnumerable<SupplierResDTO> rows:
-                    await LocalizeDtosAsync(entityType, rows, x => x.SupplierName);
-                    break;
-                case SupplierResDTO row:
-                    await LocalizeDtosAsync(entityType, [row], x => x.SupplierName);
-                    break;
-                case IEnumerable<DepartmentResDTO> rows:
-                    await LocalizeDtosAsync(entityType, rows, x => x.Name);
-                    break;
-                case DepartmentResDTO row:
-                    await LocalizeDtosAsync(entityType, [row], x => x.Name);
-                    break;
-            }
-
-            return result;
-        }
-
-        private async Task LocalizeDtosAsync<TDto>(
-            string entityType,
-            IEnumerable<TDto> source,
-            Func<TDto, string?> getName)
-            where TDto : LocalizedBusinessDataResDTO
-        {
-            if (_businessDataLocalizationService is null) return;
-            var rows = source.Where(x => x.Id != Guid.Empty).ToList();
-            if (rows.Count == 0) return;
-
-            var resolved = await _businessDataLocalizationService.ResolveAsync(
-                entityType,
-                rows.Select(x => new BusinessDataOriginalValue(
-                    x.Id,
-                    x.OriginalLanguageCode,
-                    getName(x) ?? string.Empty,
-                    x.Description)).ToList(),
-                cancellationToken: HttpContext.RequestAborted);
-
-            foreach (var row in rows)
-            {
-                if (!resolved.TryGetValue(row.Id, out var value)) continue;
-                row.DisplayName = value.DisplayName;
-                row.DisplayDescription = value.DisplayDescription;
-                row.ResolvedLanguageCode = value.ResolvedLanguageCode;
-                row.IsTranslationFallback = value.IsFallback;
-            }
         }
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };

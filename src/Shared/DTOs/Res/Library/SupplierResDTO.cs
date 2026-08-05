@@ -1,6 +1,8 @@
+using gtas_vpp_shared.DTOs.Share;
+
 namespace gtas_vpp_shared.DTOs.Res.Library
 {
-    public class SupplierResDTO : LocalizedBusinessDataResDTO
+    public class SupplierResDTO : BaseResDTO
     {
         public string? SupplierShortName { get; set; }
         public string? SupplierName { get; set; }

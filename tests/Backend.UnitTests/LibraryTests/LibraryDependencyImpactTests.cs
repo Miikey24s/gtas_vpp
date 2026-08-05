@@ -168,7 +168,7 @@ public sealed class LibraryDependencyImpactTests
     }
 
     [Fact]
-    public async Task LookupValueHardDelete_RemovesInactiveRecordAndOwnedTranslations()
+    public async Task LookupValueHardDelete_RemovesInactiveRecord()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var categoryId = Guid.NewGuid();
@@ -187,13 +187,6 @@ public sealed class LibraryDependencyImpactTests
             Value = "Piece",
             IsDeleted = true
         });
-        context.LookupValueTranslations.Add(new LookupValueTranslation
-        {
-            Id = Guid.NewGuid(),
-            LookupValueId = valueId,
-            LanguageCode = "en",
-            Name = "Piece"
-        });
         await context.SaveChangesAsync();
 
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
@@ -203,7 +196,6 @@ public sealed class LibraryDependencyImpactTests
         Assert.NotNull(result);
         Assert.Equal(LibraryHardDeleteStatus.Deleted, result!.Status);
         Assert.Null(await context.LookupValues.FindAsync(valueId));
-        Assert.Empty(context.LookupValueTranslations.Where(x => x.LookupValueId == valueId));
     }
 
     [Fact]
@@ -239,7 +231,7 @@ public sealed class LibraryDependencyImpactTests
     }
 
     [Fact]
-    public async Task DepartmentHardDelete_RemovesInactiveRecordAndOwnedTranslations()
+    public async Task DepartmentHardDelete_RemovesInactiveRecord()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var departmentId = Guid.NewGuid();
@@ -250,13 +242,6 @@ public sealed class LibraryDependencyImpactTests
             Name = "Archive",
             IsDeleted = true
         });
-        context.DepartmentTranslations.Add(new DepartmentTranslation
-        {
-            Id = Guid.NewGuid(),
-            DepartmentId = departmentId,
-            LanguageCode = "en",
-            Name = "Archive"
-        });
         await context.SaveChangesAsync();
 
         var service = new LibraryIntegrityService(ServiceTestHelpers.CreateUnitOfWorkMock(context).Object);
@@ -265,7 +250,6 @@ public sealed class LibraryDependencyImpactTests
         Assert.NotNull(result);
         Assert.Equal(LibraryHardDeleteStatus.Deleted, result!.Status);
         Assert.Null(await context.Departments.FindAsync(departmentId));
-        Assert.Empty(context.DepartmentTranslations.Where(x => x.DepartmentId == departmentId));
     }
 
     private static LibraryController CreateController(gtas_vpp_be.Service.Helpers.Context.VPPContext context)

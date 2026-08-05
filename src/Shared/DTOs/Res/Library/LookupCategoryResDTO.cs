@@ -1,6 +1,8 @@
+using gtas_vpp_shared.DTOs.Share;
+
 namespace gtas_vpp_shared.DTOs.Res.Library
 {
-    public class LookupCategoryResDTO : LocalizedBusinessDataResDTO
+    public class LookupCategoryResDTO : BaseResDTO
     {
         public string? Code { get; set; }
 
