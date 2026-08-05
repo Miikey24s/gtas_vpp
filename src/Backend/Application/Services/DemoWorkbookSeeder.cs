@@ -85,7 +85,7 @@ public static class DemoWorkbookSeeder
                 cancellationToken);
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveDemoChangesWithConcurrencyRetryAsync(context, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         Log.Information(
@@ -663,7 +663,7 @@ public static class DemoWorkbookSeeder
             submittedAtUtc,
             resolvedAtUtc,
             cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveDemoChangesWithConcurrencyRetryAsync(context, cancellationToken);
     }
 
     private static async Task ReconcileSupplementLogsAsync(
@@ -910,6 +910,10 @@ public static class DemoWorkbookSeeder
             requestCount++;
         }
 
+        // Flush phần workbook lớn trước khi tạo scenario bổ sung. Nếu app demo đang
+        // mở đồng thời, rowversion có thể đổi giữa lúc đọc và lúc ghi; retry chỉ áp
+        // dụng client-wins cho projection TEST/DEMO do seeder này sở hữu.
+        await SaveDemoChangesWithConcurrencyRetryAsync(context, cancellationToken);
         await ReconcileSupplementScenariosAsync(
             context,
             owner,
@@ -918,12 +922,115 @@ public static class DemoWorkbookSeeder
             nowUtc,
             cancellationToken);
 
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveDemoChangesWithConcurrencyRetryAsync(context, cancellationToken);
         Log.Information(
             "[DemoWorkbookSeeder] Operational fixture reconciled: {RequestCount} requests and {DetailCount} details for owner {OwnerUsername}.",
             requestCount,
             detailCount,
             owner.User.UserName);
+    }
+
+    private static async Task SaveDemoChangesWithConcurrencyRetryAsync(
+        VPPMigrationDbContext context,
+        CancellationToken cancellationToken)
+    {
+        const int maxAttempts = 3;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                await NormalizeMissingTrackedDemoChildrenAsync(context, cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
+                return;
+            }
+            catch (DbUpdateConcurrencyException exception) when (attempt < maxAttempts)
+            {
+                foreach (var entry in exception.Entries)
+                {
+                    var databaseValues = await entry.GetDatabaseValuesAsync(cancellationToken);
+                    if (databaseValues is null)
+                    {
+                        if (entry.Entity is VppRequestDetail or RequestLog)
+                        {
+                            entry.State = entry.State == EntityState.Deleted
+                                ? EntityState.Detached
+                                : EntityState.Added;
+                            continue;
+                        }
+
+                        throw new InvalidOperationException(
+                            $"Demo-owned {entry.Metadata.ClrType.Name} was deleted during seed reconciliation.",
+                            exception);
+                    }
+
+                    entry.OriginalValues.SetValues(databaseValues);
+                }
+
+                Log.Warning(
+                    "[DemoWorkbookSeeder] Retrying demo reconciliation after optimistic concurrency conflict. Attempt {Attempt}/{MaxAttempts}; entries: {EntryTypes}.",
+                    attempt + 1,
+                    maxAttempts,
+                    string.Join(", ", exception.Entries
+                        .Select(entry => $"{entry.Metadata.ClrType.Name}:{entry.State}")
+                        .Distinct()));
+            }
+        }
+    }
+
+    private static async Task NormalizeMissingTrackedDemoChildrenAsync(
+        VPPMigrationDbContext context,
+        CancellationToken cancellationToken)
+    {
+        var detailEntries = context.ChangeTracker.Entries<VppRequestDetail>()
+            .Where(entry => entry.State is EntityState.Modified or EntityState.Deleted)
+            .ToArray();
+        var logEntries = context.ChangeTracker.Entries<RequestLog>()
+            .Where(entry => entry.State is EntityState.Modified or EntityState.Deleted)
+            .ToArray();
+
+        var existingDetailIds = new HashSet<Guid>();
+        foreach (var idBatch in detailEntries.Select(entry => entry.Entity.Id).Distinct().Chunk(1000))
+        {
+            existingDetailIds.UnionWith(await context.RequestDetails
+                .AsNoTracking()
+                .Where(detail => idBatch.Contains(detail.Id))
+                .Select(detail => detail.Id)
+                .ToArrayAsync(cancellationToken));
+        }
+
+        var existingLogIds = new HashSet<Guid>();
+        foreach (var idBatch in logEntries.Select(entry => entry.Entity.Id).Distinct().Chunk(1000))
+        {
+            existingLogIds.UnionWith(await context.RequestLogs
+                .AsNoTracking()
+                .Where(log => idBatch.Contains(log.Id))
+                .Select(log => log.Id)
+                .ToArrayAsync(cancellationToken));
+        }
+
+        var normalized = 0;
+        foreach (var entry in detailEntries.Where(entry => !existingDetailIds.Contains(entry.Entity.Id)))
+        {
+            entry.State = entry.State == EntityState.Deleted
+                ? EntityState.Detached
+                : EntityState.Added;
+            normalized++;
+        }
+
+        foreach (var entry in logEntries.Where(entry => !existingLogIds.Contains(entry.Entity.Id)))
+        {
+            entry.State = entry.State == EntityState.Deleted
+                ? EntityState.Detached
+                : EntityState.Added;
+            normalized++;
+        }
+
+        if (normalized > 0)
+        {
+            Log.Warning(
+                "[DemoWorkbookSeeder] Normalized {Count} missing deterministic detail/log rows before demo reconciliation.",
+                normalized);
+        }
     }
 
     private static async Task<IReadOnlyDictionary<string, AppUser>> ReconcileDemoUsersAsync(

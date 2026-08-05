@@ -53,6 +53,20 @@ public sealed class PrerenderLifecycleSafetyTests
         Assert.Contains("Dynamic permission guard failed", routes, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void SidebarJsInterop_TreatsCircuitCancellationAsExpectedLifecycleShutdown()
+    {
+        var sidebar = ReadFrontendSource("Components/Layout/LeftSidebar.razor.cs");
+
+        Assert.Contains("IsExpectedJsInteropLifecycleException", sidebar, StringComparison.Ordinal);
+        Assert.Contains("or OperationCanceledException", sidebar, StringComparison.Ordinal);
+        Assert.Equal(
+            4,
+            sidebar.Split(
+                "catch (Exception exception) when (IsExpectedJsInteropLifecycleException(exception))",
+                StringSplitOptions.None).Length - 1);
+    }
+
     private static string ReadFrontendSource(string relativePath)
     {
         var projectRoot = Path.Combine(FindRepositoryRoot(), "src", "Frontend", "Blazor");

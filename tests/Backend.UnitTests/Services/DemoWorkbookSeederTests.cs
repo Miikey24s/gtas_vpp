@@ -98,6 +98,13 @@ public sealed class DemoWorkbookSeederTests
             seederSource,
             StringComparison.Ordinal);
         Assert.DoesNotContain("item.Description = $\"{DemoDescription}", seederSource, StringComparison.Ordinal);
+        Assert.Contains("SaveDemoChangesWithConcurrencyRetryAsync", seederSource, StringComparison.Ordinal);
+        Assert.Contains("entry.OriginalValues.SetValues(databaseValues);", seederSource, StringComparison.Ordinal);
+        Assert.Contains("entry.Entity is VppRequestDetail or RequestLog", seederSource, StringComparison.Ordinal);
+        Assert.Contains("NormalizeMissingTrackedDemoChildrenAsync", seederSource, StringComparison.Ordinal);
+        Assert.Contains(".Chunk(1000)", seederSource, StringComparison.Ordinal);
+        Assert.Contains("? EntityState.Detached", seederSource, StringComparison.Ordinal);
+        Assert.Contains(": EntityState.Added;", seederSource, StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()

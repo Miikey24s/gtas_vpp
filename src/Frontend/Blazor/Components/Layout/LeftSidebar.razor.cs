@@ -147,11 +147,7 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 return await JSRuntime.InvokeAsync<bool>("vppViewport.isDesktop");
             }
-            catch (InvalidOperationException)
-            {
-                return false;
-            }
-            catch (JSDisconnectedException)
+            catch (Exception exception) when (IsExpectedJsInteropLifecycleException(exception))
             {
                 return false;
             }
@@ -211,11 +207,11 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 return await JSRuntime.InvokeAsync<string>("vppTheme.current");
             }
-            catch (InvalidOperationException)
+            catch (Exception exception) when (IsExpectedJsInteropLifecycleException(exception))
             {
                 return null;
             }
-            catch (JSDisconnectedException)
+            catch (JSException)
             {
                 return null;
             }
@@ -246,10 +242,7 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 await JSRuntime.InvokeVoidAsync("vppTheme.apply", newTheme);
             }
-            catch (InvalidOperationException)
-            {
-            }
-            catch (JSDisconnectedException)
+            catch (Exception exception) when (IsExpectedJsInteropLifecycleException(exception))
             {
             }
             catch (JSException)
@@ -270,16 +263,18 @@ namespace gtas_vpp_fe.Components.Layout
             {
                 await JSRuntime.InvokeVoidAsync("vppLanguage.prepareSwitch");
             }
-            catch (InvalidOperationException)
-            {
-            }
-            catch (JSDisconnectedException)
+            catch (Exception exception) when (IsExpectedJsInteropLifecycleException(exception))
             {
             }
             catch (JSException)
             {
             }
         }
+
+        private static bool IsExpectedJsInteropLifecycleException(Exception exception) =>
+            exception is InvalidOperationException
+                or JSDisconnectedException
+                or OperationCanceledException;
 
         public string GetUserInitials()
         {
