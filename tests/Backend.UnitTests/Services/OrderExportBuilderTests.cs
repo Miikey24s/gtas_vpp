@@ -31,10 +31,22 @@ public sealed class OrderExportBuilderTests
         Assert.Contains("Tổng quan", workbook);
         Assert.Contains("Mặt hàng", workbook);
         Assert.Contains("state=\"frozen\"", sheet2);
+        Assert.Contains("ySplit=\"5\"", sheet2);
         Assert.Contains("autoFilter", sheet2);
+        Assert.Contains("ref=\"A5:G7\"", sheet2);
+        Assert.Contains("mergeCells", sheet1);
+        Assert.Contains("ref=\"A1:D1\"", sheet1);
+        Assert.Contains("ref=\"A1:G1\"", sheet2);
+        Assert.Contains("DANH SÁCH VĂN PHÒNG PHẨM", sheet2);
+        Assert.Contains("ĐƠN VỊ: IT", sheet2);
+        Assert.Contains("showGridLines=\"0\"", sheet2);
         Assert.Contains("customWidth=\"1\"", sheet2);
         Assert.Contains("fillId=\"2\"", styles);
         Assert.Contains("numFmtId=\"4\"", styles);
+        Assert.Contains("Times New Roman", styles);
+        Assert.Contains("rgb=\"FFFFFF00\"", styles);
+        Assert.Contains("rgb=\"FF0000FF\"", styles);
+        Assert.Contains("rgb=\"FFFF0000\"", styles);
     }
 
     [Fact]

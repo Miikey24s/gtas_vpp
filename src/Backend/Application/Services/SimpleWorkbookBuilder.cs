@@ -15,15 +15,53 @@ public enum SimpleWorkbookCellFormat
     Decimal
 }
 
+public enum SimpleWorkbookTheme
+{
+    Standard,
+    VppRegistration
+}
+
+public enum SimpleWorkbookColumnRole
+{
+    Default,
+    Label
+}
+
+public enum SimpleWorkbookRowStyle
+{
+    Default,
+    Header,
+    Title,
+    Spacer,
+    Section,
+    Summary
+}
+
 public sealed record SimpleWorkbookColumn(
     string Header,
     double Width = 18,
-    SimpleWorkbookCellFormat Format = SimpleWorkbookCellFormat.Text);
+    SimpleWorkbookCellFormat Format = SimpleWorkbookCellFormat.Text,
+    SimpleWorkbookColumnRole Role = SimpleWorkbookColumnRole.Default);
+
+public sealed record SimpleWorkbookDecorativeRow(
+    IReadOnlyList<object?> Values,
+    SimpleWorkbookRowStyle Style,
+    double? Height = null);
+
+public sealed record SimpleWorkbookSheetOptions(
+    SimpleWorkbookTheme Theme = SimpleWorkbookTheme.Standard,
+    IReadOnlyList<SimpleWorkbookDecorativeRow>? RowsBeforeHeader = null,
+    IReadOnlyList<string>? MergedRanges = null,
+    int FreezeRows = 1,
+    bool ShowAutoFilter = true,
+    bool ShowGridLines = true,
+    string Orientation = "landscape");
 
 public sealed record SimpleWorkbookSheet(
     string Name,
     IReadOnlyList<SimpleWorkbookColumn> Columns,
-    IReadOnlyList<IReadOnlyList<object?>> Rows)
+    IReadOnlyList<IReadOnlyList<object?>> Rows,
+    SimpleWorkbookSheetOptions? Options = null)
 {
     public IReadOnlyList<string> Headers => Columns.Select(column => column.Header).ToArray();
 }
@@ -88,25 +126,55 @@ public static class SimpleWorkbookBuilder
 
     private static XElement Worksheet(SimpleWorkbookSheet sheet)
     {
-        var sheetRows = new List<XElement>
-        {
-            Row(sheet.Headers.Cast<object?>().ToArray(), sheet.Columns, 1)
-        };
-        sheetRows.AddRange(sheet.Rows.Select((row, index) => Row(row, sheet.Columns, index + 2)));
+        var options = sheet.Options ?? new SimpleWorkbookSheetOptions();
+        var leadingRows = options.RowsBeforeHeader ?? [];
+        var sheetRows = leadingRows
+            .Select((row, index) => Row(
+                row.Values,
+                sheet.Columns,
+                index + 1,
+                row.Style,
+                options.Theme,
+                row.Height))
+            .ToList();
+        var headerRow = leadingRows.Count + 1;
+        sheetRows.Add(Row(
+            sheet.Headers.Cast<object?>().ToArray(),
+            sheet.Columns,
+            headerRow,
+            SimpleWorkbookRowStyle.Header,
+            options.Theme));
+        sheetRows.AddRange(sheet.Rows.Select((row, index) => Row(
+            row,
+            sheet.Columns,
+            headerRow + index + 1,
+            SimpleWorkbookRowStyle.Default,
+            options.Theme)));
 
         var lastColumn = ColumnName(sheet.Columns.Count);
-        var lastRow = Math.Max(1, sheet.Rows.Count + 1);
+        var lastRow = Math.Max(headerRow, headerRow + sheet.Rows.Count);
+        var frozenRows = Math.Clamp(options.FreezeRows, 0, lastRow);
+        var mergedRanges = options.MergedRanges?
+            .Where(range => !string.IsNullOrWhiteSpace(range))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray() ?? [];
+
         return new XElement(Main + "worksheet",
             new XAttribute(XNamespace.Xmlns + "r", Relationships),
+            new XElement(Main + "sheetPr",
+                new XElement(Main + "pageSetUpPr", new XAttribute("fitToPage", 1))),
             new XElement(Main + "dimension", new XAttribute("ref", $"A1:{lastColumn}{lastRow}")),
             new XElement(Main + "sheetViews",
                 new XElement(Main + "sheetView",
                     new XAttribute("workbookViewId", 0),
-                    new XElement(Main + "pane",
-                        new XAttribute("ySplit", 1),
-                        new XAttribute("topLeftCell", "A2"),
-                        new XAttribute("activePane", "bottomLeft"),
-                        new XAttribute("state", "frozen")))),
+                    new XAttribute("showGridLines", options.ShowGridLines ? 1 : 0),
+                    frozenRows > 0
+                        ? new XElement(Main + "pane",
+                            new XAttribute("ySplit", frozenRows),
+                            new XAttribute("topLeftCell", $"A{frozenRows + 1}"),
+                            new XAttribute("activePane", "bottomLeft"),
+                            new XAttribute("state", "frozen"))
+                        : null)),
             new XElement(Main + "sheetFormatPr", new XAttribute("defaultRowHeight", 18)),
             new XElement(Main + "cols",
                 sheet.Columns.Select((column, index) =>
@@ -116,8 +184,16 @@ public static class SimpleWorkbookBuilder
                         new XAttribute("width", Math.Clamp(column.Width, 8, 60).ToString("0.##", CultureInfo.InvariantCulture)),
                         new XAttribute("customWidth", 1)))),
             new XElement(Main + "sheetData", sheetRows),
-            new XElement(Main + "autoFilter",
-                new XAttribute("ref", $"A1:{lastColumn}{lastRow}")),
+            options.ShowAutoFilter
+                ? new XElement(Main + "autoFilter",
+                    new XAttribute("ref", $"A{headerRow}:{lastColumn}{lastRow}"))
+                : null,
+            mergedRanges.Length > 0
+                ? new XElement(Main + "mergeCells",
+                    new XAttribute("count", mergedRanges.Length),
+                    mergedRanges.Select(range =>
+                        new XElement(Main + "mergeCell", new XAttribute("ref", range))))
+                : null,
             new XElement(Main + "printOptions",
                 new XAttribute("horizontalCentered", 0),
                 new XAttribute("verticalCentered", 0)),
@@ -129,7 +205,8 @@ public static class SimpleWorkbookBuilder
                 new XAttribute("header", "0.2"),
                 new XAttribute("footer", "0.2")),
             new XElement(Main + "pageSetup",
-                new XAttribute("orientation", "landscape"),
+                new XAttribute("paperSize", 9),
+                new XAttribute("orientation", options.Orientation),
                 new XAttribute("fitToWidth", 1),
                 new XAttribute("fitToHeight", 0)));
     }
@@ -137,32 +214,32 @@ public static class SimpleWorkbookBuilder
     private static XElement Row(
         IReadOnlyList<object?> values,
         IReadOnlyList<SimpleWorkbookColumn> columns,
-        int rowNumber)
+        int rowNumber,
+        SimpleWorkbookRowStyle rowStyle,
+        SimpleWorkbookTheme theme,
+        double? height = null)
         => new(Main + "row",
             new XAttribute("r", rowNumber),
-            rowNumber == 1 ? new XAttribute("ht", 24) : null,
-            rowNumber == 1 ? new XAttribute("customHeight", 1) : null,
-            values.Select((value, index) => Cell(
-                value,
+            new XAttribute("ht", (height ?? DefaultRowHeight(rowStyle, theme)).ToString("0.##", CultureInfo.InvariantCulture)),
+            new XAttribute("customHeight", 1),
+            Enumerable.Range(0, columns.Count).Select(index => Cell(
+                index < values.Count ? values[index] : null,
                 index + 1,
                 rowNumber,
-                rowNumber == 1,
-                index < columns.Count ? columns[index].Format : SimpleWorkbookCellFormat.Text)));
+                rowStyle,
+                theme,
+                columns[index])));
 
     private static XElement Cell(
         object? value,
         int column,
         int row,
-        bool header,
-        SimpleWorkbookCellFormat format)
+        SimpleWorkbookRowStyle rowStyle,
+        SimpleWorkbookTheme theme,
+        SimpleWorkbookColumn columnDefinition)
     {
         var reference = $"{ColumnName(column)}{row}";
-        var styleIndex = header ? 1 : format switch
-        {
-            SimpleWorkbookCellFormat.Integer => 2,
-            SimpleWorkbookCellFormat.Decimal => 3,
-            _ => 0
-        };
+        var styleIndex = ResolveStyleIndex(theme, rowStyle, columnDefinition);
         if (value is null)
         {
             return new XElement(Main + "c",
@@ -187,6 +264,60 @@ public static class SimpleWorkbookBuilder
                 new XElement(Main + "t",
                     new XAttribute(XNamespace.Xml + "space", "preserve"),
                     value.ToString())));
+    }
+
+    private static double DefaultRowHeight(
+        SimpleWorkbookRowStyle rowStyle,
+        SimpleWorkbookTheme theme)
+        => (theme, rowStyle) switch
+        {
+            (SimpleWorkbookTheme.VppRegistration, SimpleWorkbookRowStyle.Title) => 28,
+            (SimpleWorkbookTheme.VppRegistration, SimpleWorkbookRowStyle.Spacer) => 10,
+            (SimpleWorkbookTheme.VppRegistration, SimpleWorkbookRowStyle.Section) => 22,
+            (SimpleWorkbookTheme.VppRegistration, SimpleWorkbookRowStyle.Summary) => 22,
+            (SimpleWorkbookTheme.VppRegistration, SimpleWorkbookRowStyle.Header) => 28,
+            (SimpleWorkbookTheme.VppRegistration, _) => 22,
+            (_, SimpleWorkbookRowStyle.Header) => 24,
+            _ => 18
+        };
+
+    private static int ResolveStyleIndex(
+        SimpleWorkbookTheme theme,
+        SimpleWorkbookRowStyle rowStyle,
+        SimpleWorkbookColumn column)
+    {
+        if (theme == SimpleWorkbookTheme.Standard)
+        {
+            return rowStyle == SimpleWorkbookRowStyle.Header
+                ? 1
+                : column.Format switch
+                {
+                    SimpleWorkbookCellFormat.Integer => 2,
+                    SimpleWorkbookCellFormat.Decimal => 3,
+                    _ => 0
+                };
+        }
+
+        return rowStyle switch
+        {
+            SimpleWorkbookRowStyle.Title => 8,
+            SimpleWorkbookRowStyle.Spacer => 14,
+            SimpleWorkbookRowStyle.Section => 9,
+            SimpleWorkbookRowStyle.Summary => column.Format switch
+            {
+                SimpleWorkbookCellFormat.Integer => 11,
+                SimpleWorkbookCellFormat.Decimal => 12,
+                _ => 10
+            },
+            SimpleWorkbookRowStyle.Header => 5,
+            _ when column.Role == SimpleWorkbookColumnRole.Label => 13,
+            _ => column.Format switch
+            {
+                SimpleWorkbookCellFormat.Integer => 6,
+                SimpleWorkbookCellFormat.Decimal => 7,
+                _ => 4
+            }
+        };
     }
 
     private static string ColumnName(int column)
@@ -251,73 +382,131 @@ public static class SimpleWorkbookBuilder
                     new XAttribute("Target", "styles.xml"))));
 
     private static XElement Styles()
-        => new(Main + "styleSheet",
-            new XElement(Main + "fonts", new XAttribute("count", 2),
-                new XElement(Main + "font",
-                    new XElement(Main + "sz", new XAttribute("val", 11)),
-                    new XElement(Main + "name", new XAttribute("val", "Aptos"))),
-                new XElement(Main + "font",
-                    new XElement(Main + "b"),
-                    new XElement(Main + "sz", new XAttribute("val", 11)),
-                    new XElement(Main + "name", new XAttribute("val", "Aptos")))),
-            new XElement(Main + "fills", new XAttribute("count", 3),
-                new XElement(Main + "fill", new XElement(Main + "patternFill", new XAttribute("patternType", "none"))),
-                new XElement(Main + "fill", new XElement(Main + "patternFill", new XAttribute("patternType", "gray125"))),
-                new XElement(Main + "fill",
-                    new XElement(Main + "patternFill",
-                        new XAttribute("patternType", "solid"),
-                        new XElement(Main + "fgColor", new XAttribute("rgb", "FFE8F4FB")),
-                        new XElement(Main + "bgColor", new XAttribute("indexed", 64))))),
-            new XElement(Main + "borders", new XAttribute("count", 2),
-                new XElement(Main + "border",
-                    new XElement(Main + "left"),
-                    new XElement(Main + "right"),
-                    new XElement(Main + "top"),
-                    new XElement(Main + "bottom"),
-                    new XElement(Main + "diagonal")),
-                new XElement(Main + "border",
-                    new XElement(Main + "left"),
-                    new XElement(Main + "right"),
-                    new XElement(Main + "top"),
-                    new XElement(Main + "bottom",
-                        new XAttribute("style", "thin"),
-                        new XElement(Main + "color", new XAttribute("rgb", "FFB7D7EA"))),
-                    new XElement(Main + "diagonal"))),
+    {
+        var fonts = new[]
+        {
+            Font("Aptos", 11),
+            Font("Aptos", 11, bold: true),
+            Font("Times New Roman", 10),
+            Font("Times New Roman", 10, bold: true),
+            Font("Times New Roman", 18, bold: true, color: "FFFF0000", underline: true),
+            Font("Times New Roman", 10, bold: true, color: "FFFFFFFF"),
+            Font("Times New Roman", 10, color: "FF0000FF")
+        };
+        var fills = new[]
+        {
+            new XElement(Main + "fill", new XElement(Main + "patternFill", new XAttribute("patternType", "none"))),
+            new XElement(Main + "fill", new XElement(Main + "patternFill", new XAttribute("patternType", "gray125"))),
+            SolidFill("FFE8F4FB"),
+            SolidFill("FFFFFF00"),
+            SolidFill("FF0000FF"),
+            SolidFill("FFFF0000"),
+            SolidFill("FFD9D9D9"),
+            SolidFill("FFFFF2CC")
+        };
+        var borders = new[]
+        {
+            Border(),
+            Border(bottomColor: "FFB7D7EA"),
+            Border(allColor: "FF000000")
+        };
+        var cellFormats = new[]
+        {
+            CellFormat(0, 0, 0),
+            CellFormat(1, 2, 1, vertical: "center"),
+            CellFormat(0, 0, 0, numberFormatId: 3),
+            CellFormat(0, 0, 0, numberFormatId: 4),
+            CellFormat(2, 6, 2, vertical: "center", wrapText: true),
+            CellFormat(3, 3, 2, horizontal: "center", vertical: "center", wrapText: true),
+            CellFormat(6, 6, 2, numberFormatId: 3, horizontal: "right", vertical: "center"),
+            CellFormat(6, 6, 2, numberFormatId: 4, horizontal: "right", vertical: "center"),
+            CellFormat(4, 0, 0, vertical: "center"),
+            CellFormat(5, 4, 2, horizontal: "center", vertical: "center"),
+            CellFormat(5, 5, 2, horizontal: "center", vertical: "center", wrapText: true),
+            CellFormat(5, 5, 2, numberFormatId: 3, horizontal: "right", vertical: "center"),
+            CellFormat(5, 5, 2, numberFormatId: 4, horizontal: "right", vertical: "center"),
+            CellFormat(3, 7, 2, vertical: "center", wrapText: true),
+            CellFormat(2, 0, 0)
+        };
+
+        return new XElement(Main + "styleSheet",
+            new XElement(Main + "fonts", new XAttribute("count", fonts.Length), fonts),
+            new XElement(Main + "fills", new XAttribute("count", fills.Length), fills),
+            new XElement(Main + "borders", new XAttribute("count", borders.Length), borders),
             new XElement(Main + "cellStyleXfs", new XAttribute("count", 1),
                 new XElement(Main + "xf",
                     new XAttribute("numFmtId", 0),
                     new XAttribute("fontId", 0),
                     new XAttribute("fillId", 0),
                     new XAttribute("borderId", 0))),
-            new XElement(Main + "cellXfs", new XAttribute("count", 4),
-                new XElement(Main + "xf",
-                    new XAttribute("numFmtId", 0),
-                    new XAttribute("fontId", 0),
-                    new XAttribute("fillId", 0),
-                    new XAttribute("borderId", 0)),
-                new XElement(Main + "xf",
-                    new XAttribute("numFmtId", 0),
-                    new XAttribute("fontId", 1),
-                    new XAttribute("fillId", 2),
-                    new XAttribute("borderId", 1),
-                    new XAttribute("applyFont", 1),
-                    new XAttribute("applyFill", 1),
-                    new XAttribute("applyBorder", 1),
-                    new XElement(Main + "alignment", new XAttribute("vertical", "center"))),
-                new XElement(Main + "xf",
-                    new XAttribute("numFmtId", 3),
-                    new XAttribute("fontId", 0),
-                    new XAttribute("fillId", 0),
-                    new XAttribute("borderId", 0),
-                    new XAttribute("applyNumberFormat", 1)),
-                new XElement(Main + "xf",
-                    new XAttribute("numFmtId", 4),
-                    new XAttribute("fontId", 0),
-                    new XAttribute("fillId", 0),
-                    new XAttribute("borderId", 0),
-                    new XAttribute("applyNumberFormat", 1))),
+            new XElement(Main + "cellXfs", new XAttribute("count", cellFormats.Length), cellFormats),
             new XElement(Main + "cellStyles", new XAttribute("count", 1),
                 new XElement(Main + "cellStyle", new XAttribute("name", "Normal"), new XAttribute("xfId", 0))));
+    }
+
+    private static XElement Font(
+        string name,
+        double size,
+        bool bold = false,
+        string? color = null,
+        bool underline = false)
+        => new(Main + "font",
+            bold ? new XElement(Main + "b") : null,
+            underline ? new XElement(Main + "u") : null,
+            new XElement(Main + "sz", new XAttribute("val", size.ToString("0.##", CultureInfo.InvariantCulture))),
+            color is null ? null : new XElement(Main + "color", new XAttribute("rgb", color)),
+            new XElement(Main + "name", new XAttribute("val", name)));
+
+    private static XElement SolidFill(string color)
+        => new(Main + "fill",
+            new XElement(Main + "patternFill",
+                new XAttribute("patternType", "solid"),
+                new XElement(Main + "fgColor", new XAttribute("rgb", color)),
+                new XElement(Main + "bgColor", new XAttribute("indexed", 64))));
+
+    private static XElement Border(string? bottomColor = null, string? allColor = null)
+    {
+        XElement Edge(string name, string? color) => color is null
+            ? new XElement(Main + name)
+            : new XElement(Main + name,
+                new XAttribute("style", "thin"),
+                new XElement(Main + "color", new XAttribute("rgb", color)));
+
+        return new XElement(Main + "border",
+            Edge("left", allColor),
+            Edge("right", allColor),
+            Edge("top", allColor),
+            Edge("bottom", allColor ?? bottomColor),
+            new XElement(Main + "diagonal"));
+    }
+
+    private static XElement CellFormat(
+        int fontId,
+        int fillId,
+        int borderId,
+        int numberFormatId = 0,
+        string? horizontal = null,
+        string? vertical = null,
+        bool wrapText = false)
+    {
+        var usesAlignment = horizontal is not null || vertical is not null || wrapText;
+        return new XElement(Main + "xf",
+            new XAttribute("numFmtId", numberFormatId),
+            new XAttribute("fontId", fontId),
+            new XAttribute("fillId", fillId),
+            new XAttribute("borderId", borderId),
+            fontId > 0 ? new XAttribute("applyFont", 1) : null,
+            fillId > 0 ? new XAttribute("applyFill", 1) : null,
+            borderId > 0 ? new XAttribute("applyBorder", 1) : null,
+            numberFormatId > 0 ? new XAttribute("applyNumberFormat", 1) : null,
+            usesAlignment ? new XAttribute("applyAlignment", 1) : null,
+            usesAlignment
+                ? new XElement(Main + "alignment",
+                    horizontal is null ? null : new XAttribute("horizontal", horizontal),
+                    vertical is null ? null : new XAttribute("vertical", vertical),
+                    wrapText ? new XAttribute("wrapText", 1) : null)
+                : null);
+    }
 
     private static void WriteXml(ZipArchive archive, string path, XElement document)
     {

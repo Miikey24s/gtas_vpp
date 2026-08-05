@@ -14,38 +14,38 @@ public static class OrderWorkbookBuilder
         ArgumentNullException.ThrowIfNull(order);
 
         // Phiếu đơn của nhân viên không xuất giá; giá chỉ thuộc báo cáo/chốt kỳ.
+        var submittedAt = order.SubmittedDate?.ToString(
+            "HH:mm dd/MM/yyyy",
+            CultureInfo.GetCultureInfo("vi-VN")) ?? "-";
         var summaryRows = new List<IReadOnlyList<object?>>
         {
-            new object?[] { "GTAS VPP — Phiếu chi tiết đơn văn phòng phẩm", null },
-            new object?[] { "Mã đơn", order.VppCode },
-            new object?[] { "Kỳ", order.Period },
-            new object?[] { "Loại đơn", order.IsAdditionalOrder ? "Đơn bổ sung" : "Đơn thường" },
-            new object?[] { "Trạng thái", order.StatusText },
-            new object?[] { "Người đặt", order.RequesterName },
-            new object?[] { "Phòng ban", order.DepartmentCode },
+            new object?[] { "Mã đơn", order.VppCode, "Phiên bản", order.RevisionNumber },
+            new object?[] { "Kỳ", order.Period, "Tổng mặt hàng", order.TotalLines },
             new object?[]
             {
-                "Gửi lúc",
-                order.SubmittedDate?.ToString("HH:mm dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN")) ?? "-"
+                "Loại đơn",
+                order.IsAdditionalOrder ? "Đơn bổ sung" : "Đơn thường",
+                "Tổng số lượng",
+                order.TotalQty
             },
-            new object?[] { "Phiên bản", order.RevisionNumber },
-            new object?[] { "Tổng mặt hàng", order.TotalLines },
-            new object?[] { "Tổng số lượng", order.TotalQty },
-            new object?[] { "Ghi chú đơn", string.IsNullOrWhiteSpace(order.Description) ? "-" : order.Description }
+            new object?[] { "Trạng thái", order.StatusText, "Gửi lúc", submittedAt },
+            new object?[] { "Người đặt", order.RequesterName, "Phòng ban", order.DepartmentCode },
+            new object?[]
+            {
+                "Ghi chú đơn",
+                string.IsNullOrWhiteSpace(order.Description) ? "-" : order.Description,
+                "Lý do bổ sung",
+                order.IsAdditionalOrder ? order.SupplementReason ?? "-" : "-"
+            }
         };
-
-        if (order.IsAdditionalOrder)
-        {
-            summaryRows.Add(new object?[] { "Lý do bổ sung", order.SupplementReason ?? "-" });
-        }
 
         var itemRows = order.Items
             .Select((item, index) => (IReadOnlyList<object?>)new object?[]
             {
                 index + 1,
+                item.CategoryName,
                 item.VppCode,
                 item.VppName,
-                item.CategoryName,
                 item.UomName,
                 item.Qty,
                 string.IsNullOrWhiteSpace(item.Description) ? "-" : item.Description
@@ -55,20 +55,50 @@ public static class OrderWorkbookBuilder
         return SimpleWorkbookBuilder.Build([
             new SimpleWorkbookSheet(
                 "Tổng quan",
-                [new("Trường", 24), new("Giá trị", 48)],
-                summaryRows),
+                [
+                    new("Trường", 20, Role: SimpleWorkbookColumnRole.Label),
+                    new("Giá trị", 42),
+                    new("Trường", 20, Role: SimpleWorkbookColumnRole.Label),
+                    new("Giá trị", 32)
+                ],
+                summaryRows,
+                new SimpleWorkbookSheetOptions(
+                    Theme: SimpleWorkbookTheme.VppRegistration,
+                    RowsBeforeHeader:
+                    [
+                        new(["GTAS VPP — PHIẾU ĐĂNG KÝ VĂN PHÒNG PHẨM"], SimpleWorkbookRowStyle.Title),
+                        new([], SimpleWorkbookRowStyle.Spacer),
+                        new(["THÔNG TIN ĐƠN", null, "TỔNG HỢP", null], SimpleWorkbookRowStyle.Section)
+                    ],
+                    MergedRanges: ["A1:D1", "A3:B3", "C3:D3"],
+                    FreezeRows: 4,
+                    ShowAutoFilter: false,
+                    ShowGridLines: false)),
             new SimpleWorkbookSheet(
                 "Mặt hàng",
                 [
                     new("#", 8, SimpleWorkbookCellFormat.Integer),
-                    new("Mã mặt hàng", 24),
-                    new("Tên mặt hàng", 36),
-                    new("Danh mục", 28),
+                    new("Nhóm VPP", 30),
+                    new("Mã VPP", 24),
+                    new("Tên VPP", 38),
                     new("Đơn vị", 14),
                     new("Số lượng", 14, SimpleWorkbookCellFormat.Decimal),
                     new("Ghi chú", 36)
                 ],
-                itemRows)
+                itemRows,
+                new SimpleWorkbookSheetOptions(
+                    Theme: SimpleWorkbookTheme.VppRegistration,
+                    RowsBeforeHeader:
+                    [
+                        new([$"ĐƠN VỊ: {order.DepartmentCode?.ToUpperInvariant() ?? "-"}"], SimpleWorkbookRowStyle.Title),
+                        new([], SimpleWorkbookRowStyle.Spacer),
+                        new(["DANH SÁCH VĂN PHÒNG PHẨM", null, null, null, null, "ĐĂNG KÝ", null], SimpleWorkbookRowStyle.Section),
+                        new(["TỔNG CỘNG", null, null, null, null, order.TotalQty, $"{order.TotalLines:N0} mặt hàng"], SimpleWorkbookRowStyle.Summary)
+                    ],
+                    MergedRanges: ["A1:G1", "A3:E3", "F3:G3", "A4:E4"],
+                    FreezeRows: 5,
+                    ShowAutoFilter: true,
+                    ShowGridLines: false))
         ]);
     }
 }
