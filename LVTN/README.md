@@ -5,7 +5,7 @@ Thư mục này chỉ giữ một nguồn luận văn chuẩn và các tài sả
 ## Nguồn chuẩn
 
 - Luận văn hiện hành: `NguyenAnNam_DH52201078.docx`.
-- SHA-256: `103C4AB3054F518A9C5A065B4ECC5802724205F9FDD14D7E1CC7A0E6AAA6B5A0`.
+- SHA-256: `A669C0E7B7E8416045AFDE72B97655FB20B325330802BF253075AF7209505BC5`.
 - Nguồn được owner duyệt: `NguyenAnNam_DH52201078_final_v5_fixed_cover.docx`, ngày 27/07/2026.
 - Không duy trì thêm bản `working` hoặc checkpoint Word trong Git. Khi cần sửa, tạo bản review trong `checkpoints/` hoặc thư mục tạm; hai vị trí này bị Git bỏ qua.
 
