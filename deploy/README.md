@@ -78,8 +78,11 @@ Các giá trị email không nhạy cảm lưu dưới dạng GitHub environment
 MSSQL_MEMORY_LIMIT_MB=4096
 REPORT_INSIGHTS_ENABLED=false
 OPENAI_API_KEY=
+
 GROQ_API_KEY=
+
 GEMINI_API_KEY=
+
 GOOGLE_API_KEY=
 ```
 
