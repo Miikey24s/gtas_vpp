@@ -51,7 +51,7 @@ public static class SettlementPdfBuilder
                             });
 
                         Field(fields, "Nhà cung cấp", settlement.PrimarySupplierName);
-                        Field(fields, "Bảng giá", $"{settlement.PriceListName} · v{settlement.PriceListVersion}");
+                        Field(fields, "Bảng giá", settlement.PriceListName);
                         Field(fields, "Ngày chốt", settlement.ConfirmedAtUtc.ToString("HH:mm dd/MM/yyyy", culture));
                     });
 

@@ -454,6 +454,7 @@
   <data name="IsDefault" xml:space="preserve"><value>Mặc định</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Đặt làm mặc định</value></data>
   <data name="Clone" xml:space="preserve"><value>Sao chép</value></data>
+  <data name="CopyAsNewPriceList" xml:space="preserve"><value>Sao chép thành bảng giá mới</value></data>
   <data name="AddPriceList" xml:space="preserve"><value>Thêm bảng giá</value></data>
   <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Xóa bảng giá này?</value></data>
   <data name="PriceListSaved" xml:space="preserve"><value>Đã lưu bảng giá</value></data>
@@ -1295,6 +1296,10 @@
   <data name="CreatedAt" xml:space="preserve"><value>Tạo lúc</value></data>
   <data name="DefaultConfiguration" xml:space="preserve"><value>Mặc định hệ thống</value></data>
   <data name="SettingsVersionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
+  <data name="SettingsApplicationCount" xml:space="preserve"><value>{0} lần áp dụng</value></data>
+  <data name="AppliedFrom" xml:space="preserve"><value>Áp dụng từ</value></data>
+  <data name="ResetToCurrentSettings" xml:space="preserve"><value>Khôi phục cấu hình hiện tại</value></data>
+  <data name="SaveSettingsApplication" xml:space="preserve"><value>Lưu cấu hình áp dụng</value></data>
   <data name="OrderPeriodSettingsSaveFailed" xml:space="preserve"><value>Không nhận được phiên bản cấu hình vừa lưu.</value></data>
   <data name="OrderPeriodSettingsSavedDescription" xml:space="preserve"><value>Phiên bản mới chỉ áp dụng khi tạo kỳ sau thời điểm hiệu lực.</value></data>
   <data name="OrderPeriodSettingsValidationWarning" xml:space="preserve"><value>Kiểm tra lại các trường đang báo lỗi.</value></data>

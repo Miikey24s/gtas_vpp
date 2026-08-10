@@ -210,7 +210,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private IReadOnlyList<VppFilterOption<Guid?>> PriceListOptions => SupplierQuotes
         .Where(quote => quote.IsEligible && quote.SupplierId == SelectedSupplierId)
         .OrderBy(quote => quote.Rank)
-        .Select(quote => new VppFilterOption<Guid?>(quote.PriceListId, $"{quote.PriceListCode} · v{quote.Version}"))
+        .Select(quote => new VppFilterOption<Guid?>(quote.PriceListId, quote.PriceListCode ?? "–"))
         .ToArray();
 
     private IReadOnlyList<VppSegmentedOption<string>> PeriodScopeOptions =>

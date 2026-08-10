@@ -1,13 +1,13 @@
 # PRICING-IMPORT-VERSIONING-001 — Import bảng giá và tinh gọn khái niệm phiên bản
 
-- Status: DEFERRED
+- Status: ACTIVE
 - Priority: P2
 - A+ cutline class: deferred
 - Path: STANDARD
-- Owner/agent: Owner GTAS VPP / Codex lập plan
-- Branch/base: `Nam` @ `aac4aa1a`
+- Owner/agent: Owner GTAS VPP / Codex triển khai
+- Branch/base: `codex/pricing-import-versioning` @ `119ccf4d`
 - Planned at (Asia/Ho_Chi_Minh): 2026-08-11
-- Implementation approval: Chưa mở; owner yêu cầu lưu plan để thực hiện sau
+- Implementation approval: Owner mở triển khai ngày 2026-08-11; thực hiện trong worktree riêng để không xung đột task PPTX
 - Related scope: Catalog and pricing, settlement history, request history, order-period settings
 - Related plans: `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`, `MULTI-PERIOD-ORDERING-001.md`
 - Quota snapshot: 2026-08-11 01:49, weekly-only, 867% Plus-equivalent còn lại; five-hour coverage chưa đầy đủ
@@ -201,8 +201,8 @@ Chi tiết lỗi có thể lưu ở `PriceListImportIssue` hoặc payload audit 
 
 | Wave | Nội dung | Model + effort khuyến nghị | Gate | Status |
 |---|---|---|---|---|
-| W0 | Refresh current tree, consumer/schema audit và chốt import template | `gpt-5.6-sol high` | Không mất dirty worktree; owner duyệt template/matching | DEFERRED |
-| W1 | Đổi UI terminology, ẩn PriceList.Version, giữ compatibility backend | `gpt-5.6-terra high` | FE unit + route-real pricing review | DEFERRED |
+| W0 | Refresh current tree, consumer/schema audit và chốt import template | `gpt-5.6-sol high` | Không mất dirty worktree; owner duyệt template/matching | COMPLETED |
+| W1 | Đổi UI terminology, ẩn PriceList.Version, giữ compatibility backend | `gpt-5.6-terra high` | FE unit + route-real pricing review | IN PROGRESS |
 | W2 | Import template deterministic: preview, validation, atomic upsert, audit batch | `gpt-5.6-sol high` | Backend/unit/integration + file fixtures | DEFERRED |
 | W3 | Wizard UI, error report, VI/EN, responsive/accessibility | `gpt-5.6-terra high` | 4 viewport + keyboard + long file states | DEFERRED |
 | W4 | AI mapping tùy chọn cho file không theo mẫu | `gpt-5.6-sol high` | Eval fixture, human confirmation, AI-off fallback | DEFERRED |
@@ -259,9 +259,9 @@ Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riê
 
 ## 10. Continuation
 
-- Current status: `DEFERRED`; plan đã được owner yêu cầu lưu ngày 2026-08-11.
-- Chưa có code, API, migration, database mutation hoặc Word update thuộc task này.
-- Dirty worktree hiện có nhiều thay đổi ngoài scope; khi resume phải refresh Git và không reset file owner.
-- Next exact action khi owner mở task: chạy preflight backend/frontend, audit toàn bộ consumer của `PriceList.Version`, chốt file template và matching rule trước W1.
-- Không làm lại: quyết định phân loại tại mục 2 và nguyên tắc import deterministic trước AI đã được ghi nhận.
+- Current status: `ACTIVE`; W0 hoàn tất trong worktree `D:\WORK\gtas_vpp.worktrees\pricing-import-versioning`.
+- Snapshot triển khai chỉ chứa source/test/design plan cần thiết; không chứa `presentation/`, `LVTN/` hoặc plan PPTX đang chạy.
+- Audit xác nhận `PriceList.Version` còn tham gia snapshot chốt kỳ, price resolution và unique key. W1 chỉ bỏ khỏi UI; W5 mới được phép xem xét cleanup schema.
+- Template/matching giữ đúng quyết định mục 3: `ItemCode` exact là authority, import v1 chỉ thêm mới/cập nhật, không tự tạo mặt hàng và không thay thế toàn bộ.
+- Next exact action: hoàn tất W1, sau đó thêm audit batch và import deterministic W2.
 

@@ -23,7 +23,7 @@ internal static class OrderPeriodDisplay
 
         const string settlementPrefix = "Settlement confirmed revision ";
         return trimmed.StartsWith(settlementPrefix, StringComparison.OrdinalIgnoreCase)
-            ? $"Đã chốt kỳ · phiên bản {trimmed[settlementPrefix.Length..]}"
+            ? $"Đã chốt kỳ · bản chốt {trimmed[settlementPrefix.Length..]}"
             : trimmed;
     }
 }

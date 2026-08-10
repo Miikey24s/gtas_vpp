@@ -506,8 +506,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private static string FormatPriceListOption(PriceListResDTO row)
         {
-            var name = row.PriceListName ?? row.PriceListCode ?? "–";
-            return row.Version > 0 ? $"{name} · v{row.Version}" : name;
+            return row.PriceListName ?? row.PriceListCode ?? "–";
         }
     }
 }

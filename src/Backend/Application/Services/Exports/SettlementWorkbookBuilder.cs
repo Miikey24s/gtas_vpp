@@ -14,13 +14,12 @@ public static class SettlementWorkbookBuilder
         {
             new object?[] { "GTAS VPP — Biên bản chốt kỳ văn phòng phẩm", null },
             new object?[] { "Kỳ", $"{settlement.Month:00}/{settlement.Year}" },
-            new object?[] { "Phiên bản", settlement.RevisionNumber },
-            new object?[] { "Phiên bản hiện hành", settlement.IsCurrentRevision ? "Có" : "Không" },
-            new object?[] { "Phiên hiệu chỉnh", settlement.IsCorrection ? "Có" : "Không" },
+            new object?[] { "Bản chốt", settlement.RevisionNumber },
+            new object?[] { "Bản đang áp dụng", settlement.IsCurrentRevision ? "Có" : "Không" },
+            new object?[] { "Bản điều chỉnh", settlement.IsCorrection ? "Có" : "Không" },
             new object?[] { "Lý do hiệu chỉnh", settlement.CorrectionReason ?? "-" },
             new object?[] { "Nhà cung cấp chính", settlement.PrimarySupplierName },
             new object?[] { "Bảng giá", settlement.PriceListName },
-            new object?[] { "Phiên bản bảng giá", settlement.PriceListVersion },
             new object?[] { "Giá áp dụng lúc", settlement.PriceAsOfUtc.ToString("HH:mm dd/MM/yyyy", culture) },
             new object?[] { "Tiền tệ", settlement.CurrencyCode },
             new object?[] { "Tạm tính", settlement.Subtotal },
@@ -32,9 +31,7 @@ public static class SettlementWorkbookBuilder
             new object?[] { "Điều chỉnh làm tròn", settlement.RoundingAdjustment },
             new object?[] { "Tổng giá trị", settlement.GrandTotal },
             new object?[] { "Chốt lúc", settlement.ConfirmedAtUtc.ToString("HH:mm dd/MM/yyyy", culture) },
-            new object?[] { "Người chốt", settlement.ConfirmedByUserId },
-            new object?[] { "Phiên bản tính toán", settlement.CalculationVersion },
-            new object?[] { "Mã đối chiếu", settlement.InputHash }
+            new object?[] { "Người chốt", settlement.ConfirmedByUserId }
         };
 
         var itemRows = settlement.Items

@@ -454,6 +454,7 @@
   <data name="IsDefault" xml:space="preserve"><value>Default</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Set as Default</value></data>
   <data name="Clone" xml:space="preserve"><value>Clone</value></data>
+  <data name="CopyAsNewPriceList" xml:space="preserve"><value>Copy as new price list</value></data>
   <data name="AddPriceList" xml:space="preserve"><value>Add Price List</value></data>
   <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Delete this price list?</value></data>
   <data name="PriceListSaved" xml:space="preserve"><value>Price list saved</value></data>
@@ -1296,6 +1297,10 @@
   <data name="CreatedAt" xml:space="preserve"><value>Created at</value></data>
   <data name="DefaultConfiguration" xml:space="preserve"><value>System default</value></data>
   <data name="SettingsVersionCount" xml:space="preserve"><value>{0} versions</value></data>
+  <data name="SettingsApplicationCount" xml:space="preserve"><value>{0} applications</value></data>
+  <data name="AppliedFrom" xml:space="preserve"><value>Applied from</value></data>
+  <data name="ResetToCurrentSettings" xml:space="preserve"><value>Restore current settings</value></data>
+  <data name="SaveSettingsApplication" xml:space="preserve"><value>Save settings application</value></data>
   <data name="OrderPeriodSettingsSaveFailed" xml:space="preserve"><value>The saved configuration version was not returned.</value></data>
   <data name="OrderPeriodSettingsSavedDescription" xml:space="preserve"><value>The new version applies only when a period is created after its effective date.</value></data>
   <data name="OrderPeriodSettingsValidationWarning" xml:space="preserve"><value>Review the fields that contain validation errors.</value></data>

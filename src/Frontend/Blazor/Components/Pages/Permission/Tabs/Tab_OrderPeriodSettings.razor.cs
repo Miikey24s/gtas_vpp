@@ -21,11 +21,11 @@ public partial class Tab_OrderPeriodSettings
     private VppOrderPeriodSettingsReqDTO Settings { get; set; } = NewDefaults();
     private List<VppOrderPeriodSettingsResDTO> History { get; set; } = [];
 
-    private string CurrentVersionLabel => Current is { VersionNumber: > 0 }
-        ? $"v{Current.VersionNumber}"
+    private string CurrentVersionLabel => Current is not null
+        ? $"{Loc["AppliedFrom"]} {Current.EffectiveFromMonth:00}/{Current.EffectiveFromYear}"
         : Loc["DefaultConfiguration"];
 
-    private string HistorySummary => Loc["SettingsVersionCount", History.Count];
+    private string HistorySummary => Loc["SettingsApplicationCount", History.Count];
 
     protected override Task OnInitializedAsync() => LoadAsync();
 

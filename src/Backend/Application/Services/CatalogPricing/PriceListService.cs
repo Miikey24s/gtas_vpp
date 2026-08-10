@@ -422,7 +422,8 @@ namespace gtas_vpp_be.Service.Services
                     Description = req.Description,
                     IsDefault = false,
                     SupplierId = source.SupplierId,
-                    Version = source.Version + 1,
+                    // Bản sao là một bảng giá độc lập; Version chỉ còn là field tương thích nội bộ.
+                    Version = 1,
                     EffectiveFromUtc = nowUtc,
                     EffectiveToUtc = null,
                     Status = PriceListStatus.Published,

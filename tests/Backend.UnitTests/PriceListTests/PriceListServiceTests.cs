@@ -175,6 +175,7 @@ public class PriceListServiceTests
 
         Assert.False(clone.IsDefault);
         Assert.Equal("Published", clone.Status);
+        Assert.Equal(1, clone.Version);
         Assert.Equal(2, clone.ItemCount);
         var clonedRows = await context.Set<SupplierProductMapping>()
             .Where(x => x.PriceListId == clone.Id)

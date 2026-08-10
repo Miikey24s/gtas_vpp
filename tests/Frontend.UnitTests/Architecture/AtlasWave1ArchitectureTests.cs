@@ -88,10 +88,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("Component_RecordInspector", page, StringComparison.Ordinal);
         Assert.Contains("<VppFilterSelect TValue=\"string\"", page, StringComparison.Ordinal);
         Assert.Contains("Property=\"SupplierName\"", page, StringComparison.Ordinal);
-        Assert.Contains("Property=\"Version\"", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("Property=\"Version\"", page, StringComparison.Ordinal);
         Assert.Contains("Property=\"ItemCount\"", page, StringComparison.Ordinal);
         Assert.Contains("Loc[\"Supplier\"]", page, StringComparison.Ordinal);
-        Assert.Contains("Loc[\"Version\"]", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"Version\"]", page, StringComparison.Ordinal);
         Assert.Contains("Loc[\"ItemCount\"]", page, StringComparison.Ordinal);
         Assert.Contains("VppStatusTone.Neutral", page, StringComparison.Ordinal);
         Assert.DoesNotContain("SupplierCompact", page, StringComparison.Ordinal);
@@ -165,10 +165,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("PriceListStatusOptions", page, StringComparison.Ordinal);
         Assert.Contains("Filterable=\"false\"", page, StringComparison.Ordinal);
         Assert.Contains("PricingApi.GetPriceListsAsync", code, StringComparison.Ordinal);
-        Assert.Contains("string.IsNullOrWhiteSpace(selectedStatus) ? null : selectedStatus", code, StringComparison.Ordinal);
+        Assert.Contains("string.IsNullOrWhiteSpace(selectedActivity) ? null : selectedActivity", code, StringComparison.Ordinal);
         Assert.Contains("Status ==", client, StringComparison.Ordinal);
         Assert.DoesNotContain("DataGridLoadColumnFilterDataEventArgs", code, StringComparison.Ordinal);
-        Assert.Contains("PriceListStatusPublished", code, StringComparison.Ordinal);
+        Assert.Contains("LibraryStatusActive", code, StringComparison.Ordinal);
     }
 
     [Fact]

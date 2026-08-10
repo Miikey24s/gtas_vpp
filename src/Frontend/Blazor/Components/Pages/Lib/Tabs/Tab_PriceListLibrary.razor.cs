@@ -245,7 +245,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task CloneAsync(PriceListResDTO row)
         {
-            var result = await OpenEditorAsync(Loc["Clone"].Value, new PriceListUpdateReqDTO
+            var result = await OpenEditorAsync(Loc["CopyAsNewPriceList"].Value, new PriceListUpdateReqDTO
             {
                 Code = $"{row.PriceListCode}-COPY",
                 Name = $"{row.PriceListName} Copy",
@@ -296,7 +296,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 row.IsDefault || !IsPriceListActive(row) || !CanModify),
             new(
                 "clone",
-                Loc["Clone"].Value,
+                Loc["CopyAsNewPriceList"].Value,
                 "content_copy",
                 () => CloneAsync(row),
                 !IsPriceListActive(row) || !CanModify),

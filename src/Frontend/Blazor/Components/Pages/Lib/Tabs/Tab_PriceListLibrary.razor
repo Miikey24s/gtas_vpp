@@ -67,7 +67,6 @@
                     <RadzenDataGridColumn TItem="PriceListResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index"><Template Context="row">@(currentSkip + priceLists.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="190px" MinWidth="180px"><Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.PriceListName ?? "–")</strong><small>@(row.PriceListCode ?? "–")</small></div></Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="SupplierName" Title="@Loc["Supplier"]" Width="150px" MinWidth="140px" />
-                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="Version" Title="@Loc["Version"]" Width="110px" MinWidth="100px" TextAlign="TextAlign.Center" Filterable="false" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="Status" Title="@Loc["Status"]" Width="110px" TextAlign="TextAlign.Center" Filterable="false"><Template Context="row"><VppStatusBadge Text="@GetStatusLabel(row)" Tone="@GetStatusTone(row)" /></Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="IsDefault" Title="@Loc["Default"]" Width="110px" TextAlign="TextAlign.Center" Filterable="false">
                         <Template Context="row">

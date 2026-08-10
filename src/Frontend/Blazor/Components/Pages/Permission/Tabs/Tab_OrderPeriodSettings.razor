@@ -161,14 +161,14 @@ else
                         </div>
 
                         <div class="vpp-order-period-settings-actions">
-                            <RadzenButton Text="@Loc["ResetToCurrentVersion"]"
+                            <RadzenButton Text="@Loc["ResetToCurrentSettings"]"
                                           Icon="@VppIcons.Reset"
                                           Size="ButtonSize.Small"
                                           ButtonStyle="ButtonStyle.Light"
                                           Variant="Variant.Outlined"
                                           Disabled="@IsBusy"
                                           Click="@(_ => ResetToCurrent())" />
-                            <RadzenButton Text="@Loc["SaveNewSettingsVersion"]"
+                            <RadzenButton Text="@Loc["SaveSettingsApplication"]"
                                           Icon="save"
                                           Size="ButtonSize.Small"
                                           ButtonType="ButtonType.Submit"
@@ -213,8 +213,6 @@ else
                                             GridLines="DataGridGridLines.Horizontal"
                                             class="vpp-admin-grid vpp-data-grid vpp-data-density-compact">
                                 <Columns>
-                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="VersionNumber"
-                                                          Title="@Loc["Version"]" Width="86px" TextAlign="TextAlign.Center" />
                                     <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="Name"
                                                           Title="@Loc["ConfigurationName"]" MinWidth="190px" />
                                     <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Title="@Loc["EffectiveFrom"]"
