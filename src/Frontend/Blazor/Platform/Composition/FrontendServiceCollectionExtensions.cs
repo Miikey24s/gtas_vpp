@@ -75,6 +75,7 @@ public static class FrontendServiceCollectionExtensions
         services.AddScoped<LookupApiClient>();
         services.AddScoped<CatalogApiClient>();
         services.AddScoped<PricingApiClient>();
+        services.AddScoped<PriceListImportApiClient>();
 
         services.AddScoped<AuthHelper>();
         services.AddScoped<CurrentUserState>();

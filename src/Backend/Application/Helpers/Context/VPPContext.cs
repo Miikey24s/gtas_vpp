@@ -34,6 +34,7 @@ namespace gtas_vpp_be.Service.Helpers.Context
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<SupplierProductMapping> SupplierProductMappings { get; set; }
         public virtual DbSet<PriceList> PriceLists { get; set; }
+        public virtual DbSet<PriceListImportBatch> PriceListImportBatches { get; set; }
         public virtual DbSet<Department> Departments { get; set; }
         #endregion
 
@@ -180,6 +181,28 @@ namespace gtas_vpp_be.Service.Helpers.Context
                 en.ToTable(t => t.HasCheckConstraint(
                     "CK_PriceLists_CommercialAmountsNonNegative",
                     "[RebateAmount] >= 0 AND [FeeAmount] >= 0 AND [ShippingAmount] >= 0"));
+            });
+            modelBuilder.Entity<PriceListImportBatch>(en =>
+            {
+                en.Property(x => x.OriginalFileName).HasMaxLength(260).IsRequired();
+                en.Property(x => x.FileHash).HasMaxLength(64).IsRequired();
+                en.Property(x => x.FileFormat).HasMaxLength(8).IsRequired();
+                en.Property(x => x.SchemaVersion).HasMaxLength(32).IsRequired();
+                en.Property(x => x.Status).HasConversion<int>().IsRequired();
+                en.Property(x => x.ResultMessage).HasMaxLength(1000);
+                en.Property(x => x.RowVersion).IsRowVersion();
+                en.HasOne(x => x.PriceList).WithMany(x => x.ImportBatches)
+                    .HasForeignKey(x => x.PriceListId).OnDelete(DeleteBehavior.Restrict);
+                en.HasOne(x => x.Supplier).WithMany(x => x.PriceListImportBatches)
+                    .HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.Restrict);
+                en.HasIndex(x => new { x.PriceListId, x.CreatedAtUtc })
+                    .HasDatabaseName("IX_PriceListImportBatches_PriceListCreated");
+                en.HasIndex(x => new { x.PriceListId, x.FileHash, x.Status })
+                    .HasDatabaseName("IX_PriceListImportBatches_HashStatus");
+                en.ToTable(table => table.HasCheckConstraint(
+                    "CK_PriceListImportBatches_CountsNonNegative",
+                    "[TotalRows] >= 0 AND [AddedRows] >= 0 AND [UpdatedRows] >= 0 " +
+                    "AND [UnchangedRows] >= 0 AND [WarningRows] >= 0 AND [ErrorRows] >= 0"));
             });
             modelBuilder.Entity<VppCategory>(en =>
             {

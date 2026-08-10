@@ -17,17 +17,22 @@ namespace gtas_vpp_be.Controllers
     {
         private readonly IPriceListService _priceListService;
         private readonly IPriceBookWorkflowService? _workflowService;
+        private readonly IPriceListImportService? _importService;
 
         public VPPPriceListController(IPriceListService priceListService)
-            : this(priceListService, null)
+            : this(priceListService, null, null)
         {
         }
 
         [ActivatorUtilitiesConstructor]
-        public VPPPriceListController(IPriceListService priceListService, IPriceBookWorkflowService? workflowService)
+        public VPPPriceListController(
+            IPriceListService priceListService,
+            IPriceBookWorkflowService? workflowService,
+            IPriceListImportService? importService)
         {
             _priceListService = priceListService;
             _workflowService = workflowService;
+            _importService = importService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -194,6 +199,75 @@ namespace gtas_vpp_be.Controllers
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
             if (_workflowService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
             return Ok(await _workflowService.CompareAsync(req, cancellationToken));
+        }
+
+        [HttpGet("{id:guid}/imports/template.xlsx")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> DownloadImportTemplate(Guid id, CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+
+            var template = await _importService.BuildTemplateAsync(id, cancellationToken);
+            return File(template.Content, template.ContentType, template.FileName);
+        }
+
+        [HttpPost("{id:guid}/imports/preview")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(PriceListImportFileParser.MaximumFileSizeBytes)]
+        [ProducesResponseType<PriceListImportPreviewResDTO>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> PreviewImport(
+            Guid id,
+            [FromForm] IFormFile? file,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            if (file is null || file.Length == 0) return BadRequest(new { Message = "File is required." });
+
+            await using var stream = file.OpenReadStream();
+            return Ok(await _importService.PreviewAsync(
+                id,
+                file.FileName,
+                stream,
+                CurrentUserId.Value,
+                cancellationToken));
+        }
+
+        [HttpPost("{id:guid}/imports/{batchId:guid}/confirm")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<PriceListImportBatchResDTO>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ConfirmImport(
+            Guid id,
+            Guid batchId,
+            [FromBody] PriceListImportConfirmReqDTO request,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+
+            return Ok(await _importService.ConfirmAsync(
+                id,
+                batchId,
+                request.RowVersion,
+                CurrentUserId.Value,
+                cancellationToken));
+        }
+
+        [HttpGet("{id:guid}/imports")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType<List<PriceListImportBatchResDTO>>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ListImports(
+            Guid id,
+            [FromQuery] int top = 20,
+            CancellationToken cancellationToken = default)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+
+            return Ok(await _importService.ListAsync(id, top, cancellationToken));
         }
     }
 }

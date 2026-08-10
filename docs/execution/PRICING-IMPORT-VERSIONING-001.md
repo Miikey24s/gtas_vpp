@@ -15,17 +15,17 @@
 
 ## 0. Bản một ánh nhìn
 
-| Mục | Phương án đã chốt để triển khai sau | Chi tiết |
+| Mục | Trạng thái triển khai hiện tại | Chi tiết |
 |---|---|---|
 | Kết quả cần đạt | Nhập hàng loạt giá từ Excel/CSV, có preview và audit; người dùng chỉ thấy “phiên bản” khi thật sự cần giữ nhiều bản nghiệp vụ | [Objective](#plan-detail-objective) |
 | Bảng giá | Bỏ cột/trường nhập `Phiên bản` khỏi UI; tạm giữ field database để tương thích, cleanup bằng migration riêng sau audit | [Phân loại phiên bản](#version-classification) |
-| Import chuẩn | File theo template được parse deterministic, không gọi AI | [Luồng import](#price-import-flow) |
+| Import chuẩn | Đã có Excel/CSV, template, preview, validation, audit và xác nhận transaction | [Luồng import](#price-import-flow) |
 | Import linh hoạt | AI chỉ gợi ý ánh xạ cột và ghép mặt hàng từ file NCC không theo mẫu; quản lý phải xác nhận trước khi ghi | [AI boundary](#ai-boundary) |
 | Lịch sử | Mỗi lần import là một `Lần nhập`, không phải một phiên bản bảng giá | [Audit](#import-audit) |
 | Phiên bản cần giữ | Bản chốt kỳ giữ user-visible; revision đơn và cấu hình kỳ giữ backend nhưng đổi UI thành lịch sử thay đổi/lịch sử áp dụng | [Phân loại phiên bản](#version-classification) |
 | Phiên bản kỹ thuật | `RowVersion`, `CalculationVersion` và model/prompt version không hiển thị cho người dùng | [Phân loại phiên bản](#version-classification) |
 | Không thuộc scope | PO, hợp đồng, tự động lấy phí vận chuyển và tối ưu nhiều NCC vẫn là hướng phát triển riêng | [Non-goals](#plan-detail-objective) |
-| Bước tiếp theo | Khi owner mở lại task: audit consumer/schema trước, sau đó làm import template trước AI và migration cleanup | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | W4 chỉ mở khi chốt provider/chính sách dữ liệu AI; W5 là cutover database riêng cần owner duyệt | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `revision` = bản dữ liệu bất biến thay thế bản cũ; `RowVersion` = token kỹ thuật chống ghi đè đồng thời; `import batch` = một lần nhập file có kết quả và audit riêng.
 
@@ -202,11 +202,11 @@ Chi tiết lỗi có thể lưu ở `PriceListImportIssue` hoặc payload audit 
 | Wave | Nội dung | Model + effort khuyến nghị | Gate | Status |
 |---|---|---|---|---|
 | W0 | Refresh current tree, consumer/schema audit và chốt import template | `gpt-5.6-sol high` | Không mất dirty worktree; owner duyệt template/matching | COMPLETED |
-| W1 | Đổi UI terminology, ẩn PriceList.Version, giữ compatibility backend | `gpt-5.6-terra high` | FE unit + route-real pricing review | IN PROGRESS |
-| W2 | Import template deterministic: preview, validation, atomic upsert, audit batch | `gpt-5.6-sol high` | Backend/unit/integration + file fixtures | DEFERRED |
-| W3 | Wizard UI, error report, VI/EN, responsive/accessibility | `gpt-5.6-terra high` | 4 viewport + keyboard + long file states | DEFERRED |
-| W4 | AI mapping tùy chọn cho file không theo mẫu | `gpt-5.6-sol high` | Eval fixture, human confirmation, AI-off fallback | DEFERRED |
-| W5 | Migration cleanup PriceList.Version/legacy lifecycle nếu vẫn hợp lý | `gpt-5.6-sol high` | SQL fresh/upgrade, reconciliation, recovery | DEFERRED |
+| W1 | Đổi UI terminology, ẩn PriceList.Version, giữ compatibility backend | `gpt-5.6-terra high` | FE unit + route-real pricing review | COMPLETED |
+| W2 | Import template deterministic: preview, validation, atomic upsert, audit batch | `gpt-5.6-sol high` | Backend/unit/integration + file fixtures | COMPLETED |
+| W3 | Wizard UI, VI/EN, responsive/accessibility và lịch sử lần nhập | `gpt-5.6-terra high` | 4 viewport + keyboard + validation/success states | COMPLETED |
+| W4 | AI mapping tùy chọn cho file không theo mẫu | `gpt-5.6-sol high` | Eval fixture, human confirmation, AI-off fallback | PENDING APPROVAL |
+| W5 | Migration cleanup PriceList.Version/legacy lifecycle nếu vẫn hợp lý | `gpt-5.6-sol high` | SQL fresh/upgrade, reconciliation, recovery | PENDING APPROVAL |
 
 Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riêng và có thể bị hủy mà không ảnh hưởng tính năng import.
 
@@ -259,9 +259,11 @@ Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riê
 
 ## 10. Continuation
 
-- Current status: `ACTIVE`; W0 hoàn tất trong worktree `D:\WORK\gtas_vpp.worktrees\pricing-import-versioning`.
+- Current status: `ACTIVE`; W0–W3 hoàn tất trong worktree `D:\WORK\gtas_vpp.worktrees\pricing-import-versioning`.
 - Snapshot triển khai chỉ chứa source/test/design plan cần thiết; không chứa `presentation/`, `LVTN/` hoặc plan PPTX đang chạy.
 - Audit xác nhận `PriceList.Version` còn tham gia snapshot chốt kỳ, price resolution và unique key. W1 chỉ bỏ khỏi UI; W5 mới được phép xem xét cleanup schema.
 - Template/matching giữ đúng quyết định mục 3: `ItemCode` exact là authority, import v1 chỉ thêm mới/cập nhật, không tự tạo mặt hàng và không thay thế toàn bộ.
-- Next exact action: hoàn tất W1, sau đó thêm audit batch và import deterministic W2.
+- W2/W3 đã có audit batch additive, API preview/confirm/template/history, parser Excel/CSV, dialog responsive và import route-real trên bốn viewport.
+- Verification checkpoint: backend/API + frontend build sạch; focused unit/architecture pass; SQL LocalDB migrate down/up + preview/confirm pass; Playwright import `390×844`, `768×1024`, `1366×768`, `1920×1080` pass.
+- Next exact action: owner chốt provider/chính sách dữ liệu nếu muốn mở W4; owner duyệt database cutover riêng nếu muốn mở W5.
 

@@ -11,7 +11,16 @@
                           Class="vpp-admin-data-surface">
     <Header>
         <VppCollectionHeader Title="@Loc["Prices"]"
-                             Summary="@Loc["RecordsCount", priceCount]" />
+                             Summary="@Loc["RecordsCount", priceCount]">
+            <Actions>
+                <RadzenButton Text="@Loc["ImportPriceList"]"
+                              Icon="upload_file"
+                              Size="ButtonSize.Small"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Disabled="@(!CanImportPrices)"
+                              Click="@ImportPricesAsync" />
+            </Actions>
+        </VppCollectionHeader>
         <section class="vpp-price-context" aria-label="@Loc["PriceContext"]" data-testid="price-context">
             <label class="vpp-price-context-selector">
                 <span>@Loc["PriceList"]</span>

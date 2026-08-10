@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using gtas_vpp_be.Model;
 
@@ -11,9 +12,11 @@ using gtas_vpp_be.Model;
 namespace gtas_vpp_be.Migrations.Migrations
 {
     [DbContext(typeof(VPPMigrationDbContext))]
-    partial class VPPMigrationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810223137_AddPriceListImportBatches")]
+    partial class AddPriceListImportBatches
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

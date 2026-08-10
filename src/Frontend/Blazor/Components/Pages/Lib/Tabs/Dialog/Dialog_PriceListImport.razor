@@ -1,0 +1,183 @@
+@using gtas_vpp_shared.DTOs.Res.Library
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Workspace" TestId="price-list-import-dialog">
+    <ChildContent>
+        <div class="vpp-price-import">
+            <header class="vpp-price-import-context">
+                <div>
+                    <span>@Loc["PriceList"]</span>
+                    <strong>@PriceListName</strong>
+                </div>
+                <div>
+                    <span>@Loc["Supplier"]</span>
+                    <strong>@SupplierName</strong>
+                </div>
+            </header>
+
+            @if (Completed is not null)
+            {
+                <VppContentState State="VppContentStateKind.Success"
+                                 Icon="task_alt"
+                                 Title="@Loc["PriceImportCompleted"]"
+                                 Description="@Completed.ResultMessage" />
+                <div class="vpp-price-import-summary" aria-label="@Loc["PriceImportResult"]">
+                    <div><span>@Loc["PriceImportAdded"]</span><strong>@Completed.AddedRows</strong></div>
+                    <div><span>@Loc["PriceImportUpdated"]</span><strong>@Completed.UpdatedRows</strong></div>
+                    <div><span>@Loc["PriceImportUnchanged"]</span><strong>@Completed.UnchangedRows</strong></div>
+                </div>
+            }
+            else if (Preview is null)
+            {
+                <VppInlineNotice Tone="VppStatusTone.Info" Title="@Loc["PriceImportSafeTitle"]">
+                    @Loc["PriceImportSafeDescription"]
+                </VppInlineNotice>
+
+                <div class="vpp-price-import-dropzone">
+                    <VppIcon Name="upload_file" />
+                    <strong>@Loc["PriceImportChooseFile"]</strong>
+                    <span>@Loc["PriceImportFileHint"]</span>
+                    <InputFile id="price-list-import-file"
+                               class="vpp-price-import-overlay-input"
+                               accept=".xlsx,.csv"
+                               aria-label="@Loc["PriceImportChooseFile"]"
+                               OnChange="@OnFileSelectedAsync" />
+                </div>
+
+                @if (RecentImports.Count > 0)
+                {
+                    <section class="vpp-price-import-recent" aria-labelledby="price-import-recent-title">
+                        <div class="vpp-price-import-section-heading">
+                            <div>
+                                <h3 id="price-import-recent-title">@Loc["RecentPriceImports"]</h3>
+                                <p>@Loc["RecentPriceImportsHint"]</p>
+                            </div>
+                        </div>
+                        <div class="vpp-price-import-recent-list">
+                            @foreach (var batch in RecentImports.Take(5))
+                            {
+                                <div>
+                                    <VppIcon Name="history" />
+                                    <span><strong>@batch.FileName</strong><small>@FormatBatchTime(batch.CreatedAtUtc)</small></span>
+                                    <VppStatusBadge Text="@BatchStatusLabel(batch.Status)" Tone="@BatchStatusTone(batch.Status)" />
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+            }
+            else
+            {
+                <div class="vpp-price-import-file">
+                    <VppIcon Name="description" />
+                    <div>
+                        <strong>@Preview.FileName</strong>
+                        <span>@Preview.TotalRows @Loc["Rows"]</span>
+                    </div>
+                    <label class="vpp-price-import-replace">
+                        @Loc["ChooseAnotherFile"]
+                        <InputFile id="price-list-import-file-replace"
+                                   class="vpp-price-import-overlay-input"
+                                   accept=".xlsx,.csv"
+                                   aria-label="@Loc["ChooseAnotherFile"]"
+                                   OnChange="@OnFileSelectedAsync" />
+                    </label>
+                </div>
+
+                @if (Preview.DuplicateFileWarning)
+                {
+                    <VppInlineNotice Tone="VppStatusTone.Warning" Title="@Loc["PriceImportDuplicateTitle"]">
+                        @Loc["PriceImportDuplicateDescription"]
+                    </VppInlineNotice>
+                }
+
+                @foreach (var issue in Preview.Issues)
+                {
+                    <VppInlineNotice Tone="@IssueTone(issue)" Title="@Loc["PriceImportFileIssue"]">
+                        @issue.Message
+                    </VppInlineNotice>
+                }
+
+                <section class="vpp-price-import-mapping" aria-labelledby="price-import-mapping-title">
+                    <div class="vpp-price-import-section-heading">
+                        <div>
+                            <h3 id="price-import-mapping-title">@Loc["PriceImportDetectedColumns"]</h3>
+                            <p>@Loc["PriceImportDetectedColumnsHint"]</p>
+                        </div>
+                    </div>
+                    <div class="vpp-price-import-mapping-list">
+                        @foreach (var mapping in Preview.ColumnMappings)
+                        {
+                            <span><strong>@mapping.SourceColumn</strong><VppIcon Name="arrow_forward" /><span>@FieldLabel(mapping.TargetField)</span></span>
+                        }
+                    </div>
+                </section>
+
+                <div class="vpp-price-import-summary" aria-label="@Loc["PriceImportPreview"]">
+                    <div class="is-add"><span>@Loc["PriceImportAdded"]</span><strong>@Preview.AddedRows</strong></div>
+                    <div class="is-update"><span>@Loc["PriceImportUpdated"]</span><strong>@Preview.UpdatedRows</strong></div>
+                    <div><span>@Loc["PriceImportUnchanged"]</span><strong>@Preview.UnchangedRows</strong></div>
+                    <div class="is-warning"><span>@Loc["Warnings"]</span><strong>@Preview.WarningRows</strong></div>
+                    <div class="is-error"><span>@Loc["Errors"]</span><strong>@Preview.ErrorRows</strong></div>
+                </div>
+
+                <section class="vpp-price-import-preview" aria-labelledby="price-import-preview-title">
+                    <div class="vpp-price-import-section-heading">
+                        <div>
+                            <h3 id="price-import-preview-title">@Loc["PriceImportPreview"]</h3>
+                            <p>@Preview.ResultMessage</p>
+                        </div>
+                    </div>
+                    <RadzenDataGrid TItem="PriceListImportRowResDTO"
+                                    Data="@Preview.Rows"
+                                    AllowPaging="true"
+                                    PageSize="10"
+                                    PagerAlwaysVisible="@(Preview.Rows.Count > 10)"
+                                    PagerHorizontalAlign="HorizontalAlign.Right"
+                                    AllowSorting="false"
+                                    AllowFiltering="false"
+                                    AllowAlternatingRows="false"
+                                    Density="Density.Compact"
+                                    GridLines="DataGridGridLines.Horizontal"
+                                    class="vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-price-import-grid">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="RowNumber" Title="@Loc["Row"]" Width="68px" TextAlign="TextAlign.Center" />
+                            <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="ItemCode" Title="@Loc["ProductCode"]" Width="130px" />
+                            <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="MatchedItemName" Title="@Loc["ProductName"]" MinWidth="190px" />
+                            <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="UnitPrice" Title="@Loc["Price"]" Width="120px" TextAlign="TextAlign.Right">
+                                <Template Context="row">@(row.UnitPrice?.ToString("N0") ?? "–")</Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Title="@Loc["Result"]" Width="118px" TextAlign="TextAlign.Center">
+                                <Template Context="row"><VppStatusBadge Text="@ActionLabel(row.Action)" Tone="@ActionTone(row.Action)" /></Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Title="@Loc["Notes"]" MinWidth="260px">
+                                <Template Context="row">@(row.Issues.Count == 0 ? "–" : string.Join("; ", row.Issues.Select(issue => issue.Message)))</Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </section>
+            }
+        </div>
+    </ChildContent>
+    <Footer>
+        <VppDialogActions CancelText="@Loc["Cancel"]"
+                          ShowCancel="@(Completed is null)"
+                          PrimaryText="@(Completed is null ? Loc["ConfirmImport"] : Loc["Close"])"
+                          PrimaryIcon="@(Completed is null ? "publish" : null)"
+                          PrimaryDisabled="@(Completed is null && (Preview is null || !Preview.CanConfirm))"
+                          IsBusy="@IsBusy"
+                          CancelClick="@Cancel"
+                          PrimaryClick="@PrimaryAsync">
+            <LeadingActions>
+                @if (Completed is null)
+                {
+                    <RadzenButton Text="@Loc["DownloadTemplate"]"
+                                  Icon="download"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Variant="Variant.Outlined"
+                                  Disabled="@IsBusy"
+                                  Click="@DownloadTemplateAsync" />
+                }
+            </LeadingActions>
+        </VppDialogActions>
+    </Footer>
+</VppAdaptiveDialogShell>

@@ -77,6 +77,14 @@ public sealed class ReportsApiClientTests
         public Task<T?> PostFromApiAsync<T>(string endpoint, object? body) =>
             throw new NotSupportedException();
 
+        public Task<T?> PostFileFromApiAsync<T>(
+            string endpoint,
+            Stream fileStream,
+            string fileName,
+            string contentType,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
         public Task<T?> PutFromApiAsync<T>(string endpoint, object body) =>
             throw new NotSupportedException();
 

@@ -184,7 +184,7 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
             (Path: "library?tab=3", MinimumSurfaces: 1, CreateActions: 1, Label: "suppliers"),
             (Path: "library?tab=5", MinimumSurfaces: 1, CreateActions: 1, Label: "departments"),
             (Path: "library?tab=6&pricingTab=price-lists", MinimumSurfaces: 1, CreateActions: 1, Label: "price-lists"),
-            (Path: "library?tab=6&pricingTab=prices", MinimumSurfaces: 1, CreateActions: 0, Label: "prices"),
+            (Path: "library?tab=6&pricingTab=prices", MinimumSurfaces: 1, CreateActions: 1, Label: "prices"),
             (Path: "permission?tab=0", MinimumSurfaces: 1, CreateActions: 1, Label: "users"),
             (Path: "permission?tab=1", MinimumSurfaces: 1, CreateActions: 0, Label: "permissions")
         };

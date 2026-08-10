@@ -17,6 +17,12 @@ namespace gtas_vpp_fe.Services
         Task<(T? Data, int TotalCount, int TotalLines, int TotalQty)> GetFromApiWithStatsAsync<T>(string endpoint);
         Task<(T? Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetFromApiWithAmountStatsAsync<T>(string endpoint);
         Task<T?> PostFromApiAsync<T>(string endpoint, object? body);
+        Task<T?> PostFileFromApiAsync<T>(
+            string endpoint,
+            Stream fileStream,
+            string fileName,
+            string contentType,
+            CancellationToken cancellationToken = default);
         Task<T?> PutFromApiAsync<T>(string endpoint, object body);
         Task<T?> PatchFromApiAsync<T>(string endpoint, object body);
         Task<ApiFileStreamResult> OpenFileFromApiAsync(
@@ -175,6 +181,26 @@ namespace gtas_vpp_fe.Services
         {
             await ApplyAuthorizationHeaderAsync();
             using var response = await _httpClient.PostAsJsonAsync(endpoint, body);
+            await EnsureSuccessWithDetailsAsync(response);
+            return await ReadResponseAsJsonAsync<T>(response);
+        }
+
+        public async Task<T?> PostFileFromApiAsync<T>(
+            string endpoint,
+            Stream fileStream,
+            string fileName,
+            string contentType,
+            CancellationToken cancellationToken = default)
+        {
+            await ApplyAuthorizationHeaderAsync();
+            using var multipart = new MultipartFormDataContent();
+            using var fileContent = new StreamContent(fileStream);
+            if (MediaTypeHeaderValue.TryParse(contentType, out var mediaType))
+            {
+                fileContent.Headers.ContentType = mediaType;
+            }
+            multipart.Add(fileContent, "file", Path.GetFileName(fileName));
+            using var response = await _httpClient.PostAsync(endpoint, multipart, cancellationToken);
             await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);
         }

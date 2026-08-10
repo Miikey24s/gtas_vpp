@@ -51,6 +51,7 @@ namespace gtas_vpp_be.Model.Library
         public byte[] RowVersion { get; set; } = [];
 
         public virtual ICollection<SupplierProductMapping>? SupplierProductMappings { get; set; }
+        public virtual ICollection<PriceListImportBatch>? ImportBatches { get; set; }
 
         public PriceList() { }
     }

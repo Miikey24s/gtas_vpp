@@ -72,6 +72,27 @@ public sealed class ApiServicesJsonTransportTests
             document.RootElement.GetProperty("idempotencyKey").GetString());
     }
 
+    [Fact]
+    public async Task PostFileFromApiAsync_SendsMultipartFileWithOriginalName()
+    {
+        using var handler = new RecordingHttpMessageHandler("{\"status\":\"Ready\"}");
+        using var client = CreateClient(handler);
+        var sut = CreateSut(client);
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("ItemCode,UnitPrice\nA001,100"));
+
+        var result = await sut.PostFileFromApiAsync<Dictionary<string, string>>(
+            "api/vpppricelist/list-id/imports/preview",
+            stream,
+            "bang-gia.csv",
+            "text/csv",
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal("Ready", result?["status"]);
+        Assert.Equal(HttpMethod.Post, handler.LastMethod);
+        Assert.Contains("bang-gia.csv", handler.LastRequestBody, StringComparison.Ordinal);
+        Assert.Contains("ItemCode,UnitPrice", handler.LastRequestBody, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("""{"UserID":5615,"UserLogin":"legacy-user"}""", 5615, "legacy-user")]
     [InlineData("""{"userID":5616,"userLogin":"camel-user"}""", 5616, "camel-user")]

@@ -20,6 +20,7 @@ namespace gtas_vpp_be.Model.Library
         public string? City { get; set; }
         public virtual ICollection<SupplierProductMapping>? SupplierProductMappings { get; set; }
         public virtual ICollection<PriceList>? PriceLists { get; set; }
+        public virtual ICollection<PriceListImportBatch>? PriceListImportBatches { get; set; }
         public Supplier() { }
     }
 }

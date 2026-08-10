@@ -9,6 +9,7 @@ using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Radzen;
@@ -42,6 +43,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool HasPriceLists => priceLists.Count > 0;
         private bool HasPriceListSelected => selectedPriceListId.HasValue;
         private bool HasPriceContext => selectedPriceListId.HasValue && selectedSupplierId.HasValue;
+        private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
+        private bool CanImportPrices => CanModify && IsSelectedPriceListActive && selectedPriceListId.HasValue;
         private bool HasPriceFilters => !string.IsNullOrWhiteSpace(searchText)
             || !string.IsNullOrWhiteSpace(selectedCategory)
             || !string.IsNullOrWhiteSpace(selectedMappingStatus);
@@ -507,6 +510,33 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private static string FormatPriceListOption(PriceListResDTO row)
         {
             return row.PriceListName ?? row.PriceListCode ?? "–";
+        }
+
+        private async Task ImportPricesAsync(MouseEventArgs _)
+        {
+            if (!CanImportPrices || SelectedPriceList is null || !selectedPriceListId.HasValue)
+            {
+                return;
+            }
+
+            var imported = await DialogService.OpenAsync<Dialog_PriceListImport>(
+                Loc["ImportPriceList"].Value,
+                new Dictionary<string, object?>
+                {
+                    [nameof(Dialog_PriceListImport.PriceListId)] = selectedPriceListId.Value,
+                    [nameof(Dialog_PriceListImport.PriceListName)] = SelectedPriceList.PriceListName ?? SelectedPriceList.PriceListCode ?? "–",
+                    [nameof(Dialog_PriceListImport.SupplierName)] = SelectedSupplierName
+                },
+                VppAdminDialogProfiles.Create(
+                    VppAdminDialogSize.Workspace,
+                    Loc["ImportPriceList"].Value,
+                    closeAriaLabel: Loc["Close"].Value));
+
+            if (imported is true)
+            {
+                await LoadCategoryOptionsAsync();
+                await LoadPricesAsync();
+            }
         }
     }
 }

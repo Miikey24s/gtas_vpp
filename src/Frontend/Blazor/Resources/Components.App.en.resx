@@ -455,6 +455,39 @@
   <data name="SetAsDefault" xml:space="preserve"><value>Set as Default</value></data>
   <data name="Clone" xml:space="preserve"><value>Clone</value></data>
   <data name="CopyAsNewPriceList" xml:space="preserve"><value>Copy as new price list</value></data>
+  <data name="ImportPriceList" xml:space="preserve"><value>Import price list</value></data>
+  <data name="PriceImport" xml:space="preserve"><value>Import price list</value></data>
+  <data name="DownloadTemplate" xml:space="preserve"><value>Download template</value></data>
+  <data name="ConfirmImport" xml:space="preserve"><value>Confirm import</value></data>
+  <data name="PriceImportSafeTitle" xml:space="preserve"><value>Review before saving</value></data>
+  <data name="PriceImportSafeDescription" xml:space="preserve"><value>The system previews every change. The database is updated only after confirmation and when no row errors remain.</value></data>
+  <data name="PriceImportChooseFile" xml:space="preserve"><value>Choose a price file</value></data>
+  <data name="PriceImportFileHint" xml:space="preserve"><value>Excel (.xlsx) or UTF-8 CSV, up to 5 MB and 5,000 rows.</value></data>
+  <data name="ChooseAnotherFile" xml:space="preserve"><value>Choose another file</value></data>
+  <data name="PriceImportDuplicateTitle" xml:space="preserve"><value>This file was imported before</value></data>
+  <data name="PriceImportDuplicateDescription" xml:space="preserve"><value>You can continue if this is an intentional update.</value></data>
+  <data name="PriceImportFileIssue" xml:space="preserve"><value>File needs attention</value></data>
+  <data name="PriceImportDetectedColumns" xml:space="preserve"><value>Detected columns</value></data>
+  <data name="PriceImportDetectedColumnsHint" xml:space="preserve"><value>Item code and unit price are required.</value></data>
+  <data name="PriceImportPreview" xml:space="preserve"><value>Change preview</value></data>
+  <data name="PriceImportAdded" xml:space="preserve"><value>Add</value></data>
+  <data name="PriceImportUpdated" xml:space="preserve"><value>Update</value></data>
+  <data name="PriceImportUnchanged" xml:space="preserve"><value>Unchanged</value></data>
+  <data name="PriceImportCompleted" xml:space="preserve"><value>Price list imported</value></data>
+  <data name="PriceImportResult" xml:space="preserve"><value>Import result</value></data>
+  <data name="PriceImportFileTooLarge" xml:space="preserve"><value>The file exceeds the 5 MB limit.</value></data>
+  <data name="PriceImportPreviewFailed" xml:space="preserve"><value>Could not preview the price file.</value></data>
+  <data name="PriceImportConfirmFailed" xml:space="preserve"><value>Could not import the price list.</value></data>
+  <data name="Rows" xml:space="preserve"><value>rows</value></data>
+  <data name="Row" xml:space="preserve"><value>Row</value></data>
+  <data name="Warnings" xml:space="preserve"><value>Warnings</value></data>
+  <data name="Errors" xml:space="preserve"><value>Errors</value></data>
+  <data name="RecentPriceImports" xml:space="preserve"><value>Recent imports</value></data>
+  <data name="RecentPriceImportsHint" xml:space="preserve"><value>History records the file, time, and processing result.</value></data>
+  <data name="Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="WaitingForConfirmation" xml:space="preserve"><value>Waiting for confirmation</value></data>
+  <data name="Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Processing" xml:space="preserve"><value>Processing</value></data>
   <data name="AddPriceList" xml:space="preserve"><value>Add Price List</value></data>
   <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Delete this price list?</value></data>
   <data name="PriceListSaved" xml:space="preserve"><value>Price list saved</value></data>

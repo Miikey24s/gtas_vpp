@@ -14,6 +14,7 @@ public sealed class LibraryControllerActivationTests
         using var provider = new ServiceCollection()
             .AddSingleton(Mock.Of<IPriceListService>())
             .AddSingleton(Mock.Of<IPriceBookWorkflowService>())
+            .AddSingleton(Mock.Of<IPriceListImportService>())
             .BuildServiceProvider();
 
         var controller = ActivatorUtilities.CreateInstance<VPPPriceListController>(provider);
