@@ -1,4 +1,4 @@
-<section class="vpp-content-state vpp-state-panel vpp-content-state-@StateCssClass vpp-state-panel-@StateCssClass @Class"
+<section class="vpp-content-state vpp-state-panel vpp-content-state-@StateCssClass vpp-state-panel-@StateCssClass @(FillAvailable ? "is-fill-available" : null) @Class"
          role="@SemanticRole"
          aria-live="@LiveRegionMode"
          aria-busy="@IsLoading"
@@ -47,6 +47,7 @@
     [Parameter] public string? SecondaryActionText { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> SecondaryAction { get; set; }
     [Parameter] public string? SecondaryActionHref { get; set; }
+    [Parameter] public bool FillAvailable { get; set; }
     [Parameter] public string Class { get; set; } = string.Empty;
     [Parameter] public string TitleId { get; set; } = $"content-state-{Guid.NewGuid():N}";
 

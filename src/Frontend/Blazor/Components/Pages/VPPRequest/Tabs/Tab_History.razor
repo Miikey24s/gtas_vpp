@@ -1,8 +1,10 @@
+@* PAGE: VPPRequest/Tabs/Tab_History.razor *@
 @inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.HistoryOrderWorkspaceTabBase
 @using gtas_vpp_fe.Components.Pages.VPPRequest.Components
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
 
-@* Coordinator màn Lịch sử: giữ toàn bộ state và handler; markup từng vùng Atlas nằm trong 5 component con
+@* WORKSPACE: Điều phối state và các vùng UI của màn Lịch sử.
+   Coordinator màn Lịch sử: giữ toàn bộ state và handler; markup từng vùng Atlas nằm trong 5 component con
    (HistoryScopeBar · HistoryKpiCards · HistoryTrendChart · HistoryOrderList · HistoryOrderDetailSheet). *@
 <HistoryWorkspaceShell @ref="_workspaceShell"
                        IsBusy="@IsRefreshing"
@@ -11,6 +13,7 @@
     @if (!CanView)
     {
         <VppContentState State="VppContentStateKind.Denied"
+                         FillAvailable="true"
                          Icon="lock"
                          Title="@Loc["AccessDenied"]"
                          Description="@Loc["NoPermission"]"
@@ -34,7 +37,8 @@
     }
     else
     {
-        <HistoryScopeBar Scope="@_scope"
+         @* TOOLBAR: Chọn phạm vi thời gian và khoảng ngày tùy chỉnh. *@
+         <HistoryScopeBar Scope="@_scope"
                          ShowCustomRange="@_showCustomRange"
                          CustomFrom="@_customFrom"
                          CustomTo="@_customTo"
@@ -50,33 +54,34 @@
         @if (_summaryError)
         {
             <VppContentState State="VppContentStateKind.Error"
+                             FillAvailable="true"
                              Icon="error"
                              Title="@Loc["HistoryLoadFailed"]"
                              Description="@Loc["HistoryLoadErrorDescription"]"
                              PrimaryActionText="@Loc["Retry"]"
-                             PrimaryActionIcon="@VppIcons.Refresh"
+                             PrimaryActionIcon="@VppIcons.Reset"
                              PrimaryAction="@(_ => RefreshAsync())"
                              Class="vpp-history-state-panel" />
         }
         else if (_summary is null)
         {
             <VppContentState State="VppContentStateKind.Empty"
+                             FillAvailable="true"
                              Icon="history"
                              Title="@Loc["NoHistoryOrders"]"
                              Description="@Loc["HistoryNoOrdersDescription"]"
-                             PrimaryActionText="@Loc["Refresh"]"
-                             PrimaryActionIcon="@VppIcons.Refresh"
-                             PrimaryAction="@(_ => RefreshAsync())"
                              Class="vpp-history-state-panel" />
         }
         else
         {
-            <HistoryKpiCards Summary="@_summary"
+             @* SUMMARY: Các KPI tổng quan của lịch sử đặt hàng. *@
+             <HistoryKpiCards Summary="@_summary"
                              ActiveKpi="@_activeKpi"
                              ChartRangeLabel="@ChartRangeLabel"
                              KpiToggled="@ToggleKpi" />
 
-            <HistoryTrendChart Summary="@_summary"
+             @* CHART: Biểu đồ xu hướng theo kỳ và bộ lọc chuỗi dữ liệu. *@
+             <HistoryTrendChart Summary="@_summary"
                                ShowRegularSeries="@_showRegularSeries"
                                ShowAdditionalSeries="@_showAdditionalSeries"
                                IsSummaryLoading="@_isSummaryLoading"
@@ -88,7 +93,8 @@
                                SelectedPeriodCleared="@ClearSelectedPeriodAsync"
                                SeriesToggled="@ToggleChartSeries" />
 
-            <HistoryOrderList Orders="@Orders"
+             @* ROWS: Danh sách đơn lịch sử và trạng thái phân trang. *@
+             <HistoryOrderList Orders="@Orders"
                               SelectedOrderId="@_selectedOrder?.Id"
                               TotalCount="@TotalCount"
                               PageSize="@PageSize"

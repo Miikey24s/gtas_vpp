@@ -108,8 +108,21 @@ leftsidebar {
     flex: 0 0 max-content;
     align-items: stretch;
     align-self: stretch;
-    gap: var(--vpp-navigation-surface-gap);
     min-width: max-content;
+}
+
+.vpp-header-tab-group-expanded-content {
+    display: inline-flex;
+    align-items: stretch;
+    align-self: stretch;
+    gap: var(--vpp-navigation-surface-gap);
+}
+
+/* Giữ nguyên component cha giữa các route để Blazor không tháo/lắp lại tab
+   đứng cạnh. Chỉ một trong hai bề mặt được tham gia layout tại mỗi thời điểm. */
+.vpp-header-tab-group.is-expanded > .vpp-header-tab-group-parent-link,
+.vpp-header-tab-group.is-collapsed > .vpp-header-tab-group-expanded-content {
+    display: none;
 }
 
 .vpp-header-tab-group-divider {
@@ -146,6 +159,17 @@ leftsidebar {
     text-box-edge: cap alphabetic;
     white-space: nowrap;
     text-decoration: none;
+}
+
+/* Link cấp cao có thể đã được truy cập trước khi một nhóm tab con mở rộng.
+   Khóa màu cho cả :link/:visited để trạng thái lịch sử trình duyệt không làm
+   mất chữ của tab đứng cạnh nhóm cha-con. */
+.vpp-layout-header .vpp-header-tab:link,
+.vpp-layout-header .vpp-header-tab:visited,
+.vpp-local-header-tabs .vpp-header-tab:link,
+.vpp-local-header-tabs .vpp-header-tab:visited {
+    color: var(--vpp-text-secondary);
+    -webkit-text-fill-color: currentColor;
 }
 
 .vpp-layout-header .vpp-header-tab-parent,
@@ -191,6 +215,14 @@ leftsidebar {
 .vpp-layout-header .vpp-header-tab.is-active,
 .vpp-local-header-tabs .vpp-header-tab.is-active {
     color: var(--vpp-text-primary);
+}
+
+.vpp-layout-header .vpp-header-tab.is-active:link,
+.vpp-layout-header .vpp-header-tab.is-active:visited,
+.vpp-local-header-tabs .vpp-header-tab.is-active:link,
+.vpp-local-header-tabs .vpp-header-tab.is-active:visited {
+    color: var(--vpp-text-primary);
+    -webkit-text-fill-color: currentColor;
 }
 
 .vpp-local-header-tabs {
@@ -595,13 +627,13 @@ leftsidebar {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 36px;
+    height: var(--vpp-button-height);
     border-radius: var(--vpp-radius-full);
-    border: 1px solid var(--vpp-border-default);
-    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid color-mix(in srgb, var(--vpp-border-default) 76%, transparent);
+    background: transparent;
     color: var(--vpp-text-secondary);
     cursor: pointer;
-    box-shadow: var(--vpp-shadow-xs);
+    box-shadow: none;
     transition:
         background-color var(--vpp-transition-fast),
         border-color var(--vpp-transition-fast),
@@ -615,7 +647,7 @@ leftsidebar {
 .rz-theme-dark .vpp-lang-switch,
 .rz-theme-dark .vpp-theme-switch,
 .rz-theme-dark .vpp-header-notification-button {
-    background: rgba(255, 255, 255, 0.03);
+    background: transparent;
 }
 
 .vpp-lang-switch:hover,
@@ -623,21 +655,23 @@ leftsidebar {
 .vpp-header-notification-button:hover {
     color: var(--vpp-text-primary);
     border-color: var(--vpp-border-strong);
-    box-shadow: var(--vpp-shadow-sm);
-    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--vpp-text-primary) 6%, transparent);
+    box-shadow: none;
+    transform: none;
 }
 
 .vpp-lang-switch:active,
 .vpp-theme-switch:active,
 .vpp-header-notification-button:active {
-    transform: translateY(0) scale(0.97);
+    background: color-mix(in srgb, var(--vpp-text-primary) 9%, transparent);
+    transform: none;
 }
 
 .vpp-lang-switch:focus-visible,
 .vpp-theme-switch:focus-visible,
 .vpp-header-notification-button:focus-visible {
-    outline: 2px solid var(--vpp-primary-500);
-    outline-offset: 2px;
+    outline: 0;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 62%, transparent);
 }
 
 .vpp-lang-switch {
@@ -654,7 +688,7 @@ leftsidebar {
     width: calc((100% - 6px) / 2);
     border-radius: var(--vpp-radius-full);
     background: var(--vpp-action-primary-active);
-    box-shadow: 0 4px 12px rgba(var(--vpp-primary-rgb), 0.24);
+    box-shadow: none;
     transform: translateX(0);
     transition:
         transform var(--vpp-transition-base),
@@ -687,11 +721,11 @@ leftsidebar {
 
 .vpp-lang-option.is-active {
     color: #fff;
-    transform: scale(1.02);
+    transform: none;
 }
 
 .vpp-lang-switch.is-switching {
-    box-shadow: var(--vpp-shadow-glow);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 48%, transparent);
 }
 
 .vpp-lang-switch:disabled {
@@ -700,7 +734,7 @@ leftsidebar {
 }
 
 .vpp-theme-switch {
-    width: 36px;
+    width: var(--vpp-button-height);
     overflow: hidden;
 }
 
@@ -708,13 +742,13 @@ leftsidebar {
     position: relative;
     display: inline-grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
+    width: var(--vpp-button-icon-size);
+    height: var(--vpp-button-icon-size);
 }
 
 .vpp-theme-icon {
     position: absolute;
-    font-size: 1.15rem;
+    font-size: var(--vpp-button-icon-size);
     line-height: 1;
     transition:
         opacity var(--vpp-transition-base),
@@ -770,8 +804,8 @@ leftsidebar {
 
 .vpp-header-notification-button {
     position: relative;
-    width: 36px;
-    min-width: 36px;
+    width: var(--vpp-button-height);
+    min-width: var(--vpp-button-height);
     padding: 0;
     z-index: 2;
 }
@@ -779,9 +813,9 @@ leftsidebar {
 .vpp-header-notification-button .vpp-icon {
     display: inline-grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
-    font-size: 1.2rem;
+    width: var(--vpp-button-icon-size);
+    height: var(--vpp-button-icon-size);
+    font-size: var(--vpp-button-icon-size);
     line-height: 1;
 }
 
@@ -1217,12 +1251,12 @@ leftsidebar {
 
     .vpp-lang-switch {
         width: 70px;
-        height: 34px;
+        height: var(--vpp-button-height);
     }
 
     .vpp-theme-switch {
-        width: 34px;
-        height: 34px;
+        width: var(--vpp-button-height);
+        height: var(--vpp-button-height);
     }
 }
 
@@ -1305,24 +1339,49 @@ leftsidebar {
     }
 }
 
-/* ── Override flex layout của wizard để hỗ trợ co giãn toàn chiều cao ── */
-.vpp-layout:has(.vpp-wizard) .vpp-layout-body {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+/* Wizard chỉ khóa viewport khi còn đủ không gian cho hai pane. Ở laptop,
+   tablet hoặc cửa sổ thấp, layout body trở lại page scroller để pane xếp dọc
+   và validation/period selector không bị cắt. */
+@media (min-width: 1440px) and (min-height: 800px) {
+    .vpp-layout:has(.vpp-wizard) .vpp-layout-body {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .vpp-layout:has(.vpp-wizard) .vpp-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+    }
 }
 
-.vpp-layout:has(.vpp-wizard) .vpp-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    height: 100%;
+@media (max-width: 1439px), (max-height: 799px) {
+    .vpp-layout:has(.vpp-wizard) .vpp-layout-body {
+        display: block;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .vpp-layout:has(.vpp-wizard) .vpp-content {
+        display: block;
+        height: auto;
+        min-height: 100%;
+    }
 }
 
 /* ── Page báo cáo ────────────────────────────────────────────── */
 .vpp-report-page {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
     padding: 0;
+}
+
+.vpp-report-page > .vpp-report-workspace {
+    flex: 1 1 auto;
 }
 
 .vpp-report-header {

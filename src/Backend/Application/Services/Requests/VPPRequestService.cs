@@ -53,14 +53,20 @@ namespace gtas_vpp_be.Service.Services
         Task<VppRequestResDTO?> GetOrderByIdAsync(Guid id);
         Task<VppRequestResDTO> CreateOrderAsync(VppRequestCreateReqDTO req, int createdByUserId, string departmentCode, string memberCompanyCode);
         Task<VppRequestResDTO> UpdateOrderAsync(VppRequestUpdateReqDTO req);
+        Task<VppRequestResDTO> AdjustOrderAfterCloseAsync(
+            Guid id,
+            int actorUserId,
+            string memberCompanyCode,
+            VppManagerOrderAdjustmentReqDTO request);
         Task CancelOrderAsync(Guid id, int userId, VppRequestCancelReqDTO req);
         Task<VppRequestResDTO> RestoreCancelledOrderAsync(Guid id, int userId, VppRequestRestoreReqDTO req);
         Task<VppRequestResDTO> RecreateCancelledOrderAsync(Guid id, int userId, VppRequestRecreateReqDTO req);
-        Task<VppRequestResDTO?> GetPreviousOrderItemsAsync(int userId);
-        Task<VppPeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId);
+        Task<VppRequestResDTO?> GetPreviousOrderItemsAsync(int userId, Guid? periodId = null);
+        Task<VppPeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId, Guid? selectedPeriodId = null);
         Task<VppRequestHistoryResDTO?> GetOrderHistoryAsync(Guid id);
         Task<List<VppRequestResDTO>> GetAllOrdersAsync(int? year, int? month, int? status, string? departmentCode, string? memberCompanyCode = null);
         Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top, string? memberCompanyCode = null);
+        Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrderSummariesPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top, string? memberCompanyCode = null);
         Task<List<VppRequestResDTO>> GetDepartmentOrdersAsync(int? year, int? month, int? status, string? departmentCode, string? memberCompanyCode = null);
         Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetDepartmentOrdersPagedAsync(int? year, int? month, int? status, string? departmentCode, int? skip, int? top, string? memberCompanyCode = null);
         Task<List<VppRequestResDTO>> GetPendingAdditionalOrdersAsync(
@@ -305,6 +311,7 @@ namespace gtas_vpp_be.Service.Services
                     Year = order.Year,
                     Month = order.Month,
                     PeriodId = order.PeriodId,
+                    MemberCompanyCode = order.MemberCompanyCode,
                     RequestSeriesId = order.RequestSeriesId,
                     RevisionNumber = order.RevisionNumber,
                     IsCurrentRevision = order.IsCurrentRevision,
@@ -319,7 +326,7 @@ namespace gtas_vpp_be.Service.Services
                 })
                 .ToListAsync();
 
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return (result, totalCount);
         }
 
@@ -382,6 +389,7 @@ namespace gtas_vpp_be.Service.Services
                     Year = order.Year,
                     Month = order.Month,
                     PeriodId = order.PeriodId,
+                    MemberCompanyCode = order.MemberCompanyCode,
                     RequestSeriesId = order.RequestSeriesId,
                     RevisionNumber = order.RevisionNumber,
                     IsCurrentRevision = order.IsCurrentRevision,
@@ -398,7 +406,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return (result, totalCount);
         }
 
@@ -476,7 +484,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return result;
         }
 
@@ -525,7 +533,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return (result, totalCount, totalLines, totalQty);
         }
 
@@ -541,7 +549,7 @@ namespace gtas_vpp_be.Service.Services
             if (data is not null)
             {
                 await ApplyRequesterNamesAsync(new List<VppRequestResDTO> { data });
-                ApplyPeriodFlags(new[] { data });
+                await ApplyPeriodFlagsAsync(new[] { data });
             }
 
             return data;
@@ -557,15 +565,9 @@ namespace gtas_vpp_be.Service.Services
             {
                 var now = _dateTimeProvider.Now;
                 var requestedPeriod = new Period(req.Year, req.Month);
-                var currentPeriod = _periodCalculator.Current(now);
-                if (requestedPeriod != currentPeriod)
-                {
-                    var kind = req.IsAdditionalOrder ? "Additional" : "Regular";
-                    throw new BusinessException(
-                        $"{kind} orders can only target the current period {currentPeriod.Year:D4}-{currentPeriod.Month:D2}.");
-                }
-
-                var period = await EnsurePeriodAsync(memberCompanyCode, requestedPeriod);
+                var period = await GetPeriodForMutationAsync(
+                    memberCompanyCode,
+                    requestedPeriod);
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
                 if (period.State != VppPeriodState.Open || nowUtc >= period.SubmissionDeadlineUtc)
                     throw new BusinessException("The submission window for this period is closed.");
@@ -737,6 +739,196 @@ namespace gtas_vpp_be.Service.Services
         public async Task<VppRequestResDTO> UpdateOrderAsync(VppRequestUpdateReqDTO req)
             => await UpdateOrderRevisionAsync(req);
 
+        public async Task<VppRequestResDTO> AdjustOrderAfterCloseAsync(
+            Guid id,
+            int actorUserId,
+            string memberCompanyCode,
+            VppManagerOrderAdjustmentReqDTO request)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            var company = (memberCompanyCode ?? string.Empty).Trim();
+            var action = request.Action.Trim();
+            var isCancel = string.Equals(action, "Cancel", StringComparison.OrdinalIgnoreCase);
+            if (!isCancel && !string.Equals(action, "Adjust", StringComparison.OrdinalIgnoreCase))
+                throw new BusinessException("Vui lòng chọn cập nhật hoặc hủy đơn.");
+
+            var reason = RequireFriendlyText(request.Reason, "Lý do thay đổi");
+            var employeeNote = RequireFriendlyText(request.EmployeeNote, "Thông báo cho nhân viên");
+            var normalizedItems = isCancel
+                ? []
+                : request.Items.Select(item => new VppRequestDetailItemReqDTO
+                {
+                    VppId = item.VppId,
+                    Qty = item.Qty,
+                    Description = item.Description
+                }).ToList();
+            if (!isCancel)
+                ValidateItems(normalizedItems);
+
+            await _scopedUow.BeginTransactionAsync();
+            try
+            {
+                var requestSet = _scopedUow.VPPContext.Set<VppRequest>();
+                var key = NormalizeIdempotencyKey(request.IdempotencyKey);
+                var payloadHash = ComputeHash(new
+                {
+                    id,
+                    Action = isCancel ? "Cancel" : "Adjust",
+                    Reason = reason,
+                    EmployeeNote = employeeNote,
+                    Items = normalizedItems.OrderBy(item => item.VppId)
+                        .Select(item => new { item.VppId, item.Qty, item.Description })
+                });
+                if (!string.IsNullOrWhiteSpace(key))
+                {
+                    var replay = await requestSet.AsNoTracking()
+                        .Where(x => x.MemberCompanyCode == company
+                            && x.IdempotencyKey == key
+                            && !x.IsDeleted)
+                        .OrderByDescending(x => x.RevisionNumber)
+                        .FirstOrDefaultAsync();
+                    if (replay is not null)
+                    {
+                        if (!string.Equals(replay.CommandPayloadHash, payloadHash, StringComparison.Ordinal))
+                            throw new ConflictException("Thao tác này đã được dùng cho một thay đổi khác.");
+                        await _scopedUow.RollbackAsync();
+                        return (await GetOrderByIdAsync(replay.Id))!;
+                    }
+                }
+
+                var header = await requestSet
+                    .Include(x => x.RequestDetails.Where(detail => !detail.IsDeleted))
+                    .FirstOrDefaultAsync(x => x.Id == id
+                        && x.MemberCompanyCode == company
+                        && x.IsCurrentRevision
+                        && !x.IsDeleted)
+                    ?? throw new KeyNotFoundException("Không tìm thấy đơn hiện tại.");
+                EnsureExpectedRowVersion(header.RowVersion, request.RowVersion);
+
+                var period = await _scopedUow.VPPContext.Set<VppPeriod>()
+                    .FirstOrDefaultAsync(x => x.Id == header.PeriodId
+                        && x.MemberCompanyCode == company
+                        && !x.IsDeleted)
+                    ?? throw new BusinessException("Không tìm thấy kỳ của đơn.");
+                var adjustmentDays = period.SettingsVersionId.HasValue
+                    ? await _scopedUow.VPPContext.Set<VppOrderPeriodSettingsVersion>()
+                        .AsNoTracking()
+                        .Where(x => x.Id == period.SettingsVersionId.Value)
+                        .Select(x => (int?)x.PostCloseAdjustmentDays)
+                        .FirstOrDefaultAsync() ?? 10
+                    : 10;
+                var now = _dateTimeProvider.Now;
+                var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
+                var adjustmentDeadlineUtc = period.SubmissionDeadlineUtc.AddDays(adjustmentDays);
+                if (period.State is not (VppPeriodState.SubmissionClosed or VppPeriodState.Pricing)
+                    || nowUtc >= adjustmentDeadlineUtc
+                    || header.SettledAt is not null)
+                {
+                    throw new ConflictException(
+                        "Đã hết thời gian chỉnh đơn. Bạn vẫn có thể chọn nhà cung cấp, bảng giá và chốt kỳ.");
+                }
+
+                var eligibleStatus = header.IsAdditionalOrder
+                    ? header.Status == (int)VPPStatus.Approved
+                    : header.Status is (int)VPPStatus.Submitted or (int)VPPStatus.Approved;
+                if (!eligibleStatus)
+                    throw new ConflictException("Đơn này chưa sẵn sàng để điều chỉnh trong bước chốt kỳ.");
+
+                if (!isCancel)
+                    await ValidateActiveProductsAsync(normalizedItems);
+
+                var replacement = new VppRequest
+                {
+                    Id = Guid.NewGuid(),
+                    Year = header.Year,
+                    Month = header.Month,
+                    PeriodId = period.Id,
+                    RequestSeriesId = header.RequestSeriesId == Guid.Empty
+                        ? Guid.NewGuid() : header.RequestSeriesId,
+                    RevisionNumber = header.RevisionNumber + 1,
+                    IsCurrentRevision = true,
+                    SupersedesRequestId = header.Id,
+                    VppCode = GenerateVppCode(header.Year, header.Month),
+                    Status = isCancel ? (int)VPPStatus.Cancelled : header.Status,
+                    Description = header.Description,
+                    IsAdditionalOrder = header.IsAdditionalOrder,
+                    BaseRequestId = header.BaseRequestId,
+                    BaseRequestSeriesId = header.BaseRequestSeriesId,
+                    SupplementSequence = header.SupplementSequence,
+                    SupplementAttemptNumber = header.SupplementAttemptNumber,
+                    SupplementReason = header.SupplementReason,
+                    ApprovedById = isCancel ? null : header.ApprovedById,
+                    ApprovedAt = isCancel ? null : header.ApprovedAt,
+                    CancelledById = isCancel ? actorUserId : null,
+                    CancelledAt = isCancel ? nowUtc : null,
+                    CancelReason = isCancel ? reason : null,
+                    DepartmentCode = header.DepartmentCode,
+                    MemberCompanyCode = header.MemberCompanyCode,
+                    CreatedByUserId = header.CreatedByUserId,
+                    CreatedAtUtc = header.CreatedAtUtc,
+                    UpdatedByUserId = actorUserId,
+                    UpdatedAtUtc = nowUtc,
+                    SubmittedDate = header.SubmittedDate,
+                    IdempotencyKey = string.IsNullOrWhiteSpace(key) ? null : key,
+                    CommandPayloadHash = payloadHash
+                };
+                replacement.RequestDetails = isCancel
+                    ? CloneDetails(header.RequestDetails, replacement.Id, actorUserId, nowUtc)
+                    : await BuildRequestDetailsAsync(normalizedItems, actorUserId, replacement.Id, nowUtc);
+
+                header.IsCurrentRevision = false;
+                header.SupersededByRequestId = replacement.Id;
+                header.UpdatedByUserId = actorUserId;
+                header.UpdatedAtUtc = nowUtc;
+                requestSet.Add(replacement);
+                period.LastTransitionUserId = actorUserId;
+                period.LastTransitionAtUtc = nowUtc;
+                period.LastTransitionReason = isCancel
+                    ? $"Đã hủy đơn {header.VppCode} trước khi chốt: {reason}"
+                    : $"Đã cập nhật đơn {header.VppCode} trước khi chốt: {reason}";
+                period.UpdatedByUserId = actorUserId;
+                period.UpdatedAtUtc = nowUtc;
+
+                _scopedUow.VPPContext.Set<RequestLog>().Add(new RequestLog
+                {
+                    Id = Guid.NewGuid(),
+                    RequestId = replacement.Id,
+                    LogTitle = isCancel ? "MANAGER_CANCEL_BEFORE_SETTLEMENT" : "MANAGER_ADJUST_BEFORE_SETTLEMENT",
+                    Action = isCancel ? "MANAGER_CANCEL" : "MANAGER_ADJUST",
+                    ActorUserId = actorUserId,
+                    MemberCompanyCode = company,
+                    RevisionNumber = replacement.RevisionNumber,
+                    Reason = reason,
+                    LogDate = nowUtc,
+                    LogJS = JsonSerializer.Serialize(new
+                    {
+                        PreviousRequestId = header.Id,
+                        EmployeeNote = employeeNote,
+                        DeadlineUtc = adjustmentDeadlineUtc,
+                        Items = replacement.RequestDetails.Select(item => new
+                        {
+                            item.VppId,
+                            item.Qty,
+                            item.Description
+                        })
+                    })
+                });
+
+                await _scopedUow.CommitAsync();
+                return (await GetOrderByIdAsync(replacement.Id))!;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await _scopedUow.RollbackAsync();
+                throw new ConflictException("Đơn hoặc kỳ vừa thay đổi. Hãy tải lại rồi thử lại.", ex);
+            }
+            catch
+            {
+                await _scopedUow.RollbackAsync();
+                throw;
+            }
+        }
+
         private async Task<VppRequestResDTO> UpdateOrderRevisionAsync(VppRequestUpdateReqDTO req)
         {
             ValidateItems(req.Items);
@@ -780,16 +972,12 @@ namespace gtas_vpp_be.Service.Services
                     throw new UnauthorizedAccessException("Cannot update another user's order.");
                 EnsureExpectedRowVersion(header.RowVersion, req.RowVersion);
 
-                var period = await EnsurePeriodAsync(
+                var period = await GetPeriodForMutationAsync(
                     header.MemberCompanyCode ?? string.Empty, new Period(header.Year, header.Month));
                 var now = _dateTimeProvider.Now;
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-                var deadline = header.IsAdditionalOrder
-                    ? period.SupplementApprovalDeadlineUtc
-                    : period.SubmissionDeadlineUtc;
-                var stateBlocksMutation = header.IsAdditionalOrder
-                    ? period.State is VppPeriodState.Pricing or VppPeriodState.Settled
-                    : period.State != VppPeriodState.Open;
+                var deadline = period.SubmissionDeadlineUtc;
+                var stateBlocksMutation = period.State != VppPeriodState.Open;
                 if (stateBlocksMutation
                     || nowUtc >= deadline || header.SettledAt is not null)
                     throw new ConflictException("This request is immutable because its period is closed or settled.");
@@ -917,15 +1105,12 @@ namespace gtas_vpp_be.Service.Services
                     throw new UnauthorizedAccessException("Cannot cancel another user's order.");
                 EnsureExpectedRowVersion(header.RowVersion, req.RowVersion);
 
-                var period = await EnsurePeriodAsync(
+                var period = await GetPeriodForMutationAsync(
                     header.MemberCompanyCode ?? string.Empty, new Period(header.Year, header.Month));
                 var now = _dateTimeProvider.Now;
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-                var deadline = header.IsAdditionalOrder
-                    ? period.SupplementApprovalDeadlineUtc : period.SubmissionDeadlineUtc;
-                var stateBlocksMutation = header.IsAdditionalOrder
-                    ? period.State is VppPeriodState.Pricing or VppPeriodState.Settled
-                    : period.State != VppPeriodState.Open;
+                var deadline = period.SubmissionDeadlineUtc;
+                var stateBlocksMutation = period.State != VppPeriodState.Open;
                 if (stateBlocksMutation
                     || nowUtc >= deadline || header.SettledAt is not null)
                     throw new ConflictException("This request is immutable because its period is closed or settled.");
@@ -1066,17 +1251,13 @@ namespace gtas_vpp_be.Service.Services
                 if (header.Status != (int)VPPStatus.Cancelled)
                     throw new BusinessException("Only a cancelled request can be recovered.");
 
-                var period = await EnsurePeriodAsync(
+                var period = await GetPeriodForMutationAsync(
                     header.MemberCompanyCode ?? string.Empty,
                     new Period(header.Year, header.Month));
                 var now = _dateTimeProvider.Now;
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-                var deadline = header.IsAdditionalOrder
-                    ? period.SupplementApprovalDeadlineUtc
-                    : period.SubmissionDeadlineUtc;
-                var stateBlocksMutation = header.IsAdditionalOrder
-                    ? period.State is VppPeriodState.Pricing or VppPeriodState.Settled
-                    : period.State != VppPeriodState.Open;
+                var deadline = period.SubmissionDeadlineUtc;
+                var stateBlocksMutation = period.State != VppPeriodState.Open;
                 if (stateBlocksMutation
                     || nowUtc >= deadline
                     || header.SettledAt is not null)
@@ -1196,9 +1377,20 @@ namespace gtas_vpp_be.Service.Services
             Recreate
         }
 
-        public async Task<VppRequestResDTO?> GetPreviousOrderItemsAsync(int userId)
+        public async Task<VppRequestResDTO?> GetPreviousOrderItemsAsync(
+            int userId,
+            Guid? periodId = null)
         {
-            var previous = _periodCalculator.Previous(_dateTimeProvider.Now);
+            var user = await _scopedUow.VPPContext.Set<AppUser>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == userId);
+            var company = user?.MemberCompanyCode.ToString() ?? string.Empty;
+            var periodInfo = await GetCurrentPeriodInfoAsync(userId, periodId);
+            var current = new Period(
+                periodInfo.CurrentPeriodYear,
+                periodInfo.CurrentPeriodMonth);
+            var previousDate = new DateTime(current.Year, current.Month, 1).AddMonths(-1);
+            var previous = new Period(previousDate.Year, previousDate.Month);
             var prevHeader = await _scopedUow.VPPContext.Set<VppRequest>()
                 .AsNoTracking()
                 .Include(x => x.RequestDetails.Where(d => !d.IsDeleted))
@@ -1214,7 +1406,7 @@ namespace gtas_vpp_be.Service.Services
             var result = prevHeader.Adapt<VppRequestResDTO>();
             result.Items = result.Items.Where(i => activeVppIds.Contains(i.VppId)).ToList();
             await ApplyRequesterNamesAsync(new List<VppRequestResDTO> { result });
-            ApplyPeriodFlags(new[] { result });
+            await ApplyPeriodFlagsAsync(new[] { result });
             return result;
         }
 
@@ -1231,7 +1423,7 @@ namespace gtas_vpp_be.Service.Services
                 .OrderBy(x => x.RevisionNumber).ThenBy(x => x.CreatedAtUtc)
                 .ProjectToType<VppRequestResDTO>().AsSplitQuery().ToListAsync();
             await ApplyRequesterNamesAsync(revisions);
-            ApplyPeriodFlags(revisions);
+            await ApplyPeriodFlagsAsync(revisions);
             var requestIds = revisions.Select(x => x.Id).ToArray();
             var logs = await _scopedUow.VPPContext.Set<RequestLog>().AsNoTracking()
                 .Where(x => requestIds.Contains(x.RequestId))
@@ -1279,7 +1471,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return result;
         }
 
@@ -1320,7 +1512,81 @@ namespace gtas_vpp_be.Service.Services
                 .AsSplitQuery()
                 .ToListAsync();
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
+            return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0,
+                stats?.TotalQty ?? 0, stats?.TotalAmount ?? 0);
+        }
+
+        public async Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)> GetAllOrderSummariesPagedAsync(
+            int? year,
+            int? month,
+            int? status,
+            string? departmentCode,
+            int? skip,
+            int? top,
+            string? memberCompanyCode = null)
+        {
+            var query = _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted && x.IsCurrentRevision
+                     && (year == null || x.Year == year)
+                     && (month == null || x.Month == month)
+                     && (status == null || x.Status == status)
+                     && (departmentCode == null || x.DepartmentCode == departmentCode)
+                     && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode));
+
+            var stats = await query.Select(x => new
+            {
+                Lines = x.RequestDetails.Count(d => !d.IsDeleted),
+                Qty = x.RequestDetails.Where(d => !d.IsDeleted).Sum(d => (int?)d.Qty) ?? 0,
+                Amount = x.RequestDetails.Where(d => !d.IsDeleted)
+                    .Sum(d => (long?)(d.Qty * d.CurrentSinglePrice)) ?? 0
+            }).GroupBy(x => 1).Select(g => new
+            {
+                TotalCount = g.Count(),
+                TotalLines = g.Sum(x => x.Lines),
+                TotalQty = g.Sum(x => x.Qty),
+                TotalAmount = g.Sum(x => x.Amount)
+            }).FirstOrDefaultAsync();
+
+            var pageSkip = Math.Max(skip ?? 0, 0);
+            var pageSize = Math.Clamp(top ?? 100, 1, 500);
+            var result = await query
+                .OrderBy(x => x.DepartmentCode)
+                .ThenByDescending(x => x.SubmittedDate ?? x.UpdatedAtUtc)
+                .Skip(pageSkip)
+                .Take(pageSize)
+                .Select(order => new VppRequestResDTO
+                {
+                    Id = order.Id,
+                    Description = order.Description,
+                    CreatedByUserId = order.CreatedByUserId,
+                    CreatedAtUtc = order.CreatedAtUtc,
+                    UpdatedByUserId = order.UpdatedByUserId,
+                    UpdatedAtUtc = order.UpdatedAtUtc,
+                    VppCode = order.VppCode,
+                    Year = order.Year,
+                    Month = order.Month,
+                    PeriodId = order.PeriodId,
+                    RequestSeriesId = order.RequestSeriesId,
+                    RevisionNumber = order.RevisionNumber,
+                    IsCurrentRevision = order.IsCurrentRevision,
+                    Status = order.Status,
+                    DepartmentCode = order.DepartmentCode,
+                    MemberCompanyCode = order.MemberCompanyCode,
+                    SubmittedDate = order.SubmittedDate,
+                    IsAdditionalOrder = order.IsAdditionalOrder,
+                    TotalLines = order.RequestDetails.Count(detail => !detail.IsDeleted),
+                    TotalQty = order.RequestDetails
+                        .Where(detail => !detail.IsDeleted)
+                        .Sum(detail => (int?)detail.Qty) ?? 0,
+                    TotalAmount = order.RequestDetails
+                        .Where(detail => !detail.IsDeleted)
+                        .Sum(detail => (long?)(detail.Qty * detail.CurrentSinglePrice)) ?? 0
+                })
+                .ToListAsync();
+
+            await ApplyRequesterNamesAsync(result);
             return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0,
                 stats?.TotalQty ?? 0, stats?.TotalAmount ?? 0);
         }
@@ -1339,7 +1605,7 @@ namespace gtas_vpp_be.Service.Services
                 .AsSplitQuery()
                 .ToListAsync();
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return result;
         }
 
@@ -1371,7 +1637,7 @@ namespace gtas_vpp_be.Service.Services
             var result = await pagedQuery.ProjectToType<VppRequestResDTO>()
                 .AsSplitQuery().ToListAsync();
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0, stats?.TotalQty ?? 0);
         }
 
@@ -1394,7 +1660,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return result;
         }
 
@@ -1438,7 +1704,7 @@ namespace gtas_vpp_be.Service.Services
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
-            ApplyPeriodFlags(result);
+            await ApplyPeriodFlagsAsync(result);
             return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0, stats?.TotalQty ?? 0);
         }
 
@@ -1594,14 +1860,15 @@ namespace gtas_vpp_be.Service.Services
                 if (header.Status != (int)VPPStatus.Pending)
                     throw new BusinessException("The supplement is no longer pending.");
 
-                var period = await EnsurePeriodAsync(
+                var period = await GetPeriodForMutationAsync(
                     header.MemberCompanyCode ?? string.Empty, new Period(header.Year, header.Month));
                 var now = _dateTimeProvider.Now;
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
                 if (period.State is VppPeriodState.Pricing or VppPeriodState.Settled
                     || header.SettledAt is not null
                     || nowUtc >= period.SupplementApprovalDeadlineUtc)
-                    throw new ConflictException("The supplement approval deadline has passed.");
+                    throw new ConflictException(
+                        "Đã hết thời gian duyệt đơn bổ sung. Bạn vẫn có thể từ chối đơn còn chờ để tiếp tục chốt kỳ.");
 
                 var approvedCount = await requestSet.AsNoTracking().CountAsync(x =>
                     x.CreatedByUserId == header.CreatedByUserId
@@ -1694,14 +1961,12 @@ namespace gtas_vpp_be.Service.Services
                 if (header.Status != (int)VPPStatus.Pending)
                     throw new BusinessException("The supplement is no longer pending.");
 
-                var period = await EnsurePeriodAsync(
+                var period = await GetPeriodForMutationAsync(
                     header.MemberCompanyCode ?? string.Empty, new Period(header.Year, header.Month));
                 var now = _dateTimeProvider.Now;
-                var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-                if (period.State is VppPeriodState.Pricing or VppPeriodState.Settled
-                    || header.SettledAt is not null
-                    || nowUtc >= period.SupplementApprovalDeadlineUtc)
-                    throw new ConflictException("The supplement is immutable after its approval window or settlement.");
+                if (period.State == VppPeriodState.Settled || header.SettledAt is not null)
+                    throw new ConflictException(
+                        "Kỳ đã chốt nên không thể xử lý đơn bổ sung này.");
 
                 header.Status = (int)VPPStatus.Rejected;
                 header.RejectedById = adminId;
@@ -1797,23 +2062,90 @@ namespace gtas_vpp_be.Service.Services
                 id, adminId, reason, rowVersion, idempotencyKey, actorDepartmentCode,
                 canApproveCrossDepartment, memberCompanyCode);
 
-        public async Task<VppPeriodInfoResDTO> GetCurrentPeriodInfoAsync(int userId)
+        public async Task<VppPeriodInfoResDTO> GetCurrentPeriodInfoAsync(
+            int userId,
+            Guid? selectedPeriodId = null)
         {
             var now = _dateTimeProvider.Now;
-            var current = _periodCalculator.Current(now);
-            var previous = _periodCalculator.Previous(now);
+            var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
             var user = await _scopedUow.VPPContext.Set<AppUser>()
-                .AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == userId);
             var company = user?.MemberCompanyCode.ToString() ?? string.Empty;
-            var period = await EnsurePeriodAsync(company, current);
-            var requestSet = _scopedUow.VPPContext.Set<VppRequest>();
+            if (string.IsNullOrWhiteSpace(company))
+            {
+                throw new UnauthorizedAccessException("User company is required.");
+            }
 
-            var baseRequest = await requestSet.AsNoTracking().FirstOrDefaultAsync(x =>
-                x.CreatedByUserId == userId && x.MemberCompanyCode == company
-                && (x.PeriodId == period.Id
-                    || (x.PeriodId == null && x.Year == current.Year && x.Month == current.Month))
-                && !x.IsAdditionalOrder
-                && x.IsCurrentRevision && !x.IsDeleted);
+            IReadOnlyList<VppPeriod> openPeriods;
+            Period anchor;
+            if (_periodService is not null)
+            {
+                await _periodService.TopUpOpenHorizonAsync(company);
+                openPeriods = await _periodService.GetOpenPeriodsAsync(company);
+                var settings = await _periodService.GetEffectiveSettingsAsync(company);
+                var localNow = ToBusinessLocal(nowUtc, settings.TimeZoneId);
+                anchor = new PeriodCalculator(settings.DefaultPeriodCloseDay).Current(localNow);
+            }
+            else
+            {
+                anchor = _periodCalculator.Current(now);
+                openPeriods = [await GetPeriodForMutationAsync(company, anchor)];
+            }
+
+            if (selectedPeriodId.HasValue
+                && openPeriods.All(x => x.Id != selectedPeriodId.Value))
+            {
+                throw new BusinessException(
+                    "Kỳ được chọn không tồn tại hoặc đã đóng nhận đơn.");
+            }
+
+            var period = selectedPeriodId.HasValue
+                ? openPeriods.Single(x => x.Id == selectedPeriodId.Value)
+                : openPeriods.FirstOrDefault(x =>
+                    x.Year == anchor.Year && x.Month == anchor.Month)
+                    ?? openPeriods.OrderBy(x => x.Year).ThenBy(x => x.Month).FirstOrDefault();
+            if (period is null)
+            {
+                return new VppPeriodInfoResDTO
+                {
+                    PeriodState = VppPeriodState.SubmissionClosed.ToString(),
+                    CurrentPeriodYear = anchor.Year,
+                    CurrentPeriodMonth = anchor.Month,
+                    PreviousPeriodYear = new DateTime(anchor.Year, anchor.Month, 1)
+                        .AddMonths(-1).Year,
+                    PreviousPeriodMonth = new DateTime(anchor.Year, anchor.Month, 1)
+                        .AddMonths(-1).Month,
+                    IsDeadlinePassed = true,
+                    IsSubmissionOpen = false,
+                    CanCreateOrder = false,
+                    CanCreateOrderReason = "Hiện không có kỳ nhận đơn.",
+                    CanCreateAdditional = false,
+                    CanCreateAdditionalReason = "Hiện không có kỳ nhận đơn.",
+                    MaxAdditionalOrders = _policy.MaxApprovedSupplements,
+                    MaxSupplementAttempts = _policy.MaxSupplementAttempts,
+                    OpenPeriods = []
+                };
+            }
+
+            var current = new Period(period.Year, period.Month);
+            var previousDate = new DateTime(current.Year, current.Month, 1).AddMonths(-1);
+            var previous = new Period(previousDate.Year, previousDate.Month);
+            var requestSet = _scopedUow.VPPContext.Set<VppRequest>();
+            var openPeriodIds = openPeriods.Select(x => x.Id).ToArray();
+            var regularOrders = await requestSet.AsNoTracking()
+                .Where(x => x.CreatedByUserId == userId
+                    && x.MemberCompanyCode == company
+                    && !x.IsAdditionalOrder
+                    && x.IsCurrentRevision
+                    && !x.IsDeleted
+                    && x.PeriodId.HasValue
+                    && openPeriodIds.Contains(x.PeriodId.Value))
+                .ToListAsync();
+            var regularByPeriod = regularOrders
+                .GroupBy(x => x.PeriodId!.Value)
+                .ToDictionary(group => group.Key, group => group.First());
+            regularByPeriod.TryGetValue(period.Id, out var baseRequest);
             var eligibleBaseRequest = baseRequest?.Status is
                 (int)VPPStatus.Submitted or (int)VPPStatus.Approved
                     ? baseRequest
@@ -1835,28 +2167,32 @@ namespace gtas_vpp_be.Service.Services
                     || (x.PeriodId == null && x.Year == current.Year && x.Month == current.Month))
                 && x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted
                 && x.Status == (int)VPPStatus.Pending);
-            var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
             var submissionOpen = period.State == VppPeriodState.Open
+                && period.StartAtUtc <= nowUtc
                 && nowUtc < period.SubmissionDeadlineUtc;
-            var approvalOpen = nowUtc < period.SupplementApprovalDeadlineUtc
-                && period.State != VppPeriodState.Settled;
             var hasPreviousOrder = await requestSet.AsNoTracking().AnyAsync(x =>
-                x.CreatedByUserId == userId && x.Year == previous.Year && x.Month == previous.Month
-                && !x.IsAdditionalOrder && x.IsCurrentRevision && !x.IsDeleted);
+                x.CreatedByUserId == userId
+                && x.MemberCompanyCode == company
+                && x.Year == previous.Year
+                && x.Month == previous.Month
+                && !x.IsAdditionalOrder
+                && x.IsCurrentRevision
+                && !x.IsDeleted);
 
             return new VppPeriodInfoResDTO
             {
                 PeriodId = period.Id,
+                SelectedPeriodId = period.Id,
                 PeriodState = period.State.ToString(),
                 CurrentPeriodYear = current.Year,
                 CurrentPeriodMonth = current.Month,
                 PreviousPeriodYear = previous.Year,
                 PreviousPeriodMonth = previous.Month,
-                // Biên được lưu theo UTC; expose giờ nghiệp vụ Việt Nam cố định để
-                // server chạy UTC không làm lệch ngày hiển thị cho người dùng Việt Nam.
-                StartDate = ToBusinessLocal(period.StartAtUtc),
-                DeadlineDate = ToBusinessLocal(period.SubmissionDeadlineUtc),
-                SupplementApprovalDeadlineDate = ToBusinessLocal(period.SupplementApprovalDeadlineUtc),
+                StartDate = ToBusinessLocal(period.StartAtUtc, period.TimeZoneId),
+                DeadlineDate = ToBusinessLocal(period.SubmissionDeadlineUtc, period.TimeZoneId),
+                SupplementApprovalDeadlineDate = ToBusinessLocal(
+                    period.SupplementApprovalDeadlineUtc,
+                    period.TimeZoneId),
                 IsDeadlinePassed = !submissionOpen,
                 IsSubmissionOpen = submissionOpen,
                 HasCurrentPeriodOrder = baseRequest is not null,
@@ -1867,36 +2203,70 @@ namespace gtas_vpp_be.Service.Services
                 ApprovedSupplementCount = approvedCount,
                 SupplementAttemptCount = attemptCount,
                 MaxSupplementAttempts = _policy.MaxSupplementAttempts,
-                RemainingApprovedSupplementQuota = Math.Max(0, _policy.MaxApprovedSupplements - approvedCount),
-                RemainingSupplementAttempts = Math.Max(0, _policy.MaxSupplementAttempts - attemptCount),
+                RemainingApprovedSupplementQuota = Math.Max(
+                    0,
+                    _policy.MaxApprovedSupplements - approvedCount),
+                RemainingSupplementAttempts = Math.Max(
+                    0,
+                    _policy.MaxSupplementAttempts - attemptCount),
                 HasPendingAdditional = hasPending,
                 CanCreateOrder = submissionOpen && baseRequest is null,
                 CanCreateOrderReason = submissionOpen
-                    ? (baseRequest is null ? null : "You already have a regular order for this period.")
+                    ? (baseRequest is null
+                        ? null
+                        : "You already have a regular order for this period.")
                     : "The regular submission window is closed.",
-                CanCreateAdditional = submissionOpen && approvalOpen
+                CanCreateAdditional = submissionOpen
                     && approvedCount < _policy.MaxApprovedSupplements
-                    && attemptCount < _policy.MaxSupplementAttempts && !hasPending,
-                CanCreateAdditionalReason = hasPending ? "Resolve the pending supplement first."
-                    : approvedCount >= _policy.MaxApprovedSupplements ? "The approved supplement quota is full."
-                    : attemptCount >= _policy.MaxSupplementAttempts ? "The supplement attempt limit is full."
-                    : submissionOpen ? null : "The supplement submission window is closed.",
+                    && attemptCount < _policy.MaxSupplementAttempts
+                    && !hasPending,
+                CanCreateAdditionalReason = hasPending
+                    ? "Resolve the pending supplement first."
+                    : approvedCount >= _policy.MaxApprovedSupplements
+                        ? "The approved supplement quota is full."
+                        : attemptCount >= _policy.MaxSupplementAttempts
+                            ? "The supplement attempt limit is full."
+                            : submissionOpen
+                                ? null
+                                : "The supplement submission window is closed.",
                 HasPreviousOrder = hasPreviousOrder,
-                CanCopyPrevious = submissionOpen && baseRequest is null && hasPreviousOrder
+                CanCopyPrevious = submissionOpen
+                    && baseRequest is null
+                    && hasPreviousOrder,
+                OpenPeriods = openPeriods
+                    .OrderBy(x => x.Year)
+                    .ThenBy(x => x.Month)
+                    .Select(x => new VppOpenPeriodOptionResDTO
+                    {
+                        PeriodId = x.Id,
+                        Year = x.Year,
+                        Month = x.Month,
+                        State = x.State.ToString(),
+                        StartDate = ToBusinessLocal(x.StartAtUtc, x.TimeZoneId),
+                        DeadlineDate = ToBusinessLocal(
+                            x.SubmissionDeadlineUtc,
+                            x.TimeZoneId),
+                        IsAnchor = x.Year == anchor.Year && x.Month == anchor.Month,
+                        HasRegularOrder = regularByPeriod.ContainsKey(x.Id)
+                    })
+                    .ToArray()
             };
         }
 
         // ─── Hàm hỗ trợ nội bộ ────────────────────────────────────────────────
 
-        private async Task<VppPeriod> EnsurePeriodAsync(string memberCompanyCode, Period period)
+        private async Task<VppPeriod> GetPeriodForMutationAsync(
+            string memberCompanyCode,
+            Period period)
         {
             if (_periodService is not null)
             {
-                var ensured = await _periodService.EnsureAsync(memberCompanyCode, period);
                 // Request có thể đến sau downtime. Advance aggregate bền vững
                 // trước khi áp dụng write deadline.
                 await _periodService.AdvanceDuePeriodsAsync(memberCompanyCode);
-                return await _periodService.GetAsync(memberCompanyCode, period) ?? ensured;
+                return await _periodService.GetAsync(memberCompanyCode, period)
+                    ?? throw new BusinessException(
+                        "Kỳ đặt hàng không tồn tại hoặc chưa được Quản lý kỳ mở.");
             }
 
             // Fallback cho unit test/legacy: giữ service dùng được khi test tự tạo
@@ -2060,9 +2430,8 @@ namespace gtas_vpp_be.Service.Services
             => $"VPP-{year:D4}{month:D2}-{Guid.NewGuid():N}";
 
         /// <summary>
-        /// Từ chối Year/Month rõ ràng không hợp lệ từ client (F-09). Year/Month của đơn
-        /// phải nằm trong [kỳ hiện tại - 12 tháng, kỳ hiện tại + 1 tháng]; ngoài khoảng
-        /// này là request sai định dạng.
+        /// Từ chối Year/Month rõ ràng không hợp lệ từ client. Kiểm tra đúng kỳ đang mở
+        /// được thực hiện bằng aggregate VppPeriod trong CreateOrderAsync.
         /// </summary>
         private void ValidateRequestedPeriod(VppRequestCreateReqDTO req)
         {
@@ -2071,14 +2440,6 @@ namespace gtas_vpp_be.Service.Services
             if (req.Month < 1 || req.Month > 12)
                 throw new BusinessException($"Invalid month {req.Month}.");
 
-            var requested = new Period(req.Year, req.Month);
-            var current = _periodCalculator.Current(_dateTimeProvider.Now);
-            var monthsDiff = ((requested.Year - current.Year) * 12) + (requested.Month - current.Month);
-            if (monthsDiff < -12 || monthsDiff > 1)
-            {
-                throw new BusinessException(
-                    $"Period {requested} is too far from the current period {current}.");
-            }
         }
 
         /// <summary>
@@ -2175,38 +2536,99 @@ namespace gtas_vpp_be.Service.Services
         /// P1: Materialize cờ suy ra từ kỳ trên response DTO để FE không tính lại bằng
         /// clock riêng, nguyên nhân gốc cũ của F-02/F-33. Chỉ xử lý trong memory.
         /// </summary>
-        private void ApplyPeriodFlags(IEnumerable<VppRequestResDTO> orders)
+        private async Task ApplyPeriodFlagsAsync(IEnumerable<VppRequestResDTO> orders)
         {
-            var now = _dateTimeProvider.Now;
-            var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-            foreach (var order in orders)
+            var rows = orders.ToArray();
+            if (rows.Length == 0)
+            {
+                return;
+            }
+
+            var periodIds = rows
+                .Where(x => x.PeriodId.HasValue)
+                .Select(x => x.PeriodId!.Value)
+                .Distinct()
+                .ToArray();
+            var years = rows.Select(x => x.Year).Distinct().ToArray();
+            var months = rows.Select(x => x.Month).Distinct().ToArray();
+            var companies = rows
+                .Select(x => x.MemberCompanyCode?.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            var persistedPeriods = await _scopedUow.VPPContext.Set<VppPeriod>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                    && (periodIds.Contains(x.Id)
+                        || (years.Contains(x.Year)
+                            && months.Contains(x.Month)
+                            && companies.Contains(x.MemberCompanyCode))))
+                .ToListAsync();
+            var byId = persistedPeriods.ToDictionary(x => x.Id);
+            var byLabel = persistedPeriods
+                .GroupBy(x => $"{x.MemberCompanyCode}|{x.Year:D4}|{x.Month:D2}",
+                    StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First(),
+                    StringComparer.OrdinalIgnoreCase);
+
+            var nowUtc = PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
+            foreach (var order in rows)
             {
                 var period = new Period(order.Year, order.Month);
-                var regularDeadlineUtc = _periodCalculator.SubmissionDeadlineUtc(period);
-                var supplementDeadlineUtc = _periodCalculator.SupplementApprovalDeadlineUtc(
-                    period, _policy.SupplementApprovalGrace);
+                VppPeriod? persisted = null;
+                if (order.PeriodId.HasValue)
+                {
+                    byId.TryGetValue(order.PeriodId.Value, out persisted);
+                }
+                if (persisted is null && !string.IsNullOrWhiteSpace(order.MemberCompanyCode))
+                {
+                    byLabel.TryGetValue(
+                        $"{order.MemberCompanyCode.Trim()}|{order.Year:D4}|{order.Month:D2}",
+                        out persisted);
+                }
+
+                var regularDeadlineUtc = persisted?.SubmissionDeadlineUtc
+                    ?? _periodCalculator.SubmissionDeadlineUtc(period);
                 var regularDeadlinePassed = nowUtc >= regularDeadlineUtc;
-                var supplementDeadlinePassed = nowUtc >= supplementDeadlineUtc;
+                var mutationOpen = persisted is null
+                    ? !regularDeadlinePassed
+                    : persisted.State == VppPeriodState.Open
+                        && persisted.StartAtUtc <= nowUtc
+                        && nowUtc < persisted.SubmissionDeadlineUtc;
 
                 // IsDeadlinePassed là cờ hạn gửi yêu cầu thường được giữ để tương thích
                 // wire contract. Action bổ sung dùng approval deadline riêng bên dưới.
                 order.IsDeadlinePassed = regularDeadlinePassed;
+                order.PeriodState = (persisted?.State
+                    ?? (regularDeadlinePassed
+                        ? VppPeriodState.SubmissionClosed
+                        : VppPeriodState.Open)).ToString();
                 order.CanEdit = order.IsCurrentRevision && (order.IsAdditionalOrder
                     ? order.Status == (int)VPPStatus.Pending
-                        && !supplementDeadlinePassed
+                        && mutationOpen
                         && order.SettledAt is null
                     : order.Status == (int)VPPStatus.Submitted
-                        && !regularDeadlinePassed
+                        && mutationOpen
                         && order.SettledAt is null);
                 order.CanCancel = order.IsCurrentRevision && order.CanEdit;
                 var canRecoverCancelled = order.IsCurrentRevision
                     && order.Status == (int)VPPStatus.Cancelled
-                    && (order.IsAdditionalOrder
-                        ? !supplementDeadlinePassed
-                        : !regularDeadlinePassed)
+                    && mutationOpen
                     && order.SettledAt is null;
                 order.CanRestore = canRecoverCancelled;
                 order.CanRecreate = canRecoverCancelled;
+                var pendingSupplement = order.IsAdditionalOrder
+                    && order.IsCurrentRevision
+                    && order.Status == (int)VPPStatus.Pending
+                    && order.SettledAt is null;
+                order.CanApproveSupplement = pendingSupplement
+                    && persisted is not null
+                    && persisted.State is not VppPeriodState.Pricing and not VppPeriodState.Settled
+                    && nowUtc < persisted.SupplementApprovalDeadlineUtc;
+                order.CanRejectSupplement = pendingSupplement
+                    && persisted is not null
+                    && persisted.State != VppPeriodState.Settled;
             }
         }
 
@@ -2218,11 +2640,16 @@ namespace gtas_vpp_be.Service.Services
             return (value.Year * 100) + value.Month;
         }
 
-        private static DateTime ToBusinessLocal(DateTime utc)
+        private static DateTime ToBusinessLocal(DateTime utc, string? timeZoneId = null)
         {
             var normalized = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
             return DateTime.SpecifyKind(
-                TimeZoneInfo.ConvertTimeFromUtc(normalized, PeriodCalculator.BusinessTimeZone),
+                TimeZoneInfo.ConvertTimeFromUtc(
+                    normalized,
+                    PeriodCalculator.ResolveTimeZone(
+                        string.IsNullOrWhiteSpace(timeZoneId)
+                            ? "Asia/Ho_Chi_Minh"
+                            : timeZoneId)),
                 DateTimeKind.Unspecified);
         }
 
@@ -2331,6 +2758,14 @@ namespace gtas_vpp_be.Service.Services
                 throw new InvalidOperationException("Item quantity must be greater than zero.");
             if (items.GroupBy(i => i.VppId).Any(g => g.Count() > 1))
                 throw new InvalidOperationException("Duplicate product in order items is not allowed.");
+        }
+
+        private static string RequireFriendlyText(string? value, string fieldName)
+        {
+            var normalized = value?.Trim() ?? string.Empty;
+            if (normalized.Length is < 5 or > 500)
+                throw new BusinessException($"{fieldName} cần từ 5 đến 500 ký tự.");
+            return normalized;
         }
     }
 }

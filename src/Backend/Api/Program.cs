@@ -115,6 +115,7 @@ builder.Services.AddSingleton(sp => VppRequestPolicy.FromConfiguration(
     sp.GetRequiredService<IConfiguration>()));
 builder.Services.AddSingleton(sp => new PeriodCalculator(
     sp.GetRequiredService<VppRequestPolicy>().DeadlineDay));
+builder.Services.AddSingleton<PeriodScheduleCalculator>();
 builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -127,6 +128,7 @@ builder.Services.AddScoped<IPriceAsOfResolver, PriceAsOfResolver>();
 builder.Services.AddScoped<IPriceBookWorkflowService, PriceBookWorkflowService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
+builder.Services.AddScoped<IPostSettlementOrderCorrectionService, PostSettlementOrderCorrectionService>();
 builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
 builder.Services.AddScoped<ILibraryIntegrityService, LibraryIntegrityService>();
 builder.Services.AddScoped<IReportService, ReportService>();

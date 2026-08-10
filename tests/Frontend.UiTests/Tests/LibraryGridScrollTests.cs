@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.UITests.Tests.Library;
 public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task LookupActiveSwitch_UsesSemanticSuccessTrackAndWhiteThumb()
+    public async Task LookupRowActions_KeepEditDirectAndMoveLifecycleIntoOverflow()
     {
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 768);
@@ -18,8 +18,10 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         var surface = Page.GetByTestId("lookup-categories-data-surface");
         await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        var activeSwitch = surface.Locator(".vpp-admin-active-switch .rz-switch.rz-switch-checked").First;
-        await activeSwitch.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        var directEdit = surface.GetByRole(AriaRole.Button, new() { Name = "Sửa", Exact = true }).First;
+        var moreActions = surface.GetByRole(AriaRole.Button, new() { Name = "Thao tác khác", Exact = true }).First;
+        await directEdit.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await moreActions.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         await Page.WaitForFunctionAsync(
             """
             () => [...document.querySelectorAll('.rz-datatable-loading')].every(element => {
@@ -36,19 +38,27 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             new() { Timeout = 60_000 });
         await WaitForRenderSettleAsync();
 
-        var colors = await activeSwitch.EvaluateAsync<string[]>("""
-            element => {
-                const circle = element.querySelector('.rz-switch-circle');
-                if (!circle) throw new Error('Active switch circle is missing.');
-                return [
-                    getComputedStyle(circle).backgroundColor,
-                    getComputedStyle(circle, '::before').backgroundColor
-                ];
-            }
-            """);
-
-        colors[0].Should().NotBe(colors[1], "track và thumb phải có độ tương phản rõ");
-        colors[1].Should().Be("rgb(255, 255, 255)", "thumb active dùng màu trắng trung tính");
+        (await surface.Locator(".vpp-admin-active-switch").CountAsync()).Should().Be(0,
+            "lifecycle không còn cạnh tranh trực tiếp với action Sửa");
+        await moreActions.ClickAsync();
+        var lifecycleMenu = Page.Locator(".rz-context-menu:visible");
+        await lifecycleMenu.WaitForAsync();
+        await lifecycleMenu.GetByText("Vô hiệu hóa", new() { Exact = true }).WaitForAsync();
+        await lifecycleMenu.GetByText("Xóa vĩnh viễn", new() { Exact = true }).WaitForAsync();
+        var menuEvidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(menuEvidenceDirectory))
+        {
+            Directory.CreateDirectory(menuEvidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(menuEvidenceDirectory, "admin-row-action-menu-open-1366x768.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+        await Page.Keyboard.PressAsync("Escape");
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
@@ -56,7 +66,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             Directory.CreateDirectory(evidenceDirectory);
             await Page.ScreenshotAsync(new PageScreenshotOptions
             {
-                Path = Path.Combine(evidenceDirectory, "admin-active-switch-success-1366x768.png"),
+                Path = Path.Combine(evidenceDirectory, "admin-row-action-hierarchy-1366x768.png"),
                 FullPage = false,
                 Animations = ScreenshotAnimations.Disabled,
                 Caret = ScreenshotCaret.Hide,
@@ -131,6 +141,22 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var emptyState = grid.Locator(".rz-datatable-emptymessage");
         ((await statusBadges.CountAsync()) > 0 || (await emptyState.CountAsync()) > 0).Should().BeTrue(
             "the isolated fixture may be empty, but the typed grid must settle to rows or its empty state");
+        if (await statusBadges.CountAsync() > 0)
+        {
+            var firstBadge = statusBadges.First;
+            var badgeText = (await firstBadge.InnerTextAsync()).Trim();
+            var badgeClass = await firstBadge.GetAttributeAsync("class");
+            if (badgeText is "Hoạt động" or "Active")
+            {
+                badgeClass.Should().Contain("vpp-status-badge-info",
+                    "Active resource phải dùng semantic info thay vì success");
+            }
+            else
+            {
+                badgeClass.Should().Contain("vpp-status-badge-neutral",
+                    "Inactive resource phải dùng semantic neutral");
+            }
+        }
         (await surface.Locator(".vpp-data-toolbar .vpp-collection-header-add").CountAsync()).Should().Be(0);
         (await surface.Locator("th.rz-col-actions .vpp-collection-header-add").CountAsync()).Should().Be(0);
     }
@@ -251,6 +277,12 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             }
             """);
 
+        await priceListSurface.Locator(".vpp-admin-action-label").First.WaitForAsync();
+        var priceListMoreActions = priceListSurface.GetByRole(AriaRole.Button, new() { Name = "Thao tác khác", Exact = true }).First;
+        await priceListMoreActions.ClickAsync();
+        await Page.Locator(".rz-context-menu:visible").WaitForAsync();
+        await Page.Keyboard.PressAsync("Escape");
+
         var priceListMetrics = await priceListSurface.EvaluateAsync<double[]>("""
             element => {
                 const body = document.querySelector('.vpp-layout-body');
@@ -297,6 +329,8 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var priceGrid = priceSurface.Locator(".vpp-price-grid");
         await priceSurface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await priceGrid.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await priceSurface.Locator(".vpp-admin-action-label").First.WaitForAsync();
+        await priceSurface.GetByRole(AriaRole.Button, new() { Name = "Thao tác khác", Exact = true }).First.WaitForAsync();
 
         var priceMetrics = await priceSurface.EvaluateAsync<double[]>("""
             element => {
@@ -313,9 +347,16 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
                 ];
             }
             """);
-        priceMetrics[0].Should().BeLessThanOrEqualTo(1);
-        priceMetrics[1].Should().BeLessThanOrEqualTo(priceMetrics[2] + 1);
+        priceMetrics[0].Should().BeGreaterThan(1,
+            "short-height adaptive workspaces must let the outer page scroll instead of clipping the price grid");
         priceMetrics[3].Should().Be(0);
+
+        var priceLayoutBody = Page.Locator(".vpp-layout-body");
+        await priceLayoutBody.EvaluateAsync("element => element.scrollTop = element.scrollHeight");
+        await WaitForRenderSettleAsync();
+        var priceGridBottom = await priceGrid.EvaluateAsync<double>("element => element.getBoundingClientRect().bottom");
+        priceGridBottom.Should().BeLessThanOrEqualTo(priceMetrics[2] + 1,
+            "the complete price data surface must remain reachable by page scrolling");
 
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {

@@ -57,8 +57,7 @@ public class PeriodCalculatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    [InlineData(29)]
-    [InlineData(31)]
+    [InlineData(32)]
     public void Constructor_RejectsInvalidDeadlineDay(int day)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new PeriodCalculator(day));
@@ -72,6 +71,24 @@ public class PeriodCalculatorTests
         var deadline = calc.DeadlineFor(new Period(2026, 3));
 
         Assert.Equal(new DateTime(2026, 4, 5), deadline);
+    }
+
+    [Theory]
+    [InlineData(2027, 1, 2027, 2, 28)]
+    [InlineData(2028, 1, 2028, 2, 29)]
+    [InlineData(2026, 3, 2026, 4, 30)]
+    public void DeadlineFor_ClampsDay31ToActualMonthLength(
+        int periodYear,
+        int periodMonth,
+        int expectedYear,
+        int expectedMonth,
+        int expectedDay)
+    {
+        var calc = new PeriodCalculator(deadlineDay: 31);
+
+        var deadline = calc.DeadlineFor(new Period(periodYear, periodMonth));
+
+        Assert.Equal(new DateTime(expectedYear, expectedMonth, expectedDay), deadline);
     }
 
     [Fact]

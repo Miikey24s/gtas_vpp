@@ -5,8 +5,10 @@
 @inject NavigationManager NavigationManager
 @inject ProtectedLocalStorage ProtectedLocalStore
 
+@* LOADING: Thanh loading dùng chung khi layout đang xử lý. *@
 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Visible=@BusyState.IsBusy AriaLabel="Loading progress" class="vpp-global-loader" />
 
+@* HEADER: Nút mở sidebar trên mobile và các tab điều hướng cấp cao. *@
 <RadzenHeader class="vpp-header-glass vpp-layout-header">
     <RadzenStack Orientation="Orientation.Horizontal" class="vpp-header-row">
         <button type="button"
@@ -22,14 +24,18 @@
             <nav class="vpp-header-tabs" aria-label="@Loc["SectionNavigation"]">
                 @foreach (var headerTab in HeaderTabs)
                 {
-                    @if (headerTab.IsExpanded)
+                    @if (headerTab.Children is { Count: > 0 })
                     {
-                        <VppHeaderTabGroup ParentLabel="@headerTab.Label"
+                        <VppHeaderTabGroup @key="headerTab.Path"
+                                           ParentLabel="@headerTab.Label"
+                                           ParentPath="@headerTab.Path"
+                                           IsExpanded="@headerTab.IsExpanded"
                                            Tabs="@(headerTab.Children!)" />
                     }
                     else
                     {
-                        <a class="vpp-header-tab @(headerTab.IsActive ? "is-active" : string.Empty)"
+                        <a @key="headerTab.Path"
+                           class="vpp-header-tab @(headerTab.IsActive ? "is-active" : string.Empty)"
                            href="@headerTab.Path"
                            aria-current="@(headerTab.IsActive ? "page" : null)">
                             @headerTab.Label
@@ -41,12 +47,9 @@
     </RadzenStack>
 </RadzenHeader>
 
-@* FullHeight bắt buộc cho trục Atlas "brand + tab cùng hàng 72px": Radzen 11 áp
-   grid-template-areas bằng selector :has() có specificity cao hơn vpp-layout.css,
-   nên thiếu FullHeight thì theme sẽ đặt header tràn hết bề ngang phía trên sidebar
-   (header left = 0, brand rơi xuống y = 72 + 36). Với FullHeight="true" theme sinh
-   "rz-sidebar rz-header" / "rz-sidebar rz-body" — đúng template mà vpp-layout.css mô tả. *@
+@* SIDEBAR: FullHeight giữ đúng vùng header/sidebar/body của Radzen. *@
 <RadzenSidebar Responsive="true" FullHeight="true" class="@GetSidebarClass()" data-shell-ready="@(_shellStateReady ? "true" : "false")" Style="@(_sideBarExpanded ? "width: var(--vpp-sidebar-width);" : "width: var(--vpp-sidebar-collapsed-width);")">
+    @* SIDEBAR HEADER: Logo và các nút điều khiển sidebar/menu. *@
     <div class="vpp-sidebar-header">
         <div class="vpp-sidebar-expanded-chrome" aria-hidden="@(!_sideBarExpanded)">
             <div class="vpp-sidebar-expanded-brand" aria-label="GTAS VPP">
@@ -77,6 +80,7 @@
                 </button>
             </div>
         </div>
+        @* COLLAPSED SIDEBAR: Chỉ giữ logo và nút mở lại sidebar. *@
         <button type="button"
                 class="vpp-sidebar-brand vpp-sidebar-collapsed-brand"
                 title="@Loc["ToggleNavigation"]"
@@ -89,8 +93,10 @@
             <VppIcon Name="@VppIcons.SidebarExpand" Class="vpp-sidebar-collapsed-expand-icon" />
         </button>
     </div>
+    @* NAVIGATION: Chỉ hiển thị nhóm/mục menu mà người dùng có quyền xem. *@
     <nav class="vpp-sidebar-nav" aria-label="@Loc["PrimaryNavigation"]">
         <RadzenPanelMenu DisplayStyle="@(_sideBarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Multiple="true" Click="@OnMenuItemClick">
+        @* DASHBOARD: Các màn hình nghiệp vụ của đơn hàng. *@
         @if (CanViewDashboardMenu)
         {
             <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Dashboard.LabelKey]" Icon="@ShellNavigationCatalog.Dashboard.Icon" class="ppjsidebarmenu" title="@Loc[ShellNavigationCatalog.Dashboard.LabelKey]" @bind-Expanded="_dashboardMenuExpanded">
@@ -114,6 +120,10 @@
                 @if (CanViewPeriodMenu)
                 {
                     <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.PeriodOperations.LabelKey]" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.PeriodOperations.Icon" title="@Loc[ShellNavigationCatalog.PeriodOperations.LabelKey]" @bind-Expanded="_periodMenuExpanded">
+                        @if (CanViewShellItem(ShellNavigationCatalog.PeriodPolicy))
+                        {
+                            <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.PeriodPolicy.LabelKey]" Path="@ShellNavigationCatalog.PeriodPolicy.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.PeriodPolicy.Icon" title="@Loc[ShellNavigationCatalog.PeriodPolicy.LabelKey]" />
+                        }
                         @if (CanViewShellItem(ShellNavigationCatalog.PeriodReview))
                         {
                             <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.PeriodReview.LabelKey]" Path="@ShellNavigationCatalog.PeriodReview.Path" class="ppjsidebarmenu submenu" Icon="@ShellNavigationCatalog.PeriodReview.Icon" title="@Loc[ShellNavigationCatalog.PeriodReview.LabelKey]" />
@@ -126,6 +136,7 @@
                 }
             </RadzenPanelMenuItem>
         }
+        @* LIBRARY: Thư viện dữ liệu và bảng giá. *@
         @if (CanViewLibraryMenu)
         {
             <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Library.LabelKey]" Icon="@ShellNavigationCatalog.Library.Icon" class="ppjsidebarmenu" title="@Loc[ShellNavigationCatalog.Library.LabelKey]" @bind-Expanded="_libraryMenuExpanded">
@@ -164,10 +175,12 @@
                 }
             </RadzenPanelMenuItem>
         }
+        @* REPORTS: Báo cáo tổng hợp. *@
         @if (CanViewReportMenu)
         {
             <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Reports.LabelKey]" Icon="@ShellNavigationCatalog.Reports.Icon" class="ppjsidebarmenu" Path="@ShellNavigationCatalog.Reports.Path" title="@Loc[ShellNavigationCatalog.Reports.LabelKey]" />
         }
+        @* PERMISSIONS: Người dùng, nhóm quyền và audit bảo mật. *@
         @if (CanViewPermissionMenu)
         {
             <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.Permission.LabelKey]" Icon="@ShellNavigationCatalog.Permission.Icon" class="ppjsidebarmenu" title="@Loc[ShellNavigationCatalog.Permission.LabelKey]" @bind-Expanded="_permissionMenuExpanded">
@@ -183,10 +196,15 @@
                 {
                     <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.SecurityAudit.LabelKey]" Icon="@ShellNavigationCatalog.SecurityAudit.Icon" class="ppjsidebarmenu submenu" Path="@ShellNavigationCatalog.SecurityAudit.Path" title="@Loc[ShellNavigationCatalog.SecurityAudit.LabelKey]" />
                 }
+                @if (CanViewShellItem(ShellNavigationCatalog.OrderPeriodSettings))
+                {
+                    <RadzenPanelMenuItem Text="@Loc[ShellNavigationCatalog.OrderPeriodSettings.LabelKey]" Icon="@ShellNavigationCatalog.OrderPeriodSettings.Icon" class="ppjsidebarmenu submenu" Path="@ShellNavigationCatalog.OrderPeriodSettings.Path" title="@Loc[ShellNavigationCatalog.OrderPeriodSettings.LabelKey]" />
+                }
             </RadzenPanelMenuItem>
         }
         </RadzenPanelMenu>
     </nav>
+    @* USER FOOTER: Tài khoản, phòng ban, ngôn ngữ và giao diện sáng/tối. *@
     <footer class="vpp-sidebar-user-footer">
         <UserMenu UserFullName="@CurrentUserState.Current?.FullName"
                   UserLogin="@CurrentUserState.Current?.UserLogin"
@@ -202,6 +220,7 @@
                   SidebarMode="true" />
     </footer>
 </RadzenSidebar>
+@* BACKDROP: Đóng sidebar khi đang mở trên màn hình nhỏ. *@
 @if (_sideBarExpanded)
 {
     <button type="button"

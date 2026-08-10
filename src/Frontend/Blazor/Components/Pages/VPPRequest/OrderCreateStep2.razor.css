@@ -95,8 +95,8 @@
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-2);
-    min-height: 40px;
-    padding: 0 var(--vpp-space-3);
+    min-height: var(--vpp-button-height);
+    padding: 0 var(--vpp-button-padding-inline);
     border: 0;
     border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-primary);
@@ -236,9 +236,9 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    min-width: 34px;
-    min-height: 32px;
-    padding: 0 var(--vpp-space-2);
+    min-width: var(--vpp-button-height-compact);
+    min-height: var(--vpp-button-height-compact);
+    padding: 0 var(--vpp-button-padding-inline-compact);
     border: 0;
     border-radius: var(--vpp-radius-sm);
     color: var(--vpp-primary-700);
@@ -432,8 +432,8 @@
 }
 
 .vpp-order-draft-actions-right ::deep .rz-button {
-    min-height: 40px;
-    border-radius: var(--vpp-radius-md);
+    min-height: var(--vpp-button-height);
+    border-radius: var(--vpp-radius-button);
     box-shadow: none;
 }
 
@@ -486,8 +486,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: var(--vpp-button-height-compact);
+    height: var(--vpp-button-height-compact);
     padding: 0;
     border: 0;
     border-radius: var(--vpp-radius-sm);
@@ -531,8 +531,8 @@
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-1);
-    min-height: 36px;
-    padding: 0 var(--vpp-space-3);
+    min-height: var(--vpp-button-height);
+    padding: 0 var(--vpp-button-padding-inline);
     border: 0;
     border-radius: var(--vpp-radius-md);
     font: inherit;
@@ -573,6 +573,26 @@
     .vpp-order-builder-catalog,
     .vpp-order-draft {
         min-height: 620px;
+    }
+}
+
+@media (max-width: 1439px), (max-height: 799px) {
+    .wizard-step-products {
+        height: auto;
+        min-height: 42rem;
+        overflow: visible;
+    }
+
+    .vpp-order-builder {
+        height: 42rem;
+    }
+}
+
+@media (max-width: 1199px) {
+    .wizard-step-products,
+    .vpp-order-builder {
+        height: auto;
+        min-height: 0;
     }
 }
 

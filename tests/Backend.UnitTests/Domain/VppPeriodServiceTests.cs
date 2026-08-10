@@ -3,6 +3,7 @@ using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
+using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -35,7 +36,7 @@ public sealed class VppPeriodServiceTests
             $"period-{Guid.NewGuid():N}");
         var service = CreateService(
             context,
-            new DateTime(2026, 8, 8, 9, 0, 0));
+            new DateTime(2026, 8, 11, 9, 0, 0));
         var period = await service.EnsureAsync("ACME", new Period(2026, 7));
 
         await service.AdvanceDuePeriodsAsync("ACME");
@@ -83,16 +84,337 @@ public sealed class VppPeriodServiceTests
         Assert.Empty(context.Periods);
     }
 
+    [Fact]
+    public async Task Top_up_creates_current_and_two_future_periods_with_independent_deadlines()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(
+            context,
+            new DateTime(2026, 8, 26, 9, 0, 0));
+
+        var created = await service.TopUpOpenHorizonAsync("ACME");
+
+        Assert.Equal(3, created.Count);
+        Assert.Collection(
+            created,
+            period =>
+            {
+                Assert.Equal((2026, 8), (period.Year, period.Month));
+                Assert.Equal(new DateTime(2026, 9, 5), period.CloseAtLocal);
+            },
+            period =>
+            {
+                Assert.Equal((2026, 9), (period.Year, period.Month));
+                Assert.Equal(new DateTime(2026, 10, 5), period.CloseAtLocal);
+            },
+            period =>
+            {
+                Assert.Equal((2026, 10), (period.Year, period.Month));
+                Assert.Equal(new DateTime(2026, 11, 5), period.CloseAtLocal);
+            });
+    }
+
+    [Fact]
+    public async Task Default_settings_use_five_day_supplement_approval_grace()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+
+        var settings = await service.GetSettingsAsync("ACME");
+        var created = await service.TopUpOpenHorizonAsync("ACME");
+
+        Assert.Equal(5, settings.SupplementApprovalGraceDays);
+        Assert.All(created, period =>
+            Assert.Equal(period.CloseAtLocal.AddDays(5), period.SupplementApprovalDeadlineLocal));
+    }
+
+    [Fact]
+    public async Task Settings_history_keeps_versions_and_accepts_a_custom_grace_period()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+
+        await service.SaveSettingsAsync("ACME", 5615, new VppOrderPeriodSettingsReqDTO
+        {
+            Name = "Mặc định 5 ngày",
+            SupplementApprovalGraceDays = 5,
+            EffectiveFromYear = 2026,
+            EffectiveFromMonth = 8
+        });
+        await service.SaveSettingsAsync("ACME", 5616, new VppOrderPeriodSettingsReqDTO
+        {
+            Name = "Ngoại lệ 2 ngày",
+            SupplementApprovalGraceDays = 2,
+            EffectiveFromYear = 2026,
+            EffectiveFromMonth = 9
+        });
+
+        var history = await service.ListSettingsVersionsAsync("ACME");
+
+        Assert.Collection(
+            history,
+            latest =>
+            {
+                Assert.Equal(2, latest.VersionNumber);
+                Assert.Equal(2, latest.SupplementApprovalGraceDays);
+                Assert.Equal(5616, latest.CreatedByUserId);
+            },
+            previous =>
+            {
+                Assert.Equal(1, previous.VersionNumber);
+                Assert.Equal(5, previous.SupplementApprovalGraceDays);
+                Assert.Equal(5615, previous.CreatedByUserId);
+            });
+    }
+
+    [Fact]
+    public async Task Rolling_transition_closes_due_period_and_opens_next_month()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var clock = new FakeDateTimeProvider(new DateTime(2026, 8, 26, 9, 0, 0));
+        var service = CreateService(context, clock);
+        _ = await service.TopUpOpenHorizonAsync("ACME");
+
+        clock.Now = new DateTime(2026, 9, 5, 1, 0, 0);
+        await service.AdvanceDuePeriodsAsync("ACME");
+        _ = await service.TopUpOpenHorizonAsync("ACME");
+
+        var open = await service.GetOpenPeriodsAsync("ACME");
+        Assert.Equal(
+            [(2026, 9), (2026, 10), (2026, 11)],
+            open.Select(x => (x.Year, x.Month)).ToArray());
+        Assert.Equal(
+            VppPeriodState.SubmissionClosed,
+            context.Periods.Single(x => x.Year == 2026 && x.Month == 8).State);
+    }
+
+    [Fact]
+    public async Task Future_settings_remain_visible_but_do_not_apply_before_effective_month()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        await service.SaveSettingsAsync("ACME", 5615, new VppOrderPeriodSettingsReqDTO
+        {
+            Name = "Tạm dừng từ tháng 09",
+            DefaultOpenPeriodCount = 0,
+            DefaultNewPeriodOpenDay = 5,
+            DefaultPeriodCloseDay = 5,
+            TimeZoneId = "Asia/Ho_Chi_Minh",
+            EffectiveFromYear = 2026,
+            EffectiveFromMonth = 9
+        });
+
+        var displayed = await service.GetSettingsAsync("ACME");
+        var effective = await service.GetEffectiveSettingsAsync("ACME");
+        var created = await service.TopUpOpenHorizonAsync("ACME");
+
+        Assert.Equal(0, displayed.DefaultOpenPeriodCount);
+        Assert.Equal(9, displayed.EffectiveFromMonth);
+        Assert.Equal(3, effective.DefaultOpenPeriodCount);
+        Assert.Equal(8, effective.EffectiveFromMonth);
+        Assert.Equal(3, created.Count);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(12)]
+    public async Task Generator_respects_configured_horizon_count(int horizonCount)
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        await SaveCurrentSettingsAsync(service, horizonCount, 2026, 8);
+
+        var created = await service.TopUpOpenHorizonAsync("ACME");
+
+        Assert.Equal(horizonCount, created.Count);
+        Assert.Equal(horizonCount, (await service.GetOpenPeriodsAsync("ACME")).Count);
+    }
+
+    [Fact]
+    public async Task Generator_rolls_over_year_without_invalid_months()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 12, 26, 9, 0, 0));
+
+        var created = await service.TopUpOpenHorizonAsync("ACME");
+
+        Assert.Equal(
+            [(2026, 12), (2027, 1), (2027, 2)],
+            created.Select(x => (x.Year, x.Month)).ToArray());
+    }
+
+    [Fact]
+    public async Task Sparse_manual_period_does_not_replace_missing_default_horizon_months()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        _ = await service.CreateManualAsync("ACME", 5615, new VppOrderPeriodManualCreateReqDTO
+        {
+            Year = 2026,
+            Month = 11,
+            OpenAtLocal = new DateTime(2026, 8, 26, 8, 0, 0),
+            CloseAtLocal = new DateTime(2026, 12, 5),
+            SupplementApprovalDeadlineLocal = new DateTime(2026, 12, 7),
+            Reason = "Mở riêng kỳ tháng 11 theo kế hoạch mua sắm."
+        });
+
+        var created = await service.TopUpOpenHorizonAsync("ACME");
+        var open = await service.GetOpenPeriodsAsync("ACME");
+
+        Assert.Equal(
+            [(2026, 8), (2026, 9), (2026, 10)],
+            created.Select(x => (x.Year, x.Month)).ToArray());
+        Assert.Equal(
+            [(2026, 8), (2026, 9), (2026, 10), (2026, 11)],
+            open.Select(x => (x.Year, x.Month)).ToArray());
+    }
+
+    [Fact]
+    public async Task Manual_period_rejects_duplicate_company_year_and_month()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        var request = new VppOrderPeriodManualCreateReqDTO
+        {
+            Year = 2026,
+            Month = 11,
+            OpenAtLocal = new DateTime(2026, 8, 26, 8, 0, 0),
+            CloseAtLocal = new DateTime(2026, 12, 5),
+            SupplementApprovalDeadlineLocal = new DateTime(2026, 12, 7),
+            Reason = "Mở riêng kỳ tháng 11."
+        };
+        _ = await service.CreateManualAsync("ACME", 5615, request);
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            service.CreateManualAsync("ACME", 5615, request));
+    }
+
+    [Fact]
+    public async Task Locked_period_can_reopen_with_new_deadlines_and_a_reason()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        var period = (await service.TopUpOpenHorizonAsync("ACME")).First();
+        context.Periods.Single(x => x.Id == period.Id).RowVersion = [1];
+        await context.SaveChangesAsync();
+        period = (await service.ListManagedAsync("ACME")).Single(x => x.Id == period.Id);
+
+        var locked = await service.CloseSubmissionsAsync(
+            period.Id,
+            5615,
+            new VppOrderPeriodCommandReqDTO
+            {
+                Reason = "Tạm khóa để rà soát dữ liệu.",
+                RowVersion = period.RowVersion
+            });
+        var reopened = await service.ReopenSubmissionsAsync(
+            period.Id,
+            5615,
+            new VppOrderPeriodReopenSubmissionsReqDTO
+            {
+                CloseAtLocal = new DateTime(2026, 8, 28, 9, 0, 0),
+                SupplementApprovalDeadlineLocal = new DateTime(2026, 9, 2, 9, 0, 0),
+                Reason = "Đã rà soát xong, mở lại để nhân viên hoàn tất đơn.",
+                RowVersion = locked.RowVersion
+            });
+
+        Assert.Equal(nameof(VppPeriodState.Open), reopened.State);
+        Assert.Equal(new DateTime(2026, 8, 28, 9, 0, 0), reopened.CloseAtLocal);
+        Assert.False(reopened.CanReopenSubmissions);
+        Assert.True(reopened.CanCloseSubmissions);
+        Assert.Contains("mở lại", reopened.LastTransitionReason, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Open_period_with_orders_only_allows_deadline_extension_or_close_command()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        var period = (await service.TopUpOpenHorizonAsync("ACME")).First();
+        context.Periods.Single(x => x.Id == period.Id).RowVersion = [1];
+        await context.SaveChangesAsync();
+        period = (await service.ListManagedAsync("ACME")).Single(x => x.Id == period.Id);
+        context.Requests.Add(new VppRequest
+        {
+            Id = Guid.NewGuid(),
+            PeriodId = period.Id,
+            Year = period.Year,
+            Month = period.Month,
+            MemberCompanyCode = "ACME",
+            RequestSeriesId = Guid.NewGuid(),
+            IsCurrentRevision = true
+        });
+        await context.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.UpdateScheduleAsync(
+            period.Id,
+            5615,
+            new VppOrderPeriodUpdateReqDTO
+            {
+                OpenAtLocal = period.OpenAtLocal,
+                CloseAtLocal = period.CloseAtLocal.AddDays(1),
+                SupplementApprovalDeadlineLocal = period.SupplementApprovalDeadlineLocal.AddDays(1),
+                Reason = "Thử sửa trực tiếp kỳ đã có đơn.",
+                RowVersion = period.RowVersion
+            }));
+
+        var extended = await service.ExtendDeadlineAsync(
+            period.Id,
+            5615,
+            new VppOrderPeriodExtendDeadlineReqDTO
+            {
+                CloseAtLocal = period.CloseAtLocal.AddDays(1),
+                SupplementApprovalDeadlineLocal = period.SupplementApprovalDeadlineLocal.AddDays(1),
+                Reason = "Gia hạn để phòng ban hoàn tất nhu cầu.",
+                RowVersion = period.RowVersion
+            });
+
+        Assert.Equal(period.CloseAtLocal.AddDays(1), extended.CloseAtLocal);
+    }
+
+    private static Task SaveCurrentSettingsAsync(
+        VppPeriodService service,
+        int horizonCount,
+        int year,
+        int month)
+        => service.SaveSettingsAsync("ACME", 5615, new VppOrderPeriodSettingsReqDTO
+        {
+            Name = $"Mặc định {horizonCount} kỳ",
+            DefaultOpenPeriodCount = horizonCount,
+            DefaultNewPeriodOpenDay = 5,
+            DefaultPeriodCloseDay = 5,
+            TimeZoneId = "Asia/Ho_Chi_Minh",
+            SupplementApprovalGraceDays = 2,
+            EffectiveFromYear = year,
+            EffectiveFromMonth = month
+        });
+
     private static VppPeriodService CreateService(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         DateTime now)
+        => CreateService(context, new FakeDateTimeProvider(now));
+
+    private static VppPeriodService CreateService(
+        gtas_vpp_be.Service.Helpers.Context.VPPContext context,
+        FakeDateTimeProvider clock)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context).Object;
         return new VppPeriodService(
             unitOfWork,
-            new FakeDateTimeProvider(now),
-            new PeriodCalculator(),
-            new VppRequestPolicy(),
+            clock,
+            new PeriodScheduleCalculator(),
             NullLogger<VppPeriodService>.Instance);
     }
 }

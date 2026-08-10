@@ -90,6 +90,97 @@ public sealed class UiMotifCatalogTests
         }
     }
 
+    [Fact]
+    public void PeriodLifecycleBadge_IsCanonicalAndUsedByRealConsumers()
+    {
+        var root = FindRepositoryRoot();
+        var frontend = Path.Combine(root, "src", "Frontend", "Blazor");
+        var badge = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "DesignSystem",
+            "Composites",
+            "VppPeriodStateBadge.razor"));
+
+        Assert.Contains("<VppStatusBadge", badge, StringComparison.Ordinal);
+        Assert.Contains("PeriodStateDisplay.GetTone", badge, StringComparison.Ordinal);
+
+        var categoryChip = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "DesignSystem",
+            "Composites",
+            "VppCategoryChip.razor"));
+        Assert.Contains("VppCategoryTone.Primary", categoryChip, StringComparison.Ordinal);
+        Assert.Contains("VppCategoryTone.Accent", categoryChip, StringComparison.Ordinal);
+
+        var toneContract = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "DesignSystem",
+            "Primitives",
+            "VppStatusToneContract.cs"));
+        Assert.Contains("\"ACTIVE\" or \"OPEN\" or \"SCHEDULED\" or \"SUBMITTED\"", toneContract, StringComparison.Ordinal);
+        Assert.Contains("\"SETTLED\"", toneContract, StringComparison.Ordinal);
+        Assert.Contains("VppStatusTone.Success", toneContract, StringComparison.Ordinal);
+
+        foreach (var consumer in new[]
+                 {
+                     Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"),
+                     Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor"),
+                     Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Components", "OrderPeriodManagementWorkspace.razor")
+                 })
+        {
+            Assert.Contains("<VppPeriodStateBadge", File.ReadAllText(consumer), StringComparison.Ordinal);
+        }
+
+        Assert.Contains(
+            "<VppCategoryChip",
+            File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor")),
+            StringComparison.Ordinal);
+
+        Assert.DoesNotContain(
+            "vpp-permission-matrix-badge",
+            File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "Permission", "Tabs", "Tab_PagePermission.razor")),
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OrderPeriodManagement_UsesCanonicalAdminCollectionMotif()
+    {
+        var root = FindRepositoryRoot();
+        var frontend = Path.Combine(root, "src", "Frontend", "Blazor");
+        var workspace = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "OrderPeriodManagementWorkspace.razor"));
+        var profile = UiRouteCatalog.Get("dashboard.period.periods");
+
+        Assert.Equal(UiRouteCatalog.WorkspacePattern.Collection, profile.Workspace);
+        Assert.Contains("COLLECTION-HEADER", profile.Motifs);
+        Assert.Contains("ADMIN-ROW-ACTIONS", profile.Motifs);
+        Assert.Contains("<VppCollectionHeader", workspace, StringComparison.Ordinal);
+        Assert.Contains("<RadzenDataGrid", workspace, StringComparison.Ordinal);
+        Assert.Contains("Text=\"@PrimaryPeriodActionText(row)\"", workspace, StringComparison.Ordinal);
+        Assert.Contains("<VppAdminActionMenu", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppAdminActiveToggle", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppListDetailWorkspace", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("post-settlement-corrections", workspace, StringComparison.Ordinal);
+
+        var settlement = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "PeriodSettlementPanel.razor"));
+        Assert.Contains("pendingPostSettlementCorrections.Count > 0", settlement, StringComparison.Ordinal);
+        Assert.Contains("TestId=\"post-settlement-corrections\"", settlement, StringComparison.Ordinal);
+    }
+
     private static string FindRepositoryRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory);

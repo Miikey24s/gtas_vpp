@@ -110,6 +110,13 @@ public static class RouteAcceptanceManifest
             "Ds3WorkflowTests.PeriodSettlement_UsesItemAndDepartmentViewsWithInlineSupplierSelection",
             "dashboard.period.review"),
         new(
+            "dashboard.period.periods",
+            "/dashboard?tab=5&periodTab=periods",
+            RouteAcceptanceClassification.Tested,
+            "Rolling period management exposes future horizon settings and remains usable across responsive viewports.",
+            "tests/Frontend.UiTests/Tests/Period/OrderPeriodManagementTests.cs",
+            "OrderPeriodManagementTests.OrderPeriodManagement_ShowsRollingSettingsAcrossResponsiveViewports"),
+        new(
             "dashboard.period.pending-approval",
             "/dashboard?tab=5&periodTab=pending",
             RouteAcceptanceClassification.Tested,
@@ -143,7 +150,7 @@ public static class RouteAcceptanceManifest
             RouteAcceptanceClassification.Tested,
             "Settlement is covered by the runtime matrix and the two-user mutation test preserves immutable revisions and four-eyes behavior.",
             "tests/Frontend.UiTests/Tests/Settlement/PeriodSettlementMutationTests.cs",
-            "PeriodSettlementMutationTests.Settlement_ConfirmThenCorrection_RequiresAnotherAuthorizedUserAndPreservesRevisions"),
+            "PeriodSettlementMutationTests.Settlement_AdjustmentFromUi_KeepsTheOldVersionAndCreatesVersionTwo"),
         new(
             "dashboard.order-create.new",
             "/dashboard/order-create",
@@ -262,6 +269,13 @@ public static class RouteAcceptanceManifest
             "Security audit has dedicated read-only, filter and responsive route tests.",
             "tests/Frontend.UiTests/Tests/AdminSecurityAuditTests.cs",
             "AdminSecurityAuditTests.SecurityAudit_IsReadOnlyFilterableAndResponsive"),
+        new(
+            "permission.order-period-settings",
+            "/permission?tab=3",
+            RouteAcceptanceClassification.Tested,
+            "Ordering configuration has dedicated access, version history and responsive route coverage.",
+            "tests/Frontend.UiTests/Tests/OrderPeriodSettingsTests.cs",
+            "OrderPeriodSettingsTests.SystemAdmin_CanManageVersionedOrderingDefaults"),
         new(
             "report",
             "/report",

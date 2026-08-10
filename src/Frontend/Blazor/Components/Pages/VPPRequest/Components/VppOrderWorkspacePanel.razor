@@ -1,6 +1,8 @@
+@* PAGE: VPPRequest/Components/VppOrderWorkspacePanel.razor *@
 @using gtas_vpp_shared.DTOs.Res.VPP
 
 <section class="vpp-order-view-panel" data-testid="@TestId" aria-label="@PanelLabel">
+    @* HEADER: Mã đơn, trạng thái, kỳ gửi và bộ chọn lần gửi. *@
     @if (Order is not null)
     {
     <header class="vpp-order-view-meta">
@@ -9,7 +11,7 @@
                     <span class="vpp-data-card-value vpp-order-code-static" title="@Order.VppCode">@Order.VppCode</span>
                     @if (Order.IsAdditionalOrder)
                     {
-                        <VppStatusBadge Text="@Loc["Additional"]" Tone="VppStatusTone.Warning" />
+                        <VppCategoryChip Text="@Loc["Additional"]" Tone="VppCategoryTone.Accent" />
                     }
                     <VppStatusBadge Tone="@StatusDisplay.GetTone(Order.Status)"
                                     Text="@Loc[StatusDisplay.GetResourceKey(Order.Status, Order.IsDeadlinePassed, Order.IsAdditionalOrder)]" />
@@ -42,6 +44,7 @@
             </div>
         }
 
+        @* TOOLBAR: Lịch sử, xuất file và các thao tác trên đơn. *@
         <div class="vpp-order-card-toolbar">
                 <div class="vpp-data-card-actions">
                     <RadzenButton Icon="@VppIcons.History"

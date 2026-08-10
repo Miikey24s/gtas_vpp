@@ -1,0 +1,58 @@
+.vpp-history-post-settlement-action {
+    min-height: var(--vpp-button-height);
+    padding: 0 var(--vpp-button-padding-inline);
+    color: var(--vpp-warning-strong, var(--vpp-text-primary));
+    border: 1px solid var(--vpp-warning, var(--vpp-border-default));
+    border-radius: var(--vpp-radius-button);
+    background: var(--vpp-warning-subtle, var(--vpp-surface-control));
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.vpp-history-post-settlement-action:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.vpp-history-drawer.vpp-settlement-detail-drawer {
+    width: clamp(640px, 52vw, 900px);
+}
+
+.vpp-history-drawer-backdrop.vpp-settlement-detail-backdrop {
+    background: transparent;
+}
+
+::deep .vpp-history-drawer-close.rz-button .rz-button-box {
+    display: grid !important;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    gap: 0;
+}
+
+::deep .vpp-history-drawer-close.rz-button :is(.rzi, .rz-button-icon-left, .rz-button-icon-right) {
+    position: static;
+    margin: 0 !important;
+    transform: none;
+}
+
+.vpp-history-drawer.vpp-settlement-detail-drawer .vpp-history-order-meta.is-aggregate {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+    .vpp-history-drawer.vpp-settlement-detail-drawer {
+        width: min(96vw, 760px);
+    }
+
+    .vpp-history-drawer.vpp-settlement-detail-drawer .vpp-history-order-meta.is-aggregate {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .vpp-history-drawer.vpp-settlement-detail-drawer {
+        width: 100vw;
+    }
+}

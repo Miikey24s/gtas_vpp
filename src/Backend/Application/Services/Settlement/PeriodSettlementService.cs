@@ -174,6 +174,8 @@ namespace gtas_vpp_be.Service.Services
                     {
                         response.Blockers.Add("PRIMARY_QUOTE_HAS_UNRESOLVED_ITEMS");
                     }
+
+                    response.Allocations = BuildPreviewAllocations(headers, response.PrimaryQuote);
                 }
             }
 
@@ -198,7 +200,7 @@ namespace gtas_vpp_be.Service.Services
             int userId,
             CancellationToken cancellationToken = default)
         {
-            var reason = ValidateReason(req.Reason, "Correction reason");
+            var reason = ValidateReason(req.Reason, "Lý do điều chỉnh");
             return SaveRevisionAsync(req, settlementId, reason, userId, cancellationToken);
         }
 
@@ -294,11 +296,16 @@ namespace gtas_vpp_be.Service.Services
                     ?? throw new BusinessException("Settlement revision not found.");
                 if (!correctionTarget.IsCurrentRevision)
                 {
-                    throw new ConflictException("Only the current settlement revision can be corrected.");
+                    throw new ConflictException("Bản chốt đã thay đổi. Hãy tải lại trước khi điều chỉnh.");
                 }
                 if (correctionTarget.ConfirmedByUserId == userId)
                 {
-                    throw new ConflictException("Four-eyes control requires another procurement user to confirm the correction.");
+                    throw new ConflictException("Một quản lý khác cần thực hiện lần điều chỉnh này.");
+                }
+                if (correctionTarget.HasExternalProcurementImpact)
+                {
+                    throw new ConflictException(
+                        "Bản chốt đã được dùng cho hoạt động mua sắm nên không thể điều chỉnh trực tiếp.");
                 }
             }
 
@@ -343,9 +350,22 @@ namespace gtas_vpp_be.Service.Services
                         && x.MemberCompanyCode == company
                         && x.Year == req.Year
                         && x.Month == req.Month, cancellationToken);
+                var latest = await _scopedUow.VPPContext.Set<Settlement>()
+                    .Where(x => !x.IsDeleted
+                        && x.MemberCompanyCode == company
+                        && x.Year == req.Year
+                        && x.Month == req.Month)
+                    .OrderByDescending(x => x.RevisionNumber)
+                    .FirstOrDefaultAsync(cancellationToken);
                 if (!correctionSettlementId.HasValue && current is not null)
                 {
-                    throw new ConflictException("The period is already settled. Create a correction revision instead.");
+                    throw new ConflictException("Kỳ đã được chốt. Hãy dùng Điều chỉnh sau chốt.");
+                }
+                if (!correctionSettlementId.HasValue
+                    && current is null
+                    && latest is not null)
+                {
+                    throw new ConflictException("Lịch sử bản chốt không hợp lệ. Hãy tải lại dữ liệu.");
                 }
                 if (correctionSettlementId.HasValue
                     && (current is null || current.Id != correctionSettlementId.Value))
@@ -354,7 +374,7 @@ namespace gtas_vpp_be.Service.Services
                 }
                 if (current is not null && current.ConfirmedByUserId == userId)
                 {
-                    throw new ConflictException("Four-eyes control requires another procurement user to confirm the correction.");
+                    throw new ConflictException("Một quản lý khác cần thực hiện lần điều chỉnh này.");
                 }
 
                 var period = await _scopedUow.VPPContext.Set<VppPeriod>()
@@ -363,12 +383,14 @@ namespace gtas_vpp_be.Service.Services
                         && x.Year == req.Year
                         && x.Month == req.Month, cancellationToken)
                     ?? throw new BusinessException("The persisted company period was not found.");
-                var requiredState = correctionSettlementId.HasValue
-                    ? VppPeriodState.Settled
-                    : VppPeriodState.Pricing;
-                if (period.State != requiredState)
+                var validState = correctionSettlementId.HasValue
+                    ? period.State == VppPeriodState.Settled
+                    : period.State is VppPeriodState.SubmissionClosed or VppPeriodState.Pricing;
+                if (!validState)
                 {
-                    throw new ConflictException($"Period must be {requiredState} before this settlement action.");
+                    throw new ConflictException(correctionSettlementId.HasValue
+                        ? "Kỳ không còn ở trạng thái đã chốt."
+                        : "Kỳ phải đóng nhận đơn trước khi chốt.");
                 }
 
                 var headers = await EligibleHeaders(req.Year, req.Month)
@@ -420,7 +442,7 @@ namespace gtas_vpp_be.Service.Services
                     MemberCompanyCode = company,
                     Year = req.Year,
                     Month = req.Month,
-                    RevisionNumber = current?.RevisionNumber + 1 ?? 1,
+                    RevisionNumber = latest?.RevisionNumber + 1 ?? 1,
                     IsCurrentRevision = true,
                     IsCorrection = correctionSettlementId.HasValue,
                     SupersedesSettlementId = correctionSettlementId,
@@ -571,22 +593,20 @@ namespace gtas_vpp_be.Service.Services
                 }
                 EnsureReconciled(settlement);
 
-                if (current is not null)
+                var superseded = current;
+                if (superseded is not null)
                 {
-                    current.IsCurrentRevision = false;
-                    current.SupersededBySettlementId = settlement.Id;
-                    current.UpdatedByUserId = userId;
-                    current.UpdatedAtUtc = nowUtc;
+                    superseded.IsCurrentRevision = false;
+                    superseded.SupersededBySettlementId = settlement.Id;
+                    superseded.UpdatedByUserId = userId;
+                    superseded.UpdatedAtUtc = nowUtc;
                 }
-                else
-                {
-                    period.State = VppPeriodState.Settled;
-                }
+                period.State = VppPeriodState.Settled;
                 period.LastTransitionUserId = userId;
                 period.LastTransitionAtUtc = nowUtc;
                 period.LastTransitionReason = correctionSettlementId.HasValue
-                    ? $"Settlement correction revision {settlement.RevisionNumber}: {correctionReason}"
-                    : $"Settlement confirmed revision {settlement.RevisionNumber}";
+                    ? $"Đã lưu bản chốt {settlement.RevisionNumber}: {correctionReason}"
+                    : $"Đã chốt kỳ · bản {settlement.RevisionNumber}";
                 period.UpdatedByUserId = userId;
                 period.UpdatedAtUtc = nowUtc;
 
@@ -598,7 +618,9 @@ namespace gtas_vpp_be.Service.Services
                         Id = Guid.NewGuid(),
                         RequestId = header.Id,
                         LogDate = nowUtc,
-                        LogTitle = correctionSettlementId.HasValue ? "SETTLEMENT_CORRECTED" : "SETTLEMENT_CONFIRMED",
+                        LogTitle = correctionSettlementId.HasValue
+                            ? "SETTLEMENT_CORRECTED"
+                            : "SETTLEMENT_CONFIRMED",
                         LogJS = JsonSerializer.Serialize(new
                         {
                             SettlementId = settlement.Id,
@@ -765,23 +787,34 @@ namespace gtas_vpp_be.Service.Services
                     && x.MemberCompanyCode == company
                     && x.Year == y
                     && x.Month == m);
+            var periodState = await _scopedUow.VPPContext.Set<VppPeriod>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                    && x.MemberCompanyCode == company
+                    && x.Year == y
+                    && x.Month == m)
+                .Select(x => (VppPeriodState?)x.State)
+                .FirstOrDefaultAsync();
+            var isSettled = periodState.HasValue
+                ? periodState == VppPeriodState.Settled && (currentSnapshot is not null || latest?.SettledAt is not null)
+                : currentSnapshot is not null || latest?.SettledAt is not null;
 
             var result = new PeriodSettlementResDTO
             {
                 Year = y,
                 Month = m,
-                IsSettled = currentSnapshot is not null || latest?.SettledAt != null,
-                SettledAt = currentSnapshot?.ConfirmedAtUtc ?? latest?.SettledAt,
-                SettledByUserId = currentSnapshot?.ConfirmedByUserId ?? latest?.SettledByUserId,
-                PriceListId = currentSnapshot?.PriceListId ?? latest?.SettledByPriceListId,
-                PriceListName = currentSnapshot?.PriceListName,
+                IsSettled = isSettled,
+                SettledAt = isSettled ? currentSnapshot?.ConfirmedAtUtc ?? latest?.SettledAt : null,
+                SettledByUserId = isSettled ? currentSnapshot?.ConfirmedByUserId ?? latest?.SettledByUserId : null,
+                PriceListId = isSettled ? currentSnapshot?.PriceListId ?? latest?.SettledByPriceListId : null,
+                PriceListName = isSettled ? currentSnapshot?.PriceListName : null,
                 OrderCount = orderCount,
                 PendingAdditionalCount = pendingAdditionalCount,
-                SettlementId = currentSnapshot?.Id,
-                RevisionNumber = currentSnapshot?.RevisionNumber,
-                GrandTotal = currentSnapshot?.GrandTotal,
-                PrimarySupplierId = currentSnapshot?.PrimarySupplierId,
-                PrimarySupplierName = currentSnapshot?.PrimarySupplierName
+                SettlementId = isSettled ? currentSnapshot?.Id : null,
+                RevisionNumber = isSettled ? currentSnapshot?.RevisionNumber : null,
+                GrandTotal = isSettled ? currentSnapshot?.GrandTotal : null,
+                PrimarySupplierId = isSettled ? currentSnapshot?.PrimarySupplierId : null,
+                PrimarySupplierName = isSettled ? currentSnapshot?.PrimarySupplierName : null
             };
 
             await PopulateNamesAsync(new[] { result });
@@ -940,6 +973,17 @@ namespace gtas_vpp_be.Service.Services
                 supplierException.NetAmount = resolved.NetAmount;
                 supplierException.VatAmount = resolved.VatAmount;
                 supplierException.GrossAmount = resolved.GrossAmount;
+                quote.Lines.RemoveAll(line => line.VppId == supplierException.VppId);
+                quote.Lines.Add(new PriceBookQuoteLineResDTO
+                {
+                    VppId = supplierException.VppId,
+                    Quantity = totals[supplierException.VppId],
+                    NetUnitPrice = resolved.NetUnitPrice,
+                    VatRate = resolved.VatRate,
+                    NetAmount = resolved.NetAmount,
+                    VatAmount = resolved.VatAmount,
+                    GrossAmount = resolved.GrossAmount
+                });
                 quote.MissingVppIds.Remove(supplierException.VppId);
                 quote.CoveredItemCount++;
                 quote.Subtotal += resolved.NetAmount;
@@ -972,6 +1016,69 @@ namespace gtas_vpp_be.Service.Services
                 ? 0m
                 : decimal.Round(quote.CoveredItemCount * 100m / quote.RequestedItemCount, 2, MidpointRounding.AwayFromZero);
             quote.IsEligible = quote.MissingVppIds.Count == 0 && quote.Blockers.Count == 0;
+        }
+
+        private static List<SettlementFinancialAllocationResDTO> BuildPreviewAllocations(
+            IReadOnlyList<VppRequest> headers,
+            PriceBookQuoteResDTO quote)
+        {
+            var allocations = new List<SettlementFinancialAllocationResDTO>();
+            foreach (var line in quote.Lines.OrderBy(item => item.VppId))
+            {
+                var sources = headers
+                    .SelectMany(header => header.RequestDetails
+                        .Where(detail => !detail.IsDeleted && detail.VppId == line.VppId)
+                        .Select(detail => new { Header = header, Detail = detail }))
+                    .OrderBy(source => source.Header.Id)
+                    .ThenBy(source => source.Detail.Id)
+                    .ToList();
+                if (sources.Count == 0)
+                {
+                    continue;
+                }
+
+                var weights = sources.Select(source => (decimal)source.Detail.Qty).ToArray();
+                var netShares = AllocateAmount(line.NetAmount, weights);
+                var vatShares = AllocateAmount(line.VatAmount, weights);
+                for (var index = 0; index < sources.Count; index++)
+                {
+                    var source = sources[index];
+                    allocations.Add(new SettlementFinancialAllocationResDTO
+                    {
+                        RequestHeaderId = source.Header.Id,
+                        RequestDetailId = source.Detail.Id,
+                        VppId = line.VppId,
+                        DepartmentCode = source.Header.DepartmentCode,
+                        RequesterUserId = source.Header.CreatedByUserId,
+                        Quantity = source.Detail.Qty,
+                        NetAmount = netShares[index],
+                        VatAmount = vatShares[index]
+                    });
+                }
+            }
+
+            if (allocations.Count == 0)
+            {
+                return allocations;
+            }
+
+            var commercialTotal = quote.GrandTotal - quote.Subtotal - quote.VatAmount;
+            var commercialWeights = allocations.Select(allocation => allocation.NetAmount).ToArray();
+            if (commercialWeights.Sum() == 0m)
+            {
+                commercialWeights = allocations.Select(allocation => allocation.Quantity).ToArray();
+            }
+
+            var commercialShares = AllocateAmount(commercialTotal, commercialWeights);
+            for (var index = 0; index < allocations.Count; index++)
+            {
+                allocations[index].CommercialAdjustmentAmount = commercialShares[index];
+                allocations[index].GrossAmount = allocations[index].NetAmount
+                    + allocations[index].VatAmount
+                    + commercialShares[index];
+            }
+
+            return allocations;
         }
 
         private static SnapshotPriceEvidence ResolvePrimaryEvidence(
@@ -1139,8 +1246,48 @@ namespace gtas_vpp_be.Service.Services
                 GrandTotal = entity.GrandTotal,
                 ConfirmedAtUtc = entity.ConfirmedAtUtc,
                 ConfirmedByUserId = entity.ConfirmedByUserId,
+                HasExternalProcurementImpact = entity.HasExternalProcurementImpact,
+                RowVersion = entity.RowVersion,
                 ItemCount = entity.Items.Count,
-                AllocationCount = entity.Allocations.Count
+                AllocationCount = entity.Allocations.Count,
+                Items = entity.Items
+                    .OrderBy(item => item.VppName)
+                    .ThenBy(item => item.VppCode)
+                    .Select(item => new SettlementFinancialItemResDTO
+                    {
+                        VppId = item.VppId,
+                        VppCode = item.VppCode,
+                        VppName = item.VppName,
+                        UomName = item.UomName,
+                        Quantity = item.Quantity,
+                        NetUnitPrice = item.NetUnitPrice,
+                        VatRate = item.VatRate,
+                        NetAmount = item.NetAmount,
+                        VatAmount = item.VatAmount,
+                        GrossAmount = item.GrossAmount
+                    })
+                    .ToList(),
+                Allocations = entity.Allocations
+                    .OrderBy(allocation => allocation.RequestHeaderId)
+                    .ThenBy(allocation => allocation.RequestDetailId)
+                    .Select(allocation => new SettlementFinancialAllocationResDTO
+                    {
+                        RequestHeaderId = allocation.RequestHeaderId,
+                        RequestDetailId = allocation.RequestDetailId,
+                        VppId = entity.Items
+                            .Where(item => item.Id == allocation.SettlementItemId)
+                            .Select(item => item.VppId)
+                            .FirstOrDefault(),
+                        DepartmentCode = allocation.DepartmentCode,
+                        RequesterUserId = allocation.RequesterUserId,
+                        Quantity = allocation.Quantity,
+                        NetAmount = allocation.NetAmount,
+                        VatAmount = allocation.VatAmount,
+                        CommercialAdjustmentAmount = allocation.CommercialAdjustmentAmount
+                            + allocation.RoundingAdjustment,
+                        GrossAmount = allocation.GrossAmount
+                    })
+                    .ToList()
             };
 
         private static void ValidateConfirmRequest(SettlementConfirmReqDTO req)
@@ -1166,9 +1313,24 @@ namespace gtas_vpp_be.Service.Services
             var value = reason?.Trim();
             if (string.IsNullOrWhiteSpace(value) || value.Length is < 5 or > 500)
             {
-                throw new BusinessException($"{label} must contain between 5 and 500 characters.");
+                throw new BusinessException($"{label} cần từ 5 đến 500 ký tự.");
             }
             return value;
+        }
+
+        private static void EnsureRowVersion(
+            byte[]? actual,
+            byte[]? expected,
+            string aggregateName)
+        {
+            if (expected is not { Length: > 0 })
+            {
+                throw new BusinessException($"{aggregateName} RowVersion is required. Reload and try again.");
+            }
+            if (actual is null || !actual.AsSpan().SequenceEqual(expected))
+            {
+                throw new ConflictException($"The {aggregateName} changed. Reload and try again.");
+            }
         }
 
         private static string ComputeCommandPayloadHash(

@@ -1,3 +1,4 @@
+// PAGE LOGIC: Lib/Tabs/Tab_PriceLibrary.razor.cs
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
@@ -45,8 +46,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             || !string.IsNullOrWhiteSpace(selectedCategory)
             || !string.IsNullOrWhiteSpace(selectedMappingStatus);
         private PriceListResDTO? SelectedPriceList => priceLists.FirstOrDefault(x => x.Id == selectedPriceListId);
-        private bool IsSelectedPriceListDraft
-            => SelectedPriceList?.Status == "Draft";
+        private bool IsSelectedPriceListEditable
+            => SelectedPriceList is { IsDeleted: false } row && row.Status != "Expired";
         private IReadOnlyList<VppFilterOption<Guid?>> PriceListFilterOptions
             => priceLists.Select(row => new VppFilterOption<Guid?>(row.Id, FormatPriceListOption(row))).ToList();
         private IReadOnlyList<VppFilterOption<string>> CategoryFilterOptions =>
@@ -62,20 +63,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             ?? suppliers.FirstOrDefault(row => row.Id == selectedSupplierId)?.SupplierName
             ?? suppliers.FirstOrDefault(row => row.Id == selectedSupplierId)?.SupplierShortName
             ?? "–";
-        private string SelectedPriceListStatusLabel => SelectedPriceList?.Status switch
-        {
-            "Draft" => Loc["PriceListStatusDraft"],
-            "Published" => Loc["PriceListStatusPublished"],
-            "Expired" => Loc["PriceListStatusExpired"],
-            _ => Loc["StatusUnknown"]
-        };
-        private VppStatusTone SelectedPriceListStatusTone => SelectedPriceList?.Status switch
-        {
-            "Published" => VppStatusTone.Success,
-            "Draft" => VppStatusTone.Info,
-            "Expired" => VppStatusTone.Warning,
-            _ => VppStatusTone.Neutral
-        };
+        private bool IsSelectedPriceListActive
+            => SelectedPriceList is { IsDeleted: false, Status: "Published" };
+        private string SelectedPriceListStatusLabel
+            => IsSelectedPriceListActive ? Loc["LibraryStatusActive"] : Loc["LibraryStatusInactive"];
+        private VppStatusTone SelectedPriceListStatusTone
+            => IsSelectedPriceListActive ? VppStatusTone.Success : VppStatusTone.Neutral;
         private string GridEmptyText => !HasPriceLists
             ? Loc["NoPriceListAvailable"].Value
             : HasPriceContext ? Loc["NoPricesFound"].Value : Loc["LoadPriceListPrompt"].Value;
@@ -319,6 +312,29 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 ? Loc["Edit"].Value
                 : Loc["Create"].Value;
         }
+
+        private IReadOnlyList<VppAdminActionMenuItem> PriceRowSecondaryActions(VppItemPriceResDTO row) =>
+        [
+            new(
+                "set-default",
+                Loc["SetDefault"].Value,
+                "star",
+                () => SetDefaultAsync(row),
+                !row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted || !IsSelectedPriceListEditable),
+            new(
+                "toggle-active",
+                row.IsDeleted ? Loc["Restore"].Value : Loc["Deactivate"].Value,
+                row.IsDeleted ? "restore_from_trash" : "block",
+                () => SetDeletedPriceAsync(row, !row.IsDeleted),
+                !row.PriceMappingId.HasValue || !IsSelectedPriceListEditable),
+            new(
+                "hard-delete",
+                Loc["HardDelete"].Value,
+                "delete_forever",
+                () => HardDeletePriceAsync(row),
+                !row.PriceMappingId.HasValue || !row.IsDeleted || !IsSelectedPriceListEditable,
+                VppAdminActionTone.Danger)
+        ];
 
         private async Task SetDeletedPriceAsync(VppItemPriceResDTO row, bool isDeleted)
         {

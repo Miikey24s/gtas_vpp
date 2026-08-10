@@ -1,3 +1,4 @@
+@* PAGE: Permission/Component_Permission.razor *@
 @using gtas_vpp_fe.Components.Pages.Permission.Tabs
 @using gtas_vpp_shared.Constants
 
@@ -36,6 +37,15 @@
                     @if (IsActiveTab(2))
                     {
                         <Tab_SecurityAudit />
+                    }
+                </RadzenTabsItem>
+            }
+            @if (CanViewPermissionTab(Permissions.PeriodSettingsManage))
+            {
+                <RadzenTabsItem Text="@Loc["OrderPeriodSettings"]">
+                    @if (IsActiveTab(3))
+                    {
+                        <Tab_OrderPeriodSettings />
                     }
                 </RadzenTabsItem>
             }

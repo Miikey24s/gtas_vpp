@@ -1,6 +1,8 @@
+@* PAGE: VPPRequest/Components/HistoryScopeBar.razor *@
 @* Atlas history scope bar: thanh chọn phạm vi kỳ (preset + popover khoảng tùy chọn) — state do Tab_History giữ. *@
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
 
+@* TOOLBAR: Chọn preset hoặc mở bộ chọn khoảng kỳ tùy chỉnh. *@
 <div class="vpp-history-toolbar">
     <div class="vpp-history-scope-host" @onclick:stopPropagation>
         <VppSegmentedSelector TValue="string"

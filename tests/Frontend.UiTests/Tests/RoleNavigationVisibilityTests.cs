@@ -31,6 +31,11 @@ public sealed class RoleNavigationVisibilityTests : TestBase, IAuthenticatedUiTe
         await AssertShellReadyAsync();
         (await Page.GetByTestId("department-summary-data-surface").CountAsync()).Should().Be(0);
         await Page.GetByTestId("current-order-panel").WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=periods");
+        await AssertShellReadyAsync();
+        (await Page.GetByTestId("order-period-management-table").CountAsync())
+            .Should().Be(0);
+        await Page.GetByTestId("current-order-panel").WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await CaptureIfRequestedAsync("employee.png");
         await AssertDeepLinkRedirectsToDashboardAsync("library?tab=2");
 

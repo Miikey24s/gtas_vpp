@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
 using Microsoft.Playwright;
@@ -20,16 +21,30 @@ public sealed class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
         (await grid.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
         (await grid.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
         (await grid.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().BeGreaterThan(0);
+        var scopeSelector = Page.Locator(".vpp-history-scope-selector:visible");
+        await scopeSelector.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await scopeSelector.Locator(":scope > button").First.GetAttributeAsync("class"))
+            .Should().Contain("is-active", "Tổng hợp phòng ban phải mặc định vào Tất cả kỳ");
         var initiallySelectedRow = grid.Locator("tbody tr.vpp-history-row-selected");
         await initiallySelectedRow.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await initiallySelectedRow.CountAsync()).Should().Be(1, "department summary must select the first visible order without waiting for a click");
-        await Page.Locator(".vpp-history-drawer .vpp-history-drawer-code h2")
-            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var drawerTitle = Page.Locator(".vpp-history-drawer .vpp-history-drawer-code h2");
+        if (!await drawerTitle.IsVisibleAsync())
+        {
+            await initiallySelectedRow.ClickAsync();
+        }
+        await drawerTitle.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var totalOrders = Page.Locator(".vpp-history-kpis:visible").Last
             .Locator(".vpp-history-kpi-trigger strong").Nth(1);
         await totalOrders.WaitForAsync();
-        (await totalOrders.InnerTextAsync()).Trim().Should().Be("4");
+        int.Parse((await totalOrders.InnerTextAsync()).Trim(), CultureInfo.InvariantCulture)
+            .Should().BeGreaterThan(4, "mặc định Tất cả kỳ phải tổng hợp nhiều hơn riêng kỳ hiện tại");
         (await grid.InnerTextAsync()).Should().NotContain("QA-D02", "another department must stay out of manager scope");
+        var drawerClose = Page.Locator(".vpp-history-drawer-close");
+        if (await drawerClose.IsVisibleAsync())
+        {
+            await drawerClose.ClickAsync();
+        }
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         foreach (var viewport in new[]
@@ -56,7 +71,7 @@ public sealed class DepartmentSummaryTests : TestBase, IAuthenticatedUiTest
                 "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1");
             hasHorizontalOverflow.Should().BeFalse($"route must not overflow at {viewport.Width}x{viewport.Height}");
 
-            if (viewport.Width >= 1280)
+            if (viewport.Width >= 1440)
             {
                 var layoutGeometry = await Page.EvaluateAsync<string>("""
                     () => {

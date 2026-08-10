@@ -1,10 +1,13 @@
-﻿@page "/logoutprocess"
+@* PAGE: Authen/Logout.razor *@
+@page "/logoutprocess"
 @attribute [AllowAnonymous]
 @using gtas_vpp_fe.Components.Layout
+@using gtas_vpp_fe.Platform.Auth
 @layout LoginLayout
 @inject NavigationManager UriHelper
 @inject IJSRuntime JS
 @inject ILogger<Logout> Logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>GTAS VPP - @Loc["Logout"]</PageTitle>
 
@@ -18,6 +21,9 @@
 </VppAccountWorkspace>
 
 @code {
+    [SupplyParameterFromQuery(Name = "expectedSession")]
+    public string? ExpectedSessionFingerprint { get; set; }
+
     private bool _logoutStarted;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -28,6 +34,21 @@
         }
 
         _logoutStarted = true;
+        if (!string.IsNullOrWhiteSpace(ExpectedSessionFingerprint))
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var currentAccessToken = authenticationState.User.Claims.Get(ClaimKeys.AccessToken);
+            if (!AuthSessionFingerprint.MatchesOrIsUnspecified(
+                    ExpectedSessionFingerprint,
+                    currentAccessToken))
+            {
+                Logger.LogInformation(
+                    "Ignored a stale logout page because the browser already owns a newer login session.");
+                UriHelper.NavigateTo("/", true);
+                return;
+            }
+        }
+
         try
         {
             using var cleanupTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
@@ -41,7 +62,13 @@
         }
         finally
         {
-            UriHelper.NavigateTo(Config.PerformLogoutPath, true);
+            var logoutPath = Config.PerformLogoutPath;
+            if (!string.IsNullOrWhiteSpace(ExpectedSessionFingerprint))
+            {
+                logoutPath += $"?expectedSession={Uri.EscapeDataString(ExpectedSessionFingerprint)}";
+            }
+
+            UriHelper.NavigateTo(logoutPath, true);
         }
     }
 }

@@ -7,6 +7,22 @@ namespace gtas_vpp_fe.Tests.Resources;
 public sealed partial class LocalizationResourceTests
 {
     [Fact]
+    public void CompactPeriodResources_DistinguishLockedPricingAndSettledStates()
+    {
+        var root = FindRepositoryRoot();
+        var resourceDirectory = Path.Combine(root, "src", "Frontend", "Blazor", "Resources");
+        var vietnameseValues = ReadValues(Path.Combine(resourceDirectory, "Components.App.resx"));
+        var englishValues = ReadValues(Path.Combine(resourceDirectory, "Components.App.en.resx"));
+
+        Assert.Equal("Đã đóng", vietnameseValues["PeriodStateSubmissionClosedCompact"]);
+        Assert.Equal("Đang chốt", vietnameseValues["PeriodStatePricingCompact"]);
+        Assert.Equal("Đã chốt", vietnameseValues["PeriodStateSettledCompact"]);
+        Assert.Equal("Closed", englishValues["PeriodStateSubmissionClosedCompact"]);
+        Assert.Equal("Settling", englishValues["PeriodStatePricingCompact"]);
+        Assert.Equal("Settled", englishValues["PeriodStateSettledCompact"]);
+    }
+
+    [Fact]
     public void VietnameseResources_DoNotLeaveEnglishInterfaceCopy()
     {
         var root = FindRepositoryRoot();

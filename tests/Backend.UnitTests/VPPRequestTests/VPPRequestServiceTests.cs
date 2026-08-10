@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
@@ -183,6 +184,14 @@ public class VPPRequestServiceTests
     public async Task GetCurrentPeriodInfoAsync_CurrentPeriodUsesNextMonthDeadline()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        context.Set<AppUser>().Add(new AppUser
+        {
+            Id = 5615,
+            UserName = "period-test",
+            FullName = "Period Test User",
+            MemberCompanyCode = 77500
+        });
+        await context.SaveChangesAsync();
         var service = CreateService(context, new DateTime(2026, 5, 12, 8, 0, 0));
 
         var result = await service.GetCurrentPeriodInfoAsync(5615);
@@ -234,7 +243,21 @@ public class VPPRequestServiceTests
         var now = new DateTime(2026, 7, 23, 9, 0, 0);
         var matching = CreateHistoryHeader(5615, 2026, 7, false, true, "Quarterly stationery", now);
         var other = CreateHistoryHeader(5615, 2026, 6, true, true, "Supplement", now.AddMonths(-1));
+        var settledPeriod = new VppPeriod
+        {
+            Id = Guid.NewGuid(),
+            MemberCompanyCode = "77500",
+            TimeZoneId = "Asia/Ho_Chi_Minh",
+            Year = 2026,
+            Month = 7,
+            StartAtUtc = new DateTime(2026, 6, 5, 17, 0, 0, DateTimeKind.Utc),
+            SubmissionDeadlineUtc = new DateTime(2026, 7, 5, 17, 0, 0, DateTimeKind.Utc),
+            SupplementApprovalDeadlineUtc = new DateTime(2026, 7, 7, 17, 0, 0, DateTimeKind.Utc),
+            State = VppPeriodState.Settled
+        };
+        matching.PeriodId = settledPeriod.Id;
         context.Set<VppRequest>().AddRange(matching, other);
+        context.Set<VppPeriod>().Add(settledPeriod);
         context.Set<VppRequestDetail>().AddRange(
             CreateDetailWithQuantity(matching.Id, now, 12),
             CreateDetailWithQuantity(other.Id, now, 8));
@@ -249,6 +272,7 @@ public class VPPRequestServiceTests
         Assert.Equal(matching.Id, order.Id);
         Assert.Equal(1, order.TotalLines);
         Assert.Equal(12, order.TotalQty);
+        Assert.Equal("Settled", order.PeriodState);
         Assert.Empty(order.Items);
     }
 

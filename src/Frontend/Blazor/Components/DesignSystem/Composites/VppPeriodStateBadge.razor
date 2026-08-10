@@ -1,0 +1,20 @@
+@using gtas_vpp_fe.Helpers
+
+@if (PeriodStateDisplay.IsKnown(State))
+{
+    <VppStatusBadge Text="@Loc[TextResourceKey]"
+                    Title="@Loc[PeriodStateDisplay.GetResourceKey(State)]"
+                    Tone="@PeriodStateDisplay.GetTone(State)"
+                    Class="@Class"
+                    data-period-state="@State" />
+}
+
+@code {
+    [Parameter] public string? State { get; set; }
+    [Parameter] public bool Compact { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string TextResourceKey => Compact
+        ? PeriodStateDisplay.GetCompactResourceKey(State)
+        : PeriodStateDisplay.GetResourceKey(State);
+}

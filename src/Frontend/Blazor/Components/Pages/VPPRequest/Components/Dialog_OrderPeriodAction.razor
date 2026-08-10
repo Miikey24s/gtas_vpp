@@ -1,0 +1,303 @@
+@using gtas_vpp_shared.DTOs.Req.VPP
+@using gtas_vpp_shared.DTOs.Res.VPP
+@inject DialogService DialogService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard"
+                        TestId="order-period-action-dialog"
+                        Class="vpp-order-period-action-dialog">
+    <Intro>
+        <div class="vpp-order-period-dialog-heading">
+            <div>
+                <span>Kỳ @PeriodLabel</span>
+                <strong>@DialogTitle</strong>
+            </div>
+            <VppPeriodStateBadge State="@Period.State" Compact="true" />
+        </div>
+        <VppInlineNotice Tone="@NoticeTone">@DialogDescription</VppInlineNotice>
+    </Intro>
+    <ChildContent>
+        @if (Action == "edit")
+        {
+            <div class="vpp-order-period-dialog-grid">
+                <RadzenFormField Text="Ngày mở" Variant="Variant.Outlined">
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="ScheduleEdit.OpenAtLocal"
+                                      DateFormat="HH:mm dd/MM/yyyy"
+                                      ShowTime="true"
+                                      ShowSeconds="false"
+                                      Disabled="@(Period.State == "Open")"
+                                      class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+                <RadzenFormField Text="Ngày đóng" Variant="Variant.Outlined">
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="ScheduleEdit.CloseAtLocal"
+                                      DateFormat="HH:mm dd/MM/yyyy"
+                                      ShowTime="true"
+                                      ShowSeconds="false"
+                                      class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+                <RadzenFormField Text="Hạn duyệt đơn bổ sung" Variant="Variant.Outlined">
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="ScheduleEdit.SupplementApprovalDeadlineLocal"
+                                      DateFormat="HH:mm dd/MM/yyyy"
+                                      ShowTime="true"
+                                      ShowSeconds="false"
+                                      class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+                <RadzenFormField Text="Lý do thay đổi" Variant="Variant.Outlined">
+                    <RadzenTextArea @bind-Value="ScheduleEdit.Reason"
+                                    Rows="3"
+                                    MaxLength="500"
+                                    class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+            </div>
+        }
+        else if (Action == "extend")
+        {
+            <div class="vpp-order-period-dialog-grid">
+                <RadzenFormField Text="Ngày đóng mới" Variant="Variant.Outlined">
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="DeadlineExtension.CloseAtLocal"
+                                      DateFormat="HH:mm dd/MM/yyyy"
+                                      ShowTime="true"
+                                      ShowSeconds="false"
+                                      class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+                <RadzenFormField Text="Hạn duyệt đơn bổ sung mới" Variant="Variant.Outlined">
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="DeadlineExtension.SupplementApprovalDeadlineLocal"
+                                      DateFormat="HH:mm dd/MM/yyyy"
+                                      ShowTime="true"
+                                      ShowSeconds="false"
+                                      class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+                <RadzenFormField Text="Lý do gia hạn" Variant="Variant.Outlined" class="is-wide">
+                    <RadzenTextArea @bind-Value="DeadlineExtension.Reason"
+                                    Rows="3"
+                                    MaxLength="500"
+                                    class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+            </div>
+        }
+        else if (Action == "reopen")
+        {
+            <div class="vpp-order-period-dialog-grid">
+                <RadzenFormField Text="Ngày đóng mới" Variant="Variant.Outlined">
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="ReopenSubmissions.CloseAtLocal"
+                                      DateFormat="HH:mm dd/MM/yyyy"
+                                      ShowTime="true"
+                                      ShowSeconds="false"
+                                      class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+                <RadzenFormField Text="Hạn duyệt đơn bổ sung mới" Variant="Variant.Outlined">
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="ReopenSubmissions.SupplementApprovalDeadlineLocal"
+                                      DateFormat="HH:mm dd/MM/yyyy"
+                                      ShowTime="true"
+                                      ShowSeconds="false"
+                                      class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+                <RadzenFormField Text="Lý do mở lại" Variant="Variant.Outlined" class="is-wide">
+                    <RadzenTextArea @bind-Value="ReopenSubmissions.Reason"
+                                    Rows="3"
+                                    MaxLength="500"
+                                    class="vpp-order-period-dialog-control" />
+                </RadzenFormField>
+            </div>
+        }
+        else
+        {
+            <RadzenFormField Text="@ReasonLabel" Variant="Variant.Outlined">
+                <RadzenTextArea @bind-Value="Command.Reason"
+                                Rows="4"
+                                MaxLength="500"
+                                class="vpp-order-period-dialog-control" />
+            </RadzenFormField>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(ValidationMessage))
+        {
+            <VppInlineNotice Tone="VppStatusTone.Warning">@ValidationMessage</VppInlineNotice>
+        }
+    </ChildContent>
+    <Footer>
+        <VppDialogActions CancelText="Hủy"
+                          PrimaryText="@PrimaryText"
+                          PrimaryIcon="@PrimaryIcon"
+                          PrimaryButtonStyle="@PrimaryStyle"
+                          CancelClick="@CancelAsync"
+                          PrimaryClick="@SubmitAsync" />
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter, EditorRequired] public VppManagedPeriodResDTO Period { get; set; } = new();
+    [Parameter, EditorRequired] public string Action { get; set; } = string.Empty;
+    [Parameter] public int SupplementApprovalGraceDays { get; set; } = 5;
+
+    private bool initialized;
+    private string ValidationMessage { get; set; } = string.Empty;
+    private VppOrderPeriodUpdateReqDTO ScheduleEdit { get; set; } = new();
+    private VppOrderPeriodExtendDeadlineReqDTO DeadlineExtension { get; set; } = new();
+    private VppOrderPeriodReopenSubmissionsReqDTO ReopenSubmissions { get; set; } = new();
+    private VppOrderPeriodCommandReqDTO Command { get; set; } = new();
+
+    private string PeriodLabel => $"{Period.Month:00}/{Period.Year}";
+    private string DialogTitle => Action switch
+    {
+        "edit" => "Sửa lịch kỳ",
+        "extend" => "Gia hạn kỳ",
+        "reopen" => "Mở lại nhận đơn",
+        "delete" => "Xóa kỳ đặt hàng",
+        _ => "Cập nhật kỳ đặt hàng"
+    };
+    private string DialogDescription => Action switch
+    {
+        "edit" => Period.State == "Open"
+            ? "Kỳ đang mở chỉ được đổi ngày đóng và hạn duyệt bổ sung."
+            : "Lịch riêng của kỳ này sẽ được cập nhật; cấu hình mặc định không thay đổi.",
+        "extend" => "Ngày đóng mới phải muộn hơn lịch hiện tại và cần lý do để lưu lịch sử.",
+        "reopen" => "Kỳ đã đóng sẽ nhận đơn trở lại đến ngày đóng mới.",
+        "delete" => "Chỉ kỳ chưa mở và chưa có đơn mới có thể xóa.",
+        _ => string.Empty
+    };
+    private VppStatusTone NoticeTone => Action == "delete"
+        ? VppStatusTone.Warning
+        : VppStatusTone.Info;
+    private string PrimaryText => Action switch
+    {
+        "edit" => "Lưu lịch",
+        "extend" => "Xác nhận gia hạn",
+        "reopen" => "Mở lại nhận đơn",
+        "delete" => "Xóa kỳ",
+        _ => "Lưu"
+    };
+    private string PrimaryIcon => Action switch
+    {
+        "edit" => "edit_calendar",
+        "extend" => "event_repeat",
+        "reopen" => "play_circle",
+        "delete" => "delete_forever",
+        _ => "save"
+    };
+    private ButtonStyle PrimaryStyle => Action switch
+    {
+        "delete" => ButtonStyle.Danger,
+        _ => ButtonStyle.Primary
+    };
+    private const string ReasonLabel = "Lý do xóa kỳ";
+
+    protected override void OnParametersSet()
+    {
+        if (initialized)
+        {
+            return;
+        }
+
+        initialized = true;
+        ScheduleEdit = new VppOrderPeriodUpdateReqDTO
+        {
+            OpenAtLocal = Period.OpenAtLocal,
+            CloseAtLocal = Period.CloseAtLocal,
+            SupplementApprovalDeadlineLocal = Period.SupplementApprovalDeadlineLocal,
+            RowVersion = Period.RowVersion
+        };
+        DeadlineExtension = new VppOrderPeriodExtendDeadlineReqDTO
+        {
+            CloseAtLocal = Period.CloseAtLocal.AddDays(1),
+            SupplementApprovalDeadlineLocal = Period.SupplementApprovalDeadlineLocal.AddDays(1),
+            RowVersion = Period.RowVersion
+        };
+        var reopenedCloseAt = DateTime.Now.AddDays(1);
+        ReopenSubmissions = new VppOrderPeriodReopenSubmissionsReqDTO
+        {
+            CloseAtLocal = reopenedCloseAt,
+            SupplementApprovalDeadlineLocal = reopenedCloseAt.AddDays(Math.Max(0, SupplementApprovalGraceDays)),
+            RowVersion = Period.RowVersion
+        };
+        Command = new VppOrderPeriodCommandReqDTO { RowVersion = Period.RowVersion };
+    }
+
+    private Task CancelAsync() => DialogService.TryCloseAsync(null);
+
+    private async Task SubmitAsync()
+    {
+        ValidationMessage = Validate();
+        if (!string.IsNullOrWhiteSpace(ValidationMessage))
+        {
+            return;
+        }
+
+        ScheduleEdit.Reason = ScheduleEdit.Reason?.Trim();
+        DeadlineExtension.Reason = DeadlineExtension.Reason.Trim();
+        ReopenSubmissions.Reason = ReopenSubmissions.Reason.Trim();
+        Command.Reason = Command.Reason?.Trim();
+        object result = Action switch
+        {
+            "edit" => ScheduleEdit,
+            "extend" => DeadlineExtension,
+            "reopen" => ReopenSubmissions,
+            _ => Command
+        };
+        await DialogService.TryCloseAsync(result);
+    }
+
+    private string Validate()
+    {
+        if (Action == "edit")
+        {
+            if (ScheduleEdit.CloseAtLocal <= ScheduleEdit.OpenAtLocal)
+            {
+                return "Ngày đóng phải sau ngày mở.";
+            }
+            if (ScheduleEdit.SupplementApprovalDeadlineLocal < ScheduleEdit.CloseAtLocal)
+            {
+                return "Hạn duyệt đơn bổ sung không được trước ngày đóng.";
+            }
+            if ((ScheduleEdit.Reason?.Trim().Length ?? 0) < 5)
+            {
+                return "Nhập lý do thay đổi ít nhất 5 ký tự.";
+            }
+            return string.Empty;
+        }
+
+        if (Action == "extend")
+        {
+            if (DeadlineExtension.CloseAtLocal <= Period.CloseAtLocal)
+            {
+                return "Ngày đóng mới phải muộn hơn ngày đóng hiện tại.";
+            }
+            if (DeadlineExtension.SupplementApprovalDeadlineLocal < DeadlineExtension.CloseAtLocal)
+            {
+                return "Hạn duyệt đơn bổ sung không được trước ngày đóng mới.";
+            }
+            if (DeadlineExtension.Reason.Trim().Length < 5)
+            {
+                return "Nhập lý do gia hạn ít nhất 5 ký tự.";
+            }
+            return string.Empty;
+        }
+
+        if (Action == "reopen")
+        {
+            if (ReopenSubmissions.CloseAtLocal <= DateTime.Now)
+            {
+                return "Ngày đóng mới phải ở tương lai.";
+            }
+            if (ReopenSubmissions.SupplementApprovalDeadlineLocal < ReopenSubmissions.CloseAtLocal)
+            {
+                return "Hạn duyệt đơn bổ sung không được trước ngày đóng mới.";
+            }
+            if (ReopenSubmissions.Reason.Trim().Length < 5)
+            {
+                return "Nhập lý do mở lại ít nhất 5 ký tự.";
+            }
+            return string.Empty;
+        }
+
+        return (Command.Reason?.Trim().Length ?? 0) < 5
+            ? "Nhập lý do ít nhất 5 ký tự."
+            : string.Empty;
+    }
+}

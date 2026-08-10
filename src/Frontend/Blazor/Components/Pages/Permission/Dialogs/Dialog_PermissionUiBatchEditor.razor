@@ -1,3 +1,4 @@
+@* PAGE: Permission/Dialogs/Dialog_PermissionUiBatchEditor.razor *@
 @using gtas_vpp_fe.Components.Pages.Permission.Models
 @using gtas_vpp_shared.DTOs.Req.Permission
 @using gtas_vpp_shared.DTOs.Res.Auth
@@ -85,9 +86,9 @@
                                 }
                                 else
                                 {
-                                    <VppStatusBadge Text="@GetLockedStateLabel(component)"
-                                                    Tone="@GetLockedStateTone(component)"
-                                                    Title="@GetLockedStateDescription(component)" />
+                                    <VppCategoryChip Text="@GetLockedStateLabel(component)"
+                                                     Tone="@GetLockedStateCategoryTone(component)"
+                                                     Title="@GetLockedStateDescription(component)" />
                                 }
                             </Template>
                         </RadzenDataGridColumn>
@@ -212,11 +213,11 @@
         _ => Loc["ReadOnlyReference"]
     };
 
-    private static VppStatusTone GetLockedStateTone(PermissionUiMappingEditModel component) => component.AdministrationMode switch
+    private static VppCategoryTone GetLockedStateCategoryTone(PermissionUiMappingEditModel component) => component.AdministrationMode switch
     {
-        "Required" => VppStatusTone.Success,
-        "OutsideRoleCeiling" => VppStatusTone.Neutral,
-        _ => VppStatusTone.Info
+        "OutsideRoleCeiling" => VppCategoryTone.Neutral,
+        "Required" => VppCategoryTone.Primary,
+        _ => VppCategoryTone.Primary
     };
 
     private string GetLockedStateDescription(PermissionUiMappingEditModel component) => component.AdministrationMode switch

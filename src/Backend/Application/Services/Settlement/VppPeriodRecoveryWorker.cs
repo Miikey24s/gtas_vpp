@@ -40,11 +40,11 @@ public sealed class VppPeriodRecoveryWorker : BackgroundService
                     await using var scope = _scopeFactory.CreateAsyncScope();
                     var service = scope.ServiceProvider
                         .GetRequiredService<IVppPeriodService>();
-                    await service.EnsureCurrentAsync(
+                    await service.AdvanceDuePeriodsAsync(stoppingToken);
+                    await service.TopUpOpenHorizonAsync(
                         CanonicalRbac.DefaultMemberCompanyCode.ToString(
                             CultureInfo.InvariantCulture),
-                        stoppingToken);
-                    await service.AdvanceDuePeriodsAsync(stoppingToken);
+                        cancellationToken: stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {

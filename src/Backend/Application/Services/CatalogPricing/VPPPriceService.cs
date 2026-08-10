@@ -199,7 +199,7 @@ namespace gtas_vpp_be.Service.Services
             try
             {
                 var priceBook = await ValidateReferencesAsync(req.VppItemId, req.SupplierId, req.PriceListId);
-                EnsureDraft(priceBook);
+                EnsureEditable(priceBook);
 
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
@@ -261,7 +261,7 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 var priceBook = await ValidateReferencesAsync(req.VppItemId, req.SupplierId, req.PriceListId);
-                EnsureDraft(priceBook);
+                EnsureEditable(priceBook);
 
                 var now = _dateTimeProvider.Now;
                 if (req.IsDefault)
@@ -311,7 +311,7 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price mapping not found.");
                 }
 
-                await EnsureDraftAsync(entity.PriceListId);
+                await EnsureEditableAsync(entity.PriceListId);
 
                 var now = _dateTimeProvider.Now;
                 entity.IsDeleted = true;
@@ -345,7 +345,7 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price mapping not found.");
                 }
 
-                await EnsureDraftAsync(entity.PriceListId);
+                await EnsureEditableAsync(entity.PriceListId);
 
                 var now = _dateTimeProvider.Now;
                 entity.IsDeleted = isDeleted;
@@ -383,7 +383,7 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price mapping not found.");
                 }
 
-                await EnsureDraftAsync(entity.PriceListId);
+                await EnsureEditableAsync(entity.PriceListId);
 
                 var now = _dateTimeProvider.Now;
                 await DemoteDefaultsAsync(entity.PriceListId, entity.VppItemId, userId, now);
@@ -521,15 +521,15 @@ namespace gtas_vpp_be.Service.Services
             }
         }
 
-        private static void EnsureDraft(PriceList priceBook)
+        private static void EnsureEditable(PriceList priceBook)
         {
-            if (priceBook.Status != PriceListStatus.Draft)
+            if (priceBook.Status == PriceListStatus.Expired)
             {
-                throw new BusinessException("Published or expired price books are immutable; create a new version instead.");
+                throw new BusinessException("This price list is no longer active. Restore it before changing prices.");
             }
         }
 
-        private async Task EnsureDraftAsync(Guid priceListId)
+        private async Task EnsureEditableAsync(Guid priceListId)
         {
             var priceBook = await _scopedUow.VPPContext.Set<PriceList>()
                 .FirstOrDefaultAsync(x => x.Id == priceListId && !x.IsDeleted);
@@ -538,7 +538,7 @@ namespace gtas_vpp_be.Service.Services
                 throw new BusinessException("Price list does not exist or has been deleted.");
             }
 
-            EnsureDraft(priceBook);
+            EnsureEditable(priceBook);
         }
 
         private static string? NormalizeOptional(string? value)

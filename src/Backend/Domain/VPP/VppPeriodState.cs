@@ -9,5 +9,7 @@ public enum VppPeriodState
     Open = 0,
     SubmissionClosed = 1,
     Pricing = 2,
-    Settled = 3
+    Settled = 3,
+    Draft = 4,
+    Scheduled = 5
 }

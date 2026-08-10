@@ -1,3 +1,4 @@
+// PAGE LOGIC: Permission/Tabs/Tab_User.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
@@ -594,10 +595,10 @@ public partial class Tab_User : IDisposable
 
     private static VppStatusTone GetAccountStatusTone(UserAdministrationResDTO user) => user.AccountStatus switch
     {
-        "Active" when user.IsActive => VppStatusTone.Success,
-        "PendingApproval" => VppStatusTone.Warning,
-        "Disabled" => VppStatusTone.Neutral,
-        "Active" => VppStatusTone.Info,
+        "Active" when user.IsActive => VppStatusToneContract.Resolve("Active"),
+        "PendingApproval" => VppStatusToneContract.Resolve("PendingApproval"),
+        "Disabled" => VppStatusToneContract.Resolve("Disabled"),
+        "Active" => VppStatusTone.Neutral,
         _ => VppStatusTone.Neutral
     };
 
@@ -637,6 +638,19 @@ public partial class Tab_User : IDisposable
         IsCurrentUser(user)
             ? Loc["SelfPasswordLinkBlocked"].Value
             : Loc["SendPasswordLink"].Value;
+
+    private IReadOnlyList<VppAdminActionMenuItem> UserSecondaryActions(UserAdministrationResDTO user) =>
+        accountCapabilities.InvitationEnabled
+            ?
+            [
+                new(
+                    "send-password-link",
+                    GetPasswordLinkTitle(user),
+                    "mark_email_unread",
+                    () => SendPasswordResetLinkAsync(user),
+                    !CanSendPasswordLink(user))
+            ]
+            : [];
 
     private string GetAccessToggleTitle(UserAdministrationResDTO user) =>
         user.IsActive ? Loc["DisableUserAccess"].Value

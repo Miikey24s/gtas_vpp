@@ -1,4 +1,5 @@
-﻿@page "/"
+@* PAGE: Home.razor *@
+@page "/"
 @attribute [Authorize]
 @inject NavigationManager NavigationManager
 @inject gtas_vpp_fe.Helpers.AuthHelper AuthHelper
@@ -8,6 +9,7 @@
 
 <main class="vpp-system-page">
     <VppContentState State="VppContentStateKind.Loading"
+                     FillAvailable="true"
                      Icon="@VppIcons.Progress"
                      Title="@Loc["Loading"]"
                      Description="@Loc["RedirectingToAllowedWorkspace"]" />

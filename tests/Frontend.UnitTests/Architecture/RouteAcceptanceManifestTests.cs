@@ -12,7 +12,7 @@ public sealed class RouteAcceptanceManifestTests
         var routeEntries = RouteCatalog.All;
         var manifestEntries = RouteAcceptanceManifest.Entries;
 
-        Assert.Equal(44, routeEntries.Count);
+        Assert.Equal(46, routeEntries.Count);
         Assert.Equal(routeEntries.Count, manifestEntries.Count);
 
         var duplicateKeys = manifestEntries

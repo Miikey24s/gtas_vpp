@@ -41,13 +41,13 @@
 
 .vpp-order-review-back {
     display: inline-flex;
-    min-height: 40px;
+    min-height: var(--vpp-button-height);
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-2);
-    padding: 0 var(--vpp-space-3);
+    padding: 0 var(--vpp-button-padding-inline);
     border: 0;
-    border-radius: var(--vpp-radius-md);
+    border-radius: var(--vpp-radius-button);
     color: var(--vpp-text-primary);
     background: transparent;
     font: inherit;
@@ -60,8 +60,8 @@
 }
 
 .vpp-order-review-actions ::deep .rz-button {
-    min-height: 40px;
-    border-radius: var(--vpp-radius-md);
+    min-height: var(--vpp-button-height);
+    border-radius: var(--vpp-radius-button);
     box-shadow: none;
 }
 
@@ -113,8 +113,8 @@
 
 .vpp-supplement-reason-dialog header button {
     display: inline-flex;
-    width: 32px;
-    height: 32px;
+    width: var(--vpp-button-height-compact);
+    height: var(--vpp-button-height-compact);
     align-items: center;
     justify-content: center;
     padding: 0;
@@ -167,13 +167,13 @@
 .vpp-supplement-reason-cancel,
 .vpp-supplement-reason-save {
     display: inline-flex;
-    min-height: 36px;
+    min-height: var(--vpp-button-height);
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-1);
-    padding: 0 var(--vpp-space-3);
+    padding: 0 var(--vpp-button-padding-inline);
     border: 0;
-    border-radius: var(--vpp-radius-md);
+    border-radius: var(--vpp-radius-button);
     font: inherit;
     font-weight: var(--vpp-font-weight-semibold);
     cursor: pointer;
@@ -202,6 +202,55 @@
 
     .vpp-order-review-actions > *,
     .vpp-order-review-actions ::deep .rz-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 1439px), (max-height: 799px) {
+    .vpp-wizard,
+    .vpp-order-create-page {
+        height: auto;
+        min-height: 100%;
+    }
+
+    .vpp-wizard-stage {
+        flex: 0 0 auto;
+        flex-direction: column;
+        overflow: visible;
+    }
+}
+.vpp-order-create-period-selector {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--vpp-space-4);
+    padding: var(--vpp-space-4);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-surface-panel);
+}
+
+.vpp-order-create-period-selector > div {
+    display: grid;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-order-create-period-selector span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+::deep .vpp-order-create-period-decision {
+    min-width: 12rem;
+}
+
+@media (max-width: 640px) {
+    .vpp-order-create-period-selector {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    ::deep .vpp-order-create-period-decision {
         width: 100%;
     }
 }

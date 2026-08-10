@@ -1,3 +1,4 @@
+// PAGE LOGIC: Permission/Tabs/Tab_PagePermission.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
@@ -209,7 +210,7 @@ public partial class Tab_PagePermission
 
     private static VppStatusTone GetAccessStateTone(PermissionComponentAccessResDTO component) =>
         !component.IsVisible ? VppStatusTone.Neutral
-        : component.IsEnable ? VppStatusTone.Success
+        : component.IsEnable ? VppStatusTone.Info
         : VppStatusTone.Info;
 
     private string GetAdministrationModeLabel(PermissionComponentAccessResDTO component) => component.AdministrationMode switch

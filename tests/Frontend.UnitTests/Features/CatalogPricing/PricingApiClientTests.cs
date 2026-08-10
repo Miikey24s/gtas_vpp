@@ -9,7 +9,7 @@ namespace gtas_vpp_fe.Tests.Features.CatalogPricing;
 public sealed class PricingApiClientTests
 {
     [Fact]
-    public async Task PriceListQuery_EncodesStatusSearchPagingAndSort()
+    public async Task PriceListQuery_EncodesActivitySearchPagingAndSort()
     {
         string? endpoint = null;
         var api = new StubApiServices
@@ -22,11 +22,11 @@ public sealed class PricingApiClientTests
         };
         var client = new PricingApiClient(api);
 
-        await client.GetPriceListsAsync(new PriceListQuery(20, 15, "Office", "Published", "Version desc"));
+        await client.GetPriceListsAsync(new PriceListQuery(20, 15, "Office", "active", "Version desc"));
 
         Assert.NotNull(endpoint);
         Assert.StartsWith("/api/vpppricelist?showDeleted=true&", endpoint);
-        Assert.Contains("Status%20%3D%3D%20%22Published%22", endpoint);
+        Assert.Contains("IsDeleted%20%3D%3D%20false%20%26%26%20Status%20%3D%3D%20%22Published%22", endpoint);
         Assert.Contains("skip=20", endpoint);
         Assert.Contains("top=15", endpoint);
         Assert.Contains("orderby=Version%20desc", endpoint);

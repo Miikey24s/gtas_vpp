@@ -1,38 +1,41 @@
+@* PAGE: VPPRequest/Components/PendingApprovalWorkspace.razor *@
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using Radzen
 
 <VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
                        FillAvailableSpace="true"
+                       ScrollMode="VppWorkspaceScrollMode.Internal"
                        IsBusy="@(IsLoading || IsGridLoading)"
                        Class="vpp-approval-operation-workspace">
     @if (IsLoading)
     {
-        <SkeletonPage Cards="0" Rows="8" Cols="7" />
+        <SkeletonPage Cards="0" Rows="8" Cols="7" FillAvailable="true" />
     }
     else if (HasGridLoadError)
     {
         <VppContentState State="VppContentStateKind.Error"
+                         FillAvailable="true"
                          Icon="error"
                          Title="@Loc["PendingApprovalLoadFailed"]"
                          Description="@Loc["HistoryLoadErrorDescription"]"
                          PrimaryActionText="@Loc["Retry"]"
-                         PrimaryActionIcon="@VppIcons.Refresh"
+                         PrimaryActionIcon="@VppIcons.Reset"
                          PrimaryAction="@(_ => ReloadRequested.InvokeAsync())" />
     }
     else if (TotalCount == 0 && !IsGridLoading)
     {
         <VppContentState State="VppContentStateKind.Success"
+                         FillAvailable="true"
                          Icon="check_circle"
                          Title="@Loc["AllClear"]"
-                         Description="@Loc["NoPendingAdditionalOrders"]"
-                         PrimaryActionText="@Loc["RefreshQueue"]"
-                         PrimaryActionIcon="@VppIcons.Refresh"
-                         PrimaryAction="@(_ => ReloadRequested.InvokeAsync())" />
+                         Description="@Loc["NoPendingAdditionalOrders"]" />
     }
     else
     {
+        @* CONTENT: Danh sách đơn chờ duyệt và panel chi tiết đơn đang chọn. *@
         <VppListDetailWorkspace Ratio="VppListDetailRatio.WideDetail"
+                                ScrollMode="VppWorkspaceScrollMode.Internal"
                                 DetailLabel="@Loc["OrderDetails"]"
                                 Class="vpp-approval-workspace">
             <List>
@@ -42,10 +45,12 @@
                                      AriaLabel="@Loc["PendingOrders"]"
                                      TestId="pending-approval-list"
                                      Class="vpp-approval-list-surface">
+                    @* HEADER: Tiêu đề danh sách và tổng số đơn chờ duyệt. *@
                     <Header>
                         <VppCollectionHeader Title="@Loc["PendingOrders"]"
                                              Summary="@Loc["PendingOrdersCountFormat", TotalCount]" />
                     </Header>
+                    @* TOOLBAR: Tìm kiếm, lọc phòng ban và xóa bộ lọc. *@
                     <Toolbar>
                         <VppDataToolbar AriaLabel="@Loc["PendingOrders"]"
                                         Class="vpp-approval-toolbar">
@@ -65,6 +70,7 @@
                         </VppDataToolbar>
                     </Toolbar>
                     <ChildContent>
+                        @* ROWS: Các đơn bổ sung chờ người dùng chọn để duyệt. *@
                         <RadzenDataGrid TItem="VppRequestResDTO"
                                         Data="@Orders"
                                         Count="@TotalCount"
@@ -90,6 +96,7 @@
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-approval-list-grid vpp-data-grid vpp-data-density-rich-two-line">
+                            @* COLUMNS: STT, mã đơn, người tạo, thời gian và trạng thái. *@
                             <Columns>
                                 <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="48px" TextAlign="TextAlign.Center" Sortable="false">
                                     <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
@@ -132,7 +139,7 @@
                                 <span>GTAS VPP — @Loc["HistoryDetailSheetTitle"]</span>
                                 <div class="vpp-approval-detail-code-row">
                                     <h2 id="pending-approval-detail-title" title="@SelectedOrder.VppCode">@SelectedOrder.VppCode</h2>
-                                    <VppStatusBadge Tone="VppStatusTone.Info" Text="@Loc["AdditionalOrder"]" />
+                                    <VppCategoryChip Tone="VppCategoryTone.Accent" Text="@Loc["AdditionalOrder"]" />
                                     <VppStatusBadge Tone="VppStatusTone.Warning"
                                                     Text="@Loc[StatusDisplay.GetResourceKey(SelectedOrder.Status, SelectedOrder.IsDeadlinePassed, SelectedOrder.IsAdditionalOrder)]" />
                                 </div>
@@ -189,9 +196,11 @@
                         }
 
                         <footer class="vpp-approval-actions">
-                            <span>@Loc["ApprovalDecisionHint"]</span>
+                            <span>@(SelectedOrder.CanApproveSupplement
+                                ? Loc["ApprovalDecisionHint"]
+                                : Loc["SupplementApprovalExpiredHint"])</span>
                             <div class="vpp-approval-action-buttons">
-                                @if (CanReject)
+                                @if (CanReject && SelectedOrder.CanRejectSupplement)
                                 {
                                     <RadzenButton Icon="cancel"
                                                   Text="@Loc["Reject"]"
@@ -201,7 +210,7 @@
                                                   aria-label="@string.Format(Loc["RejectOrderAria"], SelectedOrder.VppCode)"
                                                   Click="@(_ => RejectRequested.InvokeAsync(SelectedOrder))" />
                                 }
-                                @if (CanApprove)
+                                @if (CanApprove && SelectedOrder.CanApproveSupplement)
                                 {
                                     <RadzenButton Icon="check_circle"
                                                   Text="@Loc["Approve"]"

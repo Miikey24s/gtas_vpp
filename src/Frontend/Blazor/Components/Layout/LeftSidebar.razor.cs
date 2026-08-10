@@ -17,6 +17,7 @@ namespace gtas_vpp_fe.Components.Layout
 {
     public partial class LeftSidebar : IDisposable
     {
+        // DEPENDENCIES: Service, state và runtime context của sidebar.
         [Inject] public ThemeService ThemeService { get; set; } = default!;
         [Inject] public ThemeState ThemeState { get; set; } = default!;
         [Inject] public AuthHelper AuthHelper { get; set; } = default!;
@@ -26,9 +27,9 @@ namespace gtas_vpp_fe.Components.Layout
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
+        // SIDEBAR STATE: Trạng thái sidebar, nhóm menu và giao diện hiện tại.
         public bool _sideBarExpanded { get; set; } = false;
-        // Bật sau khi trạng thái sidebar đã chốt (storage + viewport) — E2E chờ
-        // data-shell-ready thay vì tương tác giữa lúc shell còn đang mở/thu.
+        // E2E dùng cờ này để chờ sidebar ổn định sau khi load storage và viewport.
         public bool _shellStateReady { get; set; }
         private const string SidebarStorageKey = "VPP_SidebarExpanded";
         private bool _dashboardMenuExpanded = true;
@@ -43,11 +44,13 @@ namespace gtas_vpp_fe.Components.Layout
         public string theme = "material3-base";
         private bool _isPrerendering = true;
 
+        // PERMISSIONS: Xác định nhóm menu nào được phép hiển thị.
         private bool CanViewDashboardMenu => CanViewSection(ShellNavigationCatalog.Dashboard);
         private bool CanViewLibraryMenu => CanViewSection(ShellNavigationCatalog.Library);
         private bool CanViewReportMenu => CanViewShellItem(ShellNavigationCatalog.Reports);
         private bool CanViewPermissionMenu => CanViewSection(ShellNavigationCatalog.Permission);
-        private bool CanViewPeriodMenu => CanViewShellItem(ShellNavigationCatalog.PendingApproval)
+        private bool CanViewPeriodMenu => CanViewShellItem(ShellNavigationCatalog.PeriodPolicy)
+            || CanViewShellItem(ShellNavigationCatalog.PendingApproval)
             || CanViewShellItem(ShellNavigationCatalog.PeriodReview);
         private bool CanViewPricingMenu => CanViewShellItem(ShellNavigationCatalog.PriceLists)
             || CanViewShellItem(ShellNavigationCatalog.Prices);
@@ -62,6 +65,7 @@ namespace gtas_vpp_fe.Components.Layout
 
         private string SidebarTreeToggleLabel => Loc[
             AreAllSidebarGroupsExpanded ? "CollapseAllNavigation" : "ExpandAllNavigation"];
+        // LIFECYCLE: Khởi tạo state và đăng ký các event khi component interactive.
         protected override async Task OnInitializedAsync()
         {
             await base.OnInitializedAsync();
@@ -88,6 +92,7 @@ namespace gtas_vpp_fe.Components.Layout
             currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
             NavigationManager.LocationChanged += OnLocationChanged;
         }
+        // NAVIGATION: Đồng bộ URL hiện tại để cập nhật tab đang active.
         private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
         {
             currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
@@ -106,8 +111,8 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
-        // Mặc định desktop mở rộng sidebar theo Atlas; mobile giữ thu gọn (overlay).
-        // Lựa chọn của người dùng được ghi nhớ qua ProtectedLocalStorage như theme.
+        // SIDEBAR PERSISTENCE: Desktop mặc định mở, mobile mặc định thu gọn;
+        // lựa chọn trước đó được ghi nhớ qua ProtectedLocalStorage.
         protected async Task LoadSidebarStateAsync()
         {
             try
@@ -141,6 +146,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
+        // VIEWPORT: JS xác định desktop/mobile; fallback an toàn khi prerender hoặc JS lỗi.
         private async Task<bool> IsDesktopViewportAsync()
         {
             try
@@ -156,6 +162,7 @@ namespace gtas_vpp_fe.Components.Layout
                 return false;
             }
         }
+        // THEME: Đồng bộ theme giữa state server, Radzen và trình duyệt.
         protected async Task ThemeOnChange()
         {
             LightTheme = !LightTheme;
@@ -169,6 +176,7 @@ namespace gtas_vpp_fe.Components.Layout
                 await ApplyBrowserThemeAsync(newTheme);
             }
         }
+        // AUTHENTICATION: Kiểm tra đăng nhập và tải quyền trước khi render menu.
         protected async Task LoadAuthenticationState()
         {
             // Nạp trạng thái đã xác thực.
@@ -201,6 +209,7 @@ namespace gtas_vpp_fe.Components.Layout
             LightTheme = themeCookie == "material3";
         }
 
+        // BROWSER THEME: Đọc theme hiện tại từ JavaScript sau prerender.
         private async Task<string?> GetBrowserThemeAsync()
         {
             try
@@ -217,6 +226,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
+        // CLEANUP: Hủy các event subscription khi component bị dispose.
         public void Dispose()
         {
             NavigationManager.LocationChanged -= OnLocationChanged;
@@ -225,6 +235,7 @@ namespace gtas_vpp_fe.Components.Layout
             CurrentUserState.Changed -= OnCurrentUserStateChanged;
         }
 
+        // LANGUAGE: Lưu ngôn ngữ và reload route hiện tại với culture mới.
         public async Task ToggleLanguage()
         {
             var currentCulture = CultureInfo.CurrentUICulture.Name;
@@ -236,6 +247,7 @@ namespace gtas_vpp_fe.Components.Layout
             NavigationManager.NavigateTo($"/set-language?culture={newCulture}&returnUrl={Uri.EscapeDataString(returnUrl)}", forceLoad: true);
         }
 
+        // JS INTEROP: Các thao tác trình duyệt đều có fallback khi circuit chưa sẵn sàng.
         private async Task ApplyBrowserThemeAsync(string newTheme)
         {
             try
@@ -276,6 +288,7 @@ namespace gtas_vpp_fe.Components.Layout
                 or JSDisconnectedException
                 or OperationCanceledException;
 
+        // USER DISPLAY: Chuẩn bị dữ liệu hiển thị phụ trợ cho user menu.
         public string GetUserInitials()
         {
             var name = CurrentUserState.Current?.FullName ?? string.Empty;
@@ -289,9 +302,7 @@ namespace gtas_vpp_fe.Components.Layout
 
         public string GetSidebarClass() => $"vpp-sidebar vpp-layout-sidebar {(!_sideBarExpanded ? "sidebar-collapsed" : "")}";
 
-        // Role badge cuối header theo Atlas: 3 persona chuẩn hiển thị qua Loc
-        // (không in raw GroupName "DEV" của persona kỹ thuật — §3.3.4.4);
-        // nhóm tùy biến ngoài 3 persona hiển thị đúng tên nhóm của nó.
+        // ROLE DISPLAY: Dùng label chuẩn cho persona hệ thống, giữ tên nhóm tùy biến.
         private string RoleBadgeLabel
         {
             get
@@ -316,6 +327,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
+        // HEADER TABS: Mô hình tab cấp cao và trạng thái tab con.
         public sealed record HeaderTab(
             string Label,
             string Path,
@@ -325,6 +337,7 @@ namespace gtas_vpp_fe.Components.Layout
             public bool IsExpanded => IsActive && Children is { Count: > 0 };
         }
 
+        // MENU STATE: Mở hoặc đóng toàn bộ nhóm menu đang được phép xem.
         private void ToggleAllSidebarGroups()
         {
             var expanded = !AreAllSidebarGroupsExpanded;
@@ -355,9 +368,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
-        // Tab strip theo khu vực trong primary header desktop (Atlas: dashboard 5 tab,
-        // library 6, permissions 2, reports 1). Điều hướng bằng URL nên các trang
-        // giữ nguyên cơ chế RadzenTabs + query param hiện có.
+        // HEADER TABS: Tạo tab theo route, query parameter và quyền người dùng.
         private IReadOnlyList<HeaderTab> HeaderTabs
         {
             get
@@ -407,24 +418,45 @@ namespace gtas_vpp_fe.Components.Layout
                                 tab == "2"));
                         }
 
+                        var canPolicy = CanViewShellItem(ShellNavigationCatalog.PeriodPolicy);
                         var canSettle = CanViewShellItem(ShellNavigationCatalog.PeriodReview);
                         var canApproval = CanViewShellItem(ShellNavigationCatalog.PendingApproval);
-                        if (canSettle || canApproval)
+                        if (canPolicy || canSettle || canApproval)
                         {
-                            var periodPath = canSettle
-                                ? ShellNavigationCatalog.PeriodReview.Path
-                                : ShellNavigationCatalog.PendingApproval.Path;
+                            var periodPath = canPolicy
+                                ? ShellNavigationCatalog.PeriodPolicy.Path
+                                : canSettle
+                                    ? ShellNavigationCatalog.PeriodReview.Path
+                                    : ShellNavigationCatalog.PendingApproval.Path;
                             var periodChildren = new List<VppHeaderSubTab>();
                             var pendingActive = tab == "5"
                                 && string.Equals(periodTab, "pending", StringComparison.OrdinalIgnoreCase)
                                 && canApproval;
+                            var reviewActive = tab == "5"
+                                && canSettle
+                                && (string.Equals(periodTab, "review", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(periodTab, "demand", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(periodTab, "supply", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(periodTab, "settle", StringComparison.OrdinalIgnoreCase));
+                            var policyActive = tab == "5"
+                                && canPolicy
+                                && !pendingActive
+                                && !reviewActive;
+
+                            if (canPolicy)
+                            {
+                                periodChildren.Add(new(
+                                    Loc[ShellNavigationCatalog.PeriodPolicy.LabelKey],
+                                    ShellNavigationCatalog.PeriodPolicy.Path,
+                                    policyActive));
+                            }
 
                             if (canSettle)
                             {
                                 periodChildren.Add(new(
                                     Loc[ShellNavigationCatalog.PeriodReview.LabelKey],
                                     ShellNavigationCatalog.PeriodReview.Path,
-                                    tab == "5" && !pendingActive));
+                                    reviewActive || (tab == "5" && !canPolicy && !pendingActive)));
                             }
 
                             if (canApproval)
@@ -432,7 +464,7 @@ namespace gtas_vpp_fe.Components.Layout
                                 periodChildren.Add(new(
                                     Loc[ShellNavigationCatalog.PendingApproval.LabelKey],
                                     ShellNavigationCatalog.PendingApproval.Path,
-                                    tab == "5" && (pendingActive || !canSettle)));
+                                    tab == "5" && (pendingActive || (!canPolicy && !canSettle))));
                             }
 
                             tabs.Add(new(
@@ -546,6 +578,14 @@ namespace gtas_vpp_fe.Components.Layout
                                 tab == "2"));
                         }
 
+                        if (CanViewShellItem(ShellNavigationCatalog.OrderPeriodSettings))
+                        {
+                            tabs.Add(new(
+                                Loc[ShellNavigationCatalog.OrderPeriodSettings.LabelKey],
+                                ShellNavigationCatalog.OrderPeriodSettings.Path,
+                                tab == "3"));
+                        }
+
                         break;
                     case "report":
                         if (CanViewReportMenu)
@@ -563,6 +603,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
+        // QUERY: Đọc các query parameter dùng để xác định tab đang active.
         private static Dictionary<string, string> ParseQuery(string url)
         {
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -581,6 +622,7 @@ namespace gtas_vpp_fe.Components.Layout
             return result;
         }
 
+        // MENU NAVIGATION: Mục cha không có Path sẽ mở route con đầu tiên có quyền.
         public void OnMenuItemClick(MenuItemEventArgs args)
         {
             // Khi sidebar thu gọn và click mục cha không có Path, điều hướng tới tab mặc định.
@@ -594,6 +636,10 @@ namespace gtas_vpp_fe.Components.Layout
                         GetFirstAccessiblePath(ShellNavigationCatalog.Library),
                     var t when t == Loc[ShellNavigationCatalog.Permission.LabelKey].Value =>
                         GetFirstAccessiblePath(ShellNavigationCatalog.Permission),
+                    var t when t == Loc[ShellNavigationCatalog.PeriodOperations.LabelKey].Value =>
+                        GetFirstAccessiblePeriodPath(),
+                    var t when t == Loc[ShellNavigationCatalog.Pricing.LabelKey].Value =>
+                        GetFirstAccessiblePricingPath(),
                     _ => null
                 };
 
@@ -604,6 +650,7 @@ namespace gtas_vpp_fe.Components.Layout
             }
         }
 
+        // ACCESS CHECKS: Kiểm tra quyền ở cấp section và item.
         private bool CanViewSection(ShellNavigationCatalog.Section section)
             => (section.MenuPermission is null || PermissionState.HasMenuAccess(section.MenuPermission))
                 && section.Items.Any(CanViewShellItem);
@@ -620,6 +667,7 @@ namespace gtas_vpp_fe.Components.Layout
                 : PermissionState.HasVisibleComponent(item.Route.PageCode, item.Permission);
         }
 
+        // STATE EVENTS: Render lại sidebar khi user, quyền hoặc trạng thái bận thay đổi.
         private void OnPermissionStateChanged()
         {
             _ = InvokeAsync(StateHasChanged);
@@ -635,11 +683,47 @@ namespace gtas_vpp_fe.Components.Layout
             _ = InvokeAsync(StateHasChanged);
         }
 
+        // ROUTE FALLBACK: Chọn route đầu tiên người dùng có quyền truy cập.
         private string? GetFirstAccessiblePath(ShellNavigationCatalog.Section section)
         {
             foreach (var routeKey in section.DefaultRouteKeys)
             {
                 var item = section.Items.First(candidate => candidate.RouteKey == routeKey);
+                if (CanViewShellItem(item))
+                {
+                    return item.Path;
+                }
+            }
+
+            return null;
+        }
+
+        private string? GetFirstAccessiblePeriodPath()
+        {
+            foreach (var item in new[]
+                     {
+                         ShellNavigationCatalog.PeriodPolicy,
+                         ShellNavigationCatalog.PeriodReview,
+                         ShellNavigationCatalog.PendingApproval
+                     })
+            {
+                if (CanViewShellItem(item))
+                {
+                    return item.Path;
+                }
+            }
+
+            return null;
+        }
+
+        private string? GetFirstAccessiblePricingPath()
+        {
+            foreach (var item in new[]
+                     {
+                         ShellNavigationCatalog.PriceLists,
+                         ShellNavigationCatalog.Prices
+                     })
+            {
                 if (CanViewShellItem(item))
                 {
                     return item.Path;

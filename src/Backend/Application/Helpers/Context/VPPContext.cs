@@ -39,6 +39,7 @@ namespace gtas_vpp_be.Service.Helpers.Context
 
         #region Data
         public virtual DbSet<VppPeriod> Periods { get; set; }
+        public virtual DbSet<VppOrderPeriodSettingsVersion> OrderPeriodSettingsVersions { get; set; }
         public virtual DbSet<VppRequest> Requests { get; set; }
         public virtual DbSet<VppRequestDetail> RequestDetails { get; set; }
         public virtual DbSet<RequestLog> RequestLogs { get; set; }
@@ -46,6 +47,8 @@ namespace gtas_vpp_be.Service.Helpers.Context
         public virtual DbSet<SettlementItem> SettlementItems { get; set; }
         public virtual DbSet<SettlementCharge> SettlementCharges { get; set; }
         public virtual DbSet<SettlementAllocation> SettlementAllocations { get; set; }
+        public virtual DbSet<PostSettlementOrderCorrection> PostSettlementOrderCorrections { get; set; }
+        public virtual DbSet<PostSettlementOrderCorrectionItem> PostSettlementOrderCorrectionItems { get; set; }
         #endregion
 
         public virtual DbSet<Notification> Notifications { get; set; }
@@ -210,7 +213,7 @@ namespace gtas_vpp_be.Service.Helpers.Context
                     "[Year] BETWEEN 1 AND 9999 AND [Month] BETWEEN 1 AND 12 " +
                     "AND [SubmissionDeadlineUtc] > [StartAtUtc] " +
                     "AND [SupplementApprovalDeadlineUtc] >= [SubmissionDeadlineUtc] " +
-                    "AND [State] IN (0, 1, 2, 3)"));
+                    "AND [State] IN (0, 1, 2, 3, 4, 5)"));
                 en.HasMany(x => x.Requests)
                     .WithOne(x => x.Period)
                     .HasForeignKey(x => x.PeriodId)
@@ -278,6 +281,8 @@ namespace gtas_vpp_be.Service.Helpers.Context
                       .OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.ConfigureSettlementSnapshots();
+            modelBuilder.ConfigureOrderPeriodSettings();
+            modelBuilder.ConfigurePostSettlementOrderCorrections();
             modelBuilder.Entity<Notification>(en =>
             {
                 en.HasIndex(x => new { x.UserId, x.MemberCompanyCode, x.ReadAt, x.CreatedAt })

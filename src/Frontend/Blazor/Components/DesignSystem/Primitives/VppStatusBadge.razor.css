@@ -24,7 +24,7 @@
 }
 
 .vpp-status-badge-info {
-    --vpp-status-foreground: var(--vpp-info);
+    --vpp-status-foreground: var(--vpp-info-strong);
     --vpp-status-background: var(--vpp-info-muted);
     --vpp-status-border: color-mix(in srgb, var(--vpp-info) 18%, transparent);
 }

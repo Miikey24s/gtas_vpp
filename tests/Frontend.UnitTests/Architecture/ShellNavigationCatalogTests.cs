@@ -7,14 +7,14 @@ namespace gtas_vpp_fe.Tests.Architecture;
 public sealed class ShellNavigationCatalogTests
 {
     [Fact]
-    public void Catalog_HasFourSectionsAndSeventeenUniqueLeafItems()
+    public void Catalog_HasFourSectionsAndNineteenUniqueLeafItems()
     {
         var items = ShellNavigationCatalog.Sections.SelectMany(section => section.Items).ToArray();
 
         Assert.Equal(4, ShellNavigationCatalog.Sections.Count);
-        Assert.Equal(17, items.Length);
-        Assert.Equal(17, items.Select(item => item.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count());
-        Assert.Equal(17, items.Select(item => item.RouteKey).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(19, items.Length);
+        Assert.Equal(19, items.Select(item => item.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(19, items.Select(item => item.RouteKey).Distinct(StringComparer.OrdinalIgnoreCase).Count());
     }
 
     [Fact]
@@ -39,6 +39,7 @@ public sealed class ShellNavigationCatalogTests
                 "dashboard.history",
                 "dashboard.catalog",
                 "dashboard.management.department",
+                "dashboard.period.periods",
                 "dashboard.period.review",
                 "dashboard.period.pending-approval"
             ],
@@ -52,5 +53,6 @@ public sealed class ShellNavigationCatalogTests
             ["periodTab=demand", "periodTab=supply", "periodTab=settle"],
             ShellNavigationCatalog.PeriodReview.ActiveAliases!);
         Assert.Contains("tab=4", ShellNavigationCatalog.Prices.ActiveAliases!);
+        Assert.Contains("permission.order-period-settings", ShellNavigationCatalog.Permission.DefaultRouteKeys);
     }
 }

@@ -42,7 +42,7 @@
 .vpp-datagrid .rz-datatable-thead th {
     background: var(--vpp-bg-surface);
     color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
+    font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-semibold);
     text-transform: none;
     letter-spacing: 0;
@@ -74,7 +74,7 @@
 /* ── Ghi đè mật độ hiển thị gọn ─────────────────────────────── */
 .vpp-datagrid .rz-datatable-tbody td {
     padding: var(--vpp-space-2) var(--vpp-space-4);
-    font-size: var(--vpp-text-sm);
+    font-size: var(--vpp-text-base);
     vertical-align: middle;
 }
 
@@ -110,6 +110,19 @@
     text-align: center;
     color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-base);
+}
+
+/* Empty/filtered-empty là content state, không phải data row tương tác. */
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(:is(.rz-datatable-empty, .vpp-content-state, .vpp-order-grid-empty)),
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(:is(.rz-datatable-empty, .vpp-content-state, .vpp-order-grid-empty)):hover,
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(:is(.rz-datatable-empty, .vpp-content-state, .vpp-order-grid-empty)) > td,
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(:is(.rz-datatable-empty, .vpp-content-state, .vpp-order-grid-empty)):hover > td {
+    background: transparent;
+    cursor: default;
 }
 
 /* ── F-41: Lưới chi tiết đơn hàng được nhúng ─────────────────────
@@ -522,6 +535,16 @@
         --vpp-grid-cell-padding-x: 0.5rem;
         --vpp-grid-cell-padding-y: 0.32rem;
         --vpp-grid-filter-space: 1.35rem;
+    }
+}
+
+@media (max-width: 1439px), (max-height: 799px) {
+    .vpp-order-grid .rz-paginator,
+    .vpp-order-grid .rz-pager,
+    .vpp-wizard-panel-card .rz-paginator,
+    .vpp-wizard-panel-card .rz-pager {
+        min-height: 44px;
+        padding: var(--vpp-space-1) var(--vpp-space-3);
     }
 }
 

@@ -19,11 +19,12 @@
                 </ChildContent>
                 <ErrorContent>
                     <VppContentState State="VppContentStateKind.Error"
+                                     FillAvailable="true"
                                      Icon="error_outline"
                                      Title="@Loc["ErrorPageTitle"]"
                                      Description="@Loc["ErrorPageDescription"]"
                                      PrimaryActionText="@Loc["Retry"]"
-                                     PrimaryActionIcon="@VppIcons.Refresh"
+                                     PrimaryActionIcon="@VppIcons.Reset"
                                      PrimaryAction="@RecoverFromError"
                                      SecondaryActionText="@Loc["BackToDashboard"]"
                                      SecondaryActionHref="/" />

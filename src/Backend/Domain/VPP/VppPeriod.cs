@@ -26,6 +26,10 @@ public class VppPeriod : BaseModel
 
     public int Month { get; set; }
 
+    public Guid? SettingsVersionId { get; set; }
+
+    public VppOrderPeriodSettingsVersion? SettingsVersion { get; set; }
+
     /// <summary>Thời điểm bắt đầu kỳ, có tính biên, theo UTC (00:00 ngày 05 giờ địa phương).</summary>
     public DateTime StartAtUtc { get; set; }
 

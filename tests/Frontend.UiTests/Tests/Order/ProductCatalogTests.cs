@@ -214,6 +214,13 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
                 Caret = ScreenshotCaret.Hide
             });
         }
+
+        await grid.Locator("thead th").First.ClickAsync();
+        await pageSizePanel.WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Hidden
+        });
+
         var catalogGeometry = await Page.EvaluateAsync<string>("""
             () => {
                 const workspace = document.querySelector('.vpp-catalog-workspace');

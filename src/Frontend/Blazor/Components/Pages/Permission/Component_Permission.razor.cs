@@ -1,3 +1,4 @@
+// PAGE LOGIC: Permission/Component_Permission.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Auth;
@@ -18,7 +19,8 @@ namespace gtas_vpp_fe.Components.Pages.Permission
         [
             new(0, Permissions.PermissionUser),
             new(1, Permissions.PermissionComponent),
-            new(2, Permissions.PermissionManage)
+            new(2, Permissions.PermissionManage),
+            new(3, Permissions.PeriodSettingsManage)
         ];
 
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();

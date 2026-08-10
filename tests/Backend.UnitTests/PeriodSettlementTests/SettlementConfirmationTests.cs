@@ -24,6 +24,12 @@ public sealed class SettlementConfirmationTests
         var preview = await PreviewAsync(service, seed);
         var request = ConfirmRequest(seed, preview.InputHash, "confirm-202607-0001");
 
+        Assert.Equal(2, preview.PrimaryQuote!.Lines.Count);
+        Assert.Equal(3, preview.Allocations.Count);
+        Assert.Equal(preview.PrimaryQuote.Subtotal, preview.Allocations.Sum(x => x.NetAmount));
+        Assert.Equal(preview.PrimaryQuote.VatAmount, preview.Allocations.Sum(x => x.VatAmount));
+        Assert.Equal(preview.PrimaryQuote.GrandTotal, preview.Allocations.Sum(x => x.GrossAmount));
+
         var first = await service.ConfirmAsync(request, 5615);
         var replay = await service.ConfirmAsync(request, 5615);
 
@@ -31,6 +37,8 @@ public sealed class SettlementConfirmationTests
         Assert.Equal(1, first.RevisionNumber);
         Assert.Equal(2, first.ItemCount);
         Assert.Equal(3, first.AllocationCount);
+        Assert.Equal(2, first.Items.Count);
+        Assert.Equal(3, first.Allocations.Count);
         Assert.Equal(first.GrandTotal,
             await context.Set<SettlementAllocation>().SumAsync(x => x.GrossAmount));
         Assert.Equal(first.Subtotal,
@@ -146,6 +154,52 @@ public sealed class SettlementConfirmationTests
                 Assert.Equal(1, original.RevisionNumber);
                 Assert.False(original.IsCurrentRevision);
             });
+    }
+
+    [Fact]
+    public async Task Confirm_can_settle_early_after_order_closing_when_no_supplement_is_pending()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context, netPrice: 100m, vatRate: 10m);
+        (await context.Set<VppPeriod>().SingleAsync()).State = VppPeriodState.SubmissionClosed;
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+        var preview = await PreviewAsync(service, seed);
+        var result = await service.ConfirmAsync(
+            ConfirmRequest(seed, preview.InputHash, "confirm-202607-early"), 5615);
+
+        Assert.Equal(1, result.RevisionNumber);
+        Assert.False(result.IsCorrection);
+        Assert.Equal(VppPeriodState.Settled, (await context.Set<VppPeriod>().SingleAsync()).State);
+    }
+
+    [Fact]
+    public async Task Correction_is_rejected_after_external_procurement_impact()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context, netPrice: 100m, vatRate: 10m);
+        var service = CreateService(context);
+        var preview = await PreviewAsync(service, seed);
+        var first = await service.ConfirmAsync(
+            ConfirmRequest(seed, preview.InputHash, "confirm-202607-adjust-guard"), 5615);
+        var settlement = await context.Set<Settlement>().SingleAsync();
+        settlement.HasExternalProcurementImpact = true;
+        await context.SaveChangesAsync();
+        var secondPreview = await PreviewAsync(service, seed);
+        var request = new SettlementCorrectionReqDTO
+        {
+            Year = 2026,
+            Month = 7,
+            PriceAsOfUtc = AsOfUtc,
+            InputHash = secondPreview.InputHash,
+            PrimarySupplierId = seed.SupplierId,
+            PriceListId = seed.BookId,
+            IdempotencyKey = "adjust-202607-guard",
+            Reason = "Điều chỉnh sau khi đã phát sinh hoạt động mua sắm."
+        };
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            service.CorrectAsync(first.Id, request, 5616));
     }
 
     private static async Task<SeedData> SeedAsync(
@@ -283,9 +337,14 @@ public sealed class SettlementConfirmationTests
 
     private static PeriodSettlementService CreateService(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context)
+        => CreateService(context, Now);
+
+    private static PeriodSettlementService CreateService(
+        gtas_vpp_be.Service.Helpers.Context.VPPContext context,
+        DateTime now)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
-        var clock = new FakeDateTimeProvider(Now);
+        var clock = new FakeDateTimeProvider(now);
         var listService = new PriceListService(unitOfWork.Object, clock, new UserNameResolver());
         var workflow = new PriceBookWorkflowService(unitOfWork.Object, clock, listService);
         var resolver = new PriceAsOfResolver(unitOfWork.Object);

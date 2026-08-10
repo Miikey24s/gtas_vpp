@@ -103,6 +103,40 @@ public sealed class SettlementWorkspaceProjectionTests
     }
 
     [Fact]
+    public void GroupRows_UseSettlementAllocationsForNetVatAndGrossAmounts()
+    {
+        var departments = new List<DepartmentResDTO>
+        {
+            new() { Code = "IT", Name = "Công nghệ thông tin" }
+        };
+        var first = CreateOrder("IT", 7, false, 1, 2, 999, "REQ-1", 101, "Nguyễn An Nam");
+        var second = CreateOrder("IT", 7, true, 1, 1, 999, "REQ-2", 101, "Nguyễn An Nam");
+        var allocations = new List<SettlementFinancialAllocationResDTO>
+        {
+            new() { RequestHeaderId = first.Id, NetAmount = 200m, VatAmount = 20m, GrossAmount = 215m },
+            new() { RequestHeaderId = second.Id, NetAmount = 100m, VatAmount = 10m, GrossAmount = 108m }
+        };
+
+        var department = Assert.Single(SettlementWorkspaceProjection.BuildDepartmentRows(
+            [first, second],
+            departments,
+            new SettlementOrderGroupFilter("", "", null, ""),
+            allocations));
+        var requester = Assert.Single(SettlementWorkspaceProjection.BuildRequesterRows(
+            [first, second],
+            departments,
+            new SettlementOrderGroupFilter("", "", null, ""),
+            allocations));
+
+        Assert.Equal(300m, department.NetAmount);
+        Assert.Equal(30m, department.VatAmount);
+        Assert.Equal(330m, department.GrossAmount);
+        Assert.Equal(department.NetAmount, requester.NetAmount);
+        Assert.Equal(department.VatAmount, requester.VatAmount);
+        Assert.Equal(department.GrossAmount, requester.GrossAmount);
+    }
+
+    [Fact]
     public void BuildDepartmentOptions_UsesAuthorizedOrderCodesAndDirectoryFallback()
     {
         var orders = new List<VppRequestResDTO>
@@ -160,6 +194,7 @@ public sealed class SettlementWorkspaceProjectionTests
         int userId = 1,
         string? requesterName = null) => new()
         {
+            Id = Guid.NewGuid(),
             DepartmentCode = departmentCode,
             Status = status,
             IsAdditionalOrder = isAdditional,

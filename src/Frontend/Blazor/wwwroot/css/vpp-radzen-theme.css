@@ -6,7 +6,8 @@
 
 .rz-theme-dark,
 :root:not(.rz-theme-dark) {
-    --rz-root-font-size: var(--vpp-text-base);
+    /* Radzen dùng :root:has(.rz-layout), nên root size phải tách khỏi body 14px. */
+    --rz-root-font-size: var(--vpp-root-font-size);
     /* Brand và semantic status. */
     --rz-primary: var(--vpp-action-primary);
     --rz-primary-dark: var(--vpp-radzen-primary-dark);
@@ -101,15 +102,15 @@
     --rz-grid-hover-color: var(--vpp-text-primary);
     --rz-grid-selected-color: var(--vpp-text-primary);
     --rz-grid-border-color: var(--vpp-border-default);
-    --rz-grid-cell-font-size: var(--vpp-text-sm);
-    --rz-grid-header-font-size: var(--vpp-text-xs);
+    --rz-grid-cell-font-size: var(--vpp-text-base);
+    --rz-grid-header-font-size: var(--vpp-text-sm);
 
     /* Button, dialog, badge, switch và tooltip. */
     --rz-button-primary-background-color: var(--vpp-action-primary);
     --rz-button-primary-hover-background-color: var(--vpp-action-primary-hover);
     --rz-button-primary-active-background-color: var(--vpp-action-primary-active);
-    --rz-button-size-md: var(--vpp-control-height);
-    --rz-button-size-sm: var(--vpp-control-height-compact);
+    --rz-button-size-md: var(--vpp-button-height);
+    --rz-button-size-sm: var(--vpp-button-height-compact);
     --rz-dialog-title-background-color: var(--vpp-surface-dialog);
     --rz-dialog-title-border: var(--vpp-border-width) solid var(--vpp-border-default);
     --rz-dialog-title-padding-block: var(--vpp-dialog-title-padding-block);
@@ -122,17 +123,118 @@
     --rz-tooltip-color: var(--vpp-text-tooltip);
 }
 
-/* Button toàn dự án dùng surface phẳng: trạng thái hover/active đổi màu thay vì
-   nhấc control bằng shadow hoặc transform. Áp dụng cả native button của design
-   system để CSS cục bộ cũ không tái tạo hiệu ứng nổi/chìm. */
-button,
-.rz-button,
-.rz-button:hover:not(:disabled),
-.rz-button:active:not(:disabled),
-.rz-button:focus,
-.rz-button:focus-visible {
+/* Radzen action button dùng surface phẳng. Native button tự sở hữu geometry vì
+   một số control (password eye, switch...) dùng transform để căn vị trí. Login
+   CTA là surface ngoại lệ có motion riêng của ACCOUNT motif. */
+.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button),
+.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):hover:not(:disabled),
+.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):active:not(:disabled),
+.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):focus,
+.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):focus-visible {
     box-shadow: none !important;
     transform: none !important;
+}
+
+/* Material base tạo ripple radial kéo dài 0.8s trên mọi RadzenButton. Action
+   của GTAS dùng pressed surface tức thời, nên bridge sở hữu và tắt pseudo này. */
+.rz-button:not(.vpp-login-btn)::before,
+.rz-paginator .rz-dropdown .rz-ripple::before,
+.rz-pager .rz-dropdown .rz-ripple::before,
+.rz-context-menu.vpp-admin-action-menu-surface .rz-navigation-item-link::before {
+    content: none !important;
+    background: none !important;
+    transition: none !important;
+}
+
+/* Density button gọn theo visual contract OpenAI/Codex: chiều cao thấp hơn input,
+   icon 16px và padding ngang vừa đủ; không thu nhỏ typography nội dung. */
+.rz-button.rz-button-md:not(.vpp-login-btn) {
+    min-height: var(--vpp-button-height) !important;
+    min-width: var(--vpp-button-height) !important;
+    padding-block: 0 !important;
+    padding-inline: var(--vpp-button-padding-inline) !important;
+    font-size: var(--vpp-text-sm);
+    line-height: 1;
+    letter-spacing: normal;
+}
+
+.rz-button.rz-button-sm:not(.vpp-login-btn),
+.rz-button:not(.vpp-login-btn):not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) {
+    min-height: var(--vpp-button-height-compact) !important;
+    min-width: var(--vpp-button-height-compact) !important;
+    padding-block: 0 !important;
+    padding-inline: var(--vpp-button-padding-inline-compact) !important;
+    font-size: var(--vpp-text-xs);
+    line-height: 1;
+    letter-spacing: normal;
+}
+
+.rz-button:is(.rz-button-md, .rz-button-sm):not(.vpp-login-btn) .rz-button-box {
+    gap: var(--vpp-space-1);
+    line-height: 1;
+}
+
+.rz-button:is(.rz-button-md, .rz-button-sm):not(.vpp-login-btn) :is(.rzi, .rz-button-icon-left, .rz-button-icon-right),
+.rz-button:not(.vpp-login-btn):not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) :is(.rzi, .rz-button-icon-left, .rz-button-icon-right) {
+    width: var(--vpp-button-icon-size) !important;
+    height: var(--vpp-button-icon-size) !important;
+    font-size: var(--vpp-button-icon-size) !important;
+    line-height: var(--vpp-button-icon-size) !important;
+}
+
+.rz-button.rz-button-md.rz-button-icon-only:not(.vpp-login-btn) {
+    width: var(--vpp-button-height) !important;
+    padding: 0 !important;
+}
+
+.rz-button.rz-button-sm.rz-button-icon-only:not(.vpp-login-btn),
+.rz-button.rz-button-icon-only:not(.vpp-login-btn):not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) {
+    width: var(--vpp-button-height-compact) !important;
+    padding: 0 !important;
+}
+
+/* DatePicker dùng RadzenButton làm trigger nhưng đây là icon nội tại của input,
+   không phải action button độc lập. Căn cả button-box và glyph vào đúng tâm control. */
+.rz-datepicker .rz-datepicker-field-button.rz-button,
+.rz-datepicker .rz-datepicker-field-button.rz-button .rz-button-box {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.rz-datepicker .rz-datepicker-field-button.rz-button {
+    min-height: var(--vpp-button-height-compact) !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    transform: translateY(-50%) !important;
+}
+
+.rz-datepicker .rz-datepicker-field-button.rz-button:is(:hover, :active, :focus, :focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+    transform: translateY(-50%) !important;
+}
+
+.rz-datepicker .rz-datepicker-field-button.rz-button :is(.rzi-calendar, .rzi-time) {
+    display: block;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.rz-button.rz-variant-text {
+    background: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .rz-button.rz-variant-text:hover:not(:disabled),
+    .rz-button.rz-variant-filled:is(.rz-base, .rz-light, .rz-secondary):hover:not(:disabled) {
+        background: color-mix(in srgb, var(--vpp-text-primary) 7%, transparent);
+    }
+}
+
+.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 62%, transparent) !important;
 }
 
 /* FormField outlined dùng một owner cho viền để không sinh viền kép hoặc
@@ -384,30 +486,43 @@ button,
 
 .rz-paginator .rz-dropdown,
 .rz-pager .rz-dropdown {
-    display: inline-flex;
-    width: auto;
-    min-width: 5.75rem;
-    max-width: 7rem;
-    height: var(--vpp-data-control-height);
-    min-height: var(--vpp-data-control-height);
-    align-items: center;
-    flex: 0 0 auto;
-    border: 0;
-    border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
-    color: var(--vpp-text-secondary);
-    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
+    display: inline-flex !important;
+    box-sizing: border-box !important;
+    width: 3.5rem !important;
+    min-width: 3.5rem !important;
+    max-width: 3.5rem !important;
+    height: var(--vpp-data-control-height) !important;
+    min-height: var(--vpp-data-control-height) !important;
+    align-items: center !important;
+    flex: 0 0 3.5rem !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: var(--vpp-radius-lg) !important;
+    outline: 0 !important;
+    outline-offset: 0 !important;
+    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated)) !important;
+    color: var(--vpp-text-secondary) !important;
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default) !important;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast) !important;
 }
 
 .rz-paginator .rz-dropdown .rz-dropdown-label,
 .rz-pager .rz-dropdown .rz-dropdown-label {
-    display: flex;
-    min-height: var(--vpp-data-control-height);
-    height: var(--vpp-data-control-height);
-    align-items: center;
-    justify-content: center;
-    padding: 0 var(--vpp-space-3);
-    line-height: 1;
+    display: flex !important;
+    width: 100% !important;
+    min-height: var(--vpp-data-control-height) !important;
+    height: var(--vpp-data-control-height) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 var(--vpp-space-2) !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    box-shadow: none !important;
 }
 
 .rz-paginator .rz-pagesize-text,
@@ -427,17 +542,50 @@ button,
 
 .rz-paginator .rz-dropdown:not(.rz-state-disabled):hover,
 .rz-pager .rz-dropdown:not(.rz-state-disabled):hover {
-    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated));
-    color: var(--vpp-text-primary);
-    box-shadow: inset 0 0 0 1px var(--vpp-border-default);
+    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated)) !important;
+    color: var(--vpp-text-primary) !important;
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default) !important;
 }
 
-.rz-paginator .rz-dropdown[aria-expanded="true"],
-.rz-pager .rz-dropdown[aria-expanded="true"] {
-    outline: 0;
-    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated));
-    color: var(--vpp-text-primary);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 30%, var(--vpp-border-default));
+.rz-paginator .rz-dropdown:is([aria-expanded="true"], .rz-state-focus, :focus):not(:focus-visible),
+.rz-pager .rz-dropdown:is([aria-expanded="true"], .rz-state-focus, :focus):not(:focus-visible) {
+    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated)) !important;
+    color: var(--vpp-text-primary) !important;
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default) !important;
+}
+
+.rz-paginator .rz-dropdown:focus-visible,
+.rz-pager .rz-dropdown:focus-visible {
+    background: color-mix(in srgb, var(--vpp-text-primary) 9%, var(--vpp-bg-elevated)) !important;
+    color: var(--vpp-text-primary) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 30%, var(--vpp-border-default)) !important;
+}
+
+.rz-dropdown-panel.vpp-page-size-panel {
+    box-sizing: border-box !important;
+    width: 3.5rem !important;
+    min-width: 3.5rem !important;
+    max-width: 3.5rem !important;
+}
+
+.rz-dropdown-panel.vpp-page-size-panel.rz-open {
+    animation: vpp-transient-enter-down
+        var(--vpp-transient-motion-duration)
+        var(--vpp-transient-motion-easing)
+        both !important;
+    translate: 0 var(--vpp-space-1);
+    will-change: opacity, clip-path;
+}
+
+.rz-dropdown-panel.vpp-page-size-panel.vpp-transient-surface--above {
+    animation-name: vpp-transient-enter-up !important;
+    translate: 0 calc(var(--vpp-space-1) * -1);
+}
+
+.rz-dropdown-panel.vpp-page-size-panel :is(.rz-dropdown-item, .rz-dropdown-items > li) {
+    justify-content: center;
+    padding-inline: var(--vpp-space-1);
+    text-align: center;
 }
 
 .rz-dialog,
@@ -447,12 +595,103 @@ button,
 
 /* Radzen render popup/dialog qua portal riêng; bridge này dùng cùng motion token
    với transient surface project-owned mà không transform outer anchor geometry. */
-:where(.rz-popup, .rz-dropdown-panel, .rz-multiselect-panel, .rz-autocomplete-panel, .rz-context-menu) {
+:where(.rz-popup:not(.rz-dropdown-panel), .rz-dropdown-panel.rz-open, .rz-multiselect-panel, .rz-autocomplete-panel, .rz-context-menu) {
     animation: vpp-transient-enter-down
         var(--vpp-transient-motion-duration)
         var(--vpp-transient-motion-easing)
         both;
     will-change: opacity, clip-path;
+}
+
+/* ContextMenuService khởi tạo menu tại tọa độ click. Giữ portal ẩn cho đến khi
+   bridge neo xong vào trigger để motion bắt đầu đúng vị trí, không nhảy frame đầu. */
+html.vpp-admin-action-menu-opening .rz-context-menu {
+    visibility: hidden !important;
+    animation: none !important;
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface {
+    min-width: 10.75rem;
+    max-width: min(18rem, calc(100vw - 1rem));
+    padding: var(--vpp-space-1);
+    overflow: hidden;
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+    color: var(--vpp-text-primary);
+    box-shadow: var(--vpp-shadow-lg);
+    animation: vpp-transient-enter-down
+        var(--vpp-transient-motion-duration)
+        var(--vpp-transient-motion-easing)
+        both !important;
+    will-change: opacity, clip-path;
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface.is-above {
+    animation-name: vpp-transient-enter-up !important;
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menu-list, .rz-menu) {
+    display: grid;
+    width: 100%;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem, .rz-navigation-item) {
+    border-radius: var(--vpp-radius-md);
+    background: transparent;
+    color: var(--vpp-text-secondary);
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem, .rz-navigation-item):hover {
+    border-radius: var(--vpp-radius-md);
+    background: color-mix(in srgb, var(--vpp-primary-500) 7%, transparent);
+    color: var(--vpp-text-primary);
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(
+    .rz-menuitem,
+    .rz-navigation-item,
+    .rz-navigation-item-wrapper-active):not(:hover) {
+    background: transparent !important;
+    color: var(--vpp-text-secondary);
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem-link, .rz-navigation-item-link) {
+    display: flex;
+    align-items: center;
+    gap: var(--vpp-space-2);
+    min-height: 30px;
+    padding: 0 var(--vpp-space-2);
+    border-radius: inherit;
+    color: inherit;
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem-link, .rz-navigation-item-link):focus-visible {
+    outline: none;
+    background: color-mix(in srgb, var(--vpp-primary-500) 7%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 38%, transparent);
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem-icon, .rz-navigation-item-icon) {
+    width: var(--vpp-button-icon-size);
+    margin: 0;
+    flex: 0 0 var(--vpp-button-icon-size);
+    font-size: var(--vpp-button-icon-size);
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem-text, .rz-navigation-item-text) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rz-dialog:not(.rz-dialog-side) {
@@ -505,6 +744,8 @@ button,
 .vpp-data-grid .rz-grid-table thead > tr > th {
     height: var(--vpp-data-header-height);
     max-height: var(--vpp-data-header-height);
+    background: var(--vpp-surface-grid-header);
+    color: var(--vpp-text-secondary);
 }
 
 .vpp-data-grid.vpp-data-density-compact .rz-grid-table tbody > tr,

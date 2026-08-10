@@ -67,8 +67,11 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("<VppAdminActiveToggle", page, StringComparison.Ordinal);
         Assert.DoesNotContain("manage_accounts", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Icon=\"person_off\"", page, StringComparison.Ordinal);
-        Assert.Contains("button,", ReadFrontendSource("wwwroot/css/vpp-radzen-theme.css"), StringComparison.Ordinal);
-        Assert.Contains("box-shadow: none !important", ReadFrontendSource("wwwroot/css/vpp-radzen-theme.css"), StringComparison.Ordinal);
+        var radzenBridge = ReadFrontendSource("wwwroot/css/vpp-radzen-theme.css");
+        Assert.Contains(".rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button),", radzenBridge, StringComparison.Ordinal);
+        Assert.Contains(".rz-datepicker .rz-datepicker-field-button.rz-button:is(:hover, :active, :focus, :focus-visible)", radzenBridge, StringComparison.Ordinal);
+        Assert.DoesNotContain("\nbutton,", radzenBridge, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none !important", radzenBridge, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -77,12 +80,32 @@ public sealed class AtlasWave1ArchitectureTests
         var page = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
         var editor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_PriceListEditor.razor");
         var priceEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_PriceEditor.razor");
+        var pricePage = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor");
         var priceCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor.cs");
 
         Assert.Contains("<VppCollectionWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppListDetailWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Component_RecordInspector", page, StringComparison.Ordinal);
         Assert.Contains("<VppFilterSelect TValue=\"string\"", page, StringComparison.Ordinal);
+        Assert.Contains("Property=\"SupplierName\"", page, StringComparison.Ordinal);
+        Assert.Contains("Property=\"Version\"", page, StringComparison.Ordinal);
+        Assert.Contains("Property=\"ItemCount\"", page, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"Supplier\"]", page, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"Version\"]", page, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"ItemCount\"]", page, StringComparison.Ordinal);
+        Assert.Contains("VppStatusTone.Neutral", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("SupplierCompact", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("VersionCompact", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-admin-switch-readonly", page, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"UOM\"]", pricePage, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"SupplierSku\"]", pricePage, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"MinimumOrderQuantity\"]", pricePage, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"LeadTimeDays\"]", pricePage, StringComparison.Ordinal);
+        Assert.Contains("VppStatusTone.Neutral", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("UomCompact", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("MinimumOrderQuantityCompact", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("LeadTimeCompact", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-admin-switch-readonly", pricePage, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", editor, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", priceEditor, StringComparison.Ordinal);
         Assert.Contains("VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard", priceCode, StringComparison.Ordinal);
@@ -94,6 +117,7 @@ public sealed class AtlasWave1ArchitectureTests
     {
         var classes = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor");
         var classesCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_LookupLibrary.razor.cs");
+        var lifecycleMenu = ReadFrontendSource("Components/DesignSystem/Composites/VppAdminLifecycleMenu.razor");
         var valueEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_AddLookupValue.razor");
         var priceLists = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor");
         var priceListsCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceListLibrary.razor.cs");
@@ -102,9 +126,10 @@ public sealed class AtlasWave1ArchitectureTests
 
         Assert.Contains("<VppAdaptiveDialogShell", categoryEditor, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", supplierEditor, StringComparison.Ordinal);
-        Assert.Contains("<VppAdminActiveToggle", classes, StringComparison.Ordinal);
-        Assert.Contains("delete_forever", classes, StringComparison.Ordinal);
-        Assert.Contains("!data.IsDeleted", classes, StringComparison.Ordinal);
+        Assert.Equal(2, classes.Split("<VppAdminLifecycleMenu", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("<VppAdminActiveToggle", classes, StringComparison.Ordinal);
+        Assert.Contains("delete_forever", lifecycleMenu, StringComparison.Ordinal);
+        Assert.Contains("CanHardDelete", classes, StringComparison.Ordinal);
         Assert.Contains("HardDeleteCategoryAsync", classesCode, StringComparison.Ordinal);
         Assert.Contains("HardDeleteValueAsync", classesCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Model.ExtraField1", valueEditor, StringComparison.Ordinal);
@@ -124,8 +149,9 @@ public sealed class AtlasWave1ArchitectureTests
                  })
         {
             var source = ReadFrontendSource($"Components/Pages/Lib/Tabs/{tab}");
-            Assert.Contains("<VppAdminActiveToggle", source, StringComparison.Ordinal);
-            Assert.Contains("delete_forever", source, StringComparison.Ordinal);
+            Assert.Contains("<VppAdminLifecycleMenu", source, StringComparison.Ordinal);
+            Assert.Contains("HardDeleteText", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("<VppAdminActiveToggle", source, StringComparison.Ordinal);
         }
     }
 
@@ -227,6 +253,9 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("DepartmentCode.ToLower() ==", filterBuilder, StringComparison.Ordinal);
         Assert.Contains("ApproveOrderReqDTO", decisionFactory, StringComparison.Ordinal);
         Assert.Contains("RejectOrderReqDTO", decisionFactory, StringComparison.Ordinal);
+        Assert.Contains("SelectedOrder.CanApproveSupplement", approvals, StringComparison.Ordinal);
+        Assert.Contains("SelectedOrder.CanRejectSupplement", approvals, StringComparison.Ordinal);
+        Assert.Contains("SupplementApprovalExpiredHint", approvals, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -238,6 +267,7 @@ public sealed class AtlasWave1ArchitectureTests
         var projection = ReadFrontendSource("Features/Settlement/Projection/SettlementWorkspaceProjection.cs");
         var requestFactory = ReadFrontendSource("Features/Settlement/Submission/SettlementRequestFactory.cs");
         var state = ReadFrontendSource("Features/Settlement/State/PeriodSettlementState.cs");
+        var correctionDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_SettlementCorrection.razor");
         var registrations = ReadFrontendSource(
             "Platform/Composition/FrontendServiceCollectionExtensions.cs");
 
@@ -245,6 +275,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("OnPriceListChangedAsync", page, StringComparison.Ordinal);
         Assert.Contains("AggregatedVppItemResDTO", page, StringComparison.Ordinal);
         Assert.Contains("Settlement.GetDemandAsync", code, StringComparison.Ordinal);
+        Assert.Contains("EnsureCurrentViewDataAsync", code, StringComparison.Ordinal);
+        Assert.Contains("ItemsView => Task.WhenAll(ordersTask, LoadPeriodDemandAsync())", code, StringComparison.Ordinal);
+        Assert.Contains("await LoadDeferredSettlementAdministrationAsync();", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("var demandTask = LoadPeriodDemandAsync();", code, StringComparison.Ordinal);
+        Assert.Contains("@if (isGridLoading)", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("orderby=", client, StringComparison.Ordinal);
         Assert.Contains("Settlement.PreviewAsync", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.BuildDepartmentRows", code, StringComparison.Ordinal);
         Assert.Contains("SettlementWorkspaceProjection.BuildRequesterRows", code, StringComparison.Ordinal);
@@ -263,13 +299,16 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("hasCorrectionTarget = status is", code, StringComparison.Ordinal);
         Assert.Contains("&& !isPreviewLoading", code, StringComparison.Ordinal);
         Assert.Contains("RequireFreshPreviewForNextSubmission", code, StringComparison.Ordinal);
-        Assert.Equal(
-            2,
-            System.Text.RegularExpressions.Regex.Matches(
+        var refreshSequences = System.Text.RegularExpressions.Regex.Matches(
                 code,
-                @"await LoadStatusAsync\(\);\s+State\.RequireFreshPreviewForNextSubmission\(\);")
-            .Count);
-        Assert.Contains("reason.Length is < 5 or > 500", code, StringComparison.Ordinal);
+                @"State\.RequireFreshPreviewForNextSubmission\(\);\s+await ReloadPeriodAsync\(\);")
+            .Cast<System.Text.RegularExpressions.Match>()
+            .ToArray();
+        Assert.Collection(refreshSequences, _ => { }, _ => { });
+        Assert.Matches(
+            @"State\.RequireFreshPreviewForNextSubmission\(\);\s+await ReloadPeriodAsync\(\);",
+            code);
+        Assert.Contains("Reason.Trim().Length is >= 5 and <= 500", correctionDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesClientFilters", code, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesItemFilters", code, StringComparison.Ordinal);
         Assert.DoesNotContain("new SettlementPreviewReqDTO", code, StringComparison.Ordinal);
@@ -371,7 +410,7 @@ public sealed class AtlasWave1ArchitectureTests
         var page = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_PagePermission.razor");
         var code = ReadFrontendSource("Components/Pages/Permission/Tabs/Tab_PagePermission.razor.cs");
 
-        Assert.Equal(18, CanonicalRbac.Actions.Count);
+        Assert.Equal(19, CanonicalRbac.Actions.Count);
         Assert.Equal(3, CanonicalRbac.Personas.Count);
         Assert.All(CanonicalRbac.Actions, action =>
             Assert.True(CanonicalRbac.HasAction(CanonicalRbac.Dev.GroupId, action.PermissionCode)));

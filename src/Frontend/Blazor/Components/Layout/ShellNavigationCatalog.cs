@@ -11,6 +11,7 @@ namespace gtas_vpp_fe.Components.Layout;
 /// </summary>
 public static class ShellNavigationCatalog
 {
+    // ITEMS: Metadata của từng route hiển thị trong sidebar/header.
     public sealed record Item(
         string Key,
         string RouteKey,
@@ -25,8 +26,10 @@ public static class ShellNavigationCatalog
         public string Path => Route.Path;
     }
 
+    // GROUPS: Nhóm con dùng để gom các item liên quan trong menu.
     public sealed record Group(string Key, string LabelKey, string Icon);
 
+    // SECTIONS: Nhóm menu cấp cao, quyền truy cập và route mặc định.
     public sealed record Section(
         string Key,
         string LabelKey,
@@ -35,6 +38,7 @@ public static class ShellNavigationCatalog
         IReadOnlyList<Item> Items,
         IReadOnlyList<string> DefaultRouteKeys);
 
+    // GROUP DEFINITIONS: Các nhóm menu con có thể mở rộng.
     public static readonly Group PeriodOperations = new(
         "period-operations",
         "PeriodOperations",
@@ -45,6 +49,7 @@ public static class ShellNavigationCatalog
         "Pricing",
         VppIcons.Pricing);
 
+    // ITEM DEFINITIONS: Các route được dùng bởi sidebar và header tabs.
     public static readonly Item MyOrders = new(
         "my-orders",
         "dashboard.my-orders",
@@ -82,6 +87,14 @@ public static class ShellNavigationCatalog
         Permissions.PeriodSettle,
         PeriodOperations.Key,
         ["periodTab=demand", "periodTab=supply", "periodTab=settle"]);
+
+    public static readonly Item PeriodPolicy = new(
+        "period-policy",
+        "dashboard.period.periods",
+        "PeriodPolicyNavigation",
+        VppIcons.PeriodOperations,
+        Permissions.PeriodSettle,
+        PeriodOperations.Key);
 
     public static readonly Item PendingApproval = new(
         "pending-approval",
@@ -171,17 +184,26 @@ public static class ShellNavigationCatalog
         VppIcons.History,
         Permissions.PermissionManage);
 
+    public static readonly Item OrderPeriodSettings = new(
+        "order-period-settings",
+        "permission.order-period-settings",
+        "OrderPeriodSettings",
+        VppIcons.PeriodOperations,
+        Permissions.PeriodSettingsManage);
+
+    // SECTION DEFINITIONS: Các nhóm menu cấp cao của ứng dụng.
     public static readonly Section Dashboard = new(
         "dashboard",
         "Dashboard",
         VppIcons.Dashboard,
         Permissions.MenuDashboard,
-        [MyOrders, History, DepartmentSummary, Catalog, PeriodReview, PendingApproval],
+        [MyOrders, History, DepartmentSummary, Catalog, PeriodPolicy, PeriodReview, PendingApproval],
         [
             MyOrders.RouteKey,
             History.RouteKey,
             Catalog.RouteKey,
             DepartmentSummary.RouteKey,
+            PeriodPolicy.RouteKey,
             PeriodReview.RouteKey,
             PendingApproval.RouteKey
         ]);
@@ -212,12 +234,13 @@ public static class ShellNavigationCatalog
 
     public static readonly Section Permission = new(
         "permission",
-        "Permissions",
+        "SystemAdministration",
         VppIcons.Permissions,
         Permissions.MenuPermission,
-        [Users, GroupsAndPermissions, SecurityAudit],
-        [Users.RouteKey, GroupsAndPermissions.RouteKey, SecurityAudit.RouteKey]);
+        [Users, GroupsAndPermissions, SecurityAudit, OrderPeriodSettings],
+        [Users.RouteKey, GroupsAndPermissions.RouteKey, SecurityAudit.RouteKey, OrderPeriodSettings.RouteKey]);
 
+    // CATALOG: Thứ tự section dùng khi render navigation.
     public static IReadOnlyList<Section> Sections { get; } =
         [Dashboard, Library, Report, Permission];
 }

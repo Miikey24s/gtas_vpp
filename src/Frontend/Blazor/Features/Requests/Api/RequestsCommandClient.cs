@@ -14,6 +14,13 @@ public sealed class RequestsCommandClient(IAPIServices api)
     public Task<VppRequestResDTO?> UpdateAsync(Guid orderId, VppRequestUpdateReqDTO request) =>
         api.PutFromApiAsync<VppRequestResDTO>($"{RequestsBase}/orders/{orderId}", request);
 
+    public Task<VppRequestResDTO?> AdjustAfterCloseAsync(
+        Guid orderId,
+        VppManagerOrderAdjustmentReqDTO request) =>
+        api.PostFromApiAsync<VppRequestResDTO>(
+            $"{RequestsBase}/orders/{orderId}/manager-adjustment",
+            request);
+
     public Task<VppRequestResDTO?> RecreateAsync(Guid orderId, VppRequestRecreateReqDTO request) =>
         api.PostFromApiAsync<VppRequestResDTO>($"{RequestsBase}/orders/{orderId}/recreate", request);
 

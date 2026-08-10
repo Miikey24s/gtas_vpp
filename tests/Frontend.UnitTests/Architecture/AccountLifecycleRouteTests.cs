@@ -86,7 +86,22 @@ public sealed class AccountLifecycleRouteTests
 
         Assert.DoesNotContain("@rendermode", source, StringComparison.Ordinal);
         Assert.Contains("finally", source, StringComparison.Ordinal);
-        Assert.Contains("NavigateTo(Config.PerformLogoutPath, true)", source, StringComparison.Ordinal);
+        Assert.Contains("AuthSessionFingerprint.MatchesOrIsUnspecified", source, StringComparison.Ordinal);
+        Assert.Contains("var logoutPath = Config.PerformLogoutPath;", source, StringComparison.Ordinal);
+        Assert.Contains("NavigateTo(logoutPath, true)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LoginPage_UsesOneFormSubmitPathAndGuardsRapidResubmission()
+    {
+        var markup = ReadSource("Components", "Pages", "Authen", "LoginPage.razor");
+        var code = ReadSource("Components", "Pages", "Authen", "LoginPage.razor.cs");
+
+        Assert.Contains("Submit=\"LoginSubmit\"", markup, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onkeyup", markup, StringComparison.Ordinal);
+        Assert.Contains("if (isLoading)", code, StringComparison.Ordinal);
+        Assert.Contains("var isRedirecting = false;", code, StringComparison.Ordinal);
+        Assert.Contains("if (!isRedirecting)", code, StringComparison.Ordinal);
     }
 
     [Theory]

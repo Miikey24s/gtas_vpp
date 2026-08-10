@@ -10,7 +10,7 @@ namespace gtas_vpp_be.Service.Domain;
 public sealed class VppRequestPolicy
 {
     public const int DefaultDeadlineDay = 5;
-    public const int DefaultSupplementApprovalGraceDays = 2;
+    public const int DefaultSupplementApprovalGraceDays = 5;
 
     // Luận văn §1.2.3: "Tối đa ba đơn bổ sung" được duyệt trong một kỳ.
     public const int DefaultMaxApprovedSupplements = 3;
@@ -75,11 +75,11 @@ public sealed class VppRequestPolicy
         int maxApprovedSupplements,
         int maxSupplementAttempts)
     {
-        if (deadlineDay is < 1 or > 28)
+        if (deadlineDay is < 1 or > 31)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(deadlineDay), deadlineDay,
-                "DeadlineDay must be between 1 and 28.");
+                "DeadlineDay must be between 1 and 31.");
         }
 
         if (supplementApprovalGraceDays < 0 || supplementApprovalGraceDays > 31)

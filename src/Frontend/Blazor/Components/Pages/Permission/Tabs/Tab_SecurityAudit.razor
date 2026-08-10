@@ -1,3 +1,4 @@
+@* PAGE: Permission/Tabs/Tab_SecurityAudit.razor *@
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Permission
 
@@ -70,6 +71,7 @@
 else
 {
     <VppContentState State="VppContentStateKind.Denied"
+                     FillAvailable="true"
                      Icon="@VppIcons.Lock"
                      Title="@Loc["NoPermission"]"
                      Class="m-3" />

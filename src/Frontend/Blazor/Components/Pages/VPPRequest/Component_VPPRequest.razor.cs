@@ -1,3 +1,4 @@
+// PAGE LOGIC: VPPRequest/Component_VPPRequest.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
@@ -12,6 +13,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 {
     public partial class Component_VPPRequest : IDisposable
     {
+        // TABS: Danh sách tab, quyền truy cập và tab đang được chọn.
         private const int ManagementTabIndex = 3;
 
         private sealed record DashboardTabDefinition(int QueryIndex, params string[] Permissions);
@@ -42,6 +44,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         private bool UsesHistoryWorkspace =>
             IsActiveTab(1) || IsActiveTab(ManagementTabIndex);
 
+        // LIFECYCLE: Nạp quyền và đồng bộ tab với URL hiện tại.
         protected override async Task OnInitializedAsync()
         {
             NavigationManager.LocationChanged += OnLocationChanged;
@@ -72,6 +75,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             _ = InvokeAsync(StateHasChanged);
         }
 
+        // NAVIGATION: Đổi tab bằng query parameter để URL có thể bookmark.
         private void TabOnChange(int index)
         {
             var tab = AuthorizedTabs.ElementAtOrDefault(index);
@@ -81,9 +85,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             }
 
             SelectedIndex = index;
-            NavigationManager.NavigateTo(tab.QueryIndex == ManagementTabIndex
-                ? $"/dashboard?tab={ManagementTabIndex}&managementTab=department"
-                : $"/dashboard?tab={tab.QueryIndex}");
+            NavigationManager.NavigateTo(tab.QueryIndex switch
+            {
+                ManagementTabIndex => $"/dashboard?tab={ManagementTabIndex}&managementTab=department",
+                5 when CanViewDashboardTab(Permissions.PeriodSettle) =>
+                    "/dashboard?tab=5&periodTab=periods",
+                5 => "/dashboard?tab=5&periodTab=pending",
+                _ => $"/dashboard?tab={tab.QueryIndex}"
+            });
         }
 
         private bool IsActiveTab(int queryIndex)
@@ -91,6 +100,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             return AuthorizedTabs.ElementAtOrDefault(SelectedIndex)?.QueryIndex == queryIndex;
         }
 
+        // ROUTING: Chuyển URL cũ và xác định tab hợp lệ theo quyền người dùng.
         private void SetSelectedIndexFromUri(string location)
         {
             var authorizedTabs = AuthorizedTabs;

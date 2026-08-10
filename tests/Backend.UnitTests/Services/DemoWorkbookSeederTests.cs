@@ -91,6 +91,7 @@ public sealed class DemoWorkbookSeederTests
             "Backend",
             "Application",
             "Services",
+            "Seeding",
             "DemoWorkbookSeeder.cs"));
         Assert.Contains("request.Status = (int)VPPStatus.Submitted;", seederSource, StringComparison.Ordinal);
         Assert.DoesNotContain(

@@ -75,6 +75,9 @@ public class PriceListServiceTests
         }, 5615);
 
         Assert.True(result.IsDefault);
+        Assert.Equal("Published", result.Status);
+        Assert.Equal(5615, result.PublishedByUserId);
+        Assert.Equal(now, result.PublishedAtUtc);
         var lists = await context.Set<PriceList>().Where(x => !x.IsDeleted).ToListAsync();
         Assert.Equal(2, lists.Count);
         Assert.Single(lists, x => x.IsDefault);
@@ -112,7 +115,7 @@ public class PriceListServiceTests
     }
 
     [Fact]
-    public async Task Delete_ListWithMappings_Throws()
+    public async Task Delete_ListWithMappings_DeactivatesAndKeepsPrices()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 5, 21, 9, 0, 0);
@@ -124,9 +127,10 @@ public class PriceListServiceTests
         await context.SaveChangesAsync();
         var service = CreateService(context, now);
 
-        var ex = await Assert.ThrowsAsync<BusinessException>(() => service.DeleteAsync(listId, 5615));
+        var result = await service.SetDeletedAsync(listId, true, 5615);
 
-        Assert.Contains("Price list has 1 items", ex.Message);
+        Assert.True(result.IsDeleted);
+        Assert.Single(await context.Set<SupplierProductMapping>().Where(x => x.PriceListId == listId).ToListAsync());
     }
 
     [Fact]
@@ -170,6 +174,7 @@ public class PriceListServiceTests
         }, 5615);
 
         Assert.False(clone.IsDefault);
+        Assert.Equal("Published", clone.Status);
         Assert.Equal(2, clone.ItemCount);
         var clonedRows = await context.Set<SupplierProductMapping>()
             .Where(x => x.PriceListId == clone.Id)

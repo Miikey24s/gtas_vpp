@@ -1,0 +1,77 @@
+.vpp-settlement-history-intro {
+    margin: 0;
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-settlement-history-list {
+    display: grid;
+    gap: var(--vpp-space-3);
+    max-height: min(60vh, 34rem);
+    overflow: auto;
+}
+
+.vpp-settlement-history-item {
+    display: grid;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-4);
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-settlement-history-item.is-current {
+    border-color: color-mix(in srgb, var(--vpp-action-primary) 32%, var(--vpp-border-default));
+    background: color-mix(in srgb, var(--vpp-action-primary) 6%, var(--vpp-bg-elevated));
+}
+
+.vpp-settlement-history-heading,
+.vpp-settlement-history-heading > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-settlement-history-heading > div {
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.vpp-settlement-history-heading span,
+.vpp-settlement-history-item p span {
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-settlement-history-item dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--vpp-space-3);
+    margin: 0;
+}
+
+.vpp-settlement-history-item dl div {
+    min-width: 0;
+}
+
+.vpp-settlement-history-item dt {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-font-size-sm);
+}
+
+.vpp-settlement-history-item dd {
+    margin: var(--vpp-space-1) 0 0;
+    overflow-wrap: anywhere;
+}
+
+.vpp-settlement-history-item p {
+    display: grid;
+    gap: var(--vpp-space-1);
+    margin: 0;
+}
+
+@media (max-width: 48rem) {
+    .vpp-settlement-history-item dl {
+        grid-template-columns: 1fr;
+    }
+}

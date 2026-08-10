@@ -215,3 +215,15 @@
         border-bottom: 1px solid var(--vpp-border-default);
     }
 }
+
+@media (max-width: 1439px), (max-height: 799px) {
+    .wizard-step-review {
+        height: auto;
+        min-height: 42rem;
+        overflow: visible;
+    }
+
+    .vpp-order-review-panel {
+        min-height: 42rem;
+    }
+}

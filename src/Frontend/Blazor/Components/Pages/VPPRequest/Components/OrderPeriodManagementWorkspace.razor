@@ -1,0 +1,177 @@
+@using gtas_vpp_shared.DTOs.Req.VPP
+@using gtas_vpp_shared.DTOs.Res.VPP
+
+<div class="vpp-order-period-workspace">
+    @if (IsLoading)
+    {
+        <VppCollectionWorkspace FillAvailableSpace="true"
+                                ScrollMode="VppWorkspaceScrollMode.Adaptive"
+                                IsBusy="true">
+            <ChildContent>
+                <SkeletonPage Cards="0" Rows="10" Cols="8" FillAvailable="true" />
+            </ChildContent>
+        </VppCollectionWorkspace>
+    }
+    else if (HasLoadError)
+    {
+        <VppCollectionWorkspace FillAvailableSpace="true"
+                                ScrollMode="VppWorkspaceScrollMode.Adaptive">
+            <ChildContent>
+                <VppContentState State="VppContentStateKind.Error" Icon="event_busy"
+                                 FillAvailable="true"
+                                 Title="Không tải được các kỳ đặt hàng"
+                                 Description="Hãy thử tải lại. Dữ liệu kỳ chưa bị thay đổi."
+                                 PrimaryActionText="Thử lại" PrimaryAction="@(_ => LoadAsync())" />
+            </ChildContent>
+        </VppCollectionWorkspace>
+    }
+    else
+    {
+        <VppCollectionWorkspace IsBusy="@IsBusy"
+                                FillAvailableSpace="true"
+                                ScrollMode="VppWorkspaceScrollMode.Adaptive"
+                                Gap="VppWorkspaceGap.Comfortable">
+        <ChildContent>
+            <VppDataSurfaceFrame AriaLabel="Các kỳ đặt hàng"
+                                 TestId="order-period-management-table"
+                                 DataSourceMode="VppDataSourceMode.Static"
+                                 Density="VppDataDensity.Compact"
+                                 Class="vpp-admin-data-surface vpp-admin-collection-surface vpp-order-period-data-surface">
+                <Header>
+                    <VppCollectionHeader Title="Các kỳ đặt hàng"
+                                         Summary="@PeriodCollectionSummary" />
+                </Header>
+                <Toolbar>
+                    <VppDataToolbar AriaLabel="Bộ lọc kỳ đặt hàng" Class="vpp-admin-grid-toolbar vpp-order-period-filters">
+                        <VppFilterSearch Value="@periodSearchText"
+                                         Input="@OnPeriodSearchInput"
+                                         Placeholder="Tìm kỳ hoặc thay đổi gần nhất"
+                                         AriaLabel="Tìm kỳ hoặc thay đổi gần nhất" />
+                        <VppFilterSelect TValue="string"
+                                         Value="@selectedPeriodState"
+                                         Options="@PeriodStateOptions"
+                                         ValueChanged="@OnPeriodStateChanged"
+                                         Placeholder="Tất cả trạng thái"
+                                         AriaLabel="Lọc theo trạng thái kỳ" />
+                        <VppFilterSelect TValue="int?"
+                                         Value="@selectedPeriodYear"
+                                         Options="@PeriodYearOptions"
+                                         ValueChanged="@OnPeriodYearChanged"
+                                         Placeholder="Tất cả năm"
+                                         AriaLabel="Lọc theo năm" />
+                        <VppClearFiltersButton Text="Xóa bộ lọc"
+                                               IsActive="@HasPeriodFilters"
+                                               Clicked="@ClearPeriodFiltersAsync" />
+                    </VppDataToolbar>
+                </Toolbar>
+                <ChildContent>
+                    @if (Periods.Count == 0)
+                    {
+                        <VppContentState State="VppContentStateKind.Empty" Icon="calendar_month"
+                                         FillAvailable="true"
+                                         Title="Chưa có kỳ đặt hàng"
+                                         Description="Hệ thống sẽ tự tạo kỳ theo cấu hình của quản trị hệ thống." />
+                    }
+                    else if (FilteredPeriods.Count == 0)
+                    {
+                        <VppContentState State="VppContentStateKind.FilteredEmpty"
+                                         FillAvailable="true"
+                                         Icon="search_off"
+                                         Title="Không tìm thấy kỳ phù hợp"
+                                         Description="Hãy điều chỉnh hoặc xóa bộ lọc hiện tại." />
+                    }
+                    else
+                    {
+                        <RadzenDataGrid TItem="VppManagedPeriodResDTO"
+                                        data-vpp-grid-region="true"
+                                        aria-label="Các kỳ đặt hàng"
+                                        Data="@FilteredPeriods"
+                                        AllowFiltering="false"
+                                        AllowSorting="true"
+                                        AllowAlternatingRows="false"
+                                        AllowMultiColumnSorting="false"
+                                        ShowMultiColumnSortingIndex="false"
+                                        AllowPaging="true"
+                                        PagerAlwaysVisible="true"
+                                        PagerHorizontalAlign="HorizontalAlign.Right"
+                                        GotoFirstPageOnSort="true"
+                                        PageSize="@VppPagingProfiles.Collection.DefaultPageSize"
+                                        PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
+                                        AllowColumnResize="true"
+                                        AllowColumnPicking="false"
+                                        Density="Density.Compact"
+                                        GridLines="DataGridGridLines.Horizontal"
+                                        class="vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-order-period-grid">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="#" Width="52px" MinWidth="52px"
+                                                      Filterable="false" Sortable="false" TextAlign="TextAlign.Center"
+                                                      CssClass="rz-col-index" HeaderCssClass="rz-col-index">
+                                    <Template Context="row">@(Periods.IndexOf(row) + 1)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="Kỳ" Width="110px" MinWidth="110px"
+                                                      Sortable="false">
+                                    <Template Context="row">@PeriodLabel(row)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="State" Title="Trạng thái"
+                                                      Width="150px" MinWidth="150px" TextAlign="TextAlign.Center">
+                                    <Template Context="row"><VppPeriodStateBadge State="@row.State" Compact="true" /></Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="OpenAtLocal" Title="Ngày mở"
+                                                      Width="155px" MinWidth="155px" TextAlign="TextAlign.Center">
+                                    <Template Context="row">@FormatDateTime(row.OpenAtLocal)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="CloseAtLocal" Title="Ngày đóng"
+                                                      Width="165px" MinWidth="165px" TextAlign="TextAlign.Center">
+                                    <Template Context="row">@FormatDateTime(row.CloseAtLocal)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="SupplementApprovalDeadlineLocal"
+                                                      Title="Hạn duyệt đơn bổ sung" Width="195px" MinWidth="195px"
+                                                      TextAlign="TextAlign.Center" Pickable="true">
+                                    <Template Context="row">@FormatDateTime(row.SupplementApprovalDeadlineLocal)</Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="OrderCount" Title="Số đơn"
+                                                      Width="88px" MinWidth="88px" TextAlign="TextAlign.Center" />
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="LastTransitionAtLocal"
+                                                      Title="Thay đổi gần nhất" Width="220px" MinWidth="200px" Pickable="true">
+                                    <Template Context="row">
+                                        <div class="vpp-admin-two-line-cell">
+                                            <span class="vpp-admin-truncate" title="@row.LastTransitionReason">
+                                                @OrderPeriodDisplay.FormatTransitionReason(row.LastTransitionReason)
+                                            </span>
+                                            @if (row.LastTransitionAtLocal.HasValue)
+                                            {
+                                                <small>@FormatDateTime(row.LastTransitionAtLocal.Value)</small>
+                                            }
+                                        </div>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="Thao tác" Width="190px" MinWidth="190px"
+                                                      Filterable="false" Sortable="false" Reorderable="false" Resizable="false"
+                                                      Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right"
+                                                      TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-large"
+                                                      HeaderCssClass="rz-col-actions rz-col-actions-large">
+                                    <Template Context="row">
+                                        <div class="vpp-admin-actions">
+                                             <VppAdminIconAction Icon="@PrimaryPeriodActionIcon(row)"
+                                                                 Text="@PrimaryPeriodActionText(row)"
+                                                                 Title="@PrimaryPeriodActionText(row)"
+                                                                 ButtonStyle="@PrimaryPeriodActionStyle(row)"
+                                                                 Disabled="@IsBusy"
+                                                                 Click="@(() => RunPrimaryPeriodActionAsync(row))" />
+                                            <VppAdminActionMenu Title="Thao tác khác"
+                                                                Items="@PeriodSecondaryActions(row)"
+                                                                Disabled="@IsBusy"
+                                                                TestId="period-row-more-actions" />
+                                        </div>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    }
+                </ChildContent>
+            </VppDataSurfaceFrame>
+
+        </ChildContent>
+        </VppCollectionWorkspace>
+    }
+</div>

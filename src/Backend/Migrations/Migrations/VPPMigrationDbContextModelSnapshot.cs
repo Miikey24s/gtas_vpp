@@ -1186,6 +1186,160 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.PostSettlementOrderCorrection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Action")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DecidedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DecidedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DecisionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EmployeeNote")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MemberCompanyCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("PeriodId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RequestRevisionNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RequestSeriesId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("RequestedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RequestedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ResultRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ResultSettlementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<Guid>("SettlementId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UpdatedByUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PeriodId");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("SettlementId");
+
+                    b.HasIndex("MemberCompanyCode", "RequestSeriesId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_PostSettlementCorrections_PendingSeries")
+                        .HasFilter("[IsDeleted] = 0 AND [Status] = 0");
+
+                    b.HasIndex("MemberCompanyCode", "PeriodId", "Status");
+
+                    b.ToTable("PostSettlementOrderCorrections", t =>
+                        {
+                            t.HasCheckConstraint("CK_PostSettlementCorrections_State", "[Action] IN (0, 1) AND [Status] IN (0, 1, 2, 3) AND [RequestRevisionNumber] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.PostSettlementOrderCorrectionItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CorrectionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Qty")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UpdatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("VppId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrectionId", "VppId")
+                        .IsUnique();
+
+                    b.ToTable("PostSettlementOrderCorrectionItems", t =>
+                        {
+                            t.HasCheckConstraint("CK_PostSettlementCorrectionItems_Qty", "[Qty] > 0");
+                        });
+                });
+
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.RequestLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1287,6 +1441,9 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Property<decimal>("GrandTotal")
                         .HasColumnType("decimal(19,4)");
 
+                    b.Property<bool>("HasExternalProcurementImpact")
+                        .HasColumnType("bit");
+
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -1345,6 +1502,24 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.Property<decimal>("RebateAmount")
                         .HasColumnType("decimal(19,4)");
+
+                    b.Property<string>("ReopenCommandPayloadHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ReopenIdempotencyKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ReopenReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReopenedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ReopenedByUserId")
+                        .HasColumnType("int");
 
                     b.Property<int>("RevisionNumber")
                         .HasColumnType("int");
@@ -1644,6 +1819,98 @@ namespace gtas_vpp_be.Migrations.Migrations
                         });
                 });
 
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.VppOrderPeriodSettingsVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DefaultNewPeriodOpenDay")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DefaultOpenPeriodCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DefaultPeriodCloseDay")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("EffectiveFromMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EffectiveFromYear")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("LocalTimeOfDay")
+                        .HasColumnType("time");
+
+                    b.Property<string>("MemberCompanyCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<int>("PostCloseAdjustmentDays")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SettlementReopenWindowDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SupplementApprovalGraceDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UpdatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MemberCompanyCode", "VersionNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UX_OrderPeriodSettings_Company_Version")
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("MemberCompanyCode", "EffectiveFromYear", "EffectiveFromMonth", "VersionNumber")
+                        .HasDatabaseName("IX_OrderPeriodSettings_Company_Effective")
+                        .HasFilter("[IsDeleted] = 0");
+
+                    b.ToTable("OrderPeriodSettingsVersions", t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderPeriodSettings_Ranges", "[VersionNumber] > 0 AND [DefaultOpenPeriodCount] BETWEEN 0 AND 12 AND [DefaultNewPeriodOpenDay] BETWEEN 1 AND 31 AND [DefaultPeriodCloseDay] BETWEEN 1 AND 31 AND [SupplementApprovalGraceDays] BETWEEN 0 AND 31 AND [PostCloseAdjustmentDays] BETWEEN 0 AND 31 AND [SupplementApprovalGraceDays] <= [PostCloseAdjustmentDays] AND [SettlementReopenWindowDays] BETWEEN 0 AND 30 AND [EffectiveFromYear] BETWEEN 1 AND 9999 AND [EffectiveFromMonth] BETWEEN 1 AND 12");
+                        });
+                });
+
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.VppPeriod", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1686,6 +1953,9 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<Guid?>("SettingsVersionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("StartAtUtc")
                         .HasColumnType("datetime2");
 
@@ -1714,6 +1984,9 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("SettingsVersionId")
+                        .HasDatabaseName("IX_Periods_SettingsVersionId");
+
                     b.HasIndex("MemberCompanyCode", "State", "SubmissionDeadlineUtc")
                         .HasDatabaseName("IX_Periods_CompanyStateDeadline");
 
@@ -1724,7 +1997,7 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.ToTable("Periods", t =>
                         {
-                            t.HasCheckConstraint("CK_Periods_ValidRange", "[Year] BETWEEN 1 AND 9999 AND [Month] BETWEEN 1 AND 12 AND [SubmissionDeadlineUtc] > [StartAtUtc] AND [SupplementApprovalDeadlineUtc] >= [SubmissionDeadlineUtc] AND [State] IN (0, 1, 2, 3)");
+                            t.HasCheckConstraint("CK_Periods_ValidRange", "[Year] BETWEEN 1 AND 9999 AND [Month] BETWEEN 1 AND 12 AND [SubmissionDeadlineUtc] > [StartAtUtc] AND [SupplementApprovalDeadlineUtc] >= [SubmissionDeadlineUtc] AND [State] IN (0, 1, 2, 3, 4, 5)");
                         });
                 });
 
@@ -2125,6 +2398,44 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Navigation("VppCategory");
                 });
 
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.PostSettlementOrderCorrection", b =>
+                {
+                    b.HasOne("gtas_vpp_be.Model.VPP.VppPeriod", "Period")
+                        .WithMany()
+                        .HasForeignKey("PeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("gtas_vpp_be.Model.VPP.VppRequest", "Request")
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("gtas_vpp_be.Model.VPP.Settlement", "Settlement")
+                        .WithMany()
+                        .HasForeignKey("SettlementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Period");
+
+                    b.Navigation("Request");
+
+                    b.Navigation("Settlement");
+                });
+
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.PostSettlementOrderCorrectionItem", b =>
+                {
+                    b.HasOne("gtas_vpp_be.Model.VPP.PostSettlementOrderCorrection", "Correction")
+                        .WithMany("Items")
+                        .HasForeignKey("CorrectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Correction");
+                });
+
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.RequestLog", b =>
                 {
                     b.HasOne("gtas_vpp_be.Model.VPP.VppRequest", "Request")
@@ -2193,6 +2504,16 @@ namespace gtas_vpp_be.Migrations.Migrations
                         .IsRequired();
 
                     b.Navigation("Settlement");
+                });
+
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.VppPeriod", b =>
+                {
+                    b.HasOne("gtas_vpp_be.Model.VPP.VppOrderPeriodSettingsVersion", "SettingsVersion")
+                        .WithMany("Periods")
+                        .HasForeignKey("SettingsVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("SettingsVersion");
                 });
 
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.VppRequest", b =>
@@ -2292,6 +2613,11 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Navigation("SupplierProductMappings");
                 });
 
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.PostSettlementOrderCorrection", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.Settlement", b =>
                 {
                     b.Navigation("Allocations");
@@ -2299,6 +2625,11 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Navigation("Charges");
 
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("gtas_vpp_be.Model.VPP.VppOrderPeriodSettingsVersion", b =>
+                {
+                    b.Navigation("Periods");
                 });
 
             modelBuilder.Entity("gtas_vpp_be.Model.VPP.VppPeriod", b =>

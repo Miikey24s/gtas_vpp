@@ -11,7 +11,7 @@ public class VppStatusContractTests
 {
     [Theory]
     [InlineData(1, false, false, "Submitted")]
-    [InlineData(1, true, false, "SubmittedPeriodClosed")]
+    [InlineData(1, true, false, "Submitted")]
     [InlineData(1, true, true, "Submitted")]
     [InlineData(4, false, false, "Cancelled")]
     [InlineData(6, false, false, "Pending")]
@@ -44,7 +44,7 @@ public class VppStatusContractTests
 
     [Theory]
     [InlineData(1, false, false, "Submitted")]
-    [InlineData(1, true, false, "Submitted (Period Closed)")]
+    [InlineData(1, true, false, "Submitted")]
     [InlineData(4, false, false, "Cancelled")]
     public void GetText_WithCulture_ReturnsEnglishLabels(int status, bool isDeadlinePassed, bool isAdditionalOrder, string expected)
     {
@@ -53,7 +53,7 @@ public class VppStatusContractTests
 
     [Theory]
     [InlineData(1, false, false, "Đã gửi")]
-    [InlineData(1, true, false, "Đã gửi (đã khóa kỳ)")]
+    [InlineData(1, true, false, "Đã gửi")]
     [InlineData(6, false, false, "Chờ duyệt")]
     public void GetText_WithCulture_ReturnsVietnameseLabels(int status, bool isDeadlinePassed, bool isAdditionalOrder, string expected)
     {

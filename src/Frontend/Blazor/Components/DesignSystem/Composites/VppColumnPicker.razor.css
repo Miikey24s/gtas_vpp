@@ -7,10 +7,10 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    min-height: 34px;
-    padding: 0.35rem 0.5rem 0.35rem 0.65rem;
+    min-height: var(--vpp-button-height);
+    padding: 0 var(--vpp-button-padding-inline);
     border: 1px solid var(--vpp-border-strong);
-    border-radius: var(--vpp-radius-md);
+    border-radius: var(--vpp-radius-button);
     background: var(--vpp-bg-elevated);
     color: var(--vpp-text-secondary);
     font: inherit;
@@ -25,7 +25,7 @@
 
 .vpp-column-picker-trigger ::deep .vpp-column-picker-leading-icon {
     color: var(--vpp-primary-600);
-    font-size: 1.15rem;
+    font-size: var(--vpp-button-icon-size);
 }
 
 .vpp-column-picker-trigger:hover {
@@ -37,7 +37,7 @@
 .vpp-column-picker-trigger:focus-visible {
     outline: none;
     border-color: var(--vpp-border-focus);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--vpp-primary-500) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 62%, transparent);
 }
 
 .vpp-column-picker-count {
@@ -105,11 +105,11 @@
 .vpp-column-picker-close {
     display: grid;
     place-items: center;
-    width: 1.9rem;
-    height: 1.9rem;
+    width: var(--vpp-button-height-compact);
+    height: var(--vpp-button-height-compact);
     padding: 0;
     border: 0;
-    border-radius: var(--vpp-radius-md);
+    border-radius: var(--vpp-radius-button);
     background: transparent;
     color: var(--vpp-text-muted);
     cursor: pointer;
@@ -121,7 +121,7 @@
 }
 
 .vpp-column-picker-close ::deep .vpp-icon {
-    font-size: 1.05rem;
+    font-size: var(--vpp-button-icon-size);
 }
 
 .vpp-column-picker-search {
@@ -271,10 +271,10 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    min-height: 30px;
-    padding: 0.25rem 0.55rem;
+    min-height: var(--vpp-button-height-compact);
+    padding: 0 var(--vpp-button-padding-inline-compact);
     border: 0;
-    border-radius: var(--vpp-radius-md);
+    border-radius: var(--vpp-radius-button);
     background: transparent;
     color: var(--vpp-primary-700);
     font: inherit;

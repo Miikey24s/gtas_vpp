@@ -13,11 +13,72 @@ namespace gtas_vpp_fe.UITests.Tests.Settlement;
 
 public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
 {
-    private const string SameUserCorrectionReason = "Kiểm tra quy tắc bốn mắt cùng người";
-    private const string ManagerCorrectionReason = "Hiệu chỉnh kỳ sau khi người thứ hai rà soát";
+    private const string ScreenshotDirectoryEnvironmentVariable = "GTAS_SETTLEMENT_MUTATION_SCREENSHOT_DIR";
+    private const string AdjustmentReason = "Chọn nhầm bảng giá và cần lưu lại kết quả đúng";
 
     [Fact]
-    public async Task Settlement_ConfirmThenCorrection_RequiresAnotherAuthorizedUserAndPreservesRevisions()
+    public async Task Settlement_AdjustmentFromUi_KeepsTheOldVersionAndCreatesVersionTwo()
+    {
+        BackendBaseUrl.Should().NotBeNullOrWhiteSpace();
+        using var procurementApi = await CreateAuthorizedApiClientAsync(TestAccounts.Procurement);
+        var period = await procurementApi.GetFromJsonAsync<VppPeriodInfoResDTO>(
+            "/api/VPPRequest/period-info",
+            TestContext.Current.CancellationToken);
+        period.Should().NotBeNull();
+
+        var targetYear = period!.PreviousPeriodYear;
+        var targetMonth = period.PreviousPeriodMonth;
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsAsync(TestAccounts.Procurement);
+        await OpenSettlementAsync(targetYear, targetMonth);
+
+        var settleButton = await WaitForEnabledActionAsync("Chốt kỳ");
+        await settleButton.ClickAsync();
+        var confirmDialog = Page.Locator(".rz-dialog:visible").Last;
+        await confirmDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await confirmDialog.GetByRole(AriaRole.Button, new() { Name = "Có", Exact = true }).ClickAsync();
+        _ = await WaitForRevisionCountAsync(procurementApi, targetYear, targetMonth, 1);
+
+        await SwitchUserAsync(TestAccounts.SystemAdmin);
+        using var systemAdminApi = await CreateAuthorizedApiClientAsync(TestAccounts.SystemAdmin);
+        await OpenSettlementAsync(targetYear, targetMonth);
+        var adjustButton = Page.GetByRole(
+            AriaRole.Button,
+            new() { Name = "Điều chỉnh sau chốt", Exact = true });
+        await adjustButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await adjustButton.ClickAsync();
+        var adjustmentDialog = Page.GetByTestId("settlement-correction-dialog");
+        await adjustmentDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await adjustmentDialog.Locator("textarea").FillAsync(AdjustmentReason);
+        await adjustmentDialog.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Lưu bản điều chỉnh", Exact = true })
+            .ClickAsync();
+        await adjustmentDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 60_000 });
+        await Page.GetByText("Hệ thống đã lưu thành bản chốt 2. Bản trước vẫn có trong lịch sử.", new() { Exact = true })
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+
+        var revisions = await GetRevisionsAsync(systemAdminApi, targetYear, targetMonth);
+        revisions.Should().HaveCount(2);
+        revisions.Single(item => item.RevisionNumber == 1).IsCurrentRevision.Should().BeFalse();
+        var current = revisions.Single(item => item.RevisionNumber == 2);
+        current.IsCurrentRevision.Should().BeTrue();
+        current.IsCorrection.Should().BeTrue();
+        current.CorrectionReason.Should().Be(AdjustmentReason);
+        var managedPeriods = await systemAdminApi.GetFromJsonAsync<List<VppManagedPeriodResDTO>>(
+            "/api/order-periods",
+            TestContext.Current.CancellationToken);
+        managedPeriods.Should().ContainSingle(periodItem =>
+            periodItem.Year == targetYear
+            && periodItem.Month == targetMonth
+            && periodItem.State == "Settled");
+        await Page.GetByText("Bản 2", new() { Exact = true })
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await CaptureAsync("settlement-version-2-1366x768.png");
+    }
+
+    [Fact]
+    public async Task Settlement_SettledView_UsesFriendlyVersionAndAdjustmentActionsWithoutReopen()
     {
         BackendBaseUrl.Should().NotBeNullOrWhiteSpace();
         using var procurementApi = await CreateAuthorizedApiClientAsync(TestAccounts.Procurement);
@@ -41,10 +102,6 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
 
         var revisionsAfterConfirm = await WaitForRevisionCountAsync(procurementApi, targetYear, targetMonth, 1);
         await Page.GetByText("Đã chốt kỳ", new() { Exact = true }).WaitForAsync();
-        await Page.GetByTestId("settlement-preview-refresh")
-            .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Xem trước lại", Exact = true })
-            .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
 
         var firstRevision = revisionsAfterConfirm.Single();
         firstRevision.RevisionNumber.Should().Be(1);
@@ -52,43 +109,31 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
         firstRevision.IsCorrection.Should().BeFalse();
         firstRevision.ConfirmedByUserId.Should().Be(TestAccounts.Procurement.UserId);
 
-        await Page.ReloadAsync(new() { WaitUntil = WaitUntilState.Load });
-        await WaitForSettlementSurfaceAsync(targetYear, targetMonth);
-        await SubmitCorrectionAsync(SameUserCorrectionReason);
-        await Page.GetByText(
-                "Four-eyes control requires another procurement user to confirm the correction.",
-                new() { Exact = false })
+        await Page.GetByText("Bản 1", new() { Exact = true }).WaitForAsync();
+        await Page.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Điều chỉnh sau chốt", Exact = true })
             .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await CaptureAsync("settlement-version-1-1366x768.png");
+        (await Page.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Mở lại để chốt lại", Exact = true })
+            .CountAsync()).Should().Be(0);
+        await Page.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Xem các bản đã lưu", Exact = true })
+            .ClickAsync();
+        await Page.GetByTestId("settlement-version-history-dialog").WaitForAsync();
+        await Page.GetByTestId("settlement-version-history-dialog")
+            .GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true })
+            .ClickAsync();
 
-        var revisionsAfterRejectedCorrection = await GetRevisionsAsync(procurementApi, targetYear, targetMonth);
-        revisionsAfterRejectedCorrection.Should().ContainSingle(
-            "cùng người xác nhận không được tạo thêm phiên bản chốt kỳ");
-
-        await SwitchUserAsync(TestAccounts.Manager);
-        await OpenSettlementAsync(targetYear, targetMonth);
-        await SubmitCorrectionAsync(ManagerCorrectionReason);
-        await Page.GetByText("Đã tạo phiên bản hiệu chỉnh", new() { Exact = false })
+        var surface = Page.GetByTestId("period-settlement-data-surface");
+        await surface.GetByRole(AriaRole.Button, new() { Name = "Xem đơn", Exact = true }).First.ClickAsync();
+        await Page.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Điều chỉnh sau chốt", Exact = true })
             .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
-        await RequireFreshPreviewAndReopenCorrectionGateAsync();
-
-        using var managerApi = await CreateAuthorizedApiClientAsync(TestAccounts.Manager);
-        var revisions = await WaitForRevisionCountAsync(managerApi, targetYear, targetMonth, 2);
-        var ordered = revisions.OrderBy(revision => revision.RevisionNumber).ToArray();
-        var original = ordered[0];
-        var correction = ordered[1];
-
-        original.RevisionNumber.Should().Be(1);
-        original.IsCurrentRevision.Should().BeFalse();
-        original.IsCorrection.Should().BeFalse();
-        original.ConfirmedByUserId.Should().Be(TestAccounts.Procurement.UserId);
-
-        correction.RevisionNumber.Should().Be(2);
-        correction.IsCurrentRevision.Should().BeTrue();
-        correction.IsCorrection.Should().BeTrue();
-        correction.ConfirmedByUserId.Should().Be(TestAccounts.Manager.UserId);
-        correction.SupersedesSettlementId.Should().Be(original.Id);
-        correction.CorrectionReason.Should().Be(ManagerCorrectionReason);
-        revisions.Count(revision => revision.IsCurrentRevision).Should().Be(1);
     }
 
     private async Task OpenSettlementAsync(int year, int month)
@@ -135,74 +180,6 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
             $"Visible blockers: {string.Join(" | ", condition)}");
     }
 
-    private async Task SubmitCorrectionAsync(string reason)
-    {
-        await EnsureFreshPreviewAsync();
-        var correctionButton = await WaitForEnabledActionAsync("Tạo phiên bản hiệu chỉnh");
-        await correctionButton.ClickAsync();
-
-        var dialog = Page.Locator("[data-testid='settlement-correction-dialog']:visible");
-        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
-        await dialog.Locator("textarea").FillAsync(reason);
-        await dialog.GetByRole(
-                AriaRole.Button,
-                new() { Name = "Tạo phiên bản hiệu chỉnh", Exact = true })
-            .ClickAsync();
-        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 60_000 });
-    }
-
-    private async Task EnsureFreshPreviewAsync()
-    {
-        var refreshBar = Page.Locator("[data-testid='settlement-preview-refresh']:visible");
-        await Page.WaitForFunctionAsync("""
-            () => {
-                const refresh = document.querySelector('[data-testid="settlement-preview-refresh"]');
-                const action = [...document.querySelectorAll('.vpp-settlement-decision-action button')]
-                    .find(button => button.textContent?.includes('Tạo phiên bản hiệu chỉnh'));
-                const refreshVisible = refresh && getComputedStyle(refresh).display !== 'none'
-                    && getComputedStyle(refresh).visibility !== 'hidden';
-                return refreshVisible || !!action && !action.disabled;
-            }
-            """);
-
-        if (await refreshBar.CountAsync() > 0)
-        {
-            await refreshBar.GetByRole(
-                    AriaRole.Button,
-                    new() { Name = "Xem trước lại", Exact = true })
-                .ClickAsync();
-            await refreshBar.WaitForAsync(new()
-            {
-                State = WaitForSelectorState.Hidden,
-                Timeout = 60_000
-            });
-        }
-    }
-
-    private async Task RequireFreshPreviewAndReopenCorrectionGateAsync()
-    {
-        var refreshBar = Page.Locator("[data-testid='settlement-preview-refresh']:visible");
-        await refreshBar.WaitForAsync(new()
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = 60_000
-        });
-        await refreshBar.GetByText(
-                "Bản xem trước cũ đã hết hiệu lực",
-                new() { Exact = false })
-            .WaitForAsync();
-        await refreshBar.GetByRole(
-                AriaRole.Button,
-                new() { Name = "Xem trước lại", Exact = true })
-            .ClickAsync();
-        await refreshBar.WaitForAsync(new()
-        {
-            State = WaitForSelectorState.Hidden,
-            Timeout = 60_000
-        });
-        await WaitForEnabledActionAsync("Tạo phiên bản hiệu chỉnh");
-    }
-
     private async Task<HttpClient> CreateAuthorizedApiClientAsync(QaTestAccount account)
     {
         var client = new HttpClient { BaseAddress = new Uri(BackendBaseUrl!) };
@@ -226,6 +203,26 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
             client.Dispose();
             throw;
         }
+    }
+
+    private async Task CaptureAsync(string fileName)
+    {
+        var configured = Environment.GetEnvironmentVariable(ScreenshotDirectoryEnvironmentVariable);
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            return;
+        }
+
+        var directory = Path.GetFullPath(configured);
+        Directory.CreateDirectory(directory);
+        await Page.ScreenshotAsync(new()
+        {
+            Path = Path.Combine(directory, fileName),
+            FullPage = false,
+            Animations = ScreenshotAnimations.Disabled,
+            Caret = ScreenshotCaret.Hide,
+            Scale = ScreenshotScale.Css
+        });
     }
 
     private static async Task<List<SettlementRevisionResDTO>> WaitForRevisionCountAsync(

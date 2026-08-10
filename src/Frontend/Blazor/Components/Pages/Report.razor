@@ -1,3 +1,4 @@
+@* PAGE: Report.razor *@
 @page "/report"
 @layout MainLayout
 @inherits ReportBase
@@ -14,6 +15,7 @@
 else if (!CanViewReport)
 {
     <VppContentState State="VppContentStateKind.Denied"
+                     FillAvailable="true"
                      Icon="lock"
                      Title="@Loc["AccessDenied"]"
                      Description="@Loc["NoPermission"]"
@@ -24,6 +26,8 @@ else
 {
     <main class="vpp-report-page">
         <VppAnalyticsWorkspace IsBusy="@IsLoading"
+                               FillAvailableSpace="true"
+                               ScrollMode="VppWorkspaceScrollMode.Page"
                                LabelledBy="vpp-report-heading"
                                Gap="VppWorkspaceGap.Standard"
                                Class="vpp-report-workspace">
@@ -38,16 +42,7 @@ else
                         }
                     </div>
                     <div class="vpp-report-actions">
-                        @if (Summary is { TotalOrders: > 0 })
-                        {
-                            <RadzenButton Icon="auto_awesome"
-                                          Text="@Loc["GenerateInsights"]"
-                                          BusyText="@Loc["GeneratingInsights"]"
-                                          IsBusy="@IsLoadingInsights"
-                                          ButtonStyle="ButtonStyle.Light"
-                                           Click="GenerateInsightsAsync"
-                                           Disabled="@(IsLoading || ExportingFormat.HasValue)" />
-                        }
+                        @* Temporarily hidden: Generate insights action. *@
                         @if (CanExport)
                         {
                             <VppFileExportActions Formats="@ReportExportFormats"
@@ -104,6 +99,7 @@ else
                 else if (!string.IsNullOrWhiteSpace(LoadError) && Summary is null)
                 {
                     <VppContentState State="VppContentStateKind.Error"
+                                     FillAvailable="true"
                                      Icon="error_outline"
                                      Title="@Loc["ReportLoadFailedTitle"]"
                                      Description="@LoadError"
@@ -113,12 +109,10 @@ else
                 else if (Summary is null || Summary.TotalOrders == 0)
                 {
                     <VppContentState State="VppContentStateKind.Empty"
+                                     FillAvailable="true"
                                      Icon="analytics"
                                      Title="@Loc["NoReportData"]"
-                                     Description="@Loc["NoReportDataDescription"]"
-                                     PrimaryActionText="@Loc["Refresh"]"
-                                     PrimaryActionIcon="@VppIcons.Refresh"
-                                     PrimaryAction="@(async _ => await LoadAsync())" />
+                                     Description="@Loc["NoReportDataDescription"]" />
                 }
                 else
                 {

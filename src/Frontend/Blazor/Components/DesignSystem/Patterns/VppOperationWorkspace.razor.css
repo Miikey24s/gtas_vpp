@@ -5,8 +5,22 @@
     min-height: 0;
 }
 
-.vpp-operation-workspace-pattern.is-fill {
+.vpp-operation-workspace-pattern.is-fill:not(.is-scroll-page) {
     height: 100%;
+}
+
+.vpp-operation-workspace-pattern.is-scroll-page {
+    height: auto;
+    min-height: 100%;
+    align-content: start;
+}
+
+@media (max-width: 1439px), (max-height: 799px) {
+    .vpp-operation-workspace-pattern.is-fill.is-scroll-adaptive {
+        height: auto;
+        min-height: 100%;
+        align-content: start;
+    }
 }
 
 .is-gap-compact { gap: var(--vpp-space-2); }

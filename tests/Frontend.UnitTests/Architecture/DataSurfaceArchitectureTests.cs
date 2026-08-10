@@ -12,8 +12,12 @@ public sealed class DataSurfaceArchitectureTests
         var componentRoot = Path.Combine(root, "Components", "DesignSystem", "Composites");
         var contracts = Read(componentRoot, "VppDataSurfaceContracts.cs");
         var frame = Read(componentRoot, "VppDataSurfaceFrame.razor");
+        var frameStyles = Read(componentRoot, "VppDataSurfaceFrame.razor.css");
         var toolbar = Read(componentRoot, "VppDataToolbar.razor");
         var filterSelect = Read(componentRoot, "VppFilterSelect.razor");
+        var filterSelectStyles = Read(componentRoot, "VppFilterSelect.razor.css");
+        var decisionSelect = Read(componentRoot, "VppDecisionSelect.razor");
+        var decisionOption = Read(componentRoot, "VppDecisionOption.cs");
         var footer = Read(componentRoot, "VppDataSummaryFooter.razor");
         var cellPopover = Read(componentRoot, "VppCellValuePopover.razor");
         var cellPopoverStyles = Read(componentRoot, "VppCellValuePopover.razor.css");
@@ -33,9 +37,17 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("RenderFragment ChildContent", frame, StringComparison.Ordinal);
         Assert.Contains("RenderFragment? Footer", frame, StringComparison.Ordinal);
         Assert.Contains("data-vpp-data-source-mode", frame, StringComparison.Ordinal);
+        Assert.Contains(".vpp-data-surface-body ::deep .vpp-content-state", frameStyles, StringComparison.Ordinal);
+        Assert.Contains("height: 100%;", frameStyles, StringComparison.Ordinal);
         Assert.Contains("data-vpp-data-density", frame, StringComparison.Ordinal);
         Assert.Contains("role=\"group\"", toolbar, StringComparison.Ordinal);
         Assert.Contains("? \"true\" : \"false\"", filterSelect, StringComparison.Ordinal);
+        Assert.Contains("HighlightSelectedOption", filterSelect, StringComparison.Ordinal);
+        Assert.Contains("has-neutral-selection", filterSelectStyles, StringComparison.Ordinal);
+        Assert.Contains("role=\"listbox\"", decisionSelect, StringComparison.Ordinal);
+        Assert.Contains("VppDecisionOption<TValue>", decisionSelect, StringComparison.Ordinal);
+        Assert.Contains("record VppDecisionOption<TValue>", decisionOption, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppFilterOption", decisionSelect, StringComparison.Ordinal);
         Assert.Contains("data-vpp-data-footer-mode", footer, StringComparison.Ordinal);
         Assert.Contains("aria-live=\"polite\"", footer, StringComparison.Ordinal);
         Assert.Contains("vpp-transient-surface", cellPopover, StringComparison.Ordinal);
@@ -47,6 +59,20 @@ public sealed class DataSurfaceArchitectureTests
         {
             Assert.DoesNotContain(forbidden, combined, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    [Fact]
+    public void OrderPeriodSelection_UsesOneTypedDecisionControlPerContext()
+    {
+        var root = GetFrontendRoot();
+        var orders = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
+        var create = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Page_OrderCreate.razor"));
+
+        Assert.Contains("<VppDecisionSelect TValue=\"Guid?\"", orders, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionSelect TValue=\"Guid?\"", create, StringComparison.Ordinal);
+        Assert.DoesNotContain("<select", orders, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("<select", create, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("vpp-orders-story-heading", orders, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -72,6 +98,9 @@ public sealed class DataSurfaceArchitectureTests
         }
 
         Assert.Contains(".vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
+        Assert.Contains("--rz-root-font-size: var(--vpp-root-font-size);", bridge, StringComparison.Ordinal);
+        Assert.Contains("--rz-grid-cell-font-size: var(--vpp-text-base);", bridge, StringComparison.Ordinal);
+        Assert.Contains("--rz-grid-header-font-size: var(--vpp-text-sm);", bridge, StringComparison.Ordinal);
         Assert.Contains("[data-vpp-data-surface=\"true\"] .vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
         Assert.Contains("--rz-grid-border-radius: 0;", bridge, StringComparison.Ordinal);
         Assert.Contains("--vpp-data-grid-min-width", bridge, StringComparison.Ordinal);
@@ -293,8 +322,8 @@ public sealed class DataSurfaceArchitectureTests
             .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(18, consumers.Length);
-        Assert.Equal(22, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(20, consumers.Length);
+        Assert.Equal(24, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

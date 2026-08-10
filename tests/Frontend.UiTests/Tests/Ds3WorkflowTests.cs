@@ -138,6 +138,11 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
 
         await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Mặt hàng", Exact = true }).ClickAsync();
         await Page.Locator(".vpp-period-filters.is-item-view").WaitForAsync();
+        await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Hidden,
+            Timeout = 15_000
+        });
         (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
         (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(2);
 

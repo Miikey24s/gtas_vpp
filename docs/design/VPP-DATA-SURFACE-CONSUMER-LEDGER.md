@@ -1,12 +1,12 @@
 # VPP Data Surface Consumer Ledger
 
-> Snapshot: `2026-08-01` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 + R1 DONE; PRICING/REPORT RETROFIT IMPLEMENTED`
+> Snapshot: `2026-08-09` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 + R1 DONE; PERIOD/PRICING/REPORT RETROFIT IMPLEMENTED`
 
 Ledger này là bản đồ migration, không phải yêu cầu mọi bảng phải giống hệt nhau. Shared foundation chỉ sở hữu frame, toolbar, density, footer và transient cell value; route vẫn sở hữu dữ liệu, cột, API, permission và action.
 
 ## Radzen DataGrid inventory
 
-Source hiện có **18 file / 22 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance. Màn `Tab_AllOrdersSummary` cũ (2 grid) và dialog lịch sử đơn cũ (1 grid) đã về 0 consumer nên được xóa; URL legacy chỉ còn redirect về Chốt kỳ, còn lịch sử dùng workspace canonical.
+Source hiện có **20 file / 24 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance. Màn `Tab_AllOrdersSummary` cũ (2 grid) và dialog lịch sử đơn cũ (1 grid) đã về 0 consumer nên được xóa; URL legacy chỉ còn redirect về Chốt kỳ, còn lịch sử dùng workspace canonical.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
@@ -22,8 +22,10 @@ Source hiện có **18 file / 22 DataGrid thật**. Generic type reference trong
 | `Components/Pages/Permission/Tabs/Tab_SecurityAudit.razor` | 1 | Security audit collection | `ServerPaging` | `Compact` | AA7 read-only audit |
 | `Components/Pages/Permission/Tabs/Tab_PagePermission.razor` | 1 | Permission group collection | `ServerPaging` | `Compact` | Full-width group table; permission detail loads in batch editor |
 | `Components/Pages/Permission/Tabs/Tab_User.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | DS4 complete |
+| `Components/Pages/Permission/Tabs/Tab_OrderPeriodSettings.razor` | 1 | Versioned ordering defaults history | `ClientSnapshotPaged` | `Compact` | System Admin operation + canonical history frame |
 | `Components/Pages/Report.razor` | 2 | Analytics evidence tables | `Static` | `Compact` | Analytics workspace + bounded static frames complete |
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
+| `Components/Pages/VPPRequest/Components/OrderPeriodManagementWorkspace.razor` | 1 | Admin order-period collection | `Static` | `Compact` | Canonical collection header + capability-driven row actions |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Canonical approval List-Detail; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `RichTwoLine` master; `Compact` detail | Collection header/filter/default selection/footer complete |
 | `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 3 | Chốt kỳ theo phòng ban / người dùng / mặt hàng | `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |

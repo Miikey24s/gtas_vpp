@@ -21,35 +21,36 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | ID | Motif | Dùng khi | Component/authority | Variant typed | Route không được tự làm lại |
 |---|---|---|---|---|---|
 | `SHELL-NAV` | Shell, sidebar, header-tab, seam, page inset | Mọi authenticated page | `MainLayout`, `LeftSidebar`, `vpp-layout.css`, `vpp-sidebar.css`, `vpp-tabs.css`, page-inset tokens | expanded/collapsed, desktop/tablet/mobile | seam, active indicator, hover rhythm, outer inset |
-| `HEADER-TAB-GROUP` | Điều hướng cha–con cùng primary header | Nhóm route Quản lý kỳ, Bảng giá | `VppHeaderTabGroup`, `VppHeaderSubTab`, `LeftSidebar`, shared tab indicator | expanded desktop, local mobile fallback, permission-aware default | dùng selector decision/filter thay navigation; active line ở cả cha và con |
+| `HEADER-TAB-GROUP` | Điều hướng cha–con cùng primary header | Nhóm route Điều hành kỳ, Bảng giá | `VppHeaderTabGroup`, `VppHeaderSubTab`, `LeftSidebar`, shared tab indicator | expanded desktop, local mobile fallback, permission-aware default | dùng selector decision/filter thay navigation; active line ở cả cha và con |
 | `ACCOUNT` | Account/auth form shell | Login, register, password, email flow | `VppAccountWorkspace` | artwork, compact, scrollable | brand/language/header layout |
-| `COLLECTION` | Danh sách một tập dữ liệu | Library, users, audit, catalog | `VppCollectionWorkspace` + `VppDataSurfaceFrame` | compact/rich, paged/static | frame, toolbar, footer geometry |
+| `COLLECTION` | Danh sách một tập dữ liệu | Library, users, audit, catalog, kỳ đặt hàng | `VppCollectionWorkspace` + `VppDataSurfaceFrame` | compact/rich, paged/static | frame, toolbar, footer geometry |
 | `LIST-DETAIL` | Danh sách + inspector/detail | History, permission, lookup | `VppListDetailWorkspace` | ratio + overlay detail | split seam, pane height, detail placement |
 | `SPLIT-EDITOR` | Hai vùng chọn/chỉnh sửa | Lookup, Create Order | `VppSplitEditorWorkspace` | resizable/fixed, stacked tablet | pane scroll ownership, seam |
-| `OPERATION` | Workflow/operation screen | Period management, approval, order create | `VppOperationWorkspace` + `VppWorkflowStepper` | compact steps, action footer | step geometry, active/completed/pending states |
+| `OPERATION` | Workflow/operation screen | Chốt kỳ, approval, order create | `VppOperationWorkspace` + `VppWorkflowStepper` | compact steps, action footer | step geometry, active/completed/pending states |
 | `ANALYTICS` | KPI/chart/list/detail data story | History, department summary, report | `VppAnalyticsWorkspace` | chart/list/detail arrangement | KPI rhythm, chart empty state, detail alignment |
 | `DATA-FRAME` | Header/toolbar/grid/footer frame | Bảng/list có data surface | `VppDataSurfaceFrame` | `ServerPaging`, `ClientSnapshotPaged`, `ClientSnapshotVirtualized`, `Static` | border, overflow, footer anchor |
 | `COLLECTION-HEADER` | Identity + count + collection action | Add/import/export thuộc cả collection | `VppCollectionHeader` | add/secondary/disabled | CRUD trong toolbar hoặc header cột |
-| `BUTTON-ACTION` | Button có text/icon theo cấp hành động | Collection, query, workflow, dialog | Radzen button bridge trong `vpp-radzen-theme.css`; component domain chỉ khi có behavior riêng | primary/secondary/light/success/warning/danger, icon-only/text | shadow/translate/oval focus riêng theo route; universal button wrapper chỉ đổi tên markup |
-| `ADMIN-ROW-ACTIONS` | Sửa, bật/tắt, hard delete và action nghiệp vụ của một dòng | Các bảng quản trị | `VppAdminIconAction`, `VppAdminActiveToggle`, cột `vpp-admin-actions` | icon action, active toggle, labeled approval | route tự đặt kích thước/icon chrome hoặc dựng switch shell khác |
+| `BUTTON-ACTION` | Button có text/icon theo cấp hành động | Collection, query, workflow, dialog | Radzen button bridge trong `vpp-radzen-theme.css`; token `--vpp-button-*`; component domain chỉ khi có behavior riêng | standard 32px, compact/icon-only 28px, icon 16px; primary/secondary/light/success/warning/danger | action button cao 36–44px, shadow/translate/oval focus riêng theo route; universal button wrapper chỉ đổi tên markup |
+| `ADMIN-ROW-ACTIONS` | Action chính theo trạng thái + lifecycle/destructive của một dòng | Các bảng quản trị | `VppAdminIconAction`, `VppAdminActionMenu`, `VppAdminLifecycleMenu`, `VppAdminActiveToggle`, cột `vpp-admin-actions` | một action trực tiếp có nhãn ngắn; menu overflow full-text dùng cùng surface, row rhythm và hover của select dọc; active toggle chỉ khi trạng thái là quyết định trực tiếp của page | dàn 3–5 icon ngang hàng; giấu Duyệt/Từ chối/Chốt kỳ trong menu; route tự đặt kích thước/icon chrome hoặc dựng switch shell khác |
 | `FILTER-TOOLBAR` | Search, filter, clear, column picker | Tìm/lọc dữ liệu thường xuyên | `VppDataToolbar`, `VppFilterSearch`, `VppFilterSelect`, `VppClearFiltersButton`, `VppColumnPicker` | filter count/domain-specific options | popup chrome, control height, order |
 | `FILTER-ADVANCED` | Bộ lọc ít dùng/nhiều điều kiện | Ngày, khoảng giá, metadata, audit/resource | typed route-owned filter panel anchored from the toolbar | compact/popover/workspace | không tạo filter icon riêng trong từng header |
 | `SELECTOR-FILTER` | Thay đổi tập dữ liệu hiển thị | Category/status/department/unit filters | `VppFilterSelect<T>` | active/inactive, option count | tự tạo dropdown khác visual |
-| `SELECTOR-DECISION` | Chọn mode/giải pháp nghiệp vụ | Kỳ, theo mặt hàng/phòng ban, supplier/price list | `VppSegmentedSelector<T>` hoặc typed Radzen select khi cần nhiều option | segmented/dropdown decision | gọi là filter nếu thực tế là decision |
-| `SELECTOR-PAGE-SIZE` | Chọn số dòng mỗi trang | Mọi server/client paged grid | Radzen pager bridge + page-size contract trong `vpp-radzen-theme.css` | 25/50/100/200 theo profile; trigger label-only không chevron | custom popup/oval focus riêng |
+| `SELECTOR-DECISION` | Chọn mode/giải pháp nghiệp vụ | Kỳ, theo mặt hàng/phòng ban, supplier/price list | `VppSegmentedSelector<T>` cho lựa chọn ngang; `VppDecisionSelect<T>` cho dropdown decision | segmented/dropdown decision | gọi là filter nếu thực tế là decision |
+| `SELECTOR-PAGE-SIZE` | Chọn số dòng mỗi trang | Mọi server/client paged grid | Radzen pager bridge + page-size contract trong `vpp-radzen-theme.css` | 25/50/100/200 theo profile; trigger label-only 56×32 không chevron; dropup cùng chiều rộng và vertical-option rhythm với select canonical | custom popup/oval focus riêng; để Radzen và accessibility CSS cùng vẽ chrome |
 | `DATA-ROW` | Nhịp hàng và semantic cell | Mọi grid canonical | `vpp-datagrid.css` + route-owned typed columns | `Compact`, `RichTwoLine` | zebra tự bật, inline color/radius |
 | `DATA-COLUMN` | Column contract | `#`, code/name, note, amount, status, action | route-owned typed `RadzenDataGridColumn` theo [data-surface ledger](VPP-DATA-SURFACE-CONSUMER-LEDGER.md) | visible/pickable/frozen/filterable/sortable | reflection/string column config |
 | `DATA-FOOTER` | Summary, pager, page size, workflow action | Cuối data surface | `VppDataSummaryFooter` hoặc Radzen pager bridge | summary/paged/virtualized/action | footer giả, row đè footer hoặc route tự đổi căn lề |
 | `CELL-VALUE` | Code/note dài và copy | Ô bị truncate | `VppCellValuePopover` | code/note/copy | popup route tự neo khác contract |
-| `CONTENT-STATE` | Loading/empty/filter-empty/error/denied/disabled/success | Mọi route có state | `VppContentState`, `VppContentStateKind` | typed state + semantic role | text state tự dựng bằng string switch |
-| `STATUS-BADGE` | Trạng thái ngắn, có màu semantic | Order/admin/permission state | `VppStatusBadge` + `VppStatusTone` | info/success/warning/danger/neutral | badge tự map string hoặc màu theo route |
+| `CONTENT-STATE` | Loading/empty/filter-empty/error/denied/disabled/success | Mọi route có state | `VppContentState`, `VppContentStateKind` | typed state + semantic role + `FillAvailable`; empty full-height căn giữa cả hai trục | text state tự dựng bằng string switch, CSS min-height riêng từng route hoặc nút refresh thủ công trong empty state |
+| `STATUS-BADGE` | Trạng thái ngắn, có màu semantic | Order/admin/permission/period lifecycle state | `VppStatusBadge` + `VppStatusTone`; `VppPeriodStateBadge` là composite canonical cho vòng đời kỳ | info/success/warning/danger/neutral; period compact/full | badge tự map string hoặc màu theo route |
+| `CATEGORY-CHIP` | Phân loại dữ liệu, không biểu diễn tiến trình | Loại đơn, nhóm dữ liệu, metric context ngắn | `VppCategoryChip` + `VppCategoryTone` | neutral/primary/accent | dùng màu success/danger để ám chỉ kết quả nghiệp vụ |
 | `METRIC-CARD` | Một chỉ số định lượng | Analytics/report summary | `VppMetricCard` | neutral/accent/success/warning | raw `kpi-card`/shine markup |
 | `DIALOG-EDITOR` | Thêm/sửa form | Admin CRUD | `VppAdaptiveDialogShell` + typed dialog contract | compact/wide/fullscreen, sticky footer | inline row edit hoặc dialog tự vẽ shell |
 | `DIALOG-ACTIONS` | Hủy/lưu/submit/destructive action | Dialog/editor | `VppDialogActions` trong `VppAdaptiveDialogShell` | primary/secondary/danger, busy/disabled, leading slot | footer spacing hoặc cặp button riêng từng dialog |
 | `TRANSIENT` | Popup, popover, user menu, filter, notification | Surface tạm thời | `vpp-transient-surface`, `vpp-polish.css`, Radzen bridge | above/down/center, reduced-motion | `transform` làm đổi anchor geometry |
 | `FEEDBACK` | Inline notice/toast/reconnect | Thông báo hệ thống/nghiệp vụ | `VppInlineNotice`, `IToastService`, reconnect contract | neutral/info/success/warning/danger | inject `NotificationService`, `RadzenAlert` hoặc raw exception text theo route |
 | `FILE-EXPORT` | Tải PDF/Excel/CSV từ API | Order, history, approval, report, settlement | `VppFileExportActions`; `IBrowserFileDownloadService`; `ExportFileContract`; backend builder typed + `SimpleWorkbookBuilder` | per-format busy, API stream + MIME, PDF, workbook, CSV | nút export, `DotNetStreamReference`/JS pipeline, tên file/MIME hoặc SpreadsheetML packager lặp theo route |
-| `SKELETON` | Loading placeholder | Chờ data | `SkeletonPage`, `SkeletonGrid`, `vpp-loading.css` | page/grid/row | legacy `.shimmer-*` mới |
+| `SKELETON` | Loading placeholder | Chờ data | `SkeletonPage`, `SkeletonGrid`, `vpp-loading.css` | page/grid/row; `FillAvailable` phân bố row placeholder xuống hết thân grid | legacy `.shimmer-*` mới hoặc skeleton chỉ phủ nửa data surface |
 
 ## 3. Quy tắc selector
 
@@ -69,6 +70,28 @@ Quy tắc vị trí lọc trong data grid:
 - Filter luôn áp trên toàn bộ tập dữ liệu được cấp quyền trước `paging`/`virtualization`, sau đó mới tính tổng và phân trang.
 
 Không gộp chúng thành một component string-configured. Dùng typed component/contract riêng, cùng token và popup bridge.
+
+Quy tắc `HEADER-TAB-GROUP`:
+
+- Khi người dùng đi vào tab cha mà chưa chỉ rõ child, luôn chọn child đầu tiên đang hiển thị mà người dùng có quyền, theo đúng thứ tự trên header/sidebar.
+- Query child hợp lệ và bookmark cũ vẫn được giữ. Query rỗng hoặc không hợp lệ fallback về child đầu tiên; không để nhóm không có active tab và không mặc định vào child thứ hai.
+- Khi nhóm đang active, nhãn cha chỉ là context không lặp navigation; underline và `aria-current` thuộc đúng child hiện tại.
+
+Quy tắc `CONTENT-STATE`:
+
+- State thay thế toàn bộ nội dung của page, workspace, pane hoặc data frame bật `FillAvailable="true"`; state phải kéo đến đáy vùng còn lại và giữ geometry trước/sau khi có dữ liệu.
+- State nằm trong dialog, form, chart/card, wizard step hoặc notice cục bộ giữ compact và không bật `FillAvailable`.
+- `VppDataSurfaceFrame` tự truyền contract full-height cho content state trong body; route không viết lại `min-height` để giả lập một vùng dữ liệu.
+- Raw `EmptyTemplate` của widget chỉ được giữ khi widget sở hữu table geometry; chuỗi wrapper từ body đến empty row phải truyền được `height: 100%`.
+- Empty/success/filtered-empty không có nút `Làm mới`; dữ liệu tự tải theo route, realtime hoặc mutation. Error state vẫn được dùng `Thử lại` như recovery có chủ đích, nhưng không gọi hoặc trình bày nó như refresh dữ liệu thường xuyên.
+
+Quy tắc scroll ownership của workspace:
+
+- Shell authenticated luôn giữ `100dvh`; `.vpp-layout-body` là page scroller duy nhất khi trang cần dài hơn viewport. Không mở scroll trên `body`/document.
+- Mọi `Vpp*Workspace` khai báo `VppWorkspaceScrollMode`: `Internal` cho list/detail hoặc grid cần một viewport cố định, `Page` cho workflow/trang dài, `Adaptive` cho workspace chỉ khóa nội bộ khi desktop đủ rộng và cao.
+- `Adaptive` chuyển sang page flow khi viewport dưới `1440px` hoặc cao dưới `800px`; grid/pane vẫn tự sở hữu horizontal/internal scroll theo schema, không kéo ngang toàn document.
+- Master-detail nhiều cột chỉ hiển thị song song khi chiều rộng còn lại thực sự đủ. History dùng persistent detail từ `1440px`; laptop dùng list toàn chiều ngang và detail drawer.
+- Responsive không được giảm font để “nhét” dữ liệu. Thu chrome/sidebar/row rhythm trước, sau đó ẩn cột ưu tiên thấp, stack pane hoặc dùng drawer/horizontal grid scroll.
 
 Quy tắc `FILE-EXPORT`:
 

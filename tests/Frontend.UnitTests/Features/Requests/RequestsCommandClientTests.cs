@@ -30,6 +30,7 @@ public sealed class RequestsCommandClientTests
 
         await client.CreateAsync(new VppRequestCreateReqDTO());
         await client.UpdateAsync(orderId, new VppRequestUpdateReqDTO());
+        await client.AdjustAfterCloseAsync(orderId, new VppManagerOrderAdjustmentReqDTO());
         await client.RecreateAsync(orderId, new VppRequestRecreateReqDTO());
         await client.CancelAsync(orderId, new VppRequestCancelReqDTO());
         await client.RestoreAsync(orderId, new VppRequestRestoreReqDTO());
@@ -40,6 +41,7 @@ public sealed class RequestsCommandClientTests
             [
                 ("POST", "/api/VPPRequest/orders", typeof(VppRequestCreateReqDTO), typeof(VppRequestResDTO)),
                 ("PUT", $"/api/VPPRequest/orders/{orderId}", typeof(VppRequestUpdateReqDTO), typeof(VppRequestResDTO)),
+                ("POST", $"/api/VPPRequest/orders/{orderId}/manager-adjustment", typeof(VppManagerOrderAdjustmentReqDTO), typeof(VppRequestResDTO)),
                 ("POST", $"/api/VPPRequest/orders/{orderId}/recreate", typeof(VppRequestRecreateReqDTO), typeof(VppRequestResDTO)),
                 ("POST", $"/api/VPPRequest/orders/{orderId}/cancel", typeof(VppRequestCancelReqDTO), typeof(object)),
                 ("POST", $"/api/VPPRequest/orders/{orderId}/restore", typeof(VppRequestRestoreReqDTO), typeof(VppRequestResDTO)),

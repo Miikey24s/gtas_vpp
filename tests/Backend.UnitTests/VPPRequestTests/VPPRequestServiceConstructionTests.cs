@@ -3,6 +3,7 @@ using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
+using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.Extensions.Configuration;
@@ -34,7 +35,17 @@ public sealed class VPPRequestServiceConstructionTests
         var scopedUow = new Mock<IUnitOfWork>(MockBehavior.Strict);
         scopedUow.Setup(unitOfWork => unitOfWork.BeginTransactionAsync()).Returns(Task.CompletedTask);
         scopedUow.Setup(unitOfWork => unitOfWork.RollbackAsync()).Returns(Task.CompletedTask);
-        var service = CreateService(scopedUow.Object);
+        var periodService = new Mock<IVppPeriodService>(MockBehavior.Strict);
+        periodService
+            .Setup(service => service.AdvanceDuePeriodsAsync("77500", It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        periodService
+            .Setup(service => service.GetAsync(
+                "77500",
+                new Period(2026, 4),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((VppPeriod?)null);
+        var service = CreateService(scopedUow.Object, periodService.Object);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() => service.CreateOrderAsync(
             new VppRequestCreateReqDTO
@@ -48,7 +59,7 @@ public sealed class VPPRequestServiceConstructionTests
             departmentCode: "IT",
             memberCompanyCode: "77500"));
 
-        Assert.Contains("current period", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("không tồn tại", exception.Message, StringComparison.Ordinal);
         scopedUow.Verify(item => item.BeginTransactionAsync(), Times.Once);
         scopedUow.Verify(item => item.RollbackAsync(), Times.Once);
     }
@@ -120,6 +131,7 @@ public sealed class VPPRequestServiceConstructionTests
             serviceProvider.GetRequiredService<IConfiguration>()));
         services.AddSingleton(serviceProvider => new PeriodCalculator(
             serviceProvider.GetRequiredService<VppRequestPolicy>().DeadlineDay));
+        services.AddSingleton<PeriodScheduleCalculator>();
         services.AddScoped<IUserNameResolver, UserNameResolver>();
         services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -138,7 +150,9 @@ public sealed class VPPRequestServiceConstructionTests
         Assert.IsType<VPPRequestService>(service);
     }
 
-    private static VPPRequestService CreateService(IUnitOfWork scopedUow)
+    private static VPPRequestService CreateService(
+        IUnitOfWork scopedUow,
+        IVppPeriodService? periodService = null)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -150,7 +164,8 @@ public sealed class VPPRequestServiceConstructionTests
         return new VPPRequestService(
             scopedUow,
             new FakeDateTimeProvider(new DateTime(2026, 4, 1, 9, 0, 0)),
-            configuration);
+            configuration,
+            periodService: periodService);
     }
 
     private static string FindRepositoryRoot()

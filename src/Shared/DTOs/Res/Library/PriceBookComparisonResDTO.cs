@@ -31,6 +31,18 @@ public sealed class PriceBookQuoteResDTO
     public decimal VatAmount { get; set; }
     public decimal GrandTotal { get; set; }
     public int MaximumLeadTimeDays { get; set; }
+    public List<PriceBookQuoteLineResDTO> Lines { get; set; } = [];
     public List<Guid> MissingVppIds { get; set; } = [];
     public List<string> Blockers { get; set; } = [];
+}
+
+public sealed class PriceBookQuoteLineResDTO
+{
+    public Guid VppId { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal NetUnitPrice { get; set; }
+    public decimal VatRate { get; set; }
+    public decimal NetAmount { get; set; }
+    public decimal VatAmount { get; set; }
+    public decimal GrossAmount { get; set; }
 }

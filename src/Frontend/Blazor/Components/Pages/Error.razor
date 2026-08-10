@@ -1,3 +1,4 @@
+@* PAGE: Error.razor *@
 @page "/Error"
 @using System.Diagnostics
 @inject NavigationManager Navigation
@@ -9,11 +10,12 @@
                    Description="@Loc["ErrorPageDescription"]"
                    HeadingId="error-heading" />
     <VppContentState State="VppContentStateKind.Error"
+                     FillAvailable="true"
                      Icon="error_outline"
                      Title="@Loc["ErrorPageTitle"]"
                      Description="@Loc["ErrorPageDescription"]"
                      PrimaryActionText="@Loc["Retry"]"
-                     PrimaryActionIcon="@VppIcons.Refresh"
+                     PrimaryActionIcon="@VppIcons.Reset"
                      PrimaryAction="@Reload"
                      SecondaryActionText="@Loc["BackToDashboard"]"
                      SecondaryActionHref="/" />

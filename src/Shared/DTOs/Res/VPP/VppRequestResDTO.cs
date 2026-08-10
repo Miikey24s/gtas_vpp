@@ -10,6 +10,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public int Year { get; set; }
         public int Month { get; set; }
         public Guid? PeriodId { get; set; }
+        public string? PeriodState { get; set; }
         public Guid RequestSeriesId { get; set; }
         public int RevisionNumber { get; set; }
         public bool IsCurrentRevision { get; set; }
@@ -45,8 +46,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
 
         // Thuộc tính tính toán chỉ để hiển thị, không phụ thuộc clock.
         public string Period => $"{Month:00}/{Year}";
-        // P4/F-16: Ủy quyền cho status contract dùng chung; khác biệt riêng của DTO
-        // chỉ là chú thích "Period Closed" khi yêu cầu thường đã gửi quá hạn.
+        // Trạng thái đơn không trộn với vòng đời kỳ; PeriodState được hiển thị riêng.
         public string StatusText => VppStatusContract.GetText(Status, IsDeadlinePassed, IsAdditionalOrder);
         public string SubmittedDateText => SubmittedDate?.ToString("HH:mm dd/MM/yyyy", CultureInfo.GetCultureInfo("vi-VN")) ?? "-";
         public string? RequesterName { get; set; }
@@ -58,6 +58,8 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public bool CanCancel { get; set; }
         public bool CanRestore { get; set; }
         public bool CanRecreate { get; set; }
+        public bool CanApproveSupplement { get; set; }
+        public bool CanRejectSupplement { get; set; }
 
         public List<VppRequestDetailResDTO> Items { get; set; } = new();
     }

@@ -56,6 +56,9 @@
 .vpp-order-items-surface ::deep .vpp-history-detail-empty {
     flex: 1 1 auto;
     align-self: stretch;
+    justify-content: center;
+    min-height: 0;
+    height: 100%;
     margin: 0;
     border: 0;
     border-radius: 0;
@@ -89,6 +92,22 @@
     background: var(--vpp-bg-elevated);
 }
 
+/* Radzen EmptyTemplate nằm trong một hàng table có chiều cao nội dung.
+   Khi grid rỗng, kéo toàn bộ chuỗi table xuống hết vùng dữ liệu để state
+   không bị dừng ở min-height 220px rồi để trắng phần còn lại. */
+::deep .vpp-order-items-grid:has(.vpp-order-grid-empty) .rz-data-grid-data > table,
+::deep .vpp-order-items-grid:has(.vpp-order-grid-empty) .rz-data-grid-data > table > tbody:has(.vpp-order-grid-empty),
+::deep .vpp-order-items-grid:has(.vpp-order-grid-empty) .rz-data-grid-data > table > tbody > tr:has(.vpp-order-grid-empty),
+::deep .vpp-order-items-grid:has(.vpp-order-grid-empty) .rz-data-grid-data > table > tbody > tr > td:has(.vpp-order-grid-empty) {
+    height: 100%;
+}
+
+::deep .vpp-order-items-grid .vpp-order-grid-empty {
+    box-sizing: border-box;
+    min-height: 0;
+    height: 100%;
+}
+
 ::deep .vpp-order-items-grid table {
     position: relative;
     width: 100%;
@@ -105,7 +124,7 @@
 ::deep .vpp-order-items-grid thead th {
     background: var(--vpp-surface-grid-header);
     color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
+    font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-semibold);
 }
 
@@ -131,13 +150,21 @@
     padding-block: 0;
     overflow: hidden;
     border-bottom-color: var(--vpp-border-default);
-    font-size: var(--vpp-text-sm);
+    font-size: var(--vpp-text-base);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-::deep .vpp-order-items-grid tbody tr:hover td {
+::deep .vpp-order-items-grid tbody tr:not(:has(.vpp-order-grid-empty)):hover td {
     background: color-mix(in srgb, var(--vpp-primary-500) 4%, var(--vpp-bg-elevated));
+}
+
+::deep .vpp-order-items-grid tbody tr:has(.vpp-order-grid-empty),
+::deep .vpp-order-items-grid tbody tr:has(.vpp-order-grid-empty):hover,
+::deep .vpp-order-items-grid tbody tr:has(.vpp-order-grid-empty) > td,
+::deep .vpp-order-items-grid tbody tr:has(.vpp-order-grid-empty):hover > td {
+    background: transparent;
+    cursor: default;
 }
 
 ::deep .vpp-order-items-grid :is(th, td).vpp-history-detail-number :is(.rz-column-title, .rz-column-title-content, .rz-cell-data),
@@ -180,7 +207,7 @@
 
 ::deep .vpp-history-item-name {
     color: var(--vpp-text-primary);
-    font-size: var(--vpp-text-sm);
+    font-size: var(--vpp-text-base);
     font-weight: var(--vpp-font-weight-medium);
 }
 
@@ -203,7 +230,7 @@
 
 ::deep .vpp-history-detail-code {
     font-family: var(--vpp-font-mono);
-    font-size: 10px;
+    font-size: var(--vpp-text-xs);
 }
 
 ::deep .vpp-history-detail-code:hover,

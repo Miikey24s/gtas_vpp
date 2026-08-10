@@ -1,7 +1,9 @@
+// PAGE LOGIC: VPPRequest/Components/PeriodSettlementPanel.razor.cs
 using System.Globalization;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Features.CatalogPricing.Api;
+using gtas_vpp_fe.Features.Requests.Api;
 using gtas_vpp_fe.Features.Settlement.Api;
 using gtas_vpp_fe.Features.Settlement.Projection;
 using gtas_vpp_fe.Features.Settlement.State;
@@ -9,6 +11,7 @@ using gtas_vpp_fe.Features.Settlement.Submission;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Res.Library;
+using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -17,6 +20,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 
 public partial class PeriodSettlementPanel : IDisposable
 {
+    // PERIOD STATE: Kỳ mục tiêu, chế độ xem và các bộ lọc hiện tại.
     private const string CurrentPeriodScope = "current";
     private const string PreviousPeriodScope = "previous";
     private const string CustomPeriodScope = "custom";
@@ -24,7 +28,9 @@ public partial class PeriodSettlementPanel : IDisposable
     private const string DepartmentsView = "departments";
     private const string RequestersView = "requesters";
 
+    // DEPENDENCIES: API chốt kỳ, catalog, dialog, toast và state dùng chung.
     [Inject] private SettlementApiClient Settlement { get; set; } = default!;
+    [Inject] private OrderPeriodApiClient Periods { get; set; } = default!;
     [Inject] private CatalogApiClient Catalog { get; set; } = default!;
     [Inject] private IToastService Toast { get; set; } = default!;
     [Inject] private DialogService DialogService { get; set; } = default!;
@@ -39,21 +45,30 @@ public partial class PeriodSettlementPanel : IDisposable
     [Parameter] public EventCallback<PeriodTargetSelection> PeriodChanged { get; set; }
     [Parameter] public EventCallback SettlementChanged { get; set; }
 
+    // DATA STATE: Snapshot đơn hàng, trạng thái chốt, preview và cờ loading.
     private CancellationTokenSource? searchDebounce;
     private List<VppRequestResDTO> periodOrdersSnapshot = [];
     private List<DepartmentResDTO> departmentDirectory = [];
+    private bool hasLoadedDepartmentDirectory;
+    private bool hasLoadedPeriodOrders;
+    private bool hasLoadedPeriodDemand;
+    private List<AggregatedVppItemResDTO> filteredItemRows = [];
+    private Dictionary<Guid, SettlementItemFinancialView> itemFinancials = [];
+    private List<DepartmentSettlementRow> filteredDepartmentRows = [];
+    private List<RequesterSettlementRow> filteredRequesterRows = [];
     private AggregatedVppResDTO? periodDemand;
     private PeriodSettlementResDTO? status;
     private bool isLoading = true;
     private bool isGridLoading;
     private bool isPreviewLoading;
     private bool isSettling;
-    private bool isCorrecting;
+    private bool isCorrectingSettlement;
+    private bool isLoadingSettlementHistory;
     private VppFileExportFormat? exportingSettlementFormat;
     private bool hasCorrectionTarget;
+    private SettlementRevisionResDTO? currentSettlementRevision;
+    private VppManagedPeriodResDTO? managedPeriod;
     private bool showCustomPeriodPicker;
-    private bool hasExplicitSupplierSelection;
-    private bool hasExplicitPriceListSelection;
     private string? alertMessage;
     private string periodScope = CurrentPeriodScope;
     private string pendingCustomPeriod = string.Empty;
@@ -67,16 +82,27 @@ public partial class PeriodSettlementPanel : IDisposable
     private int loadedYear;
     private int loadedMonth;
 
+    // VALIDATION: Điều kiện cho phép chốt hoặc xuất dữ liệu kỳ.
     private SettlementPreviewResDTO? Preview => State.Preview is { } preview
         && preview.Year == Year && preview.Month == Month ? preview : null;
 
     private bool CanSubmitCurrentPreview => !isLoading
         && !isPreviewLoading
+        && (hasCorrectionTarget
+            || managedPeriod?.State is "SubmissionClosed" or "Pricing")
         && status?.PendingAdditionalCount == 0
         && Preview is { PrimaryQuote: { IsEligible: true }, Blockers.Count: 0 }
         && !string.IsNullOrWhiteSpace(State.IdempotencyKey);
 
     private bool CanExportSettlement => status is { IsSettled: true, SettlementId: not null };
+    private bool CanCorrectSettlement => status is { IsSettled: true, SettlementId: not null }
+        && currentSettlementRevision is { IsCurrentRevision: true, HasExternalProcurementImpact: false }
+        && CanSubmitCurrentPreview
+        && !isLoadingSettlementHistory
+        && !isCorrectingSettlement;
+    private string SettlementVersionText => currentSettlementRevision is { RevisionNumber: > 0 } revision
+        ? string.Format(Loc["SettlementVersionLabel"], revision.RevisionNumber)
+        : string.Empty;
     private string SettlementStatusText => status?.IsSettled == true
         ? Loc["Settled"].Value
         : Loc["NotSettled"].Value;
@@ -126,6 +152,11 @@ public partial class PeriodSettlementPanel : IDisposable
                 return string.Format(Loc["Warning_PendingAdditional"].Value, status.PendingAdditionalCount);
             }
 
+            if (!hasCorrectionTarget && managedPeriod?.State == "Open")
+            {
+                return Loc["SettlementAvailableAfterClosing"];
+            }
+
             if (Preview?.Blockers.FirstOrDefault() is { } blocker)
             {
                 return PeriodSettlementSupport.DescribeBlocker(blocker);
@@ -152,6 +183,21 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private Guid? SelectedSupplierId => Preview?.PrimarySupplierId;
     private Guid? SelectedPriceListId => Preview?.PrimaryPriceListId;
+    private PriceBookQuoteResDTO? SelectedQuote => Preview?.PrimaryQuote;
+    private bool HasSettlementSnapshot => status?.IsSettled == true && currentSettlementRevision is not null;
+    private string SelectedSupplierName => HasSettlementSnapshot
+        ? currentSettlementRevision!.PrimarySupplierName
+        : SelectedQuote?.SupplierName ?? status?.PrimarySupplierName ?? Loc["SettlementNotSelected"];
+    private decimal SettlementGrandTotal => HasSettlementSnapshot
+        ? currentSettlementRevision!.GrandTotal
+        : SelectedQuote?.GrandTotal ?? status?.GrandTotal ?? 0;
+    private decimal SettlementVatAmount => HasSettlementSnapshot
+        ? currentSettlementRevision!.VatAmount
+        : SelectedQuote?.VatAmount ?? 0;
+    private decimal SettlementBeforeVat => SettlementGrandTotal - SettlementVatAmount;
+    private IReadOnlyList<SettlementFinancialAllocationResDTO> CurrentFinancialAllocations => HasSettlementSnapshot
+        ? currentSettlementRevision!.Allocations
+        : Preview?.Allocations ?? [];
 
     private IReadOnlyList<VppFilterOption<Guid?>> SupplierOptions => SupplierQuotes
         .Where(quote => quote.IsEligible)
@@ -225,34 +271,9 @@ public partial class PeriodSettlementPanel : IDisposable
                 .Select(value => new VppFilterOption<string>(value, value)))
             .ToArray();
 
-    private List<AggregatedVppItemResDTO> FilteredItemRows =>
-        SettlementWorkspaceProjection.FilterItems(
-            periodDemand?.Items ?? [],
-            new SettlementItemFilter(searchText, selectedItemCategory, selectedItemUom));
-
-    private List<DepartmentSettlementRow> FilteredDepartmentRows =>
-        SettlementWorkspaceProjection.BuildDepartmentRows(
-                periodOrdersSnapshot,
-                departmentDirectory,
-                new SettlementOrderGroupFilter(
-                    searchText,
-                    selectedOrderType,
-                    selectedStatus,
-                    selectedDepartment))
-            .Select(ToDepartmentSettlementRow)
-            .ToList();
-
-    private List<RequesterSettlementRow> FilteredRequesterRows =>
-        SettlementWorkspaceProjection.BuildRequesterRows(
-                periodOrdersSnapshot,
-                departmentDirectory,
-                new SettlementOrderGroupFilter(
-                    searchText,
-                    selectedOrderType,
-                    selectedStatus,
-                    selectedDepartment))
-            .Select(ToRequesterSettlementRow)
-            .ToList();
+    private List<AggregatedVppItemResDTO> FilteredItemRows => filteredItemRows;
+    private List<DepartmentSettlementRow> FilteredDepartmentRows => filteredDepartmentRows;
+    private List<RequesterSettlementRow> FilteredRequesterRows => filteredRequesterRows;
 
     protected override void OnInitialized() => State.Changed += OnStateChanged;
 
@@ -276,33 +297,172 @@ public partial class PeriodSettlementPanel : IDisposable
         isLoading = true;
         isGridLoading = true;
         alertMessage = null;
-        hasExplicitSupplierSelection = false;
-        hasExplicitPriceListSelection = false;
+        periodOrdersSnapshot = [];
+        periodDemand = null;
+        hasLoadedPeriodOrders = false;
+        hasLoadedPeriodDemand = false;
+        filteredItemRows = [];
+        itemFinancials = [];
+        filteredDepartmentRows = [];
+        filteredRequesterRows = [];
+        pendingPostSettlementCorrections = [];
+        currentSettlementRevision = null;
+
+        var headerTask = Task.WhenAll(LoadStatusAsync(), LoadPreviewAsync());
+        var gridTask = EnsureCurrentViewDataAsync();
 
         try
         {
-            await LoadStatusAsync();
-            await LoadPreviewAsync();
-            await LoadPeriodDemandAsync();
-            await LoadDepartmentDirectoryAsync();
-            await LoadAllPeriodOrdersAsync();
+            await headerTask;
         }
         catch (Exception ex)
         {
-            alertMessage = UiErrorMapper.GetMessage(ex, Loc);
-            Toast.Error(ex, Loc);
+            HandleLoadError(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        try
+        {
+            await gridTask;
+        }
+        catch (Exception ex)
+        {
+            HandleLoadError(ex);
         }
         finally
         {
             isGridLoading = false;
-            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        if (status is { IsSettled: true })
+        {
+            await LoadDeferredSettlementAdministrationAsync();
         }
     }
 
     private async Task LoadStatusAsync()
     {
-        status = await Settlement.GetStatusAsync(Year, Month);
+        var statusTask = Settlement.GetStatusAsync(Year, Month);
+        var periodsTask = Periods.ListAsync();
+        await Task.WhenAll(statusTask, periodsTask);
+
+        status = await statusTask;
         hasCorrectionTarget = status is { IsSettled: true, SettlementId: not null };
+        managedPeriod = (await periodsTask)
+            .FirstOrDefault(period => period.Year == Year && period.Month == Month);
+    }
+
+    private async Task LoadDeferredSettlementAdministrationAsync()
+    {
+        try
+        {
+            var revisionTask = hasCorrectionTarget
+                ? Settlement.GetCurrentAsync(Year, Month)
+                : Task.FromResult<SettlementRevisionResDTO?>(null);
+            var correctionsTask = LoadPostSettlementCorrectionsAsync();
+            await Task.WhenAll(revisionTask, correctionsTask);
+            currentSettlementRevision = await revisionTask;
+            RebuildItemFinancials();
+            RebuildCurrentViewRows();
+        }
+        catch (Exception)
+        {
+            // Lịch sử bản chốt và yêu cầu điều chỉnh là phần quản trị phụ; lỗi ở đây không được
+            // báo thất bại cho grid đã tải thành công hoặc chặn luồng chốt kỳ chính.
+            currentSettlementRevision = null;
+            pendingPostSettlementCorrections = [];
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OpenSettlementCorrectionDialogAsync()
+    {
+        if (!CanCorrectSettlement
+            || status?.SettlementId is null
+            || currentSettlementRevision is null
+            || Preview is null)
+        {
+            return;
+        }
+
+        var reason = await DialogService.OpenAsync<Dialog_SettlementCorrection>(
+            Loc["AdjustSettlementResult"],
+            options: VppAdminDialogProfiles.Create(
+                VppAdminDialogSize.Compact,
+                Loc["AdjustSettlementResult"],
+                closeAriaLabel: Loc["Close"]));
+        if (reason is not string correctionReason)
+        {
+            return;
+        }
+
+        isCorrectingSettlement = true;
+        try
+        {
+            var revision = await Settlement.CorrectAsync(
+                status.SettlementId.Value,
+                SettlementRequestFactory.BuildCorrection(
+                    Year,
+                    Month,
+                    Preview,
+                    $"adjust-{Year:D4}{Month:D2}-{Guid.NewGuid():N}",
+                    State.Exceptions,
+                    correctionReason));
+            State.RequireFreshPreviewForNextSubmission();
+            await ReloadPeriodAsync();
+            await SettlementChanged.InvokeAsync();
+            Toast.Success(
+                Loc["AdjustmentSaved"],
+                string.Format(Loc["SettlementVersionSaved"], revision?.RevisionNumber ?? 0));
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["AdjustSettlementResult"], UiErrorMapper.GetMessage(ex, Loc));
+        }
+        finally
+        {
+            isCorrectingSettlement = false;
+        }
+    }
+
+    private async Task OpenSettlementHistoryDialogAsync()
+    {
+        if (status?.IsSettled != true || isLoadingSettlementHistory)
+        {
+            return;
+        }
+
+        isLoadingSettlementHistory = true;
+        try
+        {
+            var versions = await Settlement.ListVersionsAsync(Year, Month);
+            await DialogService.OpenAsync<Dialog_SettlementHistory>(
+                Loc["SavedSettlementVersions"],
+                new Dictionary<string, object?>
+                {
+                    [nameof(Dialog_SettlementHistory.Versions)] = versions
+                },
+                VppAdminDialogProfiles.Create(
+                    VppAdminDialogSize.Standard,
+                    Loc["SavedSettlementVersions"],
+                    closeAriaLabel: Loc["Close"]));
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["SavedSettlementVersions"], UiErrorMapper.GetMessage(ex, Loc));
+        }
+        finally
+        {
+            isLoadingSettlementHistory = false;
+        }
     }
 
     private async Task LoadPreviewAsync(Guid? supplierId = null, Guid? priceListId = null)
@@ -320,6 +480,11 @@ public partial class PeriodSettlementPanel : IDisposable
 
             State.SelectedSupplierId = preview?.PrimarySupplierId;
             State.SetPreview(preview);
+            RebuildItemFinancials();
+            if (hasLoadedPeriodOrders)
+            {
+                RebuildCurrentViewRows();
+            }
         }
         finally
         {
@@ -329,17 +494,58 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task LoadAllPeriodOrdersAsync()
     {
+        if (hasLoadedPeriodOrders)
+        {
+            return;
+        }
+
         periodOrdersSnapshot = (await Settlement.GetPeriodOrdersSnapshotAsync(Year, Month)).ToList();
+        hasLoadedPeriodOrders = true;
     }
 
     private async Task LoadPeriodDemandAsync()
     {
+        if (hasLoadedPeriodDemand)
+        {
+            return;
+        }
+
         periodDemand = await Settlement.GetDemandAsync(Year, Month);
+        hasLoadedPeriodDemand = true;
     }
 
     private async Task LoadDepartmentDirectoryAsync()
     {
+        if (hasLoadedDepartmentDirectory)
+        {
+            return;
+        }
+
         departmentDirectory = await Catalog.GetActiveDepartmentsAsync(1000, "Name") ?? [];
+        hasLoadedDepartmentDirectory = true;
+    }
+
+    private Task EnsureCurrentViewDataAsync()
+    {
+        return LoadCurrentViewDataAndProjectionAsync();
+    }
+
+    private async Task LoadCurrentViewDataAndProjectionAsync()
+    {
+        var ordersTask = LoadAllPeriodOrdersAsync();
+        var viewTask = viewMode switch
+        {
+            ItemsView => Task.WhenAll(ordersTask, LoadPeriodDemandAsync()),
+            _ => Task.WhenAll(ordersTask, LoadDepartmentDirectoryAsync())
+        };
+        await viewTask;
+        RebuildCurrentViewRows();
+    }
+
+    private void HandleLoadError(Exception ex)
+    {
+        alertMessage ??= UiErrorMapper.GetMessage(ex, Loc);
+        Toast.Error(ex, Loc);
     }
 
     private DepartmentSettlementRow ToDepartmentSettlementRow(SettlementDepartmentRow row)
@@ -355,6 +561,9 @@ public partial class PeriodSettlementPanel : IDisposable
             row.TotalLines,
             row.TotalQuantity,
             row.TotalAmount,
+            row.NetAmount,
+            row.VatAmount,
+            row.GrossAmount,
             statusValue.Item1,
             statusValue.Item2);
     }
@@ -372,6 +581,9 @@ public partial class PeriodSettlementPanel : IDisposable
             row.TotalLines,
             row.TotalQuantity,
             row.TotalAmount,
+            row.NetAmount,
+            row.VatAmount,
+            row.GrossAmount,
             statusValue.Item1,
             statusValue.Item2);
     }
@@ -432,7 +644,46 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task ApplyFiltersAsync()
     {
+        RebuildCurrentViewRows();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void RebuildCurrentViewRows()
+    {
+        switch (viewMode)
+        {
+            case ItemsView:
+                filteredItemRows = SettlementWorkspaceProjection.FilterItems(
+                    periodDemand?.Items ?? [],
+                    new SettlementItemFilter(searchText, selectedItemCategory, selectedItemUom));
+                break;
+            case RequestersView:
+                filteredRequesterRows = SettlementWorkspaceProjection.BuildRequesterRows(
+                        periodOrdersSnapshot,
+                        departmentDirectory,
+                        new SettlementOrderGroupFilter(
+                            searchText,
+                             selectedOrderType,
+                             selectedStatus,
+                             selectedDepartment),
+                        CurrentFinancialAllocations)
+                    .Select(ToRequesterSettlementRow)
+                    .ToList();
+                break;
+            default:
+                filteredDepartmentRows = SettlementWorkspaceProjection.BuildDepartmentRows(
+                        periodOrdersSnapshot,
+                        departmentDirectory,
+                        new SettlementOrderGroupFilter(
+                            searchText,
+                             selectedOrderType,
+                             selectedStatus,
+                             selectedDepartment),
+                        CurrentFinancialAllocations)
+                    .Select(ToDepartmentSettlementRow)
+                    .ToList();
+                break;
+        }
     }
 
     private async Task ClearFiltersAsync()
@@ -494,8 +745,29 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task OnViewModeChangedAsync(string mode)
     {
+        if (string.Equals(viewMode, mode, StringComparison.Ordinal))
+        {
+            return;
+        }
+
         viewMode = mode;
+        alertMessage = null;
+        isGridLoading = true;
         await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            await EnsureCurrentViewDataAsync();
+        }
+        catch (Exception ex)
+        {
+            HandleLoadError(ex);
+        }
+        finally
+        {
+            isGridLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task OnSupplierChangedAsync(Guid? supplierId)
@@ -511,8 +783,6 @@ public partial class PeriodSettlementPanel : IDisposable
             .FirstOrDefault();
         if (quote is not null)
         {
-            hasExplicitSupplierSelection = true;
-            hasExplicitPriceListSelection = false;
             await ApplySupplierQuoteAsync(quote);
         }
     }
@@ -527,24 +797,7 @@ public partial class PeriodSettlementPanel : IDisposable
         var quote = SupplierQuotes.FirstOrDefault(item => item.PriceListId == priceListId.Value && item.IsEligible);
         if (quote is not null)
         {
-            hasExplicitPriceListSelection = true;
             await ApplySupplierQuoteAsync(quote);
-        }
-    }
-
-    private async Task OpenCorrectionDialog()
-    {
-        var reason = await DialogService.OpenAsync<Dialog_SettlementCorrection>(
-            Loc["CorrectionDialogTitle"].Value,
-            new Dictionary<string, object?>(),
-            VppAdminDialogProfiles.Create(
-                VppAdminDialogSize.Compact,
-                Loc["CorrectionDialogTitle"].Value,
-                closeAriaLabel: Loc["Close"].Value));
-
-        if (reason is string correctionReason)
-        {
-            await CorrectAsync(correctionReason);
         }
     }
 
@@ -570,8 +823,36 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private bool IsCurrentQuote(PriceBookQuoteResDTO quote) => Preview?.PrimaryPriceListId == quote.PriceListId;
 
-    private bool IsItemCovered(AggregatedVppItemResDTO item) =>
-        Preview?.PrimaryQuote is { } quote && !quote.MissingVppIds.Contains(item.VppId);
+    private decimal ItemNetUnitPrice(AggregatedVppItemResDTO item) =>
+        itemFinancials.GetValueOrDefault(item.VppId)?.NetUnitPrice ?? 0;
+
+    private decimal ItemVatRate(AggregatedVppItemResDTO item) =>
+        itemFinancials.GetValueOrDefault(item.VppId)?.VatRate ?? 0;
+
+    private decimal ItemNetAmount(AggregatedVppItemResDTO item) =>
+        itemFinancials.GetValueOrDefault(item.VppId)?.NetAmount ?? 0;
+
+    private decimal ItemGrossAmount(AggregatedVppItemResDTO item) =>
+        itemFinancials.GetValueOrDefault(item.VppId)?.GrossAmount ?? 0;
+
+    private void RebuildItemFinancials()
+    {
+        itemFinancials = HasSettlementSnapshot
+            ? currentSettlementRevision!.Items.ToDictionary(
+                line => line.VppId,
+                line => new SettlementItemFinancialView(
+                    line.NetUnitPrice,
+                    line.VatRate,
+                    line.NetAmount,
+                    line.GrossAmount))
+            : (SelectedQuote?.Lines ?? []).ToDictionary(
+                line => line.VppId,
+                line => new SettlementItemFinancialView(
+                    line.NetUnitPrice,
+                    line.VatRate,
+                    line.NetAmount,
+                    line.GrossAmount));
+    }
 
     private async Task ApplySupplierQuoteAsync(PriceBookQuoteResDTO quote)
     {
@@ -612,8 +893,8 @@ public partial class PeriodSettlementPanel : IDisposable
                 Preview,
                 State.IdempotencyKey!,
                 State.Exceptions));
-            await LoadStatusAsync();
             State.RequireFreshPreviewForNextSubmission();
+            await ReloadPeriodAsync();
             Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
             await SettlementChanged.InvokeAsync();
         }
@@ -651,47 +932,6 @@ public partial class PeriodSettlementPanel : IDisposable
         }
     }
 
-    private async Task CorrectAsync(string correctionReason)
-    {
-        if (!CanSubmitCurrentPreview || Preview is null || status?.SettlementId is null)
-        {
-            return;
-        }
-
-        var reason = correctionReason.Trim();
-        if (reason.Length is < 5 or > 500)
-        {
-            Toast.Notify(NotificationSeverity.Warning, Loc["PeriodSettlement"], Loc["CorrectionReasonLengthWarning"]);
-            return;
-        }
-
-        isCorrecting = true;
-        try
-        {
-            await Settlement.CorrectAsync(
-                status.SettlementId.Value,
-                SettlementRequestFactory.BuildCorrection(
-                    Year,
-                    Month,
-                    Preview,
-                    State.IdempotencyKey!,
-                    State.Exceptions,
-                    reason));
-            await LoadStatusAsync();
-            State.RequireFreshPreviewForNextSubmission();
-            Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["CorrectionCreated"]);
-            await SettlementChanged.InvokeAsync();
-        }
-        catch (Exception ex)
-        {
-            Toast.Error(ex, Loc);
-        }
-        finally
-        {
-            isCorrecting = false;
-        }
-    }
-
     private string ResolvePeriodScope(int year, int month)
     {
         if (year == CurrentPeriodYear && month == CurrentPeriodMonth)
@@ -724,6 +964,9 @@ public partial class PeriodSettlementPanel : IDisposable
         int TotalLines,
         int TotalQuantity,
         long TotalAmount,
+        decimal NetAmount,
+        decimal VatAmount,
+        decimal GrossAmount,
         string StatusText,
         VppStatusTone StatusTone);
 
@@ -737,8 +980,17 @@ public partial class PeriodSettlementPanel : IDisposable
         int TotalLines,
         int TotalQuantity,
         long TotalAmount,
+        decimal NetAmount,
+        decimal VatAmount,
+        decimal GrossAmount,
         string StatusText,
         VppStatusTone StatusTone);
+
+    private sealed record SettlementItemFinancialView(
+        decimal NetUnitPrice,
+        decimal VatRate,
+        decimal NetAmount,
+        decimal GrossAmount);
 }
 
 public sealed record PeriodTargetSelection(int Year, int Month);

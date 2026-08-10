@@ -1,3 +1,4 @@
+@* PAGE: Permission/Tabs/Tab_PagePermission.razor *@
 @using Microsoft.AspNetCore.Components.Authorization
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Auth
@@ -103,7 +104,7 @@
                             <h2 id="permission-matrix-title">@Loc["PermissionMatrixTitle"]</h2>
                             <p>@Loc["PermissionMatrixDescription"]</p>
                         </div>
-                        <span class="vpp-permission-matrix-badge">@Loc["ReadOnlyReference"]</span>
+                        <VppCategoryChip Text="@Loc["ReadOnlyReference"]" Tone="VppCategoryTone.Neutral" />
                     </header>
                     <div class="vpp-permission-matrix-scroll" role="region" tabindex="0" aria-label="@Loc["PermissionMatrixTitle"]">
                         <table class="vpp-permission-matrix">
@@ -155,6 +156,7 @@
 else
 {
     <VppContentState State="VppContentStateKind.Denied"
+                     FillAvailable="true"
                      Icon="@VppIcons.Lock"
                      Title="@Loc["NoPermission"]"
                      Class="m-3" />

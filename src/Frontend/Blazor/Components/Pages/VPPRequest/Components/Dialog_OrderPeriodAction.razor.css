@@ -1,0 +1,45 @@
+.vpp-order-period-dialog-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+}
+
+.vpp-order-period-dialog-heading > div {
+    display: grid;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-order-period-dialog-heading span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-order-period-dialog-heading strong {
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-lg);
+}
+
+.vpp-order-period-dialog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--vpp-space-3);
+}
+
+.vpp-order-period-dialog-grid ::deep .is-wide {
+    grid-column: 1 / -1;
+}
+
+.vpp-order-period-dialog-control {
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .vpp-order-period-dialog-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vpp-order-period-dialog-grid ::deep .is-wide {
+        grid-column: auto;
+    }
+}

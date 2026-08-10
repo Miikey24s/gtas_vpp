@@ -1,4 +1,5 @@
 <RadzenButton Icon="@Icon"
+              Text="@Text"
               Size="ButtonSize.Small"
               ButtonStyle="@ButtonStyle"
               Variant="@Variant"
@@ -14,6 +15,7 @@
 @code {
     [Parameter, EditorRequired] public string Icon { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Text { get; set; }
     [Parameter] public ButtonStyle ButtonStyle { get; set; } = ButtonStyle.Light;
     [Parameter] public Variant Variant { get; set; } = Variant.Filled;
     [Parameter] public EventCallback<MouseEventArgs> Click { get; set; }
@@ -22,7 +24,22 @@
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? TestId { get; set; }
 
-    private string CssClass => string.IsNullOrWhiteSpace(Class)
-        ? "vpp-admin-icon-action"
-        : $"vpp-admin-icon-action {Class}";
+    private string CssClass
+    {
+        get
+        {
+            var classes = new List<string> { "vpp-admin-icon-action" };
+            if (!string.IsNullOrWhiteSpace(Text))
+            {
+                classes.Add("vpp-admin-action-label");
+            }
+
+            if (!string.IsNullOrWhiteSpace(Class))
+            {
+                classes.Add(Class);
+            }
+
+            return string.Join(' ', classes);
+        }
+    }
 }

@@ -1,6 +1,9 @@
+@* PAGE: VPPRequest/Components/Dialog_SettlementCorrection.razor *@
 @inject DialogService DialogService
 
+@* DIALOG: Nhập và kiểm tra lý do tạo revision điều chỉnh. *@
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Compact" TestId="settlement-correction-dialog">
+    @* CONTENT: Gợi ý quy trình và trường lý do điều chỉnh. *@
     <Intro>
         <VppInlineNotice Tone="VppStatusTone.Info">@Loc["CorrectionFourEyesHint"]</VppInlineNotice>
     </Intro>
@@ -17,6 +20,7 @@
             <VppInlineNotice Tone="VppStatusTone.Warning">@Loc["CorrectionReasonLengthWarning"]</VppInlineNotice>
         }
     </ChildContent>
+    @* FOOTER: Hủy hoặc tạo revision điều chỉnh. *@
     <Footer>
         <VppDialogActions CancelText="@Loc["Cancel"]"
                           PrimaryText="@Loc["CreateCorrectionRevision"]"
@@ -28,10 +32,12 @@
 </VppAdaptiveDialogShell>
 
 @code {
+    // STATE: Nội dung lý do và trạng thái validation của dialog.
     private string Reason { get; set; } = string.Empty;
     private bool HasValidationError { get; set; }
     private bool CanSubmit => Reason.Trim().Length is >= 5 and <= 500;
 
+    // ACTIONS: Đóng dialog hoặc trả về lý do hợp lệ cho màn chốt kỳ.
     private Task CancelAsync() => DialogService.TryCloseAsync(null);
 
     private async Task SubmitAsync()

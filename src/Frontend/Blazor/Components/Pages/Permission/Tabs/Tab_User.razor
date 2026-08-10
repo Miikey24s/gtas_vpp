@@ -1,3 +1,4 @@
+@* PAGE: Permission/Tabs/Tab_User.razor *@
 @using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Res.Auth
 @using gtas_vpp_shared.DTOs.Res.Library
@@ -111,13 +112,6 @@
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Actions"]" Width="154px" MinWidth="154px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center">
                             <Template Context="user">
                                 <div class="vpp-admin-actions">
-                                    @if (accountCapabilities.InvitationEnabled)
-                                    {
-                                        <VppAdminIconAction Icon="mark_email_unread"
-                                                            Title="@GetPasswordLinkTitle(user)"
-                                                            Disabled="@(!CanSendPasswordLink(user))"
-                                                            Click="@(() => SendPasswordResetLinkAsync(user))" />
-                                    }
                                     @if (IsPendingApproval(user))
                                     {
                                         <span class="vpp-admin-action-shell" title="@GetApprovalActionTitle(user)">
@@ -139,6 +133,9 @@
                                                               Disabled="@(!CanToggleUserAccess(user))"
                                                               Class="vpp-admin-user-access-switch" />
                                     }
+                                    <VppAdminActionMenu Title="@Loc["MoreActions"]"
+                                                        Items="@UserSecondaryActions(user)"
+                                                        TestId="user-row-more-actions" />
                                 </div>
                             </Template>
                         </RadzenDataGridColumn>
@@ -154,6 +151,7 @@
 else
 {
     <VppContentState State="VppContentStateKind.Denied"
+                     FillAvailable="true"
                      Icon="@VppIcons.Lock"
                      Title="@Loc["NoPermission"]"
                      Class="m-3" />

@@ -1,4 +1,4 @@
-<div class="vpp-skeleton-page @Class">
+<div class="vpp-skeleton-page @(FillAvailable ? "is-fill-available" : null) @Class">
     @if (Cards > 0)
     {
         <SkeletonStatCards Cards="@Cards" />
@@ -16,5 +16,6 @@
     [Parameter] public int Cards { get; set; } = 3;
     [Parameter] public int Rows { get; set; } = 6;
     [Parameter] public int Cols { get; set; } = 5;
+    [Parameter] public bool FillAvailable { get; set; }
     [Parameter] public string Class { get; set; } = string.Empty;
 }

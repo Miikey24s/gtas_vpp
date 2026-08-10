@@ -1,3 +1,4 @@
+@* PAGE: Lib/Tabs/Tab_PriceLibrary.razor *@
 @using gtas_vpp_shared.DTOs.Res.Library
 @inherits VppServerGridComponentBase<VppItemPriceResDTO>
 
@@ -55,6 +56,7 @@
     @if (!string.IsNullOrWhiteSpace(loadError))
     {
         <VppContentState State="VppContentStateKind.Error"
+                         FillAvailable="true"
                          Icon="error_outline"
                          Title="@Loc["LoadLibraryDataFailed"]"
                          Description="@loadError"
@@ -100,8 +102,8 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppName" Title="@Loc["ProductName"]" Width="240px" MinWidth="210px"><Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.VppName ?? "–")</strong><small>@(row.VppCode ?? "–")</small></div></Template></RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="CategoryName" Title="@Loc["Category"]" Width="140px" />
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="UomName" Title="@Loc["UOM"]" Width="84px" TextAlign="TextAlign.Center" Filterable="false"><HeaderTemplate><span title="@Loc["UOM"]">@Loc["UomCompact"]</span></HeaderTemplate></RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="SupplierSku" Title="@Loc["SupplierSku"]" Width="110px" />
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="UomName" Title="@Loc["UOM"]" Width="100px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" />
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="SupplierSku" Title="@Loc["SupplierSku"]" Width="170px" MinWidth="150px" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="Price" Title="@Loc["Price"]" Width="105px" TextAlign="TextAlign.Right" FormatString="{0:N0}" Filterable="false">
                 <Template Context="row">
                     @if (row.Price.HasValue)
@@ -115,8 +117,7 @@
                 </Template>
             </RadzenDataGridColumn>
             @* Thuế VAT là dữ liệu cấp mức giá, không suy ra từ bảng giá. *@
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VatRate" Title="@Loc["VatRate"]" Width="80px" TextAlign="TextAlign.Right" Filterable="false">
-                <HeaderTemplate><span title="@Loc["VatRate"]">@Loc["VatRateCompact"]</span></HeaderTemplate>
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VatRate" Title="@Loc["VatRate"]" Width="90px" TextAlign="TextAlign.Right" Filterable="false">
                 <Template Context="row">
                     @if (row.PriceMappingId.HasValue)
                     {
@@ -128,11 +129,18 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="MinimumOrderQuantity" Title="@Loc["MinimumOrderQuantity"]" Width="100px" TextAlign="TextAlign.Right" FormatString="{0:0.##}" Filterable="false"><HeaderTemplate><span title="@Loc["MinimumOrderQuantity"]">@Loc["MinimumOrderQuantityCompact"]</span></HeaderTemplate></RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="LeadTimeDays" Title="@Loc["LeadTimeDays"]" Width="96px" TextAlign="TextAlign.Center" Filterable="false"><HeaderTemplate><span title="@Loc["LeadTimeDays"]">@Loc["LeadTimeCompact"]</span></HeaderTemplate></RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="96px" TextAlign="TextAlign.Center" Filterable="false">
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="MinimumOrderQuantity" Title="@Loc["MinimumOrderQuantity"]" Width="150px" MinWidth="140px" TextAlign="TextAlign.Right" FormatString="{0:0.##}" Filterable="false" />
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="LeadTimeDays" Title="@Loc["LeadTimeDays"]" Width="110px" MinWidth="100px" TextAlign="TextAlign.Center" Filterable="false" />
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="120px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false">
                 <Template Context="row">
-                    <RadzenSwitch TValue="bool" Value="@row.IsDefault" Disabled="true" class="vpp-admin-switch-readonly" />
+                    @if (row.IsDefault)
+                    {
+                        <VppStatusBadge Text="@Loc["Default"]" Tone="VppStatusTone.Neutral" />
+                    }
+                    else
+                    {
+                        <span aria-label="@Loc["No"]">–</span>
+                    }
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppCode" Title="@Loc["ProductCode"]" Width="124px" Visible="false" Pickable="true" />
@@ -140,10 +148,14 @@
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
                 <Template Context="row">
                     <div class="vpp-admin-actions">
-                        <VppAdminIconAction Icon="edit" Title="@GetEditPriceActionTitle(row)" Disabled="@(row.IsDeleted || !IsSelectedPriceListDraft)" Click="@(() => EditPriceAsync(row))" />
-                        <VppAdminIconAction Icon="star" Title="@Loc["SetDefault"]" ButtonStyle="ButtonStyle.Info" Disabled="@(!row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted || !IsSelectedPriceListDraft)" Click="@(() => SetDefaultAsync(row))" />
-                        <VppAdminActiveToggle IsActive="@(!row.IsDeleted)" Title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Changed="@((bool isActive) => SetDeletedPriceAsync(row, !isActive))" Disabled="@(!row.PriceMappingId.HasValue || !IsSelectedPriceListDraft)" />
-                        <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!row.PriceMappingId.HasValue || !row.IsDeleted || !IsSelectedPriceListDraft)" Click="@(() => HardDeletePriceAsync(row))" />
+                        <VppAdminIconAction Icon="edit"
+                                            Text="@GetEditPriceActionTitle(row)"
+                                            Title="@GetEditPriceActionTitle(row)"
+                                            Disabled="@(row.IsDeleted || !IsSelectedPriceListEditable)"
+                                            Click="@(() => EditPriceAsync(row))" />
+                        <VppAdminActionMenu Title="@Loc["MoreActions"]"
+                                            Items="@PriceRowSecondaryActions(row)"
+                                            TestId="price-row-more-actions" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>

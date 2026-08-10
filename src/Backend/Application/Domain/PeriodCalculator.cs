@@ -21,11 +21,11 @@ namespace gtas_vpp_be.Service.Domain
 
         public PeriodCalculator(int deadlineDay = 5)
         {
-            if (deadlineDay < 1 || deadlineDay > 28)
+            if (deadlineDay < 1 || deadlineDay > 31)
                 throw new System.ArgumentOutOfRangeException(
                     nameof(deadlineDay),
                     deadlineDay,
-                    "DeadlineDay must be between 1 and 28 (to avoid month-length edge cases).");
+                    "DeadlineDay must be between 1 and 31.");
             _deadlineDay = deadlineDay;
         }
 
@@ -65,11 +65,37 @@ namespace gtas_vpp_be.Service.Domain
             }
         }
 
+        public static System.TimeZoneInfo ResolveTimeZone(string timeZoneId)
+        {
+            if (string.IsNullOrWhiteSpace(timeZoneId))
+            {
+                throw new System.ArgumentException("Time zone is required.", nameof(timeZoneId));
+            }
+
+            try
+            {
+                return System.TimeZoneInfo.FindSystemTimeZoneById(timeZoneId.Trim());
+            }
+            catch (System.TimeZoneNotFoundException) when (
+                string.Equals(timeZoneId, IanaVietnamTimeZone, System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(timeZoneId, WindowsVietnamTimeZone, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return BusinessTimeZone;
+            }
+            catch (System.InvalidTimeZoneException) when (
+                string.Equals(timeZoneId, IanaVietnamTimeZone, System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(timeZoneId, WindowsVietnamTimeZone, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return BusinessTimeZone;
+            }
+        }
+
         /// <summary>Tính kỳ đang mở tại thời điểm được truyền vào.</summary>
         public Period Current(System.DateTime now)
         {
             var anchor = new System.DateTime(now.Year, now.Month, 1);
-            var current = now.Day >= _deadlineDay ? anchor : anchor.AddMonths(-1);
+            var boundary = BoundaryForMonth(now.Year, now.Month);
+            var current = now >= boundary ? anchor : anchor.AddMonths(-1);
             return new Period(current.Year, current.Month);
         }
 
@@ -84,32 +110,23 @@ namespace gtas_vpp_be.Service.Domain
         /// <summary>Trả về true khi kỳ được truyền vào đã qua hạn gửi yêu cầu thường.</summary>
         public bool IsDeadlinePassed(System.DateTime now, Period period)
         {
-            // Yêu cầu thường của kỳ (Year, Month) đóng vào đầu ngày _deadlineDay
-            // của tháng KẾ TIẾP, để toàn bộ tháng N có thể gửi trong các ngày
-            // 1..(deadlineDay-1) của tháng N+1.
-            var deadline = new System.DateTime(period.Year, period.Month, 1)
-                .AddMonths(1)
-                .AddDays(_deadlineDay - 1);
-            return now >= deadline;
+            return now >= DeadlineFor(period);
         }
 
         /// <summary>Tính deadline timestamp cho kỳ được truyền vào.</summary>
         public System.DateTime DeadlineFor(Period period)
-            => new System.DateTime(period.Year, period.Month, 1)
-                .AddMonths(1)
-                .AddDays(_deadlineDay - 1);
+        {
+            var next = new System.DateTime(period.Year, period.Month, 1).AddMonths(1);
+            return BoundaryForMonth(next.Year, next.Month);
+        }
 
         /// <summary>Trả về ngày giờ nghiệp vụ local bắt đầu kỳ.</summary>
         public System.DateTime StartAtLocal(Period period)
-            => new System.DateTime(period.Year, period.Month, _deadlineDay,
-                0, 0, 0, System.DateTimeKind.Unspecified);
+            => BoundaryForMonth(period.Year, period.Month);
 
         /// <summary>Trả về deadline nghiệp vụ local của kỳ.</summary>
         public System.DateTime SubmissionDeadlineLocal(Period period)
-            => new System.DateTime(period.Year, period.Month, 1,
-                0, 0, 0, System.DateTimeKind.Unspecified)
-                .AddMonths(1)
-                .AddDays(_deadlineDay - 1);
+            => DeadlineFor(period);
 
         /// <summary>
         /// Chuyển timestamp nghiệp vụ giờ Việt Nam sang UTC. DateTimeKind.Unspecified
@@ -117,10 +134,17 @@ namespace gtas_vpp_be.Service.Domain
         /// theo múi giờ của máy.
         /// </summary>
         public static System.DateTime ToUtc(System.DateTime localBusinessTime)
+            => ToUtc(localBusinessTime, IanaVietnamTimeZone);
+
+        public static System.DateTime ToUtc(
+            System.DateTime localBusinessTime,
+            string timeZoneId)
         {
             var unspecified = System.DateTime.SpecifyKind(
                 localBusinessTime, System.DateTimeKind.Unspecified);
-            return System.TimeZoneInfo.ConvertTimeToUtc(unspecified, BusinessTimeZone);
+            return System.TimeZoneInfo.ConvertTimeToUtc(
+                unspecified,
+                ResolveTimeZone(timeZoneId));
         }
 
         /// <summary>Trả về thời điểm UTC bắt đầu kỳ được truyền vào.</summary>
@@ -156,6 +180,16 @@ namespace gtas_vpp_be.Service.Domain
         /// </summary>
         public static System.DateTime NormalizeNowUtc(System.DateTime now)
             => now.Kind == System.DateTimeKind.Utc ? now : ToUtc(now);
+
+        private System.DateTime BoundaryForMonth(int year, int month)
+            => new(
+                year,
+                month,
+                System.Math.Min(_deadlineDay, System.DateTime.DaysInMonth(year, month)),
+                0,
+                0,
+                0,
+                System.DateTimeKind.Unspecified);
     }
 
     /// <summary>Kỳ theo lịch gồm năm và tháng, có tính cả Month.</summary>

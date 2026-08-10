@@ -1,21 +1,26 @@
+@* PAGE: VPPRequest/OrderCreateStep3.razor *@
 @using gtas_vpp_fe.Features.Requests.Editor
 
+@* REVIEW: Kiểm tra nội dung đơn trước khi gửi. *@
 <div class="wizard-step wizard-step-review">
     <section class="vpp-order-review-panel" aria-labelledby="order-review-title">
+        @* HEADER: Tiêu đề review và badge tóm tắt loại đơn. *@
         <header class="vpp-order-review-header">
             <div>
                 <h2 id="order-review-title">@Loc["ReviewOrderBeforeSubmit"]</h2>
                 <p>@Loc["ReviewOrderBeforeSubmitDescription"]</p>
             </div>
             <div class="vpp-order-draft-badges">
-                <VppStatusBadge Text="@Loc["ItemsCount", Editor.SelectedItemCount]" Tone="VppStatusTone.Info" />
+                <VppCategoryChip Text="@Loc["ItemsCount", Editor.SelectedItemCount]" Tone="VppCategoryTone.Primary" />
                 @if (Editor.IsAdditional)
                 {
-                    <VppStatusBadge Text="@Loc["AdditionalOrder"]" Tone="VppStatusTone.Warning" />
+                    <VppCategoryChip Text="@Loc["AdditionalOrder"]" Tone="VppCategoryTone.Accent" />
                 }
             </div>
         </header>
 
+        @* SUMMARY: Số dòng, tổng số lượng và ghi chú/lý do bổ sung. *@
+        @* LINE 1 → 3: Tổng dòng, tổng số lượng và ghi chú/lý do. *@
         <dl class="vpp-order-review-summary">
             <div><dt>@Loc["TotalLineItems"]</dt><dd>@Editor.SelectedItemCount</dd></div>
             <div><dt>@Loc["TotalQuantity"]</dt><dd>@Editor.TotalQuantity</dd></div>
@@ -25,6 +30,7 @@
             </div>
         </dl>
 
+        @* SUPPLEMENT REASON: Cảnh báo và mở form nhập lý do khi cần. *@
         @if (IsSupplementReasonMissing)
         {
             <button type="button"
@@ -36,6 +42,7 @@
             </button>
         }
 
+        @* SELECTED ITEMS: Trạng thái rỗng hoặc bảng các mặt hàng đã chọn. *@
         @if (Editor.SelectedItemCount == 0)
         {
             <VppContentState State="VppContentStateKind.Empty"
@@ -45,6 +52,7 @@
         }
         else
         {
+            @* ROWS: Các mặt hàng đã chọn trước khi submit. *@
             <div class="vpp-order-review-grid-frame">
                 <RadzenDataGrid TItem="OrderEditorSession.SelectedItem"
                                 Data="@Editor.SelectedItems"
@@ -88,15 +96,19 @@
                     </Columns>
                 </RadzenDataGrid>
             </div>
+            @* FOOTER: Tổng kết số mặt hàng và tổng số lượng. *@
             <footer class="vpp-order-builder-data-footer">@Loc["SelectedItemsSummary", Editor.SelectedItemCount, Editor.TotalQuantity]</footer>
+            }
         }
     </section>
 </div>
 
 @code {
+    // STATE: Editor context và callback mở form lý do bổ sung.
     [CascadingParameter] public OrderEditorSession Editor { get; set; } = default!;
     [Parameter] public EventCallback SupplementReasonRequested { get; set; }
 
+    // DISPLAY: Chọn nội dung ghi chú phù hợp với loại đơn.
     private string OrderNote => Editor.IsAdditional
         ? Editor.SupplementReason ?? "–"
         : Editor.Description ?? "–";
@@ -105,5 +117,6 @@
         && (string.IsNullOrWhiteSpace(Editor.SupplementReason)
             || Editor.SupplementReason.Trim().Length < 5);
 
+    // ACTIONS: Xóa một mặt hàng khỏi phiên chỉnh sửa đơn.
     private void RemoveItem(OrderEditorSession.SelectedItem item) => Editor.RemoveItem(item);
 }

@@ -1,4 +1,4 @@
-﻿<CascadingAuthenticationState>
+<CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)" OnNavigateAsync="OnNavigateAsync">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
@@ -10,6 +10,7 @@
                     else
                     {
                         <VppContentState State="VppContentStateKind.Denied"
+                                         FillAvailable="true"
                                          Icon="lock"
                                          Title="@Loc["AccessDenied"]"
                                          Description="@Loc["NoPermission"]"

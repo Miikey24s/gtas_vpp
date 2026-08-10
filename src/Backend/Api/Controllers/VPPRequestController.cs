@@ -339,6 +339,49 @@ namespace gtas_vpp_be.Controllers
             return Ok(result);
         }
 
+        [HttpPost("orders/{id:guid}/manager-adjustment")]
+        [Authorize(Policy = Permissions.PeriodSettle)]
+        [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> AdjustOrderAfterClose(
+            Guid id,
+            [FromBody] VppManagerOrderAdjustmentReqDTO request,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null || string.IsNullOrWhiteSpace(CurrentMemberCompanyCode))
+                return Forbid();
+
+            var result = await _vppService.AdjustOrderAfterCloseAsync(
+                id,
+                CurrentUserId.Value,
+                CurrentMemberCompanyCode,
+                request);
+            try
+            {
+                var actionText = string.Equals(request.Action, "Cancel", StringComparison.OrdinalIgnoreCase)
+                    ? "đã được hủy"
+                    : "đã được cập nhật";
+                await _notificationService.PublishAsync(
+                    [result.CreatedByUserId],
+                    CurrentMemberCompanyCode,
+                    "period.order-adjustment.completed",
+                    "Đơn đặt hàng đã được điều chỉnh",
+                    $"Đơn {result.VppCode} {actionText} trước khi chốt kỳ. {request.EmployeeNote.Trim()}",
+                    $"/dashboard?tab=1&orderId={result.Id}",
+                    result.Id.ToString("N"),
+                    cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                Log.Warning(exception, "Could not publish manager adjustment notification for order {OrderId}", result.Id);
+            }
+
+            return Ok(result);
+        }
+
         [HttpPost("orders/{id:guid}/cancel")]
         [Authorize(Policy = Permissions.RequestCancelOwn)]
         public async Task<IActionResult> CancelOrder(
@@ -408,11 +451,13 @@ namespace gtas_vpp_be.Controllers
         [ProducesResponseType<VppRequestResDTO>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetPreviousOrderItems()
+        public async Task<IActionResult> GetPreviousOrderItems([FromQuery] Guid? periodId)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var result = await _vppService.GetPreviousOrderItemsAsync(CurrentUserId.Value);
+            var result = await _vppService.GetPreviousOrderItemsAsync(
+                CurrentUserId.Value,
+                periodId);
             if (result == null) return NotFound(new { Message = "No previous order found." });
             return Ok(result);
         }
@@ -422,11 +467,13 @@ namespace gtas_vpp_be.Controllers
         [ProducesResponseType<VppPeriodInfoResDTO>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetPeriodInfo()
+        public async Task<IActionResult> GetPeriodInfo([FromQuery] Guid? periodId)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            var info = await _vppService.GetCurrentPeriodInfoAsync(CurrentUserId.Value);
+            var info = await _vppService.GetCurrentPeriodInfoAsync(
+                CurrentUserId.Value,
+                periodId);
             return Ok(info);
         }
 
@@ -513,8 +560,26 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.RequestViewAll)]
         [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetAllOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
+        public async Task<IActionResult> GetAllOrders([FromQuery] int? year, [FromQuery] int? month, [FromQuery] int? status, [FromQuery] string? departmentCode, [FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby, [FromQuery] bool summaryOnly = false)
         {
+            if (summaryOnly)
+            {
+                var (summaries, summaryCount, summaryLines, summaryQty, summaryAmount) = await _vppService
+                    .GetAllOrderSummariesPagedAsync(
+                        year,
+                        month,
+                        status,
+                        departmentCode,
+                        skip,
+                        top,
+                        CurrentMemberCompanyCode);
+                Response.Headers.Append("X-Total-Count", summaryCount.ToString());
+                Response.Headers.Append("X-Total-Lines", summaryLines.ToString());
+                Response.Headers.Append("X-Total-Qty", summaryQty.ToString());
+                Response.Headers.Append("X-Total-Amount", summaryAmount.ToString());
+                return Ok(summaries);
+            }
+
             if (!string.IsNullOrWhiteSpace(filter) || !string.IsNullOrWhiteSpace(orderby))
             {
                 var scopedData = await _vppService.GetAllOrdersAsync(year, month, status, departmentCode, CurrentMemberCompanyCode);

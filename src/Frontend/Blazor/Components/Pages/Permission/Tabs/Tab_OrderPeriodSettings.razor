@@ -1,0 +1,246 @@
+@using gtas_vpp_shared.DTOs.Req.VPP
+@using gtas_vpp_shared.DTOs.Res.VPP
+
+@if (IsLoading)
+{
+    <SkeletonPage Cards="2" Rows="6" Cols="4" />
+}
+else if (HasLoadError)
+{
+    <VppContentState State="VppContentStateKind.Error"
+                     FillAvailable="true"
+                     Icon="error"
+                     Title="@Loc["OrderPeriodSettingsLoadError"]"
+                     Description="@Loc["OrderPeriodSettingsLoadErrorDescription"]"
+                     PrimaryActionText="@Loc["Retry"]"
+                     PrimaryAction="@(_ => LoadAsync())" />
+}
+else
+{
+    <VppOperationWorkspace ScrollMode="VppWorkspaceScrollMode.Page"
+                           IsBusy="@IsBusy"
+                           LabelledBy="order-period-settings-title"
+                           Class="vpp-order-period-settings-workspace">
+        <Header>
+            <header class="vpp-order-period-settings-header">
+                <div>
+                    <span>@Loc["SystemAdministration"]</span>
+                    <h1 id="order-period-settings-title">@Loc["OrderPeriodSettings"]</h1>
+                    <p>@Loc["OrderPeriodSettingsDescription"]</p>
+                </div>
+                <VppStatusBadge Text="@CurrentVersionLabel" Tone="VppStatusTone.Info" />
+            </header>
+        </Header>
+        <Summary>
+            <VppInlineNotice Tone="VppStatusTone.Info" Title="@Loc["OrderPeriodSettingsScopeTitle"]">
+                @Loc["OrderPeriodSettingsScopeDescription"]
+            </VppInlineNotice>
+        </Summary>
+        <ChildContent>
+            <div class="vpp-order-period-settings-layout">
+                <section class="vpp-order-period-settings-card" aria-labelledby="order-period-defaults-title">
+                    <div class="vpp-order-period-settings-card-heading">
+                        <div>
+                            <h2 id="order-period-defaults-title">@Loc["OrderPeriodDefaultsTitle"]</h2>
+                            <p>@Loc["OrderPeriodDefaultsDescription"]</p>
+                        </div>
+                    </div>
+
+                    <RadzenTemplateForm TItem="VppOrderPeriodSettingsReqDTO"
+                                        Data="@Settings"
+                                        Submit="@SaveAsync"
+                                        InvalidSubmit="@OnInvalidSubmit">
+                        <div class="vpp-order-period-settings-form-grid">
+                            <div class="vpp-order-period-settings-field is-wide">
+                                <RadzenLabel Text="@Loc["OrderPeriodSettingsName"]" Component="OrderPeriodSettingsName" />
+                                <RadzenTextBox Name="OrderPeriodSettingsName"
+                                               @bind-Value="Settings.Name"
+                                               MaxLength="160"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenRequiredValidator Component="OrderPeriodSettingsName"
+                                                         Text="@Loc["OrderPeriodSettingsNameRequired"]" />
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["OrderPeriodOpenCount"]" Component="OrderPeriodOpenCount" />
+                                <RadzenNumeric TValue="int" Name="OrderPeriodOpenCount"
+                                               @bind-Value="Settings.DefaultOpenPeriodCount"
+                                               Min="0" Max="12" ShowUpDown="false"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenNumericRangeValidator Component="OrderPeriodOpenCount" Min="0" Max="12"
+                                                             Text="@Loc["OrderPeriodOpenCountRange"]" />
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["OrderPeriodAutoOpenDay"]" Component="OrderPeriodAutoOpenDay" />
+                                <RadzenNumeric TValue="int" Name="OrderPeriodAutoOpenDay"
+                                               @bind-Value="Settings.DefaultNewPeriodOpenDay"
+                                               Min="1" Max="31" ShowUpDown="false"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenNumericRangeValidator Component="OrderPeriodAutoOpenDay" Min="1" Max="31"
+                                                             Text="@Loc["OrderPeriodDayRange"]" />
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["OrderPeriodDefaultCloseDay"]" Component="OrderPeriodDefaultCloseDay" />
+                                <RadzenNumeric TValue="int" Name="OrderPeriodDefaultCloseDay"
+                                               @bind-Value="Settings.DefaultPeriodCloseDay"
+                                               Min="1" Max="31" ShowUpDown="false"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenNumericRangeValidator Component="OrderPeriodDefaultCloseDay" Min="1" Max="31"
+                                                             Text="@Loc["OrderPeriodDayRange"]" />
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["SupplementApprovalGraceDays"]" Component="SupplementApprovalGraceDays" />
+                                <RadzenNumeric TValue="int" Name="SupplementApprovalGraceDays"
+                                               @bind-Value="Settings.SupplementApprovalGraceDays"
+                                               Min="0" Max="31" ShowUpDown="false"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenNumericRangeValidator Component="SupplementApprovalGraceDays" Min="0" Max="31"
+                                                             Text="@Loc["SupplementApprovalGraceDaysRange"]" />
+                                <small>@Loc["SupplementApprovalGraceDaysHelp"]</small>
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["PostCloseAdjustmentDays"]" Component="PostCloseAdjustmentDays" />
+                                <RadzenNumeric TValue="int" Name="PostCloseAdjustmentDays"
+                                               @bind-Value="Settings.PostCloseAdjustmentDays"
+                                               Min="0" Max="31" ShowUpDown="false"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenNumericRangeValidator Component="PostCloseAdjustmentDays" Min="0" Max="31"
+                                                             Text="@Loc["PostCloseAdjustmentDaysRange"]" />
+                                <small>@Loc["PostCloseAdjustmentDaysHelp"]</small>
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["OrderPeriodAutomationTime"]" Component="OrderPeriodAutomationTime" />
+                                <RadzenTimeSpanPicker Name="OrderPeriodAutomationTime"
+                                                     @bind-Value="Settings.LocalTimeOfDay"
+                                                     Disabled="@IsBusy"
+                                                     class="vpp-order-period-settings-control" />
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["TimeZone"]" Component="OrderPeriodTimeZone" />
+                                <RadzenDropDown TValue="string" Name="OrderPeriodTimeZone"
+                                                @bind-Value="Settings.TimeZoneId"
+                                                Data="@TimeZoneOptions"
+                                                Disabled="@IsBusy"
+                                                class="vpp-order-period-settings-control" />
+                                <RadzenRequiredValidator Component="OrderPeriodTimeZone" Text="@Loc["TimeZoneRequired"]" />
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["EffectiveFromMonth"]" Component="EffectiveFromMonth" />
+                                <RadzenNumeric TValue="int" Name="EffectiveFromMonth"
+                                               @bind-Value="Settings.EffectiveFromMonth"
+                                               Min="1" Max="12" ShowUpDown="false"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenNumericRangeValidator Component="EffectiveFromMonth" Min="1" Max="12"
+                                                             Text="@Loc["EffectiveFromMonthRange"]" />
+                            </div>
+
+                            <div class="vpp-order-period-settings-field">
+                                <RadzenLabel Text="@Loc["EffectiveFromYear"]" Component="EffectiveFromYear" />
+                                <RadzenNumeric TValue="int" Name="EffectiveFromYear"
+                                               @bind-Value="Settings.EffectiveFromYear"
+                                               Min="2024" Max="9999" ShowUpDown="false"
+                                               Disabled="@IsBusy"
+                                               class="vpp-order-period-settings-control" />
+                                <RadzenNumericRangeValidator Component="EffectiveFromYear" Min="2024" Max="9999"
+                                                             Text="@Loc["EffectiveFromYearRange"]" />
+                            </div>
+                        </div>
+
+                        <div class="vpp-order-period-settings-actions">
+                            <RadzenButton Text="@Loc["ResetToCurrentVersion"]"
+                                          Icon="@VppIcons.Reset"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          Variant="Variant.Outlined"
+                                          Disabled="@IsBusy"
+                                          Click="@(_ => ResetToCurrent())" />
+                            <RadzenButton Text="@Loc["SaveNewSettingsVersion"]"
+                                          Icon="save"
+                                          Size="ButtonSize.Small"
+                                          ButtonType="ButtonType.Submit"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Disabled="@IsBusy"
+                                          IsBusy="@IsBusy" />
+                        </div>
+                    </RadzenTemplateForm>
+                </section>
+
+                <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
+                                     Density="VppDataDensity.Compact"
+                                     AriaLabel="@Loc["OrderPeriodSettingsHistory"]"
+                                     Class="vpp-order-period-settings-history">
+                    <Header>
+                        <VppCollectionHeader Title="@Loc["OrderPeriodSettingsHistory"]"
+                                             Summary="@HistorySummary" />
+                    </Header>
+                    <ChildContent>
+                        @if (History.Count == 0)
+                        {
+                            <VppContentState State="VppContentStateKind.Empty"
+                                             Icon="history"
+                                             Title="@Loc["OrderPeriodSettingsHistoryEmpty"]"
+                                             Description="@Loc["OrderPeriodSettingsHistoryEmptyDescription"]" />
+                        }
+                        else
+                        {
+                            <RadzenDataGrid TItem="VppOrderPeriodSettingsResDTO"
+                                            Data="@History"
+                                            AllowPaging="true"
+                                            PageSize="10"
+                                            PagerAlwaysVisible="@(History.Count > 10)"
+                                            PagerHorizontalAlign="HorizontalAlign.Right"
+                                            AllowSorting="true"
+                                            AllowMultiColumnSorting="false"
+                                            ShowMultiColumnSortingIndex="false"
+                                            GotoFirstPageOnSort="true"
+                                            AllowFiltering="false"
+                                            AllowAlternatingRows="false"
+                                            Density="Density.Compact"
+                                            GridLines="DataGridGridLines.Horizontal"
+                                            class="vpp-admin-grid vpp-data-grid vpp-data-density-compact">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="VersionNumber"
+                                                          Title="@Loc["Version"]" Width="86px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="Name"
+                                                          Title="@Loc["ConfigurationName"]" MinWidth="190px" />
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Title="@Loc["EffectiveFrom"]"
+                                                          Width="120px" TextAlign="TextAlign.Center">
+                                        <Template Context="row">@($"{row.EffectiveFromMonth:00}/{row.EffectiveFromYear}")</Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="DefaultOpenPeriodCount"
+                                                          Title="@Loc["OrderPeriodOpenCountShort"]" Width="100px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Title="@Loc["DefaultSchedule"]"
+                                                          Width="155px" TextAlign="TextAlign.Center">
+                                        <Template Context="row">@($"{row.DefaultNewPeriodOpenDay:00} → {row.DefaultPeriodCloseDay:00}")</Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="SupplementApprovalGraceDays"
+                                                          Title="@Loc["SupplementGraceShort"]" Width="120px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="PostCloseAdjustmentDays"
+                                                          Title="@Loc["PostCloseAdjustmentShort"]" Width="135px" TextAlign="TextAlign.Center" />
+                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="CreatedAtUtc"
+                                                          Title="@Loc["CreatedAt"]" Width="160px" TextAlign="TextAlign.Center">
+                                        <Template Context="row">@FormatCreatedAt(row.CreatedAtUtc)</Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        }
+                    </ChildContent>
+                </VppDataSurfaceFrame>
+            </div>
+        </ChildContent>
+    </VppOperationWorkspace>
+}

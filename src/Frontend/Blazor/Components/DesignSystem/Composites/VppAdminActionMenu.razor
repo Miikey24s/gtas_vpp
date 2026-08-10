@@ -1,0 +1,91 @@
+@implements IAsyncDisposable
+@inject ContextMenuService ContextMenuService
+@inject IJSRuntime JSRuntime
+
+@if (Items.Count > 0)
+{
+    <span class="vpp-admin-action-menu-anchor" @ref="anchor">
+        <VppAdminIconAction Icon="more_horiz"
+                            Title="@Title"
+                            Class="vpp-admin-action-menu-trigger"
+                            Disabled="@IsDisabled"
+                            TestId="@TestId"
+                            Click="@OpenMenuAsync" />
+    </span>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public IReadOnlyList<VppAdminActionMenuItem> Items { get; set; } = [];
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? TestId { get; set; }
+
+    private ElementReference anchor;
+    private IJSObjectReference? module;
+
+    private bool IsDisabled => Disabled || Items.All(item => item.Disabled);
+
+    private async Task OpenMenuAsync(MouseEventArgs args)
+    {
+        if (IsDisabled)
+        {
+            return;
+        }
+
+        module ??= await JSRuntime.InvokeAsync<IJSObjectReference>(
+            "import",
+            "./Components/DesignSystem/Composites/VppAdminActionMenu.razor.js");
+
+        if (await module.InvokeAsync<bool>("consumeAdminActionMenuToggle", anchor))
+        {
+            ContextMenuService.Close();
+            await module.InvokeVoidAsync("disposeAdminActionMenu", anchor);
+            return;
+        }
+
+        var menuItems = Items.Select(item => new ContextMenuItem
+        {
+            Text = item.Text,
+            Icon = item.Icon,
+            IconColor = item.Tone switch
+            {
+                VppAdminActionTone.Warning => "var(--vpp-warning)",
+                VppAdminActionTone.Danger => "var(--vpp-danger)",
+                _ => null
+            },
+            Value = item,
+            Disabled = item.Disabled
+        }).ToList();
+
+        await module.InvokeVoidAsync("prepareAdminActionMenu", anchor);
+        ContextMenuService.Open(args, menuItems, async selected =>
+        {
+            ContextMenuService.Close();
+            await module.InvokeVoidAsync("disposeAdminActionMenu", anchor);
+
+            if (selected.Value is VppAdminActionMenuItem action && !action.Disabled)
+            {
+                await action.ExecuteAsync();
+            }
+        });
+
+        await module.InvokeVoidAsync("placeAdminActionMenu", anchor, args.Detail > 0);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await module.InvokeVoidAsync("disposeAdminActionMenu", anchor);
+            await module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+}

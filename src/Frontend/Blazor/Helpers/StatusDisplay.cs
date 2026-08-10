@@ -24,11 +24,11 @@ public static class StatusDisplay
 
     public static VppStatusTone GetTone(int status) => status switch
     {
-        1 => VppStatusTone.Success,
-        4 => VppStatusTone.Danger,
-        6 => VppStatusTone.Warning,
-        7 => VppStatusTone.Success,
-        8 => VppStatusTone.Danger,
+        1 => VppStatusToneContract.Resolve("Submitted"),
+        4 => VppStatusToneContract.Resolve("Cancelled"),
+        6 => VppStatusToneContract.Resolve("Pending"),
+        7 => VppStatusToneContract.Resolve("Approved"),
+        8 => VppStatusToneContract.Resolve("Rejected"),
         _ => VppStatusTone.Neutral
     };
 }

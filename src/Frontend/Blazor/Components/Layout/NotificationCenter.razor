@@ -111,13 +111,6 @@
                     }
                 }
             </div>
-
-            <footer class="vpp-notification-panel-footer">
-                <button type="button" @onclick="RefreshAsync" disabled="@Inbox.IsLoading">
-                    <VppIcon Name="@VppIcons.Refresh" />
-                    @(Inbox.HasError ? Loc["Retry"] : Loc["Refresh"])
-                </button>
-            </footer>
         </section>
     }
 </div>
@@ -199,19 +192,6 @@
         if (_isOpen && string.Equals(args.Key, "Escape", StringComparison.Ordinal))
         {
             _ = Close();
-        }
-    }
-
-    private async Task RefreshAsync()
-    {
-        _actionFailed = false;
-        try
-        {
-            await Inbox.RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Could not refresh the notification inbox from the panel.");
         }
     }
 

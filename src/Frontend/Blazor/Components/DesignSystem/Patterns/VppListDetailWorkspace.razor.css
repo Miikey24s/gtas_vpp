@@ -21,6 +21,10 @@
     grid-template-columns: minmax(22rem, 0.78fr) minmax(0, 1.22fr);
 }
 
+.vpp-list-detail-workspace.is-scroll-page {
+    overflow: visible;
+}
+
 .vpp-list-detail-workspace-list,
 .vpp-list-detail-workspace-detail {
     min-width: 0;

@@ -97,10 +97,12 @@ public static class FrontendServiceCollectionExtensions
         services.AddScoped<RequestsQueryClient>();
         services.AddScoped<RequestsCommandClient>();
         services.AddScoped<RequestsExportClient>();
+        services.AddScoped<OrderPeriodApiClient>();
         services.AddScoped<OrderDraftStore>();
         services.AddScoped<OrderSubmissionCoordinator>();
 
         services.AddScoped<SettlementApiClient>();
+        services.AddScoped<PostSettlementOrderCorrectionApiClient>();
         services.AddScoped<PeriodSettlementState>();
         services.AddScoped<ReportsApiClient>();
 

@@ -1,3 +1,4 @@
+@* PAGE: Lib/Tabs/Tab_SupplierLibrary.razor *@
 @using gtas_vpp_fe.Components.DesignSystem.Composites
 @using gtas_vpp_shared.DTOs.Res.Library
 @inherits VppServerGridComponentBase<SupplierResDTO>
@@ -53,14 +54,21 @@
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="Description" Title="@Loc["Description"]" Width="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="150px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
-                        <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@(row.IsDeleted ? VppStatusTone.Neutral : VppStatusTone.Success)" /></Template>
+                        <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="SupplierResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                         <Template Context="row">
                             <div class="vpp-admin-actions">
-                                <VppAdminIconAction Icon="edit" Title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />
-                                <VppAdminActiveToggle IsActive="@(!row.IsDeleted)" Title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Changed="@((bool isActive) => ToggleDeletedAsync(row, !isActive))" Disabled="@(!CanModify)" />
-                                <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!CanModify || !row.IsDeleted)" Click="@(() => HardDeleteAsync(row))" />
+                                <VppAdminIconAction Icon="edit" Text="@Loc["Edit"]" Title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />
+                                <VppAdminLifecycleMenu Title="@Loc["MoreActions"]"
+                                                       RestoreText="@Loc["Restore"]"
+                                                       DeactivateText="@Loc["Deactivate"]"
+                                                       HardDeleteText="@Loc["HardDelete"]"
+                                                       IsDeleted="@row.IsDeleted"
+                                                       CanToggle="@CanModify"
+                                                       CanHardDelete="@(CanModify && row.IsDeleted)"
+                                                       DeletedChanged="@((bool isDeleted) => ToggleDeletedAsync(row, isDeleted))"
+                                                       HardDeleteRequested="@(() => HardDeleteAsync(row))" />
                             </div>
                         </Template>
                     </RadzenDataGridColumn>

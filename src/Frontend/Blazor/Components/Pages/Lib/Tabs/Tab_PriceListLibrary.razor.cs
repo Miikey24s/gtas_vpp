@@ -1,3 +1,4 @@
+// PAGE LOGIC: Lib/Tabs/Tab_PriceListLibrary.razor.cs
 using gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
@@ -20,7 +21,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         [Inject] public PricingApiClient PricingApi { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
-        [Inject] public ContextMenuService ContextMenuService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
 
         private List<PriceListResDTO> priceLists = [];
@@ -29,18 +29,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool isLoading;
         private int count;
         private int currentSkip;
-        private string selectedStatus = string.Empty;
+        private string selectedActivity = string.Empty;
         private string searchText = string.Empty;
-        private bool HasFilters => !string.IsNullOrWhiteSpace(selectedStatus) || !string.IsNullOrWhiteSpace(searchText);
+        private bool HasFilters => !string.IsNullOrWhiteSpace(selectedActivity) || !string.IsNullOrWhiteSpace(searchText);
         private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
         protected override RadzenDataGrid<PriceListResDTO>? InitialGrid => grid;
 
         private IReadOnlyList<VppFilterOption<string>> PriceListStatusOptions =>
         [
             new(string.Empty, Loc["LibraryAllStatuses"].Value),
-            new("Draft", Loc["PriceListStatusDraft"].Value),
-            new("Published", Loc["PriceListStatusPublished"].Value),
-            new("Expired", Loc["PriceListStatusExpired"].Value)
+            new("active", Loc["LibraryStatusActive"].Value),
+            new("inactive", Loc["LibraryStatusInactive"].Value)
         ];
 
         protected override async Task OnInitializedAsync()
@@ -73,7 +72,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     args.Skip ?? 0,
                     args.Top ?? 20,
                     searchText,
-                    string.IsNullOrWhiteSpace(selectedStatus) ? null : selectedStatus,
+                    string.IsNullOrWhiteSpace(selectedActivity) ? null : selectedActivity,
                     args.OrderBy));
                 priceLists = result.Items.ToList();
                 count = result.TotalCount;
@@ -187,7 +186,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task HardDeleteAsync(PriceListResDTO row)
         {
-            if (!CanModify || !row.IsDeleted || row.Status == "Published") return;
+            if (!CanModify || !row.IsDeleted) return;
             var confirm = await DialogService.Confirm(
                 $"{Loc["PriceListHardDeleteConfirm"]}\n\n{Loc["PermanentDeleteWarning"]}",
                 Loc["HardDelete"].Value,
@@ -205,7 +204,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task OnStatusChangedAsync(string value)
         {
-            selectedStatus = value ?? string.Empty;
+            selectedActivity = value ?? string.Empty;
             await LoadAsync();
         }
 
@@ -218,7 +217,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task ClearFiltersAsync()
         {
             searchText = string.Empty;
-            selectedStatus = string.Empty;
+            selectedActivity = string.Empty;
             await grid.FirstPage(true);
         }
 
@@ -236,59 +235,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 await PricingApi.SetDefaultPriceListAsync(row.Id);
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["DefaultUpdated"].Value);
-                await LoadAsync();
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "UpdateRecordFailed");
-            }
-        }
-
-        private async Task PublishAsync(PriceListResDTO row)
-        {
-            var confirm = await DialogService.Confirm(
-                Loc["PriceListPublishConfirm"].Value,
-                Loc["PriceListPublishTitle"].Value,
-                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
-            if (confirm != true) return;
-
-            try
-            {
-                await PricingApi.PublishPriceListAsync(
-                    row.Id,
-                    new PriceBookStatusReqDTO
-                    {
-                        RowVersion = row.RowVersion,
-                        Reason = "Approved by procurement admin"
-                    });
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListPublished"].Value);
-                await LoadAsync();
-            }
-            catch (Exception ex)
-            {
-                _toastService.Error(ex, Loc, "UpdateRecordFailed");
-            }
-        }
-
-        private async Task ExpireAsync(PriceListResDTO row)
-        {
-            var confirm = await DialogService.Confirm(
-                Loc["PriceListExpireConfirm"].Value,
-                Loc["PriceListExpireTitle"].Value,
-                new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
-            if (confirm != true) return;
-
-            try
-            {
-                await PricingApi.ExpirePriceListAsync(
-                    row.Id,
-                    new PriceBookStatusReqDTO
-                    {
-                        RowVersion = row.RowVersion,
-                        Reason = "Expired by procurement admin",
-                        EffectiveToUtc = DateTime.UtcNow
-                    });
-                Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListExpired"].Value);
                 await LoadAsync();
             }
             catch (Exception ex)
@@ -332,83 +278,42 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             return Task.CompletedTask;
         }
 
-        private void OpenLifecycleMenu(MouseEventArgs args, PriceListResDTO row)
-        {
-            var items = new List<ContextMenuItem>
-            {
-                new()
-                {
-                    Text = Loc["PriceListPublishTitle"],
-                    Icon = "publish",
-                    Value = "publish",
-                    Disabled = row.IsDeleted || row.Status != "Draft" || !CanModify
-                },
-                new()
-                {
-                    Text = Loc["PriceListExpireTitle"],
-                    Icon = "timer_off",
-                    Value = "expire",
-                    Disabled = row.IsDeleted || row.Status != "Published" || !CanModify
-                },
-                new()
-                {
-                    Text = Loc["SetAsDefault"],
-                    Icon = "star",
-                    Value = "default",
-                    Disabled = row.IsDefault || row.IsDeleted || !CanModify
-                },
-                new()
-                {
-                    Text = Loc["Clone"],
-                    Icon = "content_copy",
-                    Value = "clone",
-                    Disabled = !CanModify
-                },
-                new()
-                {
-                    Text = row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"],
-                    Icon = row.IsDeleted ? "restore_from_trash" : "block",
-                    Value = "toggle-active",
-                    Disabled = row.Status == "Published" || !CanModify
-                },
-                new()
-                {
-                    Text = Loc["HardDelete"],
-                    Icon = "delete_forever",
-                    IconColor = "var(--vpp-danger)",
-                    Value = "hard-delete",
-                    Disabled = !CanModify || !row.IsDeleted || row.Status == "Published"
-                }
-            };
+        private string PriceListPrimaryActionText(PriceListResDTO row) => Loc["View"].Value;
 
-            ContextMenuService.Open(args, items, async item =>
-                await HandleLifecycleActionAsync(row, item.Value?.ToString()));
-        }
-
-        private async Task HandleLifecycleActionAsync(PriceListResDTO row, string? action)
-        {
-            switch (action)
-            {
-                case "publish":
-                    await PublishAsync(row);
-                    break;
-                case "expire":
-                    await ExpireAsync(row);
-                    break;
-                case "default":
-                    await SetDefaultAsync(row);
-                    break;
-                case "clone":
-                    await CloneAsync(row);
-                    break;
-                case "toggle-active":
-                    await SetDeletedAsync(row, !row.IsDeleted);
-                    break;
-                case "hard-delete":
-                    await HardDeleteAsync(row);
-                    break;
-            }
-        }
+        private IReadOnlyList<VppAdminActionMenuItem> PriceListSecondaryActions(PriceListResDTO row) =>
+        [
+            new(
+                "edit",
+                Loc["Edit"].Value,
+                "edit",
+                () => EditAsync(row),
+                row.IsDeleted || row.Status == "Expired" || !CanModify),
+            new(
+                "default",
+                Loc["SetAsDefault"].Value,
+                "star",
+                () => SetDefaultAsync(row),
+                row.IsDefault || !IsPriceListActive(row) || !CanModify),
+            new(
+                "clone",
+                Loc["Clone"].Value,
+                "content_copy",
+                () => CloneAsync(row),
+                !IsPriceListActive(row) || !CanModify),
+            new(
+                "toggle-active",
+                IsPriceListActive(row) ? Loc["Deactivate"].Value : Loc["Restore"].Value,
+                IsPriceListActive(row) ? "block" : "restore_from_trash",
+                () => SetDeletedAsync(row, IsPriceListActive(row)),
+                row.IsDefault || !CanModify),
+            new(
+                "hard-delete",
+                Loc["HardDelete"].Value,
+                "delete_forever",
+                () => HardDeleteAsync(row),
+                !CanModify || !row.IsDeleted,
+                VppAdminActionTone.Danger)
+        ];
 
         private async Task<PriceListUpdateReqDTO?> OpenEditorAsync(
             string title,
@@ -442,22 +347,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             _toastService.Show(severity, summary, detail, 5000, false);
         }
 
-        private string GetStatusLabel(string? status) => status switch
-        {
-            "Draft" => Loc["PriceListStatusDraft"],
-            "Published" => Loc["PriceListStatusPublished"],
-            "Expired" => Loc["PriceListStatusExpired"],
-            _ => status ?? Loc["StatusUnknown"]
-        };
+        private string GetStatusLabel(PriceListResDTO row) =>
+            IsPriceListActive(row) ? Loc["LibraryStatusActive"] : Loc["LibraryStatusInactive"];
 
-        private static VppStatusTone GetStatusTone(string? status) => status switch
-        {
-            "Published" => VppStatusTone.Success,
-            "Draft" => VppStatusTone.Info,
-            // Atlas library-price-lists: "Hết hiệu lực" là badge amber (cảnh báo), không phải xám.
-            "Expired" => VppStatusTone.Warning,
-            _ => VppStatusTone.Neutral
-        };
+        private static VppStatusTone GetStatusTone(PriceListResDTO row) =>
+            IsPriceListActive(row) ? VppStatusTone.Success : VppStatusTone.Neutral;
+
+        private static bool IsPriceListActive(PriceListResDTO row) =>
+            !row.IsDeleted && row.Status == "Published";
 
         // Atlas cột "Hiệu lực": khoảng dd/MM–dd/MM (kèm năm khi khác năm hiện tại);
         // bảng giá chưa có ngày kết thúc hiển thị mũi tên mở.

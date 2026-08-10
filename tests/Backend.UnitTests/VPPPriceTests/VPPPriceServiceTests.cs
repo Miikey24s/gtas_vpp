@@ -138,6 +138,8 @@ public class VPPPriceServiceTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
+        (await context.Set<PriceList>().SingleAsync(x => x.Id == priceListId)).Status = PriceListStatus.Published;
+        await context.SaveChangesAsync();
         var supplierId = await SeedSupplierAsync(context, "Supplier 1", now);
         var service = CreatePriceService(context, now);
         var created = await service.CreateAsync(

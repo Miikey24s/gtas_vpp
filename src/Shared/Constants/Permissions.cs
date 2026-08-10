@@ -27,6 +27,7 @@ namespace gtas_vpp_shared.Constants
 
         // Chốt kỳ.
         public const string PeriodSettle = "PERIOD_SETTLE";
+        public const string PeriodSettingsManage = "PERIOD_SETTINGS_MANAGE";
 
         // Phân quyền.
         public const string PermissionUser = "PERMISSION_USER";
@@ -79,7 +80,8 @@ namespace gtas_vpp_shared.Constants
                 ReportViewDepartment,
                 ReportViewAll,
                 ReportExport,
-                PeriodSettle
+                PeriodSettle,
+                PeriodSettingsManage
             });
 
         /// <summary>

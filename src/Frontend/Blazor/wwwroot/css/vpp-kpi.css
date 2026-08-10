@@ -83,20 +83,6 @@
     letter-spacing: .01em;
 }
 
-.vpp-orders-story-heading {
-    min-width: 0;
-}
-
-.vpp-orders-story-heading h2 {
-    margin: 0;
-    color: var(--vpp-text-primary);
-    font-family: var(--vpp-font-display);
-    margin-top: 2px;
-    font-size: clamp(1.45rem, 2vw, 1.75rem);
-    font-weight: var(--vpp-font-weight-bold);
-    line-height: 1.2;
-}
-
 .vpp-orders-overview-meta {
     display: flex;
     flex-wrap: wrap;
@@ -652,7 +638,7 @@
     overflow-wrap: anywhere;
     color: var(--vpp-primary-700);
     font-family: var(--vpp-font-mono);
-    font-size: var(--vpp-text-sm);
+    font-size: var(--vpp-text-base);
     font-weight: var(--vpp-font-weight-semibold);
     line-height: var(--vpp-leading-tight);
 }
@@ -680,9 +666,9 @@
 }
 
 .vpp-order-card-toolbar .vpp-data-card-actions .rz-button {
-    min-height: 38px;
-    padding-inline: var(--vpp-space-3);
-    border-radius: var(--vpp-radius-md);
+    min-height: var(--vpp-button-height);
+    padding-inline: var(--vpp-button-padding-inline);
+    border-radius: var(--vpp-radius-button);
 }
 
 @media (max-width: 767px) {
@@ -707,7 +693,7 @@
 
 @media (pointer: coarse) {
     .vpp-order-card-toolbar .vpp-data-card-actions .rz-button {
-        min-height: 44px;
+        min-height: var(--vpp-button-height);
     }
 }
 

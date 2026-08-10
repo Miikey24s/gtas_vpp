@@ -16,6 +16,7 @@ public sealed class SettlementPreviewResDTO
     public int? PrimaryPriceListVersion { get; set; }
     public PriceBookQuoteResDTO? PrimaryQuote { get; set; }
     public List<PriceBookQuoteResDTO> Quotes { get; set; } = [];
+    public List<SettlementFinancialAllocationResDTO> Allocations { get; set; } = [];
     public List<string> Blockers { get; set; } = [];
     public List<SettlementExceptionResDTO> Exceptions { get; set; } = [];
 }

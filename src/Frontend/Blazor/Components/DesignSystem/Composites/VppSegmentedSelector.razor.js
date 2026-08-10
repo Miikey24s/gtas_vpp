@@ -4,9 +4,19 @@ export function sync(root, smooth) {
     const active = root.querySelector('[data-vpp-segmented-active="true"]');
     if (!(active instanceof HTMLElement)) return;
 
+    if (!smooth) {
+        root.dataset.vppIndicatorMotion = 'off';
+    }
+
     root.style.setProperty('--vpp-segmented-indicator-x', `${active.offsetLeft}px`);
     root.style.setProperty('--vpp-segmented-indicator-width', `${active.offsetWidth}px`);
     root.dataset.vppIndicatorReady = 'true';
+
+    if (!smooth) {
+        requestAnimationFrame(() => {
+            delete root.dataset.vppIndicatorMotion;
+        });
+    }
 
     active.scrollIntoView({
         behavior: smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto',

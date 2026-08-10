@@ -120,6 +120,19 @@
     font-weight: var(--vpp-font-weight-medium);
 }
 
+.vpp-filter-select.has-neutral-selection .vpp-filter-select-popover button[aria-selected="true"] {
+    background: transparent;
+    color: var(--vpp-text-primary);
+}
+
+.vpp-filter-select.has-neutral-selection .vpp-filter-select-popover button[aria-selected="true"]::after {
+    position: absolute;
+    inset-inline-end: var(--vpp-space-2);
+    color: var(--vpp-primary-600);
+    content: "✓";
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
 .vpp-filter-select-popover button span {
     overflow: hidden;
     text-overflow: ellipsis;

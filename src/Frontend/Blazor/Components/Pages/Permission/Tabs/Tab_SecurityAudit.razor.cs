@@ -1,3 +1,4 @@
+// PAGE LOGIC: Permission/Tabs/Tab_SecurityAudit.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
@@ -178,13 +179,8 @@ public partial class Tab_SecurityAudit : IDisposable
         _ => HumanizeCode(outcome)
     };
 
-    private static VppStatusTone GetOutcomeTone(string outcome) => outcome switch
-    {
-        "Succeeded" => VppStatusTone.Success,
-        "Failed" => VppStatusTone.Danger,
-        "Rejected" => VppStatusTone.Warning,
-        _ => VppStatusTone.Neutral
-    };
+    private static VppStatusTone GetOutcomeTone(string outcome) =>
+        VppStatusToneContract.Resolve(outcome);
 
     private string GetActorLabel(SecurityAuditResDTO audit) => DisplayUser(audit.ActorFullName, audit.ActorUserName, audit.ActorUserId, Loc["SystemActor"]);
     private string GetActorSecondaryLabel(SecurityAuditResDTO audit) => audit.ActorUserName ?? audit.ActorUserId?.ToString() ?? Loc["SystemActor"];

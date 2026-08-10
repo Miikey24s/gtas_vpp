@@ -1,3 +1,4 @@
+@* PAGE: VPPRequest/OrderCreateStep2.razor *@
 @using gtas_vpp_shared.DTOs.Share
 @using gtas_vpp_shared.DTOs.Res.Library
 @using gtas_vpp_fe.Features.Requests.Api
@@ -5,6 +6,7 @@
 @implements IDisposable
 @inject IJSRuntime JSRuntime
 
+@* CATALOG: Danh mục mặt hàng có thể thêm vào đơn. *@
 <div class="wizard-step wizard-step-products">
     <div class="vpp-order-builder">
         <VppSplitEditorWorkspace Ratio="VppSplitEditorRatio.WidePrimary">
@@ -17,6 +19,7 @@
                 </div>
             </header>
 
+            @* FILTERS: Tìm kiếm, lọc danh mục/đơn vị và xóa bộ lọc. *@
             <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
                                  Density="VppDataDensity.RichTwoLine"
                                  Bordered="false"
@@ -50,12 +53,14 @@
             </VppDataToolbar>
             </Toolbar>
 
+            @* PRODUCT LIST: Hiển thị mặt hàng và thao tác thêm/xóa khỏi đơn. *@
             <ChildContent>
             <div class="vpp-order-builder-grid-frame">
                 <div class="vpp-order-builder-grid"
                      role="table"
                      aria-rowcount="@ProductCount"
                      aria-labelledby="order-catalog-title">
+                    @* COLUMNS: Tiêu đề các cột danh mục mặt hàng. *@
                     <div class="vpp-order-builder-virtual-header" role="row">
                         <span role="columnheader">#</span>
                         <span role="columnheader">@Loc["ItemName"]</span>
@@ -64,6 +69,7 @@
                         <span role="columnheader">@Loc["Actions"]</span>
                     </div>
 
+                    @* ROWS: Các dòng mặt hàng trong danh mục. *@
                     <div class="vpp-order-builder-virtual-body" role="rowgroup">
                         @foreach (var row in VisibleProductOptions)
                         {
@@ -114,6 +120,7 @@
                 </div>
             </div>
             </ChildContent>
+            @* PAGINATION: Phân trang snapshot danh mục phía client. *@
             <Footer>
                 <RadzenPager @key="_catalogPagerVersion"
                              Count="@ProductCount"
@@ -133,6 +140,7 @@
         </section>
         </Primary>
 
+        @* DRAFT: Hiển thị các mặt hàng đã chọn và tổng số lượng của đơn. *@
         <Secondary>
         <aside class="vpp-order-draft" aria-labelledby="order-draft-title">
             <header class="vpp-order-draft-header">
@@ -141,11 +149,12 @@
                     <p>@Loc["Period"] @TargetPeriodLabel</p>
                 </div>
                 <div class="vpp-order-draft-badges">
-                    <VppStatusBadge Text="@Loc["ItemsCount", Editor.SelectedItemCount]" Tone="VppStatusTone.Info" />
-                    <VppStatusBadge Text="@Loc["Draft"]" Tone="VppStatusTone.Warning" />
+                    <VppCategoryChip Text="@Loc["ItemsCount", Editor.SelectedItemCount]" Tone="VppCategoryTone.Primary" />
+                    <VppStatusBadge Text="@Loc["Draft"]" Tone="@VppStatusToneContract.Resolve("Draft")" />
                 </div>
             </header>
 
+            @* COLUMNS: Tiêu đề các cột mặt hàng đã chọn trong đơn. *@
             <div class="vpp-order-draft-columns" aria-hidden="true">
                 <span>@Loc["ItemName"]</span>
                 <span>@Loc["QuantityShort"]</span>
@@ -164,6 +173,7 @@
             else
             {
                 <div class="vpp-order-draft-list">
+                    @* ROWS: Các dòng mặt hàng đã chọn trong bản nháp. *@
                     @foreach (var item in Editor.SelectedItems)
                     {
                         <article class="vpp-order-draft-item" @key="item.VppId">
@@ -173,7 +183,8 @@
                                     <small>@item.VppCode</small>
                                 </div>
                                 <div class="vpp-order-quantity-stepper" aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")">
-                                    <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Quantity <= 1)">−</button>
+                                     @* QUANTITY: Điều chỉnh số lượng trong bản nháp. *@
+                                     <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Quantity <= 1)">−</button>
                                     <input type="number"
                                            class="vpp-order-quantity-input"
                                            min="1"
@@ -187,7 +198,8 @@
                                 </div>
                                 <span class="vpp-order-draft-unit">@item.UomName</span>
                                 <div class="vpp-order-draft-item-actions">
-                                    <button type="button"
+                                     @* ITEM ACTIONS: Mở ghi chú hoặc xóa mặt hàng khỏi bản nháp. *@
+                                     <button type="button"
                                             class="vpp-order-draft-note"
                                             popovertarget="@GetItemNotePopoverId(item)"
                                             title="@Loc["ItemNote"]"
@@ -204,7 +216,8 @@
                                     </button>
                                 </div>
                             </div>
-                            <div id="@GetItemNotePopoverId(item)"
+                             @* ITEM NOTE: Popover chỉnh sửa ghi chú của từng mặt hàng. *@
+                             <div id="@GetItemNotePopoverId(item)"
                                  class="vpp-order-note-popover vpp-transient-surface vpp-transient-surface--center"
                                  popover="auto">
                                 <header>
@@ -244,12 +257,14 @@
                 </div>
             }
 
-            <div class="vpp-order-draft-summary">
+             @* SUMMARY: Tổng số mặt hàng và tổng số lượng hiện tại. *@
+             <div class="vpp-order-draft-summary">
                 <span>@Loc["ItemsCount", Editor.SelectedItemCount]</span>
                 <strong>@Loc["TotalQuantity"] @Editor.TotalQuantity</strong>
             </div>
 
-            <footer class="vpp-order-draft-actions">
+             @* ACTIONS: Quay lại, lưu nháp, ghi chú đơn và chuyển sang bước review. *@
+             <footer class="vpp-order-draft-actions">
                 <button type="button" class="vpp-order-action-back" @onclick="async () => await BackRequested.InvokeAsync()">
                     <VppIcon Name="arrow_back" />
                     <span>@Loc["Previous"]</span>
@@ -317,6 +332,7 @@
 </div>
 
 @code {
+    // STATE: Filter, pagination, loading và trạng thái transient surface của bước chọn hàng.
     [CascadingParameter] public OrderEditorSession Editor { get; set; } = default!;
     [Parameter] public EventCallback NextRequested { get; set; }
     [Parameter] public EventCallback BackRequested { get; set; }
@@ -360,6 +376,7 @@
         ? Loc["OrderBeingCreated"].Value
         : string.Format(Loc["OrderNotePeriodFormat"].Value, TargetPeriodLabel);
 
+    // NOTE STATE: Snapshot dùng để hoàn nguyên ghi chú khi người dùng bấm Hủy.
     // Nút "Hủy" của popover ghi chú hoàn nguyên giá trị chụp lúc mở (textarea vẫn auto-bind khi gõ).
     private Guid _itemNoteSnapshotId;
     private string? _itemNoteSnapshot;
@@ -386,11 +403,13 @@
 
     private void RevertOrderNote() => UpdateOrderNote(_orderNoteSnapshot);
 
+    // LIFECYCLE: Tải snapshot catalog khi bước được khởi tạo.
     protected override async Task OnInitializedAsync()
     {
         await LoadProductSnapshotAsync();
     }
 
+    // FILTER OPTIONS: Tạo danh sách category/unit từ snapshot catalog.
     private void BuildFilterOptions()
     {
         static void Fill(List<VppFilterOption<string>> target, string allText, IEnumerable<string?> values)
@@ -409,6 +428,7 @@
         Fill(UnitOptions, Loc["AllUnits"], _allProductOptions.Select(item => item.UomName));
     }
 
+    // DATA LOADING: Nạp dữ liệu catalog và áp dụng bộ lọc ban đầu.
     private async Task LoadProductSnapshotAsync()
     {
         IsLoadingProducts = true;
@@ -433,6 +453,7 @@
         }
     }
 
+    // FILTER EVENTS: Debounce tìm kiếm và xử lý thay đổi các bộ lọc.
     private async Task OnSearchInput(ChangeEventArgs args)
     {
         SearchText = args.Value?.ToString();
@@ -475,6 +496,7 @@
         return Task.CompletedTask;
     }
 
+    // FILTERING: Lọc snapshot và reset vị trí phân trang.
     private void ApplyProductFilters()
     {
         var search = SearchText?.Trim();
@@ -489,6 +511,7 @@
         ResetCatalogPager();
     }
 
+    // PAGING: Cập nhật trang và kích thước trang của catalog.
     private void OnCatalogPageChanged(PagerEventArgs args)
     {
         _catalogSkip = args.Skip;
@@ -508,12 +531,14 @@
         CloseProductTransientSurfaces();
     }
 
+    // TRANSIENT UI: Điều khiển popover mã hàng và đóng surface tạm thời.
     private void ToggleProductCode(Guid id)
         => _openProductCodeId = _openProductCodeId == id ? null : id;
 
     private void CloseProductTransientSurfaces()
         => _openProductCodeId = null;
 
+    // CLIPBOARD: Sao chép mã mặt hàng qua JavaScript interop.
     private async Task CopyProductCodeAsync(string? value)
     {
         if (!string.IsNullOrWhiteSpace(value))
@@ -522,6 +547,7 @@
         }
     }
 
+    // SELECTION: Đồng bộ thao tác thêm/xóa với OrderEditorSession.
     private bool IsSelected(Guid id) => Editor.IsSelected(id);
 
     private async Task AddProductAsync(VppItemResDTO row)

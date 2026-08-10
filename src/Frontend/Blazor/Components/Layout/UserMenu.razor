@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 
 <div class="@RootClass" @onkeydown="HandleKeyDown">
+    @* TRIGGER: Nút mở/đóng menu và hiển thị tóm tắt người dùng. *@
     <button type="button"
             class="user-menu-trigger"
             aria-haspopup="dialog"
@@ -27,6 +28,7 @@
 
     @if (_isOpen)
     {
+        @* PROFILE: Thông tin tài khoản, email và phòng ban. *@
         <section id="user-menu-dropdown"
                  class="user-dropdown vpp-transient-surface @(SidebarMode ? "is-above" : string.Empty)"
                  role="dialog"
@@ -51,6 +53,7 @@
                     }
                 </div>
             </div>
+            @* ACTIONS: Đổi ngôn ngữ/theme, xem thông báo, đổi mật khẩu và đăng xuất. *@
             <div class="user-dropdown-actions" aria-label="@Loc["Settings"]">
                 <button type="button"
                         class="user-dropdown-action"
@@ -94,6 +97,7 @@
 </div>
 
 @code {
+    // PARAMETERS: Dữ liệu user và callback từ layout cha.
     [Parameter] public string? UserFullName { get; set; }
     [Parameter] public string? UserLogin { get; set; }
     [Parameter] public string? UserEmail { get; set; }
@@ -107,10 +111,12 @@
     [Parameter] public bool ShowName { get; set; }
     [Parameter] public bool SidebarMode { get; set; }
 
+    // STATE: Trạng thái menu và trạng thái đang chuyển ngôn ngữ/theme.
     private bool _isOpen;
     private bool _isLanguageSwitching;
     private bool _isThemeSwitching;
 
+    // DISPLAY: Chuẩn bị text, class và dữ liệu hiển thị của user menu.
     private bool IsEnglishUi => CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
 
     private string LanguageToggleTitle => IsEnglishUi ? Loc["SwitchToVietnamese"] : Loc["SwitchToEnglish"];
@@ -138,6 +144,7 @@
         ? UserEmail.Trim()
         : UserLogin?.Trim() ?? string.Empty;
 
+    // MENU EVENTS: Mở/đóng menu và xử lý các thao tác bên trong menu.
     private void ToggleMenu() => _isOpen = !_isOpen;
 
     private void CloseMenu() => _isOpen = false;

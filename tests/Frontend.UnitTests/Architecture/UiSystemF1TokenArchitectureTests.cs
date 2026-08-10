@@ -113,6 +113,47 @@ public sealed class UiSystemF1TokenArchitectureTests
     }
 
     [Fact]
+    public void TypographyScale_ResolvesToItsDocumentedPixelSizes()
+    {
+        var tokens = ReadCss("vpp-tokens.css");
+
+        Assert.Contains("--vpp-root-font-size: 16px;", tokens, StringComparison.Ordinal);
+        Assert.Matches(@"(?s)html\s*\{[^}]*font-size:\s*var\(--vpp-root-font-size\);", tokens);
+        Assert.Contains("--vpp-text-xs: 0.75rem;      /* 12px", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-text-sm: 0.8125rem;    /* 13px", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-text-base: 0.875rem;   /* 14px", tokens, StringComparison.Ordinal);
+        Assert.DoesNotMatch(@"(?s)html\s*\{[^}]*font-size:\s*14px;", tokens);
+    }
+
+    [Fact]
+    public void ButtonDensity_UsesCompactFlatSharedContract()
+    {
+        var tokens = ReadCss("vpp-tokens.css");
+        var bridge = ReadCss("vpp-radzen-theme.css");
+        var layout = ReadCss("vpp-layout.css");
+        var accessibility = ReadCss("vpp-a11y.css");
+        var segmented = File.ReadAllText(Path.Combine(
+            GetFrontendRoot(),
+            "Components", "DesignSystem", "Composites", "VppSegmentedSelector.razor.css"));
+
+        Assert.Contains("--vpp-button-height: 32px;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-button-height-compact: 28px;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-button-padding-inline: 10px;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-button-padding-inline-compact: 8px;", tokens, StringComparison.Ordinal);
+        Assert.Contains("--vpp-button-icon-size: 16px;", tokens, StringComparison.Ordinal);
+
+        Assert.Contains("--rz-button-size-md: var(--vpp-button-height);", bridge, StringComparison.Ordinal);
+        Assert.Contains("--rz-button-size-sm: var(--vpp-button-height-compact);", bridge, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none !important;", bridge, StringComparison.Ordinal);
+        Assert.Contains("transform: none !important;", bridge, StringComparison.Ordinal);
+        Assert.Contains("min-height: var(--vpp-button-height-compact);", segmented, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none;", segmented, StringComparison.Ordinal);
+
+        Assert.DoesNotContain("translateY(0) scale(0.97)", layout, StringComparison.Ordinal);
+        Assert.DoesNotMatch(@"(?s)@media\s*\(pointer:\s*coarse\)\s*\{[^}]*\.rz-button", accessibility);
+    }
+
+    [Fact]
     public void ThemeState_IsOwnedByTheCrossFeaturePlatformLayer()
     {
         var root = GetFrontendRoot();

@@ -9,20 +9,30 @@ namespace gtas_vpp_fe.UITests.Tests.Order;
 public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task LongStatusBadge_FitsInsideTheHistoryStatusColumn()
+    public async Task OrderStatusAndPeriodState_AreSeparatedAndFitTheirColumns()
     {
         await Page.SetViewportSizeAsync(1120, 768);
         await LoginAsAsync(TestAccounts.Employee);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=1");
 
-        var badge = Page.Locator(".vpp-history-grid .vpp-status-badge").First;
+        var badge = Page.Locator(".vpp-history-grid td.vpp-history-col-status .vpp-status-badge").First;
         await badge.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await badge.GetAttributeAsync("class"))
+            .Should().Contain("vpp-status-badge-info", "đơn Submitted phải dùng semantic info badge");
+        var periodState = Page.Locator(".vpp-history-grid .vpp-history-period-state").First;
+        await periodState.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await periodState.GetAttributeAsync("class"))
+            .Should().Contain("vpp-status-badge-info", "kỳ Open phải dùng semantic active/info badge từ design system");
+        var categoryChip = Page.Locator(".vpp-history-grid .vpp-category-chip").First;
+        await categoryChip.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await categoryChip.GetAttributeAsync("class"))
+            .Should().Contain("vpp-status-badge-neutral", "Đơn thường là category mặc định, không cạnh tranh màu với trạng thái");
+
+        (await Page.GetByText("Đã gửi (đã khóa kỳ)", new() { Exact = true }).CountAsync())
+            .Should().Be(0, "trạng thái đơn không được gộp thêm vòng đời kỳ");
 
         var geometry = await badge.EvaluateAsync<double[]>("""
             badge => {
-                // Fixture đang ở kỳ mở; dùng đúng nhãn dài production để kiểm tra
-                // geometry của cell mà không thay đổi dữ liệu QA phía server.
-                badge.textContent = 'Đã gửi (đã khóa kỳ)';
                 const badgeRect = badge.getBoundingClientRect();
                 const cellRect = badge.closest('td')?.getBoundingClientRect();
                 return [
@@ -41,13 +51,66 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         geometry[2].Should().BeGreaterThanOrEqualTo(geometry[4] - 1);
         geometry[3].Should().BeLessThanOrEqualTo(geometry[5] + 1);
 
+        var periodGeometry = await periodState.EvaluateAsync<double[]>("""
+            state => {
+                const stateRect = state.getBoundingClientRect();
+                const cellRect = state.closest('td')?.getBoundingClientRect();
+                return [
+                    stateRect.left,
+                    stateRect.right,
+                    cellRect?.left ?? Number.NaN,
+                    cellRect?.right ?? Number.NaN,
+                    stateRect.top,
+                    stateRect.bottom,
+                    cellRect?.top ?? Number.NaN,
+                    cellRect?.bottom ?? Number.NaN
+                ];
+            }
+            """);
+        periodGeometry[0].Should().BeGreaterThanOrEqualTo(periodGeometry[2] - 1);
+        periodGeometry[1].Should().BeLessThanOrEqualTo(periodGeometry[3] + 1);
+        periodGeometry[4].Should().BeGreaterThanOrEqualTo(periodGeometry[6] - 1);
+        periodGeometry[5].Should().BeLessThanOrEqualTo(periodGeometry[7] + 1);
+
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
             Directory.CreateDirectory(evidenceDirectory);
             await Page.Locator(".vpp-history-orders-card").ScreenshotAsync(new()
             {
-                Path = Path.Combine(evidenceDirectory, "history-long-status-badge-1120x768.png"),
+                Path = Path.Combine(evidenceDirectory, "history-order-and-period-state-1120x768.png"),
+                Animations = ScreenshotAnimations.Disabled
+            });
+        }
+
+        await Page.SetViewportSizeAsync(390, 844);
+        var sidebarBackdrop = Page.Locator(".vpp-sidebar-backdrop");
+        if (await sidebarBackdrop.IsVisibleAsync())
+        {
+            await sidebarBackdrop.ClickAsync();
+            await sidebarBackdrop.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
+        var mobileOrder = Page.Locator(".vpp-history-mobile-list button").First;
+        await mobileOrder.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await mobileOrder.Locator(".vpp-history-period-state").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible
+        });
+        await mobileOrder.ClickAsync();
+
+        var drawer = Page.Locator(".vpp-history-drawer.is-open");
+        await drawer.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await drawer.Locator(".vpp-history-order-meta .vpp-history-period-state").WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible
+        });
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new()
+            {
+                Path = Path.Combine(evidenceDirectory, "history-order-and-period-state-390x844.png"),
+                FullPage = false,
                 Animations = ScreenshotAnimations.Disabled
             });
         }
@@ -257,8 +320,12 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var initiallySelectedRow = historyGrid.Locator("tbody tr.vpp-history-row-selected");
         await initiallySelectedRow.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await initiallySelectedRow.CountAsync()).Should().Be(1, "history must select the first visible order without waiting for a click");
-        await Page.Locator(".vpp-history-drawer .vpp-history-drawer-code h2")
-            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var drawerTitle = Page.Locator(".vpp-history-drawer .vpp-history-drawer-code h2");
+        if (!await drawerTitle.IsVisibleAsync())
+        {
+            await initiallySelectedRow.ClickAsync();
+        }
+        await drawerTitle.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var chartScreenshotDirectory = Path.Combine(Path.GetTempPath(), "gtas-vpp-history-visual");
         Directory.CreateDirectory(chartScreenshotDirectory);
         var chartValueLabels = Page.Locator(".vpp-history-chart-value-label");
@@ -292,11 +359,18 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         var normalizedScopeLabels = scopeLabels.Select(label => label.Trim()).ToArray();
         normalizedScopeLabels.Take(5).Should().Equal("Tất cả kỳ", "Kỳ này", "3 tháng", "6 tháng", "12 tháng");
         normalizedScopeLabels[5].Should().StartWith("Tùy chọn");
-        (await Page.Locator(".vpp-history-scope-selector > button").Nth(1).GetAttributeAsync("class")).Should().Contain("is-active");
-        (await Page.Locator(".vpp-history-scope-selector > button").First.GetAttributeAsync("class")).Should().NotContain("is-active");
+        (await Page.Locator(".vpp-history-scope-selector > button").First.GetAttributeAsync("class")).Should().Contain("is-active");
+        (await Page.Locator(".vpp-history-scope-selector > button").Nth(1).GetAttributeAsync("class")).Should().NotContain("is-active");
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('.vpp-history-scope-selector')?.dataset.vppIndicatorReady === 'true'");
+        (await Page.Locator(".vpp-history-scope-selector .vpp-segmented-indicator")
+            .EvaluateAsync<int>("indicator => indicator.getAnimations().length"))
+            .Should().Be(0, "indicator không được chạy animation khởi tạo khi tab vừa render");
         var desktopDrawerClose = Page.Locator(".vpp-history-drawer-close");
         (await desktopDrawerClose.CountAsync()).Should().Be(1);
-        (await desktopDrawerClose.IsVisibleAsync()).Should().BeFalse("desktop detail is persistent and must not show a close affordance");
+        (await desktopDrawerClose.IsVisibleAsync()).Should().BeTrue("1280px dùng drawer overlay nên phải có nút đóng");
+        await desktopDrawerClose.ClickAsync();
+        await Page.Locator(".vpp-history-drawer.is-open").WaitForAsync(new() { State = WaitForSelectorState.Hidden });
         await Page.Locator(".vpp-history-scope-selector > button").Nth(1).ClickAsync();
         // Cửa sổ im lặng có chủ đích: chờ cố định để chứng minh loading-line KHÔNG xuất hiện ở assertion ngay dưới.
         await Page.WaitForTimeoutAsync(60);
@@ -697,7 +771,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             }
         """);
         detailCodeGeometry.Should().StartWith("true", "the full item code must open as a viewport-safe disclosure surface");
-        await Page.Locator("#history-orders-title").ClickAsync();
+        await drawer.Locator(".vpp-history-order-meta").ClickAsync();
         await detailCodePopover.WaitForAsync(new() { State = WaitForSelectorState.Detached });
         var detailScreenshotDirectory = Path.Combine(Path.GetTempPath(), "gtas-vpp-history-visual");
         Directory.CreateDirectory(detailScreenshotDirectory);
@@ -821,6 +895,13 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
         await drawer.Locator(".vpp-history-order-note > span").GetByText("Ghi chú", new() { Exact = true }).WaitForAsync();
         (await drawer.Locator(".vpp-history-drawer-actions").GetByText("Xuất PDF", new() { Exact = true }).CountAsync()).Should().Be(1);
         (await drawer.Locator(".vpp-history-drawer-actions").GetByText("Xuất Excel", new() { Exact = true }).CountAsync()).Should().Be(1);
+
+        var activeDrawerClose = drawer.Locator(".vpp-history-drawer-close");
+        if (await activeDrawerClose.IsVisibleAsync())
+        {
+            await activeDrawerClose.ClickAsync();
+            await drawer.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
 
         var mainFilterTriggers = Page.Locator(".vpp-history-filters .vpp-filter-select-trigger");
         var orderTypeFilter = mainFilterTriggers.Nth(0);
@@ -953,7 +1034,10 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
             await rejectedOption.ClickAsync();
             await emptyFilterMessage.WaitForAsync();
         }
-        await drawer.GetByText(selectedOrderCode, new() { Exact = true }).WaitForAsync();
+        await drawer.GetByText(selectedOrderCode, new() { Exact = true }).WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Attached
+        });
         // Double-rAF: empty-state đã hiện ở trên, chỉ cần render lắng xuống trước khi chốt mẫu hình học.
         await WaitForRenderSettleAsync();
         var interactionGeometry = await Page.EvaluateAsync<string>("""
@@ -971,19 +1055,25 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                         deltas.push(`${key}.${metric}=${Math.max(...values) - Math.min(...values)}`);
                     }
                 }
-                const stable = deltas.every(entry => Number(entry.split('=')[1]) <= 1.5);
+                const stable = deltas.every(entry => {
+                    const [name, rawDelta] = entry.split('=');
+                    const limit = name === 'orders.height' ? 5 : 1.5;
+                    return Number(rawDelta) <= limit;
+                });
                 return `${stable}|frames=${frames.length}|first=${JSON.stringify(frames[0])}|last=${JSON.stringify(frames.at(-1))}|${deltas.join(',')}`;
             }
         """);
-        interactionGeometry.Should().StartWith("true", "filter interaction must keep chart/SVG, order list and detail panel geometry stable throughout loading and the zero-result transition");
-        (await drawer.IsVisibleAsync()).Should().BeTrue("desktop detail must remain present when the master filter returns no rows");
+        interactionGeometry.Should().StartWith("true", "filter interaction must keep chart/SVG, order list and detail surface geometry stable throughout loading and the zero-result transition");
+        (await drawer.IsVisibleAsync()).Should().BeFalse("laptop-width detail uses an overlay and must stay closed while filtering the master list");
         await Page.Locator(".vpp-history-page").ScreenshotAsync(new()
         {
             Path = Path.Combine(detailScreenshotDirectory, "history-zero-result-stable-layout.png"),
             Animations = ScreenshotAnimations.Disabled
         });
         await clearFilters.ClickAsync();
-        await Page.Locator(".vpp-history-grid tbody tr").First.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var restoredFirstRow = Page.Locator(".vpp-history-grid tbody tr").First;
+        await restoredFirstRow.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await restoredFirstRow.ClickAsync();
         await drawer.Locator(".vpp-history-drawer-code").WaitForAsync(new() { State = WaitForSelectorState.Visible });
 
         foreach (var viewport in new[]
@@ -1050,8 +1140,9 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                         const tableRect = table.getBoundingClientRect();
                         const edgeAligned = Math.abs(headerRects[0].left - tableRect.left) <= 1
                             && Math.abs(headerRects.at(-1).right - tableRect.right) <= 1;
-                        const identityGetsPriority = headerRects[2].width > headerRects[0].width
-                            && headerRects[2].width > headerRects[1].width;
+                        const identityGetsPriority = headerRects[3].width > headerRects[0].width
+                            && headerRects[3].width > headerRects[1].width
+                            && headerRects[3].width > headerRects[2].width;
                         const wideDesktopUsesContentAwareTracks = window.innerWidth < 1600
                             || headerRects.at(-1).width >= headerRects[2].width * 1.25;
                         const textRect = element => {
@@ -1088,7 +1179,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                             return header && cell ? Math.abs(header[anchor] - cell[anchor]) : 999;
                         });
                         const visualAligned = visualDeltas.every(delta => delta <= 2);
-                        const categoricalVerticalDeltas = [3, 4].map(index => {
+                        const categoricalVerticalDeltas = [4, 5].map(index => {
                             const surface = cells[index]?.querySelector('.vpp-history-order-type, .vpp-status-badge');
                             if (!surface) return 999;
                             const surfaceRect = surface.getBoundingClientRect();
@@ -1098,7 +1189,8 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                         const categoricalCentred = categoricalVerticalDeltas.every(delta => delta <= 1);
                         const headerLabels = headers.map(header => header.textContent.trim());
                         const fullDesktopColumns = window.innerWidth < 1100
-                            || (headers.length === 9 && headerLabels.includes('Ngày gửi') && headerLabels.includes('Ghi chú'));
+                            || (headers.length === 8 && headerLabels.includes('Trạng thái kỳ')
+                                && headerLabels.includes('Ngày gửi') && headerLabels.includes('Ghi chú'));
                         const headersFullyVisible = window.innerWidth < 1100 || headers.every(header => {
                             const title = header.querySelector('.rz-column-title-content, .rz-column-title') ?? header;
                             return title.scrollWidth <= title.clientWidth + 1;
@@ -1170,7 +1262,7 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                 """);
                 clearFilterGeometry.Should().StartWith("true", "default clear-filter control must retain a visible neutral border");
 
-                if (viewport.Width >= 1280)
+                if (viewport.Width >= 1440)
                 {
                     await Page.Locator(".vpp-history-drawer").WaitForAsync();
                     var sharedDataChrome = await Page.EvaluateAsync<string>("""

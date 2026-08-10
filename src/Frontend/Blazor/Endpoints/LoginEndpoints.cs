@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using gtas_vpp_fe.Helpers;
+using gtas_vpp_fe.Platform.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Net.Http.Headers;
@@ -57,12 +58,20 @@ namespace gtas_vpp_fe.Endpoints
             });
 
             app.MapGet(Config.PerformLogoutPath, async (
+                string? expectedSession,
                 IHttpClientFactory httpClientFactory,
                 HttpContext context,
                 ILoggerFactory loggerFactory) =>
             {
                 var logger = loggerFactory.CreateLogger("FrontendLogout");
                 var accessToken = context.User.Claims.Get(ClaimKeys.AccessToken);
+                if (!AuthSessionFingerprint.MatchesOrIsUnspecified(expectedSession, accessToken))
+                {
+                    logger.LogInformation(
+                        "Ignored a stale session invalidation because the browser already owns a newer login session.");
+                    return Results.Redirect("/");
+                }
+
                 if (!string.IsNullOrWhiteSpace(accessToken))
                 {
                     try

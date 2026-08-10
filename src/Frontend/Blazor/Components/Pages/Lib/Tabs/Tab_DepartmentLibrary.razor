@@ -1,3 +1,4 @@
+@* PAGE: Lib/Tabs/Tab_DepartmentLibrary.razor *@
 @using gtas_vpp_fe.Components.DesignSystem.Composites
 @using gtas_vpp_shared.DTOs.Res.Library
 @inherits VppServerGridComponentBase<DepartmentResDTO>
@@ -13,13 +14,20 @@
                     <RadzenDataGridColumn TItem="DepartmentResDTO" Property="Name" Title="@Loc["DepartmentName"]" Width="250px" MinWidth="220px"><Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.Name ?? "–")</strong><small>@(row.Code ?? "–")</small></div></Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="DepartmentResDTO" Property="ParentDepartmentId" Title="Phòng ban cha" Width="180px"><Template Context="row">@GetParentName(row.ParentDepartmentId)</Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="DepartmentResDTO" Property="Description" Title="@Loc["Description"]" Width="280px"><Template Context="row"><span class="vpp-admin-truncate" title="@row.Description">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span></Template></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="DepartmentResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false"><Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@(row.IsDeleted ? VppStatusTone.Neutral : VppStatusTone.Success)" /></Template></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="DepartmentResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false"><Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="DepartmentResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
                         <Template Context="row">
                             <div class="vpp-admin-actions">
-                                <VppAdminIconAction Icon="edit" Title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />
-                                <VppAdminActiveToggle IsActive="@(!row.IsDeleted)" Title="@(row.IsDeleted ? Loc["Restore"] : Loc["Deactivate"])" Changed="@((bool isActive) => ToggleDeletedAsync(row, !isActive))" Disabled="@(!CanModify)" />
-                                <VppAdminIconAction Icon="delete_forever" Title="@Loc["HardDelete"]" ButtonStyle="ButtonStyle.Danger" Disabled="@(!CanModify || !row.IsDeleted)" Click="@(() => HardDeleteAsync(row))" />
+                                <VppAdminIconAction Icon="edit" Text="@Loc["Edit"]" Title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />
+                                <VppAdminLifecycleMenu Title="@Loc["MoreActions"]"
+                                                       RestoreText="@Loc["Restore"]"
+                                                       DeactivateText="@Loc["Deactivate"]"
+                                                       HardDeleteText="@Loc["HardDelete"]"
+                                                       IsDeleted="@row.IsDeleted"
+                                                       CanToggle="@CanModify"
+                                                       CanHardDelete="@(CanModify && row.IsDeleted)"
+                                                       DeletedChanged="@((bool isDeleted) => ToggleDeletedAsync(row, isDeleted))"
+                                                       HardDeleteRequested="@(() => HardDeleteAsync(row))" />
                             </div>
                         </Template>
                     </RadzenDataGridColumn>

@@ -78,7 +78,8 @@ public static class CanonicalRbac
             new(Permissions.ReportViewDepartment, "REPORT", "View department report", "Read report data in the current primary department."),
             new(Permissions.ReportViewAll, "REPORT", "View company report", "Read report data across the company."),
             new(Permissions.ReportExport, "REPORT", "Export report", "Export data within another explicitly granted report scope."),
-            new(Permissions.PeriodSettle, "DASHBOARD", "Settle period", "Preview and settle a company procurement period.")
+            new(Permissions.PeriodSettle, "DASHBOARD", "Settle period", "Operate and settle a company procurement period."),
+            new(Permissions.PeriodSettingsManage, "PERMISSION", "Manage order period settings", "Create versioned defaults used only when future order periods are generated.")
         });
 
     private static readonly IReadOnlyDictionary<Guid, IReadOnlyList<string>> ActionMatrix =
@@ -86,6 +87,7 @@ public static class CanonicalRbac
         {
             [Employee.GroupId] = Explicit(
                 Permissions.RequestViewOwn,
+                // Permissions.RequestViewDepartment,
                 Permissions.RequestCreate,
                 Permissions.RequestUpdateOwn,
                 Permissions.RequestCancelOwn,
@@ -127,6 +129,7 @@ public static class CanonicalRbac
                 Permissions.RequestOrder,
                 Permissions.RequestHistory,
                 Permissions.RequestProductCatalog,
+                // Permissions.RequestDepartmentSummary,
                 Permissions.ReportView),
             [Manager.GroupId] = Explicit(
                 Permissions.MenuDashboard,

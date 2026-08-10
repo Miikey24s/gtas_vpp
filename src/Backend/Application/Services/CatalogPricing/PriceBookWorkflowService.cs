@@ -207,6 +207,16 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
 
                 var netPrice = item.NetPrice == 0m && item.Price != 0m ? item.Price : item.NetPrice;
                 var calculation = PriceCalculationEngine.CalculateLine(netPrice, item.VatRate, requested.Value);
+                quote.Lines.Add(new PriceBookQuoteLineResDTO
+                {
+                    VppId = requested.Key,
+                    Quantity = requested.Value,
+                    NetUnitPrice = netPrice,
+                    VatRate = item.VatRate,
+                    NetAmount = calculation.NetAmount,
+                    VatAmount = calculation.VatAmount,
+                    GrossAmount = calculation.GrossAmount
+                });
                 quote.Subtotal += calculation.NetAmount;
                 quote.VatAmount += calculation.VatAmount;
                 quote.CoveredItemCount++;

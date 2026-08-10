@@ -785,10 +785,8 @@ public sealed class VPPRequestLifecycleTests
         Assert.Single(context.Set<VppRequest>());
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SupplementDecision_AfterApprovalDeadline_IsBlocked(bool approve)
+    [Fact]
+    public async Task SupplementApproval_AfterApprovalDeadline_IsBlocked()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
@@ -802,17 +800,51 @@ public sealed class VPPRequestLifecycleTests
             PeriodCalculator.NormalizeNowUtc(OpenPeriodNow).AddMinutes(-1);
         await context.SaveChangesAsync();
 
-        Task Decision() => approve
-            ? service.ApproveAdditionalOrderAsync(
+        var exception = await Assert.ThrowsAsync<ConflictException>(() =>
+            service.ApproveAdditionalOrderAsync(
                 supplement.Id, ApproverId, rowVersion, "late-approve",
-                Department, false, Company)
-            : service.RejectAdditionalOrderAsync(
-                supplement.Id, ApproverId, "Late rejection", rowVersion,
-                "late-reject", Department, false, Company);
-
-        await Assert.ThrowsAsync<ConflictException>(Decision);
+                Department, false, Company));
+        Assert.Contains("hết thời gian duyệt", exception.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Equal((int)VPPStatus.Pending,
             (await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id)).Status);
+    }
+
+    [Fact]
+    public async Task SupplementRejection_AfterApprovalDeadline_ClearsThePendingOrder()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var service = CreateService(context);
+        var supplement = await CreateSupplementAsync(service, vppId);
+        var rowVersion = await SetRowVersionAsync(context, supplement.Id);
+        var period = Assert.Single(context.Set<VppPeriod>());
+        period.State = VppPeriodState.Pricing;
+        period.SupplementApprovalDeadlineUtc =
+            PeriodCalculator.NormalizeNowUtc(OpenPeriodNow).AddMinutes(-1);
+        await context.SaveChangesAsync();
+
+        var pendingRows = await service.GetPendingAdditionalOrdersAsync(
+            Company,
+            Department,
+            canViewAllDepartments: false);
+        var pending = Assert.Single(pendingRows);
+        Assert.False(pending.CanApproveSupplement);
+        Assert.True(pending.CanRejectSupplement);
+
+        await service.RejectAdditionalOrderAsync(
+            supplement.Id,
+            ApproverId,
+            "Đã hết thời gian duyệt đơn bổ sung",
+            rowVersion,
+            "late-reject",
+            Department,
+            false,
+            Company);
+
+        var rejected = await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id);
+        Assert.Equal((int)VPPStatus.Rejected, rejected.Status);
+        Assert.Equal("Đã hết thời gian duyệt đơn bổ sung", rejected.RejectReason);
     }
 
     [Fact]
@@ -993,6 +1025,8 @@ public sealed class VPPRequestLifecycleTests
         Assert.Single(departmentRows);
         Assert.Equal("IT", departmentRows[0].DepartmentCode);
         Assert.Equal(2, allRows.Count);
+        Assert.All(allRows, row => Assert.True(row.CanApproveSupplement));
+        Assert.All(allRows, row => Assert.True(row.CanRejectSupplement));
     }
 
     private static VPPRequestService CreateService(VPPContext context)

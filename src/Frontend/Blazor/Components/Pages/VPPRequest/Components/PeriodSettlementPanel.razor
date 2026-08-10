@@ -1,3 +1,4 @@
+@* PAGE: VPPRequest/Components/PeriodSettlementPanel.razor *@
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_shared.DTOs.Res.Library
 @using gtas_vpp_shared.DTOs.Res.VPP
@@ -5,10 +6,12 @@
 <VppOperationWorkspace Gap="VppWorkspaceGap.Compact"
                        FillAvailableSpace="true"
                        IsBusy="@(isLoading || isGridLoading)">
+    @* PERIOD: Chọn kỳ và chế độ hiển thị dữ liệu chốt kỳ. *@
+    @* HEADER: Chọn kỳ, chế độ xem và phạm vi dữ liệu chốt kỳ. *@
     <div class="vpp-period-settlement-root">
         <HistoryWorkspaceShell IsBusy="@isLoading"
-                       IsGridRefreshing="@isGridLoading"
-                       Class="@SettlementPageClass">
+                        IsGridRefreshing="@isGridLoading"
+                        Class="@(SettlementPageClass + " vpp-history-page--overlay-detail")">
     <div class="vpp-settlement-selector-row">
         <div class="vpp-settlement-selector-groups">
             <div class="vpp-settlement-period-scope-host" @onclick:stopPropagation>
@@ -41,56 +44,76 @@
 
     </div>
 
-    <section class="vpp-settlement-decision-strip" aria-label="@Loc["SettlementSupplierDecision"]">
-        <div class="vpp-settlement-decision-field">
-            <span>@Loc["SupplyPrimarySupplier"]</span>
-            <VppFilterSelect TValue="Guid?"
-                             Value="@SelectedSupplierId"
-                             Options="@SupplierOptions"
-                             ValueChanged="@OnSupplierChangedAsync"
-                             Placeholder="@Loc["SupplyPrimarySupplier"]"
-                             AriaLabel="@Loc["SupplyPrimarySupplier"]"
-                             Active="@hasExplicitSupplierSelection"
-                             Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
+    @* DECISION: Chọn nhà cung cấp, bảng giá và hành động chốt/sửa kỳ. *@
+    @* TOOLBAR: Chọn nhà cung cấp, bảng giá và thao tác chốt/sửa kỳ. *@
+    <section class="vpp-settlement-decision-area" aria-label="@Loc["SettlementSupplierDecision"]">
+        <div class="vpp-settlement-kpi-grid">
+            <article class="vpp-settlement-kpi-card is-select">
+                <div class="vpp-settlement-kpi-heading">
+                    <VppIcon Name="storefront" />
+                    <span>@Loc["SettlementSelectSupplier"]</span>
+                </div>
+                <VppFilterSelect TValue="Guid?"
+                                 Value="@SelectedSupplierId"
+                                 Options="@SupplierOptions"
+                                 ValueChanged="@OnSupplierChangedAsync"
+                                 Placeholder="@Loc["SettlementSelectSupplier"]"
+                                 AriaLabel="@Loc["SettlementSelectSupplier"]"
+                                 Active="false"
+                                 HighlightSelectedOption="false"
+                                 Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
+            </article>
+            <article class="vpp-settlement-kpi-card is-select">
+                <div class="vpp-settlement-kpi-heading">
+                    <VppIcon Name="request_quote" />
+                    <span>@Loc["SettlementSelectPriceList"]</span>
+                </div>
+                <VppFilterSelect TValue="Guid?"
+                                 Value="@SelectedPriceListId"
+                                 Options="@PriceListOptions"
+                                 ValueChanged="@OnPriceListChangedAsync"
+                                 Placeholder="@Loc["SettlementSelectPriceList"]"
+                                 AriaLabel="@Loc["SettlementSelectPriceList"]"
+                                 Active="false"
+                                 HighlightSelectedOption="false"
+                                 Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
+            </article>
+            <article class="vpp-settlement-kpi-card">
+                <div class="vpp-settlement-kpi-heading">
+                    <VppIcon Name="receipt_long" />
+                    <span>@Loc["SettlementSubtotalAndVat"]</span>
+                </div>
+                <strong>@FormatMoney(SettlementBeforeVat)</strong>
+                <small>@Loc["SettlementVatAmount"] @FormatMoney(SettlementVatAmount)</small>
+            </article>
+            <article class="vpp-settlement-kpi-card is-total">
+                <div class="vpp-settlement-kpi-heading">
+                    <VppIcon Name="payments" />
+                    <span>@Loc["SettlementGrandTotal"]</span>
+                </div>
+                <strong>@FormatMoney(SettlementGrandTotal)</strong>
+                <small>@Loc["SettlementIncludesVat"]</small>
+            </article>
         </div>
-        <div class="vpp-settlement-decision-field">
-            <span>@Loc["SupplyEffectivePriceList"]</span>
-            <VppFilterSelect TValue="Guid?"
-                             Value="@SelectedPriceListId"
-                             Options="@PriceListOptions"
-                             ValueChanged="@OnPriceListChangedAsync"
-                             Placeholder="@Loc["SupplyEffectivePriceList"]"
-                             AriaLabel="@Loc["SupplyEffectivePriceList"]"
-                             Active="@hasExplicitPriceListSelection"
-                             Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
-        </div>
-        <div class="vpp-settlement-decision-total">
-            <span>@Loc["SettleQuoteTotal"]</span>
-            <strong>@FormatMoney(Preview?.PrimaryQuote?.GrandTotal ?? status?.GrandTotal ?? 0)</strong>
-        </div>
-        <div class="vpp-settlement-decision-action">
-            @if (hasCorrectionTarget)
-            {
-                @if (!RequiresFreshPreview)
-                {
-                    <RadzenButton Icon="edit_note" Text="@Loc["CreateCorrectionRevision"]" ButtonStyle="ButtonStyle.Warning" Disabled="@(!CanSubmitCurrentPreview || isCorrecting)" Click="@OpenCorrectionDialog" />
-                }
-            }
-            else
-            {
+        @if (!hasCorrectionTarget)
+        {
+            <div class="vpp-settlement-decision-footer">
+            <div class="vpp-settlement-decision-action">
                 <RadzenButton Icon="lock" Text="@Loc["SettlePeriod"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(!CanSubmitCurrentPreview || isSettling)" Click="@SettleAsync" />
-            }
-        </div>
+            </div>
+            </div>
+        }
     </section>
 
+    @* PREVIEW: Cảnh báo và thao tác tải lại bản xem trước trước khi submit. *@
     @if (RequiresFreshPreview)
     {
         <div class="vpp-settlement-preview-refresh" role="status" aria-live="polite" data-testid="settlement-preview-refresh">
             <div class="vpp-settlement-preview-refresh-copy">
-                <VppIcon Name="@VppIcons.Refresh" />
+                <VppIcon Name="@VppIcons.Review" />
                 <span>@Loc["CorrectionRerunPreviewWarning"]</span>
             </div>
-            <RadzenButton Icon="@VppIcons.Refresh"
+            <RadzenButton Icon="@VppIcons.Review"
                           Text="@Loc["CorrectionRerunPreviewAction"]"
                           ButtonStyle="ButtonStyle.Light"
                           IsBusy="@isPreviewLoading"
@@ -106,11 +129,14 @@
         </div>
     }
 
+    @* DATA: Bảng dữ liệu snapshot theo kỳ, bộ lọc và phân trang phía client. *@
+    @* TABLE: Snapshot đơn hàng theo kỳ, bộ lọc, dòng dữ liệu và phân trang. *@
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
                          Density="VppDataDensity.Compact"
                          AriaLabel="@Loc["PeriodSettlement"]"
                          TestId="period-settlement-data-surface"
                          Class="vpp-period-data-frame vpp-settlement-orders-frame">
+        @* HEADER: Tiêu đề kỳ, tổng tiền và trạng thái dữ liệu. *@
         <Header>
             <VppCollectionHeader Title="@($"{Loc["Period"]} {Month:00}/{Year}")"
                                  Summary="@CurrentViewLabel">
@@ -122,11 +148,38 @@
                                         Title="@SettlementStatusTitle"
                                         Class="vpp-settlement-period-status" />
                     }
+                    @if (!string.IsNullOrWhiteSpace(SettlementVersionText))
+                    {
+                        <VppCategoryChip Text="@SettlementVersionText"
+                                         Tone="VppCategoryTone.Neutral" />
+                    }
                     @if (CanExportSettlement)
                     {
                         <VppFileExportActions BusyFormat="@exportingSettlementFormat"
                                               ExportRequested="@ExportSettlementAsync"
                                               AriaContext="@($"{Loc["Period"]} {Month:00}/{Year}")" />
+                    }
+                    @if (status?.IsSettled == true)
+                    {
+                        <RadzenButton Text="@Loc["ViewSavedVersions"]"
+                                      Icon="history"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      IsBusy="@isLoadingSettlementHistory"
+                                      Disabled="@isLoadingSettlementHistory"
+                                      Click="@OpenSettlementHistoryDialogAsync" />
+                    }
+                    @if (CanCorrectSettlement)
+                    {
+                        <RadzenButton Text="@Loc["AdjustSettlementResult"]"
+                                      Icon="edit_note"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Warning"
+                                      Variant="Variant.Outlined"
+                                      IsBusy="@isCorrectingSettlement"
+                                      Disabled="@isCorrectingSettlement"
+                                      Click="@OpenSettlementCorrectionDialogAsync" />
                     }
                 </Actions>
             </VppCollectionHeader>
@@ -181,18 +234,19 @@
             </VppDataToolbar>
         </Toolbar>
         <ChildContent>
-            @if (isLoading)
+            @if (isGridLoading)
             {
-                <SkeletonPage Cards="0" Rows="8" Cols="9" />
+                <SkeletonPage Cards="0" Rows="14" Cols="9" FillAvailable="true" />
             }
             else if (!string.IsNullOrWhiteSpace(alertMessage))
             {
                 <VppContentState State="VppContentStateKind.Error"
+                                 FillAvailable="true"
                                  Icon="@VppIcons.Error"
                                  Title="@Loc["HistoryLoadFailed"]"
                                  Description="@alertMessage"
                                  PrimaryActionText="@Loc["Retry"]"
-                                 PrimaryActionIcon="@VppIcons.Refresh"
+                                 PrimaryActionIcon="@VppIcons.Reset"
                                  PrimaryAction="@(_ => ReloadPeriodAsync())" />
             }
             else if (viewMode == ItemsView)
@@ -200,6 +254,7 @@
                 @if (FilteredItemRows.Count == 0 && !isGridLoading)
                 {
                     <VppContentState State="VppContentStateKind.FilteredEmpty"
+                                     FillAvailable="true"
                                      Icon="search_off"
                                      Title="@Loc["NoCatalogProductsMatchQuery"]"
                                      Description="@Loc["HistoryAdjustFilters"]" />
@@ -233,9 +288,15 @@
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.CategoryName)" Title="@Loc["Category"]" Width="220px" />
                                 <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.UomName)" Title="@Loc["UOM"]" Width="110px" TextAlign="TextAlign.Center" />
-                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["OrderCount"]" Width="100px" TextAlign="TextAlign.Right" Sortable="false"><Template Context="row">@row.Breakdown.Count</Template></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="124px" TextAlign="TextAlign.Right"><Template Context="row"><strong>@row.TotalQty</strong></Template></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["SettleQuoteCoverage"]" Width="148px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><VppStatusBadge Text="@(IsItemCovered(row) ? Loc["SupplyCoverageFull"] : Loc["SupplyPriceMissing"])" Tone="@(IsItemCovered(row) ? VppStatusTone.Success : VppStatusTone.Warning)" /></Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["OrderCount"]" Width="100px" TextAlign="TextAlign.Right" Sortable="false" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@row.Breakdown.Count</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.TotalQty)" Title="@Loc["TotalQuantity"]" Width="124px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row"><strong>@row.TotalQty</strong></Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["UnitPrice"]" Width="126px" TextAlign="TextAlign.Right" Sortable="false" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(ItemNetUnitPrice(row))</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["SettlementVatRate"]" Width="76px" TextAlign="TextAlign.Right" Sortable="false" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@($"{ItemVatRate(row):0.##}%")</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["SettlementNetAmount"]" Width="132px" TextAlign="TextAlign.Right" Sortable="false" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(ItemNetAmount(row))</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["SettlementGrossAmount"]" Width="136px" TextAlign="TextAlign.Right" Sortable="false" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(ItemGrossAmount(row))</strong></Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="@Loc["Actions"]" Width="76px" MinWidth="76px" TextAlign="TextAlign.Center" Sortable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                                    <Template Context="row"><RadzenButton Icon="@VppIcons.Visibility" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => OpenItemOrdersAsync(row))" title="@Loc["SettlementViewOrders"]" aria-label="@Loc["SettlementViewOrders"]" /></Template>
+                                </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -246,6 +307,7 @@
                 @if (FilteredRequesterRows.Count == 0)
                 {
                     <VppContentState State="VppContentStateKind.FilteredEmpty"
+                                     FillAvailable="true"
                                      Icon="search_off"
                                      Title="@Loc["NoData"]"
                                      Description="@Loc["HistoryAdjustFilters"]" />
@@ -270,19 +332,24 @@
                                         AllowAlternatingRows="false"
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
-                                        class="vpp-order-grid vpp-data-grid vpp-data-density-compact">
+                                        class="vpp-order-grid vpp-data-grid vpp-data-density-compact vpp-settlement-order-grid">
                             <Columns>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row">@(FilteredRequesterRows.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="RequesterName" Title="@Loc["User"]" Width="220px">
                                     <Template Context="row"><div class="vpp-order-product-cell"><strong>@row.RequesterName</strong><small title="@row.DepartmentSummary">@row.DepartmentSummary</small></div></Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="90px" TextAlign="TextAlign.Right" />
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="RegularOrderCount" Title="@Loc["Regular"]" Width="96px" TextAlign="TextAlign.Right" />
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="AdditionalOrderCount" Title="@Loc["AdditionalOrder"]" Width="104px" TextAlign="TextAlign.Right" />
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalLines" Title="@Loc["OrderItems"]" Width="92px" TextAlign="TextAlign.Right" />
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="108px" TextAlign="TextAlign.Right" />
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalAmount" Title="@Loc["Amount"]" Width="132px" TextAlign="TextAlign.Right"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(row.TotalAmount)</strong></Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="90px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="RegularOrderCount" Title="@Loc["Regular"]" Width="96px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="AdditionalOrderCount" Title="@Loc["AdditionalOrder"]" Width="104px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalLines" Title="@Loc["OrderItems"]" Width="144px" MinWidth="144px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="108px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="NetAmount" Title="@Loc["SettlementNetAmount"]" Width="126px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.NetAmount)</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="VatAmount" Title="@Loc["SettlementVatAmount"]" Width="112px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.VatAmount)</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="GrossAmount" Title="@Loc["SettlementGrossAmount"]" Width="132px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(row.GrossAmount)</strong></Template></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Title="@Loc["Status"]" Width="116px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><VppStatusBadge Text="@row.StatusText" Tone="@row.StatusTone" /></Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Title="@Loc["Actions"]" Width="76px" MinWidth="76px" TextAlign="TextAlign.Center" Sortable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                                    <Template Context="row"><RadzenButton Icon="@VppIcons.Visibility" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => OpenRequesterOrdersAsync(row))" title="@Loc["SettlementViewOrders"]" aria-label="@Loc["SettlementViewOrders"]" /></Template>
+                                </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -291,6 +358,7 @@
             else if (FilteredDepartmentRows.Count == 0)
             {
                 <VppContentState State="VppContentStateKind.FilteredEmpty"
+                                 FillAvailable="true"
                                  Icon="search_off"
                                  Title="@Loc["NoData"]"
                                  Description="@Loc["HistoryAdjustFilters"]" />
@@ -315,25 +383,148 @@
                                     AllowAlternatingRows="false"
                                     Density="Density.Compact"
                                     GridLines="DataGridGridLines.Horizontal"
-                                    class="vpp-order-grid vpp-data-grid vpp-data-density-compact">
+                                    class="vpp-order-grid vpp-data-grid vpp-data-density-compact vpp-settlement-order-grid">
                         <Columns>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row">@(FilteredDepartmentRows.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="DepartmentName" Title="@Loc["Department"]" Width="220px">
                                 <Template Context="row"><div class="vpp-order-product-cell"><strong>@row.DepartmentName</strong><small title="@row.DepartmentCode">@row.DepartmentCode</small></div></Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="90px" TextAlign="TextAlign.Right" />
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="RegularOrderCount" Title="@Loc["Regular"]" Width="96px" TextAlign="TextAlign.Right" />
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="AdditionalOrderCount" Title="@Loc["AdditionalOrder"]" Width="104px" TextAlign="TextAlign.Right" />
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalLines" Title="@Loc["TotalLineItems"]" Width="92px" TextAlign="TextAlign.Right" />
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="108px" TextAlign="TextAlign.Right" />
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalAmount" Title="@Loc["Amount"]" Width="132px" TextAlign="TextAlign.Right"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(row.TotalAmount)</strong></Template></RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="@Loc["Status"]" Width="116px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row"><VppStatusBadge Text="@row.StatusText" Tone="@row.StatusTone" /></Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="90px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="RegularOrderCount" Title="@Loc["Regular"]" Width="96px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="AdditionalOrderCount" Title="@Loc["AdditionalOrder"]" Width="104px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalLines" Title="@Loc["TotalLineItems"]" Width="144px" MinWidth="144px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="108px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number" />
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="NetAmount" Title="@Loc["SettlementNetAmount"]" Width="126px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.NetAmount)</Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="VatAmount" Title="@Loc["SettlementVatAmount"]" Width="112px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.VatAmount)</Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="GrossAmount" Title="@Loc["SettlementGrossAmount"]" Width="132px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row"><strong class="vpp-settlement-money">@FormatMoney(row.GrossAmount)</strong></Template></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="@Loc["Actions"]" Width="76px" MinWidth="76px" TextAlign="TextAlign.Center" Sortable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                                <Template Context="row"><RadzenButton Icon="@VppIcons.Visibility" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Click="@(() => OpenDepartmentOrdersAsync(row))" title="@Loc["SettlementViewOrders"]" aria-label="@Loc["SettlementViewOrders"]" /></Template>
+                            </RadzenDataGridColumn>
                         </Columns>
                     </RadzenDataGrid>
                 </div>
             }
         </ChildContent>
     </VppDataSurfaceFrame>
+
+    @if (pendingPostSettlementCorrections.Count > 0)
+    {
+        <VppDataSurfaceFrame AriaLabel="@Loc["PendingAdjustments"]"
+                             TestId="post-settlement-corrections"
+                             DataSourceMode="VppDataSourceMode.Static"
+                             Density="VppDataDensity.Compact">
+            <Header>
+                <VppCollectionHeader Title="@Loc["PendingAdjustments"]"
+                                     Summary="@(string.Format(Loc["PendingAdjustmentCount"], pendingPostSettlementCorrections.Count))" />
+            </Header>
+            <Toolbar>
+                <VppDataToolbar AriaLabel="@Loc["ReviewAdjustmentRequests"]">
+                    <label class="vpp-settlement-correction-reason">
+                        <span>@Loc["DecisionReasonWhenRejecting"]</span>
+                        <input maxlength="500" @bind="postSettlementDecisionReason" />
+                    </label>
+                </VppDataToolbar>
+            </Toolbar>
+            <ChildContent>
+                <div class="vpp-settlement-correction-scroll">
+                    <table class="vpp-settlement-correction-table">
+                        <thead><tr><th>@Loc["Order"]</th><th>@Loc["Change"]</th><th>@Loc["EmployeeMessage"]</th><th>@Loc["RequestedBy"]</th><th>@Loc["Decision"]</th></tr></thead>
+                        <tbody>
+                        @foreach (var correction in pendingPostSettlementCorrections)
+                        {
+                            <tr>
+                                <td><strong>@correction.RequestCode</strong></td>
+                                <td>@PostSettlementCorrectionActionText(correction.Action)</td>
+                                <td>@correction.EmployeeNote</td>
+                                <td>@correction.RequestedByUserId</td>
+                                <td>
+                                    <div class="vpp-settlement-correction-actions">
+                                        <button type="button" disabled="@isLoading"
+                                                @onclick="@(() => ConfirmPostSettlementCorrectionAsync(correction))">@Loc["Approve"]</button>
+                                        <button type="button" class="is-danger" disabled="@isLoading"
+                                                @onclick="@(() => RejectPostSettlementCorrectionAsync(correction))">@Loc["Reject"]</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </ChildContent>
+        </VppDataSurfaceFrame>
+    }
+
+    <HistoryOrderDetailSheet @ref="orderDetailSheet"
+                             IsOpen="@isOrderDetailOpen"
+                             SelectedOrder="@selectedOrderDetail"
+                             SelectedOrderId="@SelectedOrderDetailId"
+                             OrderOptions="@OrderDetailOptions"
+                             OrderPickerLabel="@Loc["SettlementOrderPicker"]"
+                              OrderPickerDisabled="@isOrderDetailLoading"
+                              OrderSelectionChanged="@LoadOrderDetailAsync"
+                              SelectedOrderAmount="@SelectedOrderFinancialAmount"
+                              IsAggregateView="@isAggregateOrderDetail"
+                              AggregateOrderCount="@orderDetailScope.Count"
+                              ShowExportActions="@(!isAggregateOrderDetail)"
+                              Class="vpp-settlement-detail-drawer"
+                              SelectedSupplierName="@SelectedSupplierName"
+                             IsDetailLoading="@isOrderDetailLoading"
+                             HasDetailError="@hasOrderDetailError"
+                             DetailRows="@orderDetailRows"
+                             DetailCategories="@orderDetailCategories"
+                             DetailUoms="@orderDetailUnits"
+                             DetailSearch="@orderDetailSearch"
+                             DetailCategory="@orderDetailCategory"
+                             DetailUom="@orderDetailUnit"
+                             ActiveDetailCodeNumber="@activeOrderDetailCodeNumber"
+                             ActiveDetailNoteNumber="@activeOrderDetailNoteNumber"
+                             HasDetailFilters="@HasOrderDetailFilters"
+                             TotalCount="@orderDetailScope.Count"
+                             UnitHeaderLabel="@OrderDetailUnitHeaderLabel"
+                             BusyExportFormat="@exportingOrderFormat"
+                              ShowPostSettlementCorrection="@CanRequestPostSettlementCorrection"
+                              PostSettlementCorrectionText="@OrderAdjustmentActionText"
+                             CloseRequested="@CloseOrderDetail"
+                             ExportRequested="@ExportSelectedOrderDetailAsync"
+                             PostSettlementCorrectionRequested="@OpenPostSettlementCorrection"
+                             RetryRequested="@RetryOrderDetailAsync"
+                             DetailSearchChanged="@OnOrderDetailSearchChangedAsync"
+                             DetailCategorySelected="@OnOrderDetailCategoryChangedAsync"
+                             DetailUomSelected="@OnOrderDetailUnitChangedAsync"
+                             DetailFiltersCleared="@ClearOrderDetailFiltersAsync"
+                             DetailCodeToggled="@ToggleOrderDetailCode"
+                             DetailNoteToggled="@ToggleOrderDetailNote" />
+
+    @if (showPostSettlementCorrection && selectedOrderDetail is not null)
+    {
+        <div class="vpp-post-settlement-backdrop" @onclick="ClosePostSettlementCorrection">
+            <section class="vpp-post-settlement-dialog" role="dialog" aria-modal="true"
+                     aria-labelledby="post-settlement-title" @onclick:stopPropagation>
+                <header>
+                    <div><h2 id="post-settlement-title">@OrderAdjustmentActionText</h2><p>@selectedOrderDetail.VppCode · @OrderAdjustmentDialogHint</p></div>
+                    <button type="button" aria-label="@Loc["Close"]" @onclick="ClosePostSettlementCorrection">×</button>
+                </header>
+                <label><span>@Loc["Change"]</span><select @bind="postSettlementAction"><option value="Adjust">@Loc["UpdateQuantity"]</option><option value="Cancel">@Loc["CancelOrder"]</option></select></label>
+                <label><span>@Loc["ChangeReason"]</span><textarea maxlength="500" @bind="postSettlementReason"></textarea></label>
+                <label><span>@Loc["EmployeeMessage"]</span><textarea maxlength="500" @bind="postSettlementEmployeeNote"></textarea></label>
+                @if (postSettlementAction == "Adjust")
+                {
+                    <div class="vpp-post-settlement-items">
+                        @foreach (var item in postSettlementItems)
+                        {
+                            var source = selectedOrderDetail.Items?.FirstOrDefault(x => x.VppId == item.VppId);
+                            <label><span>@(source?.VppName ?? item.VppId.ToString())</span><input type="number" min="1" @bind="item.Qty" /></label>
+                        }
+                    </div>
+                    <small>@Loc["ExistingOrderItemsOnly"]</small>
+                }
+                <footer>
+                    <button type="button" @onclick="ClosePostSettlementCorrection">@Loc["Cancel"]</button>
+                    <button type="button" class="is-primary" disabled="@(!CanSubmitPostSettlementCorrection)" @onclick="SubmitPostSettlementCorrectionAsync">@(IsPostSettlementOrderAdjustment ? Loc["SendRequest"] : Loc["SaveChanges"])</button>
+                </footer>
+            </section>
+        </div>
+    }
 
         </HistoryWorkspaceShell>
     </div>

@@ -1,3 +1,4 @@
+// PAGE LOGIC: VPPRequest/Page_OrderCreate.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
@@ -19,6 +20,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 {
     public partial class Page_OrderCreate : IDisposable
     {
+        // DEPENDENCIES: API, draft store, editor và state phục vụ quy trình tạo đơn.
         [Inject] public RequestsQueryClient Requests { get; set; } = default!;
         [Inject] public OrderSubmissionCoordinator Submissions { get; set; } = default!;
         [Inject] public OrderDraftStore Drafts { get; set; } = default!;
@@ -28,11 +30,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [Inject] public IJSRuntime JS { get; set; } = default!;
         [Inject] public IToastService Toast { get; set; } = default!;
 
+        // PARAMETERS: Chế độ tạo mới, chỉnh sửa, tạo lại hoặc sao chép đơn.
         [SupplyParameterFromQuery] public Guid? OrderId { get; set; }
         [SupplyParameterFromQuery(Name = "isAdditional")] public string? IsAdditionalParam { get; set; }
         [SupplyParameterFromQuery(Name = "copyFrom")] public string? CopyFromParam { get; set; }
         [SupplyParameterFromQuery(Name = "mode")] public string? ModeParam { get; set; }
+        [SupplyParameterFromQuery(Name = "periodId")] public Guid? PeriodIdQuery { get; set; }
 
+        // WORKFLOW STATE: Trạng thái editor, loading, saving và bước hiện tại.
         private bool _isAdditionalOverride;
         private bool _hasLoadedOrder;
         private bool _editingAllowed;
@@ -85,9 +90,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 && _supplementReasonDraft.Trim().Length is >= 5 and <= 500;
 
 
+        // PERIOD: Backend sở hữu dữ liệu kỳ; frontend chỉ dùng PeriodInfo để hiển thị và kiểm tra trạng thái.
         // P1: BE sở hữu dữ liệu kỳ có thẩm quyền; FE không suy Year/Month từ DateTime.Now.
         public VppPeriodInfoResDTO? PeriodInfo { get; set; }
 
+        // DRAFT: Theo dõi thay đổi và autosave bản nháp của đơn.
         private PeriodicTimer? _draftAutoSaveTimer;
         private CancellationTokenSource? _draftAutoSaveCts;
         private volatile bool _draftDirty;
@@ -124,6 +131,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             Editor.TotalQuantity);
         public string DraftRecoveredText => Loc["DraftRestored"].Value.ToLower();
 
+        // DISPLAY: Text, badge và thông tin tóm tắt theo chế độ tạo đơn.
         public string OrderModeTitle => IsRecreate
             ? Loc["RecreateOrder"].Value
             : IsEdit
@@ -164,6 +172,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             ?? new DateTime(TargetPeriodDate.Year, TargetPeriodDate.Month, 1).AddMonths(1).AddDays(3);
         public string TargetPeriodText => DateFormatter.Format(TargetPeriodDate, DateFormatter.MonthYear);
         public string TargetWindowText => $"{DateFormatter.Format(TargetPeriodStartDate, DateFormatter.ShortDate)} - {DateFormatter.Format(TargetPeriodEndDate, DateFormatter.ShortDate)}";
+        protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => PeriodInfo?.OpenPeriods
+            .Select(option => new VppDecisionOption<Guid?>(
+                option.PeriodId,
+                DateFormatter.Format(new DateTime(option.Year, option.Month, 1), DateFormatter.MonthYear)))
+            .ToArray() ?? [];
 
         public bool CanSubmitForPeriod => IsEdit || IsRecreate
             ? _editingAllowed
@@ -386,7 +399,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         {
             try
             {
-                PeriodInfo = await Requests.GetPeriodInfoAsync();
+                PeriodInfo = await Requests.GetPeriodInfoAsync(PeriodIdQuery);
             }
             catch (Exception ex)
             {
@@ -418,6 +431,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                     });
                     GoBack();
                     return;
+                }
+
+                if (editingOrder.PeriodId.HasValue
+                    && PeriodInfo?.SelectedPeriodId != editingOrder.PeriodId)
+                {
+                    PeriodIdQuery = editingOrder.PeriodId;
+                    PeriodInfo = await Requests.GetPeriodInfoAsync(editingOrder.PeriodId);
                 }
 
                 Editor.RowVersion = editingOrder.RowVersion;
@@ -463,7 +483,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         {
             try
             {
-                var previousOrder = await Requests.GetPreviousOrderItemsAsync();
+                var previousOrder = await Requests.GetPreviousOrderItemsAsync(PeriodInfo?.SelectedPeriodId);
                 if (previousOrder == null)
                 {
                     Toast.Notify(new NotificationMessage
@@ -628,6 +648,34 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 }
             }
             catch (OperationCanceledException) { }
+        }
+
+        private async Task ChangeTargetPeriodAsync(Guid? selectedPeriodId)
+        {
+            if (selectedPeriodId is not Guid periodId)
+            {
+                return;
+            }
+
+            if (PeriodInfo?.OpenPeriods.All(option => option.PeriodId != periodId) != false
+                || PeriodInfo.SelectedPeriodId == periodId)
+            {
+                return;
+            }
+
+            if (Editor.SelectedItemCount > 0)
+            {
+                Toast.Warning("Đổi kỳ", "Hãy bỏ các mặt hàng đang chọn trước khi đổi kỳ để tránh lưu nhầm đơn.");
+                return;
+            }
+
+            PeriodIdQuery = periodId;
+            NavigationManager.NavigateTo(
+                NavigationManager.GetUriWithQueryParameter("periodId", periodId),
+                replace: true);
+            await LoadPeriodInfoAsync();
+            Editor.BaseRequestId = PeriodInfo?.BaseRequestId;
+            Editor.BaseRequestCode = PeriodInfo?.BaseRequestCode;
         }
 
         private OrderSubmissionOperation BuildSubmissionOperation(

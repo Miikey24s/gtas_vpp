@@ -30,5 +30,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public string? CanCreateAdditionalReason { get; set; }
         public bool HasPreviousOrder { get; set; }
         public bool CanCopyPrevious { get; set; }
+        public Guid? SelectedPeriodId { get; set; }
+        public IReadOnlyList<VppOpenPeriodOptionResDTO> OpenPeriods { get; set; } = [];
     }
 }

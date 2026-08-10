@@ -8,7 +8,7 @@ public sealed record PriceListQuery(
     int Skip,
     int Top,
     string Search = "",
-    string? Status = null,
+    string? Activity = null,
     string? OrderBy = null);
 
 public sealed record PriceListDeletedChange(bool IsDeleted);
@@ -152,10 +152,18 @@ public sealed class PricingApiClient(IAPIServices api)
     internal static string BuildPriceListEndpoint(PriceListQuery query)
     {
         var queryParams = new List<string> { "showDeleted=true" };
-        if (!string.IsNullOrWhiteSpace(query.Status))
+        if (!string.IsNullOrWhiteSpace(query.Activity))
         {
-            var filter = $"Status == \"{EscapeDynamicString(query.Status)}\"";
-            queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            var filter = query.Activity switch
+            {
+                "active" => "IsDeleted == false && Status == \"Published\"",
+                "inactive" => "IsDeleted == true || Status != \"Published\"",
+                _ => null
+            };
+            if (filter is not null)
+            {
+                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            }
         }
 
         queryParams.Add($"skip={Math.Max(0, query.Skip)}");

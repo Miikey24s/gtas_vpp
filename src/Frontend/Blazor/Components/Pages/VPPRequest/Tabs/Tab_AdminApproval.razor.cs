@@ -1,3 +1,4 @@
+// PAGE LOGIC: VPPRequest/Tabs/Tab_AdminApproval.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
@@ -16,6 +17,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
     public partial class Tab_AdminApproval : BaseOrderTab
     {
         private const string PeriodTabQueryName = "periodTab";
+        private const string PeriodManagementTab = "periods";
         private const string PeriodReviewTab = "review";
         private const string PeriodDemandTab = "demand";
         private const string PeriodSupplyTab = "supply";
@@ -29,7 +31,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private readonly HashSet<Guid> _processingOrderIds = new();
         private readonly SupplementDecisionRequestFactory _decisionRequests = new();
-        private string ActivePeriodTab { get; set; } = PeriodReviewTab;
+        private string ActivePeriodTab { get; set; } = PeriodManagementTab;
+        private int? TargetPeriodYear { get; set; }
+        private int? TargetPeriodMonth { get; set; }
         private bool _pendingOrdersLoaded;
         private bool _pendingDepartmentOptionsLoaded;
         private bool _initialized;
@@ -80,9 +84,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 if (CanShowSettlement)
                 {
                     tabs.Add(new(
+                        Loc["PeriodPolicyNavigation"],
+                        "/dashboard?tab=5&periodTab=periods",
+                        ActivePeriodTab == PeriodManagementTab));
+                    tabs.Add(new(
                         Loc["PeriodSettleStep"],
                         "/dashboard?tab=5&periodTab=review",
-                        ActivePeriodTab != PendingApprovalsTab));
+                        ActivePeriodTab == PeriodReviewTab));
                 }
 
                 if (CanShowApprovals)
@@ -141,15 +149,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private void SetActivePeriodTabFromUri()
         {
-            var requested = QueryHelpers
-                .ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query)
-                .TryGetValue(PeriodTabQueryName, out var values)
+            var query = QueryHelpers.ParseQuery(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).Query);
+            var requested = query.TryGetValue(PeriodTabQueryName, out var values)
                     ? values.FirstOrDefault()
                     : null;
+            TargetPeriodYear = ParsePeriodPart(query, "periodYear", 2024, 9999);
+            TargetPeriodMonth = ParsePeriodPart(query, "periodMonth", 1, 12);
 
             if (string.Equals(requested, PendingApprovalsTab, StringComparison.OrdinalIgnoreCase) && CanShowApprovals)
             {
                 ActivePeriodTab = PendingApprovalsTab;
+                return;
+            }
+
+            if (CanShowSettlement
+                && (string.Equals(requested, PeriodManagementTab, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(requested, "policy", StringComparison.OrdinalIgnoreCase)))
+            {
+                ActivePeriodTab = PeriodManagementTab;
                 return;
             }
 
@@ -163,12 +180,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             if (CanShowSettlement)
             {
-                ActivePeriodTab = PeriodReviewTab;
+                ActivePeriodTab = PeriodManagementTab;
                 return;
             }
 
-            ActivePeriodTab = CanShowApprovals ? PendingApprovalsTab : PeriodReviewTab;
+            ActivePeriodTab = CanShowApprovals ? PendingApprovalsTab : PeriodManagementTab;
         }
+
+        private static int? ParsePeriodPart(
+            IReadOnlyDictionary<string, Microsoft.Extensions.Primitives.StringValues> query,
+            string key,
+            int min,
+            int max)
+            => query.TryGetValue(key, out var values)
+                && int.TryParse(values.FirstOrDefault(), out var value)
+                && value >= min
+                && value <= max
+                    ? value
+                    : null;
 
         protected override Task<RequestStatsPage<VppRequestResDTO>> QueryOrdersAsync() =>
             Requests.GetPendingAdditionalOrdersAsync(new PendingAdditionalOrdersQuery(

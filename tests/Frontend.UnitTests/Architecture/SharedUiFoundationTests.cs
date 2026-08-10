@@ -305,8 +305,14 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("IReadOnlyList<VppHeaderSubTab>", group, StringComparison.Ordinal);
         Assert.Contains("sealed record VppHeaderSubTab", model, StringComparison.Ordinal);
         Assert.Contains("<span class=\"vpp-header-tab vpp-header-tab-parent\">", group, StringComparison.Ordinal);
-        Assert.DoesNotContain("ParentPath", group, StringComparison.Ordinal);
+        Assert.Contains("ParentPath", group, StringComparison.Ordinal);
+        Assert.Contains("IsExpanded", group, StringComparison.Ordinal);
+        Assert.Contains("vpp-header-tab-group-parent-link", group, StringComparison.Ordinal);
+        Assert.Contains("vpp-header-tab-group-expanded-content", group, StringComparison.Ordinal);
         Assert.Contains("<VppHeaderTabGroup", shell, StringComparison.Ordinal);
+        Assert.Contains("headerTab.Children is { Count: > 0 }", shell, StringComparison.Ordinal);
+        Assert.Contains("ParentPath=\"@headerTab.Path\"", shell, StringComparison.Ordinal);
+        Assert.Contains("IsExpanded=\"@headerTab.IsExpanded\"", shell, StringComparison.Ordinal);
         Assert.Contains("periodChildren", shellCode, StringComparison.Ordinal);
         Assert.Contains("pricingChildren", shellCode, StringComparison.Ordinal);
         Assert.Contains("<VppHeaderTabGroup", period, StringComparison.Ordinal);
@@ -543,6 +549,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("height: auto;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-local-header-tabs", layoutCss, StringComparison.Ordinal);
         Assert.Contains("-webkit-text-fill-color: currentColor;", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-tab:visited", layoutCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-header-tab.is-active:visited", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab-parent", layoutCss, StringComparison.Ordinal);
         Assert.Contains("pointer-events: none;", layoutCss, StringComparison.Ordinal);
         Assert.Contains(".vpp-layout-header .vpp-header-tab", layoutCss, StringComparison.Ordinal);
@@ -740,6 +748,8 @@ public sealed class SharedUiFoundationTests
         var tokens = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-tokens.css"));
 
         var segmentedSelector = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppSegmentedSelector.razor"));
+        var segmentedSelectorStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppSegmentedSelector.razor.css"));
+        var segmentedSelectorInteractions = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppSegmentedSelector.razor.js"));
         Assert.Contains("vpp-orders-view-selector", source, StringComparison.Ordinal);
         Assert.Contains("<VppSegmentedSelector", source, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-story-commands", source, StringComparison.Ordinal);
@@ -757,6 +767,9 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("<RadzenTabs", source, StringComparison.Ordinal);
         Assert.Contains("role=\"group\"", segmentedSelector, StringComparison.Ordinal);
         Assert.Contains("aria-pressed", segmentedSelector, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-indicator-motion=\"off\"", segmentedSelectorStyles, StringComparison.Ordinal);
+        Assert.Contains("root.dataset.vppIndicatorMotion = 'off'", segmentedSelectorInteractions, StringComparison.Ordinal);
+        Assert.Contains("delete root.dataset.vppIndicatorMotion", segmentedSelectorInteractions, StringComparison.Ordinal);
         Assert.Contains("orderView", codeBehind, StringComparison.Ordinal);
         Assert.Contains("GetUriWithQueryParameter(\"orderView\"", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-deadline-track", source, StringComparison.Ordinal);
@@ -833,7 +846,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains(".vpp-orders-view-switchbar", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-orders-selected-view", kpiStyles, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-orders-view-tabs", kpiStyles, StringComparison.Ordinal);
-        Assert.Contains("min-height: 44px;", kpiStyles, StringComparison.Ordinal);
+        Assert.Contains("min-height: var(--vpp-button-height);", kpiStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-grid-embedded .rz-grid-table tbody > tr:hover", gridStyles, StringComparison.Ordinal);
         Assert.Contains("tbody > tr:nth-child(even)", gridStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-grid-scrollable .rz-grid-table thead", gridStyles, StringComparison.Ordinal);
@@ -886,6 +899,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("IAPIServices", patternSource, StringComparison.Ordinal);
         Assert.Contains("VppListDetailRatio", patternSource, StringComparison.Ordinal);
         Assert.Contains("VppSplitEditorRatio", patternSource, StringComparison.Ordinal);
+        Assert.Contains("VppWorkspaceScrollMode", patternSource, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-scroll-mode", patternSource, StringComparison.Ordinal);
         Assert.Contains("RenderFragment", patternSource, StringComparison.Ordinal);
 
         var accountWorkspace = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Patterns", "VppAccountWorkspace.razor"));
@@ -929,6 +944,43 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
+    public void ResponsiveScrollOwnership_IsTypedAndUnlocksAdaptivePagesOnCompactViewports()
+    {
+        var root = GetFrontendRoot();
+        var patternsRoot = Path.Combine(root, "Components", "DesignSystem", "Patterns");
+        var scrollMode = File.ReadAllText(Path.Combine(patternsRoot, "VppWorkspaceScrollMode.cs"));
+        var patternMarkup = string.Join(
+            Environment.NewLine,
+            Directory.GetFiles(patternsRoot, "*.razor").Select(File.ReadAllText));
+        var responsive = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-responsive.css"));
+        var layout = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-layout.css"));
+        var orderCreate = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Page_OrderCreate.razor.css"));
+        var history = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "HistoryWorkspaceShell.razor"));
+        var pending = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "PendingApprovalWorkspace.razor"));
+        var periods = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "OrderPeriodManagementWorkspace.razor"));
+        var report = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Report.razor"));
+
+        foreach (var mode in new[] { "Adaptive", "Internal", "Page" })
+        {
+            Assert.Contains(mode, scrollMode, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("data-vpp-scroll-mode=\"@ScrollModeValue\"", patternMarkup, StringComparison.Ordinal);
+        Assert.Contains("max-width: 1439px", responsive, StringComparison.Ordinal);
+        Assert.Contains("max-height: 799px", responsive, StringComparison.Ordinal);
+        Assert.Contains("vpp-bounded-shell:has([data-vpp-scroll-mode=\"adaptive\"])", responsive, StringComparison.Ordinal);
+        Assert.Contains("--vpp-sidebar-width: 248px;", responsive, StringComparison.Ordinal);
+        Assert.Contains("--vpp-data-row-compact-height: 38px;", responsive, StringComparison.Ordinal);
+        Assert.Contains("overflow-y: auto;", layout, StringComparison.Ordinal);
+        Assert.Contains(".vpp-wizard-stage", orderCreate, StringComparison.Ordinal);
+        Assert.Contains("overflow: visible;", orderCreate, StringComparison.Ordinal);
+        Assert.Contains("ScrollMode=\"VppWorkspaceScrollMode.Internal\"", history, StringComparison.Ordinal);
+        Assert.Contains("ScrollMode=\"VppWorkspaceScrollMode.Internal\"", pending, StringComparison.Ordinal);
+        Assert.Contains("ScrollMode=\"VppWorkspaceScrollMode.Adaptive\"", periods, StringComparison.Ordinal);
+        Assert.Contains("ScrollMode=\"VppWorkspaceScrollMode.Page\"", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AdminDialogs_UseTypedAdaptiveContractAndStickyShell()
     {
         var root = GetFrontendRoot();
@@ -962,20 +1014,27 @@ public sealed class SharedUiFoundationTests
     }
 
     [Fact]
-    public void AdminActiveSwitch_UsesSemanticSuccessTrackAndNeutralThumb()
+    public void AdminRowActions_SeparatePrimaryActionFromLifecycleOverflow()
     {
         var root = GetFrontendRoot();
         var adminStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-admin.css"));
         var lookup = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor"));
+        var users = File.ReadAllText(Path.Combine(root, "Components", "Pages", "Permission", "Tabs", "Tab_User.razor"));
         var activeToggle = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppAdminActiveToggle.razor"));
         var activeToggleStyles = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppAdminActiveToggle.razor.css"));
+        var actionMenu = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppAdminActionMenu.razor"));
+        var lifecycleMenu = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppAdminLifecycleMenu.razor"));
 
         Assert.DoesNotContain(".vpp-admin-active-switch", adminStyles, StringComparison.Ordinal);
         Assert.Contains(".vpp-admin-active-switch ::deep .rz-switch", activeToggleStyles, StringComparison.Ordinal);
         Assert.Contains("--rz-switch-checked-background-color: color-mix(in srgb, var(--vpp-success) 82%, var(--vpp-bg-elevated));", activeToggleStyles, StringComparison.Ordinal);
         Assert.Contains("--rz-switch-checked-circle-background-color: var(--vpp-color-white);", activeToggleStyles, StringComparison.Ordinal);
         Assert.Contains("<RadzenSwitch TValue=\"bool\"", activeToggle, StringComparison.Ordinal);
-        Assert.Equal(2, lookup.Split("<VppAdminActiveToggle", StringSplitOptions.None).Length - 1);
+        Assert.Contains("ContextMenuService.Open", actionMenu, StringComparison.Ordinal);
+        Assert.Contains("VppAdminActionTone.Danger", lifecycleMenu, StringComparison.Ordinal);
+        Assert.Equal(2, lookup.Split("<VppAdminLifecycleMenu", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("<VppAdminActiveToggle", lookup, StringComparison.Ordinal);
+        Assert.Contains("<VppAdminActiveToggle", users, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1175,7 +1234,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<VppClearFiltersButton", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("vpp-history-detail-clear", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("VppIcons.FilterOff", clearFiltersButton, StringComparison.Ordinal);
-        Assert.Contains("height: 32px;", clearFiltersStyles, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-button-height-compact);", clearFiltersStyles, StringComparison.Ordinal);
         Assert.Contains("min-height: var(--vpp-data-footer-height);", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("vpp-history-chart-legend-label", historyChart, StringComparison.Ordinal);
         Assert.Contains("Property=\"Note\"", orderItemsSurface, StringComparison.Ordinal);
@@ -1256,6 +1315,9 @@ public sealed class SharedUiFoundationTests
         var root = GetFrontendRoot();
         var contentState = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppContentState.razor"));
         var contentStateKind = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "VppContentStateKind.cs"));
+        var skeletonPage = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Primitives", "SkeletonPage.razor"));
+        var loadingStyles = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-loading.css"));
+        var polish = File.ReadAllText(Path.Combine(root, "wwwroot", "css", "vpp-polish.css"));
         var notifications = File.ReadAllText(Path.Combine(root, "Components", "Layout", "NotificationCenter.razor"));
         var pageMarkup = string.Join("\n", Directory.EnumerateFiles(
             Path.Combine(root, "Components", "Pages"),
@@ -1269,6 +1331,18 @@ public sealed class SharedUiFoundationTests
         }
         Assert.Contains("vpp-content-state-@StateCssClass", contentState, StringComparison.Ordinal);
         Assert.Contains("vpp-state-panel-@StateCssClass", contentState, StringComparison.Ordinal);
+        Assert.Contains("FillAvailable ? \"is-fill-available\"", contentState, StringComparison.Ordinal);
+        Assert.Contains("[Parameter] public bool FillAvailable", contentState, StringComparison.Ordinal);
+        Assert.Contains(".vpp-content-state.is-fill-available", polish, StringComparison.Ordinal);
+        Assert.Contains("height: 100%;", polish, StringComparison.Ordinal);
+        Assert.Contains("FillAvailable ? \"is-fill-available\"", skeletonPage, StringComparison.Ordinal);
+        Assert.Contains("[Parameter] public bool FillAvailable", skeletonPage, StringComparison.Ordinal);
+        Assert.Contains(".vpp-skeleton-page.is-fill-available", loadingStyles, StringComparison.Ordinal);
+        Assert.Contains("grid-auto-rows: minmax(32px, 1fr);", loadingStyles, StringComparison.Ordinal);
+        Assert.Contains(".vpp-state-panel-empty", polish, StringComparison.Ordinal);
+        Assert.Contains("justify-content: center;", polish, StringComparison.Ordinal);
+        Assert.Contains("flex-direction: column;", polish, StringComparison.Ordinal);
+        Assert.Contains("text-align: center;", polish, StringComparison.Ordinal);
         Assert.Contains("Icon=\"@PrimaryActionIcon\"", contentState, StringComparison.Ordinal);
         Assert.Contains("role=\"@SemanticRole\"", contentState, StringComparison.Ordinal);
         Assert.Contains("aria-busy=\"@IsLoading\"", contentState, StringComparison.Ordinal);
@@ -1290,8 +1364,69 @@ public sealed class SharedUiFoundationTests
         var catalog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
         Assert.Contains("VppContentStateKind.FilteredEmpty", historyOrders, StringComparison.Ordinal);
         Assert.Contains("VppContentStateKind.Error", catalog, StringComparison.Ordinal);
-        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Refresh\"", historyOrders, StringComparison.Ordinal);
-        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Refresh\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Reset\"", historyOrders, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Reset\"", catalog, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EmptyStates_DoNotExposeManualRefreshActions()
+    {
+        var root = GetFrontendRoot();
+        var razorSources = Directory.EnumerateFiles(
+                Path.Combine(root, "Components"),
+                "*.razor",
+                SearchOption.AllDirectories)
+            .Select(path => (Path: path, Source: File.ReadAllText(path)))
+            .ToArray();
+
+        var offenders = razorSources
+            .Where(item => item.Source.Contains("Loc[\"Refresh\"]", StringComparison.Ordinal)
+                || item.Source.Contains("Loc[\"RefreshQueue\"]", StringComparison.Ordinal)
+                || item.Source.Contains("VppIcons.Refresh", StringComparison.Ordinal)
+                || item.Source.Contains("Icon=\"refresh\"", StringComparison.Ordinal))
+            .Select(item => Path.GetRelativePath(root, item.Path))
+            .ToArray();
+
+        Assert.Empty(offenders);
+
+        var notifications = File.ReadAllText(Path.Combine(root, "Components", "Layout", "NotificationCenter.razor"));
+        Assert.DoesNotContain("@onclick=\"RefreshAsync\"", notifications, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-notification-panel-footer", notifications, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WorkspaceContentStates_FillAvailableSpaceWhileInlineStatesStayCompact()
+    {
+        var root = GetFrontendRoot();
+        var workspaceConsumers = new[]
+        {
+            Path.Combine("Components", "Routes.razor"),
+            Path.Combine("Components", "Layout", "MainLayout.razor"),
+            Path.Combine("Components", "Pages", "Report.razor"),
+            Path.Combine("Components", "Pages", "Permission", "Tabs", "Tab_User.razor"),
+            Path.Combine("Components", "Pages", "VPPRequest", "Tabs", "Tab_History.razor"),
+            Path.Combine("Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"),
+            Path.Combine("Components", "Pages", "VPPRequest", "Components", "PendingApprovalWorkspace.razor"),
+            Path.Combine("Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor"),
+            Path.Combine("Components", "Pages", "VPPRequest", "Components", "OrderPeriodManagementWorkspace.razor")
+        };
+
+        foreach (var relativePath in workspaceConsumers)
+        {
+            var source = File.ReadAllText(Path.Combine(root, relativePath));
+            Assert.Contains("FillAvailable=\"true\"", source, StringComparison.Ordinal);
+        }
+
+        foreach (var relativePath in new[]
+                 {
+                     Path.Combine("Components", "Pages", "Permission", "Dialogs", "Dialog_PermissionUiBatchEditor.razor"),
+                     Path.Combine("Components", "Pages", "VPPRequest", "OrderCreateStep3.razor"),
+                     Path.Combine("Components", "Pages", "VPPRequest", "Page_OrderCreate.razor")
+                 })
+        {
+            var source = File.ReadAllText(Path.Combine(root, relativePath));
+            Assert.DoesNotContain("FillAvailable=\"true\"", source, StringComparison.Ordinal);
+        }
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+// PAGE LOGIC: Lib/Tabs/Dialog/Dialog_PriceListEditor.razor.cs
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_fe.Services;

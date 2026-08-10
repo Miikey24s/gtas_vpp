@@ -78,6 +78,7 @@ public sealed class CanonicalRbacTests
 
         Assert.False(CanonicalRbac.HasAction(CanonicalRbac.Manager.GroupId, Permissions.PermissionView));
         Assert.False(CanonicalRbac.HasAction(CanonicalRbac.Manager.GroupId, Permissions.PermissionManage));
+        Assert.False(CanonicalRbac.HasAction(CanonicalRbac.Manager.GroupId, Permissions.PeriodSettingsManage));
     }
 
     [Fact]

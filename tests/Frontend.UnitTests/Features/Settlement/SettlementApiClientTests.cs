@@ -23,6 +23,10 @@ public sealed class SettlementApiClientTests
                 getCalls.Add((endpoint, responseType));
                 object response = responseType == typeof(PeriodSettlementResDTO)
                     ? new PeriodSettlementResDTO()
+                    : responseType == typeof(SettlementRevisionResDTO)
+                        ? new SettlementRevisionResDTO()
+                    : responseType == typeof(List<SettlementRevisionResDTO>)
+                        ? new List<SettlementRevisionResDTO>()
                     : new AggregatedVppResDTO();
                 return Task.FromResult<object?>(response);
             },
@@ -38,18 +42,22 @@ public sealed class SettlementApiClientTests
         var client = new SettlementApiClient(api, new RecordingFileDownloadService());
 
         await client.GetStatusAsync(2026, 7);
+        await client.GetCurrentAsync(2026, 7);
+        await client.ListVersionsAsync(2026, 7);
         await client.GetDemandAsync(2026, 7);
         var snapshot = await client.GetPeriodOrdersSnapshotAsync(2026, 7, 2);
 
         Assert.Contains(("/api/periodsettlement/2026/7", typeof(PeriodSettlementResDTO)), getCalls);
+        Assert.Contains(("/api/periodsettlement/current/2026/7", typeof(SettlementRevisionResDTO)), getCalls);
+        Assert.Contains(("/api/periodsettlement/revisions/2026/7", typeof(List<SettlementRevisionResDTO>)), getCalls);
         Assert.Contains(("/api/VPPRequest/period-demand?year=2026&month=7", typeof(AggregatedVppResDTO)), getCalls);
         Assert.Equal(3, snapshot.Count);
         Assert.Equal(2, pageCalls.Count);
         Assert.Equal(
-            "/api/VPPRequest/all-orders?year=2026&month=7&skip=0&top=2&orderby=DepartmentCode%20asc",
+            "/api/VPPRequest/all-orders?year=2026&month=7&skip=0&top=2&summaryOnly=true",
             pageCalls[0]);
         Assert.Equal(
-            "/api/VPPRequest/all-orders?year=2026&month=7&skip=2&top=2&orderby=DepartmentCode%20asc",
+            "/api/VPPRequest/all-orders?year=2026&month=7&skip=2&top=2&summaryOnly=true",
             pageCalls[1]);
     }
 

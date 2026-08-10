@@ -1,8 +1,11 @@
+@* PAGE: VPPRequest/Components/HistoryWorkspaceShell.razor *@
+@* SHELL: Bọc workspace Lịch sử và phản ánh trạng thái tải của summary/grid. *@
 <div class="vpp-history-page @(IsSummaryRefreshing ? "is-summary-refreshing" : string.Empty) @(IsGridRefreshing ? "is-grid-refreshing" : string.Empty) @Class"
      @ref="RootElement"
      aria-busy="@IsBusy">
-    <VppAnalyticsWorkspace Gap="VppWorkspaceGap.Compact"
+        <VppAnalyticsWorkspace Gap="VppWorkspaceGap.Compact"
                            FillAvailableSpace="true"
+                           ScrollMode="VppWorkspaceScrollMode.Internal"
                            IsBusy="@IsBusy">
         @ChildContent
     </VppAnalyticsWorkspace>

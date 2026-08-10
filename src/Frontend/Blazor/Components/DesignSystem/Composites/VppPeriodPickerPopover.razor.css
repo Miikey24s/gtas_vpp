@@ -61,17 +61,17 @@
 .vpp-period-picker-close,
 .vpp-period-picker-secondary,
 .vpp-period-picker-primary {
-    min-height: 32px;
+    min-height: var(--vpp-button-height-compact);
     border: 0;
-    border-radius: var(--vpp-radius-md);
+    border-radius: var(--vpp-radius-button);
     font: inherit;
     cursor: pointer;
 }
 
 .vpp-period-picker-close {
     display: grid;
-    width: 32px;
-    flex: 0 0 32px;
+    width: var(--vpp-button-height-compact);
+    flex: 0 0 var(--vpp-button-height-compact);
     padding: 0;
     place-items: center;
     background: transparent;
@@ -132,7 +132,7 @@
 
 .vpp-period-picker-secondary,
 .vpp-period-picker-primary {
-    padding-inline: var(--vpp-space-3);
+    padding-inline: var(--vpp-button-padding-inline-compact);
 }
 
 .vpp-period-picker-secondary {

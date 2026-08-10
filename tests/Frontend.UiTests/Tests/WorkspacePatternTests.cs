@@ -35,6 +35,26 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
         gaps[0].Should().BeApproximately(0, 1, "workspace phải bắt đầu cùng mép trên main content");
         gaps[1].Should().BeApproximately(0, 1, "workspace phải lấp đầy main content đến sát mép dưới");
 
+        var fillState = workspace.Locator(".vpp-content-state.is-fill-available:visible");
+        if (await fillState.CountAsync() > 0)
+        {
+            var centers = await fillState.First.EvaluateAsync<double[]>("""
+                element => {
+                    const state = element.getBoundingClientRect();
+                    const parent = element.parentElement.getBoundingClientRect();
+                    return [
+                        state.left + state.width / 2,
+                        parent.left + parent.width / 2,
+                        state.top + state.height / 2,
+                        parent.top + parent.height / 2
+                    ];
+                }
+                """);
+            centers[0].Should().BeApproximately(centers[1], 1, "empty state phải căn giữa theo chiều ngang");
+            centers[2].Should().BeApproximately(centers[3], 1, "empty state phải căn giữa theo chiều dọc");
+            await Assertions.Expect(fillState.First.GetByRole(AriaRole.Button)).ToHaveCountAsync(0);
+        }
+
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
@@ -54,6 +74,7 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
         await AssertShellSeamAsync();
+        var expandedSidebarWidth = await ReadCssPixelTokenAsync("--vpp-sidebar-width");
 
         var routes = new[]
         {
@@ -112,7 +133,7 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
             await CaptureEvidenceAsync($"{route.EvidenceName}-collapsed");
 
             await Page.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
-            await AssertShellSeamStateAsync(expectedWidth: 286, collapsed: false);
+            await AssertShellSeamStateAsync(expectedWidth: expandedSidebarWidth, collapsed: false);
         }
 
         visibleInsetFailures.Should().BeEmpty(
@@ -205,6 +226,9 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
                     patternPaddingRight: Number.parseFloat(patternStyle.paddingRight),
                     patternPaddingBottom: Number.parseFloat(patternStyle.paddingBottom),
                     patternPaddingLeft: Number.parseFloat(patternStyle.paddingLeft),
+                    scrollMode: pattern.getAttribute('data-vpp-scroll-mode') || '',
+                    layoutBodyOverflowY: style.overflowY,
+                    layoutBodyCanScroll: body.scrollHeight > body.clientHeight + 1,
                     ancestorDiagnostics: ancestorDiagnostics.join(' -> '),
                     rootFontSize: getComputedStyle(document.documentElement).fontSize,
                     inlineStartToken: getComputedStyle(document.documentElement).getPropertyValue('--vpp-page-inset-inline-start').trim(),
@@ -235,7 +259,23 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
         geometry.Right.Should().BeApproximately(geometry.ResolvedInlineEndToken, 0.1,
             "the VPP shell must apply its resolved inline-end token");
         geometry.ContentTopGap.Should().BeApproximately(geometry.Top, 0.1, "main content must start below the header by the shared block inset");
-        geometry.ContentBottomGap.Should().BeApproximately(geometry.Bottom, 0.1, "main content must stop above the viewport edge by the shared block inset");
+        if (geometry.ScrollMode == "internal")
+        {
+            geometry.ContentBottomGap.Should().BeApproximately(geometry.Bottom, 0.1,
+                "internal workspace must stop above the viewport edge and keep page scrolling locked");
+        }
+        else
+        {
+            geometry.ContentBottomGap.Should().BeLessThanOrEqualTo(geometry.Bottom + 0.1,
+                "page/adaptive workspace may extend below the viewport but must not collapse above the shared bottom inset");
+            if (geometry.ContentBottomGap < geometry.Bottom - 0.1)
+            {
+                geometry.LayoutBodyOverflowY.Should().BeOneOf("auto", "scroll",
+                    "content longer than the viewport must use layout-body as the page scroller");
+                geometry.LayoutBodyCanScroll.Should().BeTrue(
+                    "content extending below the viewport must remain reachable through layout-body scroll");
+            }
+        }
         geometry.ContentLeftGap.Should().BeApproximately(geometry.ContentRightGap, 0.1, "inline outer inset must be symmetric");
         geometry.HasDocumentOverflow.Should().BeFalse($"{evidenceName} must not overflow the document horizontally");
 
@@ -253,14 +293,19 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
 
     private async Task AssertShellSeamAsync()
     {
-        await AssertShellSeamStateAsync(expectedWidth: 286, collapsed: false);
+        var expandedWidth = await ReadCssPixelTokenAsync("--vpp-sidebar-width");
+        await AssertShellSeamStateAsync(expectedWidth: expandedWidth, collapsed: false);
 
         await Page.Locator(".vpp-sidebar-toggle").ClickAsync();
         await AssertShellSeamStateAsync(expectedWidth: 72, collapsed: true);
 
         await Page.Locator(".vpp-sidebar-collapsed-brand").ClickAsync();
-        await AssertShellSeamStateAsync(expectedWidth: 286, collapsed: false);
+        await AssertShellSeamStateAsync(expectedWidth: expandedWidth, collapsed: false);
     }
+
+    private Task<double> ReadCssPixelTokenAsync(string token) => Page.EvaluateAsync<double>(
+        "token => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(token))",
+        token);
 
     private async Task AssertShellSeamStateAsync(double expectedWidth, bool collapsed)
     {
@@ -370,6 +415,9 @@ public sealed class WorkspacePatternTests : TestBase, IAuthenticatedUiTest
         public double PatternPaddingRight { get; init; }
         public double PatternPaddingBottom { get; init; }
         public double PatternPaddingLeft { get; init; }
+        public string ScrollMode { get; init; } = string.Empty;
+        public string LayoutBodyOverflowY { get; init; } = string.Empty;
+        public bool LayoutBodyCanScroll { get; init; }
         public string AncestorDiagnostics { get; init; } = string.Empty;
         public string RootFontSize { get; init; } = string.Empty;
         public string InlineStartToken { get; init; } = string.Empty;

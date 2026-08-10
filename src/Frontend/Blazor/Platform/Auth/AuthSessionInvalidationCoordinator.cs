@@ -4,7 +4,7 @@ namespace gtas_vpp_fe.Platform.Auth;
 
 public interface IAuthSessionInvalidationCoordinator
 {
-    Task InvalidateAsync(string reason);
+    Task InvalidateAsync(string reason, string? rejectedAccessToken = null);
 }
 
 /// <summary>
@@ -19,7 +19,7 @@ public sealed class AuthSessionInvalidationCoordinator(
 {
     private int _started;
 
-    public Task InvalidateAsync(string reason)
+    public Task InvalidateAsync(string reason, string? rejectedAccessToken = null)
     {
         if (Interlocked.Exchange(ref _started, 1) != 0)
         {
@@ -32,9 +32,14 @@ public sealed class AuthSessionInvalidationCoordinator(
         logger.LogInformation(
             "Ending frontend session after backend authentication rejection: {Reason}.",
             normalizedReason);
-        navigationManager.NavigateTo(
-            $"/logoutprocess?reason={Uri.EscapeDataString(normalizedReason)}",
-            forceLoad: true);
+        var logoutUri = $"/logoutprocess?reason={Uri.EscapeDataString(normalizedReason)}";
+        var sessionFingerprint = AuthSessionFingerprint.Create(rejectedAccessToken);
+        if (sessionFingerprint is not null)
+        {
+            logoutUri += $"&expectedSession={Uri.EscapeDataString(sessionFingerprint)}";
+        }
+
+        navigationManager.NavigateTo(logoutUri, forceLoad: true);
         return Task.CompletedTask;
     }
 }

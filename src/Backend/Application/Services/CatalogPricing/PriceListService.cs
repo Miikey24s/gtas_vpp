@@ -143,7 +143,7 @@ namespace gtas_vpp_be.Service.Services
 
         public async Task<PriceListResDTO> CreateAsync(PriceListCreateReqDTO req, int userId)
         {
-            ValidatePriceBook(req.SupplierId, req.Version, req.EffectiveFromUtc, req.EffectiveToUtc, req.CurrencyCode);
+            ValidatePriceBook(req.SupplierId, req.Version, null, null, req.CurrencyCode);
             PriceBookWorkflowService.ValidateCommercialTerms(
                 req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
             await _scopedUow.BeginTransactionAsync();
@@ -166,9 +166,9 @@ namespace gtas_vpp_be.Service.Services
                     IsDefault = req.IsDefault,
                     SupplierId = req.SupplierId,
                     Version = req.Version,
-                    EffectiveFromUtc = req.EffectiveFromUtc.HasValue ? NormalizeUtc(req.EffectiveFromUtc.Value) : nowUtc,
-                    EffectiveToUtc = req.EffectiveToUtc.HasValue ? NormalizeUtc(req.EffectiveToUtc.Value) : null,
-                    Status = PriceListStatus.Draft,
+                    EffectiveFromUtc = nowUtc,
+                    EffectiveToUtc = null,
+                    Status = PriceListStatus.Published,
                     CurrencyCode = NormalizeCurrency(req.CurrencyCode),
                     VatPolicy = NormalizeVatPolicy(req.VatPolicy),
                     ContractCode = NormalizeOptional(req.ContractCode),
@@ -176,6 +176,8 @@ namespace gtas_vpp_be.Service.Services
                     RebateAmount = req.RebateAmount,
                     FeeAmount = req.FeeAmount,
                     ShippingAmount = req.ShippingAmount,
+                    PublishedAtUtc = now,
+                    PublishedByUserId = userId,
                     CreatedByUserId = userId,
                     CreatedAtUtc = now,
                     UpdatedByUserId = userId,
@@ -212,13 +214,8 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Price list not found.");
                 }
 
-                if (entity.Status == PriceListStatus.Published)
-                {
-                    throw new BusinessException("Published price books are immutable; create a new version instead.");
-                }
-
                 var effectiveFromUtc = req.EffectiveFromUtc ?? entity.EffectiveFromUtc;
-                ValidatePriceBook(req.SupplierId, req.Version, effectiveFromUtc, req.EffectiveToUtc, req.CurrencyCode);
+                ValidatePriceBook(req.SupplierId, req.Version, effectiveFromUtc, null, req.CurrencyCode);
                 PriceBookWorkflowService.ValidateCommercialTerms(
                     req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
                 await ValidateSupplierAsync(req.SupplierId);
@@ -245,7 +242,15 @@ namespace gtas_vpp_be.Service.Services
                 entity.SupplierId = req.SupplierId;
                 entity.Version = req.Version;
                 entity.EffectiveFromUtc = NormalizeUtc(effectiveFromUtc);
-                entity.EffectiveToUtc = req.EffectiveToUtc.HasValue ? NormalizeUtc(req.EffectiveToUtc.Value) : null;
+                entity.EffectiveToUtc = null;
+                if (entity.Status != PriceListStatus.Published)
+                {
+                    entity.Status = PriceListStatus.Published;
+                    entity.PublishedAtUtc = now;
+                    entity.PublishedByUserId = userId;
+                    entity.ExpiredAtUtc = null;
+                    entity.ExpiredByUserId = null;
+                }
                 entity.CurrencyCode = NormalizeCurrency(req.CurrencyCode);
                 entity.VatPolicy = NormalizeVatPolicy(req.VatPolicy);
                 entity.ContractCode = NormalizeOptional(req.ContractCode);
@@ -289,22 +294,17 @@ namespace gtas_vpp_be.Service.Services
                     throw new BusinessException("Cannot delete the default price list.");
                 }
 
-                if (isDeleted && entity.Status == PriceListStatus.Published)
-                {
-                    throw new BusinessException("Published price books cannot be deleted; expire them through the versioned workflow.");
-                }
-
-                if (isDeleted)
-                {
-                    var itemCount = await _scopedUow.VPPContext.Set<SupplierProductMapping>()
-                        .CountAsync(x => x.PriceListId == id && !x.IsDeleted);
-                    if (itemCount > 0)
-                    {
-                        throw new BusinessException($"Price list has {itemCount} items.");
-                    }
-                }
-
                 var now = _dateTimeProvider.Now;
+                if (!isDeleted && entity.Status != PriceListStatus.Published)
+                {
+                    entity.Status = PriceListStatus.Published;
+                    entity.EffectiveToUtc = null;
+                    entity.PublishedAtUtc = now;
+                    entity.PublishedByUserId = userId;
+                    entity.ExpiredAtUtc = null;
+                    entity.ExpiredByUserId = null;
+                }
+
                 entity.IsDeleted = isDeleted;
                 entity.UpdatedByUserId = userId;
                 entity.UpdatedAtUtc = now;
@@ -342,11 +342,6 @@ namespace gtas_vpp_be.Service.Services
                 if (entity.IsDefault)
                 {
                     throw new BusinessException("The default price list cannot be hard-deleted.");
-                }
-
-                if (entity.Status == PriceListStatus.Published)
-                {
-                    throw new BusinessException("Published price books cannot be hard-deleted.");
                 }
 
                 var referenceCount = await _scopedUow.VPPContext.Set<SupplierProductMapping>()
@@ -430,7 +425,7 @@ namespace gtas_vpp_be.Service.Services
                     Version = source.Version + 1,
                     EffectiveFromUtc = nowUtc,
                     EffectiveToUtc = null,
-                    Status = PriceListStatus.Draft,
+                    Status = PriceListStatus.Published,
                     CurrencyCode = source.CurrencyCode,
                     VatPolicy = source.VatPolicy,
                     ContractCode = source.ContractCode,
@@ -438,6 +433,8 @@ namespace gtas_vpp_be.Service.Services
                     RebateAmount = source.RebateAmount,
                     FeeAmount = source.FeeAmount,
                     ShippingAmount = source.ShippingAmount,
+                    PublishedAtUtc = now,
+                    PublishedByUserId = userId,
                     CreatedByUserId = userId,
                     CreatedAtUtc = now,
                     UpdatedByUserId = userId,

@@ -1,6 +1,7 @@
 using gtas_vpp_shared.Constants;
 
 namespace gtas_vpp_fe.Helpers;
+// tập hợp các route của FE
 
 /// <summary>
 /// Catalog nguồn sự thật của mọi route FE cho audit, test và tài liệu.
@@ -128,7 +129,14 @@ public static class RouteCatalog
             Title: "PeriodOperations",
             PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
             AnyOfPermissions: [Permissions.RequestAdminApproval, Permissions.PeriodSettle],
-            Notes: "Unified period settlement workspace (PeriodSettle) plus additional-approval queue (RequestAdminApproval). Legacy review/demand/supply/settle query values resolve to the unified workspace."),
+            Notes: "Rolling order-period management, unified settlement workspace (PeriodSettle), and additional-approval queue (RequestAdminApproval). Legacy review/demand/supply/settle query values resolve to the unified settlement workspace."),
+
+        new(
+            Key: "dashboard.period.periods",
+            Path: "/dashboard?tab=5&periodTab=periods",
+            Title: "OrderPeriodManagement",
+            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
+            AnyOfPermissions: [Permissions.PeriodSettle]),
 
         new(
             Key: "dashboard.period.pending-approval",
@@ -289,6 +297,14 @@ public static class RouteCatalog
             AnyOfPermissions: [Permissions.PermissionManage],
             Notes: "Read-only security audit workspace for access administrators."),
 
+        new(
+            Key: "permission.order-period-settings",
+            Path: "/permission?tab=3",
+            Title: "OrderPeriodSettings",
+            PageCode: Config.Page_ComponentCode.PageCode.Permission,
+            AnyOfPermissions: [Permissions.PeriodSettingsManage],
+            Notes: "Versioned company defaults used only when future order periods are generated."),
+
         // ── Báo cáo ────────────────────────────────────────────────
         new(
             Key: "report",
@@ -416,6 +432,8 @@ public static class RouteCatalog
         "tab",
         "managementTab",
         "periodTab",
+        "periodYear",
+        "periodMonth",
         "pricingTab",
         "orderView",
         "orderId",

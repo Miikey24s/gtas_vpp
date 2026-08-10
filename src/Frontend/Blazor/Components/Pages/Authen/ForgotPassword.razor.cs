@@ -1,3 +1,4 @@
+// PAGE LOGIC: Authen/ForgotPassword.razor.cs *
 using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;

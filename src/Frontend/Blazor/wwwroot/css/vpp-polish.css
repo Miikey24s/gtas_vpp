@@ -80,8 +80,8 @@
     will-change: opacity, clip-path;
 }
 
-.vpp-transient-surface.is-above,
-.vpp-transient-surface--above {
+.vpp-transient-surface.is-above:not(.rz-close),
+.vpp-transient-surface--above:not(.rz-close) {
     animation-name: vpp-transient-enter-up;
 }
 
@@ -740,9 +740,9 @@ a:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 3px;
+    min-width: var(--vpp-button-height);
+    min-height: var(--vpp-button-height);
+    padding: 2px;
     border: 0;
     border-radius: 999px;
     color: inherit;
@@ -751,8 +751,8 @@ a:hover {
 }
 
 .user-menu-trigger:focus-visible {
-    outline: 2px solid var(--vpp-primary-500);
-    outline-offset: 2px;
+    outline: 0;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 62%, transparent);
 }
 
 .user-menu-trigger .user-avatar {
@@ -760,7 +760,7 @@ a:hover {
 }
 
 .user-menu-trigger:hover {
-    background: color-mix(in srgb, var(--vpp-primary-500) 7%, transparent);
+    background: color-mix(in srgb, var(--vpp-text-primary) 6%, transparent);
 }
 
 .user-menu-trigger:hover .user-avatar {
@@ -835,6 +835,29 @@ a:hover {
     box-shadow: var(--vpp-shadow-sm);
 }
 
+/* State thay thế nội dung chính phải giữ nguyên geometry của workspace thay vì
+   co về chiều cao nội dung. State nằm trong form/dialog không bật modifier này. */
+.vpp-content-state.is-fill-available {
+    flex: 1 1 auto;
+    align-self: stretch;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+    height: 100%;
+    margin: 0;
+    text-align: center;
+}
+
+.vpp-content-state.is-fill-available .vpp-state-panel-copy {
+    flex: 0 1 auto;
+    max-width: 48rem;
+}
+
+.vpp-content-state.is-fill-available .vpp-state-panel-action,
+.vpp-content-state.is-fill-available .vpp-state-panel-secondary {
+    flex: 0 0 auto;
+}
+
 .vpp-state-panel-icon {
     flex: 0 0 auto;
     color: var(--vpp-primary-500);
@@ -871,6 +894,9 @@ a:hover {
 }
 
 .vpp-system-page {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
     width: min(100%, 860px);
     margin-inline: auto;
     padding: clamp(var(--vpp-space-5), 5vw, var(--vpp-space-10));
@@ -925,4 +951,25 @@ a:hover {
     .vpp-state-panel-action {
         margin-left: calc(2rem + var(--vpp-space-4));
     }
+}
+
+/* Empty state là nội dung duy nhất của ô dữ liệu nên icon, copy và action cùng
+   nằm giữa vùng khả dụng; error/denied vẫn giữ layout đọc và thao tác theo hàng. */
+.vpp-state-panel-empty,
+.vpp-state-panel-filtered-empty {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.vpp-state-panel-empty .vpp-state-panel-copy,
+.vpp-state-panel-filtered-empty .vpp-state-panel-copy {
+    flex: 0 1 auto;
+    max-width: 42rem;
+}
+
+.vpp-state-panel-empty .vpp-state-panel-action,
+.vpp-state-panel-filtered-empty .vpp-state-panel-action {
+    margin-left: 0;
 }

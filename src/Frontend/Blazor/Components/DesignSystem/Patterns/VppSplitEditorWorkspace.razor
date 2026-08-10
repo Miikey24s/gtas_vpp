@@ -1,6 +1,6 @@
 @if (Resizable)
 {
-    <div class="@RootClass" data-vpp-workspace-pattern="split-editor">
+    <div class="@RootClass" data-vpp-workspace-pattern="split-editor" data-vpp-scroll-mode="@ScrollModeValue">
         <RadzenSplitter class="@($"vpp-split-editor-control {SplitterClass}")">
             <RadzenSplitterPane Size="@PrimarySize" Min="@PrimaryMin" Max="@PrimaryMax">
                 @Primary
@@ -13,7 +13,7 @@
 }
 else
 {
-    <div class="@RootClass" data-vpp-workspace-pattern="split-editor">
+    <div class="@RootClass" data-vpp-workspace-pattern="split-editor" data-vpp-scroll-mode="@ScrollModeValue">
         @Primary
         @Secondary
     </div>
@@ -24,10 +24,12 @@ else
     [Parameter, EditorRequired] public RenderFragment? Secondary { get; set; }
     [Parameter] public VppSplitEditorRatio Ratio { get; set; } = VppSplitEditorRatio.Balanced;
     [Parameter] public bool Resizable { get; set; }
+    [Parameter] public VppWorkspaceScrollMode ScrollMode { get; set; } = VppWorkspaceScrollMode.Adaptive;
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? SplitterClass { get; set; }
 
-    private string RootClass => $"vpp-split-editor-workspace {(Resizable ? "is-resizable" : "is-fixed")} is-ratio-{Ratio.ToString().ToLowerInvariant()} {Class}";
+    private string RootClass => $"vpp-split-editor-workspace {(Resizable ? "is-resizable" : "is-fixed")} is-ratio-{Ratio.ToString().ToLowerInvariant()} is-scroll-{ScrollModeValue} {Class}";
+    private string ScrollModeValue => ScrollMode.ToString().ToLowerInvariant();
 
     private string PrimarySize => Ratio switch
     {

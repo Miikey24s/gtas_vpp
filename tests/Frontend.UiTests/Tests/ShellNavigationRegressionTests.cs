@@ -13,6 +13,38 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
     {
         await Page.SetViewportSizeAsync(1366, 768);
         await LoginAsDefaultUserAsync();
+
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=0", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        var periodParentLink = Page.Locator(".vpp-layout-header")
+            .GetByRole(AriaRole.Link, new() { Name = "Quản lý kỳ đặt hàng", Exact = true });
+        await periodParentLink.ClickAsync();
+        await Page.WaitForURLAsync("**/dashboard?tab=5&periodTab=periods");
+        (await Page.Locator(".vpp-layout-header .vpp-header-sub-tab.is-active").InnerTextAsync()).Trim()
+            .Should().Be("Các kỳ đặt hàng", "tab cha phải mở child đầu tiên mà người dùng có quyền");
+        await Page.GetByTestId("order-period-management-table")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        await Page.Locator(".vpp-layout-header .vpp-header-tab-group")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await Page.Locator(".vpp-layout-header .vpp-header-sub-tab.is-active").InnerTextAsync()).Trim()
+            .Should().Be("Các kỳ đặt hàng", "URL nhóm không chỉ rõ child cũng phải dùng child đầu tiên");
+
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=unknown", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+        await Page.Locator(".vpp-layout-header .vpp-header-tab-group")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await Page.Locator(".vpp-layout-header .vpp-header-sub-tab.is-active").InnerTextAsync()).Trim()
+            .Should().Be("Các kỳ đặt hàng", "child không hợp lệ phải fallback về child đầu tiên");
+
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=review", new PageGotoOptions
         {
             WaitUntil = WaitUntilState.DOMContentLoaded
@@ -36,7 +68,7 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             Math.Abs(bounds[0] - bounds[2]) < 0.75 && Math.Abs(bounds[1] - bounds[3]) < 0.75,
             "both hierarchy dividers must span the full header-tab group height");
         var periodContext = periodGroup.Locator(".vpp-header-tab-parent");
-        (await periodContext.InnerTextAsync()).Trim().Should().Be("Quản lý kỳ");
+        (await periodContext.InnerTextAsync()).Trim().Should().Be("Quản lý kỳ đặt hàng");
         (await periodContext.EvaluateAsync<string>("element => element.tagName")).Should().Be("SPAN");
         (await periodContext.GetAttributeAsync("href")).Should().BeNull();
         await AssertHeaderContextReadableAsync(periodContext, "light");

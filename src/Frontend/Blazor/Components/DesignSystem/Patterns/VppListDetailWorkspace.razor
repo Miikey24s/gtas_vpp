@@ -1,4 +1,4 @@
-<div class="@RootClass" data-vpp-workspace-pattern="list-detail">
+<div class="@RootClass" data-vpp-workspace-pattern="list-detail" data-vpp-scroll-mode="@ScrollModeValue">
     <div class="vpp-list-detail-workspace-list @ListClass">
         @List
     </div>
@@ -14,10 +14,12 @@
     [Parameter, EditorRequired] public RenderFragment? Detail { get; set; }
     [Parameter] public VppListDetailRatio Ratio { get; set; } = VppListDetailRatio.Standard;
     [Parameter] public bool AnnounceDetailChanges { get; set; } = true;
+    [Parameter] public VppWorkspaceScrollMode ScrollMode { get; set; } = VppWorkspaceScrollMode.Adaptive;
     [Parameter] public string? DetailLabel { get; set; }
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? ListClass { get; set; }
     [Parameter] public string? DetailClass { get; set; }
 
-    private string RootClass => $"vpp-list-detail-workspace is-ratio-{Ratio.ToString().ToLowerInvariant()} {Class}";
+    private string RootClass => $"vpp-list-detail-workspace is-ratio-{Ratio.ToString().ToLowerInvariant()} is-scroll-{ScrollModeValue} {Class}";
+    private string ScrollModeValue => ScrollMode.ToString().ToLowerInvariant();
 }

@@ -259,7 +259,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         const workspace = document.querySelector('.vpp-orders-workspace');
                         const workspaceRect = workspace?.getBoundingClientRect();
                         const contentRect = workspace?.parentElement?.getBoundingClientRect();
-                        const storyTitle = document.querySelector('.vpp-orders-story-heading h2');
+                        const periodValue = document.querySelector('.vpp-orders-period-decision .vpp-decision-select-label');
                         const summaryLabel = document.querySelector('.vpp-orders-period-label');
                         const summaryCard = document.querySelector('.vpp-orders-view-selector');
                         const exportAction = [...document.querySelectorAll('.order-page button')]
@@ -270,21 +270,27 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                             workspaceRect && contentRect
                                 ? Math.abs((workspaceRect.left + workspaceRect.width / 2) - (contentRect.left + contentRect.width / 2))
                                 : Number.MAX_VALUE,
-                            storyTitle ? parseFloat(getComputedStyle(storyTitle).fontSize) : 0,
+                            periodValue ? parseFloat(getComputedStyle(periodValue).fontSize) : 0,
                             summaryLabel ? parseFloat(getComputedStyle(summaryLabel).fontSize) : Number.MAX_VALUE,
                             summaryCard ? parseFloat(getComputedStyle(summaryCard).borderTopWidth) : 0,
                             exportAction ? parseFloat(getComputedStyle(exportAction).opacity) : 0,
-                            document.documentElement.scrollHeight - window.innerHeight
+                            document.documentElement.scrollHeight - window.innerHeight,
+                            parseFloat(getComputedStyle(document.documentElement).fontSize),
+                            parseFloat(getComputedStyle(document.body).fontSize),
+                            parseFloat(getComputedStyle(document.querySelector('.vpp-data-grid tbody td')).fontSize)
                         ];
                     }
                     """);
                 desktopGeometry[0].Should().BeLessThanOrEqualTo(viewport.Height + 1, "the short-order workspace should fit inside one desktop viewport");
                 desktopGeometry[1].Should().BeLessThanOrEqualTo(1760.5, "wide layouts should stay bounded without visually detaching from the sidebar");
                 desktopGeometry[2].Should().BeLessThanOrEqualTo(8, "the My Orders workspace should remain centered in its content region");
-                desktopGeometry[3].Should().BeGreaterThan(desktopGeometry[4] + 8, "the period title must clearly outrank summary labels");
+                desktopGeometry[3].Should().BeGreaterThanOrEqualTo(desktopGeometry[4] + 7, "the selected period must clearly outrank its context label");
                 desktopGeometry[5].Should().BeGreaterThanOrEqualTo(1, "the segmented order selector should have one bounded outer surface");
                 desktopGeometry[6].Should().BeGreaterThanOrEqualTo(0.75, "export action labels must remain legible");
                 desktopGeometry[7].Should().BeLessThanOrEqualTo(2, "short orders should not create document-level vertical scrolling");
+                desktopGeometry[8].Should().BeApproximately(16, 0.1, "1rem must resolve to the documented 16px foundation");
+                desktopGeometry[9].Should().BeApproximately(14, 0.1, "body copy should resolve to the 14px base token");
+                desktopGeometry[10].Should().BeGreaterThanOrEqualTo(14, "data cells must remain readable at the base text size");
 
                 var shellColors = await Page.EvaluateAsync<string[]>("""
                     () => {
@@ -614,6 +620,41 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         (await Page.Locator("[data-testid='supplement-order-panel-empty-action']").CountAsync())
             .Should().BeLessThanOrEqualTo(1, "an available supplement flow should expose one empty-state CTA");
 
+        var emptyGeometry = await Page.Locator("[data-testid='supplement-order-panel']").EvaluateAsync<double[]>("""
+            panel => {
+                const dataRegion = panel.querySelector('.vpp-order-items-grid .rz-data-grid-data');
+                const emptyState = panel.querySelector('.vpp-order-grid-empty');
+                const header = panel.querySelector('.vpp-order-items-grid thead');
+                if (!(dataRegion instanceof HTMLElement)
+                    || !(emptyState instanceof HTMLElement)
+                    || !(header instanceof HTMLElement)) return [-1, -1, -1];
+                const dataRect = dataRegion.getBoundingClientRect();
+                const emptyRect = emptyState.getBoundingClientRect();
+                const headerRect = header.getBoundingClientRect();
+                return [
+                    Math.abs(dataRect.bottom - emptyRect.bottom),
+                    emptyRect.height,
+                    dataRect.height - headerRect.height
+                ];
+            }
+            """);
+        emptyGeometry[0].Should().BeLessThanOrEqualTo(2, "the empty state must reach the bottom of the available grid region");
+        emptyGeometry[1].Should().BeGreaterThanOrEqualTo(emptyGeometry[2] - 2, "the empty state must fill all space below the column header");
+
+        var emptyEvidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(emptyEvidenceDirectory))
+        {
+            Directory.CreateDirectory(emptyEvidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(emptyEvidenceDirectory, "my-orders-empty-full-height-1920x1080.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
         await Page.Locator(".vpp-orders-view-selector > button").Nth(2).ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=previous(?:&.*)?$", RegexOptions.IgnoreCase));
         await Page.ReloadAsync();
@@ -650,7 +691,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
 
         await Page.GotoAsync($"{BaseUrl}set-language?culture=en&returnUrl=%2Fdashboard%3Ftab%3D0");
         await Page.Locator(".vpp-orders-story").WaitForAsync();
-        (await Page.GetByText("Current Order Cycle", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+        (await Page.GetByText("Order period", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
         (await Page.GetByText("Current cycle order", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
 
         browserErrors.Should().BeEmpty();

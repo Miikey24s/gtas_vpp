@@ -1,5 +1,6 @@
 <div class="@RootClass"
      data-vpp-workspace-pattern="operation"
+     data-vpp-scroll-mode="@ScrollModeValue"
      aria-busy="@IsBusy"
      aria-labelledby="@LabelledBy">
     @Header
@@ -17,9 +18,11 @@
     [Parameter] public RenderFragment? Actions { get; set; }
     [Parameter] public VppWorkspaceGap Gap { get; set; } = VppWorkspaceGap.Standard;
     [Parameter] public bool FillAvailableSpace { get; set; }
+    [Parameter] public VppWorkspaceScrollMode ScrollMode { get; set; } = VppWorkspaceScrollMode.Adaptive;
     [Parameter] public bool IsBusy { get; set; }
     [Parameter] public string? LabelledBy { get; set; }
     [Parameter] public string? Class { get; set; }
 
-    private string RootClass => $"vpp-operation-workspace-pattern is-gap-{Gap.ToString().ToLowerInvariant()} {(FillAvailableSpace ? "is-fill" : null)} {Class}";
+    private string RootClass => $"vpp-operation-workspace-pattern is-gap-{Gap.ToString().ToLowerInvariant()} {(FillAvailableSpace ? "is-fill" : null)} is-scroll-{ScrollModeValue} {Class}";
+    private string ScrollModeValue => ScrollMode.ToString().ToLowerInvariant();
 }

@@ -1,0 +1,58 @@
+@using gtas_vpp_shared.DTOs.Res.VPP
+@inject DialogService DialogService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard"
+                        TestId="order-period-detail-dialog"
+                        Class="vpp-order-period-detail-dialog">
+    <Intro>
+        <div class="vpp-order-period-detail-heading">
+            <div>
+                <span>Kỳ đặt hàng</span>
+                <strong>@PeriodLabel</strong>
+            </div>
+            <VppPeriodStateBadge State="@Period.State" Compact="true" />
+        </div>
+    </Intro>
+    <ChildContent>
+        <dl class="vpp-order-period-detail-facts">
+            <div><dt>Ngày mở</dt><dd>@FormatDateTime(Period.OpenAtLocal)</dd></div>
+            <div><dt>Ngày đóng</dt><dd>@FormatDateTime(Period.CloseAtLocal)</dd></div>
+            <div>
+                <dt>Hạn duyệt đơn bổ sung</dt>
+                <dd>
+                    @FormatDateTime(Period.SupplementApprovalDeadlineLocal)
+                    <small>Dành cho đơn bổ sung đang chờ quản lý xử lý</small>
+                </dd>
+            </div>
+            <div><dt>Số đơn</dt><dd>@Period.OrderCount</dd></div>
+        </dl>
+
+        @if (Period.State is "SubmissionClosed" or "Pricing")
+        {
+            <VppInlineNotice Tone="VppStatusTone.Info" Title="Kỳ đã đóng">
+                Kỳ không còn nhận đơn thường. Chỉ khi quản lý hoàn tất bước chốt thì trạng thái mới chuyển thành Đã chốt.
+            </VppInlineNotice>
+        }
+        else if (Period.CanCorrectSettledOrders)
+        {
+            <VppInlineNotice Tone="VppStatusTone.Info" Title="Kỳ đã chốt">
+                Không sửa hoặc xóa đơn trực tiếp. Quản lý kỳ tạo yêu cầu sửa/hủy từ chi tiết đơn; một quản lý khác phải xác nhận.
+            </VppInlineNotice>
+        }
+    </ChildContent>
+    <Footer>
+        <VppDialogActions CancelText="Đóng"
+                          ShowPrimary="false"
+                          CancelClick="@CloseAsync" />
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter, EditorRequired] public VppManagedPeriodResDTO Period { get; set; } = new();
+
+    private string PeriodLabel => $"{Period.Month:00}/{Period.Year}";
+    private static string FormatDateTime(DateTime value) =>
+        DateFormatter.Format(value, DateFormatter.LongDate);
+
+    private Task CloseAsync() => DialogService.TryCloseAsync(null);
+}

@@ -1,3 +1,4 @@
+// PAGE LOGIC: Permission/Models/PermissionUiAccessState.cs
 namespace gtas_vpp_fe.Components.Pages.Permission.Models;
 
 public enum PermissionUiAccessState

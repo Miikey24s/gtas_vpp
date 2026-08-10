@@ -114,6 +114,7 @@
     --vpp-font-weight-bold: 700;
     --vpp-font-weight-extrabold: 800;
 
+    --vpp-root-font-size: 16px;
     --vpp-text-xs: 0.75rem;      /* 12px - captions, badges */
     --vpp-text-sm: 0.8125rem;    /* 13px - body small */
     --vpp-text-base: 0.875rem;   /* 14px - body default */
@@ -210,6 +211,7 @@
     --vpp-text-tertiary: #7A869A;
     --vpp-text-disabled: var(--vpp-text-tertiary);
     --vpp-text-inverse: var(--vpp-color-black);
+    --vpp-text-on-action: var(--vpp-color-black);
     --vpp-text-on-surface: var(--vpp-color-white);
     --vpp-text-tooltip: var(--vpp-text-primary);
     --vpp-text-link: var(--vpp-primary-400);
@@ -280,6 +282,7 @@
     --vpp-text-tertiary: #6B778C;
     --vpp-text-disabled: var(--vpp-text-tertiary);
     --vpp-text-inverse: var(--vpp-neutral-50);
+    --vpp-text-on-action: var(--vpp-color-white);
     --vpp-text-on-surface: var(--vpp-color-white);
     --vpp-text-tooltip: var(--vpp-text-inverse);
     --vpp-text-link: var(--vpp-primary-600);
@@ -304,12 +307,12 @@
     --vpp-border-default: rgba(9, 30, 66, 0.08);
     --vpp-border-strong: rgba(9, 30, 66, 0.14);
     --vpp-border-focus: var(--vpp-primary-600);
-    --vpp-action-primary: var(--vpp-primary-600);
-    --vpp-action-primary-hover: var(--vpp-primary-700);
+    --vpp-action-primary: var(--vpp-primary-700);
+    --vpp-action-primary-hover: var(--vpp-primary-800);
     --vpp-action-primary-active: var(--vpp-primary-800);
     --vpp-radzen-primary-dark: var(--vpp-primary-800);
     --vpp-action-primary-light: var(--vpp-primary-100);
-    --vpp-action-primary-rgb: 2, 132, 199;
+    --vpp-action-primary-rgb: 3, 105, 161;
     --vpp-action-primary-subtle: rgba(14, 165, 233, 0.08);
     --vpp-action-secondary: var(--vpp-accent-500);
     --vpp-action-secondary-hover: var(--vpp-accent-600);
@@ -351,6 +354,11 @@
     --vpp-tabs-bar-height: 44px;
     --vpp-control-height: 36px;
     --vpp-control-height-compact: 30px;
+    --vpp-button-height: 32px;
+    --vpp-button-height-compact: 28px;
+    --vpp-button-padding-inline: 10px;
+    --vpp-button-padding-inline-compact: 8px;
+    --vpp-button-icon-size: 16px;
     --vpp-data-control-height: 32px;
     --vpp-data-toolbar-height: 42px;
     --vpp-data-header-height: 40px;
@@ -462,7 +470,8 @@
 
 /* ── Style base toàn cục ─────────────────────────────────────── */
 html {
-    font-size: 14px;
+    /* Chuẩn 1rem = 16px để type/spacing token resolve đúng giá trị đã công bố. */
+    font-size: var(--vpp-root-font-size);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }

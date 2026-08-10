@@ -34,6 +34,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 const selector = switchbar?.querySelector('.vpp-orders-view-selector');
                 if (!story || !switchbar || !selectedView || !selector) return 'missing';
                 const selectorRect = selector.getBoundingClientRect();
+                const segmentRect = selector.querySelector('button')?.getBoundingClientRect();
                 const storyRect = story.getBoundingClientRect();
                 const switchbarRect = switchbar.getBoundingClientRect();
                 const selectedRect = selectedView.getBoundingClientRect();
@@ -43,8 +44,11 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 const unboxed = parseFloat(switchbarStyle.borderTopWidth) === 0
                     && parseFloat(switchbarStyle.paddingTop) === 0
                     && switchbarStyle.backgroundColor === 'rgba(0, 0, 0, 0)';
-                return `${selectorRect.height >= 34 && selectorRect.height <= 42 && ordered && unboxed}`
-                    + `|selector=${selectorRect.height}|storyBottom=${storyRect.bottom}`
+                const compact = Math.abs(selectorRect.height - 34) <= 1
+                    && !!segmentRect
+                    && Math.abs(segmentRect.height - 28) <= 1;
+                return `${compact && ordered && unboxed}`
+                    + `|selector=${selectorRect.height}|segment=${segmentRect?.height ?? 0}|storyBottom=${storyRect.bottom}`
                     + `|switch=${switchbarRect.top}-${switchbarRect.bottom}|tableTop=${selectedRect.top}`;
             }
             """);
@@ -52,7 +56,19 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
 
         await selector.Locator("button").Nth(1).ClickAsync();
         await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
-        await switchbar.Locator("[data-testid='create-supplement']").WaitForAsync();
+        var supplementAction = switchbar.Locator("[data-testid='create-supplement']");
+        await supplementAction.WaitForAsync();
+        var actionDensity = await supplementAction.EvaluateAsync<string>("""
+            button => {
+                const rect = button.getBoundingClientRect();
+                const icon = button.querySelector('.rzi, .vpp-icon');
+                const iconSize = icon ? parseFloat(getComputedStyle(icon).fontSize) : 16;
+                const style = getComputedStyle(button);
+                return `${rect.height <= 32.5 && iconSize <= 16.5 && style.boxShadow === 'none' && style.transform === 'none'}`
+                    + `|height=${rect.height}|icon=${iconSize}|shadow=${style.boxShadow}|transform=${style.transform}`;
+            }
+            """);
+        actionDensity.Should().StartWith("true", "shared actions must use the compact flat button contract");
         (await switchbar.Locator(".vpp-orders-selection-summary").CountAsync()).Should().Be(0);
         await CaptureAsync("my-orders-segmented-selector-1920x1080.png");
     }
@@ -164,7 +180,10 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                 const fullyContainsButton = !!buttonRect
                     && buttonRect.top >= rect.top - .5
                     && buttonRect.bottom <= rect.bottom + .5;
-                return `${rect.height >= 34 && fullyContainsButton}`
+                const compact = Math.abs(rect.height - 34) <= 1
+                    && !!buttonRect
+                    && Math.abs(buttonRect.height - 28) <= 1;
+                return `${compact && fullyContainsButton}`
                     + `|stepper=${rect.height}|button=${buttonRect?.height ?? 0}`
                     + `|flex=${style.flexGrow}/${style.flexShrink}/${style.flexBasis}`
                     + `|overflow=${style.overflowX}/${style.overflowY}`;

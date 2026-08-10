@@ -155,15 +155,21 @@ public sealed class ApiServicesJsonTransportTests
     [Fact]
     public async Task UnauthorizedResponse_RequestsSessionInvalidation()
     {
+        const string rejectedToken = "rejected-session-token";
         using var handler = new StatusHttpMessageHandler(HttpStatusCode.Unauthorized);
         using var client = CreateClient(handler);
         var coordinator = new RecordingSessionInvalidationCoordinator();
-        var sut = CreateSut(client, coordinator);
+        var sut = CreateSut(
+            client,
+            coordinator,
+            authProvider: new StaticAuthenticationStateProvider(
+                new Claim(ClaimKeys.AccessToken, rejectedToken)));
 
         await Assert.ThrowsAsync<ApiRequestException>(() => sut.GetFromApiAsync<object>("api/one"));
 
         Assert.Single(coordinator.Reasons);
         Assert.Equal("session-invalid", coordinator.Reasons[0]);
+        Assert.Equal(rejectedToken, Assert.Single(coordinator.RejectedAccessTokens));
     }
 
     [Fact]
@@ -214,16 +220,18 @@ public sealed class ApiServicesJsonTransportTests
 
     private sealed class NoOpSessionInvalidationCoordinator : IAuthSessionInvalidationCoordinator
     {
-        public Task InvalidateAsync(string reason) => Task.CompletedTask;
+        public Task InvalidateAsync(string reason, string? rejectedAccessToken = null) => Task.CompletedTask;
     }
 
     private sealed class RecordingSessionInvalidationCoordinator : IAuthSessionInvalidationCoordinator
     {
         public List<string> Reasons { get; } = [];
+        public List<string?> RejectedAccessTokens { get; } = [];
 
-        public Task InvalidateAsync(string reason)
+        public Task InvalidateAsync(string reason, string? rejectedAccessToken = null)
         {
             Reasons.Add(reason);
+            RejectedAccessTokens.Add(rejectedAccessToken);
             return Task.CompletedTask;
         }
     }

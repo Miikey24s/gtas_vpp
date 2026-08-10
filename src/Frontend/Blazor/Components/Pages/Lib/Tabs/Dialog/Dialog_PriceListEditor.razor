@@ -1,3 +1,4 @@
+@* PAGE: Lib/Tabs/Dialog/Dialog_PriceListEditor.razor *@
 @using gtas_vpp_fe.Helpers
 @using gtas_vpp_fe.Services
 @using gtas_vpp_shared.DTOs.Req.Library
@@ -15,10 +16,6 @@
                 <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="Phiên bản" Variant="Variant.Outlined"><RadzenNumeric TValue="int" @bind-Value="Model.Version" Min="1" Style="width:100%" /></RadzenFormField></RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="Tiền tệ" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Style="width:100%" /></RadzenFormField></RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="4"><RadzenFormField Text="Mã hợp đồng" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.ContractCode" Style="width:100%" /></RadzenFormField></RadzenColumn>
-            </RadzenRow>
-            <RadzenRow>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Có hiệu lực từ (UTC)" Variant="Variant.Outlined"><RadzenDatePicker TValue="DateTime?" @bind-Value="Model.EffectiveFromUtc" DateFormat="yyyy-MM-dd HH:mm" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Có hiệu lực đến (UTC)" Variant="Variant.Outlined"><RadzenDatePicker TValue="DateTime?" @bind-Value="Model.EffectiveToUtc" DateFormat="yyyy-MM-dd HH:mm" Style="width:100%" /></RadzenFormField></RadzenColumn>
             </RadzenRow>
             <RadzenRow>
                 <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Chiết khấu %" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.DiscountRate" Min="0" Max="100" Style="width:100%" /></RadzenFormField></RadzenColumn>

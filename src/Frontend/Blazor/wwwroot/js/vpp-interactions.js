@@ -57,14 +57,24 @@
             ? panel.id.substring("popup-".length)
             : "";
         var trigger = triggerId ? document.getElementById(triggerId) : null;
-        if (!trigger || panel.offsetParent === null) {
+        var isPageSize = trigger instanceof Element
+            && trigger.closest(".rz-paginator, .rz-pager") !== null;
+        panel.classList.toggle("vpp-page-size-panel", isPageSize);
+        var isOpen = panel.classList.contains("rz-open")
+            && panel.getClientRects().length > 0;
+        if (!trigger || !isOpen) {
             panel.classList.remove("vpp-transient-surface--above");
-            return;
+            delete panel.dataset.vppDropdownPositioned;
+            return false;
         }
 
         var panelRect = panel.getBoundingClientRect();
         var triggerRect = trigger.getBoundingClientRect();
-        panel.classList.toggle("vpp-transient-surface--above", panelRect.top < triggerRect.top);
+        var openAbove = panelRect.top < triggerRect.top;
+
+        panel.classList.toggle("vpp-transient-surface--above", openAbove);
+        panel.dataset.vppDropdownPositioned = "true";
+        return true;
     }
 
     function scheduleRadzenDropdownDirection(root) {
@@ -82,9 +92,20 @@
         }
 
         Array.from(new Set(panels)).forEach(function (panel) {
-            window.requestAnimationFrame(function () {
-                updateRadzenDropdownDirection(panel);
-            });
+            var attempts = 0;
+            var settle = function () {
+                if (!(panel instanceof Element) || !panel.isConnected) {
+                    return;
+                }
+                if (updateRadzenDropdownDirection(panel)) {
+                    return;
+                }
+                attempts += 1;
+                if (attempts < 24) {
+                    window.requestAnimationFrame(settle);
+                }
+            };
+            settle();
         });
     }
 
@@ -103,7 +124,7 @@
         window.requestAnimationFrame(function () {
             var panel = document.getElementById("popup-" + trigger.id);
             if (panel) {
-                updateRadzenDropdownDirection(panel);
+                scheduleRadzenDropdownDirection(panel);
             }
         });
     }, true);
@@ -123,7 +144,7 @@
         window.requestAnimationFrame(function () {
             var panel = document.getElementById("popup-" + trigger.id);
             if (panel) {
-                updateRadzenDropdownDirection(panel);
+                scheduleRadzenDropdownDirection(panel);
             }
         });
     }, true);
@@ -1135,6 +1156,9 @@
             });
             mutation.addedNodes.forEach(function (node) {
                 addMinimalMutationRoot(pendingAddedRoots, node);
+                if (node instanceof Element && containsNormalizationTarget(node)) {
+                    scheduleRadzenDropdownDirection(node);
+                }
             });
         });
         scheduleInteractionTreeFlush();

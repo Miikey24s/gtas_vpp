@@ -200,7 +200,7 @@ public sealed class PermissionStateTests
 
     private sealed class NoOpSessionInvalidationCoordinator : IAuthSessionInvalidationCoordinator
     {
-        public Task InvalidateAsync(string reason) => Task.CompletedTask;
+        public Task InvalidateAsync(string reason, string? rejectedAccessToken = null) => Task.CompletedTask;
     }
 
     private sealed class PermissionForbiddenHandler : HttpMessageHandler

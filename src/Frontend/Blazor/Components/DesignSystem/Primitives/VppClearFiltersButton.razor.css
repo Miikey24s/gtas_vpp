@@ -1,14 +1,14 @@
 .vpp-clear-filters {
     display: inline-flex;
     min-width: 112px;
-    height: 32px;
+    height: var(--vpp-button-height-compact);
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-1);
-    padding: 0 var(--vpp-space-2);
-    border: 1px solid var(--vpp-border-strong);
-    border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-bg-elevated));
+    padding: 0 var(--vpp-button-padding-inline-compact);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-button);
+    background: transparent;
     color: var(--vpp-primary-700);
     font: inherit;
     font-size: var(--vpp-text-sm);
@@ -18,7 +18,8 @@
 }
 
 .vpp-clear-filters:hover {
-    background: var(--vpp-navigation-item-hover-bg);
+    border-color: var(--vpp-border-strong);
+    background: color-mix(in srgb, var(--vpp-text-primary) 6%, transparent);
     color: var(--vpp-text-primary);
 }
 
@@ -26,7 +27,7 @@
     border-color: transparent;
     background: var(--vpp-primary-500);
     color: var(--vpp-color-white);
-    box-shadow: var(--vpp-shadow-xs);
+    box-shadow: none;
 }
 
 .vpp-clear-filters.is-active:hover {
@@ -40,5 +41,5 @@
 }
 
 .vpp-clear-filters.is-active:focus-visible {
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 42%), var(--vpp-shadow-xs);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 42%);
 }

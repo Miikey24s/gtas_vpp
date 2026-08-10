@@ -1,3 +1,4 @@
+@* PAGE: Authen/LoginPage.razor *@
 @page "/Account/Login"
 @attribute [AllowAnonymous]
 @layout LoginLayout
@@ -19,8 +20,7 @@
                                        Disabled="@isLoading"
                                        @bind-Value=@loginForm.Username
                                        @oninput="HandleUsernameInput"
-                                       @onblur="HandleUsernameBlur"
-                                       @onkeyup="@(args => LoginOnkeyup(args, loginForm))" />
+                                       @onblur="HandleUsernameBlur" />
 
                         <div class="vpp-validation-slot">
                             <span class="vpp-login-validation" role="alert">@UsernameValidationMessage</span>
@@ -38,16 +38,14 @@
                                            Disabled="@isLoading"
                                            @bind-Value=@loginForm.Password
                                            @oninput="HandlePasswordInput"
-                                           @onblur="HandlePasswordBlur"
-                                           @onkeyup="@(args => LoginOnkeyup(args, loginForm))" />
+                                           @onblur="HandlePasswordBlur" />
                             <RadzenPassword Visible="@isShowPass"
                                             class="vpp-login-control"
                                             Name="Password"
                                             Disabled="@isLoading"
                                             @bind-Value=@loginForm.Password
                                             @oninput="HandlePasswordInput"
-                                            @onblur="HandlePasswordBlur"
-                                            @onkeyup="@(args => LoginOnkeyup(args, loginForm))" />
+                                            @onblur="HandlePasswordBlur" />
                             <button type="button"
                                     class="vpp-password-toggle-btn"
                                     title="@(isShowPass ? Loc["HidePassword"] : Loc["ShowPassword"])"

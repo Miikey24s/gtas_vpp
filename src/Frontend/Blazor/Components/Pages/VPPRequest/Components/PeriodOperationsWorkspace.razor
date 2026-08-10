@@ -1,3 +1,4 @@
+@* PAGE: VPPRequest/Components/PeriodOperationsWorkspace.razor *@
 @using System.Security.Claims
 @using gtas_vpp_fe.Features.Requests.Api
 @using gtas_vpp_fe.Features.Settlement.State
@@ -5,25 +6,34 @@
 @inject RequestsQueryClient Requests
 @inject PeriodSettlementState State
 
-@if (isLoadingPeriod)
-{
-    <SkeletonPage Cards="0" Rows="8" Cols="8" />
-}
-else
-{
-    <PeriodSettlementPanel Year="@State.Year"
-                           Month="@State.Month"
-                           CurrentPeriodYear="@currentPeriodYear"
-                           CurrentPeriodMonth="@currentPeriodMonth"
-                           PreviousPeriodYear="@previousPeriodYear"
-                           PreviousPeriodMonth="@previousPeriodMonth"
-                           PeriodChanged="@ChangePeriodAsync"
-                           SettlementChanged="@SettlementChanged" />
-}
+<div class="vpp-period-operations-workspace">
+    @if (string.Equals(ActiveStep, "policy", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(ActiveStep, "periods", StringComparison.OrdinalIgnoreCase))
+    {
+        <OrderPeriodManagementWorkspace />
+    }
+    else if (isLoadingPeriod)
+    {
+        <SkeletonPage Cards="0" Rows="14" Cols="8" FillAvailable="true" />
+    }
+    else
+    {
+        <PeriodSettlementPanel Year="@State.Year"
+                               Month="@State.Month"
+                               CurrentPeriodYear="@currentPeriodYear"
+                               CurrentPeriodMonth="@currentPeriodMonth"
+                               PreviousPeriodYear="@previousPeriodYear"
+                               PreviousPeriodMonth="@previousPeriodMonth"
+                               PeriodChanged="@ChangePeriodAsync"
+                               SettlementChanged="@SettlementChanged" />
+    }
+</div>
 
 @code {
     [Parameter] public IEnumerable<Claim>? Claims { get; set; }
     [Parameter] public string ActiveStep { get; set; } = "review";
+    [Parameter] public int? TargetYear { get; set; }
+    [Parameter] public int? TargetMonth { get; set; }
     [Parameter] public EventCallback<string> NavigateRequested { get; set; }
     [Parameter] public EventCallback SettlementChanged { get; set; }
 
@@ -45,14 +55,33 @@ else
                 previousPeriodYear = period.PreviousPeriodYear;
                 previousPeriodMonth = period.PreviousPeriodMonth;
 
-                // Chốt kỳ mở ở kỳ trước, nhưng nhãn "Kỳ này" luôn trỏ tới kỳ đặt hàng hiện tại.
-                State.SetPeriod(previousPeriodYear, previousPeriodMonth);
+                ApplyRequestedPeriod();
             }
         }
         finally
         {
             isLoadingPeriod = false;
         }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!isLoadingPeriod)
+        {
+            ApplyRequestedPeriod();
+        }
+    }
+
+    private void ApplyRequestedPeriod()
+    {
+        if (TargetYear is >= 2024 and <= 9999 && TargetMonth is >= 1 and <= 12)
+        {
+            State.SetPeriod(TargetYear.Value, TargetMonth.Value);
+            return;
+        }
+
+        // Chốt kỳ mặc định mở ở kỳ trước; deep link có periodYear/periodMonth sẽ ghi đè.
+        State.SetPeriod(previousPeriodYear, previousPeriodMonth);
     }
 
     private Task ChangePeriodAsync(PeriodTargetSelection target)

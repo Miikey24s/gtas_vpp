@@ -1,0 +1,122 @@
+.vpp-decision-select {
+    min-width: 10rem;
+}
+
+.vpp-decision-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-2);
+    width: 100%;
+    min-height: var(--vpp-control-height);
+    padding-inline: var(--vpp-space-3);
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--vpp-radius-md);
+    background: var(--vpp-surface-control);
+    color: var(--vpp-text-primary);
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default) !important;
+    font: inherit;
+    font-weight: var(--vpp-font-weight-medium);
+    cursor: pointer;
+    transition: background-color var(--vpp-transition-fast),
+                color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast);
+}
+
+.vpp-decision-select-trigger:hover {
+    background: color-mix(in srgb, var(--vpp-text-primary) 6%, var(--vpp-surface-control));
+    box-shadow: inset 0 0 0 1px var(--vpp-border-strong) !important;
+}
+
+.vpp-decision-select-trigger:focus-visible {
+    outline: 0;
+    box-shadow: inset 0 0 0 2px var(--vpp-border-focus) !important;
+}
+
+.vpp-decision-select-trigger:disabled {
+    cursor: default;
+    opacity: .62;
+}
+
+.vpp-decision-select-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-decision-select-trigger .vpp-icon {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-md);
+}
+
+.vpp-decision-select-popover {
+    position: fixed;
+    position-area: block-end span-inline-end;
+    inset: auto;
+    min-width: anchor-size(width);
+    width: max-content;
+    max-width: min(24rem, calc(100vw - 1rem));
+    max-height: min(22rem, calc(100vh - 1rem));
+    margin: var(--vpp-space-1) 0 0;
+    padding: var(--vpp-space-1);
+    overflow: auto;
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-surface-menu);
+    color: var(--vpp-text-primary);
+    box-shadow: var(--vpp-shadow-lg);
+}
+
+.vpp-decision-select-popover::backdrop {
+    background: transparent;
+}
+
+.vpp-decision-select-popover button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    width: 100%;
+    min-height: var(--vpp-control-height);
+    padding-inline: var(--vpp-space-3);
+    border: 0;
+    border-radius: var(--vpp-radius-md);
+    background: transparent;
+    color: var(--vpp-text-secondary);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.vpp-decision-select-popover button:hover,
+.vpp-decision-select-popover button:focus-visible {
+    outline: 0;
+    background: color-mix(in srgb, var(--vpp-primary-500) 7%, transparent);
+    color: var(--vpp-text-primary);
+}
+
+.vpp-decision-select-popover button[aria-selected="true"] {
+    background: color-mix(in srgb, var(--vpp-primary-500) 9%, transparent);
+    color: var(--vpp-text-primary);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-decision-select-popover button .vpp-icon {
+    color: var(--vpp-primary-600);
+    font-size: var(--vpp-text-md);
+}
+
+.vpp-decision-select-popover button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@supports not (position-area: block-end) {
+    .vpp-decision-select-popover {
+        inset: var(--vpp-header-height) var(--vpp-space-4) auto auto;
+        margin: 0;
+    }
+}

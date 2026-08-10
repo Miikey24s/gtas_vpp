@@ -52,6 +52,7 @@
     @if (Items.Count == 0 && TotalItemCount > 0)
     {
         <VppContentState State="VppContentStateKind.FilteredEmpty"
+                         FillAvailable="true"
                          Icon="search_off"
                          Title="@Loc["HistoryNoItems"]"
                          Description="@Loc["HistoryNoItemsDescription"]"

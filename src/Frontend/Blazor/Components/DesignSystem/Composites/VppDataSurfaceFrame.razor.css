@@ -33,3 +33,13 @@
     flex-direction: column;
     overflow: hidden;
 }
+
+/* Empty/error/filtered-empty là nội dung chính của data surface tại thời điểm
+   đó, nên phải giữ nguyên geometry của bảng và lấp đầy phần thân còn lại. */
+.vpp-data-surface-body ::deep .vpp-content-state {
+    flex: 1 1 auto;
+    align-self: stretch;
+    min-height: 0;
+    height: 100%;
+    margin: 0;
+}

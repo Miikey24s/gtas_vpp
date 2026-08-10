@@ -83,6 +83,19 @@ public sealed class Settlement : BaseModel
     public DateTime ConfirmedAtUtc { get; set; }
     public int ConfirmedByUserId { get; set; }
 
+    public bool HasExternalProcurementImpact { get; set; }
+    public DateTime? ReopenedAtUtc { get; set; }
+    public int? ReopenedByUserId { get; set; }
+
+    [StringLength(500)]
+    public string? ReopenReason { get; set; }
+
+    [StringLength(128)]
+    public string? ReopenIdempotencyKey { get; set; }
+
+    [StringLength(64)]
+    public string? ReopenCommandPayloadHash { get; set; }
+
     [Timestamp]
     public byte[]? RowVersion { get; set; }
 

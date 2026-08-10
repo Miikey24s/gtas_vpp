@@ -41,6 +41,35 @@ public sealed class AuthSessionInvalidationCoordinatorTests
         Assert.Equal("/logoutprocess?reason=first-rejection", result.Uri);
     }
 
+    [Fact]
+    public async Task InvalidateAsync_CarriesOnlyAOneWayFingerprintOfTheRejectedSession()
+    {
+        const string rejectedToken = "stale-bearer-token";
+        var navigation = new RecordingNavigationManager();
+        var sut = new AuthSessionInvalidationCoordinator(
+            navigation,
+            NullLogger<AuthSessionInvalidationCoordinator>.Instance);
+
+        await sut.InvalidateAsync("session-invalid", rejectedToken);
+
+        var result = Assert.Single(navigation.Navigations);
+        var fingerprint = AuthSessionFingerprint.Create(rejectedToken);
+        Assert.Equal(
+            $"/logoutprocess?reason=session-invalid&expectedSession={fingerprint}",
+            result.Uri);
+        Assert.DoesNotContain(rejectedToken, result.Uri, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SessionFingerprint_RejectsAStaleLogoutAfterANewerLogin()
+    {
+        var oldFingerprint = AuthSessionFingerprint.Create("old-token");
+
+        Assert.True(AuthSessionFingerprint.MatchesOrIsUnspecified(null, "new-token"));
+        Assert.True(AuthSessionFingerprint.MatchesOrIsUnspecified(oldFingerprint, "old-token"));
+        Assert.False(AuthSessionFingerprint.MatchesOrIsUnspecified(oldFingerprint, "new-token"));
+    }
+
     private sealed class RecordingNavigationManager : NavigationManager
     {
         public RecordingNavigationManager()

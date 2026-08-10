@@ -141,6 +141,34 @@ public sealed class RequestsQueryClientTests
     }
 
     [Fact]
+    public async Task Period_sensitive_queries_include_selected_period_id()
+    {
+        var periodId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var endpoints = new List<string>();
+        var api = new StubApiServices
+        {
+            GetAsync = (endpoint, type) =>
+            {
+                endpoints.Add(endpoint);
+                object response = type == typeof(VppPeriodInfoResDTO)
+                    ? new VppPeriodInfoResDTO()
+                    : new VppRequestResDTO();
+                return Task.FromResult<object?>(response);
+            }
+        };
+        var client = new RequestsQueryClient(api);
+
+        await client.GetPeriodInfoAsync(periodId);
+        await client.GetPreviousOrderItemsAsync(periodId);
+
+        Assert.Equal(
+        [
+            $"/api/VPPRequest/period-info?periodId={periodId}",
+            $"/api/VPPRequest/orders/previous-items?periodId={periodId}"
+        ], endpoints);
+    }
+
+    [Fact]
     public async Task HistoryAndPendingQueries_PreserveScopeFiltersAndStats()
     {
         var endpoints = new List<string>();

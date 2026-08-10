@@ -13,7 +13,7 @@ namespace gtas_vpp_be.Tests.Architecture;
 
 public sealed class BackendHttpContractManifestTests
 {
-    private const int ExpectedEndpointCount = 108;
+    private const int ExpectedEndpointCount = 126;
 
     [Fact]
     public void PublicControllerContracts_MatchB0RManifest()
@@ -196,6 +196,19 @@ public sealed class BackendHttpContractManifestTests
         GET | /api/notifications | AUTHENTICATED
         POST | /api/notifications/read-all | AUTHENTICATED
         POST | /api/notifications/{id:guid}/read | AUTHENTICATED
+        GET | /api/order-periods | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods/horizon-preview | POLICY:PERIOD_SETTLE
+        GET | /api/order-periods/settings | POLICY:PERIOD_SETTINGS_MANAGE
+        POST | /api/order-periods/settings | POLICY:PERIOD_SETTINGS_MANAGE
+        GET | /api/order-periods/settings/current | POLICY:PERIOD_SETTLE
+        GET | /api/order-periods/settings/history | POLICY:PERIOD_SETTINGS_MANAGE
+        POST | /api/order-periods/top-up | POLICY:PERIOD_SETTLE
+        PUT | /api/order-periods/{id:guid} | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods/{id:guid}/close-submissions | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods/{id:guid}/delete | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods/{id:guid}/extend-deadline | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods/{id:guid}/reopen-submissions | POLICY:PERIOD_SETTLE
         GET | /api/PeriodSettlement | POLICY:PERIOD_SETTLE
         POST | /api/PeriodSettlement/confirm | POLICY:PERIOD_SETTLE
         GET | /api/PeriodSettlement/current/{y:int}/{m:int} | POLICY:PERIOD_SETTLE
@@ -218,6 +231,10 @@ public sealed class BackendHttpContractManifestTests
         GET | /api/Permission/security-audits/filter-options | POLICY:PERMISSION_MANAGE & POLICY:PERMISSION_VIEW
         GET | /api/Permission/user-groups | POLICY:PERMISSION_VIEW
         GET | /api/Permission/users | POLICY:PERMISSION_VIEW
+        GET | /api/post-settlement-order-corrections | POLICY:PERIOD_SETTLE
+        POST | /api/post-settlement-order-corrections | POLICY:PERIOD_SETTLE
+        POST | /api/post-settlement-order-corrections/{id:guid}/confirm | POLICY:PERIOD_SETTLE
+        POST | /api/post-settlement-order-corrections/{id:guid}/reject | POLICY:PERIOD_SETTLE
         GET | /api/reports/export | POLICY:REPORT_EXPORT
         GET | /api/reports/export.pdf | POLICY:REPORT_EXPORT
         GET | /api/reports/export.xlsx | POLICY:REPORT_EXPORT
@@ -266,6 +283,7 @@ public sealed class BackendHttpContractManifestTests
         GET | /api/VPPRequest/orders/{id:guid}/export.pdf | AUTHENTICATED
         GET | /api/VPPRequest/orders/{id:guid}/export.xlsx | AUTHENTICATED
         GET | /api/VPPRequest/orders/{id:guid}/history | AUTHENTICATED
+        POST | /api/VPPRequest/orders/{id:guid}/manager-adjustment | POLICY:PERIOD_SETTLE
         POST | /api/VPPRequest/orders/{id:guid}/recreate | POLICY:REQUEST_UPDATE_OWN
         POST | /api/VPPRequest/orders/{id:guid}/restore | POLICY:REQUEST_UPDATE_OWN
         GET | /api/VPPRequest/period-demand | POLICY:PERIOD_SETTLE

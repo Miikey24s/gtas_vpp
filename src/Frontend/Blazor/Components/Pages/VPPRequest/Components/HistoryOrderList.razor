@@ -1,8 +1,8 @@
+@* PAGE: VPPRequest/Components/HistoryOrderList.razor *@
 @* Atlas history order list: toolbar lọc (tìm kiếm · loại đơn · trạng thái · xóa bộ lọc) + bảng đơn phân trang server + danh sách mobile. *@
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_fe.Helpers
 @using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryUiKeys
-@using static gtas_vpp_fe.Components.Pages.VPPRequest.Components.HistoryFormat
 
 <section class="vpp-history-orders-card @Class" aria-labelledby="history-orders-title">
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
@@ -11,6 +11,7 @@
                          AriaLabelledBy="history-orders-title"
                          TestId="@TestId"
                          Class="vpp-history-data-frame">
+    @* TOOLBAR: Tìm kiếm, lọc loại/trạng thái và xóa bộ lọc. *@
     <Toolbar>
         <VppDataToolbar AriaLabel="@Loc["HistoryOrderList"]"
                         Class="vpp-history-orders-toolbar">
@@ -45,17 +46,19 @@
     @if (HasGridLoadError)
     {
         <VppContentState State="VppContentStateKind.Error"
+                         FillAvailable="true"
                          Icon="error"
                          Title="@Loc["HistoryLoadFailed"]"
                          Description="@Loc["HistoryLoadErrorDescription"]"
                          PrimaryActionText="@Loc["Retry"]"
-                         PrimaryActionIcon="@VppIcons.Refresh"
+                         PrimaryActionIcon="@VppIcons.Reset"
                          PrimaryAction="@(_ => RetryRequested.InvokeAsync())"
                          Class="vpp-history-state-panel vpp-history-grid-state" />
     }
     else if (TotalCount == 0 && !IsGridLoading)
     {
         <VppContentState State="VppContentStateKind.FilteredEmpty"
+                         FillAvailable="true"
                          Icon="search_off"
                          Title="@Loc["NoOrdersMatchSelectedFilters"]"
                          Description="@Loc["HistoryAdjustFilters"]"
@@ -63,6 +66,7 @@
     }
     else
     {
+        @* ROWS: Danh sách phiếu lịch sử có phân trang. *@
         <div class="vpp-history-grid-wrap">
             <RadzenDataGrid TItem="VppRequestResDTO"
                             @key="(PageSize, SelectedOrderId)"
@@ -87,6 +91,7 @@
                             GridLines="DataGridGridLines.Horizontal"
                             IsLoading="@IsGridLoading"
                             class="vpp-history-grid vpp-data-grid vpp-data-density-compact">
+                @* COLUMNS: Kỳ, trạng thái kỳ, mã đơn, loại đơn, trạng thái đơn, ngày gửi và ghi chú. *@
                 <Columns>
                     @if (Columns is not null)
                     {
@@ -98,6 +103,11 @@
                         <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="Period" Title="@Loc["Period"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center" />
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="PeriodState" Title="@Loc["PeriodStateLabel"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-period-state vpp-history-col-center" HeaderCssClass="vpp-history-col-period-state vpp-history-col-center">
+                        <Template Context="row">
+                            <VppPeriodStateBadge State="@row.PeriodState" Compact="true" Class="vpp-history-period-state" />
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="VppCode" Title="@Loc["OrderCode"]" CssClass="vpp-history-col-left" HeaderCssClass="vpp-history-col-left">
                         <Template Context="row">
                             <VppCellValuePopover Value="@row.VppCode"
@@ -114,20 +124,14 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Title="@Loc["HistoryOrderType"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-type vpp-history-col-center" HeaderCssClass="vpp-history-col-type vpp-history-col-center">
                         <Template Context="row">
-                            <span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">
-                                @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])
-                            </span>
+                            <VppCategoryChip Text="@(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])"
+                                             Tone="@(row.IsAdditionalOrder ? VppCategoryTone.Accent : VppCategoryTone.Neutral)"
+                                             Class="vpp-history-order-type" />
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-status vpp-history-col-center" HeaderCssClass="vpp-history-col-status vpp-history-col-center">
                         @* Render trạng thái qua resx để badge và bộ lọc dùng chung một copy ("Đã từ chối"...). *@
                         <Template Context="row"><VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" /></Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalLines" Title="@Loc["HistoryItem"]" TextAlign="TextAlign.Right" CssClass="vpp-history-col-right" HeaderCssClass="vpp-history-col-right">
-                        <Template Context="row"><span class="vpp-history-number">@FormatNumber(row.TotalLines)</span></Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="TotalQty" Title="@Loc["Quantity"]" TextAlign="TextAlign.Right" CssClass="vpp-history-col-right" HeaderCssClass="vpp-history-col-right">
-                        <Template Context="row"><span class="vpp-history-number">@FormatNumber(row.TotalQty)</span></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="SubmittedDate" Title="@Loc["SubmittedDate"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-date vpp-history-col-center" HeaderCssClass="vpp-history-col-date vpp-history-col-center">
                         <Template Context="row"><span class="vpp-history-date">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</span></Template>
@@ -176,8 +180,14 @@
                         <strong>@row.VppCode</strong>
                         <VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" />
                     </span>
-                    <span class="vpp-history-order-type @(row.IsAdditionalOrder ? "is-additional" : "is-regular")">@row.Period · @(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span>
-                    <span>@Loc["HistoryItem"]: @FormatNumber(row.TotalLines) · @Loc["Quantity"]: @FormatNumber(row.TotalQty)</span>
+                    <span>@row.Period</span>
+                    <VppCategoryChip Text="@(row.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])"
+                                     Tone="@(row.IsAdditionalOrder ? VppCategoryTone.Accent : VppCategoryTone.Neutral)"
+                                     Class="vpp-history-order-type" />
+                    @if (PeriodStateDisplay.IsKnown(row.PeriodState))
+                    {
+                        <span class="vpp-history-mobile-period-state"><span>@Loc["PeriodStateLabel"]:</span><VppPeriodStateBadge State="@row.PeriodState" Class="vpp-history-period-state" /></span>
+                    }
                     <span class="vpp-history-note">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span>
                     }
                 </button>

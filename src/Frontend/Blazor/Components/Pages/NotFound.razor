@@ -1,3 +1,4 @@
+@* PAGE: NotFound.razor *@
 @page "/not-found"
 @layout MainLayout
 
@@ -8,6 +9,7 @@
                    Description="@Loc["PageNotFoundDescription"]"
                    HeadingId="not-found-heading" />
     <VppContentState State="VppContentStateKind.Empty"
+                     FillAvailable="true"
                      Icon="search_off"
                      Title="@Loc["PageNotFound"]"
                      Description="@Loc["PageNotFoundDescription"]"

@@ -1,3 +1,4 @@
+@* PAGE: VPPRequest/Page_VPPRequest.razor *@
 @page "/dashboard/{Per?}"
 @layout MainLayout
 @inherits gtas_vpp_fe.Components.Pages.PermissionAwarePageBase
@@ -16,7 +17,7 @@
 @if (!RendererInfo.IsInteractive)
 {
     <section class="vpp-page" aria-busy="true">
-        <SkeletonPage Cards="3" Rows="8" Cols="5" />
+        <SkeletonPage Cards="3" Rows="8" Cols="5" FillAvailable="true" />
     </section>
 }
 else

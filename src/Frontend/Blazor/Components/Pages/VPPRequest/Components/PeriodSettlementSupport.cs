@@ -1,3 +1,4 @@
+// PAGE LOGIC: VPPRequest/Components/PeriodSettlementSupport.cs
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
 {
     /// <summary>
@@ -7,6 +8,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components
     /// </summary>
     public static class PeriodSettlementSupport
     {
+        // MAPPING: Chuyển mã blocker từ backend thành thông báo dễ hiểu cho người dùng.
         public static string DescribeBlocker(string blocker)
         {
             if (string.IsNullOrWhiteSpace(blocker))

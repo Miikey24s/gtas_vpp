@@ -33,6 +33,9 @@ public sealed record SettlementDepartmentRow(
     int TotalLines,
     int TotalQuantity,
     long TotalAmount,
+    decimal NetAmount,
+    decimal VatAmount,
+    decimal GrossAmount,
     SettlementOrderGroupStatus Status);
 
 public sealed record SettlementRequesterRow(
@@ -45,6 +48,9 @@ public sealed record SettlementRequesterRow(
     int TotalLines,
     int TotalQuantity,
     long TotalAmount,
+    decimal NetAmount,
+    decimal VatAmount,
+    decimal GrossAmount,
     SettlementOrderGroupStatus Status);
 
 public static class SettlementWorkspaceProjection
@@ -97,7 +103,8 @@ public static class SettlementWorkspaceProjection
     public static List<SettlementDepartmentRow> BuildDepartmentRows(
         IEnumerable<VppRequestResDTO> orders,
         IReadOnlyList<DepartmentResDTO> departments,
-        SettlementOrderGroupFilter filter)
+        SettlementOrderGroupFilter filter,
+        IReadOnlyList<SettlementFinancialAllocationResDTO>? allocations = null)
     {
         var search = filter.Search.Trim();
         return orders
@@ -105,7 +112,7 @@ public static class SettlementWorkspaceProjection
             .GroupBy(
                 order => DisplayDepartment(order.DepartmentCode),
                 StringComparer.CurrentCultureIgnoreCase)
-            .Select(group => CreateDepartmentRow(group.Key, group.ToList(), departments))
+            .Select(group => CreateDepartmentRow(group.Key, group.ToList(), departments, allocations ?? []))
             .OrderBy(row => row.DepartmentName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
@@ -113,13 +120,14 @@ public static class SettlementWorkspaceProjection
     public static List<SettlementRequesterRow> BuildRequesterRows(
         IEnumerable<VppRequestResDTO> orders,
         IReadOnlyList<DepartmentResDTO> departments,
-        SettlementOrderGroupFilter filter)
+        SettlementOrderGroupFilter filter,
+        IReadOnlyList<SettlementFinancialAllocationResDTO>? allocations = null)
     {
         var search = filter.Search.Trim();
         return orders
             .Where(order => MatchesOrderGroupFilter(order, departments, filter, search))
             .GroupBy(GetRequesterGroupKey)
-            .Select(group => CreateRequesterRow(group.ToList(), departments))
+            .Select(group => CreateRequesterRow(group.ToList(), departments, allocations ?? []))
             .OrderBy(row => row.RequesterName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
@@ -152,8 +160,10 @@ public static class SettlementWorkspaceProjection
     private static SettlementDepartmentRow CreateDepartmentRow(
         string departmentCode,
         IReadOnlyList<VppRequestResDTO> departmentOrders,
-        IReadOnlyList<DepartmentResDTO> departments)
+        IReadOnlyList<DepartmentResDTO> departments,
+        IReadOnlyList<SettlementFinancialAllocationResDTO> allocations)
     {
+        var financials = SumFinancials(departmentOrders, allocations);
         return new SettlementDepartmentRow(
             departmentCode,
             GetDepartmentName(departmentCode, departments),
@@ -163,14 +173,19 @@ public static class SettlementWorkspaceProjection
             departmentOrders.Sum(order => order.TotalLines),
             departmentOrders.Sum(order => order.TotalQty),
             departmentOrders.Sum(order => order.TotalAmount),
+            financials.NetAmount,
+            financials.VatAmount,
+            financials.GrossAmount,
             ResolveGroupStatus(departmentOrders));
     }
 
     private static SettlementRequesterRow CreateRequesterRow(
         IReadOnlyList<VppRequestResDTO> requesterOrders,
-        IReadOnlyList<DepartmentResDTO> departments)
+        IReadOnlyList<DepartmentResDTO> departments,
+        IReadOnlyList<SettlementFinancialAllocationResDTO> allocations)
     {
         var firstOrder = requesterOrders[0];
+        var financials = SumFinancials(requesterOrders, allocations);
         return new SettlementRequesterRow(
             firstOrder.CreatedByUserId,
             GetRequesterName(requesterOrders),
@@ -181,7 +196,22 @@ public static class SettlementWorkspaceProjection
             requesterOrders.Sum(order => order.TotalLines),
             requesterOrders.Sum(order => order.TotalQty),
             requesterOrders.Sum(order => order.TotalAmount),
+            financials.NetAmount,
+            financials.VatAmount,
+            financials.GrossAmount,
             ResolveGroupStatus(requesterOrders));
+    }
+
+    private static (decimal NetAmount, decimal VatAmount, decimal GrossAmount) SumFinancials(
+        IReadOnlyList<VppRequestResDTO> orders,
+        IReadOnlyList<SettlementFinancialAllocationResDTO> allocations)
+    {
+        var orderIds = orders.Select(order => order.Id).ToHashSet();
+        var matching = allocations.Where(allocation => orderIds.Contains(allocation.RequestHeaderId)).ToArray();
+        return (
+            matching.Sum(allocation => allocation.NetAmount),
+            matching.Sum(allocation => allocation.VatAmount),
+            matching.Sum(allocation => allocation.NetAmount + allocation.VatAmount));
     }
 
     private static SettlementOrderGroupStatus ResolveGroupStatus(IReadOnlyList<VppRequestResDTO> orders) =>

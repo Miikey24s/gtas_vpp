@@ -122,8 +122,10 @@ public sealed class RequestsQueryClient(IAPIServices api)
         return items;
     }
 
-    public Task<VppPeriodInfoResDTO?> GetPeriodInfoAsync() =>
-        api.GetFromApiAsync<VppPeriodInfoResDTO>($"{RequestsBase}/period-info");
+    public Task<VppPeriodInfoResDTO?> GetPeriodInfoAsync(Guid? periodId = null) =>
+        api.GetFromApiAsync<VppPeriodInfoResDTO>(periodId.HasValue
+            ? $"{RequestsBase}/period-info?periodId={periodId.Value}"
+            : $"{RequestsBase}/period-info");
 
     public async Task<IReadOnlyList<VppRequestResDTO>> GetMyOrdersAsync(
         IReadOnlyList<OrderPeriod> periods)
@@ -141,8 +143,10 @@ public sealed class RequestsQueryClient(IAPIServices api)
     public Task<VppRequestResDTO?> GetOrderAsync(Guid orderId) =>
         api.GetFromApiAsync<VppRequestResDTO>($"{RequestsBase}/orders/{orderId}");
 
-    public Task<VppRequestResDTO?> GetPreviousOrderItemsAsync() =>
-        api.GetFromApiAsync<VppRequestResDTO>($"{RequestsBase}/orders/previous-items");
+    public Task<VppRequestResDTO?> GetPreviousOrderItemsAsync(Guid? periodId = null) =>
+        api.GetFromApiAsync<VppRequestResDTO>(periodId.HasValue
+            ? $"{RequestsBase}/orders/previous-items?periodId={periodId.Value}"
+            : $"{RequestsBase}/orders/previous-items");
 
     public Task<VppRequestHistoryResDTO?> GetOrderHistoryAsync(Guid orderId) =>
         api.GetFromApiAsync<VppRequestHistoryResDTO>($"{RequestsBase}/orders/{orderId}/history");

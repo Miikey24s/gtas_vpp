@@ -1,4 +1,5 @@
 .vpp-segmented-selector {
+    box-sizing: border-box;
     position: relative;
     display: inline-grid;
     grid-auto-columns: 1fr;
@@ -6,16 +7,16 @@
     width: max-content;
     max-width: 100%;
     min-width: 0;
-    min-height: 36px;
+    min-height: var(--vpp-button-height);
     align-items: stretch;
     gap: 2px;
     padding: 2px;
     overflow-x: auto;
     scroll-padding-inline: var(--vpp-space-1);
     border: var(--vpp-border-width) solid color-mix(in srgb, var(--vpp-border-default) 72%, transparent);
-    border-radius: 10px;
+    border-radius: var(--vpp-radius-lg);
     background: color-mix(in srgb, var(--vpp-border-default) 42%, var(--vpp-bg-elevated));
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
+    box-shadow: none;
     white-space: nowrap;
 }
 
@@ -25,27 +26,31 @@
     inset-block: 2px;
     inset-inline-start: 0;
     width: var(--vpp-segmented-indicator-width, 0);
-    border-radius: 7px;
+    border-radius: var(--vpp-radius-button);
     background: var(--vpp-primary-500);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 20%), inset 0 1px 0 rgb(255 255 255 / 10%);
+    box-shadow: none;
     transform: translateX(var(--vpp-segmented-indicator-x, 0));
     transition: transform var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing),
                 width var(--vpp-navigation-motion-duration) var(--vpp-navigation-motion-easing);
     pointer-events: none;
 }
 
+.vpp-segmented-selector[data-vpp-indicator-motion="off"] .vpp-segmented-indicator {
+    transition: none;
+}
+
 .vpp-segmented-selector button {
     position: relative;
     z-index: 1;
     display: inline-flex;
-    min-height: 30px;
+    min-height: var(--vpp-button-height-compact);
     width: 100%;
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-2);
-    padding: 0 13px;
+    padding: 0 var(--vpp-button-padding-inline);
     border: 0;
-    border-radius: 7px;
+    border-radius: var(--vpp-radius-button);
     background: transparent;
     color: color-mix(in srgb, var(--vpp-text-primary) 84%, var(--vpp-bg-elevated));
     font: inherit;

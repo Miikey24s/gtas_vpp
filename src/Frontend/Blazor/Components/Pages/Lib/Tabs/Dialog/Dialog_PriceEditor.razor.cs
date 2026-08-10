@@ -1,3 +1,4 @@
+// PAGE LOGIC: Lib/Tabs/Dialog/Dialog_PriceEditor.razor.cs
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Components;

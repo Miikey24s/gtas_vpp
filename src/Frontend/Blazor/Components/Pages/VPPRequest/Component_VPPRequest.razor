@@ -1,11 +1,11 @@
+@* PAGE: VPPRequest/Component_VPPRequest.razor *@
 @using gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 @using gtas_vpp_shared.Constants
 
-
-
-
+@* HEADER: Nhóm tab điều hướng chính của khu vực VPP Request. *@
 @if (HasAnyAuthorizedDashboardTab)
 {
+    @* CONTENT: Nội dung của tab đang được chọn theo quyền người dùng. *@
     <RadzenTabs Change="@TabOnChange"
                 TabPosition="@tabPosition"
                 class="@(IsActiveTab(0) ? "vpp-admin-tabs vpp-orders-shell" : UsesHistoryWorkspace ? "vpp-admin-tabs vpp-history-shell" : IsActiveTab(2) || IsActiveTab(5) ? "vpp-admin-tabs vpp-bounded-shell" : "vpp-admin-tabs")"

@@ -950,6 +950,58 @@ public class VPPRequestControllerTests
         Assert.Equal(new[] { "Submitted", "Approved" }, values);
     }
 
+    [Fact]
+    public async Task GetAllOrders_SummaryOnly_UsesLightweightSnapshotQuery()
+    {
+        var summaries = new List<VppRequestResDTO>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                VppCode = "VPP-202607-001",
+                Year = 2026,
+                Month = 7,
+                DepartmentCode = "IT",
+                TotalLines = 3,
+                TotalQty = 8,
+                TotalAmount = 120_000
+            }
+        };
+        var service = new Mock<IVPPRequestService>();
+        service.Setup(item => item.GetAllOrderSummariesPagedAsync(
+                2026,
+                7,
+                null,
+                null,
+                0,
+                500,
+                "77500"))
+            .ReturnsAsync((summaries, 1, 3, 8, 120_000));
+        var controller = CreateController(
+            service.Object,
+            new Claim("UserID", "5615"),
+            new Claim("MemberCompanyCode", "77500"));
+
+        var result = await controller.GetAllOrders(
+            2026,
+            7,
+            null,
+            null,
+            0,
+            500,
+            null,
+            null,
+            summaryOnly: true);
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        Assert.Same(summaries, ok.Value);
+        Assert.Equal("1", controller.Response.Headers["X-Total-Count"].ToString());
+        Assert.Equal("3", controller.Response.Headers["X-Total-Lines"].ToString());
+        Assert.Equal("8", controller.Response.Headers["X-Total-Qty"].ToString());
+        Assert.Equal("120000", controller.Response.Headers["X-Total-Amount"].ToString());
+        service.VerifyAll();
+    }
+
     private static VPPRequestController CreateController(IVPPRequestService service, params Claim[] claims)
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

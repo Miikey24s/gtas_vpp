@@ -196,7 +196,8 @@
   <data name="Reload" xml:space="preserve"><value>Reload</value></data>
     <data name="CreateOrderThisCycle" xml:space="preserve"><value>Create order for this cycle</value></data>
   <data name="CopyPreviousOrder" xml:space="preserve"><value>Copy Previous Cycle</value></data>
-  <data name="ActiveOrderPeriod" xml:space="preserve"><value>Current Order Cycle</value></data>
+  <data name="OrderPeriod" xml:space="preserve"><value>Order period</value></data>
+  <data name="OrderPeriodIndependentHint" xml:space="preserve"><value>Each period has its own deadline and order.</value></data>
   <data name="PeriodEnd" xml:space="preserve"><value>Submission Deadline</value></data>
   <data name="TotalLineItems" xml:space="preserve"><value>Total items</value></data>
   <data name="TotalQuantity" xml:space="preserve"><value>Total Quantity</value></data>
@@ -314,12 +315,21 @@
   <data name="RejectOrderConfirm" xml:space="preserve"><value>Are you sure you want to reject order {0}?</value></data>
   <data name="RejectOrderFailedFormat" xml:space="preserve"><value>Failed to reject order: {0}</value></data>
   <data name="RejectOrderTitle" xml:space="preserve"><value>Reject Order</value></data>
-  <data name="RefreshQueue" xml:space="preserve"><value>Refresh queue</value></data>
   <data name="StatusUnknown" xml:space="preserve"><value>Unknown</value></data>
   <data name="Submitted" xml:space="preserve"><value>Submitted</value></data>
   <data name="SubmittedDate" xml:space="preserve"><value>Submitted On</value></data>
   <data name="SubmittedLabel" xml:space="preserve"><value>Submitted at:</value></data>
-  <data name="SubmittedPeriodClosed" xml:space="preserve"><value>Submitted (Period Closed)</value></data>
+  <data name="PeriodStateOpen" xml:space="preserve"><value>Accepting orders</value></data>
+  <data name="PeriodStateLabel" xml:space="preserve"><value>Period status</value></data>
+  <data name="PeriodStateOpenCompact" xml:space="preserve"><value>Open</value></data>
+  <data name="PeriodStateSubmissionClosed" xml:space="preserve"><value>Closed</value></data>
+  <data name="PeriodStateSubmissionClosedCompact" xml:space="preserve"><value>Closed</value></data>
+  <data name="PeriodStatePricing" xml:space="preserve"><value>Settlement in progress</value></data>
+  <data name="PeriodStatePricingCompact" xml:space="preserve"><value>Settling</value></data>
+  <data name="PeriodStateSettled" xml:space="preserve"><value>Period settled</value></data>
+  <data name="PeriodStateSettledCompact" xml:space="preserve"><value>Settled</value></data>
+  <data name="PeriodStateDraft" xml:space="preserve"><value>Draft</value></data>
+  <data name="PeriodStateScheduled" xml:space="preserve"><value>Scheduled</value></data>
   <data name="TotalOrders" xml:space="preserve"><value>Total Orders</value></data>
   <data name="TotalProducts" xml:space="preserve"><value>Total items</value></data>
   <data name="UOM" xml:space="preserve"><value>Unit</value></data>
@@ -449,7 +459,7 @@
   <data name="PriceListSaved" xml:space="preserve"><value>Price list saved</value></data>
   <data name="PriceListDeleted" xml:space="preserve"><value>Price list deleted</value></data>
   <data name="PriceListCloned" xml:space="preserve"><value>Price list cloned</value></data>
-  <data name="PeriodOperations" xml:space="preserve"><value>Period Management</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Order period management</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Pending Approvals</value></data>
   <data name="PeriodSettlement" xml:space="preserve"><value>Period Settlement</value></data>
   <data name="PriceList" xml:space="preserve"><value>Price List</value></data>
@@ -492,7 +502,6 @@
   <data name="NoReportData" xml:space="preserve"><value>No report data</value></data>
   <data name="NoReportDataDescription" xml:space="preserve"><value>Change the scope or reporting period and try again.</value></data>
   <data name="Pricing" xml:space="preserve"><value>Pricing</value></data>
-  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="ReportDepartments" xml:space="preserve"><value>Cost by department</value></data>
   <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Cost, order count, and quantity by department in the allowed scope.</value></data>
   <data name="ReportExportFailed" xml:space="preserve"><value>Could not export the report: {0}</value></data>
@@ -788,11 +797,11 @@
   <data name="SettleReadinessOrders" xml:space="preserve"><value>Pooled {0} items from {1} valid demand lines.</value></data>
   <data name="SettleReadinessCoverage" xml:space="preserve"><value>The primary supply source covers all demand (including declared exceptions).</value></data>
   <data name="SettleReadinessNoBlockers" xml:space="preserve"><value>No settlement blockers remain.</value></data>
-  <data name="SettleImmutableNote" xml:space="preserve"><value>Once confirmed, settlement data is stored immutably; any later change requires a correction revision under the four-eyes rule.</value></data>
-  <data name="CorrectionReasonLabel" xml:space="preserve"><value>Correction reason</value></data>
-  <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Enter the correction reason (5–500 characters)</value></data>
-  <data name="CorrectionFourEyesHint" xml:space="preserve"><value>A reason is required; the confirmer must differ from whoever confirmed the previous revision.</value></data>
-  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Create correction revision</value></data>
+  <data name="SettleImmutableNote" xml:space="preserve"><value>After settlement, the current version is kept unchanged. Any later update is saved as a new version.</value></data>
+  <data name="CorrectionReasonLabel" xml:space="preserve"><value>Reason for adjustment</value></data>
+  <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Briefly explain why this change is needed (5–500 characters)</value></data>
+  <data name="CorrectionFourEyesHint" xml:space="preserve"><value>The current version stays in history. A manager other than the person who confirmed it must make this change.</value></data>
+  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Save adjusted version</value></data>
   <data name="SettlePreviewResultAria" xml:space="preserve"><value>Settlement preview result</value></data>
   <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Preview result</value></data>
   <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Supply coverage and total value</value></data>
@@ -813,13 +822,13 @@
   <data name="SettlePreviewNoData" xml:space="preserve"><value>The preview step returned no data.</value></data>
   <data name="SettlePreviewCoverageSummary" xml:space="preserve"><value>{0}: covers {1}/{2} items, total {3} VND.</value></data>
   <data name="SettleSupplierFallback" xml:space="preserve"><value>Supplier</value></data>
-  <data name="CorrectionReasonLengthWarning" xml:space="preserve"><value>The correction reason must be 5 to 500 characters.</value></data>
-  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>The previous preview expired after the revision was saved. Preview again before another correction.</value></data>
+  <data name="CorrectionReasonLengthWarning" xml:space="preserve"><value>The change reason must be 5 to 500 characters.</value></data>
+  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>The preview changed after saving. Review it again before making another adjustment.</value></data>
   <data name="CorrectionRerunPreviewAction" xml:space="preserve"><value>Preview again</value></data>
-  <data name="CorrectionConfirmFormat" xml:space="preserve"><value>Create a correction revision for period {0:D2}/{1}?</value></data>
-  <data name="CorrectionDialogTitle" xml:space="preserve"><value>Correct settlement result</value></data>
-  <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>The current settlement revision could not be found.</value></data>
-  <data name="CorrectionCreated" xml:space="preserve"><value>Correction revision created</value></data>
+  <data name="CorrectionConfirmFormat" xml:space="preserve"><value>Save the changes for period {0:D2}/{1} as a new settlement version?</value></data>
+  <data name="CorrectionDialogTitle" xml:space="preserve"><value>Adjust after settlement</value></data>
+  <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>The settlement version in use could not be found.</value></data>
+  <data name="CorrectionCreated" xml:space="preserve"><value>New settlement version saved</value></data>
   <data name="SupplyPrimarySupplier" xml:space="preserve"><value>Primary supplier</value></data>
   <data name="SupplyAutoRank" xml:space="preserve"><value>(Auto-rank by coverage)</value></data>
   <data name="SupplyEffectivePriceList" xml:space="preserve"><value>Effective price list</value></data>
@@ -852,7 +861,7 @@
   <data name="Restore" xml:space="preserve"><value>Restore</value></data>
   <data name="LibraryAllStatuses" xml:space="preserve"><value>All statuses</value></data>
   <data name="PriceListStatusDraft" xml:space="preserve"><value>Draft</value></data>
-  <data name="PriceListStatusPublished" xml:space="preserve"><value>Published</value></data>
+  <data name="PriceListStatusPublished" xml:space="preserve"><value>Active</value></data>
   <data name="PriceListStatusExpired" xml:space="preserve"><value>Expired</value></data>
   <data name="SupplyReadyMessage" xml:space="preserve"><value>Supply covers all demand and no blockers remain.</value></data>
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Continue to settlement</value></data>
@@ -863,7 +872,7 @@
   <data name="ReviewHeroBlocked" xml:space="preserve"><value>Cannot settle yet</value></data>
   <data name="ReviewHeroBlockedMeta" xml:space="preserve"><value>Blocking conditions remain before you can continue.</value></data>
   <data name="ReviewHeroSettled" xml:space="preserve"><value>Period settled</value></data>
-  <data name="ReviewHeroSettledMeta" xml:space="preserve"><value>Period data is stored immutably; changes require a correction revision.</value></data>
+  <data name="ReviewHeroSettledMeta" xml:space="preserve"><value>The period is settled. Any change is saved as a new version while the previous version remains available.</value></data>
   <data name="ReviewNoPendingSupplements" xml:space="preserve"><value>No supplement orders awaiting approval.</value></data>
   <data name="ReviewPendingSupplementsFormat" xml:space="preserve"><value>{0} supplement orders awaiting approval are blocking settlement.</value></data>
   <data name="ReviewValidOrdersFormat" xml:space="preserve"><value>{0} current valid orders in the period.</value></data>
@@ -878,7 +887,7 @@
   <data name="SupplierShortName" xml:space="preserve"><value>Short name</value></data>
   <data name="VatRate" xml:space="preserve"><value>VAT</value></data>
   <data name="SupplierSku" xml:space="preserve"><value>Supplier SKU</value></data>
-  <data name="MinimumOrderQuantity" xml:space="preserve"><value>MOQ</value></data>
+  <data name="MinimumOrderQuantity" xml:space="preserve"><value>Minimum quantity</value></data>
   <data name="LeadTimeDays" xml:space="preserve"><value>Lead days</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
   <data name="Default" xml:space="preserve"><value>Default</value></data>
@@ -1030,7 +1039,7 @@
   <data name="SettlementEvidenceDescription" xml:space="preserve"><value>This report uses the data saved when the period was settled.</value></data>
   <data name="SettlementRevision" xml:space="preserve"><value>Revision</value></data>
   <data name="SettlementPrimarySupplier" xml:space="preserve"><value>Primary supplier</value></data>
-  <data name="SettlementGrandTotal" xml:space="preserve"><value>Settlement total</value></data>
+  <data name="SettlementGrandTotal" xml:space="preserve"><value>Total value</value></data>
   <data name="SettlementVariance" xml:space="preserve"><value>Allocation variance</value></data>
   <data name="ReportCost" xml:space="preserve"><value>Cost</value></data>
   <data name="ReportDepartmentsSettledDescription" xml:space="preserve"><value>Figures recorded when the period was settled.</value></data>
@@ -1047,9 +1056,28 @@
   <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Select a supplier with sufficient coverage to continue.</value></data>
   <data name="SettlementCurrentPeriod" xml:space="preserve"><value>Current period</value></data>
   <data name="SettlementCustomPeriod" xml:space="preserve"><value>Custom</value></data>
-  <data name="SettlementByItem" xml:space="preserve"><value>Items</value></data>
-  <data name="SettlementByDepartment" xml:space="preserve"><value>Departments</value></data>
-  <data name="SettlementByRequester" xml:space="preserve"><value>Users</value></data>
+  <data name="SettlementByItem" xml:space="preserve"><value>By item</value></data>
+  <data name="SettlementByDepartment" xml:space="preserve"><value>By department</value></data>
+  <data name="SettlementByRequester" xml:space="preserve"><value>By requester</value></data>
+  <data name="SettlementViewOrders" xml:space="preserve"><value>View orders</value></data>
+  <data name="SettlementPriceCoverage" xml:space="preserve"><value>Price coverage</value></data>
+  <data name="SettlementPayableTotal" xml:space="preserve"><value>Total payable</value></data>
+  <data name="SettlementSelectSupplier" xml:space="preserve"><value>Select supplier</value></data>
+  <data name="SettlementSelectPriceList" xml:space="preserve"><value>Select price list</value></data>
+  <data name="SettlementSubtotalAndVat" xml:space="preserve"><value>Before VAT and VAT</value></data>
+  <data name="SettlementNetAmount" xml:space="preserve"><value>Subtotal</value></data>
+  <data name="SettlementGrossAmount" xml:space="preserve"><value>Amount incl. VAT</value></data>
+  <data name="SettlementVatRate" xml:space="preserve"><value>VAT</value></data>
+  <data name="SettlementAllOrdersInGroup" xml:space="preserve"><value>All orders in group</value></data>
+  <data name="SettlementGroupOrderCount" xml:space="preserve"><value>Orders in group</value></data>
+  <data name="SettlementIncludesVat" xml:space="preserve"><value>VAT included</value></data>
+  <data name="SettlementBeforeVat" xml:space="preserve"><value>Before VAT</value></data>
+  <data name="SettlementVatAmount" xml:space="preserve"><value>VAT</value></data>
+  <data name="SettlementRequestValue" xml:space="preserve"><value>Order value</value></data>
+  <data name="SettlementQuoteBasis" xml:space="preserve"><value>Total payable uses the settlement price book; Order value is the amount stored on each request.</value></data>
+  <data name="SettlementCoverageFormat" xml:space="preserve"><value>{0}/{1} priced items</value></data>
+  <data name="SettlementSnapshotItemCount" xml:space="preserve"><value>{0} items in the settlement snapshot</value></data>
+  <data name="SettlementOrderPicker" xml:space="preserve"><value>Orders in this group</value></data>
   <data name="SettlementNeedsReview" xml:space="preserve"><value>Needs review</value></data>
   <data name="ViewFullscreen" xml:space="preserve"><value>View fullscreen</value></data>
   <data name="ExitFullscreen" xml:space="preserve"><value>Exit fullscreen</value></data>
@@ -1150,4 +1178,163 @@
   <data name="EditMembershipAssignment" xml:space="preserve"><value>Change the account permission group or department.</value></data>
   <data name="MembershipChangeUnavailable" xml:space="preserve"><value>This account assignment cannot be changed in its current state.</value></data>
   <data name="SelfPasswordLinkBlocked" xml:space="preserve"><value>You cannot send a password reset link to the account currently signed in from here.</value></data>
+  <data name="Published" xml:space="preserve"><value>Published</value></data>
+  <data name="Retired" xml:space="preserve"><value>Retired</value></data>
+  <data name="Publish" xml:space="preserve"><value>Publish</value></data>
+  <data name="Action" xml:space="preserve"><value>Action</value></data>
+  <data name="PeriodPolicyNavigation" xml:space="preserve"><value>Order periods</value></data>
+  <data name="PeriodPolicyLoadFailed" xml:space="preserve"><value>Period settings could not be loaded</value></data>
+  <data name="PeriodPolicyLoadFailedHint" xml:space="preserve"><value>Check the connection and period-management permission, then try again.</value></data>
+  <data name="PeriodPolicyEyebrow" xml:space="preserve"><value>Office-supply ordering calendar</value></data>
+  <data name="PeriodPolicyTitle" xml:space="preserve"><value>Order period settings</value></data>
+  <data name="PeriodPolicyDescription" xml:space="preserve"><value>Define opening and submission boundaries for future periods and preview them before publishing.</value></data>
+  <data name="PeriodPolicyCurrentDefault" xml:space="preserve"><value>Policy currently in effect</value></data>
+  <data name="PeriodPolicySafetyTitle" xml:space="preserve"><value>Generated periods do not change</value></data>
+  <data name="PeriodPolicySafetyDescription" xml:space="preserve"><value>A new policy applies only from the selected future period. The open period and history keep their stored timestamps.</value></data>
+  <data name="PeriodPolicyDraftTitle" xml:space="preserve"><value>New policy version</value></data>
+  <data name="PeriodPolicyDraftDescription" xml:space="preserve"><value>Adjust the rule, preview at least 12 periods, save a draft, then publish.</value></data>
+  <data name="PeriodPolicyDraftBadge" xml:space="preserve"><value>Editing draft</value></data>
+  <data name="PeriodPolicyName" xml:space="preserve"><value>Policy name</value></data>
+  <data name="PeriodPolicyRuleKind" xml:space="preserve"><value>Boundary rule</value></data>
+  <data name="PeriodPolicyDayOfMonth" xml:space="preserve"><value>Day of month (1–31)</value></data>
+  <data name="PeriodPolicyBusinessDayOrdinal" xml:space="preserve"><value>Nth business day</value></data>
+  <data name="PeriodPolicyInvalidDay" xml:space="preserve"><value>When the month does not contain that day</value></data>
+  <data name="PeriodPolicyNonWorkingDay" xml:space="preserve"><value>When the date is non-working</value></data>
+  <data name="PeriodPolicyLocalTime" xml:space="preserve"><value>Local time</value></data>
+  <data name="PeriodPolicyGraceDays" xml:space="preserve"><value>Supplement approval days</value></data>
+  <data name="PeriodPolicyEffectiveMonth" xml:space="preserve"><value>Effective month</value></data>
+  <data name="PeriodPolicyEffectiveYear" xml:space="preserve"><value>Effective year</value></data>
+  <data name="PeriodPolicyExplicitCalendarTitle" xml:space="preserve"><value>A boundary is required for every month</value></data>
+  <data name="PeriodPolicyExplicitCalendarDescription" xml:space="preserve"><value>Each month in the preview range must have exactly one business-calendar date marked as a period boundary.</value></data>
+  <data name="PeriodPolicyPreviewAction" xml:space="preserve"><value>Preview 12 periods</value></data>
+  <data name="PeriodPolicySaveDraftAction" xml:space="preserve"><value>Save draft</value></data>
+  <data name="PeriodPolicyPublishAction" xml:space="preserve"><value>Publish for future periods</value></data>
+  <data name="PeriodPolicyPreviewTitle" xml:space="preserve"><value>Period calendar preview</value></data>
+  <data name="PeriodPolicyPreviewSummary" xml:space="preserve"><value>{0} periods calculated from the same rule</value></data>
+  <data name="PeriodPolicyPreviewEmpty" xml:space="preserve"><value>No preview yet</value></data>
+  <data name="PeriodPolicyPreviewEmptyHint" xml:space="preserve"><value>Complete the rule, then choose “Preview 12 periods”.</value></data>
+  <data name="PeriodPolicyStartsAt" xml:space="preserve"><value>Period starts</value></data>
+  <data name="PeriodPolicySubmissionDeadline" xml:space="preserve"><value>Submission deadline</value></data>
+  <data name="PeriodPolicySupplementDeadline" xml:space="preserve"><value>Supplement approval deadline</value></data>
+  <data name="PeriodPolicyAdjusted" xml:space="preserve"><value>Calendar-adjusted</value></data>
+  <data name="PeriodPolicyExact" xml:space="preserve"><value>Exact configured date</value></data>
+  <data name="PeriodPolicyVersionsTitle" xml:space="preserve"><value>Policy versions</value></data>
+  <data name="PeriodPolicyVersionsSummary" xml:space="preserve"><value>{0} draft or published versions</value></data>
+  <data name="PeriodPolicyNewVersion" xml:space="preserve"><value>Create new version</value></data>
+  <data name="PeriodPolicyVersionsEmpty" xml:space="preserve"><value>No policy versions yet</value></data>
+  <data name="PeriodPolicyVersionsEmptyHint" xml:space="preserve"><value>The compatible day-5 setting remains active until the first version is published.</value></data>
+  <data name="PeriodPolicyEffectiveFrom" xml:space="preserve"><value>Effective from period</value></data>
+  <data name="PeriodPolicyRuleDayOfMonth" xml:space="preserve"><value>A day of the month</value></data>
+  <data name="PeriodPolicyRuleEndOfMonth" xml:space="preserve"><value>End of month</value></data>
+  <data name="PeriodPolicyRuleNthBusinessDay" xml:space="preserve"><value>Nth business day</value></data>
+  <data name="PeriodPolicyRuleLastBusinessDay" xml:space="preserve"><value>Last business day</value></data>
+  <data name="PeriodPolicyRuleExplicitCalendar" xml:space="preserve"><value>Explicit monthly calendar</value></data>
+  <data name="PeriodPolicyClampToMonthEnd" xml:space="preserve"><value>Clamp to month end</value></data>
+  <data name="PeriodPolicyMoveToNextMonth" xml:space="preserve"><value>Carry overflow into the next month</value></data>
+  <data name="PeriodPolicyKeepNonWorkingDay" xml:space="preserve"><value>Keep the date</value></data>
+  <data name="PeriodPolicyPreviousBusinessDay" xml:space="preserve"><value>Move to the previous business day</value></data>
+  <data name="PeriodPolicyNextBusinessDay" xml:space="preserve"><value>Move to the next business day</value></data>
+  <data name="PeriodPolicyLegacyDefault" xml:space="preserve"><value>Day 05 · 00:00 · no holiday adjustment</value></data>
+  <data name="PeriodPolicyPreviewSuccess" xml:space="preserve"><value>The 12-period calendar was recalculated.</value></data>
+  <data name="PeriodPolicyDraftSaved" xml:space="preserve"><value>The period-policy draft was saved.</value></data>
+  <data name="PeriodPolicyPublishConfirm" xml:space="preserve"><value>Publish this policy for future periods? The open period and history will not change.</value></data>
+  <data name="PeriodPolicyPublishTitle" xml:space="preserve"><value>Confirm policy publication</value></data>
+  <data name="PeriodPolicyPublished" xml:space="preserve"><value>The period policy was published.</value></data>
+  <data name="PeriodPolicyDefaultDraftName" xml:space="preserve"><value>Period policy from {0:00}/{1}</value></data>
+  <data name="PeriodPolicyInvalidTime" xml:space="preserve"><value>Local time must use the HH:mm format.</value></data>
+  <data name="PeriodPolicyRuleDayFormat" xml:space="preserve"><value>Day {0} every month</value></data>
+  <data name="PeriodPolicyRuleNthFormat" xml:space="preserve"><value>Business day #{0}</value></data>
+  <data name="BusinessCalendarTitle" xml:space="preserve"><value>Business days and holidays</value></data>
+  <data name="BusinessCalendarSummary" xml:space="preserve"><value>{0} overrides in the next 24 months</value></data>
+  <data name="BusinessCalendarWorkingOverride" xml:space="preserve"><value>Working-day override</value></data>
+  <data name="BusinessCalendarBoundary" xml:space="preserve"><value>Period boundary</value></data>
+  <data name="BusinessCalendarSave" xml:space="preserve"><value>Save calendar date</value></data>
+  <data name="BusinessCalendarEmpty" xml:space="preserve"><value>No custom holidays or working days</value></data>
+  <data name="BusinessCalendarEmptyHint" xml:space="preserve"><value>Saturday and Sunday are still treated as non-working by default.</value></data>
+  <data name="BusinessCalendarDayType" xml:space="preserve"><value>Day type</value></data>
+  <data name="BusinessCalendarWorkingDay" xml:space="preserve"><value>Working day</value></data>
+  <data name="BusinessCalendarHoliday" xml:space="preserve"><value>Holiday</value></data>
+  <data name="BusinessCalendarSaved" xml:space="preserve"><value>The business calendar was updated.</value></data>
+  <data name="BusinessCalendarDeleteConfirm" xml:space="preserve"><value>Remove “{0}” on {1} from the override calendar?</value></data>
+  <data name="BusinessCalendarDeleteTitle" xml:space="preserve"><value>Delete calendar date</value></data>
+  <data name="BusinessCalendarDeleted" xml:space="preserve"><value>The date was removed from the override calendar.</value></data>
+  <data name="OrderPeriodSettings" xml:space="preserve"><value>Ordering configuration</value></data>
+  <data name="OrderPeriodSettingsDescription" xml:space="preserve"><value>Manage company-wide defaults used when the system creates new ordering periods.</value></data>
+  <data name="OrderPeriodSettingsLoadError" xml:space="preserve"><value>Ordering configuration could not be loaded</value></data>
+  <data name="OrderPeriodSettingsLoadErrorDescription" xml:space="preserve"><value>Try again. Existing periods keep their current schedules.</value></data>
+  <data name="OrderPeriodSettingsScopeTitle" xml:space="preserve"><value>Applies only to periods created later</value></data>
+  <data name="OrderPeriodSettingsScopeDescription" xml:space="preserve"><value>Each save creates a new version. Existing period dates and states are never rewritten.</value></data>
+  <data name="OrderPeriodDefaultsTitle" xml:space="preserve"><value>Period creation defaults</value></data>
+  <data name="OrderPeriodDefaultsDescription" xml:space="preserve"><value>Defaults to three open periods, day 05 closing, five supplement approval days, and ten days to adjust orders after closing.</value></data>
+  <data name="OrderPeriodSettingsName" xml:space="preserve"><value>Configuration name</value></data>
+  <data name="OrderPeriodSettingsNameRequired" xml:space="preserve"><value>Enter a configuration name.</value></data>
+  <data name="OrderPeriodOpenCount" xml:space="preserve"><value>Periods kept open</value></data>
+  <data name="OrderPeriodOpenCountRange" xml:space="preserve"><value>The period count must be between 0 and 12.</value></data>
+  <data name="OrderPeriodAutoOpenDay" xml:space="preserve"><value>Automatic opening day</value></data>
+  <data name="OrderPeriodDefaultCloseDay" xml:space="preserve"><value>Default closing day</value></data>
+  <data name="OrderPeriodDayRange" xml:space="preserve"><value>The day must be between 1 and 31; short months use their final day.</value></data>
+  <data name="SupplementApprovalGraceDays" xml:space="preserve"><value>Supplement approval days</value></data>
+  <data name="SupplementApprovalGraceDaysRange" xml:space="preserve"><value>The value must be between 0 and 31 days.</value></data>
+  <data name="SupplementApprovalGraceDaysHelp" xml:space="preserve"><value>Defaults to five days after the period is locked.</value></data>
+  <data name="OrderPeriodAutomationTime" xml:space="preserve"><value>Automation time</value></data>
+  <data name="TimeZone" xml:space="preserve"><value>Time zone</value></data>
+  <data name="TimeZoneRequired" xml:space="preserve"><value>Select a time zone.</value></data>
+  <data name="EffectiveFromMonth" xml:space="preserve"><value>Effective month</value></data>
+  <data name="EffectiveFromMonthRange" xml:space="preserve"><value>The month must be between 1 and 12.</value></data>
+  <data name="EffectiveFromYear" xml:space="preserve"><value>Effective year</value></data>
+  <data name="EffectiveFromYearRange" xml:space="preserve"><value>The year must be between 2024 and 9999.</value></data>
+  <data name="ResetToCurrentVersion" xml:space="preserve"><value>Restore current version</value></data>
+  <data name="SaveNewSettingsVersion" xml:space="preserve"><value>Save new version</value></data>
+  <data name="OrderPeriodSettingsHistory" xml:space="preserve"><value>Configuration history</value></data>
+  <data name="OrderPeriodSettingsHistoryEmpty" xml:space="preserve"><value>No configuration versions yet</value></data>
+  <data name="OrderPeriodSettingsHistoryEmptyDescription" xml:space="preserve"><value>Save the first configuration to create a version for future periods.</value></data>
+  <data name="ConfigurationName" xml:space="preserve"><value>Configuration name</value></data>
+  <data name="EffectiveFrom" xml:space="preserve"><value>Effective from</value></data>
+  <data name="OrderPeriodOpenCountShort" xml:space="preserve"><value>Periods</value></data>
+  <data name="DefaultSchedule" xml:space="preserve"><value>Open → close day</value></data>
+  <data name="SupplementGraceShort" xml:space="preserve"><value>Supplement grace</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Created at</value></data>
+  <data name="DefaultConfiguration" xml:space="preserve"><value>System default</value></data>
+  <data name="SettingsVersionCount" xml:space="preserve"><value>{0} versions</value></data>
+  <data name="OrderPeriodSettingsSaveFailed" xml:space="preserve"><value>The saved configuration version was not returned.</value></data>
+  <data name="OrderPeriodSettingsSavedDescription" xml:space="preserve"><value>The new version applies only when a period is created after its effective date.</value></data>
+  <data name="OrderPeriodSettingsValidationWarning" xml:space="preserve"><value>Review the fields that contain validation errors.</value></data>
+  <data name="Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="PostCloseAdjustmentDays" xml:space="preserve"><value>Days to adjust orders after closing</value></data>
+  <data name="PostCloseAdjustmentDaysRange" xml:space="preserve"><value>The value must be between 0 and 31 days.</value></data>
+  <data name="PostCloseAdjustmentDaysHelp" xml:space="preserve"><value>Defaults to 10 days from closing. After that, managers can only select a supplier, price book, and settle the period.</value></data>
+  <data name="PostCloseAdjustmentShort" xml:space="preserve"><value>Adjustment days</value></data>
+  <data name="PostCloseAdjustmentMustCoverSupplement" xml:space="preserve"><value>The order adjustment window must be at least as long as the supplement approval window.</value></data>
+  <data name="SupplementApprovalExpiredHint" xml:space="preserve"><value>The approval window has ended. Reject the pending request to continue settling the period.</value></data>
+  <data name="AdjustSettlementResult" xml:space="preserve"><value>Adjust after settlement</value></data>
+  <data name="SettlementVersionLabel" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="AdjustmentSaved" xml:space="preserve"><value>Adjustment saved</value></data>
+  <data name="SettlementVersionSaved" xml:space="preserve"><value>The result was saved as settlement version {0}. The previous version remains in history.</value></data>
+  <data name="AdjustAfterSettlement" xml:space="preserve"><value>Adjust after settlement</value></data>
+  <data name="PostSettlementAdjustmentHint" xml:space="preserve"><value>another manager will review it before a new settlement version is saved</value></data>
+  <data name="PreSettlementAdjustmentHint" xml:space="preserve"><value>adjustments are available until {0}</value></data>
+  <data name="PostSettlementAdjustmentRequested" xml:space="preserve"><value>The request was sent for another manager to review.</value></data>
+  <data name="OrderAdjustmentSaved" xml:space="preserve"><value>The order was updated and the employee was notified.</value></data>
+  <data name="AdjustmentApproved" xml:space="preserve"><value>Adjustment approved</value></data>
+  <data name="NewSettlementVersionCreated" xml:space="preserve"><value>The order was updated and a new settlement version was saved.</value></data>
+  <data name="RejectAdjustment" xml:space="preserve"><value>Reject adjustment</value></data>
+  <data name="PendingAdjustments" xml:space="preserve"><value>Adjustments awaiting review</value></data>
+  <data name="PendingAdjustmentCount" xml:space="preserve"><value>{0} request(s) awaiting another manager</value></data>
+  <data name="ReviewAdjustmentRequests" xml:space="preserve"><value>Review adjustment requests</value></data>
+  <data name="DecisionReasonWhenRejecting" xml:space="preserve"><value>Decision reason; required when rejecting</value></data>
+  <data name="Change" xml:space="preserve"><value>Change</value></data>
+  <data name="EmployeeMessage" xml:space="preserve"><value>Message to employee</value></data>
+  <data name="RequestedBy" xml:space="preserve"><value>Requested by</value></data>
+  <data name="Decision" xml:space="preserve"><value>Decision</value></data>
+  <data name="UpdateQuantity" xml:space="preserve"><value>Update quantities</value></data>
+  <data name="CancelOrder" xml:space="preserve"><value>Cancel order</value></data>
+  <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Only quantities for items already in the order can be adjusted.</value></data>
+  <data name="SendRequest" xml:space="preserve"><value>Send request</value></data>
+  <data name="RequestSent" xml:space="preserve"><value>Request sent</value></data>
+  <data name="SavedSettlementVersions" xml:space="preserve"><value>Saved settlement versions</value></data>
+  <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Each approved adjustment is saved as a new version. Earlier versions remain available for comparison.</value></data>
+  <data name="ViewSavedVersions" xml:space="preserve"><value>View saved versions</value></data>
+  <data name="CurrentlyUsed" xml:space="preserve"><value>Currently used</value></data>
+  <data name="TotalValue" xml:space="preserve"><value>Total value</value></data>
+  <data name="SettlementAvailableAfterClosing" xml:space="preserve"><value>You can prepare the supplier and price book now; settlement becomes available after order submission closes.</value></data>
 </root>

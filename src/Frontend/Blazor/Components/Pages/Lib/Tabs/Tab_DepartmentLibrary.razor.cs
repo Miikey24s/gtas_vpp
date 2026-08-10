@@ -1,3 +1,4 @@
+// PAGE LOGIC: Lib/Tabs/Tab_DepartmentLibrary.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Features.CatalogPricing.Api;

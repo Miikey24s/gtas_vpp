@@ -1,3 +1,4 @@
+// PAGE LOGIC: Authen/LoginPage.razor.cs *
 using System.Net;
 using gtas_vpp_fe.Features.IdentityAccess.Api;
 using gtas_vpp_fe.Helpers;
@@ -85,18 +86,16 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             ValidatePassword();
         }
 
-        private async Task LoginOnkeyup(KeyboardEventArgs e, LoginFormModel loginReqDTO)
-        {
-            if (e.Code == "Enter" || e.Code == "NumpadEnter")
-            {
-                await LoginSubmit(loginReqDTO);
-            }
-        }
-
         public async Task LoginSubmit(LoginFormModel loginReqDTO)
         {
+            if (isLoading)
+            {
+                return;
+            }
+
             isLoading = true;
             LoginErrorMessage = null;
+            var isRedirecting = false;
             try
             {
                 if (!ValidateLoginForm())
@@ -126,12 +125,16 @@ namespace gtas_vpp_fe.Components.Pages.Authen
                     redirectUrl += $"&returnUrl={Uri.EscapeDataString(requestedReturnUrl)}";
                 }
 
+                isRedirecting = true;
                 UriHelper.NavigateTo(redirectUrl, true);
             }
             finally
             {
-                isLoading = false;
-                StateHasChanged();
+                if (!isRedirecting)
+                {
+                    isLoading = false;
+                    StateHasChanged();
+                }
             }
         }
 

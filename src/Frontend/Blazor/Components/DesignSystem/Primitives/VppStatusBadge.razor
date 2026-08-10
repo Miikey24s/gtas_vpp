@@ -1,10 +1,14 @@
-<span class="vpp-status-badge vpp-status-badge-@ToneCssClass @Class" title="@Title">@Text</span>
+<span @attributes="AdditionalAttributes"
+      class="vpp-status-badge vpp-status-badge-@ToneCssClass @Class"
+      title="@Title">@Text</span>
 
 @code {
     [Parameter, EditorRequired] public string Text { get; set; } = string.Empty;
     [Parameter] public VppStatusTone Tone { get; set; } = VppStatusTone.Neutral;
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     private string ToneCssClass => Tone.ToString().ToLowerInvariant();
 }

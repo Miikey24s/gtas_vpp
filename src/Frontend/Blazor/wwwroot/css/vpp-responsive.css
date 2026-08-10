@@ -91,6 +91,88 @@
     border-top: 1px solid var(--vpp-border-subtle);
 }
 
+/* Scroll ownership:
+   - shell luôn giữ viewport và .vpp-layout-body là page scroller;
+   - workspace internal giữ grid/pane cuộn riêng;
+   - workspace page luôn mở chiều cao nội dung;
+   - workspace adaptive chỉ khóa viewport trên desktop rộng/cao. */
+.vpp-layout-body {
+    overscroll-behavior: contain;
+}
+
+/* Page mode phải mở cả chuỗi shell -> content, không chỉ Radzen panel.
+   Nếu .vpp-content còn height:100%, nội dung dài có thể tràn khỏi box nhưng
+   wheel không tạo scroll range ổn định trên desktop rộng. */
+.rz-layout.vpp-layout:has([data-vpp-scroll-mode="page"]) > .rz-body.vpp-layout-body {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.rz-layout.vpp-layout:has([data-vpp-scroll-mode="page"]) .vpp-content {
+    height: auto;
+    min-height: 100%;
+}
+
+.vpp-admin-tabs.vpp-bounded-shell:has([data-vpp-scroll-mode="page"]),
+.vpp-admin-tabs.vpp-bounded-shell:has([data-vpp-scroll-mode="page"]) > .rz-tabview-panels,
+.vpp-admin-tabs.vpp-bounded-shell:has([data-vpp-scroll-mode="page"]) > .rz-tabview-panels > .rz-tabview-panel {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+}
+
+@media (max-width: 1439px), (max-height: 799px) {
+    .vpp-admin-tabs.vpp-bounded-shell:has([data-vpp-scroll-mode="adaptive"]),
+    .vpp-admin-tabs.vpp-bounded-shell:has([data-vpp-scroll-mode="adaptive"]) > .rz-tabview-panels,
+    .vpp-admin-tabs.vpp-bounded-shell:has([data-vpp-scroll-mode="adaptive"]) > .rz-tabview-panels > .rz-tabview-panel {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
+    .vpp-pricing-workspace:has([data-vpp-scroll-mode="adaptive"]),
+    [data-vpp-scroll-mode="adaptive"].vpp-permission-user-page,
+    [data-vpp-scroll-mode="adaptive"].vpp-permission-admin-page {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
+    [data-vpp-scroll-mode="adaptive"] > .vpp-data-surface,
+    [data-vpp-scroll-mode="adaptive"] .vpp-admin-data-surface {
+        height: auto;
+        min-height: clamp(30rem, 68dvh, 44rem);
+    }
+
+    .vpp-data-toolbar {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .vpp-data-toolbar > .vpp-filter-search {
+        flex: 1 1 18rem;
+        max-width: none;
+    }
+}
+
+/* Laptop/desktop compact: giữ nguyên cỡ chữ và touch target, chỉ thu chrome,
+   sidebar và row rhythm để nhìn được nhiều dữ liệu hơn. */
+@media (min-width: 769px) and (max-width: 1439px),
+       (min-width: 769px) and (max-height: 799px) {
+    :root {
+        --vpp-sidebar-width: 248px;
+        --vpp-page-inset-block-start: var(--vpp-space-1);
+        --vpp-page-inset-inline-end: var(--vpp-space-3);
+        --vpp-page-inset-block-end: var(--vpp-space-1);
+        --vpp-page-inset-inline-start: var(--vpp-space-3);
+        --vpp-data-toolbar-height: 38px;
+        --vpp-data-header-height: 38px;
+        --vpp-data-row-compact-height: 38px;
+        --vpp-data-row-rich-two-line-height: 48px;
+        --vpp-data-footer-height: 38px;
+    }
+}
+
 /* Mobile: đến 768px, đồng bộ breakpoint responsive của RadzenSidebar. */
 @media (max-width: 768px) {
     .vpp-hide-mobile { display: none; }

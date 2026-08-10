@@ -159,19 +159,15 @@ public sealed class LocalDbQaFixtureTests
             using var firstUnitOfWork = CreateUnitOfWork(fixture.ConnectionString);
             using var secondUnitOfWork = CreateUnitOfWork(fixture.ConnectionString);
             var clock = new FixedDateTimeProvider(new DateTime(2030, 7, 16, 9, 0, 0));
-            var calculator = new PeriodCalculator();
-            var policy = new VppRequestPolicy();
             var firstService = new VppPeriodService(
                 firstUnitOfWork,
                 clock,
-                calculator,
-                policy,
+                new PeriodScheduleCalculator(),
                 NullLogger<VppPeriodService>.Instance);
             var secondService = new VppPeriodService(
                 secondUnitOfWork,
                 clock,
-                calculator,
-                policy,
+                new PeriodScheduleCalculator(),
                 NullLogger<VppPeriodService>.Instance);
 
             var results = await Task.WhenAll(

@@ -1,3 +1,4 @@
+// PAGE LOGIC: VPPRequest/Tabs/HistoryOrderWorkspaceTabBase.cs
 using System.Globalization;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
@@ -18,9 +19,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs;
 // item-detail dùng record typed của DesignSystem để chia sẻ với My Orders.
 public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposable
 {
+    // DEPENDENCIES: Localization, navigation, JavaScript và các component chi tiết lịch sử.
     [Inject] protected IStringLocalizer<App> HistoryLoc { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
+    // WORKSPACE STATE: Summary, bộ lọc, biểu đồ, danh sách và drawer chi tiết.
     protected HistoryWorkspaceShell? _workspaceShell;
     protected IJSObjectReference? _module;
     protected DotNetObjectReference<HistoryOrderWorkspaceTabBase>? _dotNetReference;
@@ -31,7 +34,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     protected readonly List<VppOrderDetailItem> _detailRows = [];
     protected readonly List<string> _detailCategories = [];
     protected readonly List<string> _detailUoms = [];
-    protected string _scope = Last1Scope;
+    protected string _scope = AllScope;
     protected string _customFrom = string.Empty;
     protected string _customTo = string.Empty;
     protected int? _fromPeriod;
@@ -61,6 +64,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     protected bool _showAdditionalSeries = true;
     private VppRequestResDTO? _requestedOrder;
 
+    // DISPLAY STATE: Trạng thái refresh và giới hạn kỳ dùng cho UI.
     protected bool IsRefreshing => _isSummaryLoading || IsGridLoading || _isDetailLoading;
     protected int PeriodPickerMinYear => (_summary?.AvailableFromPeriod ?? _currentPeriod ?? CurrentCalendarPeriod) / 100;
     protected int PeriodPickerMaxYear => (_summary?.AvailableToPeriod ?? _currentPeriod ?? CurrentCalendarPeriod) / 100;
@@ -83,6 +87,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
         PageSize = VppPagingProfiles.SplitList.DefaultPageSize;
     }
 
+    // LIFECYCLE: Nạp kỳ hiện tại, summary, danh sách và đơn được yêu cầu từ URL.
     protected override async Task OnInitializedAsync()
     {
         try
@@ -153,8 +158,6 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
             if (periodInfo is { CurrentPeriodYear: > 0, CurrentPeriodMonth: >= 1 and <= 12 })
             {
                 _currentPeriod = (periodInfo.CurrentPeriodYear * 100) + periodInfo.CurrentPeriodMonth;
-                _fromPeriod = _currentPeriod;
-                _toPeriod = _currentPeriod;
                 return;
             }
         }

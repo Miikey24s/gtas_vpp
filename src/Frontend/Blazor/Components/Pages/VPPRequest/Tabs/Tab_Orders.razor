@@ -1,3 +1,4 @@
+@* PAGE: VPPRequest/Tabs/Tab_Orders.razor *@
 @using gtas_vpp_fe.Components.Pages.VPPRequest.Components
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_shared.DTOs.Share
@@ -7,22 +8,36 @@
 
 @if (CanView)
 {
+    @* HEADER: Kỳ đang chọn và thời hạn gửi đơn. *@
     <div class="vpp-orders-workspace order-page">
         @if (IsLoading)
         {
-            <SkeletonPage Cards="3" Rows="5" Cols="4" />
+            <SkeletonPage Cards="3" Rows="5" Cols="4" FillAvailable="true" />
         }
         else
         {
-            <section class="vpp-orders-story vpp-orders-overview" aria-labelledby="orders-story-title">
+            <section class="vpp-orders-story vpp-orders-overview" aria-labelledby="orders-period-label">
                 <header class="vpp-orders-story-header">
                     <div class="vpp-orders-period-summary">
                         <div class="vpp-orders-period-icon" aria-hidden="true">
                             <VppIcon Name="@VppIcons.Calendar" />
                         </div>
-                        <div class="vpp-orders-story-heading">
-                            <span class="vpp-orders-period-label">@Loc["ActiveOrderPeriod"]</span>
-                            <h2 id="orders-story-title">@CurrentOrderPeriodText</h2>
+                        <div class="vpp-orders-period-context">
+                            <span id="orders-period-label" class="vpp-orders-period-label">@Loc["OrderPeriod"]</span>
+                            @if (PeriodInfo is not null && PeriodInfo.OpenPeriods.Count > 0)
+                            {
+                                <VppDecisionSelect TValue="Guid?"
+                                                   Value="@PeriodInfo.SelectedPeriodId"
+                                                   Options="@OpenPeriodOptions"
+                                                   ValueChanged="@ChangeSelectedPeriodAsync"
+                                                   Placeholder="@CurrentOrderPeriodText"
+                                                   AriaLabel="@Loc["OrderPeriod"]"
+                                                   Class="vpp-orders-period-decision" />
+                            }
+                            else
+                            {
+                                <strong class="vpp-orders-period-value">@CurrentOrderPeriodText</strong>
+                            }
                         </div>
                     </div>
 
@@ -40,6 +55,7 @@
                 </header>
             </section>
 
+            @* TOOLBAR: Chuyển giữa đơn kỳ hiện tại, đơn bổ sung và kỳ trước. *@
             <section class="vpp-orders-view-switchbar" aria-label="@Loc["OrderCycleSummary"]">
                 <div class="vpp-orders-story-controls">
                     <VppSegmentedSelector TValue="int"
@@ -52,6 +68,7 @@
 
             </section>
 
+            @* CONTENT: Hiển thị workspace của view đang được chọn. *@
             <div class="vpp-orders-selected-view">
                 @if (OrderViewSelectedIndex == CurrentOrderViewIndex)
                 {

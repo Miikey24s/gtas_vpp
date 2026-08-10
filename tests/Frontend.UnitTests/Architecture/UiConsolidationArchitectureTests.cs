@@ -83,13 +83,21 @@ public sealed class UiConsolidationArchitectureTests
             duplicateExportActions.Length == 0,
             $"Export actions must use VppFileExportActions: {string.Join(", ", duplicateExportActions)}");
 
-        var settlement = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor");
         var settlementCode = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor.cs");
-        var correctionDialog = Read(root, "Components", "Pages", "VPPRequest", "Components", "Dialog_SettlementCorrection.razor");
-        Assert.DoesNotContain("vpp-settlement-correction-dialog", settlement, StringComparison.Ordinal);
         Assert.Contains("OpenAsync<Dialog_SettlementCorrection>", settlementCode, StringComparison.Ordinal);
-        Assert.Contains("VppAdaptiveDialogShell", correctionDialog, StringComparison.Ordinal);
-        Assert.Contains("VppDialogActions", correctionDialog, StringComparison.Ordinal);
+        var correctionDialogOwners = Directory.EnumerateFiles(Path.Combine(root, "Components"), "*.cs", SearchOption.AllDirectories)
+            .Where(path => File.ReadAllText(path).Contains("OpenAsync<Dialog_SettlementCorrection>", StringComparison.Ordinal))
+            .Select(path => Path.GetRelativePath(root, path))
+            .ToArray();
+        Assert.Single(correctionDialogOwners);
+        Assert.EndsWith("PeriodSettlementPanel.razor.cs", correctionDialogOwners[0], StringComparison.OrdinalIgnoreCase);
+        Assert.True(File.Exists(Path.Combine(
+            root,
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "Dialog_SettlementCorrection.razor")));
     }
 
     [Fact]
@@ -97,11 +105,17 @@ public sealed class UiConsolidationArchitectureTests
     {
         var root = GetFrontendRoot();
         var bridge = Read(root, "wwwroot", "css", "vpp-radzen-theme.css");
+        var accessibility = Read(root, "wwwroot", "css", "vpp-a11y.css");
+        var interactions = Read(root, "wwwroot", "js", "vpp-interactions.js");
         var polish = Read(root, "wwwroot", "css", "vpp-polish.css");
         var report = Read(root, "Components", "Pages", "Report.razor");
 
         Assert.Contains(".rz-paginator .rz-dropdown", bridge, StringComparison.Ordinal);
-        Assert.Contains(".rz-dropdown-panel", bridge, StringComparison.Ordinal);
+        Assert.Contains(".rz-dropdown-panel.vpp-page-size-panel", bridge, StringComparison.Ordinal);
+        Assert.Contains("width: 3.5rem !important;", bridge, StringComparison.Ordinal);
+        Assert.Contains("vpp-page-size-panel", interactions, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-page-size-panel.rz-open:not([data-vpp-dropdown-positioned", bridge, StringComparison.Ordinal);
+        Assert.DoesNotContain(".rz-paginator .rz-dropdown", accessibility, StringComparison.Ordinal);
         Assert.DoesNotContain("\n.rz-dropdown {", polish, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenDropDown", report, StringComparison.Ordinal);
         Assert.Equal(3, report.Split("<VppFilterSelect", StringSplitOptions.None).Length - 1);
@@ -135,7 +149,9 @@ public sealed class UiConsolidationArchitectureTests
         var adminCss = Read(root, "wwwroot", "css", "vpp-admin.css");
         var layoutCss = Read(root, "wwwroot", "css", "vpp-layout.css");
 
-        Assert.Contains("ContextMenuService.Open", priceListCode, StringComparison.Ordinal);
+        Assert.Contains("<VppAdminActionMenu", priceList, StringComparison.Ordinal);
+        Assert.Contains("PriceListSecondaryActions", priceListCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("ContextMenuService.Open", priceListCode, StringComparison.Ordinal);
         Assert.Contains("pricingTab=prices", priceListCode, StringComparison.Ordinal);
         Assert.DoesNotContain("/library?tab=4", priceListCode, StringComparison.Ordinal);
         Assert.DoesNotContain("rz-col-actions-xwide", priceList, StringComparison.Ordinal);
@@ -147,8 +163,11 @@ public sealed class UiConsolidationArchitectureTests
         Assert.Contains("PricingApi.GetItemPricesAsync", pricesCode, StringComparison.Ordinal);
         Assert.Contains("distinct=CategoryName", pricingClient, StringComparison.Ordinal);
         Assert.Contains("MappingStatus switch", pricingClient, StringComparison.Ordinal);
-        Assert.Contains("VppAdminActiveToggle", prices, StringComparison.Ordinal);
-        Assert.Contains("!row.IsDeleted || !IsSelectedPriceListDraft", prices, StringComparison.Ordinal);
+        Assert.Contains("<VppAdminActionMenu", prices, StringComparison.Ordinal);
+        Assert.Contains("PriceRowSecondaryActions", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("!row.IsDeleted || !IsSelectedPriceListEditable", pricesCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("PriceListPublishTitle", priceListCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("PriceListExpireTitle", priceListCode, StringComparison.Ordinal);
 
         Assert.Contains("<VppAnalyticsWorkspace", report, StringComparison.Ordinal);
         Assert.Equal(2, report.Split("<VppDataSurfaceFrame", StringSplitOptions.None).Length - 1);

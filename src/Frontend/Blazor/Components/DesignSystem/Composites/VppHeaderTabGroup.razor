@@ -1,24 +1,38 @@
-<span class="vpp-header-tab-group @Class"
+<span class="vpp-header-tab-group @(IsExpanded ? "is-expanded" : "is-collapsed") @Class"
+      data-vpp-header-tab-group="@ParentPath"
       role="group"
       aria-label="@EffectiveAriaLabel">
-    <span class="vpp-header-tab-group-divider" aria-hidden="true"></span>
-    <span class="vpp-header-tab vpp-header-tab-parent">
+    <a class="vpp-header-tab vpp-header-tab-group-parent-link"
+       href="@ParentPath"
+       aria-hidden="@(IsExpanded ? "true" : "false")"
+       tabindex="@(IsExpanded ? "-1" : null)">
         @ParentLabel
+    </a>
+    <span class="vpp-header-tab-group-expanded-content"
+          aria-hidden="@(IsExpanded ? "false" : "true")">
+        <span class="vpp-header-tab-group-divider" aria-hidden="true"></span>
+        <span class="vpp-header-tab vpp-header-tab-parent">
+            @ParentLabel
+        </span>
+        <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-tab-group-chevron" />
+        @foreach (var tab in Tabs)
+        {
+            <a @key="tab.Path"
+               class="vpp-header-tab vpp-header-sub-tab @(tab.IsActive ? "is-active" : string.Empty)"
+               href="@tab.Path"
+               aria-current="@(tab.IsActive ? "page" : null)"
+               tabindex="@(IsExpanded ? null : "-1")">
+                @tab.Label
+            </a>
+        }
+        <span class="vpp-header-tab-group-divider" aria-hidden="true"></span>
     </span>
-    <VppIcon Name="@VppIcons.ChevronRight" Class="vpp-header-tab-group-chevron" />
-    @foreach (var tab in Tabs)
-    {
-        <a class="vpp-header-tab vpp-header-sub-tab @(tab.IsActive ? "is-active" : string.Empty)"
-           href="@tab.Path"
-           aria-current="@(tab.IsActive ? "page" : null)">
-            @tab.Label
-        </a>
-    }
-    <span class="vpp-header-tab-group-divider" aria-hidden="true"></span>
 </span>
 
 @code {
     [Parameter, EditorRequired] public string ParentLabel { get; set; } = string.Empty;
+    [Parameter] public string? ParentPath { get; set; }
+    [Parameter] public bool IsExpanded { get; set; } = true;
     [Parameter, EditorRequired] public IReadOnlyList<VppHeaderSubTab> Tabs { get; set; } = [];
     [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public string Class { get; set; } = string.Empty;

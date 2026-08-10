@@ -196,7 +196,8 @@
   <data name="Reload" xml:space="preserve"><value>Tải lại</value></data>
     <data name="CreateOrderThisCycle" xml:space="preserve"><value>Tạo đơn kỳ này</value></data>
   <data name="CopyPreviousOrder" xml:space="preserve"><value>Sao chép kỳ trước</value></data>
-  <data name="ActiveOrderPeriod" xml:space="preserve"><value>Kỳ đặt hàng hiện tại</value></data>
+  <data name="OrderPeriod" xml:space="preserve"><value>Kỳ đặt hàng</value></data>
+  <data name="OrderPeriodIndependentHint" xml:space="preserve"><value>Mỗi kỳ có thời hạn và đơn riêng.</value></data>
   <data name="PeriodEnd" xml:space="preserve"><value>Hạn gửi đơn</value></data>
   <data name="TotalLineItems" xml:space="preserve"><value>Tổng mặt hàng</value></data>
   <data name="TotalQuantity" xml:space="preserve"><value>Tổng số lượng</value></data>
@@ -314,12 +315,21 @@
   <data name="RejectOrderConfirm" xml:space="preserve"><value>Bạn có chắc muốn từ chối đơn {0} không?</value></data>
   <data name="RejectOrderFailedFormat" xml:space="preserve"><value>Từ chối đơn thất bại: {0}</value></data>
   <data name="RejectOrderTitle" xml:space="preserve"><value>Từ chối đơn</value></data>
-  <data name="RefreshQueue" xml:space="preserve"><value>Làm mới danh sách</value></data>
   <data name="StatusUnknown" xml:space="preserve"><value>Không xác định</value></data>
   <data name="Submitted" xml:space="preserve"><value>Đã gửi</value></data>
   <data name="SubmittedDate" xml:space="preserve"><value>Ngày gửi</value></data>
   <data name="SubmittedLabel" xml:space="preserve"><value>Thời điểm gửi:</value></data>
-  <data name="SubmittedPeriodClosed" xml:space="preserve"><value>Đã gửi (đã khóa kỳ)</value></data>
+  <data name="PeriodStateOpen" xml:space="preserve"><value>Đang nhận đơn</value></data>
+  <data name="PeriodStateLabel" xml:space="preserve"><value>Trạng thái kỳ</value></data>
+  <data name="PeriodStateOpenCompact" xml:space="preserve"><value>Đang mở</value></data>
+  <data name="PeriodStateSubmissionClosed" xml:space="preserve"><value>Đã đóng</value></data>
+  <data name="PeriodStateSubmissionClosedCompact" xml:space="preserve"><value>Đã đóng</value></data>
+  <data name="PeriodStatePricing" xml:space="preserve"><value>Đang chốt kỳ</value></data>
+  <data name="PeriodStatePricingCompact" xml:space="preserve"><value>Đang chốt</value></data>
+  <data name="PeriodStateSettled" xml:space="preserve"><value>Đã chốt kỳ</value></data>
+  <data name="PeriodStateSettledCompact" xml:space="preserve"><value>Đã chốt</value></data>
+  <data name="PeriodStateDraft" xml:space="preserve"><value>Bản nháp</value></data>
+  <data name="PeriodStateScheduled" xml:space="preserve"><value>Sắp mở</value></data>
   <data name="TotalOrders" xml:space="preserve"><value>Tổng đơn</value></data>
   <data name="TotalProducts" xml:space="preserve"><value>Tổng mặt hàng</value></data>
   <data name="UOM" xml:space="preserve"><value>Đơn vị</value></data>
@@ -449,7 +459,7 @@
   <data name="PriceListSaved" xml:space="preserve"><value>Đã lưu bảng giá</value></data>
   <data name="PriceListDeleted" xml:space="preserve"><value>Đã xóa bảng giá</value></data>
   <data name="PriceListCloned" xml:space="preserve"><value>Đã sao chép bảng giá</value></data>
-  <data name="PeriodOperations" xml:space="preserve"><value>Quản lý kỳ</value></data>
+  <data name="PeriodOperations" xml:space="preserve"><value>Quản lý kỳ đặt hàng</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
   <data name="PeriodSettlement" xml:space="preserve"><value>Chốt kỳ</value></data>
   <data name="PriceList" xml:space="preserve"><value>Bảng giá</value></data>
@@ -492,7 +502,6 @@
   <data name="NoReportData" xml:space="preserve"><value>Chưa có dữ liệu báo cáo</value></data>
   <data name="NoReportDataDescription" xml:space="preserve"><value>Hãy đổi phạm vi hoặc kỳ báo cáo rồi thử lại.</value></data>
   <data name="Pricing" xml:space="preserve"><value>Bảng giá</value></data>
-  <data name="Refresh" xml:space="preserve"><value>Làm mới</value></data>
   <data name="ReportDepartments" xml:space="preserve"><value>Chi phí theo phòng ban</value></data>
   <data name="ReportDepartmentsDescription" xml:space="preserve"><value>Chi phí, số đơn và số lượng theo phòng ban trong phạm vi được phép.</value></data>
   <data name="ReportExportFailed" xml:space="preserve"><value>Không thể xuất báo cáo: {0}</value></data>
@@ -788,11 +797,11 @@
   <data name="SettleReadinessOrders" xml:space="preserve"><value>Đã gom {0} mặt hàng từ {1} dòng nhu cầu hợp lệ.</value></data>
   <data name="SettleReadinessCoverage" xml:space="preserve"><value>Nguồn cung chính phủ đủ nhu cầu (kể cả ngoại lệ đã khai).</value></data>
   <data name="SettleReadinessNoBlockers" xml:space="preserve"><value>Không còn điều kiện ngăn chốt.</value></data>
-  <data name="SettleImmutableNote" xml:space="preserve"><value>Sau khi xác nhận, dữ liệu chốt kỳ được lưu bất biến; mọi thay đổi sau này phải tạo phiên bản hiệu chỉnh theo nguyên tắc bốn mắt.</value></data>
-  <data name="CorrectionReasonLabel" xml:space="preserve"><value>Lý do hiệu chỉnh</value></data>
-  <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Nhập lý do hiệu chỉnh (5–500 ký tự)</value></data>
-  <data name="CorrectionFourEyesHint" xml:space="preserve"><value>Lý do là bắt buộc; người xác nhận phải khác người đã xác nhận phiên bản trước.</value></data>
-  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Tạo phiên bản hiệu chỉnh</value></data>
+  <data name="SettleImmutableNote" xml:space="preserve"><value>Sau khi chốt, bản hiện tại được giữ nguyên. Nếu cần thay đổi, hệ thống sẽ lưu thành một bản mới.</value></data>
+  <data name="CorrectionReasonLabel" xml:space="preserve"><value>Lý do điều chỉnh</value></data>
+  <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Mô tả ngắn lý do cần thay đổi (5–500 ký tự)</value></data>
+  <data name="CorrectionFourEyesHint" xml:space="preserve"><value>Bản đang dùng vẫn được giữ trong lịch sử. Một quản lý khác với người chốt bản hiện tại cần thực hiện thay đổi này.</value></data>
+  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Lưu bản điều chỉnh</value></data>
   <data name="SettlePreviewResultAria" xml:space="preserve"><value>Kết quả xem trước chốt kỳ</value></data>
   <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Kết quả xem trước</value></data>
   <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Độ phủ nguồn cung và tổng giá trị</value></data>
@@ -813,13 +822,13 @@
   <data name="SettlePreviewNoData" xml:space="preserve"><value>Bước xem trước không trả về dữ liệu.</value></data>
   <data name="SettlePreviewCoverageSummary" xml:space="preserve"><value>{0}: phủ {1}/{2} mặt hàng, tổng {3} VND.</value></data>
   <data name="SettleSupplierFallback" xml:space="preserve"><value>Nhà cung cấp</value></data>
-  <data name="CorrectionReasonLengthWarning" xml:space="preserve"><value>Lý do hiệu chỉnh phải có từ 5 đến 500 ký tự.</value></data>
-  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>Bản xem trước cũ đã hết hiệu lực sau khi lưu phiên bản. Hãy xem trước lại trước lần hiệu chỉnh tiếp theo.</value></data>
+  <data name="CorrectionReasonLengthWarning" xml:space="preserve"><value>Lý do thay đổi phải có từ 5 đến 500 ký tự.</value></data>
+  <data name="CorrectionRerunPreviewWarning" xml:space="preserve"><value>Dữ liệu xem trước đã thay đổi sau khi lưu. Hãy xem lại trước lần điều chỉnh tiếp theo.</value></data>
   <data name="CorrectionRerunPreviewAction" xml:space="preserve"><value>Xem trước lại</value></data>
-  <data name="CorrectionConfirmFormat" xml:space="preserve"><value>Tạo phiên bản hiệu chỉnh cho kỳ {0:D2}/{1}?</value></data>
-  <data name="CorrectionDialogTitle" xml:space="preserve"><value>Hiệu chỉnh kết quả chốt kỳ</value></data>
-  <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>Không tìm thấy phiên bản kết quả chốt kỳ hiện hành.</value></data>
-  <data name="CorrectionCreated" xml:space="preserve"><value>Đã tạo phiên bản hiệu chỉnh</value></data>
+  <data name="CorrectionConfirmFormat" xml:space="preserve"><value>Lưu thay đổi cho kỳ {0:D2}/{1} thành bản chốt mới?</value></data>
+  <data name="CorrectionDialogTitle" xml:space="preserve"><value>Điều chỉnh sau chốt</value></data>
+  <data name="CorrectionCurrentRevisionMissing" xml:space="preserve"><value>Không tìm thấy bản chốt đang dùng.</value></data>
+  <data name="CorrectionCreated" xml:space="preserve"><value>Đã lưu bản chốt mới</value></data>
   <data name="SupplyPrimarySupplier" xml:space="preserve"><value>Nhà cung cấp chính</value></data>
   <data name="SupplyAutoRank" xml:space="preserve"><value>(Tự xếp hạng theo độ phủ)</value></data>
   <data name="SupplyEffectivePriceList" xml:space="preserve"><value>Bảng giá còn hiệu lực</value></data>
@@ -852,7 +861,7 @@
   <data name="Restore" xml:space="preserve"><value>Khôi phục</value></data>
   <data name="LibraryAllStatuses" xml:space="preserve"><value>Tất cả trạng thái</value></data>
   <data name="PriceListStatusDraft" xml:space="preserve"><value>Bản nháp</value></data>
-  <data name="PriceListStatusPublished" xml:space="preserve"><value>Đã công bố</value></data>
+  <data name="PriceListStatusPublished" xml:space="preserve"><value>Hoạt động</value></data>
   <data name="PriceListStatusExpired" xml:space="preserve"><value>Hết hiệu lực</value></data>
   <data name="SupplyReadyMessage" xml:space="preserve"><value>Nguồn cung đã phủ đủ nhu cầu và không còn điều kiện ngăn chốt.</value></data>
   <data name="SupplyContinueToSettle" xml:space="preserve"><value>Tiếp tục chốt kỳ</value></data>
@@ -863,7 +872,7 @@
   <data name="ReviewHeroBlocked" xml:space="preserve"><value>Chưa thể chốt kỳ</value></data>
   <data name="ReviewHeroBlockedMeta" xml:space="preserve"><value>Còn điều kiện ngăn chốt cần xử lý trước khi tiếp tục.</value></data>
   <data name="ReviewHeroSettled" xml:space="preserve"><value>Kỳ đã chốt</value></data>
-  <data name="ReviewHeroSettledMeta" xml:space="preserve"><value>Dữ liệu kỳ đã được lưu bất biến; thay đổi phải qua phiên bản hiệu chỉnh.</value></data>
+  <data name="ReviewHeroSettledMeta" xml:space="preserve"><value>Kỳ đã chốt. Nếu cần thay đổi, hệ thống sẽ lưu thành một bản chốt mới và giữ lại bản trước.</value></data>
   <data name="ReviewNoPendingSupplements" xml:space="preserve"><value>Không còn đơn bổ sung chờ duyệt.</value></data>
   <data name="ReviewPendingSupplementsFormat" xml:space="preserve"><value>Còn {0} đơn bổ sung chờ duyệt đang chặn chốt kỳ.</value></data>
   <data name="ReviewValidOrdersFormat" xml:space="preserve"><value>{0} đơn hợp lệ hiện hành trong kỳ.</value></data>
@@ -877,8 +886,8 @@
   <data name="PeriodStageSettleHint" xml:space="preserve"><value>Xem trước lần cuối và lưu dữ liệu bất biến khi xác nhận; nguồn cung chọn ở bước 3.</value></data>
   <data name="SupplierShortName" xml:space="preserve"><value>Tên viết tắt</value></data>
   <data name="VatRate" xml:space="preserve"><value>Thuế</value></data>
-  <data name="SupplierSku" xml:space="preserve"><value>Mã NCC</value></data>
-  <data name="MinimumOrderQuantity" xml:space="preserve"><value>SL tối thiểu</value></data>
+  <data name="SupplierSku" xml:space="preserve"><value>Mã hàng nhà cung cấp</value></data>
+  <data name="MinimumOrderQuantity" xml:space="preserve"><value>Số lượng tối thiểu</value></data>
   <data name="LeadTimeDays" xml:space="preserve"><value>Ngày giao</value></data>
   <data name="Version" xml:space="preserve"><value>Phiên bản</value></data>
   <data name="Default" xml:space="preserve"><value>Mặc định</value></data>
@@ -905,7 +914,7 @@
   <data name="AddDepartment" xml:space="preserve"><value>Thêm phòng ban</value></data>
   <data name="AddSupplier" xml:space="preserve"><value>Thêm nhà cung cấp</value></data>
   <data name="LibraryStatusActive" xml:space="preserve"><value>Hoạt động</value></data>
-  <data name="LibraryStatusInactive" xml:space="preserve"><value>Ngừng áp dụng</value></data>
+  <data name="LibraryStatusInactive" xml:space="preserve"><value>Vô hiệu hóa</value></data>
   <data name="RecordStatus" xml:space="preserve"><value>Trạng thái</value></data>
   <data name="PriceListDeactivated" xml:space="preserve"><value>Đã vô hiệu hóa bảng giá</value></data>
   <data name="PriceListRestored" xml:space="preserve"><value>Đã khôi phục bảng giá</value></data>
@@ -1030,7 +1039,7 @@
   <data name="SettlementEvidenceDescription" xml:space="preserve"><value>Báo cáo sử dụng dữ liệu được lưu tại thời điểm chốt kỳ.</value></data>
   <data name="SettlementRevision" xml:space="preserve"><value>Phiên bản</value></data>
   <data name="SettlementPrimarySupplier" xml:space="preserve"><value>Nhà cung cấp chính</value></data>
-  <data name="SettlementGrandTotal" xml:space="preserve"><value>Tổng chốt kỳ</value></data>
+  <data name="SettlementGrandTotal" xml:space="preserve"><value>Tổng giá trị</value></data>
   <data name="SettlementVariance" xml:space="preserve"><value>Chênh lệch phân bổ</value></data>
   <data name="ReportCost" xml:space="preserve"><value>Chi phí</value></data>
   <data name="ReportDepartmentsSettledDescription" xml:space="preserve"><value>Số liệu được ghi nhận khi chốt kỳ.</value></data>
@@ -1047,9 +1056,28 @@
   <data name="SettlementSelectSupplierCondition" xml:space="preserve"><value>Chọn nhà cung cấp đủ độ phủ để tiếp tục.</value></data>
   <data name="SettlementCurrentPeriod" xml:space="preserve"><value>Kỳ này</value></data>
   <data name="SettlementCustomPeriod" xml:space="preserve"><value>Tùy chọn</value></data>
-  <data name="SettlementByItem" xml:space="preserve"><value>Mặt hàng</value></data>
-  <data name="SettlementByDepartment" xml:space="preserve"><value>Phòng ban</value></data>
-  <data name="SettlementByRequester" xml:space="preserve"><value>Người dùng</value></data>
+  <data name="SettlementByItem" xml:space="preserve"><value>Theo mặt hàng</value></data>
+  <data name="SettlementByDepartment" xml:space="preserve"><value>Theo phòng ban</value></data>
+  <data name="SettlementByRequester" xml:space="preserve"><value>Theo người đặt</value></data>
+  <data name="SettlementViewOrders" xml:space="preserve"><value>Xem đơn</value></data>
+  <data name="SettlementPriceCoverage" xml:space="preserve"><value>Độ phủ bảng giá</value></data>
+  <data name="SettlementPayableTotal" xml:space="preserve"><value>Tổng thanh toán</value></data>
+  <data name="SettlementSelectSupplier" xml:space="preserve"><value>Chọn nhà cung cấp</value></data>
+  <data name="SettlementSelectPriceList" xml:space="preserve"><value>Chọn bảng giá</value></data>
+  <data name="SettlementSubtotalAndVat" xml:space="preserve"><value>Trước VAT và thuế VAT</value></data>
+  <data name="SettlementNetAmount" xml:space="preserve"><value>Tạm tính</value></data>
+  <data name="SettlementGrossAmount" xml:space="preserve"><value>Thành tiền (gồm VAT)</value></data>
+  <data name="SettlementVatRate" xml:space="preserve"><value>Thuế VAT</value></data>
+  <data name="SettlementAllOrdersInGroup" xml:space="preserve"><value>Tất cả đơn trong nhóm</value></data>
+  <data name="SettlementGroupOrderCount" xml:space="preserve"><value>Số đơn trong nhóm</value></data>
+  <data name="SettlementIncludesVat" xml:space="preserve"><value>Đã gồm VAT</value></data>
+  <data name="SettlementBeforeVat" xml:space="preserve"><value>Trước VAT</value></data>
+  <data name="SettlementVatAmount" xml:space="preserve"><value>Thuế GTGT (VAT)</value></data>
+  <data name="SettlementRequestValue" xml:space="preserve"><value>Giá trị đơn</value></data>
+  <data name="SettlementQuoteBasis" xml:space="preserve"><value>Tổng thanh toán tính theo bảng giá chốt kỳ; cột Giá trị đơn là số tiền đã lưu trên từng đơn.</value></data>
+  <data name="SettlementCoverageFormat" xml:space="preserve"><value>{0}/{1} mặt hàng có giá</value></data>
+  <data name="SettlementSnapshotItemCount" xml:space="preserve"><value>{0} mặt hàng trong bản chốt</value></data>
+  <data name="SettlementOrderPicker" xml:space="preserve"><value>Đơn trong nhóm</value></data>
   <data name="SettlementNeedsReview" xml:space="preserve"><value>Cần rà soát</value></data>
   <data name="ViewFullscreen" xml:space="preserve"><value>Xem toàn màn hình</value></data>
   <data name="ExitFullscreen" xml:space="preserve"><value>Thoát toàn màn hình</value></data>
@@ -1125,7 +1153,6 @@
   <data name="UserInvitationPasswordlessHint" xml:space="preserve"><value>Quản trị viên không tạo hoặc nhìn thấy mật khẩu. Người dùng sẽ nhận liên kết một lần để tự đặt mật khẩu.</value></data>
   <data name="SendInvitation" xml:space="preserve"><value>Gửi lời mời</value></data>
   <data name="RequiredFieldsValidation" xml:space="preserve"><value>Vui lòng nhập đủ thông tin bắt buộc.</value></data>
-  <data name="ChangeReason" xml:space="preserve"><value>Lý do thay đổi</value></data>
   <data name="MembershipAssignmentValidation" xml:space="preserve"><value>Vui lòng chọn nhóm quyền và phòng ban.</value></data>
   <data name="InvitationSentSummary" xml:space="preserve"><value>Đã gửi lời mời</value></data>
   <data name="InvitationSentDetail" xml:space="preserve"><value>Tài khoản đã được tạo không có mật khẩu; liên kết thiết lập một lần đã được đưa vào email outbox.</value></data>
@@ -1150,4 +1177,164 @@
   <data name="EditMembershipAssignment" xml:space="preserve"><value>Thay đổi nhóm quyền hoặc phòng ban của tài khoản.</value></data>
   <data name="MembershipChangeUnavailable" xml:space="preserve"><value>Tài khoản này hiện không thể thay đổi phân công quyền.</value></data>
   <data name="SelfPasswordLinkBlocked" xml:space="preserve"><value>Không thể gửi liên kết đặt lại mật khẩu cho chính tài khoản đang đăng nhập tại đây.</value></data>
+  <data name="Published" xml:space="preserve"><value>Đã xuất bản</value></data>
+  <data name="Retired" xml:space="preserve"><value>Ngừng áp dụng</value></data>
+  <data name="Publish" xml:space="preserve"><value>Xuất bản</value></data>
+  <data name="Action" xml:space="preserve"><value>Thao tác</value></data>
+  <data name="PeriodPolicyNavigation" xml:space="preserve"><value>Các kỳ đặt hàng</value></data>
+  <data name="PeriodPolicyLoadFailed" xml:space="preserve"><value>Không tải được cấu hình kỳ</value></data>
+  <data name="PeriodPolicyLoadFailedHint" xml:space="preserve"><value>Kiểm tra kết nối và quyền quản lý kỳ, sau đó thử lại.</value></data>
+  <data name="PeriodPolicyEyebrow" xml:space="preserve"><value>Lịch đặt văn phòng phẩm</value></data>
+  <data name="PeriodPolicyTitle" xml:space="preserve"><value>Cấu hình kỳ đặt hàng</value></data>
+  <data name="PeriodPolicyDescription" xml:space="preserve"><value>Định nghĩa ngày mở và hạn nhận đơn cho các kỳ tương lai, có xem trước trước khi xuất bản.</value></data>
+  <data name="PeriodPolicyCurrentDefault" xml:space="preserve"><value>Chính sách đang áp dụng</value></data>
+  <data name="PeriodPolicySafetyTitle" xml:space="preserve"><value>Kỳ đã sinh không bị thay đổi</value></data>
+  <data name="PeriodPolicySafetyDescription" xml:space="preserve"><value>Chính sách mới chỉ áp dụng từ kỳ tương lai đã chọn. Kỳ đang mở và lịch sử tiếp tục dùng các mốc thời gian đã lưu.</value></data>
+  <data name="PeriodPolicyDraftTitle" xml:space="preserve"><value>Phiên bản chính sách mới</value></data>
+  <data name="PeriodPolicyDraftDescription" xml:space="preserve"><value>Chỉnh quy tắc, xem trước tối thiểu 12 kỳ, lưu nháp rồi mới xuất bản.</value></data>
+  <data name="PeriodPolicyDraftBadge" xml:space="preserve"><value>Đang chỉnh nháp</value></data>
+  <data name="PeriodPolicyName" xml:space="preserve"><value>Tên chính sách</value></data>
+  <data name="PeriodPolicyRuleKind" xml:space="preserve"><value>Quy tắc ngày biên</value></data>
+  <data name="PeriodPolicyDayOfMonth" xml:space="preserve"><value>Ngày trong tháng (1–31)</value></data>
+  <data name="PeriodPolicyBusinessDayOrdinal" xml:space="preserve"><value>Ngày làm việc thứ N</value></data>
+  <data name="PeriodPolicyInvalidDay" xml:space="preserve"><value>Tháng không có ngày đã chọn</value></data>
+  <data name="PeriodPolicyNonWorkingDay" xml:space="preserve"><value>Nếu rơi vào ngày nghỉ</value></data>
+  <data name="PeriodPolicyLocalTime" xml:space="preserve"><value>Giờ áp dụng</value></data>
+  <data name="PeriodPolicyGraceDays" xml:space="preserve"><value>Số ngày duyệt đơn bổ sung</value></data>
+  <data name="PeriodPolicyEffectiveMonth" xml:space="preserve"><value>Tháng bắt đầu áp dụng</value></data>
+  <data name="PeriodPolicyEffectiveYear" xml:space="preserve"><value>Năm bắt đầu áp dụng</value></data>
+  <data name="PeriodPolicyExplicitCalendarTitle" xml:space="preserve"><value>Cần khai báo mốc cho từng tháng</value></data>
+  <data name="PeriodPolicyExplicitCalendarDescription" xml:space="preserve"><value>Mỗi tháng trong vùng xem trước phải có đúng một ngày được đánh dấu “Mốc kỳ” ở lịch làm việc.</value></data>
+  <data name="PeriodPolicyPreviewAction" xml:space="preserve"><value>Xem trước 12 kỳ</value></data>
+  <data name="PeriodPolicySaveDraftAction" xml:space="preserve"><value>Lưu nháp</value></data>
+  <data name="PeriodPolicyPublishAction" xml:space="preserve"><value>Xuất bản cho kỳ tương lai</value></data>
+  <data name="PeriodPolicyPreviewTitle" xml:space="preserve"><value>Lịch kỳ xem trước</value></data>
+  <data name="PeriodPolicyPreviewSummary" xml:space="preserve"><value>{0} kỳ được tính từ cùng một quy tắc</value></data>
+  <data name="PeriodPolicyPreviewEmpty" xml:space="preserve"><value>Chưa có lịch xem trước</value></data>
+  <data name="PeriodPolicyPreviewEmptyHint" xml:space="preserve"><value>Hoàn thiện quy tắc rồi chọn “Xem trước 12 kỳ”.</value></data>
+  <data name="PeriodPolicyStartsAt" xml:space="preserve"><value>Bắt đầu kỳ</value></data>
+  <data name="PeriodPolicySubmissionDeadline" xml:space="preserve"><value>Hạn nhận đơn</value></data>
+  <data name="PeriodPolicySupplementDeadline" xml:space="preserve"><value>Hạn duyệt bổ sung</value></data>
+  <data name="PeriodPolicyAdjusted" xml:space="preserve"><value>Đã điều chỉnh lịch</value></data>
+  <data name="PeriodPolicyExact" xml:space="preserve"><value>Đúng ngày cấu hình</value></data>
+  <data name="PeriodPolicyVersionsTitle" xml:space="preserve"><value>Các phiên bản chính sách</value></data>
+  <data name="PeriodPolicyVersionsSummary" xml:space="preserve"><value>{0} phiên bản nháp hoặc đã xuất bản</value></data>
+  <data name="PeriodPolicyNewVersion" xml:space="preserve"><value>Tạo phiên bản mới</value></data>
+  <data name="PeriodPolicyVersionsEmpty" xml:space="preserve"><value>Chưa có phiên bản chính sách</value></data>
+  <data name="PeriodPolicyVersionsEmptyHint" xml:space="preserve"><value>Ngày 05 vẫn được dùng theo cấu hình tương thích cho đến khi phiên bản đầu tiên được xuất bản.</value></data>
+  <data name="PeriodPolicyEffectiveFrom" xml:space="preserve"><value>Hiệu lực từ kỳ</value></data>
+  <data name="PeriodPolicyRuleDayOfMonth" xml:space="preserve"><value>Một ngày trong tháng</value></data>
+  <data name="PeriodPolicyRuleEndOfMonth" xml:space="preserve"><value>Ngày cuối tháng</value></data>
+  <data name="PeriodPolicyRuleNthBusinessDay" xml:space="preserve"><value>Ngày làm việc thứ N</value></data>
+  <data name="PeriodPolicyRuleLastBusinessDay" xml:space="preserve"><value>Ngày làm việc cuối tháng</value></data>
+  <data name="PeriodPolicyRuleExplicitCalendar" xml:space="preserve"><value>Lịch chỉ định theo từng tháng</value></data>
+  <data name="PeriodPolicyClampToMonthEnd" xml:space="preserve"><value>Co về ngày cuối tháng</value></data>
+  <data name="PeriodPolicyMoveToNextMonth" xml:space="preserve"><value>Chuyển phần ngày dư sang tháng sau</value></data>
+  <data name="PeriodPolicyKeepNonWorkingDay" xml:space="preserve"><value>Giữ nguyên ngày</value></data>
+  <data name="PeriodPolicyPreviousBusinessDay" xml:space="preserve"><value>Lùi về ngày làm việc trước</value></data>
+  <data name="PeriodPolicyNextBusinessDay" xml:space="preserve"><value>Chuyển sang ngày làm việc sau</value></data>
+  <data name="PeriodPolicyLegacyDefault" xml:space="preserve"><value>Ngày 05 · 00:00 · không dời ngày nghỉ</value></data>
+  <data name="PeriodPolicyPreviewSuccess" xml:space="preserve"><value>Đã tính lại lịch của 12 kỳ.</value></data>
+  <data name="PeriodPolicyDraftSaved" xml:space="preserve"><value>Đã lưu bản nháp chính sách kỳ.</value></data>
+  <data name="PeriodPolicyPublishConfirm" xml:space="preserve"><value>Xuất bản chính sách này cho các kỳ tương lai? Kỳ đang mở và lịch sử sẽ không thay đổi.</value></data>
+  <data name="PeriodPolicyPublishTitle" xml:space="preserve"><value>Xác nhận xuất bản chính sách</value></data>
+  <data name="PeriodPolicyPublished" xml:space="preserve"><value>Chính sách kỳ đã được xuất bản.</value></data>
+  <data name="PeriodPolicyDefaultDraftName" xml:space="preserve"><value>Chính sách kỳ từ {0:00}/{1}</value></data>
+  <data name="PeriodPolicyInvalidTime" xml:space="preserve"><value>Giờ áp dụng phải có định dạng HH:mm.</value></data>
+  <data name="PeriodPolicyRuleDayFormat" xml:space="preserve"><value>Ngày {0} hàng tháng</value></data>
+  <data name="PeriodPolicyRuleNthFormat" xml:space="preserve"><value>Ngày làm việc thứ {0}</value></data>
+  <data name="BusinessCalendarTitle" xml:space="preserve"><value>Lịch làm việc và ngày nghỉ</value></data>
+  <data name="BusinessCalendarSummary" xml:space="preserve"><value>{0} ngày ghi đè trong 24 tháng tới</value></data>
+  <data name="BusinessCalendarWorkingOverride" xml:space="preserve"><value>Ngày làm bù</value></data>
+  <data name="BusinessCalendarBoundary" xml:space="preserve"><value>Mốc kỳ</value></data>
+  <data name="BusinessCalendarSave" xml:space="preserve"><value>Lưu ngày lịch</value></data>
+  <data name="BusinessCalendarEmpty" xml:space="preserve"><value>Chưa có ngày nghỉ hoặc ngày làm bù riêng</value></data>
+  <data name="BusinessCalendarEmptyHint" xml:space="preserve"><value>Thứ Bảy và Chủ nhật vẫn được xem là ngày nghỉ mặc định.</value></data>
+  <data name="BusinessCalendarDayType" xml:space="preserve"><value>Loại ngày</value></data>
+  <data name="BusinessCalendarWorkingDay" xml:space="preserve"><value>Ngày làm việc</value></data>
+  <data name="BusinessCalendarHoliday" xml:space="preserve"><value>Ngày nghỉ</value></data>
+  <data name="BusinessCalendarSaved" xml:space="preserve"><value>Đã cập nhật lịch làm việc.</value></data>
+  <data name="BusinessCalendarDeleteConfirm" xml:space="preserve"><value>Xóa “{0}” ngày {1} khỏi lịch ghi đè?</value></data>
+  <data name="BusinessCalendarDeleteTitle" xml:space="preserve"><value>Xóa ngày lịch</value></data>
+  <data name="BusinessCalendarDeleted" xml:space="preserve"><value>Đã xóa ngày khỏi lịch ghi đè.</value></data>
+  <data name="OrderPeriodSettings" xml:space="preserve"><value>Cấu hình đặt hàng</value></data>
+  <data name="OrderPeriodSettingsDescription" xml:space="preserve"><value>Quản lý các mặc định toàn công ty dùng khi hệ thống tạo kỳ đặt hàng mới.</value></data>
+  <data name="OrderPeriodSettingsLoadError" xml:space="preserve"><value>Không tải được cấu hình đặt hàng</value></data>
+  <data name="OrderPeriodSettingsLoadErrorDescription" xml:space="preserve"><value>Hãy thử tải lại. Các kỳ đã tạo vẫn giữ nguyên lịch hiện tại.</value></data>
+  <data name="OrderPeriodSettingsScopeTitle" xml:space="preserve"><value>Chỉ áp dụng cho kỳ được tạo sau này</value></data>
+  <data name="OrderPeriodSettingsScopeDescription" xml:space="preserve"><value>Mỗi lần lưu tạo một phiên bản mới. Hệ thống không sửa ngược ngày mở, ngày đóng hoặc trạng thái của kỳ đã tồn tại.</value></data>
+  <data name="OrderPeriodDefaultsTitle" xml:space="preserve"><value>Mặc định tạo kỳ</value></data>
+  <data name="OrderPeriodDefaultsDescription" xml:space="preserve"><value>Mặc định mở trước 3 kỳ, đóng ngày 05, duyệt đơn bổ sung trong 5 ngày và cho chỉnh đơn trong 10 ngày kể từ ngày đóng.</value></data>
+  <data name="OrderPeriodSettingsName" xml:space="preserve"><value>Tên cấu hình</value></data>
+  <data name="OrderPeriodSettingsNameRequired" xml:space="preserve"><value>Nhập tên cấu hình.</value></data>
+  <data name="OrderPeriodOpenCount" xml:space="preserve"><value>Số kỳ mở trước</value></data>
+  <data name="OrderPeriodOpenCountRange" xml:space="preserve"><value>Số kỳ phải từ 0 đến 12.</value></data>
+  <data name="OrderPeriodAutoOpenDay" xml:space="preserve"><value>Ngày tự mở thêm kỳ</value></data>
+  <data name="OrderPeriodDefaultCloseDay" xml:space="preserve"><value>Ngày đóng mặc định</value></data>
+  <data name="OrderPeriodDayRange" xml:space="preserve"><value>Ngày phải từ 1 đến 31; tháng ngắn tự dùng ngày cuối tháng.</value></data>
+  <data name="SupplementApprovalGraceDays" xml:space="preserve"><value>Số ngày duyệt đơn bổ sung</value></data>
+  <data name="SupplementApprovalGraceDaysRange" xml:space="preserve"><value>Số ngày phải từ 0 đến 31.</value></data>
+  <data name="SupplementApprovalGraceDaysHelp" xml:space="preserve"><value>Mặc định 5 ngày sau ngày khóa kỳ.</value></data>
+  <data name="OrderPeriodAutomationTime" xml:space="preserve"><value>Giờ chạy tự động</value></data>
+  <data name="TimeZone" xml:space="preserve"><value>Múi giờ</value></data>
+  <data name="TimeZoneRequired" xml:space="preserve"><value>Chọn múi giờ.</value></data>
+  <data name="EffectiveFromMonth" xml:space="preserve"><value>Hiệu lực từ tháng</value></data>
+  <data name="EffectiveFromMonthRange" xml:space="preserve"><value>Tháng phải từ 1 đến 12.</value></data>
+  <data name="EffectiveFromYear" xml:space="preserve"><value>Hiệu lực từ năm</value></data>
+  <data name="EffectiveFromYearRange" xml:space="preserve"><value>Năm phải từ 2024 đến 9999.</value></data>
+  <data name="ResetToCurrentVersion" xml:space="preserve"><value>Khôi phục bản hiện tại</value></data>
+  <data name="SaveNewSettingsVersion" xml:space="preserve"><value>Lưu phiên bản mới</value></data>
+  <data name="OrderPeriodSettingsHistory" xml:space="preserve"><value>Lịch sử cấu hình</value></data>
+  <data name="OrderPeriodSettingsHistoryEmpty" xml:space="preserve"><value>Chưa có phiên bản cấu hình</value></data>
+  <data name="OrderPeriodSettingsHistoryEmptyDescription" xml:space="preserve"><value>Lưu cấu hình lần đầu để tạo phiên bản áp dụng cho các kỳ tương lai.</value></data>
+  <data name="ConfigurationName" xml:space="preserve"><value>Tên cấu hình</value></data>
+  <data name="EffectiveFrom" xml:space="preserve"><value>Hiệu lực từ</value></data>
+  <data name="OrderPeriodOpenCountShort" xml:space="preserve"><value>Số kỳ</value></data>
+  <data name="DefaultSchedule" xml:space="preserve"><value>Ngày mở → đóng</value></data>
+  <data name="SupplementGraceShort" xml:space="preserve"><value>Duyệt bổ sung</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Tạo lúc</value></data>
+  <data name="DefaultConfiguration" xml:space="preserve"><value>Mặc định hệ thống</value></data>
+  <data name="SettingsVersionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
+  <data name="OrderPeriodSettingsSaveFailed" xml:space="preserve"><value>Không nhận được phiên bản cấu hình vừa lưu.</value></data>
+  <data name="OrderPeriodSettingsSavedDescription" xml:space="preserve"><value>Phiên bản mới chỉ áp dụng khi tạo kỳ sau thời điểm hiệu lực.</value></data>
+  <data name="OrderPeriodSettingsValidationWarning" xml:space="preserve"><value>Kiểm tra lại các trường đang báo lỗi.</value></data>
+  <data name="Saved" xml:space="preserve"><value>Đã lưu</value></data>
+  <data name="PostCloseAdjustmentDays" xml:space="preserve"><value>Số ngày được chỉnh đơn sau ngày đóng</value></data>
+  <data name="PostCloseAdjustmentDaysRange" xml:space="preserve"><value>Số ngày phải từ 0 đến 31.</value></data>
+  <data name="PostCloseAdjustmentDaysHelp" xml:space="preserve"><value>Mặc định 10 ngày kể từ ngày đóng. Sau thời gian này, quản lý chỉ chọn nhà cung cấp, bảng giá và chốt kỳ.</value></data>
+  <data name="PostCloseAdjustmentShort" xml:space="preserve"><value>Ngày chỉnh đơn</value></data>
+  <data name="PostCloseAdjustmentMustCoverSupplement" xml:space="preserve"><value>Thời gian chỉnh đơn phải bằng hoặc dài hơn thời gian duyệt đơn bổ sung.</value></data>
+  <data name="SupplementApprovalExpiredHint" xml:space="preserve"><value>Đã hết hạn duyệt. Bạn có thể từ chối đơn còn chờ để tiếp tục chốt kỳ.</value></data>
+  <data name="AdjustSettlementResult" xml:space="preserve"><value>Điều chỉnh sau chốt</value></data>
+  <data name="SettlementVersionLabel" xml:space="preserve"><value>Bản {0}</value></data>
+  <data name="AdjustmentSaved" xml:space="preserve"><value>Đã lưu điều chỉnh</value></data>
+  <data name="SettlementVersionSaved" xml:space="preserve"><value>Hệ thống đã lưu thành bản chốt {0}. Bản trước vẫn có trong lịch sử.</value></data>
+  <data name="AdjustAfterSettlement" xml:space="preserve"><value>Điều chỉnh sau chốt</value></data>
+  <data name="PostSettlementAdjustmentHint" xml:space="preserve"><value>một quản lý khác sẽ kiểm tra trước khi lưu bản chốt mới</value></data>
+  <data name="PreSettlementAdjustmentHint" xml:space="preserve"><value>được chỉnh đến {0}</value></data>
+  <data name="PostSettlementAdjustmentRequested" xml:space="preserve"><value>Yêu cầu đã được gửi để một quản lý khác kiểm tra.</value></data>
+  <data name="OrderAdjustmentSaved" xml:space="preserve"><value>Đơn đã được cập nhật và nhân viên đã được thông báo.</value></data>
+  <data name="AdjustmentApproved" xml:space="preserve"><value>Đã duyệt điều chỉnh</value></data>
+  <data name="NewSettlementVersionCreated" xml:space="preserve"><value>Đơn đã được cập nhật và hệ thống đã lưu bản chốt mới.</value></data>
+  <data name="RejectAdjustment" xml:space="preserve"><value>Từ chối điều chỉnh</value></data>
+  <data name="PendingAdjustments" xml:space="preserve"><value>Điều chỉnh đang chờ duyệt</value></data>
+  <data name="PendingAdjustmentCount" xml:space="preserve"><value>{0} yêu cầu đang chờ một quản lý khác</value></data>
+  <data name="ReviewAdjustmentRequests" xml:space="preserve"><value>Kiểm tra yêu cầu điều chỉnh</value></data>
+  <data name="DecisionReasonWhenRejecting" xml:space="preserve"><value>Lý do quyết định; bắt buộc khi từ chối</value></data>
+  <data name="Change" xml:space="preserve"><value>Thay đổi</value></data>
+  <data name="EmployeeMessage" xml:space="preserve"><value>Thông báo cho nhân viên</value></data>
+  <data name="RequestedBy" xml:space="preserve"><value>Người gửi yêu cầu</value></data>
+  <data name="Decision" xml:space="preserve"><value>Quyết định</value></data>
+  <data name="UpdateQuantity" xml:space="preserve"><value>Cập nhật số lượng</value></data>
+  <data name="CancelOrder" xml:space="preserve"><value>Hủy đơn</value></data>
+  <data name="ChangeReason" xml:space="preserve"><value>Lý do thay đổi</value></data>
+  <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Chỉ điều chỉnh số lượng của các mặt hàng đang có trong đơn.</value></data>
+  <data name="SendRequest" xml:space="preserve"><value>Gửi yêu cầu</value></data>
+  <data name="RequestSent" xml:space="preserve"><value>Đã gửi yêu cầu</value></data>
+  <data name="SavedSettlementVersions" xml:space="preserve"><value>Các bản chốt đã lưu</value></data>
+  <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Mỗi lần điều chỉnh được lưu thành một bản mới. Các bản trước vẫn được giữ để đối chiếu.</value></data>
+  <data name="ViewSavedVersions" xml:space="preserve"><value>Xem các bản đã lưu</value></data>
+  <data name="CurrentlyUsed" xml:space="preserve"><value>Đang dùng</value></data>
+  <data name="TotalValue" xml:space="preserve"><value>Tổng giá trị</value></data>
+  <data name="SettlementAvailableAfterClosing" xml:space="preserve"><value>Có thể chuẩn bị nhà cung cấp và bảng giá ngay bây giờ; nút chốt sẽ mở sau ngày đóng nhận đơn.</value></data>
 </root>

@@ -1,3 +1,4 @@
+@* PAGE: VPPRequest/Components/HistoryOrderDetailSheet.razor *@
 @* Atlas orderDetailSheet: drawer chi tiết phiếu (backdrop + header + tóm tắt + toolbar lọc + bảng ảo hóa) — state do Tab_History giữ. *@
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_fe.Helpers
@@ -5,14 +6,19 @@
 
 @if (IsOpen && SelectedOrder is not null)
 {
-    <button type="button" class="vpp-history-drawer-backdrop" aria-label="@Loc["Close"]" @onclick="CloseRequested"></button>
+    <button type="button"
+            class="vpp-history-drawer-backdrop @(IsSettlementDetail ? "vpp-settlement-detail-backdrop" : null)"
+            aria-label="@Loc["Close"]"
+            @onclick="CloseRequested"></button>
 }
-<aside class="vpp-history-drawer @(IsOpen ? "is-open" : null) @(IsFullscreen ? "is-fullscreen" : null)"
+@* DETAIL: Drawer chi tiết phiếu lịch sử. *@
+<aside class="vpp-history-drawer @(IsOpen ? "is-open" : null) @(IsFullscreen ? "is-fullscreen" : null) @Class"
            @ref="DrawerElement"
            tabindex="-1"
            role="dialog"
            aria-modal="@(IsOpen ? "true" : "false")"
            aria-labelledby="history-drawer-title">
+        @* HEADER: Mã phiếu, trạng thái và các thao tác xuất/đóng drawer. *@
         <header class="vpp-history-drawer-header">
             <div class="vpp-history-sheet-heading">
                 <p class="vpp-history-sheet-kicker">GTAS VPP — <span>@Loc["HistoryDetailSheetTitle"]</span></p>
@@ -20,7 +26,10 @@
                 {
                     <div class="vpp-history-drawer-code">
                         <h2 id="history-drawer-title">@SelectedOrder.VppCode</h2>
-                        <VppStatusBadge Tone="@StatusDisplay.GetTone(SelectedOrder.Status)" Text="@Loc[StatusDisplay.GetResourceKey(SelectedOrder.Status, SelectedOrder.IsDeadlinePassed, SelectedOrder.IsAdditionalOrder)]" />
+                        @if (!IsAggregateView)
+                        {
+                            <VppStatusBadge Tone="@StatusDisplay.GetTone(SelectedOrder.Status)" Text="@Loc[StatusDisplay.GetResourceKey(SelectedOrder.Status, SelectedOrder.IsDeadlinePassed, SelectedOrder.IsAdditionalOrder)]" />
+                        }
                     </div>
                 }
             </div>
@@ -28,10 +37,22 @@
             {
                 @* D10: xuất phiếu ngay từ màn lịch sử, tái dùng ExportOrderAsync của BaseOrderTab. *@
                 <div class="vpp-history-drawer-actions">
-                    <VppFileExportActions BusyFormat="@BusyExportFormat"
-                                          ExportRequested="@ExportRequested"
-                                          Disabled="@IsDetailLoading"
-                                          AriaContext="@SelectedOrder.VppCode" />
+                    @if (ShowPostSettlementCorrection && PostSettlementCorrectionRequested.HasDelegate)
+                    {
+                        <button type="button"
+                                class="vpp-history-post-settlement-action"
+                                disabled="@IsDetailLoading"
+                                @onclick="PostSettlementCorrectionRequested">
+                            @PostSettlementCorrectionText
+                        </button>
+                    }
+                    @if (ShowExportActions)
+                    {
+                        <VppFileExportActions BusyFormat="@BusyExportFormat"
+                                              ExportRequested="@ExportRequested"
+                                              Disabled="@IsDetailLoading"
+                                              AriaContext="@SelectedOrder.VppCode" />
+                    }
                     @if (FullscreenRequested.HasDelegate)
                     {
                         <RadzenButton Icon="@(IsFullscreen ? "close_fullscreen" : "open_in_full")"
@@ -66,6 +87,7 @@
         else if (SelectedOrder is null)
         {
             <VppContentState State="@(HasTableFilters && TotalCount == 0 ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                             FillAvailable="true"
                              Icon="receipt_long"
                              Title="@(HasTableFilters && TotalCount == 0 ? Loc["NoOrdersMatchSelectedFilters"] : Loc["HistorySelectOrder"] )"
                              Description="@(HasTableFilters && TotalCount == 0 ? Loc["HistoryAdjustFilters"] : Loc["HistorySelectOrderDescription"] )"
@@ -74,37 +96,70 @@
         else if (HasDetailError)
         {
             <VppContentState State="VppContentStateKind.Error"
+                             FillAvailable="true"
                              Icon="error"
                              Title="@Loc["HistoryDetailsLoadFailed"]"
                              Description="@Loc["HistoryDetailsErrorDescription"]"
                              PrimaryActionText="@Loc["Retry"]"
-                             PrimaryActionIcon="@VppIcons.Refresh"
+                             PrimaryActionIcon="@VppIcons.Reset"
                              PrimaryAction="@(_ => RetryRequested.InvokeAsync())"
                              Class="vpp-history-state-panel vpp-history-detail-state" />
         }
         else
         {
+            @* SUMMARY: Thông tin tổng quan của phiếu đang chọn. *@
             <section class="vpp-history-drawer-summary">
+                @if (OrderOptions.Count > 1)
+                {
+                    <div class="vpp-history-order-picker">
+                        <span>@OrderPickerLabel</span>
+                        <VppFilterSelect TValue="Guid"
+                                         Value="@SelectedOrderId"
+                                         Options="@OrderOptions"
+                                         ValueChanged="@OrderSelectionChanged"
+                                         Placeholder="@OrderPickerLabel"
+                                         AriaLabel="@OrderPickerLabel"
+                                         Active="false"
+                                         HighlightSelectedOption="false"
+                                         Disabled="@OrderPickerDisabled" />
+                    </div>
+                }
                 @* Header phiếu bám đúng trật tự dữ liệu của bản PDF canonical. *@
-                <dl class="vpp-history-order-meta">
+                <dl class="vpp-history-order-meta @(IsAggregateView ? "is-aggregate" : null)">
                     <div><dt>@Loc["Period"]</dt><dd>@SelectedOrder.Period</dd></div>
-                    <div><dt>@Loc["HistoryOrderType"]</dt><dd><span class="vpp-history-order-type @(SelectedOrder.IsAdditionalOrder ? "is-additional" : "is-regular")">@(SelectedOrder.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])</span></dd></div>
-                    <div><dt>@Loc["HistoryRequester"]</dt><dd title="@SelectedOrder.RequesterName">@(string.IsNullOrWhiteSpace(SelectedOrder.RequesterName) ? "–" : SelectedOrder.RequesterName)</dd></div>
-                    <div><dt>@Loc["Department"]</dt><dd title="@SelectedOrder.DepartmentCode">@(string.IsNullOrWhiteSpace(SelectedOrder.DepartmentCode) ? "–" : SelectedOrder.DepartmentCode)</dd></div>
-                    <div><dt>@Loc["SubmittedAtLabel"]</dt><dd>@(SelectedOrder.SubmittedDate.HasValue ? DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate) : "–")</dd></div>
-                    @if (!string.IsNullOrWhiteSpace(SelectedSupplierName))
+                    @if (IsAggregateView)
                     {
-                        <div><dt>@Loc["SupplyPrimarySupplier"]</dt><dd title="@SelectedSupplierName">@SelectedSupplierName</dd></div>
+                        <div><dt>@Loc["SettlementGroupOrderCount"]</dt><dd>@AggregateOrderCount</dd></div>
+                        <div><dt>@Loc["OrderItems"]</dt><dd>@SelectedOrder.TotalLines</dd></div>
+                        <div><dt>@Loc["TotalQuantity"]</dt><dd>@SelectedOrder.TotalQty</dd></div>
+                    }
+                    else if (PeriodStateDisplay.IsKnown(SelectedOrder.PeriodState))
+                    {
+                        <div><dt>@Loc["PeriodStateLabel"]</dt><dd><VppPeriodStateBadge State="@SelectedOrder.PeriodState" Class="vpp-history-period-state" /></dd></div>
+                    }
+                    @if (!IsAggregateView)
+                    {
+                        <div><dt>@Loc["HistoryOrderType"]</dt><dd><VppCategoryChip Text="@(SelectedOrder.IsAdditionalOrder ? Loc["AdditionalOrder"] : Loc["Regular"])" Tone="@(SelectedOrder.IsAdditionalOrder ? VppCategoryTone.Accent : VppCategoryTone.Neutral)" Class="vpp-history-order-type" /></dd></div>
+                        <div><dt>@Loc["HistoryRequester"]</dt><dd title="@SelectedOrder.RequesterName">@(string.IsNullOrWhiteSpace(SelectedOrder.RequesterName) ? "–" : SelectedOrder.RequesterName)</dd></div>
+                        <div><dt>@Loc["Department"]</dt><dd title="@SelectedOrder.DepartmentCode">@(string.IsNullOrWhiteSpace(SelectedOrder.DepartmentCode) ? "–" : SelectedOrder.DepartmentCode)</dd></div>
+                        <div><dt>@Loc["SubmittedAtLabel"]</dt><dd>@(SelectedOrder.SubmittedDate.HasValue ? DateFormatter.Format(SelectedOrder.SubmittedDate, DateFormatter.LongDate) : "–")</dd></div>
+                        @if (!string.IsNullOrWhiteSpace(SelectedSupplierName))
+                        {
+                            <div><dt>@Loc["SupplyPrimarySupplier"]</dt><dd title="@SelectedSupplierName">@SelectedSupplierName</dd></div>
+                        }
                     }
                     @if (SelectedOrderAmount.HasValue)
                     {
                         <div><dt>@Loc["Amount"]</dt><dd class="vpp-history-order-amount">@SelectedOrderAmount.Value.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</dd></div>
                     }
                 </dl>
-                <div class="vpp-history-order-note">
-                    <span>@Loc["Note"]</span>
-                    <p>@(string.IsNullOrWhiteSpace(SelectedOrder.Description) ? "–" : SelectedOrder.Description)</p>
-                </div>
+                @if (!IsAggregateView)
+                {
+                    <div class="vpp-history-order-note">
+                        <span>@Loc["Note"]</span>
+                        <p>@(string.IsNullOrWhiteSpace(SelectedOrder.Description) ? "–" : SelectedOrder.Description)</p>
+                    </div>
+                }
             </section>
 
             @* Atlas approval-items-heading: mỏ neo thị giác giữa phần tóm tắt và vùng lọc. *@
@@ -157,9 +212,17 @@
 @code {
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public bool IsFullscreen { get; set; }
+    [Parameter] public bool IsAggregateView { get; set; }
+    [Parameter] public int AggregateOrderCount { get; set; }
+    [Parameter] public bool ShowExportActions { get; set; } = true;
+    [Parameter] public string? Class { get; set; }
     [Parameter] public VppRequestResDTO? SelectedOrder { get; set; }
+    [Parameter] public Guid SelectedOrderId { get; set; }
+    [Parameter] public IReadOnlyList<VppFilterOption<Guid>> OrderOptions { get; set; } = [];
+    [Parameter] public string OrderPickerLabel { get; set; } = string.Empty;
+    [Parameter] public bool OrderPickerDisabled { get; set; }
     [Parameter] public string? SelectedSupplierName { get; set; }
-    [Parameter] public long? SelectedOrderAmount { get; set; }
+  [Parameter] public decimal? SelectedOrderAmount { get; set; }
     [Parameter] public bool IsDetailLoading { get; set; }
     [Parameter] public bool HasDetailError { get; set; }
     [Parameter, EditorRequired] public IReadOnlyList<VppOrderDetailItem> DetailRows { get; set; } = [];
@@ -175,9 +238,13 @@
     [Parameter] public int TotalCount { get; set; }
     [Parameter] public string UnitHeaderLabel { get; set; } = string.Empty;
     [Parameter] public VppFileExportFormat? BusyExportFormat { get; set; }
+    [Parameter] public bool ShowPostSettlementCorrection { get; set; }
+    [Parameter] public string PostSettlementCorrectionText { get; set; } = string.Empty;
     [Parameter] public EventCallback CloseRequested { get; set; }
+    [Parameter] public EventCallback<Guid> OrderSelectionChanged { get; set; }
     [Parameter] public EventCallback FullscreenRequested { get; set; }
     [Parameter] public EventCallback<VppFileExportFormat> ExportRequested { get; set; }
+    [Parameter] public EventCallback PostSettlementCorrectionRequested { get; set; }
     [Parameter] public EventCallback RetryRequested { get; set; }
     [Parameter] public EventCallback<ChangeEventArgs> DetailSearchChanged { get; set; }
     [Parameter] public EventCallback<string> DetailCategorySelected { get; set; }
@@ -188,6 +255,8 @@
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
 
     private VppOrderItemsSurface? _detailSurface;
+    private bool IsSettlementDetail => Class?.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Contains("vpp-settlement-detail-drawer", StringComparer.Ordinal) == true;
 
     /// <summary>Element của aside drawer — Tab_History dùng cho JS focusHistoryDrawer.</summary>
     public ElementReference DrawerElement { get; private set; }

@@ -1,8 +1,10 @@
+@* PAGE: VPPRequest/Tabs/Tab_AdminApproval.razor *@
 @inherits gtas_vpp_fe.Components.Pages.VPPRequest.Tabs.BaseOrderTab
 @using gtas_vpp_fe.Components.Pages.VPPRequest.Components
 
 @if (CanView)
 {
+    @* HEADER: Điều hướng các bước trong khu vực quản lý kỳ. *@
     @if (ShowPeriodNavigation)
     {
         <nav class="vpp-local-header-tabs"
@@ -12,10 +14,13 @@
         </nav>
     }
 
+    @* CONTENT: Workspace chốt kỳ hoặc danh sách đơn chờ duyệt. *@
     @if (ShowSettlementWorkspace)
     {
         <PeriodOperationsWorkspace Claims="@claims"
                                    ActiveStep="@ActivePeriodTab"
+                                   TargetYear="@TargetPeriodYear"
+                                   TargetMonth="@TargetPeriodMonth"
                                    NavigateRequested="@NavigateToPeriodTab"
                                    SettlementChanged="@RefreshAfterSettlementChangeAsync" />
     }
@@ -54,6 +59,7 @@
     else
     {
         <VppContentState State="VppContentStateKind.Denied"
+                         FillAvailable="true"
                          Icon="lock"
                          Title="@Loc["AccessDenied"]"
                          Description="@Loc["NoPermission"]"
@@ -64,6 +70,7 @@
 else
 {
     <VppContentState State="VppContentStateKind.Denied"
+                     FillAvailable="true"
                      Icon="lock"
                      Title="@Loc["AccessDenied"]"
                      Description="@Loc["NoPermission"]"

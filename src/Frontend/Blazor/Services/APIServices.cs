@@ -71,7 +71,10 @@ namespace gtas_vpp_fe.Services
                     var reason = response.Headers.TryGetValues("X-Auth-Reason", out var values)
                         ? values.FirstOrDefault() ?? "session-invalid"
                         : "session-invalid";
-                    await _sessionInvalidationCoordinator.InvalidateAsync(reason);
+                    await _sessionInvalidationCoordinator.InvalidateAsync(
+                        reason,
+                        response.RequestMessage?.Headers.Authorization?.Parameter
+                            ?? _httpClient.DefaultRequestHeaders.Authorization?.Parameter);
                 }
                 else if (response.StatusCode == HttpStatusCode.Forbidden)
                 {

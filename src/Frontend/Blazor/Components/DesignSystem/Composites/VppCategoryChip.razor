@@ -1,0 +1,25 @@
+<VppStatusBadge Text="@Text"
+                Tone="@MappedTone"
+                Title="@Title"
+                Class="@EffectiveClass"
+                @attributes="AdditionalAttributes" />
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = string.Empty;
+    [Parameter] public VppCategoryTone Tone { get; set; } = VppCategoryTone.Neutral;
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private VppStatusTone MappedTone => Tone switch
+    {
+        VppCategoryTone.Primary => VppStatusTone.Info,
+        VppCategoryTone.Accent => VppStatusTone.Warning,
+        _ => VppStatusTone.Neutral
+    };
+
+    private string EffectiveClass => string.IsNullOrWhiteSpace(Class)
+        ? "vpp-category-chip"
+        : $"vpp-category-chip {Class}";
+}

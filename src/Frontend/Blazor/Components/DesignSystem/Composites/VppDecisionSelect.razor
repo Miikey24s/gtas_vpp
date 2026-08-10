@@ -1,0 +1,63 @@
+@typeparam TValue
+
+<div class="vpp-decision-select @Class">
+    <button type="button"
+            class="vpp-decision-select-trigger"
+            popovertarget="@PopoverId"
+            style="anchor-name: @AnchorName"
+            aria-haspopup="listbox"
+            aria-controls="@PopoverId"
+            aria-label="@EffectiveAriaLabel"
+            title="@SelectedLabel"
+            data-value="@Value"
+            disabled="@Disabled">
+        <span class="vpp-decision-select-label">@SelectedLabel</span>
+        <VppIcon Name="@VppIcons.ExpandMore" />
+    </button>
+
+    <div id="@PopoverId"
+         class="vpp-decision-select-popover vpp-transient-surface"
+         popover="auto"
+         role="listbox"
+         aria-label="@EffectiveAriaLabel"
+         style="position-anchor: @AnchorName">
+        @foreach (var option in Options)
+        {
+            <button type="button"
+                    role="option"
+                    aria-selected="@(IsSelected(option.Value) ? "true" : "false")"
+                    title="@option.Label"
+                    data-value="@option.Value"
+                    popovertarget="@PopoverId"
+                    popovertargetaction="hide"
+                    @onclick="@(() => SelectAsync(option.Value))">
+                <span>@option.Label</span>
+                @if (IsSelected(option.Value))
+                {
+                    <VppIcon Name="@VppIcons.Check" />
+                }
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    private readonly string instanceId = Guid.NewGuid().ToString("N");
+
+    [Parameter] public TValue Value { get; set; } = default!;
+    [Parameter, EditorRequired] public IReadOnlyList<VppDecisionOption<TValue>> Options { get; set; } = [];
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter, EditorRequired] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string PopoverId => $"vpp-decision-select-{instanceId}";
+    private string AnchorName => $"--vpp-decision-select-{instanceId}";
+    private string EffectiveAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? Placeholder : AriaLabel;
+    private string SelectedLabel => Options.FirstOrDefault(option => IsSelected(option.Value))?.Label ?? Placeholder;
+
+    private bool IsSelected(TValue optionValue) => EqualityComparer<TValue>.Default.Equals(Value, optionValue);
+
+    private Task SelectAsync(TValue value) => Disabled ? Task.CompletedTask : ValueChanged.InvokeAsync(value);
+}

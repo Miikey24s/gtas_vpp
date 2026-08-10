@@ -1,3 +1,4 @@
+// PAGE LOGIC: VPPRequest/Tabs/Tab_Orders.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
@@ -18,6 +19,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
     public partial class Tab_Orders
     {
+        // DEPENDENCIES: API, export, navigation và permission state của danh sách đơn.
         [Inject] public RequestsQueryClient Requests { get; set; } = default!;
         [Inject] public RequestsCommandClient Commands { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
@@ -26,7 +28,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public RequestsExportClient Exports { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [SupplyParameterFromQuery(Name = "orderView")] public string? OrderViewQuery { get; set; }
+        [SupplyParameterFromQuery(Name = "periodId")] public Guid? PeriodIdQuery { get; set; }
 
+        // ORDER VIEWS: Các chế độ xem đơn hiện tại, đơn bổ sung và đơn kỳ trước.
         protected const int CurrentOrderViewIndex = 0;
         protected const int SupplementOrderViewIndex = 1;
         protected const int PreviousOrderViewIndex = 2;
@@ -35,6 +39,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public List<VppRequestResDTO> PreviousOrders { get; set; } = new();
         public List<VppRequestResDTO> AdditionalOrders { get; set; } = new();
 
+        // DATA STATE: Bật sẵn loading để render skeleton trong lúc dữ liệu đang tải.
         // Bật sẵn để lần render interactive đầu tiên hiển thị skeleton trong lúc
         // period-info + orders đang tải; nếu để false, story hiện thoáng qua ở
         // trạng thái rỗng (không đơn, không nút xuất) trước khi dữ liệu về.
@@ -47,6 +52,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private Guid? _selectedSupplementOrderId;
         protected int OrderViewSelectedIndex { get; set; }
 
+        // PERIOD SUMMARY: Ngày/kỳ và các số liệu tóm tắt lấy từ PeriodInfo và danh sách đơn.
         // P1: Ngày của kỳ được suy ra từ PeriodInfo có thẩm quyền của BE, không dùng DateTime.Now.
         // Chỉ fallback về "tháng lịch hiện tại" trong lúc PeriodInfo đang tải;
         // không bao giờ dùng để điều khiển logic submit/edit vốn được BE kiểm tra.
@@ -66,6 +72,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public string PreviousOrderPeriodText => DateFormatter.Format(PreviousOrderPeriodDate, DateFormatter.MonthYear);
         public string CurrentDeadlineText => DateFormatter.Format(CurrentDeadlineDate, DateFormatter.LongDate);
         public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? Loc["DeadlineIsToday"].Value : string.Format(Loc["RemainingDeadlineDaysFormat"], RemainingDeadlineDays);
+        protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => PeriodInfo?.OpenPeriods
+            .Select(option => new VppDecisionOption<Guid?>(
+                option.PeriodId,
+                DateFormatter.Format(new DateTime(option.Year, option.Month, 1), DateFormatter.MonthYear)))
+            .ToArray() ?? [];
         public IReadOnlyList<VppRequestResDTO> CurrentPeriodAdditionalOrders => AdditionalOrders
             .Where(order => order.Year == CurrentOrderPeriodDate.Year && order.Month == CurrentOrderPeriodDate.Month)
             .ToArray();
@@ -268,7 +279,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             try
             {
-                PeriodInfo = await Requests.GetPeriodInfoAsync();
+                PeriodInfo = await Requests.GetPeriodInfoAsync(PeriodIdQuery);
             }
             catch (Exception ex)
             {
@@ -331,6 +342,26 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task ReloadAsync() => await LoadOrdersAsync();
 
+        protected async Task ChangeSelectedPeriodAsync(Guid? selectedPeriodId)
+        {
+            if (selectedPeriodId is not Guid periodId)
+            {
+                return;
+            }
+
+            if (PeriodInfo?.OpenPeriods.All(option => option.PeriodId != periodId) != false
+                || PeriodInfo.SelectedPeriodId == periodId)
+            {
+                return;
+            }
+
+            PeriodIdQuery = periodId;
+            var uri = NavigationManager.GetUriWithQueryParameter("periodId", periodId);
+            NavigationManager.NavigateTo(uri, replace: true);
+            await LoadPeriodInfoAsync();
+            await LoadOrdersAsync();
+        }
+
         protected async Task GoToCreatePage(bool isAdditional = false)
         {
             if (isAdditional ? !CanCreateSupplement : !CanCreateRegular)
@@ -342,7 +373,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 return;
             }
 
-            NavigationManager.NavigateTo($"/dashboard/order-create?isAdditional={isAdditional}");
+            NavigationManager.NavigateTo($"/dashboard/order-create?isAdditional={isAdditional}&periodId={PeriodInfo?.SelectedPeriodId}");
             await Task.CompletedTask;
         }
 
@@ -353,13 +384,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 return;
             }
 
-            NavigationManager.NavigateTo("/dashboard/order-create?copyFrom=previous");
+            NavigationManager.NavigateTo($"/dashboard/order-create?copyFrom=previous&periodId={PeriodInfo?.SelectedPeriodId}");
             await Task.CompletedTask;
         }
 
         protected async Task GoToEditPage(VppRequestResDTO row)
         {
-            NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}");
+            NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}&periodId={row.PeriodId}");
             await Task.CompletedTask;
         }
 
@@ -369,7 +400,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected async Task GoToRecreatePage(VppRequestResDTO row)
         {
-            NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}&mode=recreate");
+            NavigationManager.NavigateTo($"/dashboard/order-create?orderId={row.Id}&mode=recreate&periodId={row.PeriodId}");
             await Task.CompletedTask;
         }
 
