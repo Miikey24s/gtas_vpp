@@ -85,6 +85,15 @@ public sealed class ReportsApiClientTests
             CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
+        public Task<T?> PostFileFromApiAsync<T>(
+            string endpoint,
+            Stream fileStream,
+            string fileName,
+            string contentType,
+            IReadOnlyDictionary<string, string> formFields,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
         public Task<T?> PutFromApiAsync<T>(string endpoint, object body) =>
             throw new NotSupportedException();
 

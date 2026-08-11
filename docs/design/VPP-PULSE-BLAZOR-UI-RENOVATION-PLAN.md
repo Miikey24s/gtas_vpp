@@ -1874,4 +1874,4 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - `Số dòng giá` là số bản ghi giá thuộc bảng giá, không phải số lượng hàng được đặt.
 - Cờ bảng giá mặc định là thông tin nhận biết, hiển thị bằng badge trung tính; không dùng disabled switch vì tạo cảm giác đây là nút bật/tắt trực tiếp.
 - Bảng `Giá mặt hàng` áp dụng cùng quy tắc: dùng đầy đủ `Đơn vị`, `Mã hàng nhà cung cấp`, `Số lượng tối thiểu`, `Ngày giao`; giá mặc định cũng là badge trung tính thay vì disabled switch.
-- Import bảng giá được lưu ở backlog theo `docs/execution/PRICING-IMPORT-VERSIONING-001.md`: template chuẩn parse deterministic; file NCC không theo mẫu chỉ dùng AI để gợi ý mapping và luôn cần preview/xác nhận của người dùng.
+- Import bảng giá đã triển khai theo `docs/execution/PRICING-IMPORT-VERSIONING-001.md`: template chuẩn tự nhận diện; file NCC dùng tên cột lạ mở bước ghép cột có sample values rồi mới preview/xác nhận. Mapping được lưu trong lịch sử lần nhập; AI suggester là adapter tùy chọn và mặc định tắt nên không gửi dữ liệu ra provider ngoài.

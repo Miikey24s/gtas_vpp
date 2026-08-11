@@ -37,6 +37,8 @@ public class PriceListImportBatch : BaseModel
     [StringLength(1000)]
     public string? ResultMessage { get; set; }
 
+    public bool UsedCustomMapping { get; set; }
+    public string? ColumnMappingsJson { get; set; }
     public string? NormalizedRowsJson { get; set; }
     public string? IssuesJson { get; set; }
 

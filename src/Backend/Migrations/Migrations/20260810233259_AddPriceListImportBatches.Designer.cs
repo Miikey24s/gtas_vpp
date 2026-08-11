@@ -12,7 +12,7 @@ using gtas_vpp_be.Model;
 namespace gtas_vpp_be.Migrations.Migrations
 {
     [DbContext(typeof(VPPMigrationDbContext))]
-    [Migration("20260810223137_AddPriceListImportBatches")]
+    [Migration("20260810233259_AddPriceListImportBatches")]
     partial class AddPriceListImportBatches
     {
         /// <inheritdoc />
@@ -833,6 +833,9 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Property<int>("AddedRows")
                         .HasColumnType("int");
 
+                    b.Property<string>("ColumnMappingsJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CompletedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -914,6 +917,9 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.Property<int>("UpdatedRows")
                         .HasColumnType("int");
+
+                    b.Property<bool>("UsedCustomMapping")
+                        .HasColumnType("bit");
 
                     b.Property<int>("WarningRows")
                         .HasColumnType("int");

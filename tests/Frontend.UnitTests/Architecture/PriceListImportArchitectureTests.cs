@@ -15,9 +15,12 @@ public sealed class PriceListImportArchitectureTests
         Assert.Contains("<VppAdaptiveDialogShell", dialog, StringComparison.Ordinal);
         Assert.Contains("<VppInlineNotice", dialog, StringComparison.Ordinal);
         Assert.Contains("PriceImportDetectedColumns", dialog, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionSelect", dialog, StringComparison.Ordinal);
+        Assert.Contains("PriceImportMapColumns", dialog, StringComparison.Ordinal);
         Assert.Contains("PriceImportPreview", dialog, StringComparison.Ordinal);
+        Assert.Contains("AnalyzeAsync", code, StringComparison.Ordinal);
         Assert.Contains("PreviewAsync", code, StringComparison.Ordinal);
-        Assert.Contains("Preview.CanConfirm", dialog, StringComparison.Ordinal);
+        Assert.Contains("Preview.CanConfirm", code, StringComparison.Ordinal);
         Assert.Contains("ConfirmAsync", code, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", code, StringComparison.Ordinal);
     }

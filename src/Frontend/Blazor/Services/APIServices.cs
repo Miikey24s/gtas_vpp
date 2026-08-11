@@ -23,6 +23,13 @@ namespace gtas_vpp_fe.Services
             string fileName,
             string contentType,
             CancellationToken cancellationToken = default);
+        Task<T?> PostFileFromApiAsync<T>(
+            string endpoint,
+            Stream fileStream,
+            string fileName,
+            string contentType,
+            IReadOnlyDictionary<string, string> formFields,
+            CancellationToken cancellationToken = default);
         Task<T?> PutFromApiAsync<T>(string endpoint, object body);
         Task<T?> PatchFromApiAsync<T>(string endpoint, object body);
         Task<ApiFileStreamResult> OpenFileFromApiAsync(
@@ -191,6 +198,21 @@ namespace gtas_vpp_fe.Services
             string fileName,
             string contentType,
             CancellationToken cancellationToken = default)
+            => await PostFileFromApiAsync<T>(
+                endpoint,
+                fileStream,
+                fileName,
+                contentType,
+                new Dictionary<string, string>(),
+                cancellationToken);
+
+        public async Task<T?> PostFileFromApiAsync<T>(
+            string endpoint,
+            Stream fileStream,
+            string fileName,
+            string contentType,
+            IReadOnlyDictionary<string, string> formFields,
+            CancellationToken cancellationToken = default)
         {
             await ApplyAuthorizationHeaderAsync();
             using var multipart = new MultipartFormDataContent();
@@ -200,6 +222,10 @@ namespace gtas_vpp_fe.Services
                 fileContent.Headers.ContentType = mediaType;
             }
             multipart.Add(fileContent, "file", Path.GetFileName(fileName));
+            foreach (var field in formFields)
+            {
+                multipart.Add(new StringContent(field.Value), field.Key);
+            }
             using var response = await _httpClient.PostAsync(endpoint, multipart, cancellationToken);
             await EnsureSuccessWithDetailsAsync(response);
             return await ReadResponseAsJsonAsync<T>(response);

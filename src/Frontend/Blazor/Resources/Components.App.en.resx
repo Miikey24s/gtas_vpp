@@ -1375,4 +1375,18 @@
   <data name="CurrentlyUsed" xml:space="preserve"><value>Currently used</value></data>
   <data name="TotalValue" xml:space="preserve"><value>Total value</value></data>
   <data name="SettlementAvailableAfterClosing" xml:space="preserve"><value>You can prepare the supplier and price book now; settlement becomes available after order submission closes.</value></data>
+  <data name="PriceImportAnalyzeFailed" xml:space="preserve"><value>The price file structure could not be read.</value></data>
+  <data name="PriceImportReviewMappingTitle" xml:space="preserve"><value>Confirm how columns should be read</value></data>
+  <data name="PriceImportReviewMappingDescription" xml:space="preserve"><value>This file uses different column names. Choose the meaning of each column before validating the data.</value></data>
+  <data name="PriceImportMappingNotice" xml:space="preserve"><value>Column confirmation required</value></data>
+  <data name="PriceImportDuplicateMappingTitle" xml:space="preserve"><value>A field is selected more than once</value></data>
+  <data name="PriceImportDuplicateMappingDescription" xml:space="preserve"><value>Each system field can be mapped to only one source column.</value></data>
+  <data name="PriceImportMapColumns" xml:space="preserve"><value>Map source columns</value></data>
+  <data name="PriceImportMapColumnsHint" xml:space="preserve"><value>Item code and unit price are required.</value></data>
+  <data name="PriceImportIgnoreColumn" xml:space="preserve"><value>Ignore this column</value></data>
+  <data name="PriceImportNoSampleValue" xml:space="preserve"><value>No sample value</value></data>
+  <data name="PriceImportMapColumnAria" xml:space="preserve"><value>Choose the meaning of column {0}</value></data>
+  <data name="PriceImportCheckData" xml:space="preserve"><value>Validate data</value></data>
+  <data name="PriceImportChooseFileToContinue" xml:space="preserve"><value>Choose a file to continue</value></data>
+  <data name="PriceImportCustomMapping" xml:space="preserve"><value>Custom column mapping</value></data>
 </root>

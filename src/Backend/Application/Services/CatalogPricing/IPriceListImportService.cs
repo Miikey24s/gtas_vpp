@@ -6,10 +6,17 @@ public sealed record PriceListImportTemplateResult(byte[] Content, string FileNa
 
 public interface IPriceListImportService
 {
+    Task<PriceListImportAnalysisResDTO> AnalyzeAsync(
+        Guid priceListId,
+        string fileName,
+        Stream content,
+        CancellationToken cancellationToken = default);
+
     Task<PriceListImportPreviewResDTO> PreviewAsync(
         Guid priceListId,
         string fileName,
         Stream content,
+        IReadOnlyDictionary<int, string>? columnMappings,
         int userId,
         CancellationToken cancellationToken = default);
 

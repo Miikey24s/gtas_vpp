@@ -26,7 +26,7 @@
                     <div><span>@Loc["PriceImportUnchanged"]</span><strong>@Completed.UnchangedRows</strong></div>
                 </div>
             }
-            else if (Preview is null)
+            else if (Analysis is null && Preview is null)
             {
                 <VppInlineNotice Tone="VppStatusTone.Info" Title="@Loc["PriceImportSafeTitle"]">
                     @Loc["PriceImportSafeDescription"]
@@ -57,7 +57,14 @@
                             {
                                 <div>
                                     <VppIcon Name="history" />
-                                    <span><strong>@batch.FileName</strong><small>@FormatBatchTime(batch.CreatedAtUtc)</small></span>
+                                    <span>
+                                        <strong>@batch.FileName</strong>
+                                        <small>@FormatBatchTime(batch.CreatedAtUtc)</small>
+                                        @if (batch.UsedCustomMapping)
+                                        {
+                                            <small>@Loc["PriceImportCustomMapping"]</small>
+                                        }
+                                    </span>
                                     <VppStatusBadge Text="@BatchStatusLabel(batch.Status)" Tone="@BatchStatusTone(batch.Status)" />
                                 </div>
                             }
@@ -65,7 +72,73 @@
                     </section>
                 }
             }
-            else
+            else if (Preview is null && Analysis is not null)
+            {
+                <div class="vpp-price-import-file">
+                    <VppIcon Name="description" />
+                    <div>
+                        <strong>@Analysis.FileName</strong>
+                        <span>@Analysis.TotalRows @Loc["Rows"]</span>
+                    </div>
+                    <label class="vpp-price-import-replace">
+                        @Loc["ChooseAnotherFile"]
+                        <InputFile id="price-list-import-file-remap"
+                                   class="vpp-price-import-overlay-input"
+                                   accept=".xlsx,.csv"
+                                   aria-label="@Loc["ChooseAnotherFile"]"
+                                   OnChange="@OnFileSelectedAsync" />
+                    </label>
+                </div>
+
+                <VppInlineNotice Tone="VppStatusTone.Info" Title="@Loc["PriceImportReviewMappingTitle"]">
+                    @Loc["PriceImportReviewMappingDescription"]
+                </VppInlineNotice>
+
+                @foreach (var issue in Analysis.Issues)
+                {
+                    <VppInlineNotice Tone="@IssueTone(issue)" Title="@Loc["PriceImportMappingNotice"]">
+                        @issue.Message
+                    </VppInlineNotice>
+                }
+
+                @if (MappingHasDuplicates)
+                {
+                    <VppInlineNotice Tone="VppStatusTone.Danger" Title="@Loc["PriceImportDuplicateMappingTitle"]">
+                        @Loc["PriceImportDuplicateMappingDescription"]
+                    </VppInlineNotice>
+                }
+
+                <section class="vpp-price-import-mapping-editor" aria-labelledby="price-import-mapping-editor-title">
+                    <div class="vpp-price-import-section-heading">
+                        <div>
+                            <h3 id="price-import-mapping-editor-title">@Loc["PriceImportMapColumns"]</h3>
+                            <p>@Loc["PriceImportMapColumnsHint"]</p>
+                        </div>
+                    </div>
+                    <div class="vpp-price-import-mapping-editor-list">
+                        @foreach (var mapping in MappingRows)
+                        {
+                            <div class="vpp-price-import-mapping-editor-row"
+                                 data-testid="price-import-mapping-row-@mapping.ColumnIndex">
+                                <div>
+                                    <strong>@mapping.SourceColumn</strong>
+                                    <small>@(mapping.SampleValues.Count == 0
+                                        ? Loc["PriceImportNoSampleValue"]
+                                        : string.Join(" · ", mapping.SampleValues))</small>
+                                </div>
+                                <VppDecisionSelect TValue="string"
+                                                   Value="@mapping.TargetField"
+                                                   ValueChanged="@(value => UpdateMapping(mapping, value))"
+                                                   Options="@MappingOptions"
+                                                   Placeholder="@Loc["PriceImportIgnoreColumn"]"
+                                                   AriaLabel="@string.Format(Loc["PriceImportMapColumnAria"], mapping.SourceColumn)"
+                                                   Class="vpp-price-import-mapping-select" />
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+            else if (Preview is not null)
             {
                 <div class="vpp-price-import-file">
                     <VppIcon Name="description" />
@@ -161,9 +234,9 @@
     <Footer>
         <VppDialogActions CancelText="@Loc["Cancel"]"
                           ShowCancel="@(Completed is null)"
-                          PrimaryText="@(Completed is null ? Loc["ConfirmImport"] : Loc["Close"])"
-                          PrimaryIcon="@(Completed is null ? "publish" : null)"
-                          PrimaryDisabled="@(Completed is null && (Preview is null || !Preview.CanConfirm))"
+                          PrimaryText="@PrimaryText"
+                          PrimaryIcon="@PrimaryIcon"
+                          PrimaryDisabled="@PrimaryDisabled"
                           IsBusy="@IsBusy"
                           CancelClick="@Cancel"
                           PrimaryClick="@PrimaryAsync">

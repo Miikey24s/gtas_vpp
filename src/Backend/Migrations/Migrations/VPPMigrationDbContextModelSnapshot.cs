@@ -830,6 +830,9 @@ namespace gtas_vpp_be.Migrations.Migrations
                     b.Property<int>("AddedRows")
                         .HasColumnType("int");
 
+                    b.Property<string>("ColumnMappingsJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CompletedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -911,6 +914,9 @@ namespace gtas_vpp_be.Migrations.Migrations
 
                     b.Property<int>("UpdatedRows")
                         .HasColumnType("int");
+
+                    b.Property<bool>("UsedCustomMapping")
+                        .HasColumnType("bit");
 
                     b.Property<int>("WarningRows")
                         .HasColumnType("int");

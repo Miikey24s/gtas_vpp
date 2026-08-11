@@ -93,6 +93,30 @@ public sealed class ApiServicesJsonTransportTests
         Assert.Contains("ItemCode,UnitPrice", handler.LastRequestBody, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task PostFileFromApiAsync_SendsMappingMetadataWithMultipartFile()
+    {
+        using var handler = new RecordingHttpMessageHandler("{\"status\":\"Ready\"}");
+        using var client = CreateClient(handler);
+        var sut = CreateSut(client);
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("Ma noi bo,Gia ban\nA001,100"));
+
+        await sut.PostFileFromApiAsync<Dictionary<string, string>>(
+            "api/vpppricelist/list-id/imports/preview",
+            stream,
+            "bang-gia-ncc.csv",
+            "text/csv",
+            new Dictionary<string, string>
+            {
+                ["columnMappingsJson"] = "{\"0\":\"ItemCode\",\"1\":\"UnitPrice\"}"
+            },
+            TestContext.Current.CancellationToken);
+
+        Assert.Contains("columnMappingsJson", handler.LastRequestBody, StringComparison.Ordinal);
+        Assert.Contains("ItemCode", handler.LastRequestBody, StringComparison.Ordinal);
+        Assert.Contains("bang-gia-ncc.csv", handler.LastRequestBody, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("""{"UserID":5615,"UserLogin":"legacy-user"}""", 5615, "legacy-user")]
     [InlineData("""{"userID":5616,"userLogin":"camel-user"}""", 5616, "camel-user")]

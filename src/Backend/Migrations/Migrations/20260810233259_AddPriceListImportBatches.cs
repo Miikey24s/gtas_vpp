@@ -32,6 +32,8 @@ namespace gtas_vpp_be.Migrations.Migrations
                     CompletedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ConfirmedByUserId = table.Column<int>(type: "int", nullable: true),
                     ResultMessage = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    UsedCustomMapping = table.Column<bool>(type: "bit", nullable: false),
+                    ColumnMappingsJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NormalizedRowsJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IssuesJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),

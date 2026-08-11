@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.Tests.Features.CatalogPricing;
 public sealed class PriceListImportApiClientTests
 {
     [Fact]
-    public async Task ImportClient_UsesTypedPreviewConfirmHistoryAndTemplateEndpoints()
+    public async Task ImportClient_UsesTypedAnalyzePreviewConfirmHistoryAndTemplateEndpoints()
     {
         var priceListId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var batchId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
@@ -20,6 +20,11 @@ public sealed class PriceListImportApiClientTests
             PostFileAsync = (endpoint, _, fileName, contentType, _) =>
             {
                 calls.Add(("FILE", endpoint, (fileName, contentType)));
+                return Task.FromResult<object?>(new PriceListImportAnalysisResDTO { FileName = fileName });
+            },
+            PostFileWithFieldsAsync = (endpoint, _, fileName, contentType, fields, _) =>
+            {
+                calls.Add(("FILE_FIELDS", endpoint, (fileName, contentType, fields)));
                 return Task.FromResult<object?>(new PriceListImportPreviewResDTO { Id = batchId });
             },
             PostAsync = (endpoint, body, _) =>
@@ -36,18 +41,28 @@ public sealed class PriceListImportApiClientTests
         var downloads = new RecordingDownloadService();
         var client = new PriceListImportApiClient(api, downloads);
         await using var stream = new MemoryStream([1, 2, 3]);
+        await using var previewStream = new MemoryStream([1, 2, 3]);
 
-        await client.PreviewAsync(
+        await client.AnalyzeAsync(
             priceListId,
             stream,
             "bang-gia.csv",
             "text/csv",
+            TestContext.Current.CancellationToken);
+        await client.PreviewAsync(
+            priceListId,
+            previewStream,
+            "bang-gia.csv",
+            "text/csv",
+            new Dictionary<int, string> { [0] = "ItemCode", [1] = "UnitPrice" },
             TestContext.Current.CancellationToken);
         await client.ConfirmAsync(priceListId, batchId, [1, 2, 3]);
         await client.ListAsync(priceListId);
         await client.DownloadTemplateAsync(priceListId, TestContext.Current.CancellationToken);
 
         Assert.Contains(calls, call => call.Method == "FILE"
+            && call.Endpoint == $"/api/vpppricelist/{priceListId}/imports/analyze");
+        Assert.Contains(calls, call => call.Method == "FILE_FIELDS"
             && call.Endpoint == $"/api/vpppricelist/{priceListId}/imports/preview");
         Assert.Contains(calls, call => call.Method == "POST"
             && call.Endpoint == $"/api/vpppricelist/{priceListId}/imports/{batchId}/confirm"

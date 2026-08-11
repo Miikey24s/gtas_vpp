@@ -1,3 +1,4 @@
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Helpers;
@@ -22,6 +23,11 @@ public partial class Dialog_PriceListImport
     [Inject] public IToastService Toast { get; set; } = default!;
 
     private bool IsBusy { get; set; }
+    private byte[]? SelectedFileContent { get; set; }
+    private string SelectedFileName { get; set; } = string.Empty;
+    private string SelectedFileContentType { get; set; } = "application/octet-stream";
+    private PriceListImportAnalysisResDTO? Analysis { get; set; }
+    private List<ColumnMappingState> MappingRows { get; set; } = [];
     private PriceListImportPreviewResDTO? Preview { get; set; }
     private PriceListImportBatchResDTO? Completed { get; set; }
     private IReadOnlyList<PriceListImportBatchResDTO> RecentImports { get; set; } = [];
@@ -56,21 +62,50 @@ public partial class Dialog_PriceListImport
         try
         {
             await using var stream = file.OpenReadStream(MaximumFileSize);
-            Preview = await ImportApi.PreviewAsync(
+            await using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            SelectedFileContent = buffer.ToArray();
+            SelectedFileName = file.Name;
+            SelectedFileContentType = string.IsNullOrWhiteSpace(file.ContentType)
+                ? "application/octet-stream"
+                : file.ContentType;
+            Preview = null;
+            Completed = null;
+            await using var analysisStream = new MemoryStream(SelectedFileContent, writable: false);
+            Analysis = await ImportApi.AnalyzeAsync(
                 PriceListId,
-                stream,
-                file.Name,
-                file.ContentType,
+                analysisStream,
+                SelectedFileName,
+                SelectedFileContentType,
                 CancellationToken.None);
-            if (Preview is null)
+            if (Analysis is null)
             {
-                throw new InvalidOperationException(Loc["PriceImportPreviewFailed"]);
+                throw new InvalidOperationException(Loc["PriceImportAnalyzeFailed"]);
+            }
+
+            MappingRows = Analysis.Columns
+                .Select(column => new ColumnMappingState
+                {
+                    ColumnIndex = column.ColumnIndex,
+                    SourceColumn = column.SourceColumn,
+                    SuggestedTargetField = column.SuggestedTargetField ?? string.Empty,
+                    TargetField = column.SuggestedTargetField ?? string.Empty,
+                    IsAiSuggested = column.IsAiSuggested,
+                    SampleValues = column.SampleValues
+                })
+                .ToList();
+            if (Analysis.CanPreviewAutomatically && MappingReady)
+            {
+                await LoadPreviewAsync();
             }
         }
         catch (Exception ex)
         {
+            Analysis = null;
+            MappingRows = [];
             Preview = null;
-            Toast.Error(Loc["PriceImport"], UiErrorMapper.GetMessage(ex, Loc, "PriceImportPreviewFailed"));
+            SelectedFileContent = null;
+            Toast.Error(Loc["PriceImport"], UiErrorMapper.GetMessage(ex, Loc, "PriceImportAnalyzeFailed"));
         }
         finally
         {
@@ -86,7 +121,30 @@ public partial class Dialog_PriceListImport
             return;
         }
 
-        if (Preview is null || !Preview.CanConfirm || IsBusy)
+        if (Preview is null)
+        {
+            if (Analysis is null || !MappingReady || IsBusy)
+            {
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                await LoadPreviewAsync();
+            }
+            catch (Exception ex)
+            {
+                Toast.Error(Loc["PriceImport"], UiErrorMapper.GetMessage(ex, Loc, "PriceImportPreviewFailed"));
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+            return;
+        }
+
+        if (!Preview.CanConfirm || IsBusy)
         {
             return;
         }
@@ -124,6 +182,75 @@ public partial class Dialog_PriceListImport
     }
 
     private void Cancel(MouseEventArgs _) => DialogService.Close(false);
+
+    private async Task LoadPreviewAsync()
+    {
+        if (SelectedFileContent is null)
+        {
+            throw new InvalidOperationException(Loc["PriceImportChooseFile"]);
+        }
+
+        await using var previewStream = new MemoryStream(SelectedFileContent, writable: false);
+        Preview = await ImportApi.PreviewAsync(
+            PriceListId,
+            previewStream,
+            SelectedFileName,
+            SelectedFileContentType,
+            MappingRows
+                .Where(row => row.IsAiSuggested || !string.Equals(
+                        row.TargetField,
+                        row.SuggestedTargetField,
+                        StringComparison.OrdinalIgnoreCase))
+                .ToDictionary(row => row.ColumnIndex, row => row.TargetField),
+            CancellationToken.None);
+        if (Preview is null)
+        {
+            throw new InvalidOperationException(Loc["PriceImportPreviewFailed"]);
+        }
+    }
+
+    private IReadOnlyList<VppDecisionOption<string>> MappingOptions =>
+    [
+        new(string.Empty, Loc["PriceImportIgnoreColumn"]),
+        new("ItemCode", FieldLabel("ItemCode")),
+        new("SupplierSku", FieldLabel("SupplierSku")),
+        new("ItemName", FieldLabel("ItemName")),
+        new("UnitPrice", FieldLabel("UnitPrice")),
+        new("VatRate", FieldLabel("VatRate")),
+        new("MinimumOrderQuantity", FieldLabel("MinimumOrderQuantity")),
+        new("LeadTimeDays", FieldLabel("LeadTimeDays")),
+        new("IsDefault", FieldLabel("IsDefault")),
+        new("Note", FieldLabel("Note"))
+    ];
+
+    private bool MappingHasDuplicates => MappingRows
+        .Where(row => !string.IsNullOrWhiteSpace(row.TargetField))
+        .GroupBy(row => row.TargetField, StringComparer.OrdinalIgnoreCase)
+        .Any(group => group.Count() > 1);
+
+    private bool MappingReady => !MappingHasDuplicates
+        && MappingRows.Count(row => string.Equals(row.TargetField, "ItemCode", StringComparison.OrdinalIgnoreCase)) == 1
+        && MappingRows.Count(row => string.Equals(row.TargetField, "UnitPrice", StringComparison.OrdinalIgnoreCase)) == 1;
+
+    private string PrimaryText => Completed is not null
+        ? Loc["Close"]
+        : Preview is not null
+            ? Loc["ConfirmImport"]
+            : Analysis is not null
+                ? Loc["PriceImportCheckData"]
+                : Loc["PriceImportChooseFileToContinue"];
+
+    private string? PrimaryIcon => Completed is not null
+        ? null
+        : Preview is not null
+            ? "publish"
+            : "fact_check";
+
+    private bool PrimaryDisabled => Completed is null
+        && (Preview is not null ? !Preview.CanConfirm : Analysis is null || !MappingReady);
+
+    private static void UpdateMapping(ColumnMappingState row, string value)
+        => row.TargetField = value;
 
     private string ActionLabel(string action) => action switch
     {
@@ -176,4 +303,14 @@ public partial class Dialog_PriceListImport
         "Failed" => VppStatusTone.Danger,
         _ => VppStatusTone.Neutral
     };
+
+    private sealed class ColumnMappingState
+    {
+        public int ColumnIndex { get; init; }
+        public string SourceColumn { get; init; } = string.Empty;
+        public string SuggestedTargetField { get; init; } = string.Empty;
+        public string TargetField { get; set; } = string.Empty;
+        public bool IsAiSuggested { get; init; }
+        public IReadOnlyList<string> SampleValues { get; init; } = [];
+    }
 }

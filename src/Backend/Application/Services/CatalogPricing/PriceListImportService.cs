@@ -10,20 +10,83 @@ namespace gtas_vpp_be.Service.Services;
 public sealed class PriceListImportService(
     IUnitOfWork unitOfWork,
     IDateTimeProvider dateTimeProvider,
-    PriceListImportFileParser parser) : IPriceListImportService
+    PriceListImportFileParser parser,
+    IPriceListColumnMappingSuggester mappingSuggester) : IPriceListImportService
 {
     private const string SchemaVersion = "pricing-import-v1";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly HashSet<string> SupportedMappingFields = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ItemCode",
+        "SupplierSku",
+        "ItemName",
+        "UnitPrice",
+        "VatRate",
+        "MinimumOrderQuantity",
+        "LeadTimeDays",
+        "IsDefault",
+        "Note"
+    };
+
+    public async Task<PriceListImportAnalysisResDTO> AnalyzeAsync(
+        Guid priceListId,
+        string fileName,
+        Stream content,
+        CancellationToken cancellationToken = default)
+    {
+        await GetEditablePriceListAsync(priceListId, cancellationToken);
+        var analysis = await parser.AnalyzeAsync(content, fileName, cancellationToken);
+        analysis.AiSuggestionsAvailable = mappingSuggester.IsAvailable;
+        if (!mappingSuggester.IsAvailable)
+        {
+            return analysis;
+        }
+
+        var suggestions = await mappingSuggester.SuggestAsync(analysis.Columns, cancellationToken);
+        var usedTargets = analysis.Columns
+            .Where(column => !string.IsNullOrWhiteSpace(column.SuggestedTargetField))
+            .Select(column => column.SuggestedTargetField!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var suggestion in suggestions)
+        {
+            var column = analysis.Columns.FirstOrDefault(item => item.ColumnIndex == suggestion.ColumnIndex);
+            if (column is null
+                || !string.IsNullOrWhiteSpace(column.SuggestedTargetField)
+                || !SupportedMappingFields.Contains(suggestion.TargetField)
+                || !usedTargets.Add(suggestion.TargetField))
+            {
+                continue;
+            }
+
+            column.SuggestedTargetField = SupportedMappingFields.First(field => string.Equals(
+                field,
+                suggestion.TargetField,
+                StringComparison.OrdinalIgnoreCase));
+            column.IsAiSuggested = true;
+        }
+
+        analysis.CanPreviewAutomatically = new[] { "ItemCode", "UnitPrice" }
+            .All(required => analysis.Columns.Any(column => string.Equals(
+                column.SuggestedTargetField,
+                required,
+                StringComparison.OrdinalIgnoreCase)));
+        if (analysis.CanPreviewAutomatically)
+        {
+            analysis.Issues.RemoveAll(issue => issue.Code == "MAPPING_REQUIRED");
+        }
+        return analysis;
+    }
 
     public async Task<PriceListImportPreviewResDTO> PreviewAsync(
         Guid priceListId,
         string fileName,
         Stream content,
+        IReadOnlyDictionary<int, string>? columnMappings,
         int userId,
         CancellationToken cancellationToken = default)
     {
         var priceList = await GetEditablePriceListAsync(priceListId, cancellationToken);
-        var parsed = await parser.ParseAsync(content, fileName, cancellationToken);
+        var parsed = await parser.ParseAsync(content, fileName, columnMappings, cancellationToken);
         var evaluation = await EvaluateAsync(priceList, parsed.Rows, parsed.GlobalIssues, cancellationToken);
         var now = dateTimeProvider.Now;
         var duplicateFile = await unitOfWork.VPPContext.Set<PriceListImportBatch>()
@@ -54,6 +117,8 @@ public sealed class PriceListImportService(
             ResultMessage = evaluation.ErrorRows == 0
                 ? "File đã sẵn sàng để nhập."
                 : "Vui lòng xử lý các dòng lỗi trước khi nhập.",
+            ColumnMappingsJson = JsonSerializer.Serialize(parsed.ColumnMappings, JsonOptions),
+            UsedCustomMapping = parsed.ColumnMappings.Any(mapping => mapping.IsCustom),
             NormalizedRowsJson = JsonSerializer.Serialize(parsed.Rows, JsonOptions),
             IssuesJson = JsonSerializer.Serialize(
                 evaluation.GlobalIssues.Concat(evaluation.Rows.SelectMany(row => row.Issues)),
@@ -434,6 +499,7 @@ public sealed class PriceListImportService(
             UnchangedRows = batch.UnchangedRows,
             WarningRows = batch.WarningRows,
             ErrorRows = batch.ErrorRows,
+            UsedCustomMapping = batch.UsedCustomMapping,
             DuplicateFileWarning = duplicateFile,
             CreatedAtUtc = batch.CreatedAtUtc,
             ResultMessage = batch.ResultMessage,
@@ -466,6 +532,7 @@ public sealed class PriceListImportService(
             UnchangedRows = batch.UnchangedRows,
             WarningRows = batch.WarningRows,
             ErrorRows = batch.ErrorRows,
+            UsedCustomMapping = batch.UsedCustomMapping,
             CreatedAtUtc = batch.CreatedAtUtc,
             CompletedAtUtc = batch.CompletedAtUtc,
             ResultMessage = batch.ResultMessage,

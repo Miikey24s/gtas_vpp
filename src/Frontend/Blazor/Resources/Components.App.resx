@@ -1375,4 +1375,18 @@
   <data name="CurrentlyUsed" xml:space="preserve"><value>Đang dùng</value></data>
   <data name="TotalValue" xml:space="preserve"><value>Tổng giá trị</value></data>
   <data name="SettlementAvailableAfterClosing" xml:space="preserve"><value>Có thể chuẩn bị nhà cung cấp và bảng giá ngay bây giờ; nút chốt sẽ mở sau ngày đóng nhận đơn.</value></data>
+  <data name="PriceImportAnalyzeFailed" xml:space="preserve"><value>Không thể đọc cấu trúc file bảng giá.</value></data>
+  <data name="PriceImportReviewMappingTitle" xml:space="preserve"><value>Xác nhận cách đọc các cột</value></data>
+  <data name="PriceImportReviewMappingDescription" xml:space="preserve"><value>File này dùng tên cột khác mẫu. Chọn ý nghĩa cho từng cột trước khi kiểm tra dữ liệu.</value></data>
+  <data name="PriceImportMappingNotice" xml:space="preserve"><value>Cần xác nhận cột</value></data>
+  <data name="PriceImportDuplicateMappingTitle" xml:space="preserve"><value>Một trường đang được chọn nhiều lần</value></data>
+  <data name="PriceImportDuplicateMappingDescription" xml:space="preserve"><value>Mỗi trường hệ thống chỉ được ghép với một cột trong file.</value></data>
+  <data name="PriceImportMapColumns" xml:space="preserve"><value>Ghép cột trong file</value></data>
+  <data name="PriceImportMapColumnsHint" xml:space="preserve"><value>Mã mặt hàng và đơn giá là hai trường bắt buộc.</value></data>
+  <data name="PriceImportIgnoreColumn" xml:space="preserve"><value>Bỏ qua cột này</value></data>
+  <data name="PriceImportNoSampleValue" xml:space="preserve"><value>Không có dữ liệu mẫu</value></data>
+  <data name="PriceImportMapColumnAria" xml:space="preserve"><value>Chọn ý nghĩa cho cột {0}</value></data>
+  <data name="PriceImportCheckData" xml:space="preserve"><value>Kiểm tra dữ liệu</value></data>
+  <data name="PriceImportChooseFileToContinue" xml:space="preserve"><value>Chọn file để tiếp tục</value></data>
+  <data name="PriceImportCustomMapping" xml:space="preserve"><value>Ánh xạ cột tùy chỉnh</value></data>
 </root>

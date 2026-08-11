@@ -11,9 +11,32 @@ public sealed class PriceListImportIssueResDTO
 
 public sealed class PriceListImportColumnMappingResDTO
 {
+    public int SourceColumnIndex { get; set; }
     public string SourceColumn { get; set; } = string.Empty;
     public string TargetField { get; set; } = string.Empty;
     public bool IsRequired { get; set; }
+    public bool IsCustom { get; set; }
+}
+
+public sealed class PriceListImportSourceColumnResDTO
+{
+    public int ColumnIndex { get; set; }
+    public string SourceColumn { get; set; } = string.Empty;
+    public string? SuggestedTargetField { get; set; }
+    public bool IsAiSuggested { get; set; }
+    public List<string> SampleValues { get; set; } = [];
+}
+
+public sealed class PriceListImportAnalysisResDTO
+{
+    public string FileName { get; set; } = string.Empty;
+    public string FileHash { get; set; } = string.Empty;
+    public string FileFormat { get; set; } = string.Empty;
+    public int TotalRows { get; set; }
+    public bool CanPreviewAutomatically { get; set; }
+    public bool AiSuggestionsAvailable { get; set; }
+    public List<PriceListImportSourceColumnResDTO> Columns { get; set; } = [];
+    public List<PriceListImportIssueResDTO> Issues { get; set; } = [];
 }
 
 public sealed class PriceListImportRowResDTO
@@ -51,6 +74,7 @@ public class PriceListImportBatchResDTO
     public int WarningRows { get; set; }
     public int ErrorRows { get; set; }
     public bool DuplicateFileWarning { get; set; }
+    public bool UsedCustomMapping { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? CompletedAtUtc { get; set; }
     public string? ResultMessage { get; set; }

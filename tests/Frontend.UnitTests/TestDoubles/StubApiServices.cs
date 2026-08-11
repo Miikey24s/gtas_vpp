@@ -10,6 +10,7 @@ internal sealed class StubApiServices : IAPIServices
     public Func<string, Type, Task<(object? Data, int TotalCount, int TotalLines, int TotalQty, long TotalAmount)>>? GetWithAmountStatsAsync { get; init; }
     public Func<string, object?, Type, Task<object?>>? PostAsync { get; init; }
     public Func<string, Stream, string, string, Type, Task<object?>>? PostFileAsync { get; init; }
+    public Func<string, Stream, string, string, IReadOnlyDictionary<string, string>, Type, Task<object?>>? PostFileWithFieldsAsync { get; init; }
     public Func<string, object, Type, Task<object?>>? PutAsync { get; init; }
     public Func<string, object, Type, Task<object?>>? PatchAsync { get; init; }
     public Func<string, Task<bool>>? DeleteAsync { get; init; }
@@ -71,6 +72,19 @@ internal sealed class StubApiServices : IAPIServices
         PostFileAsync is null
             ? default
             : (T?)await PostFileAsync(endpoint, fileStream, fileName, contentType, typeof(T));
+
+    public async Task<T?> PostFileFromApiAsync<T>(
+        string endpoint,
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        IReadOnlyDictionary<string, string> formFields,
+        CancellationToken cancellationToken = default) =>
+        PostFileWithFieldsAsync is not null
+            ? (T?)await PostFileWithFieldsAsync(endpoint, fileStream, fileName, contentType, formFields, typeof(T))
+            : PostFileAsync is null
+                ? default
+                : (T?)await PostFileAsync(endpoint, fileStream, fileName, contentType, typeof(T));
 
     public async Task<T?> PutFromApiAsync<T>(string endpoint, object body) =>
         PutAsync is null

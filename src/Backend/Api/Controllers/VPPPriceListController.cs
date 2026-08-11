@@ -221,6 +221,44 @@ namespace gtas_vpp_be.Controllers
         public async Task<IActionResult> PreviewImport(
             Guid id,
             [FromForm] IFormFile? file,
+            [FromForm] string? columnMappingsJson,
+            CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            if (file is null || file.Length == 0) return BadRequest(new { Message = "File is required." });
+
+            Dictionary<int, string>? columnMappings = null;
+            if (!string.IsNullOrWhiteSpace(columnMappingsJson))
+            {
+                try
+                {
+                    columnMappings = JsonSerializer.Deserialize<Dictionary<int, string>>(columnMappingsJson);
+                }
+                catch (JsonException)
+                {
+                    return BadRequest(new { Message = "Column mappings are invalid." });
+                }
+            }
+
+            await using var stream = file.OpenReadStream();
+            return Ok(await _importService.PreviewAsync(
+                id,
+                file.FileName,
+                stream,
+                columnMappings,
+                CurrentUserId.Value,
+                cancellationToken));
+        }
+
+        [HttpPost("{id:guid}/imports/analyze")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(PriceListImportFileParser.MaximumFileSizeBytes)]
+        [ProducesResponseType<PriceListImportAnalysisResDTO>(StatusCodes.Status200OK)]
+        public async Task<IActionResult> AnalyzeImport(
+            Guid id,
+            [FromForm] IFormFile? file,
             CancellationToken cancellationToken)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
@@ -228,12 +266,7 @@ namespace gtas_vpp_be.Controllers
             if (file is null || file.Length == 0) return BadRequest(new { Message = "File is required." });
 
             await using var stream = file.OpenReadStream();
-            return Ok(await _importService.PreviewAsync(
-                id,
-                file.FileName,
-                stream,
-                CurrentUserId.Value,
-                cancellationToken));
+            return Ok(await _importService.AnalyzeAsync(id, file.FileName, stream, cancellationToken));
         }
 
         [HttpPost("{id:guid}/imports/{batchId:guid}/confirm")]

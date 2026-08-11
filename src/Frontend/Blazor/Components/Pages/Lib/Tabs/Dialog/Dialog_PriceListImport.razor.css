@@ -156,9 +156,48 @@
 }
 
 .vpp-price-import-mapping,
-.vpp-price-import-preview {
+.vpp-price-import-preview,
+.vpp-price-import-mapping-editor,
+.vpp-price-import-mapping-editor-list {
     display: grid;
     gap: var(--vpp-space-2);
+}
+
+.vpp-price-import-mapping-editor-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 20rem);
+    align-items: center;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-2) 0;
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default);
+}
+
+.vpp-price-import-mapping-editor-row > div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.vpp-price-import-mapping-editor-row strong,
+.vpp-price-import-mapping-editor-row small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vpp-price-import-mapping-editor-row strong {
+    color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
+}
+
+.vpp-price-import-mapping-editor-row small {
+    color: var(--vpp-text-tertiary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-price-import-mapping-editor-row ::deep .vpp-price-import-mapping-select {
+    width: 100%;
+    min-width: 0;
 }
 
 .vpp-price-import-mapping-list {
@@ -217,5 +256,10 @@
 
     .vpp-price-import-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vpp-price-import-mapping-editor-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--vpp-space-2);
     }
 }

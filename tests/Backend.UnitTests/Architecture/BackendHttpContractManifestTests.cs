@@ -13,7 +13,7 @@ namespace gtas_vpp_be.Tests.Architecture;
 
 public sealed class BackendHttpContractManifestTests
 {
-    private const int ExpectedEndpointCount = 130;
+    private const int ExpectedEndpointCount = 131;
 
     [Fact]
     public void PublicControllerContracts_MatchB0RManifest()
@@ -260,6 +260,7 @@ public sealed class BackendHttpContractManifestTests
         POST | /api/VPPPriceList/{id:guid}/expire | POLICY:LIBRARY_MANAGE
         DELETE | /api/VPPPriceList/{id:guid}/hard | POLICY:LIBRARY_MANAGE
         GET | /api/VPPPriceList/{id:guid}/imports | POLICY:LIBRARY_MANAGE
+        POST | /api/VPPPriceList/{id:guid}/imports/analyze | POLICY:LIBRARY_MANAGE
         POST | /api/VPPPriceList/{id:guid}/imports/preview | POLICY:LIBRARY_MANAGE
         GET | /api/VPPPriceList/{id:guid}/imports/template.xlsx | POLICY:LIBRARY_MANAGE
         POST | /api/VPPPriceList/{id:guid}/imports/{batchId:guid}/confirm | POLICY:LIBRARY_MANAGE

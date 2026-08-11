@@ -2,6 +2,7 @@ using gtas_vpp_fe.Platform.Browser;
 using gtas_vpp_fe.Services;
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
+using System.Text.Json;
 
 namespace gtas_vpp_fe.Features.CatalogPricing.Api;
 
@@ -11,17 +12,49 @@ public sealed class PriceListImportApiClient(
 {
     private const string PriceListEndpoint = "/api/vpppricelist";
 
+    public Task<PriceListImportAnalysisResDTO?> AnalyzeAsync(
+        Guid priceListId,
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        CancellationToken cancellationToken = default)
+        => api.PostFileFromApiAsync<PriceListImportAnalysisResDTO>(
+            $"{PriceListEndpoint}/{priceListId}/imports/analyze",
+            fileStream,
+            fileName,
+            contentType,
+            cancellationToken);
+
     public Task<PriceListImportPreviewResDTO?> PreviewAsync(
         Guid priceListId,
         Stream fileStream,
         string fileName,
         string contentType,
         CancellationToken cancellationToken = default)
+        => PreviewAsync(
+            priceListId,
+            fileStream,
+            fileName,
+            contentType,
+            new Dictionary<int, string>(),
+            cancellationToken);
+
+    public Task<PriceListImportPreviewResDTO?> PreviewAsync(
+        Guid priceListId,
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        IReadOnlyDictionary<int, string> columnMappings,
+        CancellationToken cancellationToken = default)
         => api.PostFileFromApiAsync<PriceListImportPreviewResDTO>(
             $"{PriceListEndpoint}/{priceListId}/imports/preview",
             fileStream,
             fileName,
             contentType,
+            new Dictionary<string, string>
+            {
+                ["columnMappingsJson"] = JsonSerializer.Serialize(columnMappings)
+            },
             cancellationToken);
 
     public Task<PriceListImportBatchResDTO?> ConfirmAsync(

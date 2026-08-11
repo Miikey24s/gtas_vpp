@@ -52,13 +52,37 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
             await Page.GetByRole(AriaRole.Button, new() { Name = "Import bảng giá" }).ClickAsync();
             var dialog = Page.GetByTestId("price-list-import-dialog");
             await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-            var csv = $"ItemCode,UnitPrice,VatRate,Note\n{itemCode},{20_000 + index},8,Kiểm thử import";
+            var csv = index == 0
+                ? $"Ma noi bo,Gia ban,Thue suat,Ghi chu rieng\n{itemCode},{20_000 + index},8,Kiểm thử import"
+                : $"ItemCode,UnitPrice,VatRate,Note\n{itemCode},{20_000 + index},8,Kiểm thử import";
             await dialog.Locator("#price-list-import-file").SetInputFilesAsync(new FilePayload
             {
                 Name = $"bang-gia-{viewport.Width}.csv",
                 MimeType = "text/csv",
                 Buffer = Encoding.UTF8.GetBytes(csv)
             });
+
+            if (index == 0)
+            {
+                await dialog.Locator(".vpp-price-import-mapping-editor").WaitForAsync(new()
+                {
+                    State = WaitForSelectorState.Visible,
+                    Timeout = 60_000
+                });
+                await Assertions.Expect(dialog.GetByText(
+                        "Chưa nhận diện được cột Mã mặt hàng. Vui lòng chọn cột tương ứng.",
+                        new() { Exact = true }))
+                    .ToBeVisibleAsync();
+                await Assertions.Expect(dialog.GetByText(
+                        "Chưa nhận diện được cột ItemCode. Vui lòng chọn cột tương ứng.",
+                        new() { Exact = true }))
+                    .ToHaveCountAsync(0);
+                await CaptureAsync("price-import-mapping-390x844.png");
+                await SelectMappingAsync(dialog, 0, "Mã mặt hàng");
+                await SelectMappingAsync(dialog, 1, "Đơn giá");
+                await SelectMappingAsync(dialog, 2, "Thuế");
+                await dialog.GetByRole(AriaRole.Button, new() { Name = "Kiểm tra dữ liệu" }).ClickAsync();
+            }
 
             await dialog.Locator(".vpp-price-import-summary").WaitForAsync(new()
             {
@@ -156,5 +180,18 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
             Caret = ScreenshotCaret.Hide,
             Scale = ScreenshotScale.Css
         });
+    }
+
+    private async Task SelectMappingAsync(ILocator dialog, int columnIndex, string optionLabel)
+    {
+        var row = dialog.GetByTestId($"price-import-mapping-row-{columnIndex}");
+        var trigger = row.Locator(".vpp-decision-select-trigger");
+        await trigger.ClickAsync();
+        var popoverId = await trigger.GetAttributeAsync("aria-controls");
+        popoverId.Should().NotBeNullOrWhiteSpace();
+        var popover = Page.Locator($"#{popoverId}");
+        await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await popover.GetByRole(AriaRole.Option, new() { Name = optionLabel, Exact = true }).ClickAsync();
+        await popover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
     }
 }

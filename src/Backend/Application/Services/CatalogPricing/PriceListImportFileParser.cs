@@ -38,6 +38,19 @@ public sealed class PriceListImportFileParser
     public const int MaximumRows = 5_000;
     private const long MaximumExpandedSizeBytes = 20 * 1024 * 1024;
     private const int MaximumArchiveEntries = 200;
+    private static readonly string[] RequiredFields = ["ItemCode", "UnitPrice"];
+    private static readonly HashSet<string> SupportedFields = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ItemCode",
+        "SupplierSku",
+        "ItemName",
+        "UnitPrice",
+        "VatRate",
+        "MinimumOrderQuantity",
+        "LeadTimeDays",
+        "IsDefault",
+        "Note"
+    };
 
     private static readonly IReadOnlyDictionary<string, string> HeaderAliases =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -74,6 +87,212 @@ public sealed class PriceListImportFileParser
         Stream source,
         string fileName,
         CancellationToken cancellationToken = default)
+        => await ParseAsync(source, fileName, null, cancellationToken);
+
+    public async Task<PriceListImportParsedFile> ParseAsync(
+        Stream source,
+        string fileName,
+        IReadOnlyDictionary<int, string>? columnMappings,
+        CancellationToken cancellationToken = default)
+    {
+        var sourceFile = await ReadSourceAsync(source, fileName, cancellationToken);
+        return BuildParsedFile(
+            sourceFile.Rows,
+            sourceFile.FileFormat,
+            sourceFile.FileHash,
+            columnMappings);
+    }
+
+    public async Task<PriceListImportAnalysisResDTO> AnalyzeAsync(
+        Stream source,
+        string fileName,
+        CancellationToken cancellationToken = default)
+    {
+        var sourceFile = await ReadSourceAsync(source, fileName, cancellationToken);
+        var table = ResolveTable(sourceFile.Rows);
+        var columns = new List<PriceListImportSourceColumnResDTO>();
+        var issues = new List<PriceListImportIssueResDTO>();
+        var suggestedTargets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        for (var index = 0; index < table.Header.Cells.Count; index++)
+        {
+            var sourceHeader = table.Header.Cells[index]?.Trim();
+            if (string.IsNullOrWhiteSpace(sourceHeader))
+            {
+                continue;
+            }
+
+            HeaderAliases.TryGetValue(NormalizeToken(sourceHeader), out var suggestedTarget);
+            if (!string.IsNullOrWhiteSpace(suggestedTarget) && !suggestedTargets.Add(suggestedTarget))
+            {
+                issues.Add(Issue(
+                    table.Header.RowNumber,
+                    "Warning",
+                    "DUPLICATE_SUGGESTED_COLUMN",
+                    $"Có nhiều cột cùng được gợi ý là {FieldLabel(suggestedTarget)}. Vui lòng chọn lại.",
+                    sourceHeader));
+                suggestedTarget = null;
+            }
+
+            columns.Add(new PriceListImportSourceColumnResDTO
+            {
+                ColumnIndex = index,
+                SourceColumn = sourceHeader,
+                SuggestedTargetField = suggestedTarget,
+                SampleValues = table.DataRows
+                    .Select(row => index < row.Cells.Count ? row.Cells[index]?.Trim() : null)
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Take(3)
+                    .Select(value => value!)
+                    .ToList()
+            });
+        }
+
+        foreach (var required in RequiredFields)
+        {
+            if (!columns.Any(column => string.Equals(
+                    column.SuggestedTargetField,
+                    required,
+                    StringComparison.OrdinalIgnoreCase)))
+            {
+                issues.Add(Issue(
+                    table.Header.RowNumber,
+                    "Warning",
+                    "MAPPING_REQUIRED",
+                    $"Chưa nhận diện được cột {FieldLabel(required)}. Vui lòng chọn cột tương ứng.",
+                    required));
+            }
+        }
+
+        return new PriceListImportAnalysisResDTO
+        {
+            FileName = sourceFile.SafeFileName,
+            FileHash = sourceFile.FileHash,
+            FileFormat = sourceFile.FileFormat,
+            TotalRows = table.DataRows.Count,
+            CanPreviewAutomatically = RequiredFields.All(required => columns.Any(column => string.Equals(
+                column.SuggestedTargetField,
+                required,
+                StringComparison.OrdinalIgnoreCase))),
+            AiSuggestionsAvailable = false,
+            Columns = columns,
+            Issues = issues
+        };
+    }
+
+    private static PriceListImportParsedFile BuildParsedFile(
+        IReadOnlyList<SourceTableRow> sourceRows,
+        string format,
+        string hash,
+        IReadOnlyDictionary<int, string>? columnMappings)
+    {
+        var table = ResolveTable(sourceRows);
+        var mappedColumns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var mappings = new List<PriceListImportColumnMappingResDTO>();
+        var globalIssues = new List<PriceListImportIssueResDTO>();
+        for (var index = 0; index < table.Header.Cells.Count; index++)
+        {
+            var sourceHeader = table.Header.Cells[index]?.Trim();
+            if (string.IsNullOrWhiteSpace(sourceHeader))
+            {
+                continue;
+            }
+
+            string? customTarget = null;
+            var isCustom = columnMappings is not null && columnMappings.TryGetValue(index, out customTarget);
+            var targetField = isCustom
+                ? customTarget?.Trim()
+                : HeaderAliases.GetValueOrDefault(NormalizeToken(sourceHeader));
+            if (string.IsNullOrWhiteSpace(targetField))
+            {
+                continue;
+            }
+            if (!SupportedFields.Contains(targetField))
+            {
+                globalIssues.Add(Issue(
+                    table.Header.RowNumber,
+                    "Error",
+                    "UNSUPPORTED_MAPPING",
+                    $"Cột {sourceHeader} đang ánh xạ đến trường không được hỗ trợ.",
+                    sourceHeader));
+                continue;
+            }
+
+            var canonicalTarget = SupportedFields.First(field => string.Equals(
+                field,
+                targetField,
+                StringComparison.OrdinalIgnoreCase));
+            if (mappedColumns.ContainsKey(canonicalTarget))
+            {
+                globalIssues.Add(Issue(
+                    table.Header.RowNumber,
+                    "Error",
+                    "DUPLICATE_COLUMN",
+                    $"Có nhiều cột cùng ánh xạ vào {FieldLabel(canonicalTarget)}.",
+                    sourceHeader));
+                continue;
+            }
+
+            mappedColumns[canonicalTarget] = index;
+            mappings.Add(new PriceListImportColumnMappingResDTO
+            {
+                SourceColumnIndex = index,
+                SourceColumn = sourceHeader,
+                TargetField = canonicalTarget,
+                IsRequired = RequiredFields.Contains(canonicalTarget, StringComparer.OrdinalIgnoreCase),
+                IsCustom = isCustom
+            });
+        }
+
+        foreach (var required in RequiredFields)
+        {
+            if (!mappedColumns.ContainsKey(required))
+            {
+                globalIssues.Add(Issue(
+                    table.Header.RowNumber,
+                    "Error",
+                    "MISSING_REQUIRED_COLUMN",
+                    $"Thiếu cột bắt buộc {FieldLabel(required)}.",
+                    required));
+            }
+        }
+
+        var rows = table.DataRows.Select(row => ParseRow(row, mappedColumns)).ToList();
+        return new PriceListImportParsedFile
+        {
+            FileHash = hash,
+            FileFormat = format,
+            ColumnMappings = mappings,
+            Rows = rows,
+            GlobalIssues = globalIssues
+        };
+    }
+
+    private static TableRows ResolveTable(IReadOnlyList<SourceTableRow> sourceRows)
+    {
+        var headerRow = sourceRows.FirstOrDefault(row => row.Cells.Any(cell => !string.IsNullOrWhiteSpace(cell)));
+        if (headerRow is null)
+        {
+            throw new BusinessException("File không có dòng tiêu đề.");
+        }
+
+        var dataRows = sourceRows
+            .Where(row => row.RowNumber > headerRow.RowNumber)
+            .Where(row => row.Cells.Any(cell => !string.IsNullOrWhiteSpace(cell)))
+            .ToList();
+        if (dataRows.Count > MaximumRows)
+        {
+            throw new BusinessException($"File có quá {MaximumRows:N0} dòng dữ liệu.");
+        }
+
+        return new TableRows(headerRow, dataRows);
+    }
+
+    private static async Task<BufferedSourceFile> ReadSourceAsync(
+        Stream source,
+        string fileName,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(source);
         var safeFileName = Path.GetFileName(fileName ?? string.Empty);
@@ -112,88 +331,7 @@ public sealed class PriceListImportFileParser
             ? ParseCsv(bytes)
             : ParseXlsx(bytes);
 
-        return BuildParsedFile(sourceRows, extension[1..], hash);
-    }
-
-    private static PriceListImportParsedFile BuildParsedFile(
-        IReadOnlyList<SourceTableRow> sourceRows,
-        string format,
-        string hash)
-    {
-        var headerRow = sourceRows.FirstOrDefault(row => row.Cells.Any(cell => !string.IsNullOrWhiteSpace(cell)));
-        if (headerRow is null)
-        {
-            throw new BusinessException("File không có dòng tiêu đề.");
-        }
-
-        var mappedColumns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var mappings = new List<PriceListImportColumnMappingResDTO>();
-        var globalIssues = new List<PriceListImportIssueResDTO>();
-        for (var index = 0; index < headerRow.Cells.Count; index++)
-        {
-            var sourceHeader = headerRow.Cells[index]?.Trim();
-            if (string.IsNullOrWhiteSpace(sourceHeader))
-            {
-                continue;
-            }
-
-            var normalized = NormalizeToken(sourceHeader);
-            if (!HeaderAliases.TryGetValue(normalized, out var targetField))
-            {
-                continue;
-            }
-
-            if (mappedColumns.ContainsKey(targetField))
-            {
-                globalIssues.Add(Issue(
-                    headerRow.RowNumber,
-                    "Error",
-                    "DUPLICATE_COLUMN",
-                    $"Có nhiều cột cùng ánh xạ vào {targetField}.",
-                    sourceHeader));
-                continue;
-            }
-
-            mappedColumns[targetField] = index;
-            mappings.Add(new PriceListImportColumnMappingResDTO
-            {
-                SourceColumn = sourceHeader,
-                TargetField = targetField,
-                IsRequired = targetField is "ItemCode" or "UnitPrice"
-            });
-        }
-
-        foreach (var required in new[] { "ItemCode", "UnitPrice" })
-        {
-            if (!mappedColumns.ContainsKey(required))
-            {
-                globalIssues.Add(Issue(
-                    headerRow.RowNumber,
-                    "Error",
-                    "MISSING_REQUIRED_COLUMN",
-                    $"Thiếu cột bắt buộc {required}.",
-                    required));
-            }
-        }
-
-        var dataRows = sourceRows
-            .Where(row => row.RowNumber > headerRow.RowNumber)
-            .Where(row => row.Cells.Any(cell => !string.IsNullOrWhiteSpace(cell)))
-            .ToList();
-        if (dataRows.Count > MaximumRows)
-        {
-            throw new BusinessException($"File có quá {MaximumRows:N0} dòng dữ liệu.");
-        }
-
-        var rows = dataRows.Select(row => ParseRow(row, mappedColumns)).ToList();
-        return new PriceListImportParsedFile
-        {
-            FileHash = hash,
-            FileFormat = format,
-            ColumnMappings = mappings,
-            Rows = rows,
-            GlobalIssues = globalIssues
-        };
+        return new BufferedSourceFile(safeFileName, extension[1..], hash, sourceRows);
     }
 
     private static PriceListImportParsedRow ParseRow(
@@ -258,7 +396,12 @@ public sealed class PriceListImportFileParser
         if (!value.HasValue || value.Value < minimum || (maximum.HasValue && value.Value > maximum.Value))
         {
             var range = maximum.HasValue ? $"từ {minimum} đến {maximum}" : $"lớn hơn hoặc bằng {minimum}";
-            issues.Add(Issue(source.RowNumber, "Error", $"{field.ToUpperInvariant()}_INVALID", $"{field} phải {range}.", field));
+            issues.Add(Issue(
+                source.RowNumber,
+                "Error",
+                $"{field.ToUpperInvariant()}_INVALID",
+                $"{FieldLabel(field)} phải {range}.",
+                field));
             return null;
         }
 
@@ -281,7 +424,12 @@ public sealed class PriceListImportFileParser
         var number = ParseDecimal(raw, preferThousands: false);
         if (!number.HasValue || decimal.Truncate(number.Value) != number.Value || number.Value < minimum || number.Value > int.MaxValue)
         {
-            issues.Add(Issue(source.RowNumber, "Error", $"{field.ToUpperInvariant()}_INVALID", $"{field} phải là số nguyên lớn hơn hoặc bằng {minimum}.", field));
+            issues.Add(Issue(
+                source.RowNumber,
+                "Error",
+                $"{field.ToUpperInvariant()}_INVALID",
+                $"{FieldLabel(field)} phải là số nguyên lớn hơn hoặc bằng {minimum}.",
+                field));
             return null;
         }
 
@@ -366,6 +514,20 @@ public sealed class PriceListImportFileParser
 
     private static string? NormalizeOptional(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string FieldLabel(string field) => field switch
+    {
+        "ItemCode" => "Mã mặt hàng",
+        "SupplierSku" => "Mã hàng nhà cung cấp",
+        "ItemName" => "Tên mặt hàng",
+        "UnitPrice" => "Đơn giá",
+        "VatRate" => "Thuế VAT",
+        "MinimumOrderQuantity" => "Số lượng tối thiểu",
+        "LeadTimeDays" => "Số ngày giao",
+        "IsDefault" => "Giá mặc định",
+        "Note" => "Ghi chú",
+        _ => field
+    };
 
     private static string NormalizeToken(string value)
     {
@@ -625,6 +787,14 @@ public sealed class PriceListImportFileParser
         }
         return Math.Max(0, index - 1);
     }
+
+    private sealed record BufferedSourceFile(
+        string SafeFileName,
+        string FileFormat,
+        string FileHash,
+        IReadOnlyList<SourceTableRow> Rows);
+
+    private sealed record TableRows(SourceTableRow Header, IReadOnlyList<SourceTableRow> DataRows);
 
     private sealed record SourceTableRow(int RowNumber, IReadOnlyList<string> Cells);
 }
