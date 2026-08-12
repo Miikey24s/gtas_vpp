@@ -128,7 +128,7 @@ builder.Services.AddScoped<IPriceAsOfResolver, PriceAsOfResolver>();
 builder.Services.AddScoped<IPriceBookWorkflowService, PriceBookWorkflowService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddSingleton<PriceListImportFileParser>();
-builder.Services.AddSingleton<IPriceListColumnMappingSuggester, DisabledPriceListColumnMappingSuggester>();
+builder.Services.AddPriceListColumnMapping(Configuration);
 builder.Services.AddScoped<IPriceListImportService, PriceListImportService>();
 builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
 builder.Services.AddScoped<IPostSettlementOrderCorrectionService, PostSettlementOrderCorrectionService>();

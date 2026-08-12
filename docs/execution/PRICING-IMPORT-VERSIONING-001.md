@@ -20,12 +20,12 @@
 | Kết quả cần đạt | Nhập hàng loạt giá từ Excel/CSV, có preview và audit; người dùng chỉ thấy “phiên bản” khi thật sự cần giữ nhiều bản nghiệp vụ | [Objective](#plan-detail-objective) |
 | Bảng giá | Bỏ cột/trường nhập `Phiên bản` khỏi UI; giữ field database làm compatibility contract sau consumer/schema audit | [Phân loại phiên bản](#version-classification) |
 | Import chuẩn | Đã có Excel/CSV, template, preview, validation, audit và xác nhận transaction | [Luồng import](#price-import-flow) |
-| Import linh hoạt | File cột lạ đã có màn ghép cột thủ công; adapter gợi ý AI có sẵn nhưng mặc định tắt đến khi duyệt provider/chính sách dữ liệu | [AI boundary](#ai-boundary) |
+| Import linh hoạt | File cột lạ có màn ghép cột thủ công; Gemini tự gợi ý khi có `GEMINI_API_KEY`, nhưng người dùng vẫn phải kiểm tra trước preview | [AI boundary](#ai-boundary) |
 | Lịch sử | Mỗi lần import là một `Lần nhập`, không phải một phiên bản bảng giá | [Audit](#import-audit) |
 | Phiên bản cần giữ | Bản chốt kỳ giữ user-visible; revision đơn và cấu hình kỳ giữ backend nhưng đổi UI thành lịch sử thay đổi/lịch sử áp dụng | [Phân loại phiên bản](#version-classification) |
 | Phiên bản kỹ thuật | `RowVersion`, `CalculationVersion` và model/prompt version không hiển thị cho người dùng | [Phân loại phiên bản](#version-classification) |
 | Không thuộc scope | PO, hợp đồng, tự động lấy phí vận chuyển và tối ưu nhiều NCC vẫn là hướng phát triển riêng | [Non-goals](#plan-detail-objective) |
-| Bước tiếp theo | Chỉ W4b còn chờ duyệt provider/chính sách dữ liệu AI; không drop `PriceList.Version` trong scope hiện tại | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Hoàn tất live check Gemini bằng key owner cấp; không drop `PriceList.Version` trong scope hiện tại | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `revision` = bản dữ liệu bất biến thay thế bản cũ; `RowVersion` = token kỹ thuật chống ghi đè đồng thời; `import batch` = một lần nhập file có kết quả và audit riêng.
 
@@ -206,7 +206,7 @@ Chi tiết lỗi có thể lưu ở `PriceListImportIssue` hoặc payload audit 
 | W2 | Import template deterministic: preview, validation, atomic upsert, audit batch | `gpt-5.6-sol high` | Backend/unit/integration + file fixtures | COMPLETED |
 | W3 | Wizard UI, VI/EN, responsive/accessibility và lịch sử lần nhập | `gpt-5.6-terra high` | 4 viewport + keyboard + validation/success states | COMPLETED |
 | W4a | Mapping cột linh hoạt, sample values, manual confirmation và provider-neutral AI seam | `gpt-5.6-sol high` | File cột lạ, human confirmation, AI-off fallback | COMPLETED |
-| W4b | Bật adapter AI thật cho gợi ý cột | `gpt-5.6-sol high` | Provider/data-policy approval, structured-output eval | PENDING APPROVAL |
+| W4b | Bật adapter Gemini thật cho gợi ý cột | `gpt-5.6-sol high` | Structured output, confidence gate, manual fallback, live key check | IMPLEMENTED — LIVE CHECK PENDING |
 | W5 | Migration cleanup PriceList.Version/legacy lifecycle | `gpt-5.6-sol high` | Consumer/schema audit | CANCELLED — KEEP INTERNAL |
 
 Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riêng và có thể bị hủy mà không ảnh hưởng tính năng import.
@@ -253,20 +253,21 @@ Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riê
 | AI map nhầm cột hoặc mặt hàng | Ghi sai giá hàng loạt | Proposal-only, source preview, human confirm, deterministic validation |
 | Partial import | Bảng giá ở trạng thái nửa cũ/nửa mới | Validate trước, transaction atomic, idempotency và batch result |
 | Match theo tên quá tự tin | Gắn giá vào sai item | ItemCode exact là authority; fuzzy name chỉ gợi ý |
-| File NCC chứa dữ liệu nhạy cảm | Rò rỉ dữ liệu | AI-off mặc định, policy/provider approval và minimization trước upload |
+| File NCC chứa dữ liệu nhạy cảm | Rò rỉ dữ liệu | Chỉ gửi tên cột và tối đa 3 giá trị mẫu đã giới hạn độ dài; key chỉ đọc từ environment; người dùng xác nhận trước import |
 | Thuật ngữ cũ còn rải rác | UI vẫn rối | Localization/source scan + architecture test cho copy bị retire |
 
 <a id="plan-detail-continuation"></a>
 
 ## 10. Continuation
 
-- Current status: `ACTIVE`; W0–W4a hoàn tất trong worktree `D:\WORK\gtas_vpp.worktrees\pricing-import-versioning`.
+- Current status: `ACTIVE`; W0–W4a hoàn tất, W4b đã implement và còn live key check trong worktree `D:\WORK\gtas_vpp.worktrees\pricing-import-versioning`.
 - Snapshot triển khai chỉ chứa source/test/design plan cần thiết; không chứa `presentation/`, `LVTN/` hoặc plan PPTX đang chạy.
 - Audit xác nhận `PriceList.Version` còn tham gia snapshot chốt kỳ, price resolution và unique key. W1 chỉ bỏ khỏi UI; kết luận W5 là giữ field này ở backend.
 - Template/matching giữ đúng quyết định mục 3: `ItemCode` exact là authority, import v1 chỉ thêm mới/cập nhật, không tự tạo mặt hàng và không thay thế toàn bộ.
 - W2/W3 đã có audit batch additive, API preview/confirm/template/history, parser Excel/CSV, dialog responsive và import route-real trên bốn viewport.
-- W4a phân tích header không tạo audit batch, hiển thị sample values, cho ghép từng cột bằng decision select rồi mới preview; mapping đã dùng được lưu trong audit batch. AI suggester mặc định disabled nên không gửi dữ liệu ra ngoài.
+- W4a phân tích header không tạo audit batch, hiển thị sample values, cho ghép từng cột bằng decision select rồi mới preview; mapping đã dùng được lưu trong audit batch.
+- W4b dùng Gemini structured output cho các cột chưa nhận diện, chỉ nhận gợi ý confidence từ 0,75, chặn target trùng/sai contract và tự fallback về ghép thủ công khi thiếu key, timeout, quota hoặc JSON lỗi. Key đọc từ `GEMINI_API_KEY`/`GOOGLE_API_KEY`, không nằm trong source hoặc appsettings.
 - W5 dừng sau audit: `PriceList.Version` vẫn là compatibility contract của snapshot, price resolution và unique key; giữ nội bộ là quyết định an toàn, không còn kế hoạch drop trong scope này.
 - Verification checkpoint: backend/API + frontend build sạch; focused unit/architecture pass; SQL LocalDB migrate down/up + preview/confirm pass; Playwright import chuẩn và file cột lạ tại `390×844`, `768×1024`, `1366×768`, `1920×1080` pass.
-- Next exact action: chỉ mở W4b sau khi owner chốt provider và chính sách dữ liệu được phép gửi để gợi ý.
+- Next exact action: owner copy riêng key vào clipboard để chạy live check không lưu key; sau đó chốt W4b và commit riêng.
 
