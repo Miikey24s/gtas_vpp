@@ -15,11 +15,11 @@ HEIGHT = 1500
 SCALE = 2
 
 GROUPS = [
-    ("Xác thực và phân quyền", ["Đăng nhập", "Tải quyền truy cập", "Đồng bộ quyền tức thời", "Quản lý nhóm quyền", "Quản lý người dùng"]),
+    ("Xác thực và quản trị", ["Đăng nhập", "Tải quyền truy cập", "Quản lý nhóm quyền", "Quản lý người dùng", "Cấu hình mặc định kỳ đặt hàng"]),
     ("Xử lý đơn thông thường", ["Xác định kỳ và hạn gửi", "Tạo hoặc sao chép đơn", "Chỉnh sửa hoặc hủy đơn", "Tra cứu lịch sử đơn"]),
     ("Xử lý đơn bổ sung", ["Kiểm tra điều kiện tạo", "Tạo đơn bổ sung", "Duyệt hoặc từ chối", "Theo dõi trạng thái"]),
-    ("Danh mục và bảng giá", ["Quản lý văn phòng phẩm", "Quản lý đơn vị tính", "Quản lý nhà cung cấp", "Quản lý bảng giá"]),
-    ("Tổng hợp và chốt kỳ", ["Theo dõi tiến độ", "Tổng hợp đơn yêu cầu", "Chọn nhà cung cấp", "Chốt kỳ và lưu đơn giá"]),
+    ("Danh mục và bảng giá", ["Quản lý văn phòng phẩm", "Quản lý đơn vị tính", "Quản lý nhà cung cấp", "Tạo bảng giá có hiệu lực", "Đặt mặc định hoặc ngừng sử dụng"]),
+    ("Vận hành và chốt kỳ", ["Quản lý lịch riêng của từng kỳ", "Khóa hoặc mở lại nhận đơn", "Xem trước và chọn dữ liệu áp dụng", "Chốt kỳ và lưu phiên bản kết quả", "Điều chỉnh đơn sau chốt"]),
     ("Theo dõi và báo cáo", ["Lọc theo phạm vi", "Xem chỉ số tổng hợp", "Xuất báo cáo", "Nhận thông báo", "Theo dõi hộp thư"]),
 ]
 

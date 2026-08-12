@@ -4,23 +4,18 @@ title QUY TRÌNH QUẢN LÝ BẢNG GIÁ
 
 start
 :Quản lý chọn nhà cung cấp;
-:Tạo hoặc mở bảng giá nháp;
-:Nhập thời gian hiệu lực, giá và thuế;
+:Tạo hoặc mở bảng giá;
+:Nhập phiên bản, giá và thuế;
 :Hệ thống kiểm tra dữ liệu bắt buộc;
 if (Dữ liệu hợp lệ?) then (Không)
   :Giữ dữ liệu và hiển thị lỗi;
 else (Có)
-  :Lưu bảng giá và các dòng đơn giá;
-  if (Công bố bảng giá?) then (Có)
-    :Kiểm tra đủ đơn giá và thời gian hiệu lực;
-    if (Đủ điều kiện công bố?) then (Có)
-      :Chuyển trạng thái sang đã công bố;
-    else (Không)
-      :Thông báo điều kiện chưa đáp ứng;
-    endif
+  :Lưu bảng giá có hiệu lực và các dòng giá;
+  if (Đặt làm mặc định?) then (Có)
+    :Bỏ mặc định cũ và đặt bảng giá được chọn;
   else (Không)
-    if (Đánh dấu hết hiệu lực?) then (Có)
-      :Chuyển trạng thái sang hết hiệu lực;
+    if (Thay đổi trạng thái sử dụng?) then (Có)
+      :Vô hiệu hóa hoặc khôi phục bảng giá;
     endif
   endif
   :Ghi lịch sử và tải lại dữ liệu;

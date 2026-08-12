@@ -1,15 +1,17 @@
 @startuml
 !include ../common/usecase-style.puml
-title XEM TRƯỚC VÀ CHỐT KỲ
+title XEM TRƯỚC, CHỐT VÀ ĐIỀU CHỈNH SAU CHỐT
 
 actor "Quản lý" as Procurement
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Xem trước và\nchốt kỳ" as Settle #E6E6E6
-  usecase "Chọn kỳ và\nbảng giá áp dụng" as Select
+  usecase "Chọn kỳ, nhà cung cấp\nvà bảng giá áp dụng" as Select
   usecase "Kiểm tra không còn đơn chờ duyệt\nvà đủ giá cho mặt hàng" as Validate
   usecase "Lưu dữ liệu giá tại\nthời điểm chốt kỳ" as Snapshot
-  usecase "Tạo kết quả chốt kỳ\nvà dữ liệu phân bổ" as Mark
+  usecase "Tạo phiên bản kết quả\nvà dữ liệu phân bổ" as Mark
+  usecase "Xem các phiên bản\nđã lưu" as History
+  usecase "Điều chỉnh đơn sau chốt\nvà tạo phiên bản mới" as Correct
   usecase "Ghi nhật ký\nthao tác" as Log
   usecase "Hủy giao dịch khi\nkhông đủ điều kiện" as Rollback
 
@@ -18,12 +20,17 @@ rectangle "Hệ thống GTAS VPP" {
   Settle .> Snapshot : <<include>>
   Settle .> Mark : <<include>>
   Settle .> Log : <<include>>
+  History .> Settle : <<extend>>
+  Correct .> Settle : <<extend>>
+  Correct .> Log : <<include>>
   Rollback .> Settle : <<extend>>
 
   Select -[hidden]down- Validate
   Validate -[hidden]down- Snapshot
   Snapshot -[hidden]down- Mark
   Mark -[hidden]down- Log
+  Log -[hidden]down- History
+  History -[hidden]down- Correct
 }
 
 Procurement -[hidden]down- Select

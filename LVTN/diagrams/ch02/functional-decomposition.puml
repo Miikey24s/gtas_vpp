@@ -17,12 +17,12 @@ wbsDiagram {
 </style>
 
 * GTAS VPP
-** Xác thực và phân quyền
+** Xác thực và quản trị
 *** Đăng nhập
 *** Tải quyền truy cập hệ thống
-*** Đồng bộ quyền tức thời
 *** Quản lý nhóm quyền
 *** Quản lý người dùng
+*** Cấu hình mặc định kỳ đặt hàng
 ** Xử lý đơn thường
 *** Xác định kỳ và hạn gửi
 *** Tạo hoặc sao chép đơn
@@ -37,14 +37,14 @@ wbsDiagram {
 *** Quản lý danh mục văn phòng phẩm
 *** Quản lý đơn vị tính
 *** Quản lý nhà cung cấp
-*** Quản lý bảng giá
-*** Thiết lập bảng giá
-** Tổng hợp và chốt kỳ
-*** Theo dõi tiến độ
-*** Tổng hợp đơn yêu cầu
-*** Chọn nhà cung cấp
-*** Chốt kỳ và lưu đơn giá
-*** Ghi nhật ký thao tác
+*** Tạo bảng giá có hiệu lực
+*** Đặt mặc định hoặc ngừng sử dụng
+** Vận hành và chốt kỳ
+*** Quản lý lịch riêng của từng kỳ
+*** Khóa hoặc mở lại nhận đơn
+*** Xem trước và chọn dữ liệu áp dụng
+*** Chốt kỳ và lưu phiên bản kết quả
+*** Điều chỉnh đơn sau chốt
 ** Theo dõi và báo cáo
 *** Lọc theo phạm vi
 *** Xem KPI và biểu đồ

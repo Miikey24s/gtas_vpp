@@ -60,7 +60,7 @@ def make_svg():
     # External client.
     svg_box(parts, 5, 270, 165, 115, "NGƯỜI DÙNG", ("Trình duyệt", "nội bộ"))
     svg_box(parts, 235, 255, 210, 145, "NGINX", ("Reverse proxy", "HTTPS / WSS"))
-    svg_box(parts, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Cookie authentication", "Realtime quyền và thông báo"))
+    svg_box(parts, 520, 100, 280, 175, "FRONTEND", ("Blazor Web App", "Interactive Server + Radzen", "Cookie authentication", "Realtime quyền và thông báo"))
     svg_box(parts, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core (.NET 10)", "JWT + action policy", "Report API + SignalR hubs"))
     svg_box(parts, 890, 100, 280, 175, "MIGRATOR", ("EF Core migration", "Seed dữ liệu nền"))
     svg_box(parts, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu, thông báo và log"))
@@ -164,7 +164,7 @@ def make_png():
 
     draw_box(draw, 5, 270, 165, 115, "NGƯỜI DÙNG", ("Trình duyệt", "nội bộ"))
     draw_box(draw, 235, 255, 210, 145, "NGINX", ("Reverse proxy", "HTTPS / WSS"))
-    draw_box(draw, 520, 100, 280, 175, "FRONTEND", ("Blazor Server + Radzen", "Xác thực bằng cookie", "Quyền và thông báo", "tức thời"))
+    draw_box(draw, 520, 100, 280, 175, "FRONTEND", ("Blazor Web App", "Interactive Server + Radzen", "Xác thực bằng cookie", "Quyền và thông báo tức thời"))
     draw_box(draw, 520, 405, 280, 180, "BACKEND API", ("ASP.NET Core Web API", ".NET 10 + JWT", "Báo cáo và SignalR"))
     draw_box(draw, 890, 100, 280, 175, "MIGRATOR", ("EF Core migration", "Seed dữ liệu nền"))
     draw_box(draw, 890, 405, 280, 180, "SQL SERVER 2022", ("GTAS_VPP_LIVE", "Dữ liệu nghiệp vụ và log"))

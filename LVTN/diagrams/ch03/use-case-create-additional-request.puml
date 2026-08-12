@@ -6,20 +6,20 @@ actor "Nhân viên" as Employee
 
 rectangle "Hệ thống GTAS VPP" {
   usecase "Tạo đơn\nbổ sung" as Create #E6E6E6
-  usecase "Xác định kỳ\nliền trước" as PreviousPeriod
+  usecase "Xác định kỳ\nhiện tại" as CurrentPeriod
   usecase "Kiểm tra kỳ còn hợp lệ,\ntối đa 3 đơn và không có đơn chờ duyệt" as Validate
   usecase "Chọn vật tư và kiểm tra\nchi tiết đơn" as Items
   usecase "Lưu đơn trạng thái\nchờ duyệt" as Persist
   usecase "Ghi nhật ký\nthao tác" as Log
 
-  Create -[hidden]right- PreviousPeriod
-  Create .> PreviousPeriod : <<include>>
+  Create -[hidden]right- CurrentPeriod
+  Create .> CurrentPeriod : <<include>>
   Create .> Validate : <<include>>
   Create .> Items : <<include>>
   Create .> Persist : <<include>>
   Create .> Log : <<include>>
 
-  PreviousPeriod -[hidden]down- Validate
+  CurrentPeriod -[hidden]down- Validate
   Validate -[hidden]down- Items
   Items -[hidden]down- Persist
   Persist -[hidden]down- Log

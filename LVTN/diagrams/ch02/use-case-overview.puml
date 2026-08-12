@@ -29,11 +29,13 @@ rectangle "Hệ thống GTAS VPP" {
   usecase "Xem đơn phòng ban\nvà toàn công ty" as UC_Orders
   usecase "Phê duyệt hoặc từ chối\nđơn bổ sung" as UC_AdditionalApproval
   usecase "Quản lý danh mục, nhà cung cấp\nvà bảng giá" as UC_Library
-  usecase "Rà soát và chốt kỳ" as UC_Settle
+  usecase "Vận hành lịch và trạng thái\ncủa từng kỳ" as UC_Period
+  usecase "Xem trước, chốt kỳ và\nđiều chỉnh sau chốt" as UC_Settle
   usecase "Xem và xuất báo cáo\ntheo phạm vi được cấp" as UC_Report
 
   usecase "Quản lý người dùng\nvà nhóm quyền" as UC_UserManage
   usecase "Quản lý quyền truy cập\nhệ thống" as UC_Permission
+  usecase "Cấu hình mặc định\nkỳ đặt hàng" as UC_PeriodSettings
   usecase "Kiểm tra nhật ký\nbảo mật" as UC_Audit
 
   UC_Login -[hidden]down- UC_Catalog
@@ -43,11 +45,13 @@ rectangle "Hệ thống GTAS VPP" {
 
   UC_Orders -[hidden]down- UC_AdditionalApproval
   UC_AdditionalApproval -[hidden]down- UC_Library
-  UC_Library -[hidden]down- UC_Settle
+  UC_Library -[hidden]down- UC_Period
+  UC_Period -[hidden]down- UC_Settle
   UC_Settle -[hidden]down- UC_Report
 
   UC_UserManage -[hidden]down- UC_Permission
-  UC_Permission -[hidden]down- UC_Audit
+  UC_Permission -[hidden]down- UC_PeriodSettings
+  UC_PeriodSettings -[hidden]down- UC_Audit
 }
 
 Employee -- UC_Login
@@ -60,12 +64,14 @@ Manager --|> Employee
 Manager -- UC_Orders
 Manager -- UC_AdditionalApproval
 Manager -- UC_Library
+Manager -- UC_Period
 Manager -- UC_Settle
 Manager -- UC_Report
 
 Admin --|> Employee
 Admin -- UC_UserManage
 Admin -- UC_Permission
+Admin -- UC_PeriodSettings
 Admin -- UC_Audit
 
 Employee -[hidden]down- Manager

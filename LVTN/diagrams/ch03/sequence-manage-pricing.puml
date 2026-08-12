@@ -8,15 +8,17 @@ control "Hệ thống" as System
 database "Cơ sở dữ liệu" as DB
 
 Manager -> UI : Nhập bảng giá và các dòng đơn giá
-UI -> System : Gửi yêu cầu lưu hoặc đổi trạng thái
-System -> DB : Kiểm tra nhà cung cấp, giá và thời gian hiệu lực
+UI -> System : Gửi yêu cầu lưu hoặc thao tác quản lý
+System -> DB : Kiểm tra nhà cung cấp, giá, VAT và dữ liệu liên kết
 
-alt Lưu bản nháp
-  System -> DB : Lưu bảng giá và đơn giá
-else Công bố bảng giá
-  System -> DB : Kiểm tra đủ dữ liệu và công bố
-else Đánh dấu hết hiệu lực
-  System -> DB : Cập nhật trạng thái hết hiệu lực
+alt Tạo hoặc cập nhật
+  System -> DB : Lưu bảng giá có hiệu lực và các dòng giá
+else Đặt làm mặc định
+  System -> DB : Bỏ mặc định cũ và đặt bảng giá được chọn
+else Sao chép
+  System -> DB : Tạo phiên bản mới từ dữ liệu hiện có
+else Vô hiệu hóa hoặc khôi phục
+  System -> DB : Cập nhật trạng thái sử dụng có kiểm soát
 end
 System --> UI : Trả danh sách và trạng thái mới
 UI --> Manager : Hiển thị kết quả cập nhật

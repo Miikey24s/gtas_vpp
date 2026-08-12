@@ -14,7 +14,7 @@ actor "Người dùng\nnội bộ" as User
 
 node "Máy chủ triển khai / Docker Compose" {
   node "Nginx reverse proxy\nHTTPS / WSS" as Proxy
-  rectangle "Frontend container\nBlazor Server + Radzen\nCookie authentication\nRealtime quyền và thông báo" as Frontend
+  rectangle "Frontend container\nBlazor Web App (Interactive Server)\nRadzen Blazor\nCookie authentication\nRealtime quyền và thông báo" as Frontend
   rectangle "Backend container\nASP.NET Core Web API (.NET 10)\nJWT + action policy\nReport API + SignalR hubs" as Backend
   rectangle "Migrator container\nEF Core migration\nSeed dữ liệu nền" as Migrator
   database "SQL Server 2022 container\nGTAS_VPP_LIVE\nDữ liệu, thông báo và log" as Database

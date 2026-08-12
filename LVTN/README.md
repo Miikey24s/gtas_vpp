@@ -30,4 +30,4 @@ Thư mục này chỉ giữ một nguồn luận văn chuẩn và các tài sả
 4. Chạy `python LVTN/tooling/check_thesis.py <đường-dẫn-docx>`.
 5. Chỉ thay file chuẩn sau khi owner duyệt bản review.
 
-Phần slide bảo vệ sau này dùng `presentation/`, nhưng chưa tạo thư mục hoặc deck cho đến khi owner mở phạm vi.
+Phần slide bảo vệ đang tiếp tục trong `presentation/`. Chỉ giữ deck hiện hành và tooling có thể tái sử dụng; bản nháp cũ, render, montage, layout JSON và báo cáo inspect là đầu ra tạm, không đưa vào Git.

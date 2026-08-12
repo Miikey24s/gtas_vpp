@@ -1,19 +1,28 @@
 @startuml
 !include ../common/sequence-style.puml
-title XEM TRƯỚC VÀ XÁC NHẬN CHỐT KỲ
+title XEM TRƯỚC, XÁC NHẬN VÀ ĐIỀU CHỈNH SAU CHỐT
 
 actor "Quản lý" as Manager
 boundary "Giao diện" as UI
 control "Hệ thống" as System
 database "Cơ sở dữ liệu" as DB
 
-Manager -> UI : Chọn kỳ, bảng giá và yêu cầu xem trước
+Manager -> UI : Chọn kỳ, nhà cung cấp, bảng giá và yêu cầu xem trước
 UI -> System : Gửi yêu cầu xem trước
 System -> DB : Tổng hợp đơn, bảng giá và điều kiện chốt kỳ
 System --> UI : Trả dữ liệu xem trước và điều kiện kiểm tra
 Manager -> UI : Xác nhận kết quả khi đủ điều kiện
 UI -> System : Gửi yêu cầu xác nhận
-System -> DB : Kiểm tra, lưu kết quả và chuyển kỳ sang đã chốt
-System --> UI : Trả kết quả chốt kỳ hiện hành
+System -> DB : Kiểm tra và lưu phiên bản kết quả chốt kỳ
+System --> UI : Trả kết quả hiện hành và danh sách phiên bản
 UI --> Manager : Hiển thị tổng tiền và dữ liệu phân bổ
+
+opt Cần điều chỉnh đơn sau chốt
+  Manager -> UI : Chọn đơn, nhập nội dung và lý do điều chỉnh
+  UI -> System : Gửi yêu cầu điều chỉnh sau chốt
+  System -> DB : Kiểm tra quyền, thời hạn và quy tắc xác nhận
+  System -> DB : Lưu thay đổi và tạo phiên bản kết quả tiếp theo
+  System --> UI : Trả kết quả mới, giữ nguyên các phiên bản cũ
+  UI --> Manager : Hiển thị bản hiện hành và lịch sử đã lưu
+end
 @enduml

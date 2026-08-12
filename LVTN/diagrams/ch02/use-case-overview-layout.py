@@ -30,7 +30,7 @@ SECTIONS = [
             ("Tạo và theo dõi đơn bổ sung",),
             ("Tra cứu lịch sử, báo cáo cá nhân và nhận thông báo",),
         ],
-        [180, 240, 300, 360, 420],
+        [170, 225, 280, 335, 390],
     ),
     (
         "NGHIỆP VỤ QUẢN LÝ",
@@ -39,10 +39,11 @@ SECTIONS = [
             ("Xem đơn phòng ban và toàn công ty",),
             ("Phê duyệt hoặc từ chối đơn bổ sung",),
             ("Quản lý danh mục, nhà cung cấp và bảng giá",),
-            ("Rà soát và chốt kỳ",),
+            ("Vận hành lịch và trạng thái của từng kỳ",),
+            ("Xem trước, chốt kỳ và điều chỉnh sau chốt",),
             ("Xem và xuất báo cáo theo phạm vi được cấp",),
         ],
-        [500, 560, 620, 680, 740],
+        [475, 530, 585, 640, 695, 750],
     ),
     (
         "QUẢN TRỊ HỆ THỐNG",
@@ -50,9 +51,10 @@ SECTIONS = [
         [
             ("Quản lý người dùng và nhóm quyền",),
             ("Quản lý quyền truy cập hệ thống",),
+            ("Cấu hình mặc định kỳ đặt hàng",),
             ("Kiểm tra nhật ký bảo mật",),
         ],
-        [850, 920, 990],
+        [855, 910, 965, 1020],
     ),
 ]
 
@@ -112,8 +114,8 @@ def make_svg():
     parts.append(generalization_svg(SECTIONS[1][1], 45))
     parts.append(generalization_svg(SECTIONS[2][1], 20))
     parts.append(svg_text((SECTIONS[0][0],), 850, 135, 25, True))
-    parts.append(svg_text((SECTIONS[1][0],), 850, 460, 25, True))
-    parts.append(svg_text((SECTIONS[2][0],), 850, 810, 25, True))
+    parts.append(svg_text((SECTIONS[1][0],), 850, 430, 25, True))
+    parts.append(svg_text((SECTIONS[2][0],), 850, 815, 25, True))
     parts.append("</svg>")
     SVG_PATH.write_text("".join(parts), encoding="utf-8")
 
@@ -171,8 +173,8 @@ def make_png():
     draw_generalization(draw, SECTIONS[1][1], 45)
     draw_generalization(draw, SECTIONS[2][1], 20)
     draw_centered(draw, (SECTIONS[0][0],), 850, 135, 25, True)
-    draw_centered(draw, (SECTIONS[1][0],), 850, 460, 25, True)
-    draw_centered(draw, (SECTIONS[2][0],), 850, 810, 25, True)
+    draw_centered(draw, (SECTIONS[1][0],), 850, 430, 25, True)
+    draw_centered(draw, (SECTIONS[2][0],), 850, 815, 25, True)
     image.save(PNG_PATH, dpi=(180, 180))
 
 

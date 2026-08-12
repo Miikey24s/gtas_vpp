@@ -1,9 +1,9 @@
 @startuml
 !include ../common/activity-style.puml
-title QUY TRÌNH CHỐT KỲ
+title QUY TRÌNH CHỐT KỲ VÀ ĐIỀU CHỈNH SAU CHỐT
 
 start
-:Quản lý chọn kỳ và bảng giá;
+:Quản lý chọn kỳ, nhà cung cấp và bảng giá;
 :Yêu cầu xem trước kết quả chốt kỳ;
 :Hệ thống tổng hợp đơn hợp lệ;
 :Hệ thống đối chiếu giá và điều kiện chốt;
@@ -13,10 +13,16 @@ if (Còn điều kiện ngăn chốt kỳ?) then (Có)
 else (Không)
   :Quản lý xác nhận kết quả;
   :Hệ thống kiểm tra lại dữ liệu;
-  :Lưu kết quả, chi phí và dữ liệu phân bổ;
+  :Lưu phiên bản kết quả, chi phí và dữ liệu phân bổ;
   :Đối chiếu tổng tiền;
   :Chuyển kỳ sang trạng thái đã chốt;
   :Hiển thị kết quả chốt kỳ;
+  if (Có yêu cầu điều chỉnh sau chốt?) then (Có)
+    :Kiểm tra quyền, thời hạn và lý do;
+    :Quản lý khác xác nhận yêu cầu;
+    :Cập nhật đơn và tạo phiên bản kết quả mới;
+    :Giữ nguyên các phiên bản đã lưu trước đó;
+  endif
 endif
 stop
 @enduml
