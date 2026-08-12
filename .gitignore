@@ -387,7 +387,14 @@ scripts/export_db_full.sql
 /tmp/
 /tools/
 /audit/
+/.artifacts/
 /library-items-audit.png
+
+# Local document/presentation inspection outputs
+/docx_full_text.txt
+/extracted_docx_headings.txt
+/LVTN/NguyenAnNam_DH52201078.pdf
+/presentation/*.inspect.ndjson
 
 # Design Atlas render output (ảnh PNG + báo cáo audit, tái tạo bằng render-atlas.cjs)
 /docs/design/atlas/output/
@@ -406,6 +413,8 @@ scripts/export_db_full.sql
 /LVTN/*-signed.pdf
 # Raw operational workbook contains personal notes; commit only its normalized demo projection.
 /LVTN/data/DANG KY VPP - CAC DON VI.xlsx
+# Supporting operational workbook is thesis evidence only; keep local rather than publishing source data.
+/LVTN/data/2024.BẢNG ĐẶT VPP.xlsx
 
 # Blazor framework assets (SDK-generated, do not commit)
 wwwroot/_framework/
