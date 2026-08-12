@@ -34,12 +34,7 @@ public partial class PeriodSettlementPanel
     private int? activeOrderDetailCodeNumber;
     private int? activeOrderDetailNoteNumber;
     private VppFileExportFormat? exportingOrderFormat;
-    private bool showPostSettlementCorrection;
     private bool submittingPostSettlementCorrection;
-    private string postSettlementAction = "Adjust";
-    private string postSettlementReason = string.Empty;
-    private string postSettlementEmployeeNote = string.Empty;
-    private List<PostSettlementOrderCorrectionItemReqDTO> postSettlementItems = [];
     private List<PostSettlementOrderCorrectionResDTO> pendingPostSettlementCorrections = [];
     private string postSettlementDecisionReason = string.Empty;
 
@@ -75,13 +70,6 @@ public partial class PeriodSettlementPanel
                 DateFormatter.Format(
                     managedPeriod.PostCloseAdjustmentDeadlineLocal,
                     DateFormatter.LongDate));
-    private bool CanSubmitPostSettlementCorrection => !submittingPostSettlementCorrection
-        && selectedOrderDetail is not null
-        && postSettlementReason.Trim().Length is >= 5 and <= 500
-        && postSettlementEmployeeNote.Trim().Length is >= 5 and <= 500
-        && (postSettlementAction == "Cancel"
-            || (postSettlementItems.Count > 0 && postSettlementItems.All(item => item.Qty > 0)));
-
     private string OrderDetailUnitHeaderLabel => Loc["UOM"].Value.Trim() switch
     {
         "ĐVT" or "DVT" => "Đơn vị",
@@ -310,27 +298,35 @@ public partial class PeriodSettlementPanel
 
     private void CloseOrderDetail() => isOrderDetailOpen = false;
 
-    private void OpenPostSettlementCorrection()
+    private async Task OpenPostSettlementCorrection()
     {
         if (!CanRequestPostSettlementCorrection || selectedOrderDetail is null) return;
-        postSettlementAction = "Adjust";
-        postSettlementReason = string.Empty;
-        postSettlementEmployeeNote = string.Empty;
-        postSettlementItems = (selectedOrderDetail.Items ?? []).Select(item =>
-            new PostSettlementOrderCorrectionItemReqDTO
+
+        var result = await DialogService.OpenAsync<Dialog_PostSettlementOrderCorrection>(
+            OrderAdjustmentActionText,
+            new Dictionary<string, object?>
             {
-                VppId = item.VppId,
-                Qty = item.Qty,
-                Description = item.Description
-            }).ToList();
-        showPostSettlementCorrection = true;
+                [nameof(Dialog_PostSettlementOrderCorrection.Order)] = selectedOrderDetail,
+                [nameof(Dialog_PostSettlementOrderCorrection.Hint)] = OrderAdjustmentDialogHint,
+                [nameof(Dialog_PostSettlementOrderCorrection.PrimaryText)] = IsPostSettlementOrderAdjustment
+                    ? Loc["SendRequest"].Value
+                    : Loc["SaveChanges"].Value
+            },
+            VppAdminDialogProfiles.Create(
+                VppAdminDialogSize.Standard,
+                OrderAdjustmentActionText,
+                closeAriaLabel: Loc["Close"].Value));
+
+        if (result is Dialog_PostSettlementOrderCorrection.Result request)
+        {
+            await SubmitPostSettlementCorrectionAsync(request);
+        }
     }
 
-    private void ClosePostSettlementCorrection() => showPostSettlementCorrection = false;
-
-    private async Task SubmitPostSettlementCorrectionAsync()
+    private async Task SubmitPostSettlementCorrectionAsync(
+        Dialog_PostSettlementOrderCorrection.Result request)
     {
-        if (!CanSubmitPostSettlementCorrection || selectedOrderDetail is null) return;
+        if (submittingPostSettlementCorrection || selectedOrderDetail is null) return;
         submittingPostSettlementCorrection = true;
         try
         {
@@ -339,11 +335,11 @@ public partial class PeriodSettlementPanel
                 _ = await OrderCorrections.CreateAsync(new PostSettlementOrderCorrectionCreateReqDTO
                 {
                     RequestId = selectedOrderDetail.Id,
-                    Action = postSettlementAction,
-                    Reason = postSettlementReason.Trim(),
-                    EmployeeNote = postSettlementEmployeeNote.Trim(),
+                    Action = request.Action,
+                    Reason = request.Reason,
+                    EmployeeNote = request.EmployeeNote,
                     RequestRowVersion = selectedOrderDetail.RowVersion,
-                    Items = postSettlementAction == "Cancel" ? [] : postSettlementItems
+                    Items = request.Items
                 });
                 await LoadPostSettlementCorrectionsAsync();
                 Toast.Success(
@@ -356,18 +352,17 @@ public partial class PeriodSettlementPanel
                     selectedOrderDetail.Id,
                     new VppManagerOrderAdjustmentReqDTO
                     {
-                        Action = postSettlementAction,
-                        Reason = postSettlementReason.Trim(),
-                        EmployeeNote = postSettlementEmployeeNote.Trim(),
+                        Action = request.Action,
+                        Reason = request.Reason,
+                        EmployeeNote = request.EmployeeNote,
                         RowVersion = selectedOrderDetail.RowVersion,
                         IdempotencyKey = $"manager-adjust-{selectedOrderDetail.Id:N}-{Guid.NewGuid():N}",
-                        Items = postSettlementAction == "Cancel" ? [] : postSettlementItems
+                        Items = request.Items
                     });
                 CloseOrderDetail();
                 await ReloadPeriodAsync();
                 Toast.Success(Loc["Saved"], Loc["OrderAdjustmentSaved"]);
             }
-            showPostSettlementCorrection = false;
         }
         catch (Exception ex)
         {

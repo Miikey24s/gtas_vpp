@@ -1368,6 +1368,7 @@
   <data name="CancelOrder" xml:space="preserve"><value>Cancel order</value></data>
   <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Only quantities for items already in the order can be adjusted.</value></data>
   <data name="SendRequest" xml:space="preserve"><value>Send request</value></data>
+  <data name="OrderCorrectionInputHint" xml:space="preserve"><value>Enter a reason and message between 5 and 500 characters; item quantities must be greater than 0.</value></data>
   <data name="RequestSent" xml:space="preserve"><value>Request sent</value></data>
   <data name="SavedSettlementVersions" xml:space="preserve"><value>Saved settlement versions</value></data>
   <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Each approved adjustment is saved as a new version. Earlier versions remain available for comparison.</value></data>

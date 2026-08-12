@@ -98,7 +98,7 @@
     white-space: nowrap;
 }
 
-.vpp-settlement-kpi-card.is-select ::deep .vpp-filter-select {
+.vpp-settlement-kpi-card.is-select ::deep .vpp-decision-select {
     width: 100%;
     max-width: none;
 }
@@ -335,115 +335,11 @@
     font-weight: var(--vpp-font-weight-semibold);
 }
 
-.vpp-settlement-correction-reason input {
+.vpp-settlement-correction-reason ::deep .rz-textbox {
     width: 100%;
-    min-height: var(--vpp-control-height);
-    box-sizing: border-box;
-    padding: 0 var(--vpp-space-3);
-    color: var(--vpp-text-primary);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-md);
-    background: var(--vpp-surface-control);
-    font: inherit;
 }
 
-.vpp-settlement-correction-scroll {
-    width: 100%;
-    overflow: auto;
-}
-
-.vpp-settlement-correction-table {
-    width: 100%;
-    min-width: 52rem;
-    border-collapse: collapse;
-}
-
-.vpp-settlement-correction-table th,
-.vpp-settlement-correction-table td {
-    padding: var(--vpp-space-3);
-    border-bottom: 1px solid var(--vpp-border-default);
-    text-align: left;
-    vertical-align: middle;
-}
-
-.vpp-settlement-correction-table th {
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-sm);
-    background: var(--vpp-surface-grid-header);
-}
-
-.vpp-settlement-correction-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--vpp-space-2);
-}
-
-.vpp-settlement-correction-actions button {
-    min-height: var(--vpp-button-height);
-    padding: 0 var(--vpp-button-padding-inline);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-button);
-    background: transparent;
-    color: var(--vpp-action-primary);
-    font: inherit;
-    font-weight: var(--vpp-font-weight-semibold);
-    cursor: pointer;
-}
-
-.vpp-settlement-correction-actions button.is-danger {
-    color: var(--vpp-danger);
-}
-
-.vpp-settlement-correction-actions button:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-}
-
-.vpp-post-settlement-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1200;
-    display: grid;
-    place-items: center;
-    padding: var(--vpp-space-4);
-    background: rgb(15 23 42 / 58%);
-}
-
-.vpp-post-settlement-dialog {
-    display: grid;
-    gap: var(--vpp-space-3);
-    width: min(38rem, 100%);
-    max-height: min(48rem, calc(100vh - 2rem));
-    overflow: auto;
-    padding: var(--vpp-space-5);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-surface-raised);
-    box-shadow: var(--vpp-shadow-lg);
-}
-
-.vpp-post-settlement-dialog header,
-.vpp-post-settlement-dialog footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--vpp-space-3);
-}
-
-.vpp-post-settlement-dialog h2,
-.vpp-post-settlement-dialog p { margin: 0; }
-.vpp-post-settlement-dialog p,
-.vpp-post-settlement-dialog small { color: var(--vpp-text-secondary); }
-.vpp-post-settlement-dialog label { display: grid; gap: var(--vpp-space-1); color: var(--vpp-text-secondary); font-size: var(--vpp-text-sm); font-weight: 600; }
-.vpp-post-settlement-dialog input,
-.vpp-post-settlement-dialog select,
-.vpp-post-settlement-dialog textarea { width: 100%; box-sizing: border-box; padding: var(--vpp-space-2) var(--vpp-space-3); color: var(--vpp-text-primary); border: 1px solid var(--vpp-border-default); border-radius: var(--vpp-radius-md); background: var(--vpp-surface-control); font: inherit; }
-.vpp-post-settlement-dialog textarea { min-height: 5rem; resize: vertical; }
-.vpp-post-settlement-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--vpp-space-2); }
-.vpp-post-settlement-dialog button { min-height: var(--vpp-button-height); padding: 0 var(--vpp-button-padding-inline); border: 1px solid var(--vpp-border-default); border-radius: var(--vpp-radius-button); background: var(--vpp-surface-control); color: var(--vpp-text-primary); font: inherit; font-weight: 600; cursor: pointer; }
-.vpp-post-settlement-dialog button.is-primary { border-color: var(--vpp-action-primary); background: var(--vpp-action-primary); color: var(--vpp-text-on-action); }
-.vpp-post-settlement-dialog button:disabled { opacity: .55; cursor: not-allowed; }
-
-@media (max-width: 640px) {
-    .vpp-post-settlement-items { grid-template-columns: 1fr; }
+.vpp-settlement-correction-grid {
+    --vpp-data-grid-min-width: 58rem;
+    --vpp-admin-actions-width: 190px;
 }

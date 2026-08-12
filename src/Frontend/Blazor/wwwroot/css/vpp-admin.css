@@ -1022,6 +1022,7 @@
     display: flex;
     min-height: 0;
     flex: 1 1 auto;
+    padding: 0;
     overflow: hidden;
 }
 
@@ -1033,16 +1034,25 @@
 .rz-dialog.vpp-admin-dialog--workspace .vpp-adaptive-dialog-shell {
     width: 100%;
     height: 100%;
+    max-height: 100%;
+    flex: 1 1 0;
+    overflow: hidden;
 }
 
 .vpp-adaptive-dialog-shell {
     display: grid;
     min-width: 0;
     min-height: 0;
+    /* Gán vùng rõ để body/footer không đổi hàng khi dialog không truyền Intro. */
+    grid-template-areas:
+        "intro"
+        "body"
+        "footer";
     grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .vpp-adaptive-dialog-body {
+    grid-area: body;
     min-height: 0;
     overflow: auto;
     padding: var(--vpp-space-4);
@@ -1052,12 +1062,18 @@
     width: 100%;
 }
 
+.vpp-dialog-field-control {
+    width: 100%;
+}
+
 .vpp-adaptive-dialog-intro {
+    grid-area: intro;
     padding: var(--vpp-space-4) var(--vpp-space-4) 0;
     color: var(--vpp-text-secondary);
 }
 
 .vpp-adaptive-dialog-footer {
+    grid-area: footer;
     border-top: var(--vpp-border-width) solid var(--vpp-border-default);
     background: var(--vpp-bg-elevated);
     padding: var(--vpp-space-3) var(--vpp-space-4);
@@ -1092,6 +1108,18 @@
         max-height: none;
         margin: 0;
         border-radius: 0;
+    }
+
+    .rz-dialog.vpp-admin-dialog--standard .rz-dialog-content,
+    .rz-dialog.vpp-admin-dialog--workspace .rz-dialog-content {
+        flex-basis: 0;
+    }
+
+    .rz-dialog.vpp-admin-dialog--standard .vpp-adaptive-dialog-shell {
+        height: 100%;
+        max-height: 100%;
+        flex: 1 1 0;
+        overflow: hidden;
     }
 
     /* Form ngắn vẫn là modal gọn; chỉ editor lớn mới chiếm toàn màn hình. */

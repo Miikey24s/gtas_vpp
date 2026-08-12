@@ -1,20 +1,3 @@
-.vpp-history-post-settlement-action {
-    min-height: var(--vpp-button-height);
-    padding: 0 var(--vpp-button-padding-inline);
-    color: var(--vpp-warning-strong, var(--vpp-text-primary));
-    border: 1px solid var(--vpp-warning, var(--vpp-border-default));
-    border-radius: var(--vpp-radius-button);
-    background: var(--vpp-warning-subtle, var(--vpp-surface-control));
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.vpp-history-post-settlement-action:disabled {
-    opacity: .55;
-    cursor: not-allowed;
-}
-
 .vpp-history-drawer.vpp-settlement-detail-drawer {
     width: clamp(640px, 52vw, 900px);
 }

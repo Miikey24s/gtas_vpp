@@ -1368,6 +1368,7 @@
   <data name="ChangeReason" xml:space="preserve"><value>Lý do thay đổi</value></data>
   <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Chỉ điều chỉnh số lượng của các mặt hàng đang có trong đơn.</value></data>
   <data name="SendRequest" xml:space="preserve"><value>Gửi yêu cầu</value></data>
+  <data name="OrderCorrectionInputHint" xml:space="preserve"><value>Nhập lý do và thông báo từ 5 đến 500 ký tự; số lượng mặt hàng phải lớn hơn 0.</value></data>
   <data name="RequestSent" xml:space="preserve"><value>Đã gửi yêu cầu</value></data>
   <data name="SavedSettlementVersions" xml:space="preserve"><value>Các bản chốt đã lưu</value></data>
   <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Mỗi lần điều chỉnh được lưu thành một bản mới. Các bản trước vẫn được giữ để đối chiếu.</value></data>

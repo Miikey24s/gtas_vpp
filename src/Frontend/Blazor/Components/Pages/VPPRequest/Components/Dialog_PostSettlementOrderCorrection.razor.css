@@ -1,0 +1,34 @@
+.vpp-order-correction-form {
+    display: grid;
+    gap: var(--vpp-space-4);
+}
+
+.vpp-order-correction-field {
+    display: grid;
+    gap: var(--vpp-space-1);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-order-correction-field ::deep .vpp-decision-select,
+.vpp-order-correction-control {
+    width: 100%;
+}
+
+.vpp-order-correction-items {
+    display: grid;
+    gap: var(--vpp-space-3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vpp-order-correction-help {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+@media (max-width: 640px) {
+    .vpp-order-correction-items {
+        grid-template-columns: 1fr;
+    }
+}

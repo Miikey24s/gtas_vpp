@@ -193,7 +193,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("vpp-period-workspace-header", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<h1", workspace, StringComparison.Ordinal);
         Assert.Contains("<VppSegmentedSelector", settlement, StringComparison.Ordinal);
-        Assert.Contains("VppFilterSelect TValue=\"Guid?\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppDecisionSelect TValue=\"Guid?\"", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementByItem", settlementCode, StringComparison.Ordinal);
         Assert.Contains("SettlementByDepartment", settlementCode, StringComparison.Ordinal);
         Assert.Contains("SettlementByRequester", settlementCode, StringComparison.Ordinal);

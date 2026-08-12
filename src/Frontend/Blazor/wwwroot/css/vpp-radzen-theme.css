@@ -10,6 +10,7 @@
     --rz-root-font-size: var(--vpp-root-font-size);
     /* Brand và semantic status. */
     --rz-primary: var(--vpp-action-primary);
+    --rz-on-primary: var(--vpp-text-on-action);
     --rz-primary-dark: var(--vpp-radzen-primary-dark);
     --rz-primary-light: var(--vpp-action-primary-light);
     --rz-primary-lighter: var(--vpp-action-primary-subtle);
@@ -577,7 +578,7 @@
     will-change: opacity, clip-path;
 }
 
-.rz-dropdown-panel.vpp-page-size-panel.vpp-transient-surface--above {
+.rz-dropdown-panel.vpp-page-size-panel.rz-open.vpp-transient-surface--above {
     animation-name: vpp-transient-enter-up !important;
     translate: 0 calc(var(--vpp-space-1) * -1);
 }

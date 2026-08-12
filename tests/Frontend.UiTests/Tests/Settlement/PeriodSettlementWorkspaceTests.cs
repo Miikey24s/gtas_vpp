@@ -1,6 +1,7 @@
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
 using Microsoft.Playwright;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace gtas_vpp_fe.UITests.Tests.Settlement;
@@ -10,8 +11,10 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
 {
     private const string ScreenshotDirectoryEnvironmentVariable = "GTAS_SETTLEMENT_SCREENSHOT_DIR";
     [Theory]
+    [InlineData(390, 844)]
     [InlineData(768, 1024)]
     [InlineData(1366, 768)]
+    [InlineData(1920, 1080)]
     public async Task SettlementWorkspace_ShowsFinancialColumns_GroupAllOption_AndStablePageSizePopup(
         int width,
         int height)
@@ -28,6 +31,14 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             Timeout = 60_000
         });
 
+        if (width == 1366)
+        {
+            await SetDarkModeAsync(true);
+            (await Page.EvaluateAsync<bool>(
+                    "() => document.documentElement.classList.contains('rz-theme-dark')"))
+                .Should().BeTrue();
+        }
+
         await Assertions.Expect(Page.GetByText("Độ phủ bảng giá", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await Assertions.Expect(Page.Locator(".vpp-settlement-kpi-card.is-select > small"))
@@ -42,13 +53,9 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             new() { Name = "Chọn nhà cung cấp", Exact = true });
         await supplierPicker.ClickAsync();
         var selectedSupplier = Page.Locator(
-            ".vpp-filter-select-popover:popover-open [role='option'][aria-selected='true']");
+            ".vpp-decision-select-popover:popover-open [role='option'][aria-selected='true']");
         await Assertions.Expect(selectedSupplier).ToBeVisibleAsync();
-        var selectedSupplierChrome = await selectedSupplier.EvaluateAsync<string>("""
-            element => `${getComputedStyle(element).backgroundColor}|${getComputedStyle(element, '::after').content}`
-            """);
-        selectedSupplierChrome.Should().StartWith("rgba(0, 0, 0, 0)|");
-        selectedSupplierChrome.Should().Contain("✓");
+        await Assertions.Expect(selectedSupplier.Locator(".vpp-icon")).ToBeVisibleAsync();
         await selectedSupplier.ClickAsync();
 
         await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
@@ -89,6 +96,31 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             await selectedGroup.ClickAsync();
             await CaptureAsync($"settlement-group-all-{width}x{height}.png");
         }
+
+        var correctionAction = drawer.GetByRole(
+            AriaRole.Button,
+            new() { NameRegex = new Regex("Điều chỉnh sau chốt|Sửa đơn", RegexOptions.IgnoreCase) });
+        await Assertions.Expect(correctionAction).ToBeVisibleAsync();
+        await correctionAction.ClickAsync();
+        var dialog = Page.GetByTestId("post-settlement-order-correction-dialog");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        var actionPicker = dialog.Locator(".vpp-decision-select-trigger");
+        await Assertions.Expect(actionPicker).ToBeVisibleAsync();
+        await actionPicker.ClickAsync();
+        var actionPopoverId = await actionPicker.GetAttributeAsync("aria-controls");
+        actionPopoverId.Should().NotBeNullOrWhiteSpace();
+        var actionPopover = Page.Locator($"#{actionPopoverId}");
+        await actionPopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var selectedAction = actionPopover.Locator("[role='option'][aria-selected='true']");
+        await Assertions.Expect(selectedAction).ToBeVisibleAsync();
+        await selectedAction.ClickAsync();
+        await actionPopover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        await Assertions.Expect(dialog.Locator(".vpp-order-correction-items .rz-numeric").First)
+            .ToBeVisibleAsync();
+        await AssertElementInsideViewportAsync(dialog);
+        await CaptureAsync($"settlement-order-correction-dialog-{width}x{height}.png");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
         await drawer.GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true }).ClickAsync();
 
         var pageSize = surface.Locator(".rz-paginator .rz-dropdown, .rz-pager .rz-dropdown").Last;
@@ -111,6 +143,37 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             await pageSize.ClickAsync();
             await Assertions.Expect(panel).ToBeHiddenAsync();
         }
+
+        if (width == 1366)
+        {
+            await SetDarkModeAsync(false);
+        }
+    }
+
+    private async Task SetDarkModeAsync(bool darkMode)
+    {
+        var currentMode = await Page.EvaluateAsync<bool>(
+            "() => document.documentElement.classList.contains('rz-theme-dark')");
+        if (currentMode == darkMode)
+        {
+            return;
+        }
+
+        await Page.Locator(".user-menu-trigger").First.ClickAsync();
+        var themeToggle = Page.Locator("#user-menu-dropdown .user-dropdown-action")
+            .Filter(new LocatorFilterOptions { HasText = "Giao diện" });
+        await themeToggle.ClickAsync();
+        await Page.WaitForFunctionAsync(
+            darkMode
+                ? "() => document.documentElement.classList.contains('rz-theme-dark')"
+                : "() => !document.documentElement.classList.contains('rz-theme-dark')");
+        var backdrop = Page.Locator(".user-dropdown-backdrop:visible");
+        if (await backdrop.CountAsync() > 0)
+        {
+            await backdrop.ClickAsync();
+            await backdrop.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
+        await WaitForRenderSettleAsync();
     }
 
     private static async Task AssertColumnsAsync(ILocator surface, IReadOnlyList<string> expected)
@@ -153,6 +216,21 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             """);
 
         errors.Should().BeEmpty(string.Join(Environment.NewLine, errors));
+    }
+
+    private static async Task AssertElementInsideViewportAsync(ILocator element)
+    {
+        var geometry = await element.EvaluateAsync<double[]>(
+            """
+            node => {
+                const rect = node.getBoundingClientRect();
+                return [rect.left, rect.right, rect.top, rect.bottom, innerWidth, innerHeight];
+            }
+            """);
+        geometry[0].Should().BeGreaterThanOrEqualTo(-1);
+        geometry[1].Should().BeLessThanOrEqualTo(geometry[4] + 1);
+        geometry[2].Should().BeGreaterThanOrEqualTo(-1);
+        geometry[3].Should().BeLessThanOrEqualTo(geometry[5] + 1);
     }
 
     private async Task CaptureAsync(string fileName)

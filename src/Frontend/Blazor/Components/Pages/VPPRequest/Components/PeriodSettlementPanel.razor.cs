@@ -199,18 +199,18 @@ public partial class PeriodSettlementPanel : IDisposable
         ? currentSettlementRevision!.Allocations
         : Preview?.Allocations ?? [];
 
-    private IReadOnlyList<VppFilterOption<Guid?>> SupplierOptions => SupplierQuotes
+    private IReadOnlyList<VppDecisionOption<Guid?>> SupplierOptions => SupplierQuotes
         .Where(quote => quote.IsEligible)
         .GroupBy(quote => quote.SupplierId)
         .Select(group => group.OrderBy(quote => quote.Rank).First())
         .OrderBy(quote => quote.Rank)
-        .Select(quote => new VppFilterOption<Guid?>(quote.SupplierId, quote.SupplierName ?? Loc["SettlementNotSelected"]))
+        .Select(quote => new VppDecisionOption<Guid?>(quote.SupplierId, quote.SupplierName ?? Loc["SettlementNotSelected"]))
         .ToArray();
 
-    private IReadOnlyList<VppFilterOption<Guid?>> PriceListOptions => SupplierQuotes
+    private IReadOnlyList<VppDecisionOption<Guid?>> PriceListOptions => SupplierQuotes
         .Where(quote => quote.IsEligible && quote.SupplierId == SelectedSupplierId)
         .OrderBy(quote => quote.Rank)
-        .Select(quote => new VppFilterOption<Guid?>(quote.PriceListId, quote.PriceListCode ?? "–"))
+        .Select(quote => new VppDecisionOption<Guid?>(quote.PriceListId, quote.PriceListCode ?? "–"))
         .ToArray();
 
     private IReadOnlyList<VppSegmentedOption<string>> PeriodScopeOptions =>

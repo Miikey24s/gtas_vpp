@@ -179,6 +179,45 @@ public sealed class UiMotifCatalogTests
             "PeriodSettlementPanel.razor"));
         Assert.Contains("pendingPostSettlementCorrections.Count > 0", settlement, StringComparison.Ordinal);
         Assert.Contains("TestId=\"post-settlement-corrections\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("<RadzenDataGrid TItem=\"PostSettlementOrderCorrectionResDTO\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("<VppAdminIconAction", settlement, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionSelect TValue=\"Guid?\"", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("<table class=\"vpp-settlement-correction-table\"", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-post-settlement-backdrop", settlement, StringComparison.Ordinal);
+
+        var correctionDialog = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "Dialog_PostSettlementOrderCorrection.razor"));
+        Assert.Contains("<VppAdaptiveDialogShell", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("<VppDialogActions", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionSelect TValue=\"string\"", correctionDialog, StringComparison.Ordinal);
+        Assert.DoesNotContain("<select", correctionDialog, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AdaptiveDialogAndPageSizeMotion_KeepCanonicalLifecycleContracts()
+    {
+        var root = FindRepositoryRoot();
+        var frontend = Path.Combine(root, "src", "Frontend", "Blazor");
+        var adminCss = File.ReadAllText(Path.Combine(frontend, "wwwroot", "css", "vpp-admin.css"));
+        var radzenCss = File.ReadAllText(Path.Combine(frontend, "wwwroot", "css", "vpp-radzen-theme.css"));
+
+        Assert.Contains("grid-template-areas:", adminCss, StringComparison.Ordinal);
+        Assert.Contains("grid-area: body;", adminCss, StringComparison.Ordinal);
+        Assert.Contains("grid-area: footer;", adminCss, StringComparison.Ordinal);
+        Assert.Contains("--rz-on-primary: var(--vpp-text-on-action);", radzenCss, StringComparison.Ordinal);
+        Assert.Contains(
+            ".rz-dropdown-panel.vpp-page-size-panel.rz-open.vpp-transient-surface--above",
+            radzenCss,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            ".rz-dropdown-panel.vpp-page-size-panel.vpp-transient-surface--above {",
+            radzenCss,
+            StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()

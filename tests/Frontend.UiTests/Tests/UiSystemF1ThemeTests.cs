@@ -13,6 +13,8 @@ public sealed class UiSystemF1ThemeTests : TestBase, IAuthenticatedUiTest
         new("my-orders", "dashboard?tab=0", ".vpp-orders-story"),
         new("history", "dashboard?tab=1", ".vpp-history-page", ".vpp-history-loading-state"),
         new("library-departments", "library?tab=5", ".vpp-admin-data-surface", ".vpp-global-loader"),
+        new("library-price-lists", "library?tab=6&pricingTab=price-lists", "[data-testid='price-lists-data-surface']"),
+        new("library-prices", "library?tab=6&pricingTab=prices", "[data-testid='prices-data-surface']"),
         new("permission", "permission?tab=1", "[data-testid='permission-groups-data-surface']", ".vpp-global-loader")
     ];
 

@@ -1,0 +1,162 @@
+@* PAGE: VPPRequest/Components/Dialog_PostSettlementOrderCorrection.razor *@
+@using gtas_vpp_shared.DTOs.Req.VPP
+@using gtas_vpp_shared.DTOs.Res.VPP
+@inject DialogService DialogService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard"
+                        TestId="post-settlement-order-correction-dialog"
+                        Class="vpp-order-correction-dialog">
+    <Intro>
+        <VppInlineNotice Tone="VppStatusTone.Info"
+                         Title="@Order.VppCode">
+            @Hint
+        </VppInlineNotice>
+    </Intro>
+    <ChildContent>
+        <div class="vpp-order-correction-form">
+            <div class="vpp-order-correction-field">
+                <span>@Loc["Change"]</span>
+                <VppDecisionSelect TValue="string"
+                                   Value="@Action"
+                                   Options="@ActionOptions"
+                                   ValueChanged="@OnActionChangedAsync"
+                                   Placeholder="@Loc["Change"]"
+                                   AriaLabel="@Loc["Change"]" />
+            </div>
+
+            <RadzenFormField Text="@Loc["ChangeReason"]" Variant="Variant.Outlined">
+                <RadzenTextArea @bind-Value="Reason"
+                                Rows="4"
+                                MaxLength="500"
+                                class="vpp-order-correction-control" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="@Loc["EmployeeMessage"]" Variant="Variant.Outlined">
+                <RadzenTextArea @bind-Value="EmployeeNote"
+                                Rows="4"
+                                MaxLength="500"
+                                class="vpp-order-correction-control" />
+            </RadzenFormField>
+
+            @if (Action == AdjustAction)
+            {
+                <section class="vpp-order-correction-items" aria-label="@Loc["UpdateQuantity"]">
+                    @foreach (var item in Items)
+                    {
+                        <RadzenFormField Text="@item.Name" Variant="Variant.Outlined">
+                            <RadzenNumeric TValue="int"
+                                           @bind-Value="item.Quantity"
+                                           Min="1"
+                                           class="vpp-order-correction-control" />
+                        </RadzenFormField>
+                    }
+                </section>
+                <small class="vpp-order-correction-help">@Loc["ExistingOrderItemsOnly"]</small>
+            }
+
+            @if (ShowValidationMessage)
+            {
+                <VppInlineNotice Tone="VppStatusTone.Warning">
+                    @ValidationMessage
+                </VppInlineNotice>
+            }
+        </div>
+    </ChildContent>
+    <Footer>
+        <VppDialogActions CancelText="@Loc["Cancel"]"
+                          PrimaryText="@PrimaryText"
+                          PrimaryIcon="save"
+                          PrimaryButtonStyle="ButtonStyle.Primary"
+                          PrimaryDisabled="@(!CanSubmit)"
+                          CancelClick="@CancelAsync"
+                          PrimaryClick="@SubmitAsync" />
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    private const string AdjustAction = "Adjust";
+    private const string CancelAction = "Cancel";
+
+    [Parameter, EditorRequired] public VppRequestResDTO Order { get; set; } = default!;
+    [Parameter, EditorRequired] public string Hint { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string PrimaryText { get; set; } = string.Empty;
+
+    private string Action { get; set; } = AdjustAction;
+    private string Reason { get; set; } = string.Empty;
+    private string EmployeeNote { get; set; } = string.Empty;
+    private bool ShowValidationMessage { get; set; }
+    private List<CorrectionItemModel> Items { get; set; } = [];
+
+    private IReadOnlyList<VppDecisionOption<string>> ActionOptions =>
+    [
+        new(AdjustAction, Loc["UpdateQuantity"]),
+        new(CancelAction, Loc["CancelOrder"])
+    ];
+
+    private bool CanSubmit => Reason.Trim().Length is >= 5 and <= 500
+        && EmployeeNote.Trim().Length is >= 5 and <= 500
+        && (Action == CancelAction || (Items.Count > 0 && Items.All(item => item.Quantity > 0)));
+
+    private string ValidationMessage => Loc["OrderCorrectionInputHint"];
+
+    protected override void OnParametersSet()
+    {
+        if (Items.Count > 0)
+        {
+            return;
+        }
+
+        Items = (Order.Items ?? []).Select(item => new CorrectionItemModel
+        {
+            VppId = item.VppId,
+            Name = item.VppName ?? item.VppCode ?? item.VppId.ToString(),
+            Quantity = item.Qty,
+            Description = item.Description
+        }).ToList();
+    }
+
+    private Task OnActionChangedAsync(string action)
+    {
+        Action = action;
+        ShowValidationMessage = false;
+        return Task.CompletedTask;
+    }
+
+    private Task CancelAsync() => DialogService.TryCloseAsync(null);
+
+    private async Task SubmitAsync()
+    {
+        if (!CanSubmit)
+        {
+            ShowValidationMessage = true;
+            return;
+        }
+
+        await DialogService.TryCloseAsync(new Result(
+            Action,
+            Reason.Trim(),
+            EmployeeNote.Trim(),
+            Action == CancelAction
+                ? []
+                : Items.Select(item => new PostSettlementOrderCorrectionItemReqDTO
+                {
+                    VppId = item.VppId,
+                    Qty = item.Quantity,
+                    Description = item.Description
+                }).ToList()));
+    }
+
+    public sealed record Result(
+        string Action,
+        string Reason,
+        string EmployeeNote,
+        List<PostSettlementOrderCorrectionItemReqDTO> Items);
+
+    private sealed class CorrectionItemModel
+    {
+        public Guid VppId { get; init; }
+        public string Name { get; init; } = string.Empty;
+        public int Quantity { get; set; }
+        public string? Description { get; init; }
+    }
+}

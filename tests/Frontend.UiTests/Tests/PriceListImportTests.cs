@@ -49,6 +49,10 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
                 await sidebarBackdrop.ClickAsync();
                 await sidebarBackdrop.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
             }
+            if (index == viewports.Length - 1)
+            {
+                await SetDarkModeAsync(true);
+            }
             await Page.GetByRole(AriaRole.Button, new() { Name = "Import bảng giá" }).ClickAsync();
             var dialog = Page.GetByTestId("price-list-import-dialog");
             await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
@@ -77,6 +81,7 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
                         "Chưa nhận diện được cột ItemCode. Vui lòng chọn cột tương ứng.",
                         new() { Exact = true }))
                     .ToHaveCountAsync(0);
+                await AssertDialogFooterVisibleAsync(dialog, viewport.Width, viewport.Height);
                 await CaptureAsync("price-import-mapping-390x844.png");
                 await SelectMappingAsync(dialog, 0, "Mã mặt hàng");
                 await SelectMappingAsync(dialog, 1, "Đơn giá");
@@ -109,6 +114,7 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
             geometry[1].Should().BeLessThanOrEqualTo(geometry[4] + 1);
             geometry[2].Should().BeGreaterThanOrEqualTo(-1);
             geometry[3].Should().BeLessThanOrEqualTo(geometry[5] + 1);
+            await AssertDialogFooterVisibleAsync(dialog, viewport.Width, viewport.Height);
 
             if (index == viewports.Length - 1)
             {
@@ -127,6 +133,7 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
                     .ToArray();
                 blocking.Should().BeEmpty("dialog import must pass the critical/serious accessibility gate");
                 await dialog.GetByRole(AriaRole.Button, new() { Name = "Đóng" }).ClickAsync();
+                await SetDarkModeAsync(false);
             }
             else
             {
@@ -163,6 +170,51 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
             $"{route} must keep wide data inside its own surface at {viewportWidth}px");
     }
 
+    private static async Task AssertDialogFooterVisibleAsync(ILocator dialog, int width, int height)
+    {
+        var contract = await dialog.Locator(".vpp-adaptive-dialog-footer").EvaluateAsync<string>(
+            """
+            element => {
+                const rect = element.getBoundingClientRect();
+                const style = getComputedStyle(element);
+                const shell = element.closest('.vpp-adaptive-dialog-shell');
+                const body = shell?.querySelector('.vpp-adaptive-dialog-body');
+                const content = element.closest('.rz-dialog-content');
+                const radzenDialog = element.closest('.rz-dialog');
+                const title = radzenDialog?.querySelector('.rz-dialog-titlebar');
+                const shellRect = shell?.getBoundingClientRect();
+                const bodyRect = body?.getBoundingClientRect();
+                const contentRect = content?.getBoundingClientRect();
+                const dialogRect = radzenDialog?.getBoundingClientRect();
+                const titleRect = title?.getBoundingClientRect();
+                const pointX = Math.min(innerWidth - 1, Math.max(0, rect.left + rect.width / 2));
+                const pointY = Math.min(innerHeight - 1, Math.max(0, rect.top + rect.height / 2));
+                const hit = document.elementFromPoint(pointX, pointY);
+                const visible = style.display !== 'none'
+                    && style.visibility !== 'hidden'
+                    && Number.parseFloat(style.opacity || '1') > 0
+                    && rect.height > 40
+                    && rect.top >= 0
+                    && rect.bottom <= innerHeight + 1
+                    && !!hit
+                    && (hit === element || element.contains(hit));
+                return [
+                    visible,
+                    `footer=${rect.top},${rect.bottom},${rect.height},padding:${style.padding},display:${style.display}`,
+                    `shell=${shellRect?.top},${shellRect?.bottom},${shellRect?.height},rows:${shell ? getComputedStyle(shell).gridTemplateRows : ''}`,
+                    `body=${bodyRect?.top},${bodyRect?.bottom},${bodyRect?.height},overflow:${body ? getComputedStyle(body).overflow : ''}`,
+                    `content=${contentRect?.top},${contentRect?.bottom},${contentRect?.height},flex:${content ? getComputedStyle(content).flex : ''}`,
+                    `dialog=${dialogRect?.top},${dialogRect?.bottom},${dialogRect?.height}`,
+                    `title=${titleRect?.top},${titleRect?.bottom},${titleRect?.height}`,
+                    `viewport=${innerHeight}`,
+                    `hit=${hit?.className || hit?.tagName}`
+                ].join('|');
+            }
+            """);
+        contract.Should().StartWith("true",
+            $"price import footer must remain visible and clickable at {width}x{height}; actual={contract}");
+    }
+
     private async Task CaptureAsync(string fileName)
     {
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
@@ -193,5 +245,31 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
         await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await popover.GetByRole(AriaRole.Option, new() { Name = optionLabel, Exact = true }).ClickAsync();
         await popover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+    }
+
+    private async Task SetDarkModeAsync(bool darkMode)
+    {
+        var currentMode = await Page.EvaluateAsync<bool>(
+            "() => document.documentElement.classList.contains('rz-theme-dark')");
+        if (currentMode == darkMode)
+        {
+            return;
+        }
+
+        await Page.Locator(".user-menu-trigger").First.ClickAsync();
+        var themeToggle = Page.Locator("#user-menu-dropdown .user-dropdown-action")
+            .Filter(new LocatorFilterOptions { HasText = "Giao diện" });
+        await themeToggle.ClickAsync();
+        await Page.WaitForFunctionAsync(
+            darkMode
+                ? "() => document.documentElement.classList.contains('rz-theme-dark')"
+                : "() => !document.documentElement.classList.contains('rz-theme-dark')");
+        var backdrop = Page.Locator(".user-dropdown-backdrop:visible");
+        if (await backdrop.CountAsync() > 0)
+        {
+            await backdrop.ClickAsync();
+            await backdrop.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
+        await WaitForRenderSettleAsync();
     }
 }

@@ -494,6 +494,22 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   clean HEAD. Khi chốt ảnh luận văn/slide, canonicalize diff hoặc capture lại từ clean reproducible HEAD,
   rồi chỉ giữ representative board/contact sheet nếu thật sự hữu ích.
 
+### 7.11 — Design-system audit cho chức năng mới — 2026-08-13
+
+- Chốt kỳ dùng đúng motif `DECISION-SELECT`, `DATA-GRID`, `ADMIN-ROW-ACTIONS` và `DIALOG-EDITOR`:
+  selector NCC/bảng giá chuyển sang `VppDecisionSelect`; hàng duyệt điều chỉnh sau chốt dùng
+  `RadzenDataGrid` + action typed; form sửa/hủy đơn chuyển từ overlay tự dựng sang
+  `DialogService` + `VppAdaptiveDialogShell` + `VppDialogActions`.
+- `VppAdaptiveDialogShell` gán grid-area rõ cho intro/body/footer. Body sở hữu scroll, footer giữ hàng
+  action thật ở đáy trên mobile; tránh trường hợp dialog không có intro làm footer rơi vào hàng 0px.
+- Page-size dropup chỉ áp motion mở-lên khi portal có `rz-open`; trạng thái `rz-close` không còn bị
+  animation mở ghi đè. Dark mode ánh xạ `--rz-on-primary` sang `--vpp-text-on-action` để nút chính
+  đạt contrast AA thay vì giữ chữ trắng trên cyan sáng.
+- Route-real pass: Chốt kỳ `4/4` tại `390×844`, `768×1024`, `1366×768`, `1920×1080` với dialog
+  điều chỉnh và 8 vòng mở/đóng page-size mỗi viewport; Bảng giá/Giá mặt hàng/Report responsive `3/3`;
+  Import bảng giá `1/1` qua 4 viewport, mapping/preview/confirm, footer clickability, Dark mode và axe
+  không có violation critical/serious. Visual runtime đã kiểm bằng mắt; evidence nằm trong Temp, không commit.
+
 ---
 
 ## 8. Rủi ro và recovery

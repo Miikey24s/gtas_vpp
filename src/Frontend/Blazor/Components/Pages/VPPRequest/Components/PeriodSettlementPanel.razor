@@ -53,30 +53,26 @@
                     <VppIcon Name="storefront" />
                     <span>@Loc["SettlementSelectSupplier"]</span>
                 </div>
-                <VppFilterSelect TValue="Guid?"
-                                 Value="@SelectedSupplierId"
-                                 Options="@SupplierOptions"
-                                 ValueChanged="@OnSupplierChangedAsync"
-                                 Placeholder="@Loc["SettlementSelectSupplier"]"
-                                 AriaLabel="@Loc["SettlementSelectSupplier"]"
-                                 Active="false"
-                                 HighlightSelectedOption="false"
-                                 Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
+                <VppDecisionSelect TValue="Guid?"
+                                   Value="@SelectedSupplierId"
+                                   Options="@SupplierOptions"
+                                   ValueChanged="@OnSupplierChangedAsync"
+                                   Placeholder="@Loc["SettlementSelectSupplier"]"
+                                   AriaLabel="@Loc["SettlementSelectSupplier"]"
+                                   Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
             </article>
             <article class="vpp-settlement-kpi-card is-select">
                 <div class="vpp-settlement-kpi-heading">
                     <VppIcon Name="request_quote" />
                     <span>@Loc["SettlementSelectPriceList"]</span>
                 </div>
-                <VppFilterSelect TValue="Guid?"
-                                 Value="@SelectedPriceListId"
-                                 Options="@PriceListOptions"
-                                 ValueChanged="@OnPriceListChangedAsync"
-                                 Placeholder="@Loc["SettlementSelectPriceList"]"
-                                 AriaLabel="@Loc["SettlementSelectPriceList"]"
-                                 Active="false"
-                                 HighlightSelectedOption="false"
-                                 Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
+                <VppDecisionSelect TValue="Guid?"
+                                   Value="@SelectedPriceListId"
+                                   Options="@PriceListOptions"
+                                   ValueChanged="@OnPriceListChangedAsync"
+                                   Placeholder="@Loc["SettlementSelectPriceList"]"
+                                   AriaLabel="@Loc["SettlementSelectPriceList"]"
+                                   Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
             </article>
             <article class="vpp-settlement-kpi-card">
                 <div class="vpp-settlement-kpi-heading">
@@ -421,35 +417,57 @@
                 <VppDataToolbar AriaLabel="@Loc["ReviewAdjustmentRequests"]">
                     <label class="vpp-settlement-correction-reason">
                         <span>@Loc["DecisionReasonWhenRejecting"]</span>
-                        <input maxlength="500" @bind="postSettlementDecisionReason" />
+                        <RadzenTextBox @bind-Value="postSettlementDecisionReason"
+                                       MaxLength="500"
+                                       aria-label="@Loc["DecisionReasonWhenRejecting"]" />
                     </label>
                 </VppDataToolbar>
             </Toolbar>
             <ChildContent>
-                <div class="vpp-settlement-correction-scroll">
-                    <table class="vpp-settlement-correction-table">
-                        <thead><tr><th>@Loc["Order"]</th><th>@Loc["Change"]</th><th>@Loc["EmployeeMessage"]</th><th>@Loc["RequestedBy"]</th><th>@Loc["Decision"]</th></tr></thead>
-                        <tbody>
-                        @foreach (var correction in pendingPostSettlementCorrections)
-                        {
-                            <tr>
-                                <td><strong>@correction.RequestCode</strong></td>
-                                <td>@PostSettlementCorrectionActionText(correction.Action)</td>
-                                <td>@correction.EmployeeNote</td>
-                                <td>@correction.RequestedByUserId</td>
-                                <td>
-                                    <div class="vpp-settlement-correction-actions">
-                                        <button type="button" disabled="@isLoading"
-                                                @onclick="@(() => ConfirmPostSettlementCorrectionAsync(correction))">@Loc["Approve"]</button>
-                                        <button type="button" class="is-danger" disabled="@isLoading"
-                                                @onclick="@(() => RejectPostSettlementCorrectionAsync(correction))">@Loc["Reject"]</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
-                </div>
+                <RadzenDataGrid TItem="PostSettlementOrderCorrectionResDTO"
+                                Data="@pendingPostSettlementCorrections"
+                                AllowPaging="false"
+                                AllowSorting="false"
+                                AllowFiltering="false"
+                                Density="Density.Compact"
+                                class="vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-settlement-correction-grid">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Title="@Loc["Order"]" Width="220px">
+                            <Template Context="correction"><strong>@correction.RequestCode</strong></Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Title="@Loc["Change"]" Width="150px">
+                            <Template Context="correction">@PostSettlementCorrectionActionText(correction.Action)</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Property="EmployeeNote" Title="@Loc["EmployeeMessage"]" />
+                        <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Property="RequestedByUserId" Title="@Loc["RequestedBy"]" Width="140px" />
+                        <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO"
+                                              Title="@Loc["Decision"]"
+                                              Width="190px"
+                                              TextAlign="TextAlign.Center"
+                                              Frozen="true"
+                                              FrozenPosition="FrozenColumnPosition.Right"
+                                              Sortable="false"
+                                              Filterable="false">
+                            <Template Context="correction">
+                                <div class="vpp-admin-actions">
+                                    <VppAdminIconAction Icon="@VppIcons.Approved"
+                                                        Text="@Loc["Approve"]"
+                                                        Title="@Loc["Approve"]"
+                                                        ButtonStyle="ButtonStyle.Success"
+                                                        Disabled="@isLoading"
+                                                        Click="@(_ => ConfirmPostSettlementCorrectionAsync(correction))" />
+                                    <VppAdminIconAction Icon="@VppIcons.Rejected"
+                                                        Text="@Loc["Reject"]"
+                                                        Title="@Loc["Reject"]"
+                                                        ButtonStyle="ButtonStyle.Danger"
+                                                        Variant="Variant.Outlined"
+                                                        Disabled="@isLoading"
+                                                        Click="@(_ => RejectPostSettlementCorrectionAsync(correction))" />
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
             </ChildContent>
         </VppDataSurfaceFrame>
     }
@@ -494,37 +512,6 @@
                              DetailFiltersCleared="@ClearOrderDetailFiltersAsync"
                              DetailCodeToggled="@ToggleOrderDetailCode"
                              DetailNoteToggled="@ToggleOrderDetailNote" />
-
-    @if (showPostSettlementCorrection && selectedOrderDetail is not null)
-    {
-        <div class="vpp-post-settlement-backdrop" @onclick="ClosePostSettlementCorrection">
-            <section class="vpp-post-settlement-dialog" role="dialog" aria-modal="true"
-                     aria-labelledby="post-settlement-title" @onclick:stopPropagation>
-                <header>
-                    <div><h2 id="post-settlement-title">@OrderAdjustmentActionText</h2><p>@selectedOrderDetail.VppCode · @OrderAdjustmentDialogHint</p></div>
-                    <button type="button" aria-label="@Loc["Close"]" @onclick="ClosePostSettlementCorrection">×</button>
-                </header>
-                <label><span>@Loc["Change"]</span><select @bind="postSettlementAction"><option value="Adjust">@Loc["UpdateQuantity"]</option><option value="Cancel">@Loc["CancelOrder"]</option></select></label>
-                <label><span>@Loc["ChangeReason"]</span><textarea maxlength="500" @bind="postSettlementReason"></textarea></label>
-                <label><span>@Loc["EmployeeMessage"]</span><textarea maxlength="500" @bind="postSettlementEmployeeNote"></textarea></label>
-                @if (postSettlementAction == "Adjust")
-                {
-                    <div class="vpp-post-settlement-items">
-                        @foreach (var item in postSettlementItems)
-                        {
-                            var source = selectedOrderDetail.Items?.FirstOrDefault(x => x.VppId == item.VppId);
-                            <label><span>@(source?.VppName ?? item.VppId.ToString())</span><input type="number" min="1" @bind="item.Qty" /></label>
-                        }
-                    </div>
-                    <small>@Loc["ExistingOrderItemsOnly"]</small>
-                }
-                <footer>
-                    <button type="button" @onclick="ClosePostSettlementCorrection">@Loc["Cancel"]</button>
-                    <button type="button" class="is-primary" disabled="@(!CanSubmitPostSettlementCorrection)" @onclick="SubmitPostSettlementCorrectionAsync">@(IsPostSettlementOrderAdjustment ? Loc["SendRequest"] : Loc["SaveChanges"])</button>
-                </footer>
-            </section>
-        </div>
-    }
 
         </HistoryWorkspaceShell>
     </div>

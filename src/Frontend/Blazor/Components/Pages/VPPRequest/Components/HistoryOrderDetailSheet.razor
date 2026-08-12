@@ -39,12 +39,12 @@
                 <div class="vpp-history-drawer-actions">
                     @if (ShowPostSettlementCorrection && PostSettlementCorrectionRequested.HasDelegate)
                     {
-                        <button type="button"
-                                class="vpp-history-post-settlement-action"
-                                disabled="@IsDetailLoading"
-                                @onclick="PostSettlementCorrectionRequested">
-                            @PostSettlementCorrectionText
-                        </button>
+                        <RadzenButton Icon="edit_note"
+                                      Text="@PostSettlementCorrectionText"
+                                      ButtonStyle="ButtonStyle.Warning"
+                                      Variant="Variant.Outlined"
+                                      Disabled="@IsDetailLoading"
+                                      Click="@(_ => PostSettlementCorrectionRequested.InvokeAsync())" />
                     }
                     @if (ShowExportActions)
                     {
