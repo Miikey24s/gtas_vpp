@@ -13,7 +13,7 @@
 | Kết quả cần đạt | <Một câu mô tả trạng thái cuối> | [Objective](#plan-detail-objective) |
 | Phạm vi | <Chạm gì / không chạm gì> | [Scope](#plan-detail-scope) |
 | Các bước chính | <3–7 bước, kèm trạng thái> | [Implementation](#plan-detail-implementation) |
-| Model routing | <Model + effort theo phase/wave; capacity snapshot + ngày> | [Implementation](#plan-detail-implementation) |
+| Model/quota routing | <Model + effort + lý do; quota live/coverage; estimate range, confidence, buffer; ENOUGH/SLICE_ONLY/WAIT> | [Implementation](#plan-detail-implementation) |
 | Kiểm tra | <Build/test/browser/DB/Word gate quan trọng> | [Verification](#plan-detail-verification) |
 | Rủi ro hoặc blocker | <Chỉ ghi vấn đề có thể đổi kết quả> | [Risks](#plan-detail-risks) |
 | Bước tiếp theo | <Một hành động cụ thể> | [Continuation](#plan-detail-continuation) |
@@ -41,7 +41,10 @@ Task nhỏ có thể chỉ dùng mục 0 trong thread. Task phức tạp mới t
 - Dependencies verified:
 - User approval required: Yes/No
 - User approval evidence/link:
-- Account/quota snapshot (owner-provided + date, nếu có):
+- Account/quota snapshot (automated sanitized probe hoặc owner-provided + date, nếu có):
+- Quota coverage (five-hour + weekly hay weekly-only):
+- Full-plan estimate (`% Plus-equivalent`, range + confidence + source):
+- Safety buffer và decision (`ENOUGH | SLICE_ONLY | WAIT`):
 ```
 
 <a id="plan-detail-objective"></a>

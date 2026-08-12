@@ -105,14 +105,14 @@ Số test chỉ là snapshot ngày refresh, không phải invariant lâu dài.
 
 | File | Dòng xấp xỉ | Vấn đề đọc hiểu chính |
 |---|---:|---|
-| `Application/Services/VPPRequestService.cs` | 2.557 | Query, create/update/cancel, supplement approval, period logic, mapping và helper nằm chung |
-| `Application/Services/DemoWorkbookSeeder.cs` | 1.475 | Parse, validate, reconcile và write demo data trong một file |
-| `Application/Services/PeriodSettlementService.cs` | 1.311 | Preview, confirm/correct, revision query, legacy settlement và snapshot logic cùng class |
+| `Application/Services/Requests/VPPRequestService.cs` | 2.557 | Query, create/update/cancel, supplement approval, period logic, mapping và helper nằm chung |
+| `Application/Services/Seeding/DemoWorkbookSeeder.cs` | 1.475 | Parse, validate, reconcile và write demo data trong một file |
+| `Application/Services/Settlement/PeriodSettlementService.cs` | 1.311 | Preview, confirm/correct, revision query, legacy settlement và snapshot logic cùng class |
 | `Api/Controllers/VPPRequestController.cs` | 1.194 | Transport, filter/query, export, notification và dashboard query bị trộn; còn direct EF cho dashboard |
 | `Api/Controllers/LibraryController.cs` | 1.168 | Typed query tồn tại song song generic CRUD/PATCH và direct `VPPContext` access |
 | `Api/Controllers/PermissionController.cs` | 1.090 | Permission/user query, mapping và transaction qua `IUnitOfWork.VPPContext` trong controller |
 | `Api/Authorization/AccountLifecycleService.cs` | 1.028 | Account lifecycle và security branching là hotspot Identity/Access mới |
-| `Application/Services/SeedData.cs` | 960 | Reference seed, demo seed, SQL script, prices-file parsing và validation |
+| `Application/Services/Seeding/SeedData.cs` | 960 | Reference seed, demo seed, SQL script, prices-file parsing và validation |
 | `Application/Services/AuthBootstrap/AuthBootstrapProvisioner.cs` | 847 | Bootstrap, mapping và reconciliation cần owner module rõ |
 | `Api/Authorization/MembershipAdministrationService.cs` | 845 | Membership mutation và authorization logic cần characterization security |
 | `Api/Program.cs` | 816 | Logging, config validation, DI, auth, middleware, migration/seed runner và deployment guards |

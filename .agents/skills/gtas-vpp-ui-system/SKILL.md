@@ -67,8 +67,12 @@ Architecture tests must prevent retired names and files from returning. Do not m
 - Use one canonical table when rows share the same axis such as wave, route, state, or component. Put implementation, owner-visible outcome, visual artifact, validation gate, and status in columns of that table.
 - Do not place adjacent tables with the same row keys and ask the owner to reconcile them. Merge them; keep separate sections only for cross-cutting rules that do not repeat every row.
 - Make the one-glance plan summarize and link to the canonical execution table instead of duplicating its ledger.
-- For a non-trivial wave plan, include `Model + effort` in that same canonical table. Base the recommendation on current official OpenAI guidance, task risk, and a dated owner-provided account/quota snapshot; ask once if the active task has no current snapshot.
-- Treat quota/account counts as volatile `THREAD/GOAL` data, not repository invariants. Recommend model changes only at wave or major checkpoint boundaries, and distinguish the recommended route from the model that is actually active.
+- For a non-trivial wave plan, include `Model + effort` in that same canonical table. Base the recommendation on current official OpenAI guidance, task risk, and a dated sanitized quota snapshot from the configured local CLIProxy probe.
+- Run `~/.ai-harness/bin/Get-CLIProxyQuotaSnapshot.ps1` before asking the owner for capacity. Ask once only when the probe is unavailable, unauthorized, or stale after bounded retry; never print Management keys, auth IDs, filenames, emails, tokens, or per-account details.
+- Report the live timestamp/coverage, selected model and effort, selection reason, estimated range in weekly Plus-account-equivalent percent, confidence/source, safety buffer, and full-scope decision. Do not present one model/effort combination as a fixed quota percentage without matching measurements.
+- Never downgrade model or effort merely to fit quota. If the buffered full-plan upper bound exceeds capacity, prefer `WAIT`; use `SLICE_ONLY` only for an independently valuable calibration slice at the same quality level, measure aggregate pool delta before/after, then reforecast.
+- Treat incomplete five-hour coverage or missing matching history as low confidence: use a conservative range and do not claim the full plan is funded.
+- Treat quota/account counts as volatile `THREAD/GOAL` or ignored local-cache data, not repository invariants. Recommend model changes only at wave or major checkpoint boundaries, and distinguish the recommended route from the model that is actually active.
 - Report each completed wave in one compact block: owner-visible result, Wave Review Board or route evidence, checks actually run, remaining risk, next gate, and commit status.
 - Lead reports with what the owner can see or use. Distinguish clearly between technical foundation, partially migrated UI, full current-scope UI, and final hardening.
 

@@ -67,7 +67,11 @@ Bản một ánh nhìn phải link đến đúng mục trong bản chi tiết. K
 ### Routing model và reasoning effort
 
 - Với plan, implementation, review hoặc audit không tầm thường, execution record phải đề xuất `model + effort` theo phase/wave/checkpoint dựa trên tài liệu chính thức hiện tại, độ khó, rủi ro, latency/cost, tool support và capacity thực tế.
-- Hỏi owner một lần về số tài khoản GPT Plus còn full quota nếu task lớn chưa có dữ liệu này. Ghi câu trả lời kèm ngày ở `THREAD/GOAL`; không biến số lượng quota tạm thành luật trong repository.
+- Nếu máy đã cấu hình CLIProxy quota automation, chạy `~/.ai-harness/bin/Get-CLIProxyQuotaSnapshot.ps1` trước khi hỏi owner. Script chỉ trả tổng hợp ẩn danh, tự refresh khi cache quá 15 phút và ghi cache local ignored; chỉ hỏi owner nếu probe không khả dụng, không được cấp quyền hoặc vẫn stale sau retry giới hạn.
+- Mỗi khuyến nghị phải đi cùng quota timestamp/coverage, `model + effort`, lý do chọn, khoảng tiêu hao `% Plus-equivalent`, confidence/nguồn estimate, safety buffer và kết luận `ENOUGH`, `SLICE_ONLY` hoặc `WAIT`. `100% Plus-equivalent` là tổng mức giảm weekly tương đương một account đầy, không phải giá cố định của model.
+- Không tự hạ model/effort để vừa quota. Khi buffered upper bound vượt capacity, mặc định `WAIT`; chỉ `SLICE_ONLY` nếu checkpoint độc lập, tạo giá trị thật, giữ nguyên chất lượng và được đo trước/sau bằng `~/.ai-harness/bin/Measure-CLIProxyQuotaConsumption.ps1` để reforecast.
+- Nếu chưa có matching history hoặc coverage thiếu cửa sổ 5 giờ, estimate phải là khoảng rộng với confidence thấp và không được tuyên bố đủ full plan. Full-plan budget là tổng upper bound của các wave còn lại cộng safety buffer, không phải nhìn một wave riêng lẻ.
+- Không in hoặc đưa vào repository Management key, auth ID, credential filename, email, token hay dữ liệu từng tài khoản; không tạo poller trùng với adaptive scheduler của CLIProxy.
 - Capacity chỉ dùng để lập sequencing và review budget; không cấp quyền tự đổi credential/account hoặc né rate limit/điều khoản provider.
 - Giữ một implementer chính cho mỗi change-set. Chỉ đổi model ở checkpoint đã có plan, Git state và evidence rõ; dùng model mạnh hơn cho kiến trúc, ambiguity, risk và final review, còn implementation rõ/lặp lại ưu tiên model hiệu quả hơn.
 - `Khuyến nghị routing` không đồng nghĩa `model đang active`. Nếu surface hiện tại không có tool chuyển model/effort, agent phải nêu lựa chọn cần dùng và để owner thao tác hoặc xác minh; không khai đã tự đổi.

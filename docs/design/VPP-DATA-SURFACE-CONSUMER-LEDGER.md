@@ -6,11 +6,12 @@ Ledger này là bản đồ migration, không phải yêu cầu mọi bảng ph�
 
 ## Radzen DataGrid inventory
 
-Source hiện có **20 file / 24 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance. Màn `Tab_AllOrdersSummary` cũ (2 grid) và dialog lịch sử đơn cũ (1 grid) đã về 0 consumer nên được xóa; URL legacy chỉ còn redirect về Chốt kỳ, còn lịch sử dùng workspace canonical.
+Source hiện có **21 file / 26 DataGrid thật**. Generic type reference trong `VppColumnPicker` và custom list phân trang của Create Order không được tính là grid instance. Màn `Tab_AllOrdersSummary` cũ (2 grid) và dialog lịch sử đơn cũ (1 grid) đã về 0 consumer nên được xóa; URL legacy chỉ còn redirect về Chốt kỳ, còn lịch sử dùng workspace canonical.
 
 | Consumer | Grid | Surface | Data source hiện tại | Density đích | Wave migration |
 |---|---:|---|---|---|---|
 | `Components/DesignSystem/Composites/VppOrderItemsSurface.razor` | 1 | Detail items | `Static` hoặc `ClientSnapshotPaged` khi trên 100 dòng | `RichTwoLine` | DS2 reference + bounded paging retrofit |
+| `Components/Pages/Lib/Tabs/Dialog/Dialog_PriceListImport.razor` | 1 | Xem trước import bảng giá | `ClientSnapshotPaged` | `Compact` | Pricing import preview có mapping và xác nhận |
 | `Components/Pages/Lib/Tabs/Tab_CategoryLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA2 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_SupplierLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
 | `Components/Pages/Lib/Tabs/Tab_ItemLibrary.razor` | 1 | Admin collection | `ServerPaging` | `Compact` | AA3 typed collection |
@@ -27,7 +28,7 @@ Source hiện có **20 file / 24 DataGrid thật**. Generic type reference trong
 | `Components/Pages/VPPRequest/Components/HistoryOrderList.razor` | 1 | Order collection | `ServerPaging` | `Compact` | DS2 reference complete |
 | `Components/Pages/VPPRequest/Components/OrderPeriodManagementWorkspace.razor` | 1 | Admin order-period collection | `Static` | `Compact` | Canonical collection header + capability-driven row actions |
 | `Components/Pages/VPPRequest/Components/PendingApprovalWorkspace.razor` | 1 | Canonical approval List-Detail; detail dùng shared item surface | `ServerPaging` + shared detail snapshot | `RichTwoLine` master; `Compact` detail | Collection header/filter/default selection/footer complete |
-| `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 3 | Chốt kỳ theo phòng ban / người dùng / mặt hàng | `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |
+| `Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor` | 4 | Chốt kỳ theo phòng ban / người dùng / mặt hàng + yêu cầu hiệu chỉnh | `ClientSnapshotPaged` | `Compact` | DS3 unified period workspace |
 | `Components/Pages/VPPRequest/OrderCreateStep3.razor` | 1 | Review selection | `ClientSnapshotVirtualized` | `RichTwoLine` | DS3 |
 | `Components/Pages/VPPRequest/Tabs/Tab_ProductCatalog.razor` | 1 | Product collection | `ServerPaging` | `RichTwoLine` | DS2 reference complete |
 

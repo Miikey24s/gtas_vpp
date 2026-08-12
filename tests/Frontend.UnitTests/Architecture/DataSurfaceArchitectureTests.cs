@@ -291,7 +291,7 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("TestId=\"period-settlement-data-surface\"", settlement, StringComparison.Ordinal);
         Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", settlement, StringComparison.Ordinal);
         Assert.Contains("<VppDataToolbar", settlement, StringComparison.Ordinal);
-        Assert.Equal(7, Regex.Matches(settlement, "<VppFilterSelect\\b").Count);
+        Assert.Equal(5, Regex.Matches(settlement, "<VppFilterSelect\\b").Count);
         Assert.Contains("<VppPeriodPickerPopover", settlement, StringComparison.Ordinal);
         Assert.Contains("<VppCollectionHeader", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-settlement-period-target", settlement, StringComparison.Ordinal);
@@ -303,7 +303,7 @@ public sealed class DataSurfaceArchitectureTests
             "VppPeriodPickerPopover.razor"));
         Assert.Equal(4, periodPicker.Split("<VppFilterSelect TValue=\"int\"", StringSplitOptions.None).Length - 1);
         Assert.DoesNotContain("input type=\"month\"", periodPicker, StringComparison.Ordinal);
-        Assert.Equal(3, Regex.Matches(settlement, "<RadzenDataGrid(?=\\s|>)").Count);
+        Assert.Equal(4, Regex.Matches(settlement, "<RadzenDataGrid(?=\\s|>)").Count);
         Assert.Contains("AggregatedVppItemResDTO", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("LoadData=", settlement, StringComparison.Ordinal);
     }
@@ -322,8 +322,8 @@ public sealed class DataSurfaceArchitectureTests
             .OrderBy(consumer => consumer.Path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(20, consumers.Length);
-        Assert.Equal(24, consumers.Sum(consumer => consumer.Count));
+        Assert.Equal(21, consumers.Length);
+        Assert.Equal(26, consumers.Sum(consumer => consumer.Count));
 
         foreach (var consumer in consumers)
         {

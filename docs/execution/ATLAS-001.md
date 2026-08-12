@@ -287,8 +287,8 @@ mở rộng DTO hàng chờ; đây là chủ đích không bịa dữ liệu, kh
 ### W-E — M5A + M5B thư viện dữ liệu (7 màn, gap B)
 
 7 tab `/library` dùng chung một workspace: bảng chính + inspector + drawer thêm/sửa. Trạng thái quản trị
-chỉ ánh xạ soft-delete (`Hoạt động` / `Ngừng áp dụng`); riêng bảng giá có vòng đời `Draft / Published /
-Expired`. Không bao giờ render `PasswordHash`, token hay security stamp.
+chỉ ánh xạ soft-delete (`Hoạt động` / `Vô hiệu hóa`), kể cả bảng giá. Bảng giá mới dùng ngay sau khi lưu;
+không còn luồng nháp/công bố/hết hiệu lực trên giao diện. Không bao giờ render `PasswordHash`, token hay security stamp.
 
 **Tiến độ 2026-07-27 — W-E triển khai phần chính** (commit `291eeb0`…`8fd967c`; phân tích
 workflow 58 agent, 42 MUST_FIX xác nhận):
