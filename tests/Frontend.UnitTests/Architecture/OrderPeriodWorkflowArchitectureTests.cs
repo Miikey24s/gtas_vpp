@@ -30,7 +30,7 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.DoesNotContain("Mở kỳ rời rạc", operations, StringComparison.Ordinal);
         Assert.DoesNotContain("manual-period-panel", operations, StringComparison.Ordinal);
         Assert.DoesNotContain("SaveSettingsAsync", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("GetCurrentSettingsAsync", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetCurrentSettingsAsync", operationsCode, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         var historyDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_SettlementHistory.razor");
         var periodActionDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_OrderPeriodAction.razor");
 
-        Assert.Contains("ReopenSubmissions", periodActionDialog, StringComparison.Ordinal);
+        Assert.DoesNotContain("ReopenSubmissions", periodActionDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("CanReopenSubmissions", operationsCode, StringComparison.Ordinal);
         Assert.Contains("periodYear={period.Year}&periodMonth={period.Month}", operationsCode, StringComparison.Ordinal);
         Assert.Contains("periodYear", periodTab, StringComparison.Ordinal);
@@ -77,7 +77,11 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("Click=\"@(() => NavigateToSettlement(row))\"", operations, StringComparison.Ordinal);
         Assert.Contains("Disabled=\"@(IsBusy || !CanSettlePeriod(row))\"", operations, StringComparison.Ordinal);
         Assert.Contains("Disabled: !period.CanExtendDeadline", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("Disabled: !period.CanEditSchedule", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Disabled: !period.CanEditSchedule", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Sửa lịch", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("EditScheduleAsync", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppOrderPeriodUpdateReqDTO", periodActionDialog, StringComparison.Ordinal);
+        Assert.Contains("VppOrderPeriodExtendDeadlineReqDTO", periodActionDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("AllowOpenWhenAllDisabled=\"true\"", operations, StringComparison.Ordinal);
         Assert.DoesNotContain("Xóa kỳ", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("DeletePeriodAsync", operationsCode, StringComparison.Ordinal);

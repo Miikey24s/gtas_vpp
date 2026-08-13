@@ -86,7 +86,7 @@ public sealed class UiMotifCatalogTests
         Assert.Contains("VppDataSurfaceState State", dataFrame, StringComparison.Ordinal);
         Assert.Contains(".rz-datatable-empty", dataGridCss, StringComparison.Ordinal);
         Assert.Contains("Disabled: !period.CanExtendDeadline", periods, StringComparison.Ordinal);
-        Assert.Contains("Disabled: !period.CanEditSchedule", periods, StringComparison.Ordinal);
+        Assert.DoesNotContain("Disabled: !period.CanEditSchedule", periods, StringComparison.Ordinal);
         Assert.DoesNotContain("Disabled: !period.CanDelete", periods, StringComparison.Ordinal);
         Assert.Contains("Visible=\"@CanManageUsers\"", users, StringComparison.Ordinal);
         Assert.Contains("Disabled=\"@(!SelectedOrder.CanApproveSupplement", approvals, StringComparison.Ordinal);

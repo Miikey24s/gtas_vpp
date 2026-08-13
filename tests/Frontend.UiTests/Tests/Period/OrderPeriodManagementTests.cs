@@ -117,9 +117,8 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             await Assertions.Expect(capabilityMenu.GetByText("Gia hạn kỳ", new() { Exact = true })
                     .Locator("xpath=ancestor::li[1]"))
                 .Not.ToHaveAttributeAsync("aria-disabled", "true");
-            await Assertions.Expect(capabilityMenu.GetByText("Sửa lịch", new() { Exact = true })
-                    .Locator("xpath=ancestor::li[1]"))
-                .ToHaveAttributeAsync("aria-disabled", "true");
+            await Assertions.Expect(capabilityMenu.GetByText("Sửa lịch", new() { Exact = true }))
+                .ToHaveCountAsync(0);
             await openRowWithOrders.GetByTestId("period-row-more-actions").ClickAsync();
             await Assertions.Expect(capabilityMenu).ToBeHiddenAsync();
         }
@@ -227,9 +226,9 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
         actionMenuAnimation.Should().Contain("vpp-transient-enter-",
             "overflow menu dùng motion transient canonical");
         var extendAction = periodMenu.GetByText("Gia hạn kỳ", new() { Exact = true });
-        var editAction = periodMenu.GetByText("Sửa lịch", new() { Exact = true });
         await Assertions.Expect(extendAction).ToBeVisibleAsync();
-        await Assertions.Expect(editAction).ToBeVisibleAsync();
+        await Assertions.Expect(periodMenu.GetByText("Sửa lịch", new() { Exact = true }))
+            .ToHaveCountAsync(0);
         await Assertions.Expect(periodMenu.GetByText("Xóa kỳ", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await Assertions.Expect(periodMenu.GetByText("Chốt kỳ", new() { Exact = true }))
@@ -246,8 +245,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             "element => getComputedStyle(element).backgroundColor");
         initialMenuItemBackground.Should().Be("rgba(0, 0, 0, 0)",
             "menu lệnh không tự bôi xanh mục đầu tiên như một lựa chọn đã chọn");
-        var editMenuItem = editAction.Locator("xpath=ancestor::li[1]");
-        await editMenuItem.HoverAsync();
+        await menuItem.HoverAsync();
         var menuHtml = await periodMenu.EvaluateAsync<string>("element => element.outerHTML");
         var innerMenuChrome = await periodMenu.Locator(":scope > .rz-menu, :scope > .rz-menu-list")
             .First
@@ -259,7 +257,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 """);
         innerMenuChrome.Should().Be("0px|none|none|rgba(0, 0, 0, 0)",
             "context menu chỉ được có một surface ở portal ngoài");
-        var menuItemStyle = await editMenuItem.EvaluateAsync<MenuItemStyle>("""
+        var menuItemStyle = await menuItem.EvaluateAsync<MenuItemStyle>("""
             element => {
                 const style = getComputedStyle(element);
                 return { borderRadius: style.borderRadius, backgroundColor: style.backgroundColor };
@@ -297,11 +295,11 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 Scale = ScreenshotScale.Css
             });
         }
-        await editMenuItem.ClickAsync();
-        await Assertions.Expect(Page.Locator("#period-action-panel")).ToHaveCountAsync(0);
-        var editScheduleDialog = Page.GetByTestId("order-period-action-dialog");
-        await Assertions.Expect(editScheduleDialog.GetByText("Sửa lịch kỳ", new() { Exact = true })).ToBeVisibleAsync();
-        var datePickerAlignment = await editScheduleDialog.Locator(".rz-datepicker").EvaluateAllAsync<bool>("""
+        await extendAction.ClickAsync();
+        await Assertions.Expect(Page.Locator(".rz-context-menu:visible")).ToHaveCountAsync(0);
+        var periodActionDialog = Page.GetByTestId("order-period-action-dialog");
+        await Assertions.Expect(periodActionDialog.GetByText("Gia hạn kỳ", new() { Exact = true })).ToBeVisibleAsync();
+        var datePickerAlignment = await periodActionDialog.Locator(".rz-datepicker").EvaluateAllAsync<bool>("""
             elements => elements.length > 0 && elements.every(datePicker => {
                 const trigger = datePicker.querySelector('.rz-datepicker-field-button');
                 const icon = trigger?.querySelector('.rzi-calendar, .rzi-time');
@@ -320,7 +318,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             })
             """);
         datePickerAlignment.Should().BeTrue("icon lịch phải nằm đúng tâm dọc của input và trigger");
-        var interactiveDatePicker = editScheduleDialog.Locator(".rz-datepicker:not(.rz-state-disabled)").First;
+        var interactiveDatePicker = periodActionDialog.Locator(".rz-datepicker:not(.rz-state-disabled)").First;
         var datePickerTrigger = interactiveDatePicker.Locator(".rz-datepicker-field-button");
         var triggerBeforeHover = await datePickerTrigger.BoundingBoxAsync();
         Assert.NotNull(triggerBeforeHover);
@@ -348,15 +346,6 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
         }
         await datePickerPopup.GetByRole(AriaRole.Button, new() { Name = "Ok", Exact = true }).ClickAsync();
         await Assertions.Expect(datePickerPopup).ToBeHiddenAsync();
-        await editScheduleDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
-        await Assertions.Expect(editScheduleDialog).ToHaveCountAsync(0);
-
-        await periodMoreActions.ClickAsync();
-        periodMenu = Page.Locator(".rz-context-menu:visible");
-        await periodMenu.GetByText("Gia hạn kỳ", new() { Exact = true }).ClickAsync();
-        await Assertions.Expect(Page.Locator(".rz-context-menu:visible")).ToHaveCountAsync(0);
-        var periodActionDialog = Page.GetByTestId("order-period-action-dialog");
-        await Assertions.Expect(periodActionDialog.GetByText("Gia hạn kỳ", new() { Exact = true })).ToBeVisibleAsync();
         await periodActionDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
         await Assertions.Expect(periodActionDialog).ToHaveCountAsync(0);
 

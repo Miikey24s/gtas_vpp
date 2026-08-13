@@ -12,9 +12,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 
 public partial class OrderPeriodManagementWorkspace
 {
-    private const string EditAction = "edit";
-    private const string ExtendAction = "extend";
-
     [Inject] private OrderPeriodApiClient PeriodsApi { get; set; } = default!;
     [Inject] private IToastService Toast { get; set; } = default!;
     [Inject] private DialogService DialogService { get; set; } = default!;
@@ -27,7 +24,6 @@ public partial class OrderPeriodManagementWorkspace
     private string periodSearchText = string.Empty;
     private string selectedPeriodState = string.Empty;
     private int? selectedPeriodYear;
-    private VppOrderPeriodSettingsReqDTO Settings { get; set; } = NewDefaultSettings();
 
     private IReadOnlyList<VppManagedPeriodResDTO> OpenPeriods => Periods
         .Where(x => x.State == "Open")
@@ -82,20 +78,12 @@ public partial class OrderPeriodManagementWorkspace
         var items = new List<VppAdminActionMenuItem>();
 
         items.Add(new(
-            ExtendAction,
+            "extend",
             "Gia hạn kỳ",
             "event_repeat",
             () => ExtendDeadlineAsync(period),
             Disabled: !period.CanExtendDeadline,
             DisabledReason: "Không thể gia hạn kỳ ở trạng thái hiện tại."));
-
-        items.Add(new(
-            EditAction,
-            "Sửa lịch",
-            "edit_calendar",
-            () => EditScheduleAsync(period),
-            Disabled: !period.CanEditSchedule,
-            DisabledReason: "Không thể sửa lịch vì kỳ đã có đơn hoặc không còn ở trạng thái cho phép."));
 
         return items;
     }
@@ -111,8 +99,6 @@ public partial class OrderPeriodManagementWorkspace
         HasLoadError = false;
         try
         {
-            var settings = await PeriodsApi.GetCurrentSettingsAsync();
-            Settings = settings is null ? NewDefaultSettings() : ToRequest(settings);
             await LoadDataAsync();
         }
         catch (Exception ex)
@@ -126,26 +112,9 @@ public partial class OrderPeriodManagementWorkspace
         }
     }
 
-    private async Task EditScheduleAsync(VppManagedPeriodResDTO period)
-    {
-        var result = await OpenPeriodActionDialogAsync(period, EditAction);
-        if (result is not VppOrderPeriodUpdateReqDTO request)
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            request.RowVersion = period.RowVersion;
-            _ = await PeriodsApi.UpdateAsync(period.Id, request);
-            await LoadDataAsync();
-            Toast.Success("Đã cập nhật lịch", $"Lịch kỳ {PeriodLabel(period)} đã được lưu.");
-        });
-    }
-
     private async Task ExtendDeadlineAsync(VppManagedPeriodResDTO period)
     {
-        var result = await OpenPeriodActionDialogAsync(period, ExtendAction);
+        var result = await OpenPeriodExtensionDialogAsync(period);
         if (result is not VppOrderPeriodExtendDeadlineReqDTO request)
         {
             return;
@@ -160,26 +129,17 @@ public partial class OrderPeriodManagementWorkspace
         });
     }
 
-    private Task<object?> OpenPeriodActionDialogAsync(VppManagedPeriodResDTO period, string action) =>
+    private Task<object?> OpenPeriodExtensionDialogAsync(VppManagedPeriodResDTO period) =>
         DialogService.OpenAsync<Dialog_OrderPeriodAction>(
-            PeriodActionDialogTitle(action),
+            "Gia hạn kỳ",
             new Dictionary<string, object?>
             {
-                [nameof(Dialog_OrderPeriodAction.Period)] = period,
-                [nameof(Dialog_OrderPeriodAction.Action)] = action,
-                [nameof(Dialog_OrderPeriodAction.SupplementApprovalGraceDays)] = Settings.SupplementApprovalGraceDays
+                [nameof(Dialog_OrderPeriodAction.Period)] = period
             },
             VppAdminDialogProfiles.Create(
                 VppAdminDialogSize.Standard,
-                PeriodActionDialogTitle(action),
+                "Gia hạn kỳ",
                 closeAriaLabel: "Đóng"));
-
-    private static string PeriodActionDialogTitle(string action) => action switch
-    {
-        EditAction => "Sửa lịch kỳ",
-        ExtendAction => "Gia hạn kỳ",
-        _ => "Kỳ đặt hàng"
-    };
 
     private void NavigateToSettlement(VppManagedPeriodResDTO period)
         => NavigationManager.NavigateTo(
@@ -249,36 +209,5 @@ public partial class OrderPeriodManagementWorkspace
 
     private static string FormatDateTime(DateTime value) =>
         DateFormatter.Format(value, DateFormatter.LongDate);
-
-    private static VppOrderPeriodSettingsReqDTO ToRequest(VppOrderPeriodSettingsResDTO value) => new()
-    {
-        Name = value.Name,
-        DefaultOpenPeriodCount = value.DefaultOpenPeriodCount,
-        DefaultNewPeriodOpenDay = value.DefaultNewPeriodOpenDay,
-        DefaultPeriodCloseDay = value.DefaultPeriodCloseDay,
-        LocalTimeOfDay = value.LocalTimeOfDay,
-        TimeZoneId = value.TimeZoneId,
-        SupplementApprovalGraceDays = value.SupplementApprovalGraceDays,
-        PostCloseAdjustmentDays = value.PostCloseAdjustmentDays,
-        EffectiveFromYear = value.EffectiveFromYear,
-        EffectiveFromMonth = value.EffectiveFromMonth
-    };
-
-    private static VppOrderPeriodSettingsReqDTO NewDefaultSettings()
-    {
-        var now = DateTime.Today;
-        return new VppOrderPeriodSettingsReqDTO
-        {
-            Name = "Mặc định 3 kỳ",
-            DefaultOpenPeriodCount = 3,
-            DefaultNewPeriodOpenDay = 5,
-            DefaultPeriodCloseDay = 5,
-            TimeZoneId = "Asia/Ho_Chi_Minh",
-            SupplementApprovalGraceDays = 5,
-            PostCloseAdjustmentDays = 10,
-            EffectiveFromYear = now.Year,
-            EffectiveFromMonth = now.Month
-        };
-    }
 
 }
