@@ -14,7 +14,6 @@ public partial class OrderPeriodManagementWorkspace
 {
     private const string EditAction = "edit";
     private const string ExtendAction = "extend";
-    private const string DeleteAction = "delete";
 
     [Inject] private OrderPeriodApiClient PeriodsApi { get; set; } = default!;
     [Inject] private IToastService Toast { get; set; } = default!;
@@ -98,15 +97,6 @@ public partial class OrderPeriodManagementWorkspace
             Disabled: !period.CanEditSchedule,
             DisabledReason: "Không thể sửa lịch vì kỳ đã có đơn hoặc không còn ở trạng thái cho phép."));
 
-        items.Add(new(
-            DeleteAction,
-            "Xóa kỳ",
-            "delete_forever",
-            () => DeletePeriodAsync(period),
-            Disabled: !period.CanDelete,
-            Tone: VppAdminActionTone.Danger,
-            DisabledReason: "Chỉ có thể xóa kỳ chưa có đơn và chưa phát sinh xử lý."));
-
         return items;
     }
 
@@ -170,23 +160,6 @@ public partial class OrderPeriodManagementWorkspace
         });
     }
 
-    private async Task DeletePeriodAsync(VppManagedPeriodResDTO period)
-    {
-        var result = await OpenPeriodActionDialogAsync(period, DeleteAction);
-        if (result is not VppOrderPeriodCommandReqDTO request)
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            request.RowVersion = period.RowVersion;
-            await PeriodsApi.DeleteAsync(period.Id, request);
-            await LoadDataAsync();
-            Toast.Success("Đã xóa", $"Kỳ {PeriodLabel(period)} chưa có đơn đã được xóa.");
-        });
-    }
-
     private Task<object?> OpenPeriodActionDialogAsync(VppManagedPeriodResDTO period, string action) =>
         DialogService.OpenAsync<Dialog_OrderPeriodAction>(
             PeriodActionDialogTitle(action),
@@ -205,7 +178,6 @@ public partial class OrderPeriodManagementWorkspace
     {
         EditAction => "Sửa lịch kỳ",
         ExtendAction => "Gia hạn kỳ",
-        DeleteAction => "Xóa kỳ đặt hàng",
         _ => "Kỳ đặt hàng"
     };
 

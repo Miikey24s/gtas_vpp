@@ -78,7 +78,9 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("Disabled=\"@(IsBusy || !CanSettlePeriod(row))\"", operations, StringComparison.Ordinal);
         Assert.Contains("Disabled: !period.CanExtendDeadline", operationsCode, StringComparison.Ordinal);
         Assert.Contains("Disabled: !period.CanEditSchedule", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("AllowOpenWhenAllDisabled=\"true\"", operations, StringComparison.Ordinal);
+        Assert.DoesNotContain("AllowOpenWhenAllDisabled=\"true\"", operations, StringComparison.Ordinal);
+        Assert.DoesNotContain("Xóa kỳ", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("DeletePeriodAsync", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("ShowPeriodDetailsAsync", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Dialog_OrderPeriodDetails", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("if (period.CanCloseSubmissions || period.CanEditSchedule)", operationsCode, StringComparison.Ordinal);

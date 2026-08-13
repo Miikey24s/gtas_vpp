@@ -85,7 +85,9 @@ public sealed class UiMotifCatalogTests
         Assert.Contains("data-vpp-capability-surface=\"true\"", dataFrame, StringComparison.Ordinal);
         Assert.Contains("VppDataSurfaceState State", dataFrame, StringComparison.Ordinal);
         Assert.Contains(".rz-datatable-empty", dataGridCss, StringComparison.Ordinal);
-        Assert.Contains("Disabled: !period.CanDelete", periods, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !period.CanExtendDeadline", periods, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !period.CanEditSchedule", periods, StringComparison.Ordinal);
+        Assert.DoesNotContain("Disabled: !period.CanDelete", periods, StringComparison.Ordinal);
         Assert.Contains("Visible=\"@CanManageUsers\"", users, StringComparison.Ordinal);
         Assert.Contains("Disabled=\"@(!SelectedOrder.CanApproveSupplement", approvals, StringComparison.Ordinal);
         Assert.Contains("ShowEditAction", orders, StringComparison.Ordinal);
@@ -275,7 +277,7 @@ public sealed class UiMotifCatalogTests
         Assert.Contains("Text=\"Xem\"", workspace, StringComparison.Ordinal);
         Assert.Contains("Text=\"Chốt kỳ\"", workspace, StringComparison.Ordinal);
         Assert.Contains("Click=\"@(() => NavigateToSettlement(row))\"", workspace, StringComparison.Ordinal);
-        Assert.Contains("AllowOpenWhenAllDisabled=\"true\"", workspace, StringComparison.Ordinal);
+        Assert.DoesNotContain("AllowOpenWhenAllDisabled=\"true\"", workspace, StringComparison.Ordinal);
         Assert.Contains("<VppAdminActionMenu", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppAdminActiveToggle", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppListDetailWorkspace", workspace, StringComparison.Ordinal);

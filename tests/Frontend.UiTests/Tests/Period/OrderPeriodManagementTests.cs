@@ -93,8 +93,15 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                         new() { Name = "Chốt kỳ", Exact = true }))
                     .ToBeDisabledAsync();
                 await Assertions.Expect(settledRow.GetByTestId("period-row-more-actions"))
-                    .ToBeVisibleAsync();
+                    .ToBeDisabledAsync();
             }
+
+            var pricingRow = dataRows.Filter(new LocatorFilterOptions
+            {
+                HasTextString = "Đang chốt"
+            }).First;
+            await Assertions.Expect(pricingRow.GetByTestId("period-row-more-actions"))
+                .ToBeDisabledAsync();
 
             var openRowWithOrders = dataRows.Filter(new LocatorFilterOptions
             {
@@ -221,10 +228,10 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             "overflow menu dùng motion transient canonical");
         var extendAction = periodMenu.GetByText("Gia hạn kỳ", new() { Exact = true });
         var editAction = periodMenu.GetByText("Sửa lịch", new() { Exact = true });
-        var deleteAction = periodMenu.GetByText("Xóa kỳ", new() { Exact = true });
         await Assertions.Expect(extendAction).ToBeVisibleAsync();
         await Assertions.Expect(editAction).ToBeVisibleAsync();
-        await Assertions.Expect(deleteAction).ToBeVisibleAsync();
+        await Assertions.Expect(periodMenu.GetByText("Xóa kỳ", new() { Exact = true }))
+            .ToHaveCountAsync(0);
         await Assertions.Expect(periodMenu.GetByText("Chốt kỳ", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await Assertions.Expect(periodMenu.GetByText("Xem chi tiết", new() { Exact = true }))
