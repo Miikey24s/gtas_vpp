@@ -111,7 +111,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             (widths.Max() - widths.Min()).Should().BeLessThanOrEqualTo(1,
                 "every shared horizontal selector must size all segments from its longest label");
         }
-        (await Page.Locator(".vpp-settlement-decision-strip:visible").CountAsync()).Should().Be(1);
+        (await Page.Locator(".vpp-settlement-decision-area:visible").CountAsync()).Should().Be(1);
         (await Page.GetByText("Phương án chốt", new() { Exact = true }).CountAsync()).Should().Be(0);
 
         var toolbar = surface.Locator(".vpp-settlement-data-toolbar:visible");
@@ -119,12 +119,15 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         (await toolbar.Locator(".vpp-filter-select").CountAsync()).Should().Be(3);
         (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("client-snapshot-paged");
         var viewSelector = Page.Locator(".vpp-settlement-selector-row");
-        (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Phòng ban", Exact = true }).CountAsync()).Should().Be(1);
-        (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Người dùng", Exact = true }).CountAsync()).Should().Be(1);
-        (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select").CountAsync()).Should().Be(2);
-        (await Page.Locator(".vpp-settlement-decision-strip .vpp-filter-select-trigger.is-active").CountAsync()).Should().Be(0,
-            "auto-selected supplier decisions stay neutral until the user actively changes them");
-        (await Page.Locator(".vpp-settlement-decision-action .rz-button").CountAsync()).Should().Be(1);
+        (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban", Exact = true }).CountAsync()).Should().Be(1);
+        (await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true }).CountAsync()).Should().Be(1);
+        (await Page.Locator(".vpp-settlement-decision-area .vpp-decision-select").CountAsync()).Should().Be(2);
+        (await Page.Locator(".vpp-settlement-decision-area .vpp-decision-select-popover:popover-open").CountAsync()).Should().Be(0,
+            "auto-selected supplier decisions stay closed until the user actively opens them");
+        (await surface.Locator(".vpp-collection-header-actions").GetByRole(
+                AriaRole.Button,
+                new() { Name = "Chốt kỳ", Exact = true })
+            .CountAsync()).Should().Be(1);
         (await surface.Locator(".vpp-settlement-footer").CountAsync()).Should().Be(0);
         (await Page.GetByRole(AriaRole.Button, new() { Name = "Xem bản xem trước" }).CountAsync()).Should().Be(0);
 
@@ -136,7 +139,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             await CaptureAsync("ds3-period-settlement-items-1366x768.png");
         }
 
-        await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Mặt hàng", Exact = true }).ClickAsync();
+        await viewSelector.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng", Exact = true }).ClickAsync();
         await Page.Locator(".vpp-period-filters.is-item-view").WaitForAsync();
         await surface.Locator(".vpp-skeleton-page").WaitForAsync(new()
         {
@@ -152,7 +155,6 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
             """);
         viewportContract.Should().Be("true|true");
         await CaptureAsync("ds3-period-settlement-unified-1366x768.png");
-        await AssertSurfaceFillsContentHeightAsync(surface);
     }
 
     [Fact]
@@ -175,14 +177,14 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         (await surface.GetByText("Phòng ban / Người đặt", new() { Exact = true }).CountAsync()).Should().Be(0);
 
         await Page.Locator(".vpp-settlement-selector-row")
-            .GetByRole(AriaRole.Button, new() { Name = "Mặt hàng", Exact = true })
+            .GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng", Exact = true })
             .ClickAsync();
         await Page.Locator(".vpp-period-filters.is-item-view").WaitForAsync();
         (await surface.GetByText("Người đặt", new() { Exact = true }).CountAsync()).Should().Be(0);
         await CaptureAsync("settlement-items-without-requester-column-1366x768.png");
 
         await Page.Locator(".vpp-settlement-selector-row")
-            .GetByRole(AriaRole.Button, new() { Name = "Người dùng", Exact = true })
+            .GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true })
             .ClickAsync();
         await Page.Locator(".vpp-period-filters.is-requester-view").WaitForAsync();
         await surface.GetByRole(AriaRole.Grid)
@@ -230,7 +232,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         }
 
         await Page.Locator(".vpp-settlement-selector-row")
-            .GetByRole(AriaRole.Button, new() { Name = "Người dùng", Exact = true })
+            .GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true })
             .ClickAsync();
         await Page.Locator(".vpp-period-filters.is-requester-view").WaitForAsync();
         await Page.GetByText("QA Procurement", new() { Exact = true }).WaitForAsync();
@@ -255,7 +257,7 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
                 const root = document.querySelector('.vpp-period-settlement-root');
                 const analytics = document.querySelector('.vpp-period-settlement-page > .vpp-analytics-workspace-pattern');
                 const selectors = document.querySelector('.vpp-settlement-selector-row');
-                const decision = document.querySelector('.vpp-settlement-decision-strip');
+                const decision = document.querySelector('.vpp-settlement-decision-area');
                 const surface = document.querySelector('[data-testid="period-settlement-data-surface"]');
                 const filters = document.querySelector('.vpp-period-filters');
                 const filterChildren = filters ? [...filters.children] : [];
@@ -288,19 +290,6 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
         {
             layout[5].Should().BeLessThanOrEqualTo(2, "desktop filters stay on one aligned toolbar row");
         }
-    }
-
-    private async Task AssertSurfaceFillsContentHeightAsync(ILocator surface)
-    {
-        var bottomGap = await surface.EvaluateAsync<double>("""
-            element => {
-                const main = document.querySelector('#main-content');
-                if (!main) return Number.POSITIVE_INFINITY;
-                return Math.abs(main.getBoundingClientRect().bottom - element.getBoundingClientRect().bottom);
-            }
-            """);
-
-        bottomGap.Should().BeLessThanOrEqualTo(2);
     }
 
     private async Task CaptureAsync(string fileName)

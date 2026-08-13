@@ -59,6 +59,9 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await selectedSupplier.ClickAsync();
 
         await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
+        await AssertCombinedOrderCountColumnAsync(surface);
+        await Assertions.Expect(surface.Locator("thead").GetByText("Dòng mặt hàng", new() { Exact = true }))
+            .ToBeVisibleAsync();
         await AssertCompactRowRhythmAsync(surface);
         await AssertSettlementSummaryFooterAsync(surface);
         await Assertions.Expect(surface.Locator("thead").GetByText("Trạng thái", new() { Exact = true }))
@@ -74,17 +77,22 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                 .ToHaveTextAsync("Tổng sau lọc");
             await AssertSettlementSummaryFooterAsync(surface);
             await Assertions.Expect(surface.Locator("tfoot .vpp-settlement-summary-value"))
-                .ToHaveTextAsync(["0", "0", "0", "0", "0", "0", "0", "0"]);
+                .ToHaveTextAsync(["0", "0", "0", "0", "0"]);
             await surface.GetByRole(AriaRole.Button, new() { Name = "Xóa bộ lọc", Exact = true }).ClickAsync();
             await Assertions.Expect(surface.GetByTestId("settlement-summary-label")).ToHaveTextAsync("Tổng cộng");
         }
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true }).ClickAsync();
+        await Assertions.Expect(surface.GetByPlaceholder("Tìm người dùng hoặc mã đơn", new() { Exact = true }))
+            .ToBeVisibleAsync();
         await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
+        await AssertCombinedOrderCountColumnAsync(surface);
         await AssertNumericColumnsAlignedAsync(surface);
         await AssertSettlementSummaryFooterAsync(surface);
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng", Exact = true }).ClickAsync();
+        await Assertions.Expect(surface.GetByPlaceholder("Tìm mã hoặc tên mặt hàng", new() { Exact = true }))
+            .ToBeVisibleAsync();
         await AssertColumnsAsync(surface, ["Đơn giá", "Thuế VAT", "Tạm tính", "Thành tiền (gồm VAT)"]);
         await Assertions.Expect(surface.Locator("thead").GetByText("Độ phủ", new() { Exact = true }))
             .ToHaveCountAsync(0);
@@ -202,6 +210,20 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         }
     }
 
+    private static async Task AssertCombinedOrderCountColumnAsync(ILocator surface)
+    {
+        await Assertions.Expect(surface.Locator("thead").GetByText("Đơn thường", new() { Exact = true }))
+            .ToHaveCountAsync(0);
+        await Assertions.Expect(surface.Locator("thead").GetByText("Đơn bổ sung", new() { Exact = true }))
+            .ToHaveCountAsync(0);
+
+        var firstOrderCountCell = surface.Locator("tbody .vpp-settlement-order-count").First;
+        await Assertions.Expect(firstOrderCountCell).ToBeVisibleAsync();
+        await Assertions.Expect(firstOrderCountCell.Locator(".vpp-category-chip")).ToHaveCountAsync(2);
+        await Assertions.Expect(firstOrderCountCell.GetByText(new Regex("^Đơn thường: \\d+$"))).ToBeVisibleAsync();
+        await Assertions.Expect(firstOrderCountCell.GetByText(new Regex("^Đơn bổ sung: \\d+$"))).ToBeVisibleAsync();
+    }
+
     private static async Task AssertNumericColumnsAlignedAsync(ILocator surface)
     {
         var errors = await surface.EvaluateAsync<string[]>("""
@@ -255,7 +277,7 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
 
     private static async Task AssertSettlementSummaryFooterAsync(ILocator surface)
     {
-        var errors = await surface.Locator(".vpp-settlement-order-grid").First.EvaluateAsync<string[]>(
+        var errors = await surface.Locator(".vpp-settlement-order-grid:visible").First.EvaluateAsync<string[]>(
             """
             grid => {
                 const footer = grid.querySelector('tfoot tr');
@@ -274,8 +296,12 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
 
                 const footerBox = footer.getBoundingClientRect();
                 const pagerBox = pager.getBoundingClientRect();
-                const lastBodyCell = grid.querySelector('tbody tr:last-child td');
-                const footerCell = footer.querySelector('td');
+                const footerCell = label.closest('td') ?? footer.querySelector('td');
+                const footerCellIndex = footerCell ? footerCells.indexOf(footerCell) : -1;
+                const lastBodyRow = grid.querySelector('tbody tr:last-child');
+                const lastBodyCell = footerCellIndex >= 0
+                    ? lastBodyRow?.children[footerCellIndex]
+                    : lastBodyRow?.querySelector('td');
                 if (Math.abs(footerBox.height - expectedRowHeight) > 1) {
                     messages.push(`Dòng tổng hợp cao ${footerBox.height}px, chuẩn ${expectedRowHeight}px.`);
                 }
@@ -296,7 +322,7 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                 }
                 if (lastBodyCell && footerCell
                     && getComputedStyle(lastBodyCell).backgroundColor === getComputedStyle(footerCell).backgroundColor) {
-                    messages.push('Nền dòng tổng hợp chưa phân biệt với dòng dữ liệu.');
+                    messages.push(`Nền dòng tổng hợp chưa phân biệt với dòng dữ liệu (footer=${getComputedStyle(footerCell).backgroundColor}, body=${getComputedStyle(lastBodyCell).backgroundColor}, footerClass=${footerCell.className}, bodyClass=${lastBodyCell.className}, column=${footerCellIndex}).`);
                 }
 
                 const numericCells = footerCells.filter(cell => cell.classList.contains('vpp-settlement-number'));

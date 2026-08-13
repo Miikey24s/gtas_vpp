@@ -91,14 +91,6 @@
                 <small>@Loc["SettlementIncludesVat"]</small>
             </article>
         </div>
-        @if (!hasCorrectionTarget)
-        {
-            <div class="vpp-settlement-decision-footer">
-            <div class="vpp-settlement-decision-action">
-                <RadzenButton Icon="lock" Text="@Loc["SettlePeriod"]" ButtonStyle="ButtonStyle.Primary" Disabled="@(!CanSubmitCurrentPreview || isSettling)" Click="@SettleAsync" />
-            </div>
-            </div>
-        }
     </section>
 
     @* PREVIEW: Cảnh báo và thao tác tải lại bản xem trước trước khi submit. *@
@@ -151,6 +143,16 @@
                         <VppCategoryChip Text="@SettlementVersionText"
                                          Tone="VppCategoryTone.Neutral" />
                     }
+                    @if (status?.IsSettled != true)
+                    {
+                        <RadzenButton Icon="lock"
+                                      Text="@Loc["SettlePeriod"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      IsBusy="@isSettling"
+                                      Disabled="@(!CanSubmitCurrentPreview || isSettling)"
+                                      Click="@SettleAsync" />
+                    }
                     @if (status?.IsSettled == true)
                     {
                         <VppFileExportActions BusyFormat="@exportingSettlementFormat"
@@ -160,7 +162,7 @@
                     }
                     @if (status?.IsSettled == true)
                     {
-                        <RadzenButton Text="@Loc["ViewSavedVersions"]"
+                        <RadzenButton Text="@Loc["SettlementHistoryAction"]"
                                       Icon="history"
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Base"
@@ -171,14 +173,14 @@
                     }
                     @if (status?.IsSettled == true)
                     {
-                        <RadzenButton Text="@Loc["AdjustSettlementResult"]"
+                        <RadzenButton Text="@Loc["SettlementCorrectionAction"]"
                                       Icon="edit_note"
                                       Size="ButtonSize.Small"
                                       ButtonStyle="ButtonStyle.Warning"
                                       Variant="Variant.Outlined"
                                       IsBusy="@isCorrectingSettlement"
                                       Disabled="@(!CanCorrectSettlement || isCorrectingSettlement)"
-                                      title="@(CanCorrectSettlement ? Loc["AdjustSettlementResult"] : Loc["RequestActionUnavailable"])"
+                                      title="@(CanCorrectSettlement ? Loc["SettlementCorrectionAction"] : Loc["RequestActionUnavailable"])"
                                       Click="@OpenSettlementCorrectionDialogAsync" />
                     }
                 </Actions>
@@ -347,10 +349,11 @@
                                     <Template Context="row"><div class="vpp-order-product-cell"><strong>@row.RequesterName</strong><small title="@row.DepartmentSummary">@row.DepartmentSummary</small></div></Template>
                                     <FooterTemplate><strong class="vpp-settlement-summary-label" data-testid="settlement-summary-label">@SettlementSummaryLabel</strong></FooterTemplate>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="90px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@requesterTotals.OrderCount</span></FooterTemplate></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="RegularOrderCount" Title="@Loc["Regular"]" Width="96px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@requesterTotals.RegularOrderCount</span></FooterTemplate></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="AdditionalOrderCount" Title="@Loc["AdditionalOrder"]" Width="104px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@requesterTotals.AdditionalOrderCount</span></FooterTemplate></RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalLines" Title="@Loc["OrderItems"]" Width="144px" MinWidth="144px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@requesterTotals.TotalLines</span></FooterTemplate></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="248px" MinWidth="248px" Sortable="false">
+                                    <Template Context="row"><div class="vpp-settlement-order-count"><VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], row.RegularOrderCount)" Tone="VppCategoryTone.Neutral" /><VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], row.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" /></div></Template>
+                                    <FooterTemplate><div class="vpp-settlement-order-count is-summary"><VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], requesterTotals.RegularOrderCount)" Tone="VppCategoryTone.Neutral" /><VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], requesterTotals.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" /></div></FooterTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalLines" Title="@Loc["DemandLines"]" Width="128px" MinWidth="128px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@requesterTotals.TotalLines</span></FooterTemplate></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="108px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@requesterTotals.TotalQuantity</span></FooterTemplate></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="NetAmount" Title="@Loc["SettlementNetAmount"]" Width="126px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.NetAmount)</Template><FooterTemplate><span class="vpp-settlement-summary-value">@FormatMoney(requesterTotals.NetAmount)</span></FooterTemplate></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="VatAmount" Title="@Loc["SettlementVatAmount"]" Width="112px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.VatAmount)</Template><FooterTemplate><span class="vpp-settlement-summary-value">@FormatMoney(requesterTotals.VatAmount)</span></FooterTemplate></RadzenDataGridColumn>
@@ -395,10 +398,11 @@
                                 <Template Context="row"><div class="vpp-order-product-cell"><strong>@row.DepartmentName</strong><small title="@row.DepartmentCode">@row.DepartmentCode</small></div></Template>
                                 <FooterTemplate><strong class="vpp-settlement-summary-label" data-testid="settlement-summary-label">@SettlementSummaryLabel</strong></FooterTemplate>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="90px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@departmentTotals.OrderCount</span></FooterTemplate></RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="RegularOrderCount" Title="@Loc["Regular"]" Width="96px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@departmentTotals.RegularOrderCount</span></FooterTemplate></RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="AdditionalOrderCount" Title="@Loc["AdditionalOrder"]" Width="104px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@departmentTotals.AdditionalOrderCount</span></FooterTemplate></RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalLines" Title="@Loc["TotalLineItems"]" Width="144px" MinWidth="144px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@departmentTotals.TotalLines</span></FooterTemplate></RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="OrderCount" Title="@Loc["TotalOrders"]" Width="248px" MinWidth="248px" Sortable="false">
+                                <Template Context="row"><div class="vpp-settlement-order-count"><VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], row.RegularOrderCount)" Tone="VppCategoryTone.Neutral" /><VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], row.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" /></div></Template>
+                                <FooterTemplate><div class="vpp-settlement-order-count is-summary"><VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], departmentTotals.RegularOrderCount)" Tone="VppCategoryTone.Neutral" /><VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], departmentTotals.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" /></div></FooterTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalLines" Title="@Loc["DemandLines"]" Width="128px" MinWidth="128px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@departmentTotals.TotalLines</span></FooterTemplate></RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" Width="108px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><FooterTemplate><span class="vpp-settlement-summary-value">@departmentTotals.TotalQuantity</span></FooterTemplate></RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="NetAmount" Title="@Loc["SettlementNetAmount"]" Width="126px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.NetAmount)</Template><FooterTemplate><span class="vpp-settlement-summary-value">@FormatMoney(departmentTotals.NetAmount)</span></FooterTemplate></RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="VatAmount" Title="@Loc["SettlementVatAmount"]" Width="112px" TextAlign="TextAlign.Right" CssClass="vpp-settlement-number" HeaderCssClass="vpp-settlement-number"><Template Context="row">@FormatMoney(row.VatAmount)</Template><FooterTemplate><span class="vpp-settlement-summary-value">@FormatMoney(departmentTotals.VatAmount)</span></FooterTemplate></RadzenDataGridColumn>

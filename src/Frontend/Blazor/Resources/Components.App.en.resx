@@ -836,7 +836,7 @@
   <data name="CorrectionReasonLabel" xml:space="preserve"><value>Reason for adjustment</value></data>
   <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Briefly explain why this change is needed (5–500 characters)</value></data>
   <data name="CorrectionFourEyesHint" xml:space="preserve"><value>The current version stays in history. A manager other than the person who confirmed it must make this change.</value></data>
-  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Save adjusted version</value></data>
+  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Save new settlement</value></data>
   <data name="SettlePreviewResultAria" xml:space="preserve"><value>Settlement preview result</value></data>
   <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Preview result</value></data>
   <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Supply coverage and total value</value></data>
@@ -1346,7 +1346,7 @@
   <data name="PostCloseAdjustmentMustCoverSupplement" xml:space="preserve"><value>The order adjustment window must be at least as long as the supplement approval window.</value></data>
   <data name="SupplementApprovalExpiredHint" xml:space="preserve"><value>The approval window has ended. Reject the pending request to continue settling the period.</value></data>
   <data name="AdjustSettlementResult" xml:space="preserve"><value>Adjust after settlement</value></data>
-  <data name="SettlementVersionLabel" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="SettlementVersionLabel" xml:space="preserve"><value>Settlement {0}</value></data>
   <data name="AdjustmentSaved" xml:space="preserve"><value>Adjustment saved</value></data>
   <data name="SettlementVersionSaved" xml:space="preserve"><value>The result was saved as settlement version {0}. The previous version remains in history.</value></data>
   <data name="AdjustAfterSettlement" xml:space="preserve"><value>Adjust after settlement</value></data>
@@ -1374,6 +1374,9 @@
   <data name="SavedSettlementVersions" xml:space="preserve"><value>Saved settlement versions</value></data>
   <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Each approved adjustment is saved as a new version. Earlier versions remain available for comparison.</value></data>
   <data name="ViewSavedVersions" xml:space="preserve"><value>View saved versions</value></data>
+  <data name="SettlementHistoryAction" xml:space="preserve"><value>Settlement history</value></data>
+  <data name="SettlementCorrectionAction" xml:space="preserve"><value>Adjust settlement</value></data>
+  <data name="DemandLines" xml:space="preserve"><value>Item lines</value></data>
   <data name="CurrentlyUsed" xml:space="preserve"><value>Currently used</value></data>
   <data name="TotalValue" xml:space="preserve"><value>Total value</value></data>
   <data name="SettlementAvailableAfterClosing" xml:space="preserve"><value>You can prepare the supplier and price book now; settlement becomes available after order submission closes.</value></data>

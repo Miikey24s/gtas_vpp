@@ -537,9 +537,10 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - **Phạm vi tính:** tổng trên toàn bộ kết quả sau bộ lọc hiện tại và trước paging; đổi trang hoặc page-size
   không làm số tổng thay đổi. Khi đang lọc, nhãn đổi thành `Tổng sau lọc`; khi không có kết quả vẫn giữ dòng
   và hiển thị `0` ở metric cộng được để geometry không nhảy.
-- **Theo phòng ban / Theo người đặt:** cộng `Tổng đơn`, `Đơn thường`, `Đơn bổ sung`, `Tổng mặt hàng`,
-  `Tổng số lượng`, `Tạm tính`, `Thuế GTGT` và `Thành tiền`. Cột tên hiển thị nhãn tổng; `#` và `Thao tác`
-  để trống.
+- **Theo phòng ban / Theo người đặt:** `Tổng đơn` là một cột duy nhất, bên trong có hai category badge
+  `Đơn thường: n` và `Đơn bổ sung: n`; không tách thành ba cột cạnh nhau. `TotalLines` được gọi đúng nghĩa
+  là `Dòng mặt hàng`, không gọi `Tổng mặt hàng` vì đây là số dòng yêu cầu cộng dồn, không phải distinct item.
+  Các cột còn lại cộng `Tổng số lượng`, `Tạm tính`, `Thuế GTGT` và `Thành tiền`; `#` và `Thao tác` để trống.
 - **Theo mặt hàng:** cộng `Tổng số lượng`, `Tạm tính` và `Thành tiền`; `Số đơn` phải là số đơn **không trùng**
   trong các mặt hàng sau lọc, không cộng thẳng số đơn của từng dòng. `Đơn giá` và `% VAT` không cộng được
   nên hiển thị `–`; cột danh mục, đơn vị và thao tác để trống.
@@ -555,6 +556,9 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   `4/4` tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; ảnh departments/items đã review bằng mắt.
 - **Owner review tiếp theo:** dòng tổng không vẽ thêm border trên vì separator của data row cuối đã đủ;
   dùng nền info rất nhạt và nhãn info-strong để dễ nhận biết nhưng vẫn nhẹ hơn selected/primary state.
+- **Header action:** chuyển `Chốt kỳ` vào collection header cùng trạng thái/action của kỳ. Khi đã chốt, chip
+  hiển thị `Bản chốt N`; `Lịch sử chốt` mở danh sách các bản, còn `Điều chỉnh bản chốt` chọn lại dữ liệu chốt
+  và lưu bản mới. Chỉnh/sửa một đơn sau chốt vẫn là capability riêng trong chi tiết đơn.
 
 ---
 

@@ -106,6 +106,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private string SettlementVersionText => currentSettlementRevision is { RevisionNumber: > 0 } revision
         ? string.Format(Loc["SettlementVersionLabel"], revision.RevisionNumber)
         : string.Empty;
+    private string OrderCountLabel(string label, int count) => $"{label}: {count}";
     private string SettlementStatusText => status?.IsSettled == true
         ? Loc["Settled"].Value
         : Loc["NotSettled"].Value;
@@ -415,10 +416,10 @@ public partial class PeriodSettlementPanel : IDisposable
         }
 
         var reason = await DialogService.OpenAsync<Dialog_SettlementCorrection>(
-            Loc["AdjustSettlementResult"],
+            Loc["SettlementCorrectionAction"],
             options: VppAdminDialogProfiles.Create(
                 VppAdminDialogSize.Compact,
-                Loc["AdjustSettlementResult"],
+                Loc["SettlementCorrectionAction"],
                 closeAriaLabel: Loc["Close"]));
         if (reason is not string correctionReason)
         {
@@ -446,7 +447,7 @@ public partial class PeriodSettlementPanel : IDisposable
         }
         catch (Exception ex)
         {
-            Toast.Error(Loc["AdjustSettlementResult"], UiErrorMapper.GetMessage(ex, Loc));
+            Toast.Error(Loc["SettlementCorrectionAction"], UiErrorMapper.GetMessage(ex, Loc));
         }
         finally
         {

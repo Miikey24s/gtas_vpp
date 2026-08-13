@@ -44,7 +44,7 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
         await OpenSettlementAsync(targetYear, targetMonth);
         var adjustButton = Page.GetByRole(
             AriaRole.Button,
-            new() { Name = "Điều chỉnh sau chốt", Exact = true });
+            new() { Name = "Điều chỉnh bản chốt", Exact = true });
         await adjustButton.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         await adjustButton.ClickAsync();
         var adjustmentDialog = Page.GetByTestId("settlement-correction-dialog");
@@ -52,7 +52,7 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
         await adjustmentDialog.Locator("textarea").FillAsync(AdjustmentReason);
         await adjustmentDialog.GetByRole(
                 AriaRole.Button,
-                new() { Name = "Lưu bản điều chỉnh", Exact = true })
+                new() { Name = "Lưu bản chốt mới", Exact = true })
             .ClickAsync();
         await adjustmentDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 60_000 });
         await Page.GetByText("Hệ thống đã lưu thành bản chốt 2. Bản trước vẫn có trong lịch sử.", new() { Exact = true })
@@ -72,7 +72,7 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
             periodItem.Year == targetYear
             && periodItem.Month == targetMonth
             && periodItem.State == "Settled");
-        await Page.GetByText("Bản 2", new() { Exact = true })
+        await Page.GetByText("Bản chốt 2", new() { Exact = true })
             .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         await CaptureAsync("settlement-version-2-1366x768.png");
     }
@@ -109,10 +109,10 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
         firstRevision.IsCorrection.Should().BeFalse();
         firstRevision.ConfirmedByUserId.Should().Be(TestAccounts.Procurement.UserId);
 
-        await Page.GetByText("Bản 1", new() { Exact = true }).WaitForAsync();
+        await Page.GetByText("Bản chốt 1", new() { Exact = true }).WaitForAsync();
         await Page.GetByRole(
                 AriaRole.Button,
-                new() { Name = "Điều chỉnh sau chốt", Exact = true })
+                new() { Name = "Điều chỉnh bản chốt", Exact = true })
             .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         await CaptureAsync("settlement-version-1-1366x768.png");
         (await Page.GetByRole(
@@ -121,7 +121,7 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
             .CountAsync()).Should().Be(0);
         await Page.GetByRole(
                 AriaRole.Button,
-                new() { Name = "Xem các bản đã lưu", Exact = true })
+                new() { Name = "Lịch sử chốt", Exact = true })
             .ClickAsync();
         await Page.GetByTestId("settlement-version-history-dialog").WaitForAsync();
         await Page.GetByTestId("settlement-version-history-dialog")
@@ -160,7 +160,8 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
     private async Task<ILocator> WaitForEnabledActionAsync(string accessibleName)
     {
         var action = await GetInteractiveButtonAsync(
-            Page.Locator(".vpp-settlement-decision-action:visible"),
+            Page.GetByTestId("period-settlement-data-surface")
+                .Locator(".vpp-collection-header-actions:visible"),
             accessibleName);
         var deadline = DateTime.UtcNow.AddSeconds(60);
         while (DateTime.UtcNow < deadline)

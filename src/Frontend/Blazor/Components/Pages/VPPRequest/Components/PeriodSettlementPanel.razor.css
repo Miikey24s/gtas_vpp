@@ -108,22 +108,6 @@
     background: color-mix(in srgb, var(--vpp-action-primary) 4%, var(--vpp-bg-elevated));
 }
 
-.vpp-settlement-decision-footer {
-    display: flex;
-    min-width: 0;
-    min-height: 32px;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--vpp-space-3);
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-}
-
-.vpp-settlement-decision-action {
-    display: flex;
-    flex: 0 0 auto;
-}
-
 .vpp-settlement-blocker-bar {
     display: flex;
     min-height: 36px;
@@ -206,13 +190,13 @@
 }
 
 ::deep .vpp-settlement-order-grid {
-    --vpp-grid-min-width: 98rem !important;
+    --vpp-grid-min-width: 90rem !important;
 }
 
 ::deep .vpp-settlement-order-grid .rz-grid-table {
     height: 100%;
-    min-width: 98rem !important;
-    width: max(100%, 98rem) !important;
+    min-width: 90rem !important;
+    width: max(100%, 90rem) !important;
 }
 
 ::deep .vpp-settlement-order-grid .rz-grid-table tbody::after {
@@ -295,6 +279,19 @@
     font-weight: var(--vpp-font-weight-regular);
 }
 
+.vpp-settlement-order-count {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--vpp-space-1);
+    white-space: nowrap;
+}
+
+.vpp-settlement-order-count ::deep .vpp-category-chip {
+    font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 1100px) {
     .vpp-settlement-selector-row {
         align-items: stretch;
@@ -303,10 +300,6 @@
 
     .vpp-settlement-kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .vpp-settlement-decision-action {
-        justify-content: flex-end;
     }
 
     .vpp-settlement-selector-groups {
@@ -336,21 +329,12 @@
         grid-template-columns: 1fr;
     }
 
-    .vpp-settlement-decision-footer {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
     .vpp-settlement-preview-refresh {
         align-items: stretch;
         flex-direction: column;
     }
 
     .vpp-settlement-preview-refresh ::deep .rz-button {
-        width: 100%;
-    }
-
-    .vpp-settlement-decision-action ::deep .rz-button {
         width: 100%;
     }
 

@@ -836,7 +836,7 @@
   <data name="CorrectionReasonLabel" xml:space="preserve"><value>Lý do điều chỉnh</value></data>
   <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Mô tả ngắn lý do cần thay đổi (5–500 ký tự)</value></data>
   <data name="CorrectionFourEyesHint" xml:space="preserve"><value>Bản đang dùng vẫn được giữ trong lịch sử. Một quản lý khác với người chốt bản hiện tại cần thực hiện thay đổi này.</value></data>
-  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Lưu bản điều chỉnh</value></data>
+  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Lưu bản chốt mới</value></data>
   <data name="SettlePreviewResultAria" xml:space="preserve"><value>Kết quả xem trước chốt kỳ</value></data>
   <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Kết quả xem trước</value></data>
   <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Độ phủ nguồn cung và tổng giá trị</value></data>
@@ -1345,7 +1345,7 @@
   <data name="PostCloseAdjustmentMustCoverSupplement" xml:space="preserve"><value>Thời gian chỉnh đơn phải bằng hoặc dài hơn thời gian duyệt đơn bổ sung.</value></data>
   <data name="SupplementApprovalExpiredHint" xml:space="preserve"><value>Đã hết hạn duyệt. Bạn có thể từ chối đơn còn chờ để tiếp tục chốt kỳ.</value></data>
   <data name="AdjustSettlementResult" xml:space="preserve"><value>Điều chỉnh sau chốt</value></data>
-  <data name="SettlementVersionLabel" xml:space="preserve"><value>Bản {0}</value></data>
+  <data name="SettlementVersionLabel" xml:space="preserve"><value>Bản chốt {0}</value></data>
   <data name="AdjustmentSaved" xml:space="preserve"><value>Đã lưu điều chỉnh</value></data>
   <data name="SettlementVersionSaved" xml:space="preserve"><value>Hệ thống đã lưu thành bản chốt {0}. Bản trước vẫn có trong lịch sử.</value></data>
   <data name="AdjustAfterSettlement" xml:space="preserve"><value>Điều chỉnh sau chốt</value></data>
@@ -1374,6 +1374,9 @@
   <data name="SavedSettlementVersions" xml:space="preserve"><value>Các bản chốt đã lưu</value></data>
   <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Mỗi lần điều chỉnh được lưu thành một bản mới. Các bản trước vẫn được giữ để đối chiếu.</value></data>
   <data name="ViewSavedVersions" xml:space="preserve"><value>Xem các bản đã lưu</value></data>
+  <data name="SettlementHistoryAction" xml:space="preserve"><value>Lịch sử chốt</value></data>
+  <data name="SettlementCorrectionAction" xml:space="preserve"><value>Điều chỉnh bản chốt</value></data>
+  <data name="DemandLines" xml:space="preserve"><value>Dòng mặt hàng</value></data>
   <data name="CurrentlyUsed" xml:space="preserve"><value>Đang dùng</value></data>
   <data name="TotalValue" xml:space="preserve"><value>Tổng giá trị</value></data>
   <data name="SettlementAvailableAfterClosing" xml:space="preserve"><value>Có thể chuẩn bị nhà cung cấp và bảng giá ngay bây giờ; nút chốt sẽ mở sau ngày đóng nhận đơn.</value></data>

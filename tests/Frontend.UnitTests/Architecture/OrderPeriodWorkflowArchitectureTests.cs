@@ -52,7 +52,14 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("periodYear={period.Year}&periodMonth={period.Month}", operationsCode, StringComparison.Ordinal);
         Assert.Contains("periodYear", periodTab, StringComparison.Ordinal);
         Assert.Contains("TargetYear", workspace, StringComparison.Ordinal);
-        Assert.Contains("AdjustSettlementResult", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementCorrectionAction", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementHistoryAction", settlement, StringComparison.Ordinal);
+        Assert.Contains("Text=\"@Loc[\"SettlePeriod\"]\"", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-settlement-decision-action", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("Property=\"RegularOrderCount\"", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("Property=\"AdditionalOrderCount\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppCategoryChip Text=\"@OrderCountLabel", settlement, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"DemandLines\"]\"", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("ReopenForResettlement", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementVersionText", settlement, StringComparison.Ordinal);
         Assert.Contains("SavedSettlementVersions", historyDialog, StringComparison.Ordinal);
