@@ -1,5 +1,5 @@
 <span @attributes="AdditionalAttributes"
-      class="vpp-status-badge vpp-status-badge-@ToneCssClass @Class"
+      class="@EffectiveClass"
       title="@Title">@Text</span>
 
 @code {
@@ -7,8 +7,19 @@
     [Parameter] public VppStatusTone Tone { get; set; } = VppStatusTone.Neutral;
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Class { get; set; }
+    [Parameter] public bool Muted { get; set; }
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     private string ToneCssClass => Tone.ToString().ToLowerInvariant();
+
+    private string EffectiveClass => string.Join(
+        " ",
+        new[]
+        {
+            "vpp-status-badge",
+            $"vpp-status-badge-{ToneCssClass}",
+            Muted ? "is-muted" : null,
+            Class
+        }.Where(value => !string.IsNullOrWhiteSpace(value)));
 }

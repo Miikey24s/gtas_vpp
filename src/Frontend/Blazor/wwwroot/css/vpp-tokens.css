@@ -365,6 +365,11 @@
     --vpp-data-row-compact-height: 40px;
     --vpp-data-row-rich-two-line-height: 52px;
     --vpp-data-footer-height: 42px;
+    --vpp-data-summary-background: color-mix(in srgb, var(--vpp-warning) 14%, var(--vpp-bg-elevated));
+    --vpp-data-summary-border: color-mix(in srgb, var(--vpp-warning) 58%, var(--vpp-border-strong));
+    --vpp-data-summary-foreground: var(--vpp-warning);
+    --vpp-data-summary-emphasis-size: 2px;
+    --vpp-content-muted-opacity: 0.52;
     --vpp-data-empty-min-height: 12rem;
     --vpp-data-toolbar-gap: var(--vpp-space-2);
     --vpp-data-toolbar-padding-block: var(--vpp-space-1);

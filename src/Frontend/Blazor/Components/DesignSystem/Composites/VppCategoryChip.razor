@@ -1,6 +1,7 @@
 <VppStatusBadge Text="@Text"
                 Tone="@MappedTone"
                 Title="@Title"
+                Muted="@Muted"
                 Class="@EffectiveClass"
                 @attributes="AdditionalAttributes" />
 
@@ -9,6 +10,7 @@
     [Parameter] public VppCategoryTone Tone { get; set; } = VppCategoryTone.Neutral;
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Class { get; set; }
+    [Parameter] public bool Muted { get; set; }
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 

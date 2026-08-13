@@ -104,7 +104,12 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             .ToBeVisibleAsync();
         await Assertions.Expect(surface.Locator("tbody .vpp-settlement-status-count").First.Locator(".vpp-status-badge"))
             .ToHaveCountAsync(2);
-        await Assertions.Expect(surface.Locator("tbody .vpp-settlement-status-count").GetByText("Đã duyệt: 0", new() { Exact = true }).First)
+        var zeroApprovedBadge = surface.Locator("tbody .vpp-settlement-status-count")
+            .GetByText("Đã duyệt: 0", new() { Exact = true })
+            .First;
+        await Assertions.Expect(zeroApprovedBadge).ToBeVisibleAsync();
+        await Assertions.Expect(zeroApprovedBadge).ToHaveClassAsync(new Regex("\\bis-muted\\b"));
+        await Assertions.Expect(surface.Locator("tbody .vpp-settlement-order-count .vpp-category-chip.is-muted").First)
             .ToBeVisibleAsync();
         if (width >= 1100)
         {
@@ -464,6 +469,13 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                 if (lastBodyCell && footerCell
                     && getComputedStyle(lastBodyCell).backgroundColor === getComputedStyle(footerCell).backgroundColor) {
                     messages.push(`Nền dòng tổng hợp chưa phân biệt với dòng dữ liệu (footer=${getComputedStyle(footerCell).backgroundColor}, body=${getComputedStyle(lastBodyCell).backgroundColor}, footerClass=${footerCell.className}, bodyClass=${lastBodyCell.className}, column=${footerCellIndex}).`);
+                }
+                if (lastBodyCell && footerCell
+                    && getComputedStyle(lastBodyCell).color === getComputedStyle(footerCell).color) {
+                    messages.push('Màu chữ dòng tổng hợp chưa được nhấn khác dữ liệu thường.');
+                }
+                if (getComputedStyle(footer).boxShadow === 'none') {
+                    messages.push('Dòng tổng hợp chưa có đường nhấn semantic ở cạnh trên.');
                 }
 
                 const numericCells = footerCells.filter(cell => cell.classList.contains('vpp-settlement-number'));

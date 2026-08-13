@@ -227,13 +227,17 @@
     max-height: var(--vpp-data-row-compact-height);
 }
 
+::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr {
+    box-shadow: inset 0 var(--vpp-data-summary-emphasis-size) 0 var(--vpp-data-summary-border);
+}
+
 ::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td {
     padding: 0 var(--vpp-grid-cell-padding-x);
     /* Dòng dữ liệu cuối đã sở hữu separator; không vẽ thêm border trên gây thành đường đôi. */
     border-top: 0;
     border-bottom: 0;
-    background: color-mix(in srgb, var(--vpp-info) 8%, var(--vpp-bg-elevated));
-    color: var(--vpp-info-strong);
+    background: var(--vpp-data-summary-background);
+    color: var(--vpp-data-summary-foreground);
     font-weight: var(--vpp-font-weight-semibold);
     vertical-align: middle;
 }
@@ -250,7 +254,7 @@
 }
 
 ::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td.rz-col-actions {
-    background: color-mix(in srgb, var(--vpp-info) 8%, var(--vpp-bg-elevated)) !important;
+    background: var(--vpp-data-summary-background) !important;
 }
 
 ::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td:has(+ td.rz-col-actions) {
@@ -298,19 +302,19 @@
 
 .vpp-settlement-summary-label,
 .vpp-settlement-summary-value {
-    color: var(--vpp-info-strong);
-    font-weight: var(--vpp-font-weight-semibold);
+    color: var(--vpp-data-summary-foreground);
+    font-weight: var(--vpp-font-weight-bold);
     font-variant-numeric: tabular-nums;
 }
 
 .vpp-settlement-summary-label {
-    color: var(--vpp-info-strong);
+    color: var(--vpp-data-summary-foreground);
     white-space: nowrap;
 }
 
 .vpp-settlement-summary-na {
-    color: var(--vpp-text-muted);
-    font-weight: var(--vpp-font-weight-regular);
+    color: var(--vpp-data-summary-foreground);
+    font-weight: var(--vpp-font-weight-semibold);
 }
 
 .vpp-settlement-order-count {
@@ -360,6 +364,11 @@
 
 .vpp-settlement-status-count.is-summary {
     height: 100%;
+}
+
+.vpp-settlement-order-count.is-summary ::deep .vpp-status-badge,
+.vpp-settlement-status-count.is-summary ::deep .vpp-status-badge {
+    font-weight: var(--vpp-font-weight-semibold);
 }
 
 ::deep .vpp-settlement-order-grid :is(th, td).vpp-settlement-status-cell :is(.rz-column-title, .rz-column-title-content, .rz-cell-data) {

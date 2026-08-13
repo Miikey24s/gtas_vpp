@@ -238,6 +238,23 @@ public sealed class UiMotifCatalogTests
             "VppCategoryChip.razor"));
         Assert.Contains("VppCategoryTone.Primary", categoryChip, StringComparison.Ordinal);
         Assert.Contains("VppCategoryTone.Accent", categoryChip, StringComparison.Ordinal);
+        Assert.Contains("Muted=\"@Muted\"", categoryChip, StringComparison.Ordinal);
+
+        var statusBadge = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "DesignSystem",
+            "Primitives",
+            "VppStatusBadge.razor"));
+        Assert.Contains("[Parameter] public bool Muted", statusBadge, StringComparison.Ordinal);
+
+        var statusBadgeCss = File.ReadAllText(Path.Combine(
+            frontend,
+            "Components",
+            "DesignSystem",
+            "Primitives",
+            "VppStatusBadge.razor.css"));
+        Assert.Contains(".vpp-status-badge.is-muted", statusBadgeCss, StringComparison.Ordinal);
 
         var toneContract = File.ReadAllText(Path.Combine(
             frontend,
