@@ -17,10 +17,18 @@ public sealed class SettlementWorkspaceProjectionTests
             new() { Code = "C", Name = "Phòng Gamma" },
             new() { Code = "D", Name = "Phòng Delta" }
         };
+        var penId = Guid.NewGuid();
         var orders = new List<VppRequestResDTO>
         {
-            CreateOrder("A", 6, false, 1, 10, 100, "REQ-A1"),
-            CreateOrder("A", 7, true, 2, 5, 50, "REQ-A2"),
+            CreateOrder("A", 6, false, 1, 10, 100, "REQ-A1", items:
+            [
+                CreateItem(penId, "PEN", "Bút bi", 4),
+                CreateItem("PAPER", "Giấy A4", 6)
+            ]),
+            CreateOrder("A", 7, true, 2, 5, 50, "REQ-A2", items:
+            [
+                CreateItem(penId, "PEN", "Bút bi", 5)
+            ]),
             CreateOrder("B", 7, false, 3, 12, 120, "REQ-B1"),
             CreateOrder("B", 7, true, 4, 8, 80, "REQ-B2"),
             CreateOrder("C", 4, false, 5, 9, 90, "REQ-C1"),
@@ -41,6 +49,8 @@ public sealed class SettlementWorkspaceProjectionTests
         Assert.Equal(3, alpha.TotalLines);
         Assert.Equal(15, alpha.TotalQuantity);
         Assert.Equal(150, alpha.TotalAmount);
+        Assert.Equal("Bút bi", alpha.TopItemName);
+        Assert.Equal(9, alpha.TopItemQuantity);
         Assert.Equal(SettlementOrderGroupStatus.Pending, alpha.Status);
         Assert.Equal(
             SettlementOrderGroupStatus.Approved,
@@ -61,6 +71,26 @@ public sealed class SettlementWorkspaceProjectionTests
         Assert.Equal(0, filteredAlpha.RegularOrderCount);
         Assert.Equal(1, filteredAlpha.AdditionalOrderCount);
         Assert.Equal(SettlementOrderGroupStatus.Approved, filteredAlpha.Status);
+
+        var demandItems = new[]
+        {
+            new AggregatedVppItemResDTO
+            {
+                VppName = "Kẹp giấy",
+                Breakdown =
+                [
+                    new AggregatedVppItemBreakdownResDTO { Code = "REQ-A1", Qty = 12 },
+                    new AggregatedVppItemBreakdownResDTO { Code = "REQ-B1", Qty = 99 }
+                ]
+            }
+        };
+        var alphaWithDemand = Assert.Single(SettlementWorkspaceProjection.BuildDepartmentRows(
+            orders,
+            departments,
+            new SettlementOrderGroupFilter("alpha", "", null, "A"),
+            demandItems: demandItems));
+        Assert.Equal("Kẹp giấy", alphaWithDemand.TopItemName);
+        Assert.Equal(12, alphaWithDemand.TopItemQuantity);
     }
 
     [Fact]
@@ -188,13 +218,13 @@ public sealed class SettlementWorkspaceProjectionTests
     {
         var departments = new[]
         {
-            new SettlementDepartmentRow("A", "Alpha", 2, 1, 1, 5, 12, 100, 200, 20, 220, SettlementOrderGroupStatus.Approved),
-            new SettlementDepartmentRow("B", "Beta", 1, 1, 0, 3, 7, 50, 80, 8, 88, SettlementOrderGroupStatus.Submitted)
+            new SettlementDepartmentRow("A", "Alpha", 2, 1, 1, 5, 12, 100, 200, 20, 220, "Bút", 7, [new(7, 2)], SettlementOrderGroupStatus.Approved),
+            new SettlementDepartmentRow("B", "Beta", 1, 1, 0, 3, 7, 50, 80, 8, 88, "Giấy", 5, [new(1, 1)], SettlementOrderGroupStatus.Submitted)
         };
         var requesters = new[]
         {
-            new SettlementRequesterRow(1, "An", "Alpha · A", 2, 1, 1, 5, 12, 100, 200, 20, 220, SettlementOrderGroupStatus.Approved),
-            new SettlementRequesterRow(2, "Bình", "Beta · B", 1, 1, 0, 3, 7, 50, 80, 8, 88, SettlementOrderGroupStatus.Submitted)
+            new SettlementRequesterRow(1, "An", "Alpha · A", 2, 1, 1, 5, 12, 100, 200, 20, 220, [new(7, 2)], SettlementOrderGroupStatus.Approved),
+            new SettlementRequesterRow(2, "Bình", "Beta · B", 1, 1, 0, 3, 7, 50, 80, 8, 88, [new(1, 1)], SettlementOrderGroupStatus.Submitted)
         };
 
         var departmentTotals = SettlementWorkspaceProjection.SummarizeRows(departments);
@@ -202,6 +232,10 @@ public sealed class SettlementWorkspaceProjectionTests
 
         Assert.Equal(new SettlementGroupTotals(3, 2, 1, 8, 19, 280, 28, 308), departmentTotals);
         Assert.Equal(departmentTotals, requesterTotals);
+
+        var statusTotals = SettlementWorkspaceProjection.SummarizeStatuses(departments);
+        Assert.Contains(statusTotals, item => item.Status == 7 && item.Count == 2);
+        Assert.Contains(statusTotals, item => item.Status == 1 && item.Count == 1);
     }
 
     [Fact]
@@ -252,7 +286,8 @@ public sealed class SettlementWorkspaceProjectionTests
         long totalAmount,
         string requestCode,
         int userId = 1,
-        string? requesterName = null) => new()
+        string? requesterName = null,
+        IReadOnlyList<VppRequestDetailResDTO>? items = null) => new()
         {
             Id = Guid.NewGuid(),
             DepartmentCode = departmentCode,
@@ -264,6 +299,18 @@ public sealed class SettlementWorkspaceProjectionTests
             VppCode = requestCode,
             CreatedByUserId = userId,
             RequesterName = requesterName ?? $"Người đặt {departmentCode}",
-            Description = $"Đơn {departmentCode}"
+            Description = $"Đơn {departmentCode}",
+            Items = items?.ToList() ?? []
         };
+
+    private static VppRequestDetailResDTO CreateItem(string code, string name, int quantity) =>
+        CreateItem(Guid.NewGuid(), code, name, quantity);
+
+    private static VppRequestDetailResDTO CreateItem(Guid id, string code, string name, int quantity) => new()
+    {
+        VppId = id,
+        VppCode = code,
+        VppName = name,
+        Qty = quantity
+    };
 }

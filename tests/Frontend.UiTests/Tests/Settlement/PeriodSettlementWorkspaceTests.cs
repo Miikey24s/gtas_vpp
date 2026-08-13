@@ -94,19 +94,45 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             "selected vertical options stay neutral until hover or focus");
         await selectedSupplier.ClickAsync();
 
-        await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
+        await AssertColumnsAsync(surface, ["Trạng thái", "Đặt nhiều nhất", "Thành tiền", "VAT", "Tổng cộng"]);
         await AssertCombinedOrderCountColumnAsync(surface);
         await Assertions.Expect(surface.Locator("thead").GetByText("Dòng mặt hàng", new() { Exact = true }))
             .ToBeVisibleAsync();
         await AssertCompactRowRhythmAsync(surface);
         await AssertSettlementSummaryFooterAsync(surface);
         await Assertions.Expect(surface.Locator("thead").GetByText("Trạng thái", new() { Exact = true }))
-            .ToHaveCountAsync(0);
+            .ToBeVisibleAsync();
+        if (width >= 1100)
+        {
+            await AssertFilterColumnOrderAsync(surface);
+        }
         await CaptureAsync($"settlement-departments-{width}x{height}.png");
         await AssertNumericColumnsAlignedAsync(surface);
 
         if (width == 1920)
         {
+            var orderTypeFilter = surface.GetByRole(AriaRole.Button, new() { Name = "Loại đơn", Exact = true });
+            await orderTypeFilter.ClickAsync();
+            await Page.GetByRole(AriaRole.Option, new() { Name = "Đơn thường", Exact = true }).ClickAsync();
+            await Assertions.Expect(surface.Locator("thead").GetByText("Loại đơn", new() { Exact = true }))
+                .ToBeVisibleAsync();
+            var firstOrderTypeChips = surface.Locator("tbody tr").First.Locator(".vpp-settlement-order-count .vpp-category-chip");
+            await Assertions.Expect(firstOrderTypeChips.First).ToContainTextAsync("Đơn thường");
+            await Assertions.Expect(firstOrderTypeChips)
+                .ToHaveCountAsync(1);
+            await orderTypeFilter.ClickAsync();
+            await Page.GetByRole(AriaRole.Option, new() { Name = "Tất cả loại đơn", Exact = true }).ClickAsync();
+
+            var statusFilter = surface.GetByRole(AriaRole.Button, new() { Name = "Trạng thái", Exact = true });
+            await statusFilter.ClickAsync();
+            await Page.GetByRole(AriaRole.Option, new() { Name = "Đã gửi", Exact = true }).ClickAsync();
+            await Assertions.Expect(surface.Locator("tbody tr").First.Locator(".vpp-settlement-status-count .vpp-status-badge"))
+                .ToHaveCountAsync(1);
+            await Assertions.Expect(surface.Locator("tfoot .vpp-settlement-status-count .vpp-status-badge"))
+                .ToHaveCountAsync(1);
+            await statusFilter.ClickAsync();
+            await Page.GetByRole(AriaRole.Option, new() { Name = "Tất cả trạng thái", Exact = true }).ClickAsync();
+
             var search = surface.GetByPlaceholder("Tìm phòng ban hoặc mã đơn", new() { Exact = true });
             await search.FillAsync("không-có-dữ-liệu-tổng-hợp");
             await Assertions.Expect(surface.GetByTestId("settlement-summary-label"))
@@ -121,7 +147,7 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true }).ClickAsync();
         await Assertions.Expect(surface.GetByPlaceholder("Tìm người dùng hoặc mã đơn", new() { Exact = true }))
             .ToBeVisibleAsync();
-        await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
+        await AssertColumnsAsync(surface, ["Người dùng", "Phòng ban", "Trạng thái", "Thành tiền", "VAT", "Tổng cộng"]);
         await AssertCombinedOrderCountColumnAsync(surface);
         await AssertNumericColumnsAlignedAsync(surface);
         await AssertSettlementSummaryFooterAsync(surface);
@@ -129,7 +155,7 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng", Exact = true }).ClickAsync();
         await Assertions.Expect(surface.GetByPlaceholder("Tìm mã hoặc tên mặt hàng", new() { Exact = true }))
             .ToBeVisibleAsync();
-        await AssertColumnsAsync(surface, ["Đơn giá", "Thuế VAT", "Tạm tính", "Thành tiền (gồm VAT)"]);
+        await AssertColumnsAsync(surface, ["Đơn giá", "Thuế VAT", "Thành tiền", "Tổng cộng"]);
         await Assertions.Expect(surface.Locator("thead").GetByText("Độ phủ", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await AssertNumericColumnsAlignedAsync(surface);
@@ -263,34 +289,76 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             element => {
                 const orderHeader = [...element.querySelectorAll('thead th')]
                     .find(cell => cell.textContent?.trim() === 'Tổng đơn');
-                const demandHeader = [...element.querySelectorAll('thead th')]
-                    .find(cell => cell.textContent?.trim() === 'Dòng mặt hàng');
+                const statusHeader = [...element.querySelectorAll('thead th')]
+                    .find(cell => cell.textContent?.trim() === 'Trạng thái');
                 const bodyCounts = element.querySelector('tbody .vpp-settlement-order-count');
                 const footerCounts = element.querySelector('tfoot .vpp-settlement-order-count');
-                if (!orderHeader || !demandHeader || !bodyCounts || !footerCounts) {
-                    return ['Thiếu cột tổng đơn hoặc dòng tổng hợp để kiểm tra hình học.'];
+                if (!orderHeader || !statusHeader || !bodyCounts || !footerCounts) {
+                    return ['Thiếu cột tổng đơn, trạng thái hoặc dòng tổng hợp để kiểm tra hình học.'];
                 }
 
                 const orderRect = orderHeader.getBoundingClientRect();
-                const demandRect = demandHeader.getBoundingClientRect();
+                const statusRect = statusHeader.getBoundingClientRect();
                 const bodyRect = bodyCounts.getBoundingClientRect();
                 const footerRect = footerCounts.getBoundingClientRect();
                 const messages = [];
 
-                if (orderRect.width < 220 || orderRect.width > 228) {
+                if (orderRect.width < 196 || orderRect.width > 204) {
                     messages.push(`Cột tổng đơn chưa compact (${orderRect.width}px).`);
                 }
-                if (Math.abs(demandRect.left - orderRect.right) > 1) {
-                    messages.push('Cột tổng đơn và dòng mặt hàng còn khoảng trống bất thường.');
+                if (Math.abs(statusRect.left - orderRect.right) > 1) {
+                    messages.push('Cột tổng đơn và trạng thái còn khoảng trống bất thường.');
                 }
                 if (Math.abs(bodyRect.left - footerRect.left) > 1) {
                     messages.push('Badge dòng dữ liệu và dòng tổng hợp chưa thẳng cột.');
+                }
+                const bodyCenter = bodyRect.left + bodyRect.width / 2;
+                const footerCenter = footerRect.left + footerRect.width / 2;
+                const headerCenter = orderRect.left + orderRect.width / 2;
+                if (Math.abs(bodyCenter - headerCenter) > 1 || Math.abs(footerCenter - headerCenter) > 1) {
+                    messages.push('Badge tổng đơn chưa cùng tâm với tiêu đề cột.');
                 }
                 return messages;
             }
             """);
 
         geometryErrors.Should().BeEmpty(string.Join(Environment.NewLine, geometryErrors));
+    }
+
+    private static async Task AssertFilterColumnOrderAsync(ILocator surface)
+    {
+        var errors = await surface.EvaluateAsync<string[]>(
+            """
+            element => {
+                const checks = [
+                    ['.vpp-settlement-filter-department', 'Phòng ban'],
+                    ['.vpp-settlement-filter-order-type', 'Tổng đơn'],
+                    ['.vpp-settlement-filter-status', 'Trạng thái']
+                ];
+                const headers = [...element.querySelectorAll('thead th')];
+                const messages = [];
+                let lastFilterLeft = -Infinity;
+                let lastHeaderLeft = -Infinity;
+                for (const [selector, title] of checks) {
+                    const filter = element.querySelector(selector);
+                    const header = headers.find(cell => cell.textContent?.trim() === title);
+                    if (!filter || !header) {
+                        messages.push(`Thiếu filter hoặc cột ${title}.`);
+                        continue;
+                    }
+                    const filterLeft = filter.getBoundingClientRect().left;
+                    const headerLeft = header.getBoundingClientRect().left;
+                    if (filterLeft <= lastFilterLeft || headerLeft <= lastHeaderLeft) {
+                        messages.push(`Thứ tự filter/cột ${title} chưa đồng nhất.`);
+                    }
+                    lastFilterLeft = filterLeft;
+                    lastHeaderLeft = headerLeft;
+                }
+                return messages;
+            }
+            """);
+
+        errors.Should().BeEmpty(string.Join(Environment.NewLine, errors));
     }
 
     private static async Task AssertNumericColumnsAlignedAsync(ILocator surface)
@@ -417,6 +485,9 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                         || actionStyle.boxShadow !== 'none'
                         || hasPseudoSeparator) {
                         messages.push('Separator cột thao tác vẫn đè lên dòng tổng hợp.');
+                    }
+                    if (actionStyle.position === 'sticky') {
+                        messages.push('Ô thao tác của dòng tổng hợp vẫn bị frozen/sticky và có thể đè lên dải tổng.');
                     }
                 }
                 return messages;

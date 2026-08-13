@@ -36,6 +36,9 @@ public sealed record SettlementDepartmentRow(
     decimal NetAmount,
     decimal VatAmount,
     decimal GrossAmount,
+    string TopItemName,
+    int TopItemQuantity,
+    IReadOnlyList<SettlementOrderStatusCount> StatusCounts,
     SettlementOrderGroupStatus Status);
 
 public sealed record SettlementRequesterRow(
@@ -51,6 +54,7 @@ public sealed record SettlementRequesterRow(
     decimal NetAmount,
     decimal VatAmount,
     decimal GrossAmount,
+    IReadOnlyList<SettlementOrderStatusCount> StatusCounts,
     SettlementOrderGroupStatus Status);
 
 public sealed record SettlementGroupTotals(
@@ -65,6 +69,10 @@ public sealed record SettlementGroupTotals(
 {
     public static SettlementGroupTotals Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0);
 }
+
+public sealed record SettlementOrderStatusCount(
+    int Status,
+    int Count);
 
 public sealed record SettlementItemFinancialValues(
     decimal NetUnitPrice,
@@ -132,7 +140,8 @@ public static class SettlementWorkspaceProjection
         IEnumerable<VppRequestResDTO> orders,
         IReadOnlyList<DepartmentResDTO> departments,
         SettlementOrderGroupFilter filter,
-        IReadOnlyList<SettlementFinancialAllocationResDTO>? allocations = null)
+        IReadOnlyList<SettlementFinancialAllocationResDTO>? allocations = null,
+        IReadOnlyList<AggregatedVppItemResDTO>? demandItems = null)
     {
         var search = filter.Search.Trim();
         return orders
@@ -140,7 +149,12 @@ public static class SettlementWorkspaceProjection
             .GroupBy(
                 order => DisplayDepartment(order.DepartmentCode),
                 StringComparer.CurrentCultureIgnoreCase)
-            .Select(group => CreateDepartmentRow(group.Key, group.ToList(), departments, allocations ?? []))
+            .Select(group => CreateDepartmentRow(
+                group.Key,
+                group.ToList(),
+                departments,
+                allocations ?? [],
+                demandItems ?? []))
             .OrderBy(row => row.DepartmentName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
@@ -187,6 +201,14 @@ public static class SettlementWorkspaceProjection
             materialized.Sum(row => row.VatAmount),
             materialized.Sum(row => row.GrossAmount));
     }
+
+    public static IReadOnlyList<SettlementOrderStatusCount> SummarizeStatuses(
+        IEnumerable<SettlementDepartmentRow> rows) =>
+        SummarizeStatuses(rows.SelectMany(row => row.StatusCounts));
+
+    public static IReadOnlyList<SettlementOrderStatusCount> SummarizeStatuses(
+        IEnumerable<SettlementRequesterRow> rows) =>
+        SummarizeStatuses(rows.SelectMany(row => row.StatusCounts));
 
     public static SettlementItemTotals SummarizeItems(
         IEnumerable<AggregatedVppItemResDTO> rows,
@@ -236,9 +258,11 @@ public static class SettlementWorkspaceProjection
         string departmentCode,
         IReadOnlyList<VppRequestResDTO> departmentOrders,
         IReadOnlyList<DepartmentResDTO> departments,
-        IReadOnlyList<SettlementFinancialAllocationResDTO> allocations)
+        IReadOnlyList<SettlementFinancialAllocationResDTO> allocations,
+        IReadOnlyList<AggregatedVppItemResDTO> demandItems)
     {
         var financials = SumFinancials(departmentOrders, allocations);
+        var topItem = GetTopItem(departmentOrders, demandItems);
         return new SettlementDepartmentRow(
             departmentCode,
             GetDepartmentName(departmentCode, departments),
@@ -251,6 +275,9 @@ public static class SettlementWorkspaceProjection
             financials.NetAmount,
             financials.VatAmount,
             financials.GrossAmount,
+            topItem.Name,
+            topItem.Quantity,
+            GetStatusCounts(departmentOrders),
             ResolveGroupStatus(departmentOrders));
     }
 
@@ -274,6 +301,7 @@ public static class SettlementWorkspaceProjection
             financials.NetAmount,
             financials.VatAmount,
             financials.GrossAmount,
+            GetStatusCounts(requesterOrders),
             ResolveGroupStatus(requesterOrders));
     }
 
@@ -287,6 +315,69 @@ public static class SettlementWorkspaceProjection
             matching.Sum(allocation => allocation.NetAmount),
             matching.Sum(allocation => allocation.VatAmount),
             matching.Sum(allocation => allocation.NetAmount + allocation.VatAmount));
+    }
+
+    private static IReadOnlyList<SettlementOrderStatusCount> SummarizeStatuses(
+        IEnumerable<SettlementOrderStatusCount> statusCounts) =>
+        statusCounts
+            .GroupBy(item => item.Status)
+            .Select(group => new SettlementOrderStatusCount(group.Key, group.Sum(item => item.Count)))
+            .OrderBy(item => item.Status)
+            .ToArray();
+
+    private static IReadOnlyList<SettlementOrderStatusCount> GetStatusCounts(
+        IEnumerable<VppRequestResDTO> orders) =>
+        orders
+            .GroupBy(order => order.Status)
+            .Select(group => new SettlementOrderStatusCount(group.Key, group.Count()))
+            .OrderBy(item => item.Status)
+            .ToArray();
+
+    private static (string Name, int Quantity) GetTopItem(
+        IReadOnlyList<VppRequestResDTO> orders,
+        IReadOnlyList<AggregatedVppItemResDTO> demandItems)
+    {
+        var requestCodes = orders
+            .Select(order => order.VppCode?.Trim())
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Select(code => code!)
+            .ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+
+        var topDemandItem = demandItems
+            .Select(item => new
+            {
+                Name = string.IsNullOrWhiteSpace(item.VppName) ? DisplayItem(item.VppCode) : item.VppName.Trim(),
+                Quantity = item.Breakdown
+                    .Where(detail => !string.IsNullOrWhiteSpace(detail.Code) && requestCodes.Contains(detail.Code.Trim()))
+                    .Sum(detail => detail.Qty)
+            })
+            .Where(item => item.Quantity > 0)
+            .OrderByDescending(item => item.Quantity)
+            .ThenBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase)
+            .FirstOrDefault();
+        if (topDemandItem is not null)
+        {
+            return (topDemandItem.Name, topDemandItem.Quantity);
+        }
+
+        var topOrderItem = orders
+            .SelectMany(order => order.Items)
+            .GroupBy(
+                item => new
+                {
+                    item.VppId,
+                    Name = string.IsNullOrWhiteSpace(item.VppName) ? DisplayItem(item.VppCode) : item.VppName.Trim()
+                })
+            .Select(group => new
+            {
+                group.Key.Name,
+                Quantity = group.Sum(item => item.Qty)
+            })
+            .OrderByDescending(item => item.Quantity)
+            .ThenBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase)
+            .FirstOrDefault();
+
+        return topOrderItem is null ? ("–", 0) : (topOrderItem.Name, topOrderItem.Quantity);
     }
 
     private static SettlementOrderGroupStatus ResolveGroupStatus(IReadOnlyList<VppRequestResDTO> orders) =>
@@ -336,6 +427,9 @@ public static class SettlementWorkspaceProjection
         string.IsNullOrWhiteSpace(value) ? "–" : value;
 
     private static string DisplayRequester(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "–" : value.Trim();
+
+    private static string DisplayItem(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "–" : value.Trim();
 
     private static string GetDepartmentName(

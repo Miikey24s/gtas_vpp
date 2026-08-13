@@ -1099,14 +1099,16 @@
   <data name="SettlementSelectSupplier" xml:space="preserve"><value>Chọn nhà cung cấp</value></data>
   <data name="SettlementSelectPriceList" xml:space="preserve"><value>Chọn bảng giá</value></data>
   <data name="SettlementSubtotalAndVat" xml:space="preserve"><value>Trước VAT và thuế VAT</value></data>
-  <data name="SettlementNetAmount" xml:space="preserve"><value>Tạm tính</value></data>
-  <data name="SettlementGrossAmount" xml:space="preserve"><value>Thành tiền (gồm VAT)</value></data>
+  <data name="SettlementNetAmount" xml:space="preserve"><value>Thành tiền</value></data>
+  <data name="SettlementGrossAmount" xml:space="preserve"><value>Tổng cộng</value></data>
   <data name="SettlementVatRate" xml:space="preserve"><value>Thuế VAT</value></data>
   <data name="SettlementAllOrdersInGroup" xml:space="preserve"><value>Tất cả đơn trong nhóm</value></data>
   <data name="SettlementGroupOrderCount" xml:space="preserve"><value>Số đơn trong nhóm</value></data>
   <data name="SettlementIncludesVat" xml:space="preserve"><value>Đã gồm VAT</value></data>
   <data name="SettlementBeforeVat" xml:space="preserve"><value>Trước VAT</value></data>
-  <data name="SettlementVatAmount" xml:space="preserve"><value>Thuế GTGT (VAT)</value></data>
+  <data name="SettlementVatAmount" xml:space="preserve"><value>VAT</value></data>
+  <data name="SettlementTopItem" xml:space="preserve"><value>Đặt nhiều nhất</value></data>
+  <data name="SettlementTopItemQuantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
   <data name="SettlementRequestValue" xml:space="preserve"><value>Giá trị đơn</value></data>
   <data name="SettlementQuoteBasis" xml:space="preserve"><value>Tổng thanh toán tính theo bảng giá chốt kỳ; cột Giá trị đơn là số tiền đã lưu trên từng đơn.</value></data>
   <data name="SettlementCoverageFormat" xml:space="preserve"><value>{0}/{1} mặt hàng có giá</value></data>

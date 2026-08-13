@@ -36,7 +36,8 @@ public sealed partial class LocalizationResourceTests
             "ConfirmEmailAccent",
             "Email",
             "IsDeleted",
-            "AiGenerated"
+            "AiGenerated",
+            "SettlementVatAmount"
         };
 
         var offenders = vietnameseValues

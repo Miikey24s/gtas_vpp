@@ -76,6 +76,12 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("SettlementNetAmount", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementVatAmount", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementGrossAmount", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementTopItem", settlement, StringComparison.Ordinal);
+        Assert.Contains("vpp-settlement-filter-department", settlement, StringComparison.Ordinal);
+        Assert.Contains("vpp-settlement-filter-order-type", settlement, StringComparison.Ordinal);
+        Assert.Contains("vpp-settlement-filter-status", settlement, StringComparison.Ordinal);
+        Assert.Contains("Property=\"DepartmentSummary\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("StatusCounts", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementAllOrdersInGroup", settlementDetails, StringComparison.Ordinal);
         Assert.Contains("Guid.Empty", settlementDetails, StringComparison.Ordinal);
         Assert.Contains("Task.WhenAll", settlementCode, StringComparison.Ordinal);

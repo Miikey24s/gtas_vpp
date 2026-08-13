@@ -59,6 +59,8 @@ public partial class PeriodSettlementPanel : IDisposable
     private SettlementItemTotals itemTotals = SettlementItemTotals.Empty;
     private SettlementGroupTotals departmentTotals = SettlementGroupTotals.Empty;
     private SettlementGroupTotals requesterTotals = SettlementGroupTotals.Empty;
+    private IReadOnlyList<SettlementOrderStatusCount> departmentStatusTotals = [];
+    private IReadOnlyList<SettlementOrderStatusCount> requesterStatusTotals = [];
     private AggregatedVppResDTO? periodDemand;
     private PeriodSettlementResDTO? status;
     private bool isLoading = true;
@@ -111,6 +113,10 @@ public partial class PeriodSettlementPanel : IDisposable
         ? string.Format(Loc["SettlementVersionLabel"], revision.RevisionNumber)
         : string.Empty;
     private string OrderCountLabel(string label, int count) => $"{label}: {count}";
+    private string OrderColumnTitle => string.IsNullOrWhiteSpace(selectedOrderType)
+        ? Loc["TotalOrders"]
+        : Loc["HistoryOrderType"];
+    private string StatusColumnTitle => Loc["Status"];
     private string SettlementStatusText => status?.IsSettled == true
         ? Loc["Settled"].Value
         : Loc["NotSettled"].Value;
@@ -330,6 +336,8 @@ public partial class PeriodSettlementPanel : IDisposable
         itemTotals = SettlementItemTotals.Empty;
         departmentTotals = SettlementGroupTotals.Empty;
         requesterTotals = SettlementGroupTotals.Empty;
+        departmentStatusTotals = [];
+        requesterStatusTotals = [];
         postSettlementCorrections = [];
         pendingPostSettlementCorrections = [];
         currentSettlementRevision = null;
@@ -567,6 +575,7 @@ public partial class PeriodSettlementPanel : IDisposable
         var viewTask = viewMode switch
         {
             ItemsView => Task.WhenAll(ordersTask, LoadPeriodDemandAsync()),
+            DepartmentsView => Task.WhenAll(ordersTask, LoadDepartmentDirectoryAsync(), LoadPeriodDemandAsync()),
             _ => Task.WhenAll(ordersTask, LoadDepartmentDirectoryAsync())
         };
         await viewTask;
@@ -595,6 +604,9 @@ public partial class PeriodSettlementPanel : IDisposable
             row.NetAmount,
             row.VatAmount,
             row.GrossAmount,
+            row.TopItemName,
+            row.TopItemQuantity,
+            row.StatusCounts,
             statusValue.Item1,
             statusValue.Item2);
     }
@@ -615,6 +627,7 @@ public partial class PeriodSettlementPanel : IDisposable
             row.NetAmount,
             row.VatAmount,
             row.GrossAmount,
+            row.StatusCounts,
             statusValue.Item1,
             statusValue.Item2);
     }
@@ -626,6 +639,31 @@ public partial class PeriodSettlementPanel : IDisposable
         SettlementOrderGroupStatus.NeedsReview => (Loc["SettlementNeedsReview"].Value, VppStatusTone.Warning),
         _ => (Loc["Submitted"].Value, VppStatusTone.Info)
     };
+
+    private string SelectedOrderTypeLabel => string.Equals(selectedOrderType, "additional", StringComparison.Ordinal)
+        ? Loc["AdditionalOrder"]
+        : Loc["Regular"];
+
+    private VppCategoryTone SelectedOrderTypeTone => string.Equals(
+        selectedOrderType,
+        "additional",
+        StringComparison.Ordinal)
+            ? VppCategoryTone.Accent
+            : VppCategoryTone.Neutral;
+
+    private string SelectedStatusLabel => selectedStatus.HasValue
+        ? Loc[StatusDisplay.GetResourceKey(selectedStatus.Value)]
+        : Loc["Status"];
+
+    private VppStatusTone SelectedStatusTone => selectedStatus.HasValue
+        ? StatusDisplay.GetTone(selectedStatus.Value)
+        : VppStatusTone.Neutral;
+
+    private string StatusCountLabel(SettlementOrderStatusCount item) =>
+        $"{Loc[StatusDisplay.GetResourceKey(item.Status)]}: {item.Count}";
+
+    private VppStatusTone StatusCountTone(SettlementOrderStatusCount item) =>
+        StatusDisplay.GetTone(item.Status);
 
     private async Task OnSearchInputAsync(ChangeEventArgs args)
     {
@@ -700,6 +738,7 @@ public partial class PeriodSettlementPanel : IDisposable
                              selectedDepartment),
                         CurrentFinancialAllocations);
                 requesterTotals = SettlementWorkspaceProjection.SummarizeRows(requesterProjection);
+                requesterStatusTotals = SettlementWorkspaceProjection.SummarizeStatuses(requesterProjection);
                 filteredRequesterRows = requesterProjection
                     .Select(ToRequesterSettlementRow)
                     .ToList();
@@ -713,8 +752,10 @@ public partial class PeriodSettlementPanel : IDisposable
                              selectedOrderType,
                              selectedStatus,
                              selectedDepartment),
-                        CurrentFinancialAllocations);
+                        CurrentFinancialAllocations,
+                        periodDemand?.Items ?? []);
                 departmentTotals = SettlementWorkspaceProjection.SummarizeRows(departmentProjection);
+                departmentStatusTotals = SettlementWorkspaceProjection.SummarizeStatuses(departmentProjection);
                 filteredDepartmentRows = departmentProjection
                     .Select(ToDepartmentSettlementRow)
                     .ToList();
@@ -1027,6 +1068,9 @@ public partial class PeriodSettlementPanel : IDisposable
         decimal NetAmount,
         decimal VatAmount,
         decimal GrossAmount,
+        string TopItemName,
+        int TopItemQuantity,
+        IReadOnlyList<SettlementOrderStatusCount> StatusCounts,
         string StatusText,
         VppStatusTone StatusTone);
 
@@ -1043,6 +1087,7 @@ public partial class PeriodSettlementPanel : IDisposable
         decimal NetAmount,
         decimal VatAmount,
         decimal GrossAmount,
+        IReadOnlyList<SettlementOrderStatusCount> StatusCounts,
         string StatusText,
         VppStatusTone StatusTone);
 

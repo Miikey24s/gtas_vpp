@@ -1099,14 +1099,16 @@
   <data name="SettlementSelectSupplier" xml:space="preserve"><value>Select supplier</value></data>
   <data name="SettlementSelectPriceList" xml:space="preserve"><value>Select price list</value></data>
   <data name="SettlementSubtotalAndVat" xml:space="preserve"><value>Before VAT and VAT</value></data>
-  <data name="SettlementNetAmount" xml:space="preserve"><value>Subtotal</value></data>
-  <data name="SettlementGrossAmount" xml:space="preserve"><value>Amount incl. VAT</value></data>
+  <data name="SettlementNetAmount" xml:space="preserve"><value>Amount</value></data>
+  <data name="SettlementGrossAmount" xml:space="preserve"><value>Total</value></data>
   <data name="SettlementVatRate" xml:space="preserve"><value>VAT</value></data>
   <data name="SettlementAllOrdersInGroup" xml:space="preserve"><value>All orders in group</value></data>
   <data name="SettlementGroupOrderCount" xml:space="preserve"><value>Orders in group</value></data>
   <data name="SettlementIncludesVat" xml:space="preserve"><value>VAT included</value></data>
   <data name="SettlementBeforeVat" xml:space="preserve"><value>Before VAT</value></data>
   <data name="SettlementVatAmount" xml:space="preserve"><value>VAT</value></data>
+  <data name="SettlementTopItem" xml:space="preserve"><value>Most ordered</value></data>
+  <data name="SettlementTopItemQuantity" xml:space="preserve"><value>Quantity: {0}</value></data>
   <data name="SettlementRequestValue" xml:space="preserve"><value>Order value</value></data>
   <data name="SettlementQuoteBasis" xml:space="preserve"><value>Total payable uses the settlement price book; Order value is the amount stored on each request.</value></data>
   <data name="SettlementCoverageFormat" xml:space="preserve"><value>{0}/{1} priced items</value></data>
