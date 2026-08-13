@@ -120,6 +120,9 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("th:has(.rz-sortable-column-icon):focus-within", dataGrid, StringComparison.Ordinal);
         Assert.Contains("opacity: 0;", dataGrid, StringComparison.Ordinal);
         Assert.Contains(":is(.rzi-sort-asc, .rzi-sort-desc)", dataGrid, StringComparison.Ordinal);
+        Assert.Contains(".rz-grid-table tbody > tr:has(.vpp-data-grid-empty-state) .vpp-data-grid-empty-state", dataGrid, StringComparison.Ordinal);
+        Assert.Contains("border-radius: 0;", dataGrid, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: none;", dataGrid, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-order-grid .rz-datatable-tablewrapper,\n.vpp-order-grid .rz-paginator", dataGrid, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-grid .rz-pager,", dataGrid, StringComparison.Ordinal);
     }

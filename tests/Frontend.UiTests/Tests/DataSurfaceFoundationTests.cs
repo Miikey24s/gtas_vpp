@@ -406,16 +406,21 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                 const list = workspace.querySelector('.vpp-list-detail-workspace-list');
                 const detail = workspace.querySelector('.vpp-list-detail-workspace-detail');
                 const pager = workspace.querySelector('.rz-paginator, .rz-pager');
+                const emptyState = workspace.querySelector('.vpp-data-grid-empty-state');
                 const workspaceRect = workspace.getBoundingClientRect();
                 const listRect = list?.getBoundingClientRect();
                 const pagerRect = pager?.getBoundingClientRect();
+                const emptyStyle = emptyState ? getComputedStyle(emptyState) : null;
                 return [
                     detail ? 1 : 0,
                     listRect?.width ?? 0,
                     workspaceRect.width,
                     Math.abs((listRect?.left ?? 0) - workspaceRect.left),
                     Math.abs((listRect?.right ?? 0) - workspaceRect.right),
-                    Math.abs((pagerRect?.bottom ?? 0) - workspaceRect.bottom)
+                    Math.abs((pagerRect?.bottom ?? 0) - workspaceRect.bottom),
+                    Number.parseFloat(emptyStyle?.borderTopWidth ?? '-1'),
+                    Number.parseFloat(emptyStyle?.borderTopLeftRadius ?? '-1'),
+                    emptyStyle?.boxShadow === 'none' ? 1 : 0
                 ];
             }
             """);
@@ -426,6 +431,9 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
         geometry[3].Should().BeLessThanOrEqualTo(1);
         geometry[4].Should().BeLessThanOrEqualTo(1);
         geometry[5].Should().BeLessThanOrEqualTo(1, "the empty pager remains anchored to the workspace bottom");
+        geometry[6].Should().Be(0, "grid empty content must not draw a second border");
+        geometry[7].Should().Be(0, "grid empty content must not draw nested rounded corners");
+        geometry[8].Should().Be(1, "grid empty content must not draw a nested shadow");
         await CaptureAsync("pending-approval-empty-full-width-1366x768.png");
     }
 

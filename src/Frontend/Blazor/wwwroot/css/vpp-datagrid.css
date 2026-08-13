@@ -160,6 +160,10 @@
     .rz-grid-table tbody > tr:has(.vpp-data-grid-empty-state) .vpp-data-grid-empty-state {
     flex: 1 1 auto;
     height: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
 /* ── F-41: Lưới chi tiết đơn hàng được nhúng ─────────────────────

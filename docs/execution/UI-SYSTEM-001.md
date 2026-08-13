@@ -518,6 +518,8 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Pager/footer sở hữu duy nhất đường phân cách cuối bảng. Cạnh dưới của hàng cuối được làm trong suốt
   để khi cuộn sát đáy không tạo đường viền kép hoặc bị đè lên footer; rule legacy từng reset toàn bộ
   pager về `border: 0` đã được tách khỏi scroll-container rule.
+- Empty state nằm trong ô dữ liệu không còn kế thừa card chrome của `VppContentState`: bỏ border,
+  radius và shadow riêng để chỉ còn đúng khung ngoài của data surface.
 - `Duyệt đơn bổ sung` giữ nguyên toolbar, cột, empty state và footer khi hàng đợi rỗng nhưng danh sách
   mở rộng toàn workspace; panel chi tiết chỉ xuất hiện khi thực sự có đơn để chọn. Đây là base-empty
   của list, không phải trạng thái “chưa chọn chi tiết”.
