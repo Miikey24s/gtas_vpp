@@ -1,5 +1,6 @@
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
+using gtas_vpp_shared.Enums;
 
 namespace gtas_vpp_fe.Features.Settlement.Projection;
 
@@ -209,6 +210,36 @@ public static class SettlementWorkspaceProjection
     public static IReadOnlyList<SettlementOrderStatusCount> SummarizeStatuses(
         IEnumerable<SettlementRequesterRow> rows) =>
         SummarizeStatuses(rows.SelectMany(row => row.StatusCounts));
+
+    public static IReadOnlyList<SettlementOrderStatusCount> BuildVisibleStatusCounts(
+        IEnumerable<SettlementOrderStatusCount> statusCounts,
+        int? selectedStatus)
+    {
+        var counts = statusCounts
+            .GroupBy(item => item.Status)
+            .ToDictionary(group => group.Key, group => group.Sum(item => item.Count));
+
+        if (selectedStatus.HasValue)
+        {
+            return
+            [
+                new SettlementOrderStatusCount(
+                    selectedStatus.Value,
+                    counts.GetValueOrDefault(selectedStatus.Value))
+            ];
+        }
+
+        var requiredStatuses = new[]
+        {
+            (int)VPPStatus.Submitted,
+            (int)VPPStatus.Approved
+        };
+
+        return requiredStatuses
+            .Concat(counts.Keys.Except(requiredStatuses).OrderBy(status => status))
+            .Select(status => new SettlementOrderStatusCount(status, counts.GetValueOrDefault(status)))
+            .ToArray();
+    }
 
     public static SettlementItemTotals SummarizeItems(
         IEnumerable<AggregatedVppItemResDTO> rows,

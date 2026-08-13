@@ -102,6 +102,10 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await AssertSettlementSummaryFooterAsync(surface);
         await Assertions.Expect(surface.Locator("thead").GetByText("Trạng thái", new() { Exact = true }))
             .ToBeVisibleAsync();
+        await Assertions.Expect(surface.Locator("tbody .vpp-settlement-status-count").First.Locator(".vpp-status-badge"))
+            .ToHaveCountAsync(2);
+        await Assertions.Expect(surface.Locator("tbody .vpp-settlement-status-count").GetByText("Đã duyệt: 0", new() { Exact = true }).First)
+            .ToBeVisibleAsync();
         if (width >= 1100)
         {
             await AssertFilterColumnOrderAsync(surface);

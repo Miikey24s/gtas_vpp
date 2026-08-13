@@ -277,6 +277,22 @@ public sealed class SettlementWorkspaceProjectionTests
         Assert.Equal(new SettlementItemTotals(3, 12, 170, 183.6m), totals);
     }
 
+    [Fact]
+    public void BuildVisibleStatusCounts_KeepsSubmittedAndApprovedBadgesWhenCountIsZero()
+    {
+        var visible = SettlementWorkspaceProjection.BuildVisibleStatusCounts(
+            [new SettlementOrderStatusCount(1, 3)],
+            selectedStatus: null);
+
+        Assert.Collection(
+            visible,
+            submitted => Assert.Equal(new SettlementOrderStatusCount(1, 3), submitted),
+            approved => Assert.Equal(new SettlementOrderStatusCount(7, 0), approved));
+
+        var filtered = SettlementWorkspaceProjection.BuildVisibleStatusCounts(visible, selectedStatus: 1);
+        Assert.Equal([new SettlementOrderStatusCount(1, 3)], filtered);
+    }
+
     private static VppRequestResDTO CreateOrder(
         string departmentCode,
         int status,

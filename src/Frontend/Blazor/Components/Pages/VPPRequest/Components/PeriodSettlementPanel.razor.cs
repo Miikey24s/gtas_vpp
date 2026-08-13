@@ -665,6 +665,10 @@ public partial class PeriodSettlementPanel : IDisposable
     private VppStatusTone StatusCountTone(SettlementOrderStatusCount item) =>
         StatusDisplay.GetTone(item.Status);
 
+    private IReadOnlyList<SettlementOrderStatusCount> VisibleStatusCounts(
+        IReadOnlyList<SettlementOrderStatusCount> statusCounts) =>
+        SettlementWorkspaceProjection.BuildVisibleStatusCounts(statusCounts, selectedStatus);
+
     private async Task OnSearchInputAsync(ChangeEventArgs args)
     {
         searchText = args.Value?.ToString() ?? string.Empty;

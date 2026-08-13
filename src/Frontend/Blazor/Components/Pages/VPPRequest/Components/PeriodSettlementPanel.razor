@@ -358,7 +358,7 @@
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Title="@StatusColumnTitle" Width="180px" MinWidth="180px" TextAlign="TextAlign.Center" Sortable="false" CssClass="vpp-settlement-status-cell" HeaderCssClass="vpp-settlement-status-cell">
                                     <Template Context="row">
                                         <div class="vpp-settlement-status-count">
-                                            @foreach (var item in row.StatusCounts)
+                                            @foreach (var item in VisibleStatusCounts(row.StatusCounts))
                                             {
                                                 <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" />
                                             }
@@ -372,7 +372,7 @@
                                             }
                                             else
                                             {
-                                                @foreach (var item in requesterStatusTotals)
+                                                @foreach (var item in VisibleStatusCounts(requesterStatusTotals))
                                                 {
                                                     <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" />
                                                 }
@@ -455,7 +455,7 @@
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="StatusText" Title="@StatusColumnTitle" Width="180px" MinWidth="180px" TextAlign="TextAlign.Center" Sortable="false" CssClass="vpp-settlement-status-cell" HeaderCssClass="vpp-settlement-status-cell">
                                 <Template Context="row">
                                     <div class="vpp-settlement-status-count">
-                                        @foreach (var item in row.StatusCounts)
+                                        @foreach (var item in VisibleStatusCounts(row.StatusCounts))
                                         {
                                             <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" />
                                         }
@@ -469,7 +469,7 @@
                                         }
                                         else
                                         {
-                                            @foreach (var item in departmentStatusTotals)
+                                            @foreach (var item in VisibleStatusCounts(departmentStatusTotals))
                                             {
                                                 <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" />
                                             }

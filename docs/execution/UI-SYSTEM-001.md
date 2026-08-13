@@ -590,6 +590,8 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Evidence hiện tại: frontend unit/architecture `442/442`; route-real read-only `13/13` gồm User, Security Audit,
   Pricing, Report, Lookup lifecycle, History và Order Period tại các viewport đại diện `390×844`, `768×1024`,
   `1120×768`, `1366×768`, `1920×1080`. Ảnh pricing/user/audit đã review trực tiếp từ output tạm, không commit.
+- Owner feedback: breakdown `Trạng thái` của Chốt kỳ luôn giữ `Đã gửi: n` và `Đã duyệt: n`; trạng thái không có
+  dữ liệu hiển thị `0`, còn khi lọc trạng thái thì chỉ hiện badge của trạng thái được chọn.
 
 ---
 
