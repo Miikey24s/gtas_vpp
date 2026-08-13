@@ -345,12 +345,12 @@
                                         <div class="vpp-settlement-order-count is-summary">
                                             @if (string.IsNullOrWhiteSpace(selectedOrderType))
                                             {
-                                                <VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], requesterTotals.RegularOrderCount)" Tone="VppCategoryTone.Neutral" Muted="@(requesterTotals.RegularOrderCount == 0)" />
-                                                <VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], requesterTotals.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" Muted="@(requesterTotals.AdditionalOrderCount == 0)" />
+                                                <VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], requesterTotals.RegularOrderCount)" Tone="VppCategoryTone.Neutral" Muted="@(requesterTotals.RegularOrderCount == 0)" Emphasized="true" />
+                                                <VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], requesterTotals.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" Muted="@(requesterTotals.AdditionalOrderCount == 0)" Emphasized="true" />
                                             }
                                             else
                                             {
-                                                <VppCategoryChip Text="@OrderCountLabel(SelectedOrderTypeLabel, requesterTotals.OrderCount)" Tone="@SelectedOrderTypeTone" Muted="@(requesterTotals.OrderCount == 0)" />
+                                                <VppCategoryChip Text="@OrderCountLabel(SelectedOrderTypeLabel, requesterTotals.OrderCount)" Tone="@SelectedOrderTypeTone" Muted="@(requesterTotals.OrderCount == 0)" Emphasized="true" />
                                             }
                                         </div>
                                     </FooterTemplate>
@@ -368,13 +368,13 @@
                                         <div class="vpp-settlement-status-count is-summary">
                                             @if (selectedStatus.HasValue)
                                             {
-                                                <VppStatusBadge Text="@($"{SelectedStatusLabel}: {requesterTotals.OrderCount}")" Tone="@SelectedStatusTone" Muted="@(requesterTotals.OrderCount == 0)" />
+                                                <VppStatusBadge Text="@($"{SelectedStatusLabel}: {requesterTotals.OrderCount}")" Tone="@SelectedStatusTone" Muted="@(requesterTotals.OrderCount == 0)" Emphasized="true" />
                                             }
                                             else
                                             {
                                                 @foreach (var item in VisibleStatusCounts(requesterStatusTotals))
                                                 {
-                                                    <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" Muted="@(item.Count == 0)" />
+                                                    <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" Muted="@(item.Count == 0)" Emphasized="true" />
                                                 }
                                             }
                                         </div>
@@ -442,12 +442,12 @@
                                     <div class="vpp-settlement-order-count is-summary">
                                         @if (string.IsNullOrWhiteSpace(selectedOrderType))
                                         {
-                                            <VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], departmentTotals.RegularOrderCount)" Tone="VppCategoryTone.Neutral" Muted="@(departmentTotals.RegularOrderCount == 0)" />
-                                            <VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], departmentTotals.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" Muted="@(departmentTotals.AdditionalOrderCount == 0)" />
+                                            <VppCategoryChip Text="@OrderCountLabel(Loc["Regular"], departmentTotals.RegularOrderCount)" Tone="VppCategoryTone.Neutral" Muted="@(departmentTotals.RegularOrderCount == 0)" Emphasized="true" />
+                                            <VppCategoryChip Text="@OrderCountLabel(Loc["AdditionalOrder"], departmentTotals.AdditionalOrderCount)" Tone="VppCategoryTone.Accent" Muted="@(departmentTotals.AdditionalOrderCount == 0)" Emphasized="true" />
                                         }
                                         else
                                         {
-                                            <VppCategoryChip Text="@OrderCountLabel(SelectedOrderTypeLabel, departmentTotals.OrderCount)" Tone="@SelectedOrderTypeTone" Muted="@(departmentTotals.OrderCount == 0)" />
+                                            <VppCategoryChip Text="@OrderCountLabel(SelectedOrderTypeLabel, departmentTotals.OrderCount)" Tone="@SelectedOrderTypeTone" Muted="@(departmentTotals.OrderCount == 0)" Emphasized="true" />
                                         }
                                     </div>
                                 </FooterTemplate>
@@ -465,13 +465,13 @@
                                     <div class="vpp-settlement-status-count is-summary">
                                         @if (selectedStatus.HasValue)
                                         {
-                                            <VppStatusBadge Text="@($"{SelectedStatusLabel}: {departmentTotals.OrderCount}")" Tone="@SelectedStatusTone" Muted="@(departmentTotals.OrderCount == 0)" />
+                                            <VppStatusBadge Text="@($"{SelectedStatusLabel}: {departmentTotals.OrderCount}")" Tone="@SelectedStatusTone" Muted="@(departmentTotals.OrderCount == 0)" Emphasized="true" />
                                         }
                                         else
                                         {
                                             @foreach (var item in VisibleStatusCounts(departmentStatusTotals))
                                             {
-                                                <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" Muted="@(item.Count == 0)" />
+                                                <VppStatusBadge Text="@StatusCountLabel(item)" Tone="@StatusCountTone(item)" Muted="@(item.Count == 0)" Emphasized="true" />
                                             }
                                         }
                                     </div>

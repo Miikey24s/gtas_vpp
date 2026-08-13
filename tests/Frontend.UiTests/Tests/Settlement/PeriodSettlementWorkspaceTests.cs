@@ -149,6 +149,10 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             await AssertSettlementSummaryFooterAsync(surface);
             await Assertions.Expect(surface.Locator("tfoot .vpp-settlement-summary-value"))
                 .ToHaveTextAsync(["0", "0", "0", "0", "0"]);
+            await Assertions.Expect(surface.Locator("tfoot .vpp-settlement-order-count .vpp-category-chip.is-muted"))
+                .ToHaveCountAsync(2);
+            await Assertions.Expect(surface.Locator("tfoot .vpp-settlement-status-count .vpp-status-badge.is-muted"))
+                .ToHaveCountAsync(2);
             await surface.GetByRole(AriaRole.Button, new() { Name = "Xóa bộ lọc", Exact = true }).ClickAsync();
             await Assertions.Expect(surface.GetByTestId("settlement-summary-label")).ToHaveTextAsync("Tổng cộng");
         }
@@ -476,6 +480,10 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                 }
                 if (getComputedStyle(footer).boxShadow === 'none') {
                     messages.push('Dòng tổng hợp chưa có đường nhấn semantic ở cạnh trên.');
+                }
+                const summaryBadges = [...footer.querySelectorAll('.vpp-status-badge')];
+                if (summaryBadges.some(badge => !badge.classList.contains('is-emphasized'))) {
+                    messages.push('Badge dòng tổng hợp chưa dùng biến thể nhấn mạnh của design system.');
                 }
 
                 const numericCells = footerCells.filter(cell => cell.classList.contains('vpp-settlement-number'));

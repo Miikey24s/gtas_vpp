@@ -8,6 +8,7 @@
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Class { get; set; }
     [Parameter] public bool Muted { get; set; }
+    [Parameter] public bool Emphasized { get; set; }
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
@@ -19,6 +20,7 @@
         {
             "vpp-status-badge",
             $"vpp-status-badge-{ToneCssClass}",
+            Emphasized ? "is-emphasized" : null,
             Muted ? "is-muted" : null,
             Class
         }.Where(value => !string.IsNullOrWhiteSpace(value)));

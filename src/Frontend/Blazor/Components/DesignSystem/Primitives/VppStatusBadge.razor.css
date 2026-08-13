@@ -21,6 +21,10 @@
     opacity: var(--vpp-content-muted-opacity);
 }
 
+.vpp-status-badge.is-emphasized {
+    font-weight: var(--vpp-font-weight-bold);
+}
+
 .vpp-status-badge-neutral {
     --vpp-status-foreground: var(--vpp-text-secondary);
     --vpp-status-background: color-mix(in srgb, var(--vpp-text-secondary) 8%, var(--vpp-bg-elevated));
@@ -49,4 +53,34 @@
     --vpp-status-foreground: var(--vpp-danger);
     --vpp-status-background: var(--vpp-danger-muted);
     --vpp-status-border: color-mix(in srgb, var(--vpp-danger) 18%, transparent);
+}
+
+.vpp-status-badge-neutral.is-emphasized {
+    --vpp-status-foreground: var(--vpp-text-on-action);
+    --vpp-status-background: var(--vpp-text-secondary);
+    --vpp-status-border: var(--vpp-text-secondary);
+}
+
+.vpp-status-badge-info.is-emphasized {
+    --vpp-status-foreground: var(--vpp-text-on-action);
+    --vpp-status-background: var(--vpp-info);
+    --vpp-status-border: var(--vpp-info);
+}
+
+.vpp-status-badge-success.is-emphasized {
+    --vpp-status-foreground: var(--vpp-text-on-action);
+    --vpp-status-background: var(--vpp-success);
+    --vpp-status-border: var(--vpp-success);
+}
+
+.vpp-status-badge-warning.is-emphasized {
+    --vpp-status-foreground: var(--vpp-text-on-action);
+    --vpp-status-background: var(--vpp-warning);
+    --vpp-status-border: var(--vpp-warning);
+}
+
+.vpp-status-badge-danger.is-emphasized {
+    --vpp-status-foreground: var(--vpp-text-on-action);
+    --vpp-status-background: var(--vpp-danger);
+    --vpp-status-border: var(--vpp-danger);
 }
