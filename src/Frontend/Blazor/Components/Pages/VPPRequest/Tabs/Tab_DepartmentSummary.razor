@@ -99,11 +99,6 @@
                         <Template Context="row">@(CurrentSkip + Orders.IndexOf(row) + 1)</Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="Period" Title="@Loc["Period"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center" />
-                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="PeriodState" Title="@Loc["PeriodStateLabel"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-period-state vpp-history-col-center" HeaderCssClass="vpp-history-col-period-state vpp-history-col-center">
-                        <Template Context="row">
-                            <VppPeriodStateBadge State="@row.PeriodState" Compact="true" Class="vpp-history-period-state" />
-                        </Template>
-                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="VppCode" Title="@Loc["OrderCode"]" CssClass="vpp-history-col-left" HeaderCssClass="vpp-history-col-left">
                         <Template Context="row"><VppCellValuePopover Value="@row.VppCode" Label="@Loc["OrderCode"]" CopyLabel="@Loc["Copy"]" Kind="VppCellValueKind.Code" IsOpen="@(_activeCodeOrderId == row.Id)" Toggled="@(() => ToggleCode(row.Id))" CopyRequested="@CopyTextAsync" Class="vpp-history-code-cell" TriggerClass="vpp-history-code vpp-history-code-trigger" PanelClass="vpp-history-code-popover" /></Template>
                     </RadzenDataGridColumn>
@@ -115,6 +110,11 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="StatusText" Title="@Loc["Status"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-center" HeaderCssClass="vpp-history-col-center">
                         <Template Context="row"><VppStatusBadge Tone="@StatusDisplay.GetTone(row.Status)" Text="@Loc[StatusDisplay.GetResourceKey(row.Status, row.IsDeadlinePassed, row.IsAdditionalOrder)]" /></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppRequestResDTO" Property="PeriodState" Title="@Loc["PeriodStateLabel"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-period-state vpp-history-col-center" HeaderCssClass="vpp-history-col-period-state vpp-history-col-center">
+                        <Template Context="row">
+                            <VppPeriodStateBadge State="@row.PeriodState" Compact="true" Class="vpp-history-period-state" />
+                        </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppRequestResDTO" Property="SubmittedDate" Title="@Loc["SubmittedDate"]" TextAlign="TextAlign.Center" CssClass="vpp-history-col-date vpp-history-col-center" HeaderCssClass="vpp-history-col-date vpp-history-col-center">
                         <Template Context="row"><span class="vpp-history-date">@DateFormatter.Format(row.SubmittedDate, DateFormatter.LongDate)</span></Template>

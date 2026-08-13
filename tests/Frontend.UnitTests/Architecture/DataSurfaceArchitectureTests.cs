@@ -355,6 +355,202 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
+    public void DataSurfaceOrder_KeepsFiltersColumnsAndActionsInTheCanonicalSequence()
+    {
+        var root = GetFrontendRoot();
+        var user = ReadPage(root, "Permission", "Tabs", "Tab_User.razor");
+        var audit = ReadPage(root, "Permission", "Tabs", "Tab_SecurityAudit.razor");
+        var price = ReadPage(root, "Lib", "Tabs", "Tab_PriceLibrary.razor");
+        var lookup = ReadPage(root, "Lib", "Tabs", "Tab_LookupLibrary.razor");
+        var category = ReadPage(root, "Lib", "Tabs", "Tab_CategoryLibrary.razor");
+        var supplier = ReadPage(root, "Lib", "Tabs", "Tab_SupplierLibrary.razor");
+        var department = ReadPage(root, "Lib", "Tabs", "Tab_DepartmentLibrary.razor");
+        var item = ReadPage(root, "Lib", "Tabs", "Tab_ItemLibrary.razor");
+        var priceList = ReadPage(root, "Lib", "Tabs", "Tab_PriceListLibrary.razor");
+        var priceImport = ReadPage(root, "Lib", "Tabs", "Dialog", "Dialog_PriceListImport.razor");
+        var history = ReadPage(root, "VPPRequest", "Components", "HistoryOrderList.razor");
+        var periods = ReadPage(root, "VPPRequest", "Components", "OrderPeriodManagementWorkspace.razor");
+
+        AssertAppearsInOrder(
+            Slice(user, "<Toolbar>", "</Toolbar>"),
+            "<VppFilterSearch",
+            "Value=\"@(SelectedAccountStatus",
+            "Value=\"@SelectedGroupId\"",
+            "Value=\"@SelectedDepartmentId\"",
+            "<VppClearFiltersButton",
+            "<VppColumnPicker");
+        AssertAppearsInOrder(
+            Slice(user, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"User\"]\"",
+            "Title=\"@Loc[\"Email\"]\"",
+            "Title=\"@Loc[\"AccountStatus\"]\"",
+            "Title=\"@Loc[\"PermissionGroup\"]\"",
+            "Title=\"@Loc[\"Department\"]\"",
+            "Title=\"@Loc[\"Invitation\"]\"",
+            "Title=\"@Loc[\"Admin\"]\"",
+            "Title=\"@Loc[\"Actions\"]\"");
+
+        AssertAppearsInOrder(
+            Slice(audit, "<Toolbar>", "</Toolbar>"),
+            "<VppFilterSearch",
+            "Value=\"@(SelectedAction",
+            "Value=\"@(SelectedOutcome",
+            "<VppClearFiltersButton",
+            "<VppColumnPicker");
+        AssertAppearsInOrder(
+            Slice(audit, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"AuditTime\"]\"",
+            "Title=\"@Loc[\"AuditAction\"]\"",
+            "Title=\"@Loc[\"AuditOutcome\"]\"",
+            "Title=\"@Loc[\"AuditActor\"]\"",
+            "Title=\"@Loc[\"AuditTarget\"]\"",
+            "Title=\"@Loc[\"AuditResource\"]\"",
+            "Title=\"@Loc[\"AuditSummary\"]\"",
+            "Title=\"@Loc[\"Actions\"]\"");
+
+        AssertAppearsInOrder(
+            Slice(price, "<Toolbar>", "</Toolbar>"),
+            "<VppFilterSearch",
+            "Value=\"@selectedCategory\"",
+            "Value=\"@selectedMappingStatus\"",
+            "<VppClearFiltersButton",
+            "<VppColumnPicker");
+        AssertAppearsInOrder(
+            Slice(price, "<Columns>", "</Columns>"),
+            "Property=\"VppName\"",
+            "Property=\"CategoryName\"",
+            "Property=\"UomName\"",
+            "Property=\"IsDeleted\"",
+            "Property=\"SupplierSku\"",
+            "Property=\"Price\"",
+            "Property=\"VatRate\"",
+            "Property=\"MinimumOrderQuantity\"",
+            "Property=\"LeadTimeDays\"",
+            "Property=\"IsDefault\"");
+
+        var secondLookupColumns = Slice(lookup, "<Columns>", "</Columns>", occurrence: 2);
+        AssertAppearsInOrder(
+            secondLookupColumns,
+            "Property=\"Code\"",
+            "Property=\"Value\"",
+            "Property=\"IsDeleted\"",
+            "Property=\"Sort\"",
+            "Property=\"Description\"",
+            "Property=\"CreatedByUserId\"",
+            "Property=\"CreatedAtUtc\"",
+            "Property=\"UpdatedByUserId\"",
+            "Property=\"UpdatedAtUtc\"",
+            "Title=\"@Loc[\"Actions\"]\"");
+
+        AssertAppearsInOrder(
+            Slice(history, "<Toolbar>", "</Toolbar>"),
+            "<VppFilterSearch",
+            "Value=\"@SelectedOrderType\"",
+            "Value=\"@SelectedStatus\"",
+            "<VppClearFiltersButton");
+        AssertAppearsInOrder(
+            Slice(history, "<Columns>", "</Columns>"),
+            "Property=\"Period\"",
+            "Property=\"VppCode\"",
+            "Title=\"@Loc[\"HistoryOrderType\"]\"",
+            "Property=\"StatusText\"",
+            "Property=\"PeriodState\"",
+            "Property=\"SubmittedDate\"",
+            "Property=\"Description\"");
+
+        AssertAppearsInOrder(
+            Slice(periods, "<Toolbar>", "</Toolbar>"),
+            "<VppFilterSearch",
+            "Value=\"@selectedPeriodYear\"",
+            "Value=\"@selectedPeriodState\"",
+            "<VppClearFiltersButton");
+        AssertAppearsInOrder(
+            Slice(periods, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"Period\"]\"",
+            "Title=\"@Loc[\"Status\"]\"",
+            "Title=\"@Loc[\"OpenDate\"]\"",
+            "Title=\"@Loc[\"CloseDate\"]\"",
+            "Title=\"@Loc[\"SupplementApprovalDeadline\"]\"",
+            "Title=\"@Loc[\"OrderCount\"]\"",
+            "Title=\"@Loc[\"LatestChange\"]\"",
+            "Title=\"@Loc[\"Actions\"]\"");
+        AssertAppearsInOrder(
+            Slice(periods, "Title=\"@Loc[\"Actions\"]\"", "</RadzenDataGridColumn>"),
+            "Text=\"Xem\"",
+            "Text=\"Chốt kỳ\"",
+            "<VppAdminActionMenu");
+
+        Assert.Contains("Title=\"@Loc[\"Category\"]\"", category, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"Supplier\"]\"", supplier, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"Department\"]\"", department, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"ItemName\"]\"", item, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"ItemName\"]\"", price, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"ItemName\"]\"", priceImport, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"PriceList\"]\"", priceList, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ActionOrder_PlacesContextAndWorkflowBeforeDestructiveOrCloseActions()
+    {
+        var root = GetFrontendRoot();
+        var orderPanel = ReadPage(root, "VPPRequest", "Components", "VppOrderWorkspacePanel.razor");
+        var historySheet = ReadPage(root, "VPPRequest", "Components", "HistoryOrderDetailSheet.razor");
+        var settlement = ReadPage(root, "VPPRequest", "Components", "PeriodSettlementPanel.razor");
+        var designSystem = Path.Combine(root, "Components", "DesignSystem", "Composites");
+        var exportActions = Read(designSystem, "VppFileExportActions.razor");
+        var dialogActions = Read(designSystem, "VppDialogActions.razor");
+        var lifecycleMenu = Read(designSystem, "VppAdminLifecycleMenu.razor");
+
+        AssertAppearsInOrder(
+            Slice(orderPanel, "<div class=\"vpp-data-card-actions\">", "</div>"),
+            "Text=\"@Loc[\"History\"]\"",
+            "<VppFileExportActions",
+            "Text=\"@Loc[\"Edit\"]\"",
+            "Text=\"@Loc[\"RestoreOrder\"]\"",
+            "Text=\"@Loc[\"RecreateOrder\"]\"",
+            "Text=\"@PrimaryActionText\"",
+            "Text=\"@Loc[\"Cancel\"]\"");
+        AssertAppearsInOrder(
+            Slice(historySheet, "<div class=\"vpp-history-drawer-actions\">", "</div>"),
+            "FullscreenRequested.HasDelegate",
+            "ShowExportActions",
+            "ShowPostSettlementCorrection",
+            "class=\"vpp-history-drawer-close\"");
+        AssertAppearsInOrder(
+            Slice(settlement, "<Actions>", "</Actions>"),
+            "SettlementHistoryAction",
+            "SettlementResettleAction");
+        Assert.Contains("@foreach (var format in OrderedFormats)", exportActions, StringComparison.Ordinal);
+        AssertAppearsInOrder(
+            Slice(exportActions, "private IEnumerable<VppFileExportFormat> OrderedFormats", "});"),
+            "VppFileExportFormat.Pdf => 0",
+            "VppFileExportFormat.Excel => 1",
+            "VppFileExportFormat.Csv => 2");
+        AssertAppearsInOrder(dialogActions, "ShowCancel", "ShowPrimary");
+        AssertAppearsInOrder(lifecycleMenu, "toggle-active", "hard-delete");
+    }
+
+    [Fact]
+    public void DataGridHeaders_DoNotReintroduceInternalEnglishLabels()
+    {
+        var componentRoot = Path.Combine(GetFrontendRoot(), "Components", "Pages");
+        var forbidden = new[]
+        {
+            "Title=\"Create User\"",
+            "Title=\"Create Date\"",
+            "Title=\"Update User\"",
+            "Title=\"Update Date\"",
+            "Title=\"Lookup category ID\""
+        };
+
+        var source = string.Join('\n', Directory
+            .EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
+            .Select(File.ReadAllText));
+
+        Assert.All(forbidden, label => Assert.DoesNotContain(label, source, StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void ConsumerLedger_CoversEveryRadzenDataGridFileAndCount()
     {
         var repositoryRoot = FindRepositoryRoot();
@@ -379,6 +575,34 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     private static string Read(string root, string fileName) => File.ReadAllText(Path.Combine(root, fileName));
+
+    private static string ReadPage(string root, params string[] segments) =>
+        File.ReadAllText(Path.Combine(new[] { root, "Components", "Pages" }.Concat(segments).ToArray()));
+
+    private static string Slice(string source, string startToken, string endToken, int occurrence = 1)
+    {
+        var start = -1;
+        for (var index = 0; index < occurrence; index++)
+        {
+            start = source.IndexOf(startToken, start + 1, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Missing occurrence {occurrence} of '{startToken}'.");
+        }
+
+        var end = source.IndexOf(endToken, start + startToken.Length, StringComparison.Ordinal);
+        Assert.True(end >= 0, $"Missing '{endToken}' after '{startToken}'.");
+        return source[start..(end + endToken.Length)];
+    }
+
+    private static void AssertAppearsInOrder(string source, params string[] tokens)
+    {
+        var cursor = -1;
+        foreach (var token in tokens)
+        {
+            var next = source.IndexOf(token, cursor + 1, StringComparison.Ordinal);
+            Assert.True(next >= 0, $"Expected '{token}' after index {cursor}.");
+            cursor = next;
+        }
+    }
 
     private static string GetFrontendRoot() => Path.Combine(FindRepositoryRoot(), "src", "Frontend", "Blazor");
 

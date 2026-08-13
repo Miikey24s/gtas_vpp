@@ -66,12 +66,41 @@ Các selector có thể cùng visual foundation nhưng khác semantic:
 Quy tắc vị trí lọc trong data grid:
 
 - `FILTER-TOOLBAR` là lớp lọc hiển thị chính và phải nằm trước vùng dữ liệu.
+- Thứ tự canonical là `Tìm kiếm → filter theo thứ tự cột từ trái sang phải → Áp dụng (nếu route cần submit) → Xóa bộ lọc → Cột`. Search là truy vấn toàn dòng nên luôn đứng đầu; selector phạm vi/decision như kỳ, tab hoặc mode nằm ở context riêng và không chen vào thứ tự filter dữ liệu.
+- Filter chỉ map tới cột nào thì phải đứng cùng thứ tự tương đối với cột đó. Nếu filter áp cho dữ liệu không có cột riêng, đặt sau các filter đã map cột nhưng trước `Xóa bộ lọc`; ghi ngoại lệ trong consumer ledger.
 - Header cột mặc định chỉ sở hữu sort; admin grid không bật Radzen `FilterMode.CheckBoxList` theo mặc định.
 - Điều kiện hiếm hoặc nhiều trường dùng `FILTER-ADVANCED` từ toolbar, không rải popup nhỏ ở từng header.
 - `VppColumnPicker` chỉ điều chỉnh hiển thị cột, không thay thế bộ lọc.
 - Filter luôn áp trên toàn bộ tập dữ liệu được cấp quyền trước `paging`/`virtualization`, sau đó mới tính tổng và phân trang.
 
 Không gộp chúng thành một component string-configured. Dùng typed component/contract riêng, cùng token và popup bridge.
+
+## 3.1. `DATA-SURFACE-ORDER`
+
+Mọi data surface phải kể cùng một câu chuyện đọc, nhưng route vẫn giữ ngoại lệ nghiệp vụ có bằng chứng:
+
+1. `#` hoặc định danh chính: kỳ, mã, tên, người dùng, phòng ban, mặt hàng.
+2. Phân loại và trạng thái: loại đơn, trạng thái đơn/kỳ, nhóm quyền, danh mục, đơn vị.
+3. Số liệu: số đơn, số dòng, số lượng, đơn giá, thành tiền, VAT, tổng cộng.
+4. Thời gian và nội dung bổ sung: ngày gửi/tạo/cập nhật, mô tả, ghi chú.
+5. `Thao tác` luôn cuối và frozen bên phải khi grid cần row action.
+
+Quy tắc tên cột:
+
+- Dùng cùng một nhãn cho cùng một khái niệm: `Mặt hàng`, `Danh mục`, `Đơn vị`, `Nhà cung cấp`, `Phòng ban`, `Trạng thái`, `Số lượng`, `Đơn giá`, `Thành tiền`, `VAT`, `Tổng cộng`, `Thao tác`.
+- Header ưu tiên 1–3 từ và bỏ từ đã rõ từ context: `Hạn duyệt bổ sung` thay cho `Hạn duyệt đơn bổ sung`; `Cập nhật` thay cho `Thay đổi gần nhất`. Không viết acronym kỹ thuật như `NCC`, `MĐ`, `SL` hoặc nhãn tiếng Anh nội bộ trong UI tiếng Việt.
+- Không đổi nghĩa chỉ để tránh ellipsis. Nếu tên ngắn hợp lệ vẫn bị cắt ở desktop, chỉnh track/min-width/priority cột; chỉ cột phụ mới ẩn vào `VppColumnPicker` trên viewport hẹp.
+- Cột ẩn/pickable và danh sách `Cột` giữ đúng thứ tự khai báo của grid; metadata registry dùng tên người dùng hiểu, không dùng `Class Code`, `VPP Category`, `Create User` hoặc identifier kỹ thuật tương tự.
+- Default sort: dữ liệu vận hành và audit mới → cũ; danh mục theo tên/mã tự nhiên; thứ tự cấu hình/lookup theo trường nghiệp vụ. Không đảo sort chỉ để đổi bố cục cột.
+
+Quy tắc thứ tự action:
+
+- Cụm ngoài dòng: `Xem/Chi tiết → xuất/chia sẻ → chỉnh sửa → workflow chính → destructive`; action workflow chính có thể được nhấn màu nhưng vẫn giữ vị trí ổn định giữa các trạng thái.
+- Cột dòng: action chính trước, overflow `...` sau. Trong overflow: `Xem → Sửa → nghiệp vụ không phá hủy → khôi phục/vô hiệu hóa → xóa vĩnh viễn`; destructive luôn cuối.
+- Dialog footer: leading utility ở trái; bên phải luôn `Hủy → Xác nhận/Lưu/Duyệt/Chốt`. Nếu chỉ có một action thì đặt tại vị trí xác nhận, không đảo trái–phải theo route.
+- Workflow nhiều bước: `Quay lại` tách ở trái; nhóm phải theo `Lưu nháp → tiện ích/ghi chú → Tiếp tục/Gửi`. Approval đặt `Từ chối → Duyệt`; drawer đặt `Xem toàn màn hình → PDF → Excel → chỉnh sửa → Đóng`.
+- Collection header: utility như lịch sử/xuất file đứng trước action tạo/import; component `VppFileExportActions` giữ thứ tự `PDF → Excel → CSV`. Không đổi thứ tự theo loading, quyền hoặc dữ liệu rỗng.
+- Tab/selector đi từ phạm vi lớn → nhóm dữ liệu → chi tiết và mặc định vào lựa chọn đầu tiên hợp lệ. Loading/empty/error giữ nguyên thứ tự toolbar, cột, action và footer để capability surface không nhảy.
 
 Quy tắc `HEADER-TAB-GROUP`:
 

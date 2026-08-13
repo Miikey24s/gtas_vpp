@@ -42,8 +42,11 @@
                     <RadzenDataGridColumn TItem="SupplierResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="row">@(currentSkip + rows.IndexOf(row) + 1)</Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="SupplierName" Title="@Loc["SupplierName"]" Width="250px" MinWidth="220px">
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="SupplierName" Title="@Loc["Supplier"]" Width="250px" MinWidth="220px">
                         <Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.SupplierName ?? "–")</strong><small>@(row.SupplierShortName ?? "–")</small></div></Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
+                        <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="City" Title="@Loc["Location"]" Width="180px">
                         <Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(string.IsNullOrWhiteSpace(row.City) ? "–" : row.City)</strong><small>@(string.IsNullOrWhiteSpace(row.Ward) ? "–" : row.Ward)</small></div></Template>
@@ -56,9 +59,6 @@
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="Address3" Title="@Loc["Address3"]" Width="220px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="Description" Title="@Loc["Description"]" Width="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="150px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
-                        <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
-                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="SupplierResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions" Visible="@CanModify">
                         <Template Context="row">
                             <div class="vpp-admin-actions">

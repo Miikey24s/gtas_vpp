@@ -82,6 +82,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private string GridEmptyText => !HasPriceLists
             ? Loc["NoPriceListAvailable"].Value
             : HasPriceContext ? Loc["NoPricesFound"].Value : Loc["LoadPriceListPrompt"].Value;
+        private string GetPriceStatusLabel(VppItemPriceResDTO row) => !row.PriceMappingId.HasValue
+            ? Loc["PriceMappingMissing"].Value
+            : row.IsDeleted
+                ? Loc["PriceMappingInactive"].Value
+                : Loc["PriceMappingActive"].Value;
+        private static VppStatusTone GetPriceStatusTone(VppItemPriceResDTO row) => !row.PriceMappingId.HasValue
+            ? VppStatusTone.Neutral
+            : row.IsDeleted
+                ? VppStatusTone.Warning
+                : VppStatusTone.Success;
         protected override RadzenDataGrid<VppItemPriceResDTO>? InitialGrid => grid;
         protected override bool CanRequestInitialGridLoad => selectedSupplierId.HasValue && selectedPriceListId.HasValue;
 

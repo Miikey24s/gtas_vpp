@@ -107,10 +107,10 @@
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="ModuleName" Title="@Loc["ModuleName"]" Width="120px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Id" Title="ID" Width="250px" CssClass="col-tight" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedByUserId" Title="Create User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedByUserId" Title="@Loc["CreatedBy"]" Width="130px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedAtUtc" Title="@Loc["CreatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedByUserId" Title="@Loc["UpdatedBy"]" Width="140px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Title="@Loc["Actions"]" Width="136px" MinWidth="136px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions" Visible="@CanModifyLookup">
                         <Template Context="data">
                             <div class="vpp-admin-actions">
@@ -208,21 +208,21 @@
                             @(currentValueSkip + lookupValues.IndexOf(data) + 1)
                         </Template>
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Code" Title="@Loc["Code"]" Width="125px" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Value" Title="@Loc["Value"]" Width="170px" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="data">
                             <VppStatusBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(data.IsDeleted ? "Inactive" : "Active")" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Code" Title="@Loc["Code"]" Width="125px" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Value" Title="@Loc["Value"]" Width="170px" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Sort" Title="@Loc["SortOrder"]" Width="80px" TextAlign="TextAlign.Center" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Description" Title="@Loc["Description"]" Width="180px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Id" Title="ID" Width="250px" CssClass="col-tight" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="LookupCategoryId" Title="Lookup category ID" Width="250px" CssClass="col-tight" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedByUserId" Title="Create User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedAtUtc" Title="Create Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedByUserId" Title="Update User" Width="120px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedAtUtc" Title="Update Date" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="LookupCategoryId" Title="@Loc["LookupCategoryIdLabel"]" Width="190px" CssClass="col-tight" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedByUserId" Title="@Loc["CreatedBy"]" Width="130px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="CreatedAtUtc" Title="@Loc["CreatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedByUserId" Title="@Loc["UpdatedBy"]" Width="140px" TextAlign="TextAlign.Center" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Title="@Loc["Actions"]" Width="136px" MinWidth="136px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions" Visible="@CanModifyLookup">
                         <Template Context="data">
                             <div class="vpp-admin-actions">

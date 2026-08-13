@@ -48,18 +48,18 @@
                                          Input="@OnPeriodSearchInput"
                                          Placeholder="Tìm kỳ hoặc thay đổi gần nhất"
                                          AriaLabel="Tìm kỳ hoặc thay đổi gần nhất" />
-                        <VppFilterSelect TValue="string"
-                                         Value="@selectedPeriodState"
-                                         Options="@PeriodStateOptions"
-                                         ValueChanged="@OnPeriodStateChanged"
-                                         Placeholder="Tất cả trạng thái"
-                                         AriaLabel="Lọc theo trạng thái kỳ" />
                         <VppFilterSelect TValue="int?"
                                          Value="@selectedPeriodYear"
                                          Options="@PeriodYearOptions"
                                          ValueChanged="@OnPeriodYearChanged"
                                          Placeholder="Tất cả năm"
                                          AriaLabel="Lọc theo năm" />
+                        <VppFilterSelect TValue="string"
+                                         Value="@selectedPeriodState"
+                                         Options="@PeriodStateOptions"
+                                         ValueChanged="@OnPeriodStateChanged"
+                                         Placeholder="Tất cả trạng thái"
+                                         AriaLabel="Lọc theo trạng thái kỳ" />
                         <VppClearFiltersButton Text="Xóa bộ lọc"
                                                IsActive="@HasPeriodFilters"
                                                Clicked="@ClearPeriodFiltersAsync" />
@@ -98,31 +98,31 @@
                                                       CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                                     <Template Context="row">@(Periods.IndexOf(row) + 1)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="Kỳ" Width="110px" MinWidth="110px"
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="@Loc["Period"]" Width="110px" MinWidth="110px"
                                                       Sortable="false">
                                     <Template Context="row">@PeriodLabel(row)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="State" Title="Trạng thái"
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="State" Title="@Loc["Status"]"
                                                       Width="150px" MinWidth="150px" TextAlign="TextAlign.Center">
                                     <Template Context="row"><VppPeriodStateBadge State="@row.State" Compact="true" /></Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="OpenAtLocal" Title="Ngày mở"
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="OpenAtLocal" Title="@Loc["OpenDate"]"
                                                       Width="155px" MinWidth="155px" TextAlign="TextAlign.Center">
                                     <Template Context="row">@FormatDateTime(row.OpenAtLocal)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="CloseAtLocal" Title="Ngày đóng"
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="CloseAtLocal" Title="@Loc["CloseDate"]"
                                                       Width="165px" MinWidth="165px" TextAlign="TextAlign.Center">
                                     <Template Context="row">@FormatDateTime(row.CloseAtLocal)</Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="SupplementApprovalDeadlineLocal"
-                                                      Title="Hạn duyệt đơn bổ sung" Width="195px" MinWidth="195px"
+                                                      Title="@Loc["SupplementApprovalDeadline"]" Width="175px" MinWidth="165px"
                                                       TextAlign="TextAlign.Center" Pickable="true">
                                     <Template Context="row">@FormatDateTime(row.SupplementApprovalDeadlineLocal)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="OrderCount" Title="Số đơn"
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="OrderCount" Title="@Loc["OrderCount"]"
                                                       Width="88px" MinWidth="88px" TextAlign="TextAlign.Center" />
                                 <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="LastTransitionAtLocal"
-                                                      Title="Thay đổi gần nhất" Width="220px" MinWidth="200px" Pickable="true">
+                                                      Title="@Loc["LatestChange"]" Width="200px" MinWidth="180px" Pickable="true">
                                     <Template Context="row">
                                         <div class="vpp-admin-two-line-cell">
                                             <span class="vpp-admin-truncate" title="@row.LastTransitionReason">
@@ -135,7 +135,7 @@
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="Thao tác" Width="210px" MinWidth="210px"
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="@Loc["Actions"]" Width="210px" MinWidth="210px"
                                                       Filterable="false" Sortable="false" Reorderable="false" Resizable="false"
                                                       Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right"
                                                       TextAlign="TextAlign.Center" CssClass="rz-col-actions"

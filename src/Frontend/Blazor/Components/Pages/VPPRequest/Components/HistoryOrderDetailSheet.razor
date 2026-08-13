@@ -37,22 +37,6 @@
             {
                 @* D10: xuất phiếu ngay từ màn lịch sử, tái dùng ExportOrderAsync của BaseOrderTab. *@
                 <div class="vpp-history-drawer-actions">
-                    @if (ShowPostSettlementCorrection && PostSettlementCorrectionRequested.HasDelegate)
-                    {
-                        <RadzenButton Icon="edit_note"
-                                      Text="@PostSettlementCorrectionText"
-                                      ButtonStyle="ButtonStyle.Warning"
-                                      Variant="Variant.Outlined"
-                                      Disabled="@IsDetailLoading"
-                                      Click="@(_ => PostSettlementCorrectionRequested.InvokeAsync())" />
-                    }
-                    @if (ShowExportActions)
-                    {
-                        <VppFileExportActions BusyFormat="@BusyExportFormat"
-                                              ExportRequested="@ExportRequested"
-                                              Disabled="@IsDetailLoading"
-                                              AriaContext="@SelectedOrder.VppCode" />
-                    }
                     @if (FullscreenRequested.HasDelegate)
                     {
                         <RadzenButton Icon="@(IsFullscreen ? "close_fullscreen" : "open_in_full")"
@@ -62,6 +46,22 @@
                                       Variant="Variant.Text"
                                       Click="@FullscreenRequested"
                                       aria-label="@(IsFullscreen ? Loc["ExitFullscreen"] : Loc["ViewFullscreen"])" />
+                    }
+                    @if (ShowExportActions)
+                    {
+                        <VppFileExportActions BusyFormat="@BusyExportFormat"
+                                              ExportRequested="@ExportRequested"
+                                              Disabled="@IsDetailLoading"
+                                              AriaContext="@SelectedOrder.VppCode" />
+                    }
+                    @if (ShowPostSettlementCorrection && PostSettlementCorrectionRequested.HasDelegate)
+                    {
+                        <RadzenButton Icon="edit_note"
+                                      Text="@PostSettlementCorrectionText"
+                                      ButtonStyle="ButtonStyle.Warning"
+                                      Variant="Variant.Outlined"
+                                      Disabled="@IsDetailLoading"
+                                      Click="@(_ => PostSettlementCorrectionRequested.InvokeAsync())" />
                     }
                     <RadzenButton Icon="close"
                                   class="vpp-history-drawer-close"

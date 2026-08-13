@@ -71,7 +71,7 @@
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="row">@(currentSkip + rows.IndexOf(row) + 1)</Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="VppCategoryName" Title="@Loc["CategoryName"]" Width="260px" MinWidth="230px">
+                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="VppCategoryName" Title="@Loc["Category"]" Width="260px" MinWidth="230px">
                         <Template Context="row">
                             <div class="vpp-admin-two-line-cell">
                                 <strong>@(row.VppCategoryName ?? "–")</strong>

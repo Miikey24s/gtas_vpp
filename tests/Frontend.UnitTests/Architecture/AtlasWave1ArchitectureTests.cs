@@ -99,7 +99,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("vpp-admin-switch-readonly", page, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UOM\"]", pricePage, StringComparison.Ordinal);
         Assert.Contains("Loc[\"SupplierSku\"]", pricePage, StringComparison.Ordinal);
-        Assert.Contains("Loc[\"MinimumOrderQuantity\"]", pricePage, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"MinimumOrderShort\"]", pricePage, StringComparison.Ordinal);
         Assert.Contains("Loc[\"LeadTimeDays\"]", pricePage, StringComparison.Ordinal);
         Assert.Contains("VppStatusTone.Neutral", pricePage, StringComparison.Ordinal);
         Assert.DoesNotContain("UomCompact", pricePage, StringComparison.Ordinal);

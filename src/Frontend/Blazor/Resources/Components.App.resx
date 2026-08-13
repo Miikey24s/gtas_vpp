@@ -176,6 +176,17 @@
   <data name="Name" xml:space="preserve"><value>Tên</value></data>
   <data name="Code" xml:space="preserve"><value>Mã</value></data>
   <data name="Value" xml:space="preserve"><value>Giá trị</value></data>
+  <data name="ParentDepartment" xml:space="preserve"><value>Phòng ban cha</value></data>
+  <data name="Invitation" xml:space="preserve"><value>Lời mời</value></data>
+  <data name="CreatedBy" xml:space="preserve"><value>Người tạo</value></data>
+  <data name="UpdatedBy" xml:space="preserve"><value>Người cập nhật</value></data>
+  <data name="LookupCategoryIdLabel" xml:space="preserve"><value>Mã loại danh mục</value></data>
+  <data name="PriceStatus" xml:space="preserve"><value>Trạng thái giá</value></data>
+  <data name="MinimumOrderShort" xml:space="preserve"><value>Đặt tối thiểu</value></data>
+  <data name="OpenDate" xml:space="preserve"><value>Ngày mở</value></data>
+  <data name="CloseDate" xml:space="preserve"><value>Ngày đóng</value></data>
+  <data name="SupplementApprovalDeadline" xml:space="preserve"><value>Hạn duyệt bổ sung</value></data>
+  <data name="LatestChange" xml:space="preserve"><value>Cập nhật</value></data>
   <data name="IsDeleted" xml:space="preserve"><value>Vô hiệu hóa</value></data>
   <data name="MyOrders" xml:space="preserve"><value>Đơn hàng của tôi</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Danh mục mặt hàng</value></data>
@@ -451,7 +462,7 @@
   <data name="NoPriceListAvailable" xml:space="preserve"><value>Chưa có bảng giá khả dụng.</value></data>
   <data name="PriceListCode" xml:space="preserve"><value>Mã bảng giá</value></data>
   <data name="PriceListName" xml:space="preserve"><value>Tên bảng giá</value></data>
-  <data name="ItemCount" xml:space="preserve"><value>Số dòng giá</value></data>
+  <data name="ItemCount" xml:space="preserve"><value>Số mặt hàng</value></data>
   <data name="IsDefault" xml:space="preserve"><value>Mặc định</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Đặt làm mặc định</value></data>
   <data name="Clone" xml:space="preserve"><value>Sao chép</value></data>

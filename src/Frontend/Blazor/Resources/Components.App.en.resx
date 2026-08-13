@@ -176,6 +176,17 @@
   <data name="Name" xml:space="preserve"><value>Name</value></data>
   <data name="Code" xml:space="preserve"><value>Code</value></data>
   <data name="Value" xml:space="preserve"><value>Value</value></data>
+  <data name="ParentDepartment" xml:space="preserve"><value>Parent department</value></data>
+  <data name="Invitation" xml:space="preserve"><value>Invitation</value></data>
+  <data name="CreatedBy" xml:space="preserve"><value>Created by</value></data>
+  <data name="UpdatedBy" xml:space="preserve"><value>Updated by</value></data>
+  <data name="LookupCategoryIdLabel" xml:space="preserve"><value>Catalog type ID</value></data>
+  <data name="PriceStatus" xml:space="preserve"><value>Price status</value></data>
+  <data name="MinimumOrderShort" xml:space="preserve"><value>Minimum order</value></data>
+  <data name="OpenDate" xml:space="preserve"><value>Open date</value></data>
+  <data name="CloseDate" xml:space="preserve"><value>Close date</value></data>
+  <data name="SupplementApprovalDeadline" xml:space="preserve"><value>Additional approval deadline</value></data>
+  <data name="LatestChange" xml:space="preserve"><value>Updated</value></data>
   <data name="IsDeleted" xml:space="preserve"><value>Deactivated</value></data>
   <data name="MyOrders" xml:space="preserve"><value>My Orders</value></data>
   <data name="ProductCatalog" xml:space="preserve"><value>Item catalog</value></data>
@@ -451,7 +462,7 @@
   <data name="NoPriceListAvailable" xml:space="preserve"><value>No price list is available.</value></data>
   <data name="PriceListCode" xml:space="preserve"><value>Price List Code</value></data>
   <data name="PriceListName" xml:space="preserve"><value>Price List Name</value></data>
-  <data name="ItemCount" xml:space="preserve"><value>Items</value></data>
+  <data name="ItemCount" xml:space="preserve"><value>Item count</value></data>
   <data name="IsDefault" xml:space="preserve"><value>Default</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Set as Default</value></data>
   <data name="Clone" xml:space="preserve"><value>Clone</value></data>

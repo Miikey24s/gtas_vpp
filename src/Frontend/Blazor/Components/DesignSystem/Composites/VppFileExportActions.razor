@@ -1,5 +1,5 @@
 <div class="vpp-file-export-actions @Class" role="group" aria-label="@Loc["Export"]">
-    @foreach (var format in Formats)
+    @foreach (var format in OrderedFormats)
     {
         <RadzenButton Icon="@GetIcon(format)"
                       Text="@GetLabel(format)"
@@ -29,6 +29,16 @@
     [Parameter] public Variant Variant { get; set; } = Variant.Text;
     [Parameter] public string? AriaContext { get; set; }
     [Parameter] public string? Class { get; set; }
+
+    private IEnumerable<VppFileExportFormat> OrderedFormats => Formats
+        .Distinct()
+        .OrderBy(format => format switch
+        {
+            VppFileExportFormat.Pdf => 0,
+            VppFileExportFormat.Excel => 1,
+            VppFileExportFormat.Csv => 2,
+            _ => 99
+        });
 
     private string GetIcon(VppFileExportFormat format) => format switch
     {

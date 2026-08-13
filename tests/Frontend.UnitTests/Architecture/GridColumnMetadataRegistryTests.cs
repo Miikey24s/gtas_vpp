@@ -12,9 +12,9 @@ public sealed class GridColumnMetadataRegistryTests
         Assert.Equal(
             new[]
             {
-                Define(nameof(LookupCategoryResDTO.Code), "Class Code", "150px", order: 1),
-                Define(nameof(LookupCategoryResDTO.Name), "Class Name", "250px", order: 2),
-                Define(nameof(LookupCategoryResDTO.ModuleName), "Class Module", "150px", order: 3),
+                Define(nameof(LookupCategoryResDTO.Code), "Code", "150px", order: 1),
+                Define(nameof(LookupCategoryResDTO.Name), "Name", "250px", order: 2),
+                Define(nameof(LookupCategoryResDTO.ModuleName), "Module", "150px", order: 3),
                 Define(nameof(LookupCategoryResDTO.CreatedByUserName), ignore: true, order: 4),
                 Define(nameof(LookupCategoryResDTO.UpdatedByUserName), ignore: true, order: 5),
                 Define(nameof(LookupCategoryResDTO.LookupValues), ignore: true, order: 6)
@@ -46,9 +46,9 @@ public sealed class GridColumnMetadataRegistryTests
         Assert.Equal(
             new[]
             {
-                Define(nameof(VppItemResDTO.UomId), "UOM", order: 1, isDropdownList: true),
+                Define(nameof(VppItemResDTO.UomId), "Unit", order: 1, isDropdownList: true),
                 Define(nameof(VppItemResDTO.Uom), ignore: true, order: 2),
-                Define(nameof(VppItemResDTO.VppCategoryId), "VPP Category", order: 3, isDropdownList: true),
+                Define(nameof(VppItemResDTO.VppCategoryId), "Category", order: 3, isDropdownList: true),
                 Define(nameof(VppItemResDTO.DefaultSupplierName), "Supplier", "180px", order: 4, isReadOnly: true),
                 Define(nameof(VppItemResDTO.DefaultPrice), "Price", "140px", order: 5, isReadOnly: true),
                 Define(nameof(VppItemResDTO.DefaultVatRate), ignore: true, order: 6),

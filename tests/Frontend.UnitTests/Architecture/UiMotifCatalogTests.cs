@@ -61,6 +61,21 @@ public sealed class UiMotifCatalogTests
     }
 
     [Fact]
+    public void DataSurfaceOrderContractIsRecordedInTheCatalogAndConsumerLedger()
+    {
+        var root = FindRepositoryRoot();
+        var catalog = File.ReadAllText(Path.Combine(root, "docs", "design", "VPP-UI-MOTIF-CATALOG.md"));
+        var ledger = File.ReadAllText(Path.Combine(root, "docs", "design", "VPP-DATA-SURFACE-CONSUMER-LEDGER.md"));
+
+        Assert.Contains("`DATA-SURFACE-ORDER`", catalog, StringComparison.Ordinal);
+        Assert.Contains("Tìm kiếm → filter theo thứ tự cột từ trái sang phải", catalog, StringComparison.Ordinal);
+        Assert.Contains("Dialog footer", catalog, StringComparison.Ordinal);
+        Assert.Contains("Filter, column và action order matrix", ledger, StringComparison.Ordinal);
+        Assert.Contains("Kỳ đặt hàng | Năm → Trạng thái", ledger, StringComparison.Ordinal);
+        Assert.Contains("Người dùng | Trạng thái → Nhóm quyền → Phòng ban", ledger, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void StableCapabilitySurface_IsImplementedBySharedComponentsAndRepresentativeRoutes()
     {
         var root = FindRepositoryRoot();

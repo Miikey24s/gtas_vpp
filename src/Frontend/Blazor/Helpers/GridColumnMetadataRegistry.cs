@@ -19,9 +19,9 @@ public static class GridColumnMetadataRegistry
             [typeof(LookupCategoryResDTO)] = Array.AsReadOnly(
                 new GridColumnMetadata[]
                 {
-                    Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.Code), "Class Code", "150px", order: 1),
-                    Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.Name), "Class Name", "250px", order: 2),
-                    Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.ModuleName), "Class Module", "150px", order: 3),
+                    Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.Code), "Code", "150px", order: 1),
+                    Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.Name), "Name", "250px", order: 2),
+                    Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.ModuleName), "Module", "150px", order: 3),
                     Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.CreatedByUserName), ignore: true, order: 4),
                     Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.UpdatedByUserName), ignore: true, order: 5),
                     Define<LookupCategoryResDTO>(nameof(LookupCategoryResDTO.LookupValues), ignore: true, order: 6)
@@ -41,9 +41,9 @@ public static class GridColumnMetadataRegistry
             [typeof(VppItemResDTO)] = Array.AsReadOnly(
                 new GridColumnMetadata[]
                 {
-            Define<VppItemResDTO>(nameof(VppItemResDTO.UomId), "UOM", order: 1, isDropdownList: true),
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.UomId), "Unit", order: 1, isDropdownList: true),
                     Define<VppItemResDTO>(nameof(VppItemResDTO.Uom), ignore: true, order: 2),
-                    Define<VppItemResDTO>(nameof(VppItemResDTO.VppCategoryId), "VPP Category", order: 3, isDropdownList: true),
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.VppCategoryId), "Category", order: 3, isDropdownList: true),
                     Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultSupplierName), "Supplier", "180px", order: 4, isReadOnly: true),
                     Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultPrice), "Price", "140px", order: 5, isReadOnly: true),
                     Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultVatRate), ignore: true, order: 6),

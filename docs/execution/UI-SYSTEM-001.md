@@ -576,6 +576,21 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Evidence: frontend Release build sạch; architecture `185/185`; Chốt kỳ route-real `4/4` ở
   `390×844`, `768×1024`, `1366×768`, `1920×1080`; picker/history/dialog ngày dùng focused browser gate.
 
+### 7.15 — Chuẩn hóa filter, cột và action order — 2026-08-14
+
+- Bổ sung contract `DATA-SURFACE-ORDER`: filter sau search đi theo thứ tự tương đối của cột; cột đọc theo
+  định danh → phân loại/trạng thái → số liệu → thời gian/ghi chú → thao tác; cùng khái niệm dùng cùng nhãn ngắn.
+- Admin, audit, pricing, history, kỳ đặt hàng, report và order review được rà lại cả cột hiển thị lẫn cột ẩn.
+  Các nhãn nội bộ/viết tắt bị thay bằng `Mặt hàng`, `Danh mục`, `Nhà cung cấp`, `Phòng ban`, `Trạng thái`,
+  `Số lượng`, `Cập nhật`; column picker giữ đúng thứ tự khai báo của grid.
+- Action order canonical: `Xem → xuất → sửa → workflow → destructive`; row action chính trước `...`, lifecycle
+  và xóa ở cuối menu; dialog giữ `Hủy → Xác nhận`; workflow giữ `Quay lại | Lưu nháp → tiện ích → Tiếp tục/Gửi`.
+- Architecture guard khóa các route đại diện cùng ba primitive dùng chung: `VppFileExportActions` (`PDF → Excel`),
+  `VppDialogActions` (`Hủy → primary`) và `VppAdminLifecycleMenu` (`khôi phục/vô hiệu hóa → xóa vĩnh viễn`).
+- Evidence hiện tại: frontend unit/architecture `442/442`; route-real read-only `13/13` gồm User, Security Audit,
+  Pricing, Report, Lookup lifecycle, History và Order Period tại các viewport đại diện `390×844`, `768×1024`,
+  `1120×768`, `1366×768`, `1920×1080`. Ảnh pricing/user/audit đã review trực tiếp từ output tạm, không commit.
+
 ---
 
 ## 8. Rủi ro và recovery

@@ -234,10 +234,10 @@ else
                                                                    Description="@Loc["ReportDepartmentSearchPlaceholder"]" />
                                         </EmptyTemplate>
                                         <Columns>
-                                            <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="Code" Title="@Loc["DepartmentCode"]" />
+                                            <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="Code" Title="@Loc["Department"]" />
                                             <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="OrderCount" Title="@Loc["OrderCount"]" TextAlign="TextAlign.Right"><Template Context="department">@department.OrderCount.ToString("N0")</Template></RadzenDataGridColumn>
-                                            <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" TextAlign="TextAlign.Right"><Template Context="department">@department.TotalQuantity.ToString("N0")</Template></RadzenDataGridColumn>
-                                            <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="TotalAmount" Title="@Loc["TotalAmount"]" TextAlign="TextAlign.Right"><Template Context="department">@FormatAmount(department.TotalAmount)</Template></RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="TotalQuantity" Title="@Loc["Quantity"]" TextAlign="TextAlign.Right"><Template Context="department">@department.TotalQuantity.ToString("N0")</Template></RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="TotalAmount" Title="@Loc["Total"]" TextAlign="TextAlign.Right"><Template Context="department">@FormatAmount(department.TotalAmount)</Template></RadzenDataGridColumn>
                                         </Columns>
                                     </RadzenDataGrid>
                             </ChildContent>
@@ -277,9 +277,9 @@ else
                                         </EmptyTemplate>
                                         <Columns>
                                             <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductCode" Title="@Loc["ProductCode"]" />
-                                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductName" Title="@Loc["ProductName"]" />
-                                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="TotalQuantity" Title="@Loc["TotalQuantity"]" TextAlign="TextAlign.Right"><Template Context="item">@item.TotalQuantity.ToString("N0")</Template></RadzenDataGridColumn>
-                                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="TotalAmount" Title="@Loc["TotalAmount"]" TextAlign="TextAlign.Right"><Template Context="item">@FormatAmount(item.TotalAmount)</Template></RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductName" Title="@Loc["ItemName"]" />
+                                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="TotalQuantity" Title="@Loc["Quantity"]" TextAlign="TextAlign.Right"><Template Context="item">@item.TotalQuantity.ToString("N0")</Template></RadzenDataGridColumn>
+                                            <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="TotalAmount" Title="@Loc["Total"]" TextAlign="TextAlign.Right"><Template Context="item">@FormatAmount(item.TotalAmount)</Template></RadzenDataGridColumn>
                                         </Columns>
                                     </RadzenDataGrid>
                             </ChildContent>

@@ -80,9 +80,9 @@
                     </EmptyTemplate>
                     <Columns>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Width="52px" MinWidth="52px" Title="#" Reorderable="false" Filterable="false" Pickable="false" Sortable="false" TextAlign="TextAlign.Center"><Template Context="user">@(currentUserSkip + users.IndexOf(user) + 1)</Template></RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["AccountStatus"]" Width="145px" Property="@nameof(UserAdministrationResDTO.AccountStatus)" Filterable="false"><Template Context="user"><VppStatusBadge Text="@GetAccountStatusLabel(user)" Tone="@GetAccountStatusTone(user)" /></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["User"]" Property="@nameof(UserAdministrationResDTO.FullName)" Width="220px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.FullName ?? "–") @if (IsCurrentUser(user)) { <span class="vpp-admin-current-account">@Loc["CurrentAccount"]</span> }</strong><small>@(user.UserLogin ?? "–")</small></div></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Email"]" Property="@nameof(UserAdministrationResDTO.Email)" Width="250px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.Email ?? "–")</strong><small>@(user.EmployeeCode ?? "–")</small></div></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["AccountStatus"]" Width="145px" Property="@nameof(UserAdministrationResDTO.AccountStatus)" Filterable="false"><Template Context="user"><VppStatusBadge Text="@GetAccountStatusLabel(user)" Tone="@GetAccountStatusTone(user)" /></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["PermissionGroup"]" Property="@nameof(UserAdministrationResDTO.GroupName)" Width="210px">
                             <Template Context="user">
                                 <span class="vpp-admin-inline-select-shell" title="@GetAssignmentTitle(user)">
@@ -115,7 +115,7 @@
                                 </span>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["InvitationStatus"]" Width="155px" Filterable="false" Sortable="false"><Template Context="user"><VppStatusBadge Text="@GetInvitationStatusLabel(user)" Tone="@GetInvitationTone(user)" /></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Invitation"]" Width="125px" Filterable="false" Sortable="false"><Template Context="user"><VppStatusBadge Text="@GetInvitationStatusLabel(user)" Tone="@GetInvitationTone(user)" /></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Admin"]" Property="@nameof(UserAdministrationResDTO.IsAdmin)" Width="82px" Filterable="false" TextAlign="TextAlign.Center"><Template Context="user">@if (user.IsAdmin) { <VppIcon Name="@VppIcons.Approved" /> }</Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Actions"]" Width="154px" MinWidth="154px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" Visible="@CanManageUsers">
                             <Template Context="user">

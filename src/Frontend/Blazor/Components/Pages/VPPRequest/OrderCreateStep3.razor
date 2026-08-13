@@ -72,8 +72,8 @@
                                 </div>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="Quantity" Title="@Loc["Quantity"]" Width="130px" TextAlign="TextAlign.Right" />
                         <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="UomName" Title="@Loc["UOM"]" Width="120px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="Quantity" Title="@Loc["Quantity"]" Width="130px" TextAlign="TextAlign.Right" />
                         <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Property="Description" Title="@Loc["ItemNote"]" Width="320px">
                             <Template Context="item">@(string.IsNullOrWhiteSpace(item.Description) ? "–" : item.Description)</Template>
                         </RadzenDataGridColumn>

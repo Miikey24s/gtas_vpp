@@ -73,19 +73,6 @@
                                       aria-label="@string.Format(Loc["EditOrderAria"], Order.VppCode)"
                                       Disabled="@(!CanEdit)" />
                     }
-                    @if (ShowCancelAction && CancelRequested.HasDelegate)
-                    {
-                        <RadzenButton Icon="@VppIcons.Rejected"
-                                      Text="@Loc["Cancel"]"
-                                      Size="ButtonSize.Small"
-                                      ButtonStyle="ButtonStyle.Danger"
-                                      Variant="Variant.Text"
-                                      Click="@(async _ => await CancelRequested.InvokeAsync(Order))"
-                                      Title="@Loc["Cancel"]"
-                                      aria-label="@string.Format(Loc["CancelOrderAria"], Order.VppCode)"
-                                      Disabled="@(!CanCancel || IsCancelling)"
-                                      IsBusy="@IsCancelling" />
-                    }
                     @if (ShowRestoreAction && RestoreRequested.HasDelegate)
                     {
                         <RadzenButton Icon="undo"
@@ -122,6 +109,19 @@
                                       aria-label="@PrimaryActionText"
                                       Disabled="@PrimaryActionDisabled"
                                       data-testid="@PrimaryActionTestId" />
+                    }
+                    @if (ShowCancelAction && CancelRequested.HasDelegate)
+                    {
+                        <RadzenButton Icon="@VppIcons.Rejected"
+                                      Text="@Loc["Cancel"]"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Variant="Variant.Text"
+                                      Click="@(async _ => await CancelRequested.InvokeAsync(Order))"
+                                      Title="@Loc["Cancel"]"
+                                      aria-label="@string.Format(Loc["CancelOrderAria"], Order.VppCode)"
+                                      Disabled="@(!CanCancel || IsCancelling)"
+                                      IsBusy="@IsCancelling" />
                     }
                 </div>
         </div>

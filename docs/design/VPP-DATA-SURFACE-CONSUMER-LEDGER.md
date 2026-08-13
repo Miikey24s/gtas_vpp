@@ -59,6 +59,23 @@ Source hiện có **21 file / 26 DataGrid thật**. Generic type reference trong
 - `OrderCreateStep2` vẫn là legacy server-window trong DS1; chỉ DS3 được đổi sang snapshot client đã duyệt trong plan.
 - Khi một consumer được chạm trong refactor, phải audit thêm `CAPABILITY-SURFACE`: action order, hidden/disabled reason, loading footprint, base-empty, filtered-empty, error, footer/pager và empty-row hover.
 
+## Filter, column và action order matrix
+
+Contract chung là [`DATA-SURFACE-ORDER`](VPP-UI-MOTIF-CATALOG.md#31-data-surface-order). Bảng này khóa thứ tự theo họ dữ liệu; route chỉ lệch khi cột không tồn tại hoặc nghiệp vụ có lý do ghi rõ.
+
+| Họ dữ liệu | Filter sau search | Cột canonical | Action canonical |
+|---|---|---|---|
+| Danh mục mặt hàng / tạo đơn | Danh mục → Đơn vị | Mặt hàng → Danh mục → Đơn vị → Nhà cung cấp → Trạng thái → mô tả/số liệu → Thao tác | Thêm/Sửa → `...`; lifecycle trong menu, xóa cuối |
+| Danh mục quản trị | Trạng thái khi có filter | Tên + mã → Trạng thái → thuộc tính chính → Mô tả/Cập nhật → Thao tác | Sửa → `...`; khôi phục/vô hiệu hóa → xóa vĩnh viễn |
+| Bảng giá / giá mặt hàng | Danh mục → Trạng thái → filter giá bổ sung theo vị trí cột | Bảng giá/Nhà cung cấp hoặc Mặt hàng → Danh mục → Đơn vị → Trạng thái → dữ liệu giá → Mặc định → Thao tác | Xem hoặc Sửa/Tạo → `...`; mặc định → sao chép → lifecycle → xóa |
+| Người dùng | Trạng thái → Nhóm quyền → Phòng ban | Người dùng → Email → Trạng thái → Nhóm quyền → Phòng ban → Lời mời → Quản trị → Thao tác | Duyệt/bật tắt quyền truy cập → `...`; gửi link mật khẩu trong menu |
+| Đơn hàng / lịch sử | Loại đơn → Trạng thái | Kỳ → Mã đơn → Người đặt/Phòng ban → Loại đơn → Trạng thái → Trạng thái kỳ → Ngày gửi → Ghi chú | Xem/Lịch sử → xuất → sửa/workflow → hủy/khôi phục |
+| Kỳ đặt hàng | Năm → Trạng thái | Kỳ → Trạng thái → Ngày mở → Ngày đóng → Hạn duyệt bổ sung → Số đơn → Cập nhật → Thao tác | Xem → Chốt kỳ → `...`; gia hạn trong menu |
+| Chốt kỳ | Phòng ban (nếu có) → Loại đơn → Trạng thái; theo mặt hàng: Danh mục → Đơn vị | Nhận diện nhóm → Loại đơn → Trạng thái → dòng/số lượng → tiền/VAT/tổng → Thao tác | Lịch sử bản chốt → Chốt/Chốt lại; xem dòng ở cột cuối |
+| Audit / báo cáo | Audit: Hành động → Kết quả; Báo cáo: Phạm vi → Năm → Tháng | Audit: Thời gian → Hành động → Kết quả → Người thao tác → Đối tượng/Tài nguyên → Tóm tắt → Thao tác. Báo cáo: đối tượng → số đơn → số lượng → tổng cộng | Xem chi tiết; export thuộc collection/header, không đặt trong từng dòng |
+
+Các grid không có filter tương ứng vẫn dùng thứ tự cột trong matrix. Column picker dùng đúng thứ tự khai báo, kể cả cột ẩn audit/metadata. Snapshot `2026-08-14`: retrofit đặt tên, thứ tự filter/cột, row action, header action, drawer action và dialog footer đã áp dụng cho User, Security Audit, Price, Price List, Item, Category, Supplier, Department, Lookup, History, Department Summary, Order Period, Order Review và Report; Catalog/shared item surfaces vốn đã đúng contract nên được giữ nguyên.
+
 ## Stable Capability Surface retrofit queue
 
 | Nhóm | Consumer ưu tiên | Việc cần khóa | Trạng thái |
