@@ -65,7 +65,6 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool isGridLoading;
     private bool isPreviewLoading;
     private bool isSettling;
-    private bool isCorrectingSettlement;
     private bool isLoadingSettlementHistory;
     private VppFileExportFormat? exportingSettlementFormat;
     private bool hasCorrectionTarget;
@@ -89,20 +88,25 @@ public partial class PeriodSettlementPanel : IDisposable
     private SettlementPreviewResDTO? Preview => State.Preview is { } preview
         && preview.Year == Year && preview.Month == Month ? preview : null;
 
-    private bool CanSubmitCurrentPreview => !isLoading
+    private bool HasPendingPostSettlementCorrections => postSettlementCorrections.Any(correction =>
+        string.Equals(correction.Status, "Pending", StringComparison.OrdinalIgnoreCase));
+    private IReadOnlyList<PostSettlementOrderCorrectionResDTO> ApprovedPostSettlementCorrections =>
+        postSettlementCorrections.Where(correction =>
+            string.Equals(correction.Status, "Confirmed", StringComparison.OrdinalIgnoreCase)
+            && correction.ResultSettlementId is null).ToArray();
+
+    private bool CanOpenSettlementPreview => !isLoading
         && !isPreviewLoading
         && (hasCorrectionTarget
             || managedPeriod?.State is "SubmissionClosed" or "Pricing")
+        && (!hasCorrectionTarget || currentSettlementRevision is not null)
         && status?.PendingAdditionalCount == 0
         && Preview is { PrimaryQuote: { IsEligible: true }, Blockers.Count: 0 }
         && !string.IsNullOrWhiteSpace(State.IdempotencyKey);
+    private bool CanSubmitCurrentPreview => CanOpenSettlementPreview
+        && !HasPendingPostSettlementCorrections;
 
     private bool CanExportSettlement => status is { IsSettled: true, SettlementId: not null };
-    private bool CanCorrectSettlement => status is { IsSettled: true, SettlementId: not null }
-        && currentSettlementRevision is { IsCurrentRevision: true, HasExternalProcurementImpact: false }
-        && CanSubmitCurrentPreview
-        && !isLoadingSettlementHistory
-        && !isCorrectingSettlement;
     private string SettlementVersionText => currentSettlementRevision is { RevisionNumber: > 0 } revision
         ? string.Format(Loc["SettlementVersionLabel"], revision.RevisionNumber)
         : string.Empty;
@@ -326,6 +330,7 @@ public partial class PeriodSettlementPanel : IDisposable
         itemTotals = SettlementItemTotals.Empty;
         departmentTotals = SettlementGroupTotals.Empty;
         requesterTotals = SettlementGroupTotals.Empty;
+        postSettlementCorrections = [];
         pendingPostSettlementCorrections = [];
         currentSettlementRevision = null;
 
@@ -404,53 +409,58 @@ public partial class PeriodSettlementPanel : IDisposable
         }
     }
 
-    private async Task OpenSettlementCorrectionDialogAsync()
+    private async Task OpenSettlementPreviewDialogAsync()
     {
-        if (!CanCorrectSettlement
-            || status?.SettlementId is null
-            || currentSettlementRevision is null
-            || Preview is null)
+        if (!CanOpenSettlementPreview || Preview is null)
         {
             return;
         }
 
-        var reason = await DialogService.OpenAsync<Dialog_SettlementCorrection>(
-            Loc["SettlementCorrectionAction"],
-            options: VppAdminDialogProfiles.Create(
-                VppAdminDialogSize.Compact,
-                Loc["SettlementCorrectionAction"],
+        var isResettlement = status?.IsSettled == true;
+        var confirmed = await DialogService.OpenAsync<Dialog_SettlementPreview>(
+            isResettlement ? Loc["SettlementResettleAction"] : Loc["SettlePeriod"],
+            new Dictionary<string, object?>
+            {
+                [nameof(Dialog_SettlementPreview.Title)] = $"{Loc["Period"]} {Month:00}/{Year}",
+                [nameof(Dialog_SettlementPreview.Preview)] = Preview,
+                [nameof(Dialog_SettlementPreview.CurrentSettlement)] = currentSettlementRevision,
+                [nameof(Dialog_SettlementPreview.Orders)] = periodOrdersSnapshot,
+                [nameof(Dialog_SettlementPreview.Quotes)] = SupplierQuotes,
+                [nameof(Dialog_SettlementPreview.ApprovedCorrections)] = ApprovedPostSettlementCorrections,
+                [nameof(Dialog_SettlementPreview.PendingCorrectionCount)] = postSettlementCorrections.Count(correction =>
+                    string.Equals(correction.Status, "Pending", StringComparison.OrdinalIgnoreCase)),
+                [nameof(Dialog_SettlementPreview.IsResettlement)] = isResettlement,
+                [nameof(Dialog_SettlementPreview.PreviewSelectionChanged)] =
+                    (Func<Guid?, Guid?, Task<SettlementPreviewResDTO?>>)ApplySettlementPreviewSelectionAsync,
+                [nameof(Dialog_SettlementPreview.OrderAdjustmentRequested)] = EventCallback.Factory.Create<Guid>(
+                    this,
+                    OpenSettlementPreviewOrderAdjustmentAsync)
+            },
+            VppAdminDialogProfiles.Create(
+                VppAdminDialogSize.Workspace,
+                isResettlement ? Loc["SettlementResettleAction"] : Loc["SettlePeriod"],
                 closeAriaLabel: Loc["Close"]));
-        if (reason is not string correctionReason)
+        if (confirmed is not true)
         {
             return;
         }
 
-        isCorrectingSettlement = true;
+        await SettleAsync();
+    }
+
+    private async Task<SettlementPreviewResDTO?> ApplySettlementPreviewSelectionAsync(
+        Guid? supplierId,
+        Guid? priceListId)
+    {
         try
         {
-            var revision = await Settlement.CorrectAsync(
-                status.SettlementId.Value,
-                SettlementRequestFactory.BuildCorrection(
-                    Year,
-                    Month,
-                    Preview,
-                    $"adjust-{Year:D4}{Month:D2}-{Guid.NewGuid():N}",
-                    State.Exceptions,
-                    correctionReason));
-            State.RequireFreshPreviewForNextSubmission();
-            await ReloadPeriodAsync();
-            await SettlementChanged.InvokeAsync();
-            Toast.Success(
-                Loc["AdjustmentSaved"],
-                string.Format(Loc["SettlementVersionSaved"], revision?.RevisionNumber ?? 0));
+            await LoadPreviewAsync(supplierId, priceListId);
+            return Preview;
         }
         catch (Exception ex)
         {
-            Toast.Error(Loc["SettlementCorrectionAction"], UiErrorMapper.GetMessage(ex, Loc));
-        }
-        finally
-        {
-            isCorrectingSettlement = false;
+            Toast.Error(ex, Loc);
+            return Preview;
         }
     }
 
@@ -901,27 +911,36 @@ public partial class PeriodSettlementPanel : IDisposable
             return;
         }
 
-        var confirmed = await DialogService.Confirm(
-            string.Format(Loc["Confirm_Settle"].Value, Month, Year, Preview.PrimaryQuote?.PriceListCode ?? "-"),
-            Loc["PeriodSettlement"],
-            new ConfirmOptions { OkButtonText = Loc["Yes"], CancelButtonText = Loc["No"] });
-        if (confirmed != true)
-        {
-            return;
-        }
-
         isSettling = true;
         try
         {
-            await Settlement.ConfirmAsync(SettlementRequestFactory.BuildConfirm(
-                Year,
-                Month,
-                Preview,
-                State.IdempotencyKey!,
-                State.Exceptions));
+            SettlementRevisionResDTO? revision;
+            if (status is { IsSettled: true, SettlementId: not null })
+            {
+                revision = await Settlement.CorrectAsync(
+                    status.SettlementId.Value,
+                    SettlementRequestFactory.BuildCorrection(
+                        Year,
+                        Month,
+                        Preview,
+                        $"resettle-{Year:D4}{Month:D2}-{Guid.NewGuid():N}",
+                        State.Exceptions,
+                        BuildResettlementReason()));
+            }
+            else
+            {
+                revision = await Settlement.ConfirmAsync(SettlementRequestFactory.BuildConfirm(
+                    Year,
+                    Month,
+                    Preview,
+                    State.IdempotencyKey!,
+                    State.Exceptions));
+            }
             State.RequireFreshPreviewForNextSubmission();
             await ReloadPeriodAsync();
-            Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["PeriodSettlement"]);
+            Toast.Success(
+                Loc["Success"],
+                string.Format(Loc["SettlementVersionSaved"], revision?.RevisionNumber ?? 0));
             await SettlementChanged.InvokeAsync();
         }
         catch (Exception ex)
@@ -932,6 +951,21 @@ public partial class PeriodSettlementPanel : IDisposable
         {
             isSettling = false;
         }
+    }
+
+    private string BuildResettlementReason()
+    {
+        var approvedChanges = ApprovedPostSettlementCorrections.Count;
+        if (approvedChanges > 0)
+        {
+            return $"Chốt lại kỳ sau {approvedChanges} thay đổi đơn đã duyệt.";
+        }
+
+        var supplierChanged = currentSettlementRevision?.PrimarySupplierId != Preview?.PrimarySupplierId;
+        var priceListChanged = currentSettlementRevision?.PriceListId != Preview?.PrimaryPriceListId;
+        return supplierChanged || priceListChanged
+            ? "Chốt lại kỳ sau khi cập nhật nhà cung cấp hoặc bảng giá."
+            : "Chốt lại kỳ sau khi kiểm tra dữ liệu.";
     }
 
     private async Task ExportSettlementAsync(VppFileExportFormat format)

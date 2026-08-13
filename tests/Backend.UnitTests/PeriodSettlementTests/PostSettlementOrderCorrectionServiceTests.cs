@@ -15,7 +15,7 @@ public sealed class PostSettlementOrderCorrectionServiceTests
     private static readonly DateTime Now = new(2026, 8, 20, 8, 0, 0, DateTimeKind.Utc);
 
     [Fact]
-    public async Task Adjust_RequiresAnotherManager_AndCreatesRequestAndSettlementRevisions()
+    public async Task Adjust_RequiresAnotherManager_AndWaitsForExplicitResettlement()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var seed = await SeedAsync(context);
@@ -40,22 +40,20 @@ public sealed class PostSettlementOrderCorrectionServiceTests
 
         Assert.Equal("Confirmed", confirmed.Status);
         Assert.NotNull(confirmed.ResultRequestId);
-        Assert.NotNull(confirmed.ResultSettlementId);
+        Assert.Null(confirmed.ResultSettlementId);
         var requests = await context.Set<VppRequest>().OrderBy(x => x.RevisionNumber).ToListAsync();
         Assert.Equal(2, requests.Count);
         Assert.False(requests[0].IsCurrentRevision);
         Assert.True(requests[1].IsCurrentRevision);
         Assert.Equal(3, Assert.Single(requests[1].RequestDetails).Qty);
         var settlements = await context.Set<Settlement>().OrderBy(x => x.RevisionNumber).ToListAsync();
-        Assert.Equal(2, settlements.Count);
-        Assert.False(settlements[0].IsCurrentRevision);
-        Assert.True(settlements[1].IsCurrentRevision);
-        Assert.Equal(3m, Assert.Single(settlements[1].Items).Quantity);
-        Assert.Equal(settlements[1].GrandTotal, settlements[1].Allocations.Sum(x => x.GrossAmount));
+        var currentSettlement = Assert.Single(settlements);
+        Assert.True(currentSettlement.IsCurrentRevision);
+        Assert.Equal(2m, Assert.Single(currentSettlement.Items).Quantity);
     }
 
     [Fact]
-    public async Task Cancel_CreatesCancelledRequestAndZeroDemandSettlementRevision()
+    public async Task Cancel_CreatesCancelledRequest_AndKeepsCurrentSettlementUntilResettlement()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var seed = await SeedAsync(context);
@@ -80,9 +78,8 @@ public sealed class PostSettlementOrderCorrectionServiceTests
             .Include(x => x.Items)
             .Include(x => x.Allocations)
             .SingleAsync(x => x.IsCurrentRevision);
-        Assert.Empty(currentSettlement.Items);
-        Assert.Empty(currentSettlement.Allocations);
-        Assert.Equal(0m, currentSettlement.GrandTotal);
+        Assert.Single(currentSettlement.Items);
+        Assert.Equal(220m, currentSettlement.GrandTotal);
     }
 
     [Fact]

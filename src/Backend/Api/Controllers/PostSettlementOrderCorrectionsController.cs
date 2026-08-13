@@ -111,13 +111,13 @@ public sealed class PostSettlementOrderCorrectionsController(
     {
         try
         {
-            var decisionText = confirmed ? "đã được xác nhận" : "đã bị từ chối";
+            var decisionText = confirmed ? "đã được duyệt và đang chờ chốt lại kỳ" : "đã bị từ chối";
             var note = confirmed ? result.EmployeeNote : result.DecisionReason;
             await _notifications.PublishAsync(
                 [result.RequestOwnerUserId],
                 result.MemberCompanyCode,
                 confirmed ? "period.order-correction.confirmed" : "period.order-correction.rejected",
-                confirmed ? "Đơn sau chốt đã được điều chỉnh" : "Yêu cầu điều chỉnh đơn bị từ chối",
+                confirmed ? "Thay đổi đơn đã được duyệt" : "Yêu cầu điều chỉnh đơn bị từ chối",
                 $"Yêu cầu {result.Action.ToLowerInvariant()} cho đơn {result.RequestCode} {decisionText}. {note}",
                 $"/dashboard?tab=1&orderId={result.ResultRequestId ?? result.RequestId}",
                 $"{result.Id:N}:{result.Status}",

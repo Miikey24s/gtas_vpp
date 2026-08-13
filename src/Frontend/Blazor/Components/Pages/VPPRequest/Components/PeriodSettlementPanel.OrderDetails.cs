@@ -35,6 +35,7 @@ public partial class PeriodSettlementPanel
     private int? activeOrderDetailNoteNumber;
     private VppFileExportFormat? exportingOrderFormat;
     private bool submittingPostSettlementCorrection;
+    private List<PostSettlementOrderCorrectionResDTO> postSettlementCorrections = [];
     private List<PostSettlementOrderCorrectionResDTO> pendingPostSettlementCorrections = [];
     private string postSettlementDecisionReason = string.Empty;
 
@@ -374,6 +375,23 @@ public partial class PeriodSettlementPanel
         }
     }
 
+    private async Task OpenSettlementPreviewOrderAdjustmentAsync(Guid orderId)
+    {
+        if (orderId == Guid.Empty)
+        {
+            return;
+        }
+
+        await LoadOrderDetailAsync(orderId);
+        if (selectedOrderDetail is null || !CanRequestPostSettlementCorrection)
+        {
+            Toast.Info(Loc["OrderDetails"], Loc["RequestActionUnavailable"]);
+            return;
+        }
+
+        await OpenPostSettlementCorrection();
+    }
+
     private async Task LoadPostSettlementCorrectionsAsync()
     {
         if (status?.IsSettled != true)
@@ -382,11 +400,13 @@ public partial class PeriodSettlementPanel
             return;
         }
 
-        pendingPostSettlementCorrections = (await OrderCorrections.ListAsync(managedPeriod?.Id))
+        postSettlementCorrections = (await OrderCorrections.ListAsync(managedPeriod?.Id))
             .Where(correction => correction.Year == Year
-                && correction.Month == Month
-                && string.Equals(correction.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                && correction.Month == Month)
             .OrderBy(correction => correction.RequestedAtUtc)
+            .ToList();
+        pendingPostSettlementCorrections = postSettlementCorrections
+            .Where(correction => string.Equals(correction.Status, "Pending", StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 
@@ -402,10 +422,11 @@ public partial class PeriodSettlementPanel
                 RowVersion = correction.RowVersion
             });
             postSettlementDecisionReason = string.Empty;
+            State.RequireFreshPreviewForNextSubmission();
             await ReloadPeriodAsync();
             Toast.Success(
                 Loc["AdjustmentApproved"],
-                Loc["NewSettlementVersionCreated"]);
+                Loc["SettlementOrderChangeWaitingForResettlement"]);
         }
         catch (Exception ex)
         {

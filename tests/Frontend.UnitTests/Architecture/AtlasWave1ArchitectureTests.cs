@@ -210,7 +210,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("Phương án chốt", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("SettlementViewPreview", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("<Footer>", settlement, StringComparison.Ordinal);
-        Assert.Contains("Click=\"@SettleAsync\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("Click=\"@OpenSettlementPreviewDialogAsync\"", settlement, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -267,7 +267,7 @@ public sealed class AtlasWave1ArchitectureTests
         var projection = ReadFrontendSource("Features/Settlement/Projection/SettlementWorkspaceProjection.cs");
         var requestFactory = ReadFrontendSource("Features/Settlement/Submission/SettlementRequestFactory.cs");
         var state = ReadFrontendSource("Features/Settlement/State/PeriodSettlementState.cs");
-        var correctionDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_SettlementCorrection.razor");
+        var correctionDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_SettlementPreview.razor");
         var registrations = ReadFrontendSource(
             "Platform/Composition/FrontendServiceCollectionExtensions.cs");
 
@@ -304,11 +304,12 @@ public sealed class AtlasWave1ArchitectureTests
                 @"State\.RequireFreshPreviewForNextSubmission\(\);\s+await ReloadPeriodAsync\(\);")
             .Cast<System.Text.RegularExpressions.Match>()
             .ToArray();
-        Assert.Collection(refreshSequences, _ => { }, _ => { });
+        Assert.Single(refreshSequences);
         Assert.Matches(
             @"State\.RequireFreshPreviewForNextSubmission\(\);\s+await ReloadPeriodAsync\(\);",
             code);
-        Assert.Contains("Reason.Trim().Length is >= 5 and <= 500", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("SettlementChangesSinceLastVersion", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("PendingCorrectionCount > 0", correctionDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesClientFilters", code, StringComparison.Ordinal);
         Assert.DoesNotContain("MatchesItemFilters", code, StringComparison.Ordinal);
         Assert.DoesNotContain("new SettlementPreviewReqDTO", code, StringComparison.Ordinal);

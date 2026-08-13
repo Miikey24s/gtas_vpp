@@ -112,7 +112,9 @@ public sealed class Ds3WorkflowTests : TestBase, IAuthenticatedUiTest
                 "every shared horizontal selector must size all segments from its longest label");
         }
         (await Page.Locator(".vpp-settlement-decision-area:visible").CountAsync()).Should().Be(1);
-        (await Page.GetByText("Phương án chốt", new() { Exact = true }).CountAsync()).Should().Be(1);
+        (await Page.GetByText("Phương án chốt", new() { Exact = true }).CountAsync()).Should().Be(0);
+        (await Page.Locator(".vpp-settlement-decision-cards:visible").CountAsync()).Should().Be(1);
+        (await Page.Locator(".vpp-settlement-export-card:visible").CountAsync()).Should().Be(2);
         (await Page.Locator(".vpp-settlement-kpi-card").CountAsync()).Should().Be(0,
             "dòng tổng theo cột đã thay thế các KPI tiền trùng lặp ở đầu workspace");
 

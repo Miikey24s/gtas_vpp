@@ -43,7 +43,7 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         var settlement = ReadFrontend("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var settlementCode = ReadFrontend("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
         var settlementDetails = ReadFrontend("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.OrderDetails.cs");
-        var correctionDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_SettlementCorrection.razor");
+        var settlementPreviewDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_SettlementPreview.razor");
         var historyDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_SettlementHistory.razor");
         var periodActionDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_OrderPeriodAction.razor");
 
@@ -52,9 +52,14 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("periodYear={period.Year}&periodMonth={period.Month}", operationsCode, StringComparison.Ordinal);
         Assert.Contains("periodYear", periodTab, StringComparison.Ordinal);
         Assert.Contains("TargetYear", workspace, StringComparison.Ordinal);
-        Assert.Contains("SettlementCorrectionAction", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"SettlementCorrectionAction\"]", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementHistoryAction", settlement, StringComparison.Ordinal);
-        Assert.Contains("Text=\"@Loc[\"SettlePeriod\"]\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"SettlementResettleAction\"]", settlement, StringComparison.Ordinal);
+        Assert.Contains("OpenSettlementPreviewDialogAsync", settlement, StringComparison.Ordinal);
+        Assert.Contains("Dialog_SettlementPreview", settlementCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("OpenSettlementCorrectionDialogAsync", settlementCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppFileExportActions", settlement, StringComparison.Ordinal);
+        Assert.Contains("vpp-settlement-export-card", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-settlement-decision-action", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("Property=\"RegularOrderCount\"", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("Property=\"AdditionalOrderCount\"", settlement, StringComparison.Ordinal);
@@ -63,7 +68,10 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.DoesNotContain("ReopenForResettlement", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementVersionText", settlement, StringComparison.Ordinal);
         Assert.Contains("SavedSettlementVersions", historyDialog, StringComparison.Ordinal);
-        Assert.Contains("CreateCorrectionRevision", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("SettlementChangesSinceLastVersion", settlementPreviewDialog, StringComparison.Ordinal);
+        Assert.Contains("PendingCorrectionCount", settlementPreviewDialog, StringComparison.Ordinal);
+        Assert.Contains("PreviewSelectionChanged", settlementPreviewDialog, StringComparison.Ordinal);
+        Assert.Contains("OrderAdjustmentRequested", settlementPreviewDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("SettleQuoteCoverage", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementNetAmount", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementVatAmount", settlement, StringComparison.Ordinal);

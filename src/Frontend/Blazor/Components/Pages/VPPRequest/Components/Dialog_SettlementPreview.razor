@@ -1,0 +1,211 @@
+@using System.Globalization
+@using gtas_vpp_shared.DTOs.Res.VPP
+@using gtas_vpp_shared.DTOs.Res.Library
+@inject DialogService DialogService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Workspace"
+                        TestId="settlement-preview-dialog"
+                        Class="vpp-settlement-preview-dialog">
+    <Intro>
+        <VppInlineNotice Tone="@(PendingCorrectionCount > 0 ? VppStatusTone.Warning : VppStatusTone.Info)"
+                         Title="@Title">
+            @(PendingCorrectionCount > 0
+                ? string.Format(Loc["SettlementPendingChangesWarning"], PendingCorrectionCount)
+                : Loc[IsResettlement ? "SettlementResettlePreviewHint" : "SettlementFirstPreviewHint"])
+        </VppInlineNotice>
+    </Intro>
+    <ChildContent>
+        <div class="vpp-settlement-preview-summary">
+            <article class="is-decision">
+                <VppDecisionSelect TValue="Guid?"
+                                   Value="@SelectedSupplierId"
+                                   Options="@SupplierOptions"
+                                   ValueChanged="@OnSupplierChangedAsync"
+                                   Placeholder="@Loc["SettlementSelectSupplier"]"
+                                   AriaLabel="@Loc["SettlementSelectSupplier"]"
+                                   Eyebrow="@Loc["Supplier"]"
+                                   Class="vpp-settlement-preview-select"
+                                   Disabled="@isUpdatingSelection" />
+            </article>
+            <article class="is-decision">
+                <VppDecisionSelect TValue="Guid?"
+                                   Value="@SelectedPriceListId"
+                                   Options="@PriceListOptions"
+                                   ValueChanged="@OnPriceListChangedAsync"
+                                   Placeholder="@Loc["SettlementSelectPriceList"]"
+                                   AriaLabel="@Loc["SettlementSelectPriceList"]"
+                                   Eyebrow="@Loc["PriceList"]"
+                                   Class="vpp-settlement-preview-select"
+                                   Disabled="@isUpdatingSelection" />
+            </article>
+            <article><span>@Loc["SettlementBeforeVat"]</span><strong>@Money(BeforeVat)</strong></article>
+            <article><span>@Loc["SettlementVatAmount"]</span><strong>@Money(VatAmount)</strong></article>
+            <article class="is-total"><span>@Loc["TotalValue"]</span><strong>@Money(GrandTotal)</strong></article>
+        </div>
+
+        @if (IsResettlement)
+        {
+            <section class="vpp-settlement-preview-changes" aria-label="@Loc["SettlementChangesSinceLastVersion"]">
+                <header>
+                    <div>
+                        <strong>@Loc["SettlementChangesSinceLastVersion"]</strong>
+                        <span>@string.Format(Loc["SettlementVersionComparison"], CurrentRevisionNumber, CurrentRevisionNumber + 1)</span>
+                    </div>
+                    <VppCategoryChip Text="@string.Format(Loc["SettlementApprovedChangesCount"], ApprovedCorrections.Count)"
+                                     Tone="VppCategoryTone.Accent" />
+                </header>
+                <dl>
+                    <div><dt>@Loc["Supplier"]</dt><dd>@ChangeText(CurrentSettlement?.PrimarySupplierName, SupplierName)</dd></div>
+                    <div><dt>@Loc["PriceList"]</dt><dd>@ChangeText(CurrentSettlement?.PriceListName, PriceListName)</dd></div>
+                    <div><dt>@Loc["TotalValue"]</dt><dd>@Money(CurrentSettlement?.GrandTotal ?? 0) → @Money(GrandTotal)</dd></div>
+                </dl>
+                @if (ApprovedCorrections.Count > 0)
+                {
+                    <div class="vpp-settlement-preview-change-list">
+                        @foreach (var change in ApprovedCorrections)
+                        {
+                            <article>
+                                <div>
+                                    <strong>@change.RequestCode</strong>
+                                    <span>@CorrectionAction(change.Action)</span>
+                                </div>
+                                <span>@change.Reason</span>
+                            </article>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="vpp-settlement-preview-no-change">@Loc["SettlementNoApprovedOrderChanges"]</p>
+                }
+            </section>
+        }
+
+        <section class="vpp-settlement-preview-orders" aria-label="@Loc["Orders"]">
+            <header>
+                <strong>@Loc["Orders"]</strong>
+                <span>@string.Format(Loc["SettlementPreviewOrderSummary"], Orders.Count, WorkingPreview.RequestedLineCount)</span>
+            </header>
+            <div class="vpp-settlement-preview-order-list">
+                @foreach (var order in Orders.OrderBy(item => item.DepartmentCode).ThenBy(item => item.VppCode))
+                {
+                    <article>
+                        <div><strong>@order.VppCode</strong><span>@(order.RequesterName ?? "–")</span></div>
+                        <span>@(order.DepartmentCode ?? "–")</span>
+                        <span>@order.TotalQty.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))</span>
+                        @if (IsResettlement && OrderAdjustmentRequested.HasDelegate)
+                        {
+                            <button type="button"
+                                    class="vpp-settlement-preview-order-action"
+                                    @onclick="@(() => RequestOrderAdjustmentAsync(order.Id))">
+                                @Loc["EditOrder"]
+                            </button>
+                        }
+                    </article>
+                }
+            </div>
+        </section>
+    </ChildContent>
+    <Footer>
+        <VppDialogActions CancelText="@Loc["Cancel"]"
+                          PrimaryText="@(IsResettlement ? Loc["SettlementResettleAction"] : Loc["SettlePeriod"])"
+                          PrimaryIcon="lock"
+                          PrimaryButtonStyle="ButtonStyle.Primary"
+                          PrimaryDisabled="@(PendingCorrectionCount > 0 || isUpdatingSelection)"
+                          CancelClick="@CancelAsync"
+                          PrimaryClick="@ConfirmAsync" />
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public SettlementPreviewResDTO Preview { get; set; } = default!;
+    [Parameter] public SettlementRevisionResDTO? CurrentSettlement { get; set; }
+    [Parameter] public IReadOnlyList<VppRequestResDTO> Orders { get; set; } = [];
+    [Parameter] public IReadOnlyList<PriceBookQuoteResDTO> Quotes { get; set; } = [];
+    [Parameter] public IReadOnlyList<PostSettlementOrderCorrectionResDTO> ApprovedCorrections { get; set; } = [];
+    [Parameter] public int PendingCorrectionCount { get; set; }
+    [Parameter] public bool IsResettlement { get; set; }
+    [Parameter] public Func<Guid?, Guid?, Task<SettlementPreviewResDTO?>>? PreviewSelectionChanged { get; set; }
+    [Parameter] public EventCallback<Guid> OrderAdjustmentRequested { get; set; }
+
+    private SettlementPreviewResDTO WorkingPreview { get; set; } = default!;
+    private bool isUpdatingSelection;
+    private Guid? SelectedSupplierId => WorkingPreview.PrimarySupplierId;
+    private Guid? SelectedPriceListId => WorkingPreview.PrimaryPriceListId;
+    private IReadOnlyList<VppDecisionOption<Guid?>> SupplierOptions => Quotes
+        .Where(quote => quote.IsEligible)
+        .GroupBy(quote => quote.SupplierId)
+        .Select(group => group.OrderBy(quote => quote.Rank).First())
+        .OrderBy(quote => quote.Rank)
+        .Select(quote => new VppDecisionOption<Guid?>(quote.SupplierId, quote.SupplierName ?? "–"))
+        .ToArray();
+    private IReadOnlyList<VppDecisionOption<Guid?>> PriceListOptions => Quotes
+        .Where(quote => quote.IsEligible && quote.SupplierId == SelectedSupplierId)
+        .OrderBy(quote => quote.Rank)
+        .Select(quote => new VppDecisionOption<Guid?>(quote.PriceListId, quote.PriceListCode ?? "–"))
+        .ToArray();
+    private string SupplierName => WorkingPreview.PrimaryQuote?.SupplierName ?? "–";
+    private string PriceListName => WorkingPreview.PrimaryQuote?.PriceListCode ?? "–";
+    private decimal VatAmount => WorkingPreview.PrimaryQuote?.VatAmount ?? 0;
+    private decimal GrandTotal => WorkingPreview.PrimaryQuote?.GrandTotal ?? 0;
+    private decimal BeforeVat => GrandTotal - VatAmount;
+    private int CurrentRevisionNumber => CurrentSettlement?.RevisionNumber ?? 0;
+
+    protected override void OnInitialized() => WorkingPreview = Preview;
+
+    private Task CancelAsync() => DialogService.TryCloseAsync(false);
+    private Task ConfirmAsync() => DialogService.TryCloseAsync(true);
+    private async Task OnSupplierChangedAsync(Guid? supplierId)
+    {
+        if (!supplierId.HasValue || PreviewSelectionChanged is null || isUpdatingSelection)
+        {
+            return;
+        }
+
+        var defaultPriceListId = Quotes
+            .Where(quote => quote.IsEligible && quote.SupplierId == supplierId.Value)
+            .OrderBy(quote => quote.Rank)
+            .Select(quote => (Guid?)quote.PriceListId)
+            .FirstOrDefault();
+        await UpdateSelectionAsync(supplierId, defaultPriceListId);
+    }
+
+    private async Task OnPriceListChangedAsync(Guid? priceListId)
+    {
+        if (!SelectedSupplierId.HasValue || !priceListId.HasValue || PreviewSelectionChanged is null || isUpdatingSelection)
+        {
+            return;
+        }
+
+        await UpdateSelectionAsync(SelectedSupplierId, priceListId);
+    }
+
+    private async Task UpdateSelectionAsync(Guid? supplierId, Guid? priceListId)
+    {
+        isUpdatingSelection = true;
+        try
+        {
+            WorkingPreview = await PreviewSelectionChanged!(supplierId, priceListId) ?? WorkingPreview;
+        }
+        finally
+        {
+            isUpdatingSelection = false;
+        }
+    }
+
+    private async Task RequestOrderAdjustmentAsync(Guid orderId)
+    {
+        await DialogService.TryCloseAsync(false);
+        await OrderAdjustmentRequested.InvokeAsync(orderId);
+    }
+    private static string Money(decimal value) => value.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
+    private static string ChangeText(string? before, string? after) =>
+        string.Equals(before, after, StringComparison.CurrentCultureIgnoreCase)
+            ? after ?? "–"
+            : $"{before ?? "–"} → {after ?? "–"}";
+    private string CorrectionAction(string action) => string.Equals(action, "Cancel", StringComparison.OrdinalIgnoreCase)
+        ? Loc["CancelOrder"]
+        : Loc["UpdateQuantity"];
+
+}

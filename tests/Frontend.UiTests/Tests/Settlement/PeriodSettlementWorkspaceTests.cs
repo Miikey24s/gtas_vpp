@@ -43,12 +43,36 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             .ToHaveCountAsync(0);
         await Assertions.Expect(Page.Locator(".vpp-settlement-kpi-card"))
             .ToHaveCountAsync(0);
-        await Assertions.Expect(Page.Locator(".vpp-settlement-decision-bar:visible"))
+        await Assertions.Expect(Page.Locator(".vpp-settlement-decision-cards:visible"))
             .ToBeVisibleAsync();
+        await Assertions.Expect(Page.Locator(".vpp-settlement-export-card:visible")).ToHaveCountAsync(2);
+        await Assertions.Expect(Page.GetByText("Phương án chốt", new() { Exact = true })).ToHaveCountAsync(0);
         await Assertions.Expect(Page.GetByRole(
                 AriaRole.Button,
                 new() { Name = "Tạo phiên bản hiệu chỉnh", Exact = true }))
             .ToHaveCountAsync(0);
+
+        var settlementAction = Page.GetByRole(
+            AriaRole.Button,
+            new() { NameRegex = new Regex("^Chốt( lại)? kỳ$") }).First;
+        await Assertions.Expect(settlementAction).ToBeEnabledAsync();
+        await settlementAction.ClickAsync();
+        var settlementPreviewDialog = Page.GetByTestId("settlement-preview-dialog");
+        await settlementPreviewDialog.WaitForAsync(new()
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 60_000
+        });
+        await Assertions.Expect(settlementPreviewDialog.Locator(".vpp-settlement-preview-summary article"))
+            .ToHaveCountAsync(5);
+        await Assertions.Expect(settlementPreviewDialog.Locator(".vpp-settlement-preview-select"))
+            .ToHaveCountAsync(2);
+        await Assertions.Expect(settlementPreviewDialog.Locator(".vpp-settlement-preview-orders"))
+            .ToBeVisibleAsync();
+        await AssertElementInsideViewportAsync(settlementPreviewDialog);
+        await CaptureAsync($"settlement-preview-dialog-{width}x{height}.png");
+        await settlementPreviewDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
+        await settlementPreviewDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
 
         var supplierPicker = Page.GetByRole(
             AriaRole.Button,
@@ -224,6 +248,39 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await Assertions.Expect(firstOrderCountCell.Locator(".vpp-category-chip")).ToHaveCountAsync(2);
         await Assertions.Expect(firstOrderCountCell.GetByText(new Regex("^Đơn thường: \\d+$"))).ToBeVisibleAsync();
         await Assertions.Expect(firstOrderCountCell.GetByText(new Regex("^Đơn bổ sung: \\d+$"))).ToBeVisibleAsync();
+
+        var geometryErrors = await surface.EvaluateAsync<string[]>("""
+            element => {
+                const orderHeader = [...element.querySelectorAll('thead th')]
+                    .find(cell => cell.textContent?.trim() === 'Tổng đơn');
+                const demandHeader = [...element.querySelectorAll('thead th')]
+                    .find(cell => cell.textContent?.trim() === 'Dòng mặt hàng');
+                const bodyCounts = element.querySelector('tbody .vpp-settlement-order-count');
+                const footerCounts = element.querySelector('tfoot .vpp-settlement-order-count');
+                if (!orderHeader || !demandHeader || !bodyCounts || !footerCounts) {
+                    return ['Thiếu cột tổng đơn hoặc dòng tổng hợp để kiểm tra hình học.'];
+                }
+
+                const orderRect = orderHeader.getBoundingClientRect();
+                const demandRect = demandHeader.getBoundingClientRect();
+                const bodyRect = bodyCounts.getBoundingClientRect();
+                const footerRect = footerCounts.getBoundingClientRect();
+                const messages = [];
+
+                if (orderRect.width < 220 || orderRect.width > 228) {
+                    messages.push(`Cột tổng đơn chưa compact (${orderRect.width}px).`);
+                }
+                if (Math.abs(demandRect.left - orderRect.right) > 1) {
+                    messages.push('Cột tổng đơn và dòng mặt hàng còn khoảng trống bất thường.');
+                }
+                if (Math.abs(bodyRect.left - footerRect.left) > 1) {
+                    messages.push('Badge dòng dữ liệu và dòng tổng hợp chưa thẳng cột.');
+                }
+                return messages;
+            }
+            """);
+
+        geometryErrors.Should().BeEmpty(string.Join(Environment.NewLine, geometryErrors));
     }
 
     private static async Task AssertNumericColumnsAlignedAsync(ILocator surface)

@@ -84,9 +84,9 @@ public sealed class UiConsolidationArchitectureTests
             $"Export actions must use VppFileExportActions: {string.Join(", ", duplicateExportActions)}");
 
         var settlementCode = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor.cs");
-        Assert.Contains("OpenAsync<Dialog_SettlementCorrection>", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("OpenAsync<Dialog_SettlementPreview>", settlementCode, StringComparison.Ordinal);
         var correctionDialogOwners = Directory.EnumerateFiles(Path.Combine(root, "Components"), "*.cs", SearchOption.AllDirectories)
-            .Where(path => File.ReadAllText(path).Contains("OpenAsync<Dialog_SettlementCorrection>", StringComparison.Ordinal))
+            .Where(path => File.ReadAllText(path).Contains("OpenAsync<Dialog_SettlementPreview>", StringComparison.Ordinal))
             .Select(path => Path.GetRelativePath(root, path))
             .ToArray();
         Assert.Single(correctionDialogOwners);
@@ -97,7 +97,7 @@ public sealed class UiConsolidationArchitectureTests
             "Pages",
             "VPPRequest",
             "Components",
-            "Dialog_SettlementCorrection.razor")));
+            "Dialog_SettlementPreview.razor")));
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public sealed class UiConsolidationArchitectureTests
     }
 
     [Fact]
-    public void SettlementExports_AreVisibleInCanonicalCollectionHeader()
+    public void SettlementExports_AreVisibleAsDecisionCardsOutsideTheCollectionHeader()
     {
         var root = GetFrontendRoot();
         var settlement = Read(root, "Components", "Pages", "VPPRequest", "Components", "PeriodSettlementPanel.razor");
@@ -214,9 +214,11 @@ public sealed class UiConsolidationArchitectureTests
         Assert.Contains("<Actions>", settlement, StringComparison.Ordinal);
         Assert.Contains("<VppStatusBadge", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementStatusText", settlement, StringComparison.Ordinal);
-        Assert.Contains("@if (status?.IsSettled == true)", settlement, StringComparison.Ordinal);
-        Assert.Contains("VppFileExportActions", settlement, StringComparison.Ordinal);
-        Assert.Contains("Disabled=\"@(!CanExportSettlement)\"", settlement, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppFileExportActions", settlement, StringComparison.Ordinal);
+        Assert.Contains("vpp-settlement-export-card", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportFormat.Pdf", settlement, StringComparison.Ordinal);
+        Assert.Contains("VppFileExportFormat.Excel", settlement, StringComparison.Ordinal);
+        Assert.Contains("disabled=\"@(!CanExportSettlement || exportingSettlementFormat.HasValue)\"", settlement, StringComparison.Ordinal);
         Assert.Contains("status is { IsSettled: true, SettlementId: not null }", settlementCode, StringComparison.Ordinal);
         Assert.Contains("exportingSettlementFormat.HasValue || !CanExportSettlement", settlementCode, StringComparison.Ordinal);
         Assert.Contains("Settlement.ExportAsync", settlementCode, StringComparison.Ordinal);

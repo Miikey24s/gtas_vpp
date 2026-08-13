@@ -157,6 +157,65 @@ public sealed class SettlementConfirmationTests
     }
 
     [Fact]
+    public async Task Correct_BlocksPendingOrderChanges_AndLinksApprovedChangesToNewSettlement()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context, netPrice: 100m, vatRate: 10m);
+        var service = CreateService(context);
+        var firstPreview = await PreviewAsync(service, seed);
+        var first = await service.ConfirmAsync(
+            ConfirmRequest(seed, firstPreview.InputHash, "confirm-202607-order-changes"), 5615);
+        var order = await context.Set<VppRequest>().FirstAsync();
+        var correctionId = Guid.NewGuid();
+        context.Set<PostSettlementOrderCorrection>().Add(new PostSettlementOrderCorrection
+        {
+            Id = correctionId,
+            PeriodId = seed.PeriodId,
+            RequestId = order.Id,
+            RequestSeriesId = order.RequestSeriesId,
+            RequestRevisionNumber = order.RevisionNumber,
+            SettlementId = first.Id,
+            MemberCompanyCode = "77500",
+            Action = PostSettlementOrderCorrectionAction.Adjust,
+            Status = PostSettlementOrderCorrectionStatus.Pending,
+            Reason = "Điều chỉnh số lượng sau chốt",
+            EmployeeNote = "Đang chờ một quản lý khác duyệt.",
+            RequestedByUserId = 5615,
+            RequestedAtUtc = AsOfUtc,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = AsOfUtc,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = AsOfUtc
+        });
+        await context.SaveChangesAsync();
+
+        var correctionPreview = await PreviewAsync(service, seed);
+        var correctionRequest = new SettlementCorrectionReqDTO
+        {
+            Year = 2026,
+            Month = 7,
+            PriceAsOfUtc = AsOfUtc,
+            PrimarySupplierId = seed.SupplierId,
+            PriceListId = seed.BookId,
+            InputHash = correctionPreview.InputHash,
+            IdempotencyKey = "correct-202607-order-changes",
+            Reason = "Chốt lại sau khi duyệt thay đổi đơn"
+        };
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            service.CorrectAsync(first.Id, correctionRequest, 5616));
+
+        var correction = await context.Set<PostSettlementOrderCorrection>().SingleAsync();
+        correction.Status = PostSettlementOrderCorrectionStatus.Confirmed;
+        correction.ResultRequestId = order.Id;
+        await context.SaveChangesAsync();
+
+        var second = await service.CorrectAsync(first.Id, correctionRequest, 5616);
+        Assert.Equal(2, second.RevisionNumber);
+        Assert.Equal(second.Id, (await context.Set<PostSettlementOrderCorrection>().SingleAsync()).ResultSettlementId);
+    }
+
+    [Fact]
     public async Task Confirm_can_settle_early_after_order_closing_when_no_supplement_is_pending()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

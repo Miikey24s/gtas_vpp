@@ -333,6 +333,21 @@ namespace gtas_vpp_be.Service.Services
                 throw new ConflictException("The selected supplier or price book no longer matches the preview.");
             }
 
+            if (correctionSettlementId.HasValue)
+            {
+                var pendingCorrections = await _scopedUow.VPPContext.Set<PostSettlementOrderCorrection>()
+                    .CountAsync(x => !x.IsDeleted
+                        && x.MemberCompanyCode == company
+                        && x.SettlementId == correctionSettlementId.Value
+                        && x.Status == PostSettlementOrderCorrectionStatus.Pending,
+                        cancellationToken);
+                if (pendingCorrections > 0)
+                {
+                    throw new ConflictException(
+                        $"Còn {pendingCorrections} yêu cầu sửa hoặc hủy đơn đang chờ duyệt.");
+                }
+            }
+
             await _scopedUow.BeginTransactionAsync();
             try
             {
@@ -631,6 +646,23 @@ namespace gtas_vpp_be.Service.Services
                             settlement.GrandTotal
                         })
                     });
+                }
+
+                if (correctionSettlementId.HasValue)
+                {
+                    var approvedCorrections = await _scopedUow.VPPContext.Set<PostSettlementOrderCorrection>()
+                        .Where(x => !x.IsDeleted
+                            && x.MemberCompanyCode == company
+                            && x.SettlementId == correctionSettlementId.Value
+                            && x.Status == PostSettlementOrderCorrectionStatus.Confirmed
+                            && x.ResultSettlementId == null)
+                        .ToListAsync(cancellationToken);
+                    foreach (var approvedCorrection in approvedCorrections)
+                    {
+                        approvedCorrection.ResultSettlementId = settlement.Id;
+                        approvedCorrection.UpdatedByUserId = userId;
+                        approvedCorrection.UpdatedAtUtc = nowUtc;
+                    }
                 }
 
                 await _scopedUow.CommitAsync();

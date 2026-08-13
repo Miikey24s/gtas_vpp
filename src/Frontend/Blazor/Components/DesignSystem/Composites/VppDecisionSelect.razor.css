@@ -39,6 +39,22 @@
     opacity: .62;
 }
 
+.vpp-decision-select-copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+    text-align: start;
+}
+
+.vpp-decision-select-copy small {
+    overflow: hidden;
+    color: var(--vpp-text-muted);
+    font-size: var(--vpp-text-xs);
+    font-weight: var(--vpp-font-weight-regular);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .vpp-decision-select-label {
     overflow: hidden;
     text-overflow: ellipsis;

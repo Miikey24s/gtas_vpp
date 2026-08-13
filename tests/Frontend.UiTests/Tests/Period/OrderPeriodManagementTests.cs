@@ -554,11 +554,12 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
         await Assertions.Expect(surface.Locator(".vpp-skeleton-page"))
             .ToBeHiddenAsync(new() { Timeout = 15_000 });
 
-        var decisionBar = Page.Locator(".vpp-settlement-decision-bar:visible");
-        await Assertions.Expect(decisionBar).ToBeVisibleAsync();
+        var decisionCards = Page.Locator(".vpp-settlement-decision-cards:visible");
+        await Assertions.Expect(decisionCards).ToBeVisibleAsync();
         await Assertions.Expect(Page.Locator(".vpp-settlement-kpi-card:visible")).ToHaveCountAsync(0);
-        await Assertions.Expect(decisionBar.GetByText("Phương án chốt", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(decisionBar.Locator(".vpp-decision-select")).ToHaveCountAsync(2);
+        await Assertions.Expect(Page.GetByText("Phương án chốt", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(decisionCards.Locator(".vpp-decision-select")).ToHaveCountAsync(2);
+        await Assertions.Expect(decisionCards.Locator(".vpp-settlement-export-card")).ToHaveCountAsync(2);
         await Assertions.Expect(Page.GetByText("Chọn nhà cung cấp", new() { Exact = true }).First).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByText("Chọn bảng giá", new() { Exact = true }).First).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByText("Trước VAT và thuế VAT", new() { Exact = true })).ToHaveCountAsync(0);

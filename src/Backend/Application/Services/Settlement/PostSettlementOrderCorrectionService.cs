@@ -85,10 +85,12 @@ public sealed class PostSettlementOrderCorrectionService(
         if (await _scopedUow.VPPContext.Set<PostSettlementOrderCorrection>()
             .AnyAsync(x => x.MemberCompanyCode == company
                 && x.RequestSeriesId == header.RequestSeriesId
-                && x.Status == PostSettlementOrderCorrectionStatus.Pending
+                && (x.Status == PostSettlementOrderCorrectionStatus.Pending
+                    || (x.Status == PostSettlementOrderCorrectionStatus.Confirmed
+                        && x.ResultSettlementId == null))
                 && !x.IsDeleted, cancellationToken))
         {
-            throw new ConflictException("Đơn này đã có một yêu cầu điều chỉnh đang chờ duyệt.");
+            throw new ConflictException("Đơn này đã có thay đổi đang chờ duyệt hoặc chờ chốt lại.");
         }
 
         var normalizedItems = action == PostSettlementOrderCorrectionAction.Cancel
@@ -175,7 +177,6 @@ public sealed class PostSettlementOrderCorrectionService(
 
             var currentSettlement = await _scopedUow.VPPContext.Set<Settlement>()
                 .Include(x => x.Items.Where(item => !item.IsDeleted))
-                .Include(x => x.Charges.Where(charge => !charge.IsDeleted))
                 .FirstOrDefaultAsync(x => x.Id == correction.SettlementId
                     && x.IsCurrentRevision && !x.IsDeleted, cancellationToken)
                 ?? throw new ConflictException("Bảng chốt đã có revision mới; hãy tạo lại yêu cầu điều chỉnh.");
@@ -191,29 +192,20 @@ public sealed class PostSettlementOrderCorrectionService(
             currentRequest.UpdatedByUserId = actorUserId;
             currentRequest.UpdatedAtUtc = nowUtc;
             _scopedUow.VPPContext.Set<VppRequest>().Add(replacement);
-            await _scopedUow.SaveChangesAsync(cancellationToken);
-
-            var settlementRevision = await BuildSettlementRevisionAsync(
-                correction, currentSettlement, period, actorUserId, nowUtc, cancellationToken);
-            currentSettlement.IsCurrentRevision = false;
-            currentSettlement.SupersededBySettlementId = settlementRevision.Id;
-            currentSettlement.UpdatedByUserId = actorUserId;
-            currentSettlement.UpdatedAtUtc = nowUtc;
-            _scopedUow.VPPContext.Set<Settlement>().Add(settlementRevision);
 
             correction.Status = PostSettlementOrderCorrectionStatus.Confirmed;
             correction.DecisionReason = NormalizeOptionalText(request.Reason, 500);
             correction.DecidedByUserId = actorUserId;
             correction.DecidedAtUtc = nowUtc;
             correction.ResultRequestId = replacement.Id;
-            correction.ResultSettlementId = settlementRevision.Id;
+            correction.ResultSettlementId = null;
             correction.UpdatedByUserId = actorUserId;
             correction.UpdatedAtUtc = nowUtc;
             period.LastTransitionUserId = actorUserId;
             period.LastTransitionAtUtc = nowUtc;
             period.LastTransitionReason = correction.Action == PostSettlementOrderCorrectionAction.Cancel
-                ? $"Đã duyệt hủy đơn {currentRequest.VppCode}; lưu bản chốt {settlementRevision.RevisionNumber}."
-                : $"Đã duyệt cập nhật đơn {currentRequest.VppCode}; lưu bản chốt {settlementRevision.RevisionNumber}.";
+                ? $"Đã duyệt hủy đơn {currentRequest.VppCode}; đang chờ chốt lại kỳ."
+                : $"Đã duyệt cập nhật đơn {currentRequest.VppCode}; đang chờ chốt lại kỳ.";
             period.UpdatedByUserId = actorUserId;
             period.UpdatedAtUtc = nowUtc;
 
@@ -236,13 +228,13 @@ public sealed class PostSettlementOrderCorrectionService(
                     CorrectionId = correction.Id,
                     correction.EmployeeNote,
                     RequestRevisionId = replacement.Id,
-                    SettlementRevisionId = settlementRevision.Id,
-                    settlementRevision.RevisionNumber
+                    CurrentSettlementId = currentSettlement.Id,
+                    WaitingForResettlement = true
                 })
             });
 
             await _scopedUow.CommitAsync();
-            return Map(correction, currentRequest, currentSettlement);
+            return Map(correction, replacement, currentSettlement);
         }
         catch
         {
@@ -355,193 +347,6 @@ public sealed class PostSettlementOrderCorrectionService(
         return replacement;
     }
 
-    private async Task<Settlement> BuildSettlementRevisionAsync(
-        PostSettlementOrderCorrection correction,
-        Settlement current,
-        VppPeriod period,
-        int actorUserId,
-        DateTime nowUtc,
-        CancellationToken cancellationToken)
-    {
-        var headers = await _scopedUow.VPPContext.Set<VppRequest>()
-            .Where(x => x.PeriodId == period.Id && !x.IsDeleted && x.IsCurrentRevision
-                && ((x.IsAdditionalOrder && x.Status == (int)VPPStatus.Approved)
-                    || (!x.IsAdditionalOrder && (x.Status == (int)VPPStatus.Submitted
-                        || x.Status == (int)VPPStatus.Approved))))
-            .Include(x => x.RequestDetails.Where(detail => !detail.IsDeleted))
-            .ToListAsync(cancellationToken);
-        var snapshots = current.Items.ToDictionary(x => x.VppId);
-        var totals = headers.SelectMany(x => x.RequestDetails)
-            .GroupBy(x => x.VppId)
-            .ToDictionary(x => x.Key, x => x.Sum(detail => (decimal)detail.Qty));
-        var missing = totals.Keys.Where(vppId => !snapshots.ContainsKey(vppId)).ToArray();
-        if (missing.Length > 0)
-            throw new ConflictException(
-                "Bản chốt hiện tại chưa có mặt hàng này. Vui lòng chỉ điều chỉnh các mặt hàng đã có.");
-
-        var revision = new Settlement
-        {
-            Id = Guid.NewGuid(),
-            PeriodId = current.PeriodId,
-            MemberCompanyCode = current.MemberCompanyCode,
-            Year = current.Year,
-            Month = current.Month,
-            RevisionNumber = current.RevisionNumber + 1,
-            IsCurrentRevision = true,
-            IsCorrection = true,
-            SupersedesSettlementId = current.Id,
-            CorrectionReason = correction.Action == PostSettlementOrderCorrectionAction.Cancel
-                ? $"Hủy đơn: {correction.Reason}"
-                : $"Cập nhật đơn: {correction.Reason}",
-            PrimarySupplierId = current.PrimarySupplierId,
-            PrimarySupplierName = current.PrimarySupplierName,
-            PriceListId = current.PriceListId,
-            PriceListCode = current.PriceListCode,
-            PriceListName = current.PriceListName,
-            PriceListVersion = current.PriceListVersion,
-            PriceAsOfUtc = current.PriceAsOfUtc,
-            CalculationVersion = current.CalculationVersion,
-            InputHash = Hash(totals.OrderBy(x => x.Key).Select(x => new { x.Key, x.Value })),
-            IdempotencyKey = $"post-settlement-order-correction:{correction.Id:N}",
-            CommandPayloadHash = Hash(new { correction.Id, Command = "confirm" }),
-            CurrencyCode = current.CurrencyCode,
-            ConfirmedAtUtc = nowUtc,
-            ConfirmedByUserId = actorUserId,
-            CreatedByUserId = actorUserId,
-            CreatedAtUtc = nowUtc,
-            UpdatedByUserId = actorUserId,
-            UpdatedAtUtc = nowUtc
-        };
-
-        foreach (var itemGroup in headers
-            .SelectMany(header => header.RequestDetails.Select(detail => new { header, detail }))
-            .GroupBy(x => x.detail.VppId)
-            .OrderBy(x => x.Key))
-        {
-            var snapshot = snapshots[itemGroup.Key];
-            var quantity = itemGroup.Sum(x => (decimal)x.detail.Qty);
-            if (snapshot.MinimumOrderQuantity > 0 && quantity < snapshot.MinimumOrderQuantity)
-                throw new ConflictException($"Số lượng sau điều chỉnh của {snapshot.VppCode} thấp hơn MOQ đã chốt.");
-            var calculation = PriceCalculationEngine.CalculateLine(snapshot.NetUnitPrice, snapshot.VatRate, quantity);
-            var revisionItem = new SettlementItem
-            {
-                Id = Guid.NewGuid(),
-                SettlementId = revision.Id,
-                VppId = snapshot.VppId,
-                VppCode = snapshot.VppCode,
-                VppName = snapshot.VppName,
-                UomId = snapshot.UomId,
-                UomCode = snapshot.UomCode,
-                UomName = snapshot.UomName,
-                SupplierId = snapshot.SupplierId,
-                PriceListId = snapshot.PriceListId,
-                PriceBookItemId = snapshot.PriceBookItemId,
-                SupplierSku = snapshot.SupplierSku,
-                Quantity = quantity,
-                NetUnitPrice = snapshot.NetUnitPrice,
-                VatRate = snapshot.VatRate,
-                NetAmount = calculation.NetAmount,
-                VatAmount = calculation.VatAmount,
-                GrossAmount = calculation.GrossAmount,
-                MinimumOrderQuantity = snapshot.MinimumOrderQuantity,
-                LeadTimeDays = snapshot.LeadTimeDays,
-                IsSupplierException = snapshot.IsSupplierException,
-                SupplierExceptionReason = snapshot.SupplierExceptionReason,
-                CreatedByUserId = actorUserId,
-                CreatedAtUtc = nowUtc,
-                UpdatedByUserId = actorUserId,
-                UpdatedAtUtc = nowUtc
-            };
-            revision.Items.Add(revisionItem);
-
-            var sources = itemGroup.OrderBy(x => x.header.Id).ThenBy(x => x.detail.Id).ToList();
-            var weights = sources.Select(x => (decimal)x.detail.Qty).ToArray();
-            var netShares = Allocate(calculation.NetAmount, weights);
-            var vatShares = Allocate(calculation.VatAmount, weights);
-            for (var index = 0; index < sources.Count; index++)
-            {
-                var source = sources[index];
-                revision.Allocations.Add(new SettlementAllocation
-                {
-                    Id = Guid.NewGuid(),
-                    SettlementId = revision.Id,
-                    SettlementItemId = revisionItem.Id,
-                    RequestHeaderId = source.header.Id,
-                    RequestDetailId = source.detail.Id,
-                    DepartmentCode = source.header.DepartmentCode,
-                    RequesterUserId = source.header.CreatedByUserId,
-                    Quantity = source.detail.Qty,
-                    NetAmount = netShares[index],
-                    VatAmount = vatShares[index],
-                    GrossAmount = netShares[index] + vatShares[index],
-                    CreatedByUserId = actorUserId,
-                    CreatedAtUtc = nowUtc,
-                    UpdatedByUserId = actorUserId,
-                    UpdatedAtUtc = nowUtc
-                });
-            }
-        }
-
-        revision.Subtotal = PriceCalculationEngine.RoundMoney(revision.Items.Sum(x => x.NetAmount));
-        revision.VatAmount = PriceCalculationEngine.RoundMoney(revision.Items.Sum(x => x.VatAmount));
-        if (revision.Items.Count > 0)
-        {
-            var discountRate = current.Subtotal == 0 ? 0 : current.DiscountAmount * 100m / current.Subtotal;
-            revision.RebateAmount = current.RebateAmount;
-            revision.FeeAmount = current.FeeAmount;
-            revision.ShippingAmount = current.ShippingAmount;
-            var basket = PriceCalculationEngine.CalculateBasket(
-                revision.Subtotal, revision.VatAmount, discountRate,
-                revision.RebateAmount, revision.FeeAmount, revision.ShippingAmount);
-            revision.DiscountAmount = basket.DiscountAmount;
-            revision.GrandTotal = basket.GrandTotal;
-            var exact = revision.Subtotal - revision.DiscountAmount - revision.RebateAmount
-                + revision.FeeAmount + revision.ShippingAmount + revision.VatAmount;
-            revision.RoundingAdjustment = revision.GrandTotal - exact;
-        }
-
-        AddCharge(revision, "Discount", -revision.DiscountAmount, actorUserId, nowUtc);
-        AddCharge(revision, "Rebate", -revision.RebateAmount, actorUserId, nowUtc);
-        AddCharge(revision, "Fee", revision.FeeAmount, actorUserId, nowUtc);
-        AddCharge(revision, "Shipping", revision.ShippingAmount, actorUserId, nowUtc);
-        AddCharge(revision, "Rounding", revision.RoundingAdjustment, actorUserId, nowUtc);
-
-        var allocations = revision.Allocations.OrderBy(x => x.RequestHeaderId).ThenBy(x => x.RequestDetailId).ToList();
-        if (allocations.Count > 0)
-        {
-            var commercial = -revision.DiscountAmount - revision.RebateAmount + revision.FeeAmount + revision.ShippingAmount;
-            var weights = allocations.Select(x => x.NetAmount).ToArray();
-            if (weights.Sum() == 0) weights = allocations.Select(x => x.Quantity).ToArray();
-            var commercialShares = Allocate(commercial, weights);
-            var roundingShares = Allocate(revision.RoundingAdjustment, weights);
-            for (var index = 0; index < allocations.Count; index++)
-            {
-                allocations[index].CommercialAdjustmentAmount = commercialShares[index];
-                allocations[index].RoundingAdjustment = roundingShares[index];
-                allocations[index].GrossAmount = allocations[index].NetAmount + allocations[index].VatAmount
-                    + commercialShares[index] + roundingShares[index];
-            }
-            if (revision.GrandTotal != allocations.Sum(x => x.GrossAmount))
-                throw new BusinessException("Phân bổ revision bảng chốt không cân bằng.");
-        }
-
-        return revision;
-    }
-
-    private static void AddCharge(Settlement settlement, string type, decimal amount, int actorUserId, DateTime nowUtc)
-        => settlement.Charges.Add(new SettlementCharge
-        {
-            Id = Guid.NewGuid(),
-            SettlementId = settlement.Id,
-            ChargeType = type,
-            Amount = amount,
-            AllocationBasis = "net-amount",
-            CreatedByUserId = actorUserId,
-            CreatedAtUtc = nowUtc,
-            UpdatedByUserId = actorUserId,
-            UpdatedAtUtc = nowUtc
-        });
-
     private static List<PostSettlementOrderCorrectionItemReqDTO> ValidateItems(
         IReadOnlyCollection<PostSettlementOrderCorrectionItemReqDTO>? items,
         IEnumerable<SettlementItem> settlementItems)
@@ -644,22 +449,6 @@ public sealed class PostSettlementOrderCorrectionService(
             throw new BusinessException("RowVersion là bắt buộc.");
         if (actual is null || !actual.AsSpan().SequenceEqual(expected))
             throw new ConflictException(message);
-    }
-
-    private static decimal[] Allocate(decimal total, IReadOnlyList<decimal> weights)
-    {
-        if (weights.Count == 0) return [];
-        var result = new decimal[weights.Count];
-        var totalWeight = weights.Sum();
-        var allocated = 0m;
-        for (var index = 0; index < weights.Count - 1; index++)
-        {
-            result[index] = totalWeight == 0 ? 0
-                : PriceCalculationEngine.RoundMoney(total * weights[index] / totalWeight);
-            allocated += result[index];
-        }
-        result[^1] = total - allocated;
-        return result;
     }
 
     private static string Hash(object payload)

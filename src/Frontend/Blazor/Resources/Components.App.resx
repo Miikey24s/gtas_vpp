@@ -836,7 +836,6 @@
   <data name="CorrectionReasonLabel" xml:space="preserve"><value>Lý do điều chỉnh</value></data>
   <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Mô tả ngắn lý do cần thay đổi (5–500 ký tự)</value></data>
   <data name="CorrectionFourEyesHint" xml:space="preserve"><value>Bản đang dùng vẫn được giữ trong lịch sử. Một quản lý khác với người chốt bản hiện tại cần thực hiện thay đổi này.</value></data>
-  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Lưu bản chốt mới</value></data>
   <data name="SettlePreviewResultAria" xml:space="preserve"><value>Kết quả xem trước chốt kỳ</value></data>
   <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Kết quả xem trước</value></data>
   <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Độ phủ nguồn cung và tổng giá trị</value></data>
@@ -1083,7 +1082,6 @@
   <data name="OrderCount" xml:space="preserve"><value>Số đơn</value></data>
   <data name="SettlementViewMode" xml:space="preserve"><value>Chế độ xem chốt kỳ</value></data>
   <data name="SettlementSupplierDecision" xml:space="preserve"><value>Nhà cung cấp và bảng giá dùng để chốt kỳ</value></data>
-  <data name="SettlementDecisionPlan" xml:space="preserve"><value>Phương án chốt</value></data>
   <data name="SettlementAllDepartments" xml:space="preserve"><value>Tất cả phòng ban</value></data>
   <data name="SettlementDepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm phòng ban hoặc mã đơn</value></data>
   <data name="SettlementRequesterSearchPlaceholder" xml:space="preserve"><value>Tìm người dùng hoặc mã đơn</value></data>
@@ -1355,7 +1353,6 @@
   <data name="PostSettlementAdjustmentRequested" xml:space="preserve"><value>Yêu cầu đã được gửi để một quản lý khác kiểm tra.</value></data>
   <data name="OrderAdjustmentSaved" xml:space="preserve"><value>Đơn đã được cập nhật và nhân viên đã được thông báo.</value></data>
   <data name="AdjustmentApproved" xml:space="preserve"><value>Đã duyệt điều chỉnh</value></data>
-  <data name="NewSettlementVersionCreated" xml:space="preserve"><value>Đơn đã được cập nhật và hệ thống đã lưu bản chốt mới.</value></data>
   <data name="RejectAdjustment" xml:space="preserve"><value>Từ chối điều chỉnh</value></data>
   <data name="PendingAdjustments" xml:space="preserve"><value>Điều chỉnh đang chờ duyệt</value></data>
   <data name="PendingAdjustmentCount" xml:space="preserve"><value>{0} yêu cầu đang chờ một quản lý khác</value></data>
@@ -1376,7 +1373,16 @@
   <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Mỗi lần điều chỉnh được lưu thành một bản mới. Các bản trước vẫn được giữ để đối chiếu.</value></data>
   <data name="ViewSavedVersions" xml:space="preserve"><value>Xem các bản đã lưu</value></data>
   <data name="SettlementHistoryAction" xml:space="preserve"><value>Lịch sử chốt</value></data>
-  <data name="SettlementCorrectionAction" xml:space="preserve"><value>Điều chỉnh bản chốt</value></data>
+  <data name="SettlementResettleAction" xml:space="preserve"><value>Chốt lại kỳ</value></data>
+  <data name="SettlementFirstPreviewHint" xml:space="preserve"><value>Kiểm tra nhà cung cấp, bảng giá, danh sách đơn và tổng tiền trước khi chốt.</value></data>
+  <data name="SettlementResettlePreviewHint" xml:space="preserve"><value>Kiểm tra toàn bộ thay đổi so với bản chốt gần nhất trước khi lưu bản mới.</value></data>
+  <data name="SettlementPendingChangesWarning" xml:space="preserve"><value>Còn {0} yêu cầu sửa hoặc hủy đơn đang chờ duyệt. Hãy xử lý xong trước khi chốt lại kỳ.</value></data>
+  <data name="SettlementChangesSinceLastVersion" xml:space="preserve"><value>Thay đổi so với bản chốt gần nhất</value></data>
+  <data name="SettlementVersionComparison" xml:space="preserve"><value>Bản chốt {0} → bản chốt {1}</value></data>
+  <data name="SettlementApprovedChangesCount" xml:space="preserve"><value>{0} thay đổi đơn đã duyệt</value></data>
+  <data name="SettlementNoApprovedOrderChanges" xml:space="preserve"><value>Không có thay đổi đơn đã duyệt; chỉ nhà cung cấp, bảng giá hoặc số tiền được thay đổi.</value></data>
+  <data name="SettlementPreviewOrderSummary" xml:space="preserve"><value>{0} đơn · {1} dòng mặt hàng</value></data>
+  <data name="SettlementOrderChangeWaitingForResettlement" xml:space="preserve"><value>Đơn đã được cập nhật. Hãy kiểm tra bản xem trước và chốt lại kỳ để lưu bản chốt mới.</value></data>
   <data name="DemandLines" xml:space="preserve"><value>Dòng mặt hàng</value></data>
   <data name="CurrentlyUsed" xml:space="preserve"><value>Đang dùng</value></data>
   <data name="TotalValue" xml:space="preserve"><value>Tổng giá trị</value></data>

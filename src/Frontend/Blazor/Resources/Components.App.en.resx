@@ -836,7 +836,6 @@
   <data name="CorrectionReasonLabel" xml:space="preserve"><value>Reason for adjustment</value></data>
   <data name="CorrectionReasonPlaceholder" xml:space="preserve"><value>Briefly explain why this change is needed (5–500 characters)</value></data>
   <data name="CorrectionFourEyesHint" xml:space="preserve"><value>The current version stays in history. A manager other than the person who confirmed it must make this change.</value></data>
-  <data name="CreateCorrectionRevision" xml:space="preserve"><value>Save new settlement</value></data>
   <data name="SettlePreviewResultAria" xml:space="preserve"><value>Settlement preview result</value></data>
   <data name="SettlePreviewResultKicker" xml:space="preserve"><value>Preview result</value></data>
   <data name="SettlePreviewResultTitle" xml:space="preserve"><value>Supply coverage and total value</value></data>
@@ -1083,7 +1082,6 @@
   <data name="OrderCount" xml:space="preserve"><value>Orders</value></data>
   <data name="SettlementViewMode" xml:space="preserve"><value>Settlement view mode</value></data>
   <data name="SettlementSupplierDecision" xml:space="preserve"><value>Supplier and price list used for settlement</value></data>
-  <data name="SettlementDecisionPlan" xml:space="preserve"><value>Settlement plan</value></data>
   <data name="SettlementAllDepartments" xml:space="preserve"><value>All departments</value></data>
   <data name="SettlementDepartmentSearchPlaceholder" xml:space="preserve"><value>Search department or request code</value></data>
   <data name="SettlementRequesterSearchPlaceholder" xml:space="preserve"><value>Search user or request code</value></data>
@@ -1356,7 +1354,6 @@
   <data name="PostSettlementAdjustmentRequested" xml:space="preserve"><value>The request was sent for another manager to review.</value></data>
   <data name="OrderAdjustmentSaved" xml:space="preserve"><value>The order was updated and the employee was notified.</value></data>
   <data name="AdjustmentApproved" xml:space="preserve"><value>Adjustment approved</value></data>
-  <data name="NewSettlementVersionCreated" xml:space="preserve"><value>The order was updated and a new settlement version was saved.</value></data>
   <data name="RejectAdjustment" xml:space="preserve"><value>Reject adjustment</value></data>
   <data name="PendingAdjustments" xml:space="preserve"><value>Adjustments awaiting review</value></data>
   <data name="PendingAdjustmentCount" xml:space="preserve"><value>{0} request(s) awaiting another manager</value></data>
@@ -1376,7 +1373,16 @@
   <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Each approved adjustment is saved as a new version. Earlier versions remain available for comparison.</value></data>
   <data name="ViewSavedVersions" xml:space="preserve"><value>View saved versions</value></data>
   <data name="SettlementHistoryAction" xml:space="preserve"><value>Settlement history</value></data>
-  <data name="SettlementCorrectionAction" xml:space="preserve"><value>Adjust settlement</value></data>
+  <data name="SettlementResettleAction" xml:space="preserve"><value>Settle again</value></data>
+  <data name="SettlementFirstPreviewHint" xml:space="preserve"><value>Review the supplier, price list, orders, and totals before settling.</value></data>
+  <data name="SettlementResettlePreviewHint" xml:space="preserve"><value>Review all changes against the latest settlement before saving a new version.</value></data>
+  <data name="SettlementPendingChangesWarning" xml:space="preserve"><value>{0} order change requests are still pending approval. Finish them before settling again.</value></data>
+  <data name="SettlementChangesSinceLastVersion" xml:space="preserve"><value>Changes since the latest settlement</value></data>
+  <data name="SettlementVersionComparison" xml:space="preserve"><value>Settlement {0} → settlement {1}</value></data>
+  <data name="SettlementApprovedChangesCount" xml:space="preserve"><value>{0} approved order changes</value></data>
+  <data name="SettlementNoApprovedOrderChanges" xml:space="preserve"><value>No approved order changes; only the supplier, price list, or amounts changed.</value></data>
+  <data name="SettlementPreviewOrderSummary" xml:space="preserve"><value>{0} orders · {1} item lines</value></data>
+  <data name="SettlementOrderChangeWaitingForResettlement" xml:space="preserve"><value>The order was updated. Review the preview and settle again to save a new settlement.</value></data>
   <data name="DemandLines" xml:space="preserve"><value>Item lines</value></data>
   <data name="CurrentlyUsed" xml:space="preserve"><value>Currently used</value></data>
   <data name="TotalValue" xml:space="preserve"><value>Total value</value></data>

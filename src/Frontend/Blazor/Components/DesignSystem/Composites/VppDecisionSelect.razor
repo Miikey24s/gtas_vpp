@@ -2,7 +2,7 @@
 
 <div class="vpp-decision-select @Class">
     <button type="button"
-            class="vpp-decision-select-trigger"
+            class="vpp-decision-select-trigger @TriggerClass"
             popovertarget="@PopoverId"
             style="anchor-name: @AnchorName"
             aria-haspopup="listbox"
@@ -11,7 +11,13 @@
             title="@SelectedLabel"
             data-value="@Value"
             disabled="@Disabled">
-        <span class="vpp-decision-select-label">@SelectedLabel</span>
+        <span class="vpp-decision-select-copy">
+            @if (!string.IsNullOrWhiteSpace(Eyebrow))
+            {
+                <small>@Eyebrow</small>
+            }
+            <span class="vpp-decision-select-label">@SelectedLabel</span>
+        </span>
         <VppIcon Name="@VppIcons.ExpandMore" />
     </button>
 
@@ -51,6 +57,8 @@
     [Parameter, EditorRequired] public string Placeholder { get; set; } = string.Empty;
     [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public string? Class { get; set; }
+    [Parameter] public string? TriggerClass { get; set; }
+    [Parameter] public string? Eyebrow { get; set; }
 
     private string PopoverId => $"vpp-decision-select-{instanceId}";
     private string AnchorName => $"--vpp-decision-select-{instanceId}";
