@@ -38,7 +38,8 @@ body:has(.vpp-layout) {
 .rz-layout.vpp-layout::after {
     content: "";
     position: absolute;
-    z-index: calc(var(--vpp-z-sidebar) + 1);
+    /* Divider thuộc nền shell: sidebar và mọi transient surface của nó phải luôn nổi phía trên. */
+    z-index: calc(var(--vpp-z-sidebar) - 1);
     inset-block: var(--vpp-header-height) 0;
     inset-inline-start: calc(var(--vpp-shell-sidebar-track) - 1px);
     width: 1px;

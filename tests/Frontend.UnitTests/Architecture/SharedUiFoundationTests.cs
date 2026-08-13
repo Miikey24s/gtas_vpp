@@ -859,6 +859,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("border-right: 0;", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("--vpp-shell-sidebar-track: var(--vpp-sidebar-width);", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("inset-inline-start: calc(var(--vpp-shell-sidebar-track) - 1px);", layoutStyles, StringComparison.Ordinal);
+        Assert.Contains("z-index: calc(var(--vpp-z-sidebar) - 1);", layoutStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("z-index: calc(var(--vpp-z-sidebar) + 1);", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("transition: inset-inline-start var(--vpp-sidebar-transition);", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("background-image: none;", layoutStyles, StringComparison.Ordinal);
         Assert.Contains("box-shadow: none !important;", layoutStyles, StringComparison.Ordinal);

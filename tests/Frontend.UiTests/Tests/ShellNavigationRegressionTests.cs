@@ -588,10 +588,14 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             """
             () => {
                 const sidebar = document.querySelector('.vpp-sidebar').getBoundingClientRect();
+                const sidebarElement = document.querySelector('.vpp-sidebar');
+                const layout = document.querySelector('.vpp-layout');
                 const trigger = document.querySelector('.vpp-sidebar-user-menu .user-menu-trigger').getBoundingClientRect();
                 const menu = document.querySelector('.vpp-sidebar-user-menu .user-dropdown').getBoundingClientRect();
                 return {
                     sidebarRight: sidebar.right,
+                    sidebarZIndex: Number.parseInt(getComputedStyle(sidebarElement).zIndex, 10),
+                    dividerZIndex: Number.parseInt(getComputedStyle(layout, '::after').zIndex, 10),
                     triggerTop: trigger.top,
                     menuLeft: menu.left,
                     menuRight: menu.right,
@@ -603,6 +607,8 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
             """);
         collapsedGeometry.MenuLeft.Should().BeLessThan(collapsedGeometry.SidebarRight,
             "the collapsed account surface must remain anchored over the rail instead of moving beside it");
+        collapsedGeometry.DividerZIndex.Should().BeLessThan(collapsedGeometry.SidebarZIndex,
+            "the shell divider must remain behind the collapsed sidebar account popup");
         collapsedGeometry.MenuLeft.Should().BeInRange(3.5, 4.5,
             "the popup must keep one compact inset from the viewport edge");
         collapsedGeometry.MenuBottom.Should().BeLessThan(collapsedGeometry.TriggerTop,
@@ -629,6 +635,8 @@ public sealed class ShellNavigationRegressionTests : TestBase, IAuthenticatedUiT
     private sealed class CollapsedUserMenuGeometry
     {
         public double SidebarRight { get; set; }
+        public int SidebarZIndex { get; set; }
+        public int DividerZIndex { get; set; }
         public double TriggerTop { get; set; }
         public double MenuLeft { get; set; }
         public double MenuRight { get; set; }
