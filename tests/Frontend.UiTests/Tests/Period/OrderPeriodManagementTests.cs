@@ -84,11 +84,30 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 var settledRow = settledRows.First;
                 await Assertions.Expect(settledRow.GetByRole(
                         AriaRole.Button,
-                        new() { Name = "Xem bản chốt", Exact = true }))
+                        new() { Name = "Xem chi tiết", Exact = true }))
                     .ToBeEnabledAsync();
                 await Assertions.Expect(settledRow.GetByTestId("period-row-more-actions"))
                     .ToBeVisibleAsync();
             }
+
+            var openRowWithOrders = dataRows.Filter(new LocatorFilterOptions
+            {
+                HasTextString = "Đang mở"
+            }).Last;
+            await openRowWithOrders.GetByTestId("period-row-more-actions").ClickAsync();
+            var capabilityMenu = Page.Locator(".rz-context-menu:visible");
+            await Assertions.Expect(capabilityMenu).ToBeVisibleAsync();
+            await Assertions.Expect(capabilityMenu.GetByText("Chốt kỳ", new() { Exact = true })
+                    .Locator("xpath=ancestor::li[1]"))
+                .ToHaveAttributeAsync("aria-disabled", "true");
+            await Assertions.Expect(capabilityMenu.GetByText("Gia hạn kỳ", new() { Exact = true })
+                    .Locator("xpath=ancestor::li[1]"))
+                .Not.ToHaveAttributeAsync("aria-disabled", "true");
+            await Assertions.Expect(capabilityMenu.GetByText("Sửa lịch", new() { Exact = true })
+                    .Locator("xpath=ancestor::li[1]"))
+                .ToHaveAttributeAsync("aria-disabled", "true");
+            await openRowWithOrders.GetByTestId("period-row-more-actions").ClickAsync();
+            await Assertions.Expect(capabilityMenu).ToBeHiddenAsync();
         }
         var headerColorContract = await periodSurface.Locator("thead th").First.EvaluateAsync<string>("""
             element => {
@@ -193,17 +212,24 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             "element => getComputedStyle(element).animationName");
         actionMenuAnimation.Should().Contain("vpp-transient-enter-",
             "overflow menu dùng motion transient canonical");
-        var periodDetailsAction = periodMenu.GetByText("Xem chi tiết", new() { Exact = true });
-        await Assertions.Expect(periodDetailsAction).ToBeVisibleAsync();
+        var settleAction = periodMenu.GetByText("Chốt kỳ", new() { Exact = true });
+        var extendAction = periodMenu.GetByText("Gia hạn kỳ", new() { Exact = true });
+        var editAction = periodMenu.GetByText("Sửa lịch", new() { Exact = true });
+        await Assertions.Expect(settleAction).ToBeVisibleAsync();
+        await Assertions.Expect(extendAction).ToBeVisibleAsync();
+        await Assertions.Expect(editAction).ToBeVisibleAsync();
+        await Assertions.Expect(periodMenu.GetByText("Xem chi tiết", new() { Exact = true }))
+            .ToHaveCountAsync(0);
         await Assertions.Expect(periodMenu.GetByText("Đóng nhận đơn sớm", new() { Exact = true }))
             .ToHaveCountAsync(0);
-        var menuItem = periodDetailsAction.Locator("xpath=ancestor::li[1]");
+        var menuItem = settleAction.Locator("xpath=ancestor::li[1]");
         await Assertions.Expect(menuItem).ToBeVisibleAsync();
         var initialMenuItemBackground = await menuItem.EvaluateAsync<string>(
             "element => getComputedStyle(element).backgroundColor");
         initialMenuItemBackground.Should().Be("rgba(0, 0, 0, 0)",
             "menu lệnh không tự bôi xanh mục đầu tiên như một lựa chọn đã chọn");
-        await periodDetailsAction.HoverAsync();
+        var editMenuItem = editAction.Locator("xpath=ancestor::li[1]");
+        await editMenuItem.HoverAsync();
         var menuHtml = await periodMenu.EvaluateAsync<string>("element => element.outerHTML");
         var innerMenuChrome = await periodMenu.Locator(":scope > .rz-menu, :scope > .rz-menu-list")
             .First
@@ -215,7 +241,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 """);
         innerMenuChrome.Should().Be("0px|none|none|rgba(0, 0, 0, 0)",
             "context menu chỉ được có một surface ở portal ngoài");
-        var menuItemStyle = await menuItem.EvaluateAsync<MenuItemStyle>("""
+        var menuItemStyle = await editMenuItem.EvaluateAsync<MenuItemStyle>("""
             element => {
                 const style = getComputedStyle(element);
                 return { borderRadius: style.borderRadius, backgroundColor: style.backgroundColor };
@@ -253,45 +279,8 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 Scale = ScreenshotScale.Css
             });
         }
-        await periodDetailsAction.ClickAsync();
-        var periodDetailDialog = Page.GetByTestId("order-period-detail-dialog");
-        await Assertions.Expect(periodDetailDialog).ToBeVisibleAsync();
-        await Assertions.Expect(periodDetailDialog.GetByText("Đang mở", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(periodDetailDialog.GetByText("Ngày mở", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(periodDetailDialog.GetByText("Ngày đóng", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(periodDetailDialog.GetByText("Hạn duyệt đơn bổ sung", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(periodDetailDialog.GetByText("Số đơn", new() { Exact = true })).ToBeVisibleAsync();
-        var periodDateTimeValues = await periodDetailDialog.Locator(".vpp-order-period-detail-facts dd").AllTextContentsAsync();
-        periodDateTimeValues.Take(3).Should().OnlyContain(
-            value => System.Text.RegularExpressions.Regex.IsMatch(
-                value.Trim(),
-                @"^\d{2}:\d{2} \d{2}/\d{2}/\d{4}"),
-            "ngày giờ của kỳ phải theo design system: giờ trước, ngày sau");
-        await Assertions.Expect(periodDetailDialog.GetByText("Thay đổi gần nhất", new() { Exact = true })).ToHaveCountAsync(0);
-        await Assertions.Expect(periodDetailDialog.GetByText("Số đơn hiện tại", new() { Exact = true })).ToHaveCountAsync(0);
+        await editMenuItem.ClickAsync();
         await Assertions.Expect(Page.Locator("#period-action-panel")).ToHaveCountAsync(0);
-        if (!string.IsNullOrWhiteSpace(actionScreenshotDirectory))
-        {
-            var directory = Path.GetFullPath(actionScreenshotDirectory);
-            await Page.ScreenshotAsync(new PageScreenshotOptions
-            {
-                Path = Path.Combine(directory, $"order-period-detail-dialog-{width}x{height}.png"),
-                FullPage = false,
-                Animations = ScreenshotAnimations.Disabled,
-                Caret = ScreenshotCaret.Hide,
-                Scale = ScreenshotScale.Css
-            });
-        }
-        await periodDetailDialog.Locator(".vpp-adaptive-dialog-footer")
-            .GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true })
-            .ClickAsync();
-        await Assertions.Expect(periodDetailDialog).ToHaveCountAsync(0);
-
-        var editScheduleTrigger = periodSurface.GetByRole(
-            AriaRole.Button,
-            new() { Name = "Sửa lịch", Exact = true }).First;
-        await Assertions.Expect(editScheduleTrigger).ToBeVisibleAsync();
-        await editScheduleTrigger.ClickAsync();
         var editScheduleDialog = Page.GetByTestId("order-period-action-dialog");
         await Assertions.Expect(editScheduleDialog.GetByText("Sửa lịch kỳ", new() { Exact = true })).ToBeVisibleAsync();
         var datePickerAlignment = await editScheduleDialog.Locator(".rz-datepicker").EvaluateAllAsync<bool>("""
@@ -608,7 +597,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
         var surface = Page.Locator("[data-testid='order-period-management-table']:visible");
         await Assertions.Expect(surface).ToBeVisibleAsync();
         var settlementButton = surface.Locator("button:not(:disabled)")
-            .Filter(new LocatorFilterOptions { HasText = "Chốt kỳ" })
+            .Filter(new LocatorFilterOptions { HasText = "Xem chi tiết" })
             .First;
         var settlementRow = settlementButton.Locator("xpath=ancestor::tr[1]");
         await Assertions.Expect(settlementRow).ToBeVisibleAsync();

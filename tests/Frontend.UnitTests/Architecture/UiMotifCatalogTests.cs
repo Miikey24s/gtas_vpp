@@ -164,7 +164,9 @@ public sealed class UiMotifCatalogTests
         Assert.Contains("ADMIN-ROW-ACTIONS", profile.Motifs);
         Assert.Contains("<VppCollectionHeader", workspace, StringComparison.Ordinal);
         Assert.Contains("<RadzenDataGrid", workspace, StringComparison.Ordinal);
-        Assert.Contains("Text=\"@PrimaryPeriodActionText(row)\"", workspace, StringComparison.Ordinal);
+        Assert.Contains("Text=\"@PrimaryPeriodActionText\"", workspace, StringComparison.Ordinal);
+        Assert.Contains("Click=\"@(() => NavigateToSettlement(row))\"", workspace, StringComparison.Ordinal);
+        Assert.Contains("AllowOpenWhenAllDisabled=\"true\"", workspace, StringComparison.Ordinal);
         Assert.Contains("<VppAdminActionMenu", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppAdminActiveToggle", workspace, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppListDetailWorkspace", workspace, StringComparison.Ordinal);

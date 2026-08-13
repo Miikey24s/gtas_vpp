@@ -12,7 +12,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 
 public partial class OrderPeriodManagementWorkspace
 {
-    private const string DetailsAction = "details";
+    private const string SettleAction = "settle";
     private const string EditAction = "edit";
     private const string ExtendAction = "extend";
     private const string ReopenAction = "reopen";
@@ -75,65 +75,33 @@ public partial class OrderPeriodManagementWorkspace
                 .Select(year => new VppFilterOption<int?>(year, year.ToString())))
             .ToArray();
 
-    private static string PrimaryPeriodActionText(VppManagedPeriodResDTO period) =>
-        period.State == "Settled" ? "Xem bản chốt" :
-        period.State is "SubmissionClosed" or "Pricing" ? "Chốt kỳ" :
-        period.CanEditSchedule ? "Sửa lịch" :
-        "Xem chi tiết";
-
-    private static string PrimaryPeriodActionIcon(VppManagedPeriodResDTO period) =>
-        period.State == "Settled" ? "receipt_long" :
-        period.State is "SubmissionClosed" or "Pricing" ? "fact_check" :
-        period.CanEditSchedule ? "edit_calendar" :
-        "visibility";
-
-    private static ButtonStyle PrimaryPeriodActionStyle(VppManagedPeriodResDTO period) =>
-        period.State is "SubmissionClosed" or "Pricing" ? ButtonStyle.Primary :
-        ButtonStyle.Light;
-
-    private async Task RunPrimaryPeriodActionAsync(VppManagedPeriodResDTO period)
-    {
-        if (period.State is "SubmissionClosed" or "Pricing" or "Settled")
-        {
-            NavigateToSettlement(period);
-        }
-        else if (period.CanEditSchedule)
-        {
-            await EditScheduleAsync(period);
-        }
-        else
-        {
-            await ShowPeriodDetailsAsync(period);
-        }
-    }
+    private const string PrimaryPeriodActionText = "Xem chi tiết";
+    private const string PrimaryPeriodActionIcon = "visibility";
 
     private IReadOnlyList<VppAdminActionMenuItem> PeriodSecondaryActions(VppManagedPeriodResDTO period)
     {
         var items = new List<VppAdminActionMenuItem>();
 
         items.Add(new(
-            DetailsAction,
-            "Xem chi tiết",
-            "visibility",
-            () => ShowPeriodDetailsAsync(period)));
+            SettleAction,
+            "Chốt kỳ",
+            "fact_check",
+            () => NavigateToSettlementAsync(period),
+            Disabled: !CanSettlePeriod(period)));
 
-        if (period.CanEditSchedule)
-        {
-            items.Add(new(
-                EditAction,
-                "Sửa lịch",
-                "edit_calendar",
-                () => EditScheduleAsync(period)));
-        }
+        items.Add(new(
+            ExtendAction,
+            "Gia hạn kỳ",
+            "event_repeat",
+            () => ExtendDeadlineAsync(period),
+            Disabled: !period.CanExtendDeadline));
 
-        if (period.CanExtendDeadline)
-        {
-            items.Add(new(
-                ExtendAction,
-                "Gia hạn kỳ",
-                "event_repeat",
-                () => ExtendDeadlineAsync(period)));
-        }
+        items.Add(new(
+            EditAction,
+            "Sửa lịch",
+            "edit_calendar",
+            () => EditScheduleAsync(period),
+            Disabled: !period.CanEditSchedule));
 
         if (period.CanReopenSubmissions)
         {
@@ -274,21 +242,18 @@ public partial class OrderPeriodManagementWorkspace
         _ => "Kỳ đặt hàng"
     };
 
-    private Task ShowPeriodDetailsAsync(VppManagedPeriodResDTO period) =>
-        DialogService.OpenAsync<Dialog_OrderPeriodDetails>(
-            $"Chi tiết kỳ {PeriodLabel(period)}",
-            new Dictionary<string, object?>
-            {
-                [nameof(Dialog_OrderPeriodDetails.Period)] = period
-            },
-            VppAdminDialogProfiles.Create(
-                VppAdminDialogSize.Standard,
-                $"Chi tiết kỳ {PeriodLabel(period)}",
-                closeAriaLabel: "Đóng"));
-
     private void NavigateToSettlement(VppManagedPeriodResDTO period)
         => NavigationManager.NavigateTo(
             $"/dashboard?tab=5&periodTab=review&periodYear={period.Year}&periodMonth={period.Month}");
+
+    private Task NavigateToSettlementAsync(VppManagedPeriodResDTO period)
+    {
+        NavigateToSettlement(period);
+        return Task.CompletedTask;
+    }
+
+    private static bool CanSettlePeriod(VppManagedPeriodResDTO period) =>
+        period.State is "SubmissionClosed" or "Pricing";
 
     private Task OnPeriodSearchInput(ChangeEventArgs args)
     {

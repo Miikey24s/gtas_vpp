@@ -152,15 +152,16 @@
                                                       HeaderCssClass="rz-col-actions rz-col-actions-large">
                                     <Template Context="row">
                                         <div class="vpp-admin-actions">
-                                             <VppAdminIconAction Icon="@PrimaryPeriodActionIcon(row)"
-                                                                 Text="@PrimaryPeriodActionText(row)"
-                                                                 Title="@PrimaryPeriodActionText(row)"
-                                                                 ButtonStyle="@PrimaryPeriodActionStyle(row)"
+                                             <VppAdminIconAction Icon="@PrimaryPeriodActionIcon"
+                                                                 Text="@PrimaryPeriodActionText"
+                                                                 Title="@PrimaryPeriodActionText"
+                                                                 ButtonStyle="ButtonStyle.Light"
                                                                  Disabled="@IsBusy"
-                                                                 Click="@(() => RunPrimaryPeriodActionAsync(row))" />
+                                                                 Click="@(() => NavigateToSettlement(row))" />
                                             <VppAdminActionMenu Title="Thao tác khác"
                                                                 Items="@PeriodSecondaryActions(row)"
                                                                 Disabled="@IsBusy"
+                                                                AllowOpenWhenAllDisabled="true"
                                                                 TestId="period-row-more-actions" />
                                         </div>
                                     </Template>

@@ -71,9 +71,14 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.DoesNotContain("Đóng nhận đơn sớm", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("CloseAction", operationsCode, StringComparison.Ordinal);
         Assert.Contains("Mở lại nhận đơn", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("period.State == \"Settled\" ? \"Xem bản chốt\"", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("period.State is \"SubmissionClosed\" or \"Pricing\" or \"Settled\"", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("() => ShowPeriodDetailsAsync(period)", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("private const string PrimaryPeriodActionText = \"Xem chi tiết\";", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Click=\"@(() => NavigateToSettlement(row))\"", operations, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !CanSettlePeriod(period)", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !period.CanExtendDeadline", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !period.CanEditSchedule", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("AllowOpenWhenAllDisabled=\"true\"", operations, StringComparison.Ordinal);
+        Assert.DoesNotContain("ShowPeriodDetailsAsync", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Dialog_OrderPeriodDetails", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("if (period.CanCloseSubmissions || period.CanEditSchedule)", operationsCode, StringComparison.Ordinal);
         Assert.Contains("<VppDataToolbar", operations, StringComparison.Ordinal);
         Assert.Contains("Tìm kỳ hoặc thay đổi gần nhất", operations, StringComparison.Ordinal);
@@ -81,6 +86,10 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("Tất cả năm", operations, StringComparison.Ordinal);
         Assert.Contains("AdjustAfterCloseAsync", settlementDetails, StringComparison.Ordinal);
         Assert.Contains("CanAdjustOrders", settlementDetails, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(
+            FindRepositoryRoot(),
+            "src", "Frontend", "Blazor", "Components", "Pages", "VPPRequest", "Components",
+            "Dialog_OrderPeriodDetails.razor")));
     }
 
     private static string ReadFrontend(string relativePath)
