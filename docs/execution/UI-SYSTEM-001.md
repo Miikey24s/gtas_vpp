@@ -527,9 +527,9 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Architecture/browser gate khóa outer chrome, footer seam và full-width empty queue trên các surface
   đại diện Library, Bảng giá và Duyệt đơn bổ sung.
 
-### 7.13 — Plan đề xuất: dòng tổng hợp theo cột tại Chốt kỳ — 2026-08-13
+### 7.13 — Dòng tổng hợp theo cột tại Chốt kỳ — 2026-08-13
 
-> Trạng thái: `PENDING OWNER APPROVAL` — chưa sửa markup, dữ liệu hoặc CSS của Chốt kỳ.
+> Trạng thái: `IMPLEMENTED — QA PASS` — owner đã duyệt và slice đã hoàn tất.
 
 - **Vị trí khuyến nghị:** thêm đúng một dòng `Tổng cộng` trong footer cột của DataGrid, nằm cố định ngay
   trên pager và cuộn ngang cùng schema cột. Không đặt thành KPI/card thứ năm hoặc thanh rời bên ngoài vì sẽ
@@ -549,6 +549,10 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - **Kiểm tra bắt buộc:** unit test semantics của ba view; filter → total đổi đúng, paging → total giữ nguyên;
   route-real tại `1366×768` và `1920×1080`; sai lệch trục header/body/footer không quá `1px`; horizontal scroll,
   frozen action, empty/filtered-empty và pager không chồng nhau.
+- **Kết quả thực thi:** typed projection nằm trong `SettlementWorkspaceProjection`; ba grid dùng
+  `RadzenDataGridColumn.FooterTemplate`; hàng tổng cao `40px`, ghim sát pager canonical `42px` (`38px` ở
+  breakpoint compact), cuộn ngang cùng schema và không làm giãn data row. Focused unit `7/7`; route-real
+  `4/4` tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; ảnh departments/items đã review bằng mắt.
 
 ---
 

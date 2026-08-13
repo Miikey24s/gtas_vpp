@@ -171,6 +171,7 @@
   <data name="Amount" xml:space="preserve"><value>Số tiền</value></data>
   <data name="Quantity" xml:space="preserve"><value>Số lượng</value></data>
   <data name="Total" xml:space="preserve"><value>Tổng cộng</value></data>
+  <data name="SettlementFilteredTotal" xml:space="preserve"><value>Tổng sau lọc</value></data>
   <data name="Description" xml:space="preserve"><value>Mô tả</value></data>
   <data name="Name" xml:space="preserve"><value>Tên</value></data>
   <data name="Code" xml:space="preserve"><value>Mã</value></data>

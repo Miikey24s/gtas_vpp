@@ -183,6 +183,66 @@ public sealed class SettlementWorkspaceProjectionTests
         Assert.All(filtered, item => Assert.Equal("Ram", item.UomName));
     }
 
+    [Fact]
+    public void SummarizeRows_AddsAllVisibleGroupMetrics()
+    {
+        var departments = new[]
+        {
+            new SettlementDepartmentRow("A", "Alpha", 2, 1, 1, 5, 12, 100, 200, 20, 220, SettlementOrderGroupStatus.Approved),
+            new SettlementDepartmentRow("B", "Beta", 1, 1, 0, 3, 7, 50, 80, 8, 88, SettlementOrderGroupStatus.Submitted)
+        };
+        var requesters = new[]
+        {
+            new SettlementRequesterRow(1, "An", "Alpha · A", 2, 1, 1, 5, 12, 100, 200, 20, 220, SettlementOrderGroupStatus.Approved),
+            new SettlementRequesterRow(2, "Bình", "Beta · B", 1, 1, 0, 3, 7, 50, 80, 8, 88, SettlementOrderGroupStatus.Submitted)
+        };
+
+        var departmentTotals = SettlementWorkspaceProjection.SummarizeRows(departments);
+        var requesterTotals = SettlementWorkspaceProjection.SummarizeRows(requesters);
+
+        Assert.Equal(new SettlementGroupTotals(3, 2, 1, 8, 19, 280, 28, 308), departmentTotals);
+        Assert.Equal(departmentTotals, requesterTotals);
+    }
+
+    [Fact]
+    public void SummarizeItems_CountsDistinctOrdersAndUsesVisibleFinancialRows()
+    {
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var items = new[]
+        {
+            new AggregatedVppItemResDTO
+            {
+                VppId = firstId,
+                TotalQty = 7,
+                Breakdown =
+                [
+                    new AggregatedVppItemBreakdownResDTO { Code = "REQ-1" },
+                    new AggregatedVppItemBreakdownResDTO { Code = "REQ-2" }
+                ]
+            },
+            new AggregatedVppItemResDTO
+            {
+                VppId = secondId,
+                TotalQty = 5,
+                Breakdown =
+                [
+                    new AggregatedVppItemBreakdownResDTO { Code = "req-2" },
+                    new AggregatedVppItemBreakdownResDTO { Code = "REQ-3" }
+                ]
+            }
+        };
+        var financials = new Dictionary<Guid, SettlementItemFinancialValues>
+        {
+            [firstId] = new(10, 8, 70, 75.6m),
+            [secondId] = new(20, 8, 100, 108)
+        };
+
+        var totals = SettlementWorkspaceProjection.SummarizeItems(items, financials);
+
+        Assert.Equal(new SettlementItemTotals(3, 12, 170, 183.6m), totals);
+    }
+
     private static VppRequestResDTO CreateOrder(
         string departmentCode,
         int status,

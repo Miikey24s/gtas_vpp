@@ -53,9 +53,12 @@ public partial class PeriodSettlementPanel : IDisposable
     private bool hasLoadedPeriodOrders;
     private bool hasLoadedPeriodDemand;
     private List<AggregatedVppItemResDTO> filteredItemRows = [];
-    private Dictionary<Guid, SettlementItemFinancialView> itemFinancials = [];
+    private Dictionary<Guid, SettlementItemFinancialValues> itemFinancials = [];
     private List<DepartmentSettlementRow> filteredDepartmentRows = [];
     private List<RequesterSettlementRow> filteredRequesterRows = [];
+    private SettlementItemTotals itemTotals = SettlementItemTotals.Empty;
+    private SettlementGroupTotals departmentTotals = SettlementGroupTotals.Empty;
+    private SettlementGroupTotals requesterTotals = SettlementGroupTotals.Empty;
     private AggregatedVppResDTO? periodDemand;
     private PeriodSettlementResDTO? status;
     private bool isLoading = true;
@@ -121,6 +124,8 @@ public partial class PeriodSettlementPanel : IDisposable
         || (viewMode == ItemsView
             ? !string.IsNullOrWhiteSpace(selectedItemCategory) || !string.IsNullOrWhiteSpace(selectedItemUom)
             : !string.IsNullOrWhiteSpace(selectedOrderType) || selectedStatus.HasValue || !string.IsNullOrWhiteSpace(selectedDepartment));
+
+    private string SettlementSummaryLabel => HasFilters ? Loc["SettlementFilteredTotal"] : Loc["Total"];
 
     private VppDataSurfaceState SettlementSurfaceState => isGridLoading
         ? VppDataSurfaceState.Loading
@@ -318,6 +323,9 @@ public partial class PeriodSettlementPanel : IDisposable
         itemFinancials = [];
         filteredDepartmentRows = [];
         filteredRequesterRows = [];
+        itemTotals = SettlementItemTotals.Empty;
+        departmentTotals = SettlementGroupTotals.Empty;
+        requesterTotals = SettlementGroupTotals.Empty;
         pendingPostSettlementCorrections = [];
         currentSettlementRevision = null;
 
@@ -669,9 +677,10 @@ public partial class PeriodSettlementPanel : IDisposable
                 filteredItemRows = SettlementWorkspaceProjection.FilterItems(
                     periodDemand?.Items ?? [],
                     new SettlementItemFilter(searchText, selectedItemCategory, selectedItemUom));
+                itemTotals = SettlementWorkspaceProjection.SummarizeItems(filteredItemRows, itemFinancials);
                 break;
             case RequestersView:
-                filteredRequesterRows = SettlementWorkspaceProjection.BuildRequesterRows(
+                var requesterProjection = SettlementWorkspaceProjection.BuildRequesterRows(
                         periodOrdersSnapshot,
                         departmentDirectory,
                         new SettlementOrderGroupFilter(
@@ -679,12 +688,14 @@ public partial class PeriodSettlementPanel : IDisposable
                              selectedOrderType,
                              selectedStatus,
                              selectedDepartment),
-                        CurrentFinancialAllocations)
+                        CurrentFinancialAllocations);
+                requesterTotals = SettlementWorkspaceProjection.SummarizeRows(requesterProjection);
+                filteredRequesterRows = requesterProjection
                     .Select(ToRequesterSettlementRow)
                     .ToList();
                 break;
             default:
-                filteredDepartmentRows = SettlementWorkspaceProjection.BuildDepartmentRows(
+                var departmentProjection = SettlementWorkspaceProjection.BuildDepartmentRows(
                         periodOrdersSnapshot,
                         departmentDirectory,
                         new SettlementOrderGroupFilter(
@@ -692,7 +703,9 @@ public partial class PeriodSettlementPanel : IDisposable
                              selectedOrderType,
                              selectedStatus,
                              selectedDepartment),
-                        CurrentFinancialAllocations)
+                        CurrentFinancialAllocations);
+                departmentTotals = SettlementWorkspaceProjection.SummarizeRows(departmentProjection);
+                filteredDepartmentRows = departmentProjection
                     .Select(ToDepartmentSettlementRow)
                     .ToList();
                 break;
@@ -853,14 +866,14 @@ public partial class PeriodSettlementPanel : IDisposable
         itemFinancials = HasSettlementSnapshot
             ? currentSettlementRevision!.Items.ToDictionary(
                 line => line.VppId,
-                line => new SettlementItemFinancialView(
+                line => new SettlementItemFinancialValues(
                     line.NetUnitPrice,
                     line.VatRate,
                     line.NetAmount,
                     line.GrossAmount))
             : (SelectedQuote?.Lines ?? []).ToDictionary(
                 line => line.VppId,
-                line => new SettlementItemFinancialView(
+                line => new SettlementItemFinancialValues(
                     line.NetUnitPrice,
                     line.VatRate,
                     line.NetAmount,
@@ -999,11 +1012,6 @@ public partial class PeriodSettlementPanel : IDisposable
         string StatusText,
         VppStatusTone StatusTone);
 
-    private sealed record SettlementItemFinancialView(
-        decimal NetUnitPrice,
-        decimal VatRate,
-        decimal NetAmount,
-        decimal GrossAmount);
 }
 
 public sealed record PeriodTargetSelection(int Year, int Month);

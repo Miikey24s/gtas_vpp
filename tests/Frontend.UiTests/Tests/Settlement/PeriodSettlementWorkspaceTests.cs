@@ -60,20 +60,36 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
 
         await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
         await AssertCompactRowRhythmAsync(surface);
+        await AssertSettlementSummaryFooterAsync(surface);
         await Assertions.Expect(surface.Locator("thead").GetByText("Trạng thái", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await CaptureAsync($"settlement-departments-{width}x{height}.png");
         await AssertNumericColumnsAlignedAsync(surface);
 
+        if (width == 1920)
+        {
+            var search = surface.GetByPlaceholder("Tìm phòng ban hoặc mã đơn", new() { Exact = true });
+            await search.FillAsync("không-có-dữ-liệu-tổng-hợp");
+            await Assertions.Expect(surface.GetByTestId("settlement-summary-label"))
+                .ToHaveTextAsync("Tổng sau lọc");
+            await AssertSettlementSummaryFooterAsync(surface);
+            await Assertions.Expect(surface.Locator("tfoot .vpp-settlement-summary-value"))
+                .ToHaveTextAsync(["0", "0", "0", "0", "0", "0", "0", "0"]);
+            await surface.GetByRole(AriaRole.Button, new() { Name = "Xóa bộ lọc", Exact = true }).ClickAsync();
+            await Assertions.Expect(surface.GetByTestId("settlement-summary-label")).ToHaveTextAsync("Tổng cộng");
+        }
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true }).ClickAsync();
         await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
         await AssertNumericColumnsAlignedAsync(surface);
+        await AssertSettlementSummaryFooterAsync(surface);
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng", Exact = true }).ClickAsync();
         await AssertColumnsAsync(surface, ["Đơn giá", "Thuế VAT", "Tạm tính", "Thành tiền (gồm VAT)"]);
         await Assertions.Expect(surface.Locator("thead").GetByText("Độ phủ", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await AssertNumericColumnsAlignedAsync(surface);
+        await AssertSettlementSummaryFooterAsync(surface);
         await CaptureAsync($"settlement-items-{width}x{height}.png");
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban", Exact = true }).ClickAsync();
@@ -235,6 +251,54 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         (rowHeights.Max() - rowHeights.Min()).Should().BeLessThanOrEqualTo(
             2,
             "các dòng cùng loại dữ liệu phải có chiều cao thị giác đồng đều");
+    }
+
+    private static async Task AssertSettlementSummaryFooterAsync(ILocator surface)
+    {
+        var errors = await surface.Locator(".vpp-settlement-order-grid").First.EvaluateAsync<string[]>(
+            """
+            grid => {
+                const footer = grid.querySelector('tfoot tr');
+                const pager = grid.querySelector('.rz-paginator, .rz-pager');
+                const label = footer?.querySelector('[data-testid="settlement-summary-label"]');
+                const headers = [...grid.querySelectorAll('thead th')];
+                const footerCells = footer ? [...footer.querySelectorAll(':scope > td')] : [];
+                const styles = getComputedStyle(grid);
+                const expectedRowHeight = Number.parseFloat(styles.getPropertyValue('--vpp-data-row-compact-height'));
+                const expectedPagerHeight = Number.parseFloat(styles.getPropertyValue('--vpp-data-footer-height'));
+                const messages = [];
+
+                if (!footer || !pager || !label) {
+                    return ['Thiếu dòng tổng hợp, nhãn tổng hoặc pager của grid Chốt kỳ.'];
+                }
+
+                const footerBox = footer.getBoundingClientRect();
+                const pagerBox = pager.getBoundingClientRect();
+                if (Math.abs(footerBox.height - expectedRowHeight) > 1) {
+                    messages.push(`Dòng tổng hợp cao ${footerBox.height}px, chuẩn ${expectedRowHeight}px.`);
+                }
+                if (Math.abs(pagerBox.height - expectedPagerHeight) > 1) {
+                    messages.push(`Pager cao ${pagerBox.height}px, chuẩn ${expectedPagerHeight}px.`);
+                }
+                if (footerCells.length !== headers.length) {
+                    messages.push(`Dòng tổng hợp có ${footerCells.length} ô nhưng header có ${headers.length} cột.`);
+                }
+                if (pagerBox.top + 1 < footerBox.bottom || pagerBox.top - footerBox.bottom > 20) {
+                    messages.push(`Dòng tổng hợp chưa nằm sát trên pager (gap ${pagerBox.top - footerBox.bottom}px).`);
+                }
+                if (!label.textContent?.trim()) {
+                    messages.push('Nhãn dòng tổng hợp đang trống.');
+                }
+
+                const numericCells = footerCells.filter(cell => cell.classList.contains('vpp-settlement-number'));
+                if (numericCells.some(cell => getComputedStyle(cell).textAlign !== 'right')) {
+                    messages.push('Có ô số trong dòng tổng hợp chưa canh phải.');
+                }
+                return messages;
+            }
+            """);
+
+        errors.Should().BeEmpty(string.Join(Environment.NewLine, errors));
     }
 
     private static async Task AssertElementInsideViewportAsync(ILocator element)

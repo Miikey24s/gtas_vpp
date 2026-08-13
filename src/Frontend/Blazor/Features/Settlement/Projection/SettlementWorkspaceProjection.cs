@@ -53,6 +53,34 @@ public sealed record SettlementRequesterRow(
     decimal GrossAmount,
     SettlementOrderGroupStatus Status);
 
+public sealed record SettlementGroupTotals(
+    int OrderCount,
+    int RegularOrderCount,
+    int AdditionalOrderCount,
+    int TotalLines,
+    int TotalQuantity,
+    decimal NetAmount,
+    decimal VatAmount,
+    decimal GrossAmount)
+{
+    public static SettlementGroupTotals Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+public sealed record SettlementItemFinancialValues(
+    decimal NetUnitPrice,
+    decimal VatRate,
+    decimal NetAmount,
+    decimal GrossAmount);
+
+public sealed record SettlementItemTotals(
+    int OrderCount,
+    int TotalQuantity,
+    decimal NetAmount,
+    decimal GrossAmount)
+{
+    public static SettlementItemTotals Empty { get; } = new(0, 0, 0, 0);
+}
+
 public static class SettlementWorkspaceProjection
 {
     public static IReadOnlyList<SettlementDepartmentOption> BuildDepartmentOptions(
@@ -130,6 +158,53 @@ public static class SettlementWorkspaceProjection
             .Select(group => CreateRequesterRow(group.ToList(), departments, allocations ?? []))
             .OrderBy(row => row.RequesterName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+    }
+
+    public static SettlementGroupTotals SummarizeRows(IEnumerable<SettlementDepartmentRow> rows)
+    {
+        var materialized = rows.ToArray();
+        return new SettlementGroupTotals(
+            materialized.Sum(row => row.OrderCount),
+            materialized.Sum(row => row.RegularOrderCount),
+            materialized.Sum(row => row.AdditionalOrderCount),
+            materialized.Sum(row => row.TotalLines),
+            materialized.Sum(row => row.TotalQuantity),
+            materialized.Sum(row => row.NetAmount),
+            materialized.Sum(row => row.VatAmount),
+            materialized.Sum(row => row.GrossAmount));
+    }
+
+    public static SettlementGroupTotals SummarizeRows(IEnumerable<SettlementRequesterRow> rows)
+    {
+        var materialized = rows.ToArray();
+        return new SettlementGroupTotals(
+            materialized.Sum(row => row.OrderCount),
+            materialized.Sum(row => row.RegularOrderCount),
+            materialized.Sum(row => row.AdditionalOrderCount),
+            materialized.Sum(row => row.TotalLines),
+            materialized.Sum(row => row.TotalQuantity),
+            materialized.Sum(row => row.NetAmount),
+            materialized.Sum(row => row.VatAmount),
+            materialized.Sum(row => row.GrossAmount));
+    }
+
+    public static SettlementItemTotals SummarizeItems(
+        IEnumerable<AggregatedVppItemResDTO> rows,
+        IReadOnlyDictionary<Guid, SettlementItemFinancialValues> financials)
+    {
+        var materialized = rows.ToArray();
+        var orderCount = materialized
+            .SelectMany(row => row.Breakdown)
+            .Select(detail => detail.Code?.Trim())
+            .Where(code => !string.IsNullOrWhiteSpace(code))
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .Count();
+
+        return new SettlementItemTotals(
+            orderCount,
+            materialized.Sum(row => row.TotalQty),
+            materialized.Sum(row => financials.GetValueOrDefault(row.VppId)?.NetAmount ?? 0),
+            materialized.Sum(row => financials.GetValueOrDefault(row.VppId)?.GrossAmount ?? 0));
     }
 
     private static bool MatchesOrderGroupFilter(
