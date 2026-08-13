@@ -15,7 +15,7 @@
 
 ::deep .vpp-order-period-grid {
     --vpp-admin-grid-min-width: 74rem;
-    --vpp-admin-actions-width: 190px;
+    --vpp-admin-actions-width: 210px;
     display: flex;
     flex: 1 1 auto;
     min-height: 0;

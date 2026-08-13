@@ -59,6 +59,7 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await selectedSupplier.ClickAsync();
 
         await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
+        await AssertCompactRowRhythmAsync(surface);
         await Assertions.Expect(surface.Locator("thead").GetByText("Trạng thái", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await CaptureAsync($"settlement-departments-{width}x{height}.png");
@@ -216,6 +217,24 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             """);
 
         errors.Should().BeEmpty(string.Join(Environment.NewLine, errors));
+    }
+
+    private static async Task AssertCompactRowRhythmAsync(ILocator surface)
+    {
+        var rowHeights = await surface.Locator("tbody tr").EvaluateAllAsync<double[]>(
+            "rows => rows.slice(0, 8).map(row => row.getBoundingClientRect().height)");
+
+        if (rowHeights.Length == 0)
+        {
+            return;
+        }
+
+        rowHeights.Should().OnlyContain(
+            height => height >= 38 && height <= 52,
+            "dòng có tên và mã phụ vẫn phải nằm trong nhịp two-line chuẩn, không bị kéo giãn theo chiều cao grid");
+        (rowHeights.Max() - rowHeights.Min()).Should().BeLessThanOrEqualTo(
+            2,
+            "các dòng cùng loại dữ liệu phải có chiều cao thị giác đồng đều");
     }
 
     private static async Task AssertElementInsideViewportAsync(ILocator element)

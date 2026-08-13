@@ -12,10 +12,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 
 public partial class OrderPeriodManagementWorkspace
 {
-    private const string SettleAction = "settle";
     private const string EditAction = "edit";
     private const string ExtendAction = "extend";
-    private const string ReopenAction = "reopen";
     private const string DeleteAction = "delete";
 
     [Inject] private OrderPeriodApiClient PeriodsApi { get; set; } = default!;
@@ -80,20 +78,9 @@ public partial class OrderPeriodManagementWorkspace
                 .Select(year => new VppFilterOption<int?>(year, year.ToString())))
             .ToArray();
 
-    private const string PrimaryPeriodActionText = "Xem chi tiết";
-    private const string PrimaryPeriodActionIcon = "visibility";
-
     private IReadOnlyList<VppAdminActionMenuItem> PeriodSecondaryActions(VppManagedPeriodResDTO period)
     {
         var items = new List<VppAdminActionMenuItem>();
-
-        items.Add(new(
-            SettleAction,
-            "Chốt kỳ",
-            "fact_check",
-            () => NavigateToSettlementAsync(period),
-            Disabled: !CanSettlePeriod(period),
-            DisabledReason: "Kỳ chưa đủ điều kiện để chốt."));
 
         items.Add(new(
             ExtendAction,
@@ -110,14 +97,6 @@ public partial class OrderPeriodManagementWorkspace
             () => EditScheduleAsync(period),
             Disabled: !period.CanEditSchedule,
             DisabledReason: "Không thể sửa lịch vì kỳ đã có đơn hoặc không còn ở trạng thái cho phép."));
-
-        items.Add(new(
-            ReopenAction,
-            "Mở lại nhận đơn",
-            "play_circle",
-            () => ReopenSubmissionsAsync(period),
-            Disabled: !period.CanReopenSubmissions,
-            DisabledReason: "Chỉ có thể mở lại khi kỳ đã khóa và chưa chốt."));
 
         items.Add(new(
             DeleteAction,
@@ -191,23 +170,6 @@ public partial class OrderPeriodManagementWorkspace
         });
     }
 
-    private async Task ReopenSubmissionsAsync(VppManagedPeriodResDTO period)
-    {
-        var result = await OpenPeriodActionDialogAsync(period, ReopenAction);
-        if (result is not VppOrderPeriodReopenSubmissionsReqDTO request)
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            request.RowVersion = period.RowVersion;
-            _ = await PeriodsApi.ReopenAsync(period.Id, request);
-            await LoadDataAsync();
-            Toast.Success("Đã mở lại nhận đơn", $"Kỳ {PeriodLabel(period)} tiếp tục nhận đơn đến ngày đóng mới.");
-        });
-    }
-
     private async Task DeletePeriodAsync(VppManagedPeriodResDTO period)
     {
         var result = await OpenPeriodActionDialogAsync(period, DeleteAction);
@@ -243,7 +205,6 @@ public partial class OrderPeriodManagementWorkspace
     {
         EditAction => "Sửa lịch kỳ",
         ExtendAction => "Gia hạn kỳ",
-        ReopenAction => "Mở lại nhận đơn",
         DeleteAction => "Xóa kỳ đặt hàng",
         _ => "Kỳ đặt hàng"
     };
@@ -251,12 +212,6 @@ public partial class OrderPeriodManagementWorkspace
     private void NavigateToSettlement(VppManagedPeriodResDTO period)
         => NavigationManager.NavigateTo(
             $"/dashboard?tab=5&periodTab=review&periodYear={period.Year}&periodMonth={period.Month}");
-
-    private Task NavigateToSettlementAsync(VppManagedPeriodResDTO period)
-    {
-        NavigateToSettlement(period);
-        return Task.CompletedTask;
-    }
 
     private static bool CanSettlePeriod(VppManagedPeriodResDTO period) =>
         period.State is "SubmissionClosed" or "Pricing";

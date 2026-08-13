@@ -135,19 +135,26 @@
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="Thao tác" Width="190px" MinWidth="190px"
+                                <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="Thao tác" Width="210px" MinWidth="210px"
                                                       Filterable="false" Sortable="false" Reorderable="false" Resizable="false"
                                                       Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right"
-                                                      TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-large"
-                                                      HeaderCssClass="rz-col-actions rz-col-actions-large">
+                                                      TextAlign="TextAlign.Center" CssClass="rz-col-actions"
+                                                      HeaderCssClass="rz-col-actions">
                                     <Template Context="row">
                                         <div class="vpp-admin-actions">
-                                             <VppAdminIconAction Icon="@PrimaryPeriodActionIcon"
-                                                                 Text="@PrimaryPeriodActionText"
-                                                                 Title="@PrimaryPeriodActionText"
+                                             <VppAdminIconAction Icon="visibility"
+                                                                 Text="Xem"
+                                                                 Title="Xem chi tiết"
                                                                  ButtonStyle="ButtonStyle.Light"
                                                                  Disabled="@IsBusy"
                                                                  Click="@(() => NavigateToSettlement(row))" />
+                                            <VppAdminIconAction Icon="fact_check"
+                                                                Text="Chốt kỳ"
+                                                                Title="Chốt kỳ"
+                                                                ButtonStyle="ButtonStyle.Primary"
+                                                                Disabled="@(IsBusy || !CanSettlePeriod(row))"
+                                                                DisabledReason="Kỳ chưa đủ điều kiện để chốt."
+                                                                Click="@(() => NavigateToSettlement(row))" />
                                             <VppAdminActionMenu Title="Thao tác khác"
                                                                 Items="@PeriodSecondaryActions(row)"
                                                                 Disabled="@IsBusy"

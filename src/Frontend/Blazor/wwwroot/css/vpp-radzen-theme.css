@@ -756,7 +756,9 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
 }
 
 [data-vpp-data-surface="true"] .vpp-data-grid .rz-grid-table {
-    flex: 1 0 auto;
+    /* Bảng có ít dữ liệu phải giữ nhịp hàng compact, không kéo các hàng giãn ra
+       chỉ để lấp đầy thân surface. Empty state vẫn có rule height riêng bên dưới. */
+    flex: 0 0 auto;
     min-width: var(--vpp-data-grid-min-width, 100%);
 }
 
@@ -777,6 +779,7 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
 
 [data-vpp-capability-surface="true"]:is([data-vpp-surface-state="empty"], [data-vpp-surface-state="filtered-empty"])
     .vpp-data-grid .rz-grid-table {
+    flex: 1 0 auto;
     height: 100%;
 }
 

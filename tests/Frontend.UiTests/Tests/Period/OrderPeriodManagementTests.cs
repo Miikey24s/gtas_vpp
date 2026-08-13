@@ -48,6 +48,8 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             .ToHaveCountAsync(0);
         await Assertions.Expect(periodSurface.GetByRole(AriaRole.Button, new() { Name = "Xem chi tiết", Exact = true }).First)
             .ToBeVisibleAsync();
+        await Assertions.Expect(periodSurface.GetByRole(AriaRole.Button, new() { Name = "Chốt kỳ", Exact = true }).First)
+            .ToBeVisibleAsync();
         var periodRows = periodSurface.Locator("tbody");
         await Assertions.Expect(periodRows.GetByText("Đang mở", new() { Exact = true }).First).ToBeVisibleAsync();
         await Assertions.Expect(periodRows.GetByText("Đang chốt", new() { Exact = true }).First).ToBeVisibleAsync();
@@ -73,7 +75,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             var dataRows = periodSurface.Locator("tbody tr");
             var actionMenus = periodSurface.GetByTestId("period-row-more-actions");
             (await actionMenus.CountAsync()).Should().Be(await dataRows.CountAsync(),
-                "mọi kỳ phải luôn có menu Xem chi tiết");
+                "mọi kỳ phải luôn có nhóm thao tác phụ ổn định");
 
             var settledRows = dataRows.Filter(new LocatorFilterOptions
             {
@@ -86,6 +88,10 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                         AriaRole.Button,
                         new() { Name = "Xem chi tiết", Exact = true }))
                     .ToBeEnabledAsync();
+                await Assertions.Expect(settledRow.GetByRole(
+                        AriaRole.Button,
+                        new() { Name = "Chốt kỳ", Exact = true }))
+                    .ToBeDisabledAsync();
                 await Assertions.Expect(settledRow.GetByTestId("period-row-more-actions"))
                     .ToBeVisibleAsync();
             }
@@ -94,12 +100,13 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             {
                 HasTextString = "Đang mở"
             }).Last;
+            await Assertions.Expect(openRowWithOrders.GetByRole(
+                    AriaRole.Button,
+                    new() { Name = "Chốt kỳ", Exact = true }))
+                .ToBeDisabledAsync();
             await openRowWithOrders.GetByTestId("period-row-more-actions").ClickAsync();
             var capabilityMenu = Page.Locator(".rz-context-menu:visible");
             await Assertions.Expect(capabilityMenu).ToBeVisibleAsync();
-            await Assertions.Expect(capabilityMenu.GetByText("Chốt kỳ", new() { Exact = true })
-                    .Locator("xpath=ancestor::li[1]"))
-                .ToHaveAttributeAsync("aria-disabled", "true");
             await Assertions.Expect(capabilityMenu.GetByText("Gia hạn kỳ", new() { Exact = true })
                     .Locator("xpath=ancestor::li[1]"))
                 .Not.ToHaveAttributeAsync("aria-disabled", "true");
@@ -212,17 +219,21 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             "element => getComputedStyle(element).animationName");
         actionMenuAnimation.Should().Contain("vpp-transient-enter-",
             "overflow menu dùng motion transient canonical");
-        var settleAction = periodMenu.GetByText("Chốt kỳ", new() { Exact = true });
         var extendAction = periodMenu.GetByText("Gia hạn kỳ", new() { Exact = true });
         var editAction = periodMenu.GetByText("Sửa lịch", new() { Exact = true });
-        await Assertions.Expect(settleAction).ToBeVisibleAsync();
+        var deleteAction = periodMenu.GetByText("Xóa kỳ", new() { Exact = true });
         await Assertions.Expect(extendAction).ToBeVisibleAsync();
         await Assertions.Expect(editAction).ToBeVisibleAsync();
+        await Assertions.Expect(deleteAction).ToBeVisibleAsync();
+        await Assertions.Expect(periodMenu.GetByText("Chốt kỳ", new() { Exact = true }))
+            .ToHaveCountAsync(0);
         await Assertions.Expect(periodMenu.GetByText("Xem chi tiết", new() { Exact = true }))
+            .ToHaveCountAsync(0);
+        await Assertions.Expect(periodMenu.GetByText("Mở lại nhận đơn", new() { Exact = true }))
             .ToHaveCountAsync(0);
         await Assertions.Expect(periodMenu.GetByText("Đóng nhận đơn sớm", new() { Exact = true }))
             .ToHaveCountAsync(0);
-        var menuItem = settleAction.Locator("xpath=ancestor::li[1]");
+        var menuItem = extendAction.Locator("xpath=ancestor::li[1]");
         await Assertions.Expect(menuItem).ToBeVisibleAsync();
         var initialMenuItemBackground = await menuItem.EvaluateAsync<string>(
             "element => getComputedStyle(element).backgroundColor");
@@ -441,6 +452,12 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 AriaRole.Button,
                 new() { Name = "Xem chi tiết", Exact = true }).First)
             .ToBeVisibleAsync();
+        await Assertions.Expect(periodSurface.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Chốt kỳ", Exact = true }).First)
+            .ToBeVisibleAsync();
+        await Assertions.Expect(periodSurface.GetByText("Mở lại nhận đơn", new() { Exact = true }))
+            .ToHaveCountAsync(0);
 
         var axeResult = await Page.RunAxe();
         var blocking = axeResult.Violations
@@ -589,8 +606,9 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
 
         var surface = Page.Locator("[data-testid='order-period-management-table']:visible");
         await Assertions.Expect(surface).ToBeVisibleAsync();
-        var settlementButton = surface.Locator("button:not(:disabled)")
-            .Filter(new LocatorFilterOptions { HasText = "Xem chi tiết" })
+        var settlementButton = surface.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Xem chi tiết", Exact = true })
             .First;
         var settlementRow = settlementButton.Locator("xpath=ancestor::tr[1]");
         await Assertions.Expect(settlementRow).ToBeVisibleAsync();

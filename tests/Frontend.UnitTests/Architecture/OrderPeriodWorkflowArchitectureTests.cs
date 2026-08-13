@@ -48,7 +48,7 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         var periodActionDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_OrderPeriodAction.razor");
 
         Assert.Contains("ReopenSubmissions", periodActionDialog, StringComparison.Ordinal);
-        Assert.Contains("CanReopenSubmissions", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("CanReopenSubmissions", operationsCode, StringComparison.Ordinal);
         Assert.Contains("periodYear={period.Year}&periodMonth={period.Month}", operationsCode, StringComparison.Ordinal);
         Assert.Contains("periodYear", periodTab, StringComparison.Ordinal);
         Assert.Contains("TargetYear", workspace, StringComparison.Ordinal);
@@ -70,10 +70,12 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.DoesNotContain("period-action-panel", operations, StringComparison.Ordinal);
         Assert.DoesNotContain("Đóng nhận đơn sớm", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("CloseAction", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("Mở lại nhận đơn", operationsCode, StringComparison.Ordinal);
-        Assert.Contains("private const string PrimaryPeriodActionText = \"Xem chi tiết\";", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Mở lại nhận đơn", operationsCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("ReopenSubmissionsAsync", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Xem\"", operations, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Chốt kỳ\"", operations, StringComparison.Ordinal);
         Assert.Contains("Click=\"@(() => NavigateToSettlement(row))\"", operations, StringComparison.Ordinal);
-        Assert.Contains("Disabled: !CanSettlePeriod(period)", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Disabled=\"@(IsBusy || !CanSettlePeriod(row))\"", operations, StringComparison.Ordinal);
         Assert.Contains("Disabled: !period.CanExtendDeadline", operationsCode, StringComparison.Ordinal);
         Assert.Contains("Disabled: !period.CanEditSchedule", operationsCode, StringComparison.Ordinal);
         Assert.Contains("AllowOpenWhenAllDisabled=\"true\"", operations, StringComparison.Ordinal);
