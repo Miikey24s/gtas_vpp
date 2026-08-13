@@ -274,6 +274,8 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
 
                 const footerBox = footer.getBoundingClientRect();
                 const pagerBox = pager.getBoundingClientRect();
+                const lastBodyCell = grid.querySelector('tbody tr:last-child td');
+                const footerCell = footer.querySelector('td');
                 if (Math.abs(footerBox.height - expectedRowHeight) > 1) {
                     messages.push(`Dòng tổng hợp cao ${footerBox.height}px, chuẩn ${expectedRowHeight}px.`);
                 }
@@ -288,6 +290,13 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                 }
                 if (!label.textContent?.trim()) {
                     messages.push('Nhãn dòng tổng hợp đang trống.');
+                }
+                if (footerCell && Number.parseFloat(getComputedStyle(footerCell).borderTopWidth) > 0) {
+                    messages.push('Dòng tổng hợp vẫn tự vẽ border trên, gây chồng separator với dòng dữ liệu cuối.');
+                }
+                if (lastBodyCell && footerCell
+                    && getComputedStyle(lastBodyCell).backgroundColor === getComputedStyle(footerCell).backgroundColor) {
+                    messages.push('Nền dòng tổng hợp chưa phân biệt với dòng dữ liệu.');
                 }
 
                 const numericCells = footerCells.filter(cell => cell.classList.contains('vpp-settlement-number'));

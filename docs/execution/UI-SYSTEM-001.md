@@ -553,6 +553,8 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   `RadzenDataGridColumn.FooterTemplate`; hàng tổng cao `40px`, ghim sát pager canonical `42px` (`38px` ở
   breakpoint compact), cuộn ngang cùng schema và không làm giãn data row. Focused unit `7/7`; route-real
   `4/4` tại `390×844`, `768×1024`, `1366×768`, `1920×1080`; ảnh departments/items đã review bằng mắt.
+- **Owner review tiếp theo:** dòng tổng không vẽ thêm border trên vì separator của data row cuối đã đủ;
+  dùng nền info rất nhạt và nhãn info-strong để dễ nhận biết nhưng vẫn nhẹ hơn selected/primary state.
 
 ---
 

@@ -238,9 +238,10 @@
 
 ::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td {
     padding: 0 var(--vpp-grid-cell-padding-x);
-    border-top: var(--vpp-border-width) solid var(--vpp-border-strong);
+    /* Dòng dữ liệu cuối đã sở hữu separator; không vẽ thêm border trên gây thành đường đôi. */
+    border-top: 0;
     border-bottom: 0;
-    background: var(--vpp-surface-grid-header);
+    background: color-mix(in srgb, var(--vpp-info) 8%, var(--vpp-bg-elevated));
     color: var(--vpp-text-secondary);
     vertical-align: middle;
 }
@@ -285,6 +286,7 @@
 }
 
 .vpp-settlement-summary-label {
+    color: var(--vpp-info-strong);
     white-space: nowrap;
 }
 
