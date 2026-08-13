@@ -32,6 +32,7 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | `COLLECTION-HEADER` | Identity + count + collection action | Add/import/export thuộc cả collection | `VppCollectionHeader` | add/secondary/disabled | CRUD trong toolbar hoặc header cột |
 | `BUTTON-ACTION` | Button có text/icon theo cấp hành động | Collection, query, workflow, dialog | Radzen button bridge trong `vpp-radzen-theme.css`; token `--vpp-button-*`; component domain chỉ khi có behavior riêng | standard 32px, compact/icon-only 28px, icon 16px; primary/secondary/light/success/warning/danger | action button cao 36–44px, shadow/translate/oval focus riêng theo route; universal button wrapper chỉ đổi tên markup |
 | `ADMIN-ROW-ACTIONS` | Action chính theo trạng thái + lifecycle/destructive của một dòng | Các bảng quản trị | `VppAdminIconAction`, `VppAdminActionMenu`, `VppAdminLifecycleMenu`, `VppAdminActiveToggle`, cột `vpp-admin-actions` | một action trực tiếp có nhãn ngắn; menu overflow full-text dùng cùng surface, row rhythm và hover của select dọc; active toggle chỉ khi trạng thái là quyết định trực tiếp của page | dàn 3–5 icon ngang hàng; giấu Duyệt/Từ chối/Chốt kỳ trong menu; route tự đặt kích thước/icon chrome hoặc dựng switch shell khác |
+| `CAPABILITY-SURFACE` | Stable Capability Surface — giữ cấu trúc chức năng ổn định giữa các trạng thái | Action group, toolbar, grid/list và empty state cần giúp người dùng biết chức năng nào tồn tại | Route-owned typed capability projection + `VppAdminActionMenu`, `VppDataSurfaceFrame`, `VppContentState`; permission vẫn do backend/API quyết định | enabled/disabled/busy/hidden-by-permission; populated/base-empty/filtered-empty/error | ẩn action chỉ vì record chưa đủ điều kiện; thay đổi thứ tự action theo từng dòng; gỡ toolbar/header/footer khi empty; render empty như một row có hover/click |
 | `FILTER-TOOLBAR` | Search, filter, clear, column picker | Tìm/lọc dữ liệu thường xuyên | `VppDataToolbar`, `VppFilterSearch`, `VppFilterSelect`, `VppClearFiltersButton`, `VppColumnPicker` | filter count/domain-specific options | popup chrome, control height, order |
 | `FILTER-ADVANCED` | Bộ lọc ít dùng/nhiều điều kiện | Ngày, khoảng giá, metadata, audit/resource | typed route-owned filter panel anchored from the toolbar | compact/popover/workspace | không tạo filter icon riêng trong từng header |
 | `SELECTOR-FILTER` | Thay đổi tập dữ liệu hiển thị | Category/status/department/unit filters | `VppFilterSelect<T>` | active/inactive, option count | tự tạo dropdown khác visual |
@@ -84,6 +85,15 @@ Quy tắc `CONTENT-STATE`:
 - `VppDataSurfaceFrame` tự truyền contract full-height cho content state trong body; route không viết lại `min-height` để giả lập một vùng dữ liệu.
 - Raw `EmptyTemplate` của widget chỉ được giữ khi widget sở hữu table geometry; chuỗi wrapper từ body đến empty row phải truyền được `height: 100%`.
 - Empty/success/filtered-empty không có nút `Làm mới`; dữ liệu tự tải theo route, realtime hoặc mutation. Error state vẫn được dùng `Thử lại` như recovery có chủ đích, nhưng không gọi hoặc trình bày nó như refresh dữ liệu thường xuyên.
+
+Quy tắc `CAPABILITY-SURFACE`:
+
+- Với cùng một loại entity và cùng quyền truy cập, action chính, nhóm overflow và thứ tự action phải ổn định giữa các dòng/trạng thái. Action chưa đủ điều kiện nghiệp vụ vẫn hiện nhưng ở trạng thái disabled; không gắn click handler và có lý do ngắn khi nguyên nhân không hiển nhiên.
+- Chỉ ẩn action khi người dùng không có quyền, chức năng không thuộc workflow/entity đó, hoặc chức năng chưa được phát hành. Frontend không dùng disabled để thay thế kiểm tra quyền ở backend.
+- Khi loading hoặc mutation đang chạy, giữ footprint của toolbar/action/footer và chuyển control liên quan sang busy/disabled để tránh layout nhảy. Responsive được gom action vào overflow hoặc ẩn cột ưu tiên thấp theo profile, nhưng không làm action biến mất khác nhau giữa các record chỉ vì trạng thái.
+- Base-empty vẫn giữ collection header, toolbar, column header, body và footer/pager theo cùng geometry với populated state. Collection action hợp lệ như `Thêm` hoặc `Import` vẫn hoạt động; filter/pager không có dữ liệu có thể disabled nhưng không bị tháo khỏi layout.
+- Filtered-empty giữ filter và `Xóa bộ lọc` hoạt động. Body chỉ hiển thị một `VppContentState` căn giữa cả hai trục; không tạo fake data row, không hover/cursor/action-row affordance. Footer hiển thị tổng `0` và pager disabled nếu surface có paging.
+- Error state giữ cùng frame và có `Thử lại`; denied state không được để lộ action/cột bị chặn bởi permission. Menu toàn disabled chỉ được mở khi nó giải thích rõ capability của cùng nhóm; không render menu rỗng.
 
 Quy tắc scroll ownership của workspace:
 

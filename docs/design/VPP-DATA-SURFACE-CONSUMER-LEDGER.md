@@ -1,6 +1,8 @@
 # VPP Data Surface Consumer Ledger
 
 > Snapshot: `2026-08-09` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 + R1 DONE; PERIOD/PRICING/REPORT RETROFIT IMPLEMENTED`
+>
+> Contract update: `2026-08-13` · `CAPABILITY-SURFACE` retrofit được duyệt và lên lịch theo `FR9`; chưa được xem là đã áp dụng toàn bộ consumer.
 
 Ledger này là bản đồ migration, không phải yêu cầu mọi bảng phải giống hệt nhau. Shared foundation chỉ sở hữu frame, toolbar, density, footer và transient cell value; route vẫn sở hữu dữ liệu, cột, API, permission và action.
 
@@ -55,6 +57,19 @@ Source hiện có **21 file / 26 DataGrid thật**. Generic type reference trong
 - Thêm/xóa file có DataGrid phải cập nhật ledger cùng change-set.
 - Chỉ xóa CSS/adapter legacy khi consumer tương ứng không còn trong cột migration.
 - `OrderCreateStep2` vẫn là legacy server-window trong DS1; chỉ DS3 được đổi sang snapshot client đã duyệt trong plan.
+- Khi một consumer được chạm trong refactor, phải audit thêm `CAPABILITY-SURFACE`: action order, hidden/disabled reason, loading footprint, base-empty, filtered-empty, error, footer/pager và empty-row hover.
+
+## Stable Capability Surface retrofit queue
+
+| Nhóm | Consumer ưu tiên | Việc cần khóa | Trạng thái |
+|---|---|---|---|
+| Reference | `OrderPeriodManagementWorkspace` | Primary action ổn định; menu đủ action theo thứ tự cố định; unavailable disabled; menu toàn disabled vẫn mở có chủ đích | `REFERENCE IMPLEMENTED` |
+| Admin collections | Category, Supplier, Item, Department, Lookup, Price List, Price, User, Permission | Cùng action set cho cùng entity; permission hidden; lifecycle unavailable disabled; base-empty giữ toolbar/cột/footer | `PLANNED FR9-A` |
+| Requests read/write | My Orders, History, Product Catalog, Department Summary, Order Create | Giữ command footprint; archive/read-only dùng disabled đúng nghĩa; empty/filtered-empty không giả row tương tác | `PLANNED FR9-B` |
+| Operations | Pending Approval, Settlement, Period Settings | Workflow action theo capability; busy giữ geometry; denied không lộ chức năng; error retry giữ frame | `PLANNED FR9-C` |
+| Analytics/feeds | Report, Security Audit, Notifications | Static/analytics empty state đúng shell; không pager giả; action/filter không nhảy theo data | `PLANNED FR9-D` |
+
+Mỗi nhóm chỉ chuyển `DONE` sau architecture test, focused route test và browser review tại viewport phù hợp. Không chạy mass-rewrite; áp dụng theo module boundary để tránh trộn refactor cấu trúc với thay đổi nghiệp vụ.
 
 ## DS2 reference group
 

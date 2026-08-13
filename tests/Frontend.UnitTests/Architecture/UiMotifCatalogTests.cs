@@ -44,6 +44,23 @@ public sealed class UiMotifCatalogTests
     }
 
     [Fact]
+    public void StableCapabilitySurfaceContractIsRecordedForFutureRefactorWaves()
+    {
+        var root = FindRepositoryRoot();
+        var catalog = File.ReadAllText(Path.Combine(root, "docs", "design", "VPP-UI-MOTIF-CATALOG.md"));
+        var ledger = File.ReadAllText(Path.Combine(root, "docs", "design", "VPP-DATA-SURFACE-CONSUMER-LEDGER.md"));
+        var refactor = File.ReadAllText(Path.Combine(root, "docs", "execution", "FRONTEND-REFACTOR-001.md"));
+        var skill = File.ReadAllText(Path.Combine(root, ".agents", "skills", "gtas-vpp-ui-system", "SKILL.md"));
+
+        Assert.Contains("`CAPABILITY-SURFACE`", catalog, StringComparison.Ordinal);
+        Assert.Contains("Action chưa đủ điều kiện nghiệp vụ vẫn hiện nhưng ở trạng thái disabled", catalog, StringComparison.Ordinal);
+        Assert.Contains("Filtered-empty giữ filter", catalog, StringComparison.Ordinal);
+        Assert.Contains("Stable Capability Surface retrofit queue", ledger, StringComparison.Ordinal);
+        Assert.Contains("FR9 — Stable Capability Surface retrofit", refactor, StringComparison.Ordinal);
+        Assert.Contains("CAPABILITY-SURFACE", skill, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RetiredUiAdaptersAndLegacySelectorsCannotReturn()
     {
         var root = FindRepositoryRoot();

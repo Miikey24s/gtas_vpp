@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `COMPLETE — FR0–FR8C DONE; CORRECTION UX A + MUTATION E2E PASS; OWNER FINAL VISUAL ACCEPTANCE APPROVED 2026-08-04; GOLDEN DEFERRED`
+- Status: `FR0–FR8C COMPLETE; FOLLOW-UP FR9 STABLE CAPABILITY SURFACE PLANNED AFTER NEW-FEATURE OWNER REVIEW`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -30,12 +30,12 @@
 | Quyết định thời điểm | Refactor được bắt đầu **trước** final visual acceptance; owner đã chấp thuận current runtime sau khi FR8C hoàn tất. Correction sau này vẫn tách riêng rồi refactor tiếp phần bị ảnh hưởng | [Timing contract](#plan-detail-timing) |
 | Phạm vi | Blazor/Radzen frontend, frontend tests và tài liệu đọc code; không đổi API/DTO/database/RBAC/nghiệp vụ, không khôi phục React | [Scope](#plan-detail-scope) |
 | Phương án | Giữ một project Blazor, giữ design system hiện có; tổ chức dần theo feature `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, cộng `Platform` dùng chung | [Target structure](#plan-detail-target-structure) |
-| Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final | [Waves](#plan-detail-waves) |
+| Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final → FR9 retrofit Stable Capability Surface theo module | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Release build sạch; frontend unit/architecture `373/373`; 84 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Frontend refactor và owner visual acceptance đã hoàn tất. Triển khai B0R-D1/B0R-D2 rồi mở backend B1a-1; giữ raw English reason ở localization backlog riêng | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Owner kiểm tra các chức năng frontend mới; phần độc lập tiếp tục theo plan hiện hành. Khi refactor chạm từng module, chạy FR9 để chuẩn hóa action disabled-vs-hidden và grid/list empty, không mass-rewrite trước lượt kiểm tra | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -510,6 +510,8 @@ giữ tên rõ và API nhỏ.
   xuyên suốt, vì vậy chỉ mở từng checkpoint độc lập, giữ nguyên quality gate và reforecast tại boundary.
 - Không tự hạ model/effort để vừa quota. Nếu upper bound sau reforecast vượt capacity có buffer thì `WAIT`.
 
+**FR9 planning refresh — 2026-08-13 17:06 ICT:** sanitized probe có `13/14` weekly accounts available, khoảng `1383% Plus-equivalent`; coverage chỉ có weekly, thiếu five-hour window. Forecast FR9 `15–40%`, safety envelope `65%`, confidence thấp-vừa vì chưa có consumption history khớp toàn bộ retrofit. Kết luận `ENOUGH` cho plan và các checkpoint nhỏ; đo lại trước khi mở execution rộng, không coi snapshot này là repository invariant.
+
 <a id="plan-detail-waves"></a>
 
 ## 10. Execution waves
@@ -525,6 +527,7 @@ giữ tên rõ và API nhỏ.
 | **FR6 — Requests read paths** | My Orders, History, Catalog và Department Summary có query/state/component ownership rõ | Typed request query client; remove raw endpoints; split History query/filter/detail/export responsibility; My Orders workspace; product catalog; department summary; route/path rename-on-touch | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | 12–30% | MyOrders, History, ProductCatalog, DepartmentSummary, selector/deep-link; paging/virtualization/bounded DOM; console/network |
 | **FR7 — Requests write & Settlement** | Core thesis workflow tách theo use case nhưng behavior/mutation không đổi | Order editor session, draft store/autosave, submission coordinator, step components; supplement approval; settlement query/preview/confirm/correct/export; cancellation/dispose | `gpt-5.6-sol` xhigh, `terra` high implement | 15–38% | OrderCreate, OrderManagement, DS3, pending workspace, ExportDownload; API/DB observable outcome; idempotency/draft/recreate/correction parity |
 | **FR8 — Global hardening & final acceptance** | Xóa owner cạnh tranh còn lại, hoàn tất test/docs và owner duyệt UI cuối qua ba checkpoint tách biệt | FR8A shell/shared/CSS/JS → FR8B test-only cleanup → FR8C route/docs/final acceptance | `gpt-5.6-sol` xhigh | 10–25% | Mỗi checkpoint có commit/gate riêng; golden chỉ sau FR8C owner approval |
+| **FR9 — Stable Capability Surface retrofit** | Người dùng luôn thấy cùng cấu trúc chức năng và data surface; action chưa dùng được hiện mờ có lý do thay vì biến mất, empty không làm layout đổi hình | Audit action manifest + empty-state matrix; bổ sung typed disabled reason; retrofit theo thứ tự Admin → Requests → Operations → Analytics; không đổi API/RBAC/nghiệp vụ | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high checkpoint review | 15–40%; safety envelope 65% | Mỗi module: permission matrix + business-state matrix + base/filtered/error state; architecture + focused route + route-real responsive pass trước module kế |
 
 Một implementer chính giữ context. Reviewer/subagent chỉ audit/verify độc lập; agent cùng sửa source phải
 dùng worktree riêng và không chạm cùng module.
@@ -539,7 +542,7 @@ dùng worktree riêng và không chạm cùng module.
    key; mỗi key được đánh dấu `TESTED`, `REDIRECT`, `DYNAMIC_SAMPLE` hoặc `JUSTIFIED_EQUIVALENT` kèm
    evidence. Owner rà final board/route thật rồi mới tạo golden baseline.
 
-### Current wave status — 2026-08-04
+### Current wave status — 2026-08-13
 
 | Wave | Trạng thái hiện tại | Gate còn mở |
 |---|---|---|
@@ -547,6 +550,17 @@ dùng worktree riêng và không chạm cùng module.
 | FR7 | `CORE MUTATION E2E + CORRECTION UX A COMPLETE` | Không còn frontend mutation gate |
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
 | FR8C | `COMPLETE — OWNER APPROVED 2026-08-04` | Golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
+| FR9 | `PLANNED — OWNER APPROVED 2026-08-13` | Chờ owner kiểm tra chức năng mới; sau đó retrofit theo module. `OrderPeriodManagementWorkspace` là reference đã triển khai, không đại diện toàn project |
+
+### FR9 contract và thứ tự thực thi
+
+1. **FR9-A — Inventory + typed contract:** lập action manifest theo entity/permission/business state; mở rộng item contract với disabled reason khi cần; không tạo universal action engine bằng string/reflection.
+2. **FR9-B — Admin collections:** Library/Pricing/User/Permission trước vì cùng `ADMIN-ROW-ACTIONS`, dễ khóa bằng matrix và ít ảnh hưởng workflow đặt hàng.
+3. **FR9-C — Requests + Operations:** My Orders, History, Create Order, Approval, Period và Settlement; giữ nguyên capability backend, chỉ chuẩn hóa cách biểu đạt enabled/disabled/hidden/busy.
+4. **FR9-D — Empty surfaces:** mọi grid/list giữ header, toolbar, cột, body và footer/pager; base-empty/filtered-empty/error dùng state đúng semantic, căn giữa body, không hover/click fake row và không có nút refresh thường xuyên.
+5. **FR9-E — Acceptance:** route-real tại `390×844`, `768×1024`, `1366×768`, `1920×1080` theo route phù hợp; kiểm tra VI/EN, Light/Dark, keyboard/focus, permission persona và layout trước/sau khi có data.
+
+FR9 dùng **migrate-on-touch**: phần nào độc lập và đã có acceptance fixture thì làm trước; phần mới owner chưa kiểm tra giữ nguyên đến khi có kết luận. Không đợi duyệt từng file, nhưng không trộn refactor visual với thay đổi nghiệp vụ chưa được duyệt.
 
 `RouteAcceptanceManifest` là ledger coverage kỹ thuật hiện hành. Nó không tự biến Atlas smoke thành
 functional acceptance, không thay browser route-real review và không chốt ảnh thesis/slide.
@@ -753,15 +767,15 @@ file path hoặc sơ đồ kiến trúc cuối trước khi frontend/backend ref
 | FE-D5 | `APPROVED 2026-08-03` | Final golden/slide screenshots chỉ sau owner final UI acceptance |
 | FE-D6 | `APPROVED 2026-08-04` | Correction thành công bắt buộc `Xem trước lại`; preview mới tạo snapshot và idempotency key mới trước correction tiếp theo |
 | FE-D7 | `APPROVED 2026-08-04` | Chấp thuận current authenticated runtime + final board; raw English reason là localization backlog riêng; golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
+| FE-D8 | `APPROVED 2026-08-13` | Áp dụng `Stable Capability Surface` toàn frontend theo FR9: cùng entity/cùng quyền giữ action group ổn định; unavailable do nghiệp vụ thì disabled, thiếu quyền thì hidden; grid/list empty giữ nguyên frame/toolbar/cột/footer và không có fake-row hover |
 
-FE-D2..D7 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
+FE-D2..D8 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
 
 <a id="plan-detail-continuation"></a>
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR8C, core mutation E2E, correction UX A và owner final visual acceptance đã hoàn tất; route manifest 44 key, code-reading sync và settled runtime board đã có; `Components/Shared` đã về 0 source owner**.
-  Current runtime là visual reference được duyệt; golden artifact chưa tạo và không block backend.
+- Current status: **FR0–FR8C, core mutation E2E, correction UX A và owner final visual acceptance đã hoàn tất; FR9 Stable Capability Surface đã được duyệt nhưng chưa retrofit toàn project**. `OrderPeriodManagementWorkspace` là reference đã triển khai; owner kiểm tra chức năng mới trước, sau đó FR9 đi theo module boundary. Golden artifact chưa tạo và không block backend.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
   `ProductCatalogTests.cs` và hai text extraction artifact; không stage/overwrite.

@@ -22,6 +22,7 @@ For every changed region, name its motif ID from `VPP-UI-MOTIF-CATALOG.md` befor
 
 - Collection actions belong to `VppCollectionHeader`; query/display actions belong to `VppDataToolbar`; row actions belong to the row action column; workflow actions belong to the workflow footer.
 - Filter, decision, page-size, and header-tab selectors share tokens but keep different typed semantics. Never replace them with one string-configured universal selector.
+- Follow the `CAPABILITY-SURFACE` contract: for the same entity and authorized user, keep action groups and data-surface geometry stable; disable business-state-unavailable actions instead of removing them, hide permission-denied or genuinely out-of-scope actions, and preserve the frame/toolbar/columns/footer around centered empty states.
 - A route may own columns, copy, API, permission, and business actions, but it may not redefine shared border, popup, focus, row rhythm, footer anchor, page inset, or motion.
 - When the catalog has no matching motif, keep the first implementation route-local and record `NEEDS MOTIF REVIEW`; extract only after two real consumers share behavior.
 
