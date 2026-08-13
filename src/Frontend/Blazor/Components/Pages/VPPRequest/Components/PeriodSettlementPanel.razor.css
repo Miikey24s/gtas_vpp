@@ -50,7 +50,7 @@
     display: grid;
     min-width: 0;
     gap: var(--vpp-space-2);
-    grid-template-columns: repeat(2, minmax(14rem, 1fr)) repeat(2, minmax(7.5rem, .24fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .vpp-settlement-export-card {

@@ -114,9 +114,14 @@
 }
 
 .vpp-decision-select-popover button[aria-selected="true"] {
-    background: color-mix(in srgb, var(--vpp-primary-500) 9%, transparent);
+    background: transparent;
     color: var(--vpp-text-primary);
     font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-decision-select-popover button[aria-selected="true"]:hover,
+.vpp-decision-select-popover button[aria-selected="true"]:focus-visible {
+    background: color-mix(in srgb, var(--vpp-primary-500) 7%, transparent);
 }
 
 .vpp-decision-select-popover button .vpp-icon {

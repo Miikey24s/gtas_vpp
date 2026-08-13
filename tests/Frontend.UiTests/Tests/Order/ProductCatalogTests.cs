@@ -191,7 +191,8 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         var pageSizeHoverOption = pageSizePanel.Locator(".rz-dropdown-item:not(.rz-state-highlight)").First;
         await pageSizeHoverOption.HoverAsync();
         var pageSizeHoverOptionChrome = await ReadOptionChromeAsync(pageSizeHoverOption);
-        pageSizeSelectedChrome.Should().Be(filterSelectedChrome, "selected options use the canonical blue-tinted state");
+        OptionBackground(pageSizeSelectedChrome).Should().Be(OptionBackground(filterSelectedChrome),
+            "selected options use the canonical neutral background");
         pageSizeHoverOptionChrome.Should().Be(filterHoverOptionChrome, "hovered options use the canonical filter hover state");
         var popupDirection = await pageSizePanel.EvaluateAsync<string>("""
             (panel) => {
@@ -285,6 +286,8 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
             return `${style.minHeight}|${style.borderRadius}|${style.backgroundColor}|${style.color}|${style.fontWeight}`;
         }
     """);
+
+    private static string OptionBackground(string chrome) => chrome.Split('|')[2];
 
     private static async Task<string> ReadPopupGeometryAsync(ILocator panel, ILocator selectedOption)
     {

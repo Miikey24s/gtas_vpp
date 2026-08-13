@@ -17,6 +17,7 @@ public sealed class DataSurfaceArchitectureTests
         var filterSelect = Read(componentRoot, "VppFilterSelect.razor");
         var filterSelectStyles = Read(componentRoot, "VppFilterSelect.razor.css");
         var decisionSelect = Read(componentRoot, "VppDecisionSelect.razor");
+        var decisionSelectStyles = Read(componentRoot, "VppDecisionSelect.razor.css");
         var decisionOption = Read(componentRoot, "VppDecisionOption.cs");
         var footer = Read(componentRoot, "VppDataSummaryFooter.razor");
         var cellPopover = Read(componentRoot, "VppCellValuePopover.razor");
@@ -42,9 +43,12 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("data-vpp-data-density", frame, StringComparison.Ordinal);
         Assert.Contains("role=\"group\"", toolbar, StringComparison.Ordinal);
         Assert.Contains("? \"true\" : \"false\"", filterSelect, StringComparison.Ordinal);
-        Assert.Contains("HighlightSelectedOption", filterSelect, StringComparison.Ordinal);
-        Assert.Contains("has-neutral-selection", filterSelectStyles, StringComparison.Ordinal);
+        Assert.DoesNotContain("HighlightSelectedOption", filterSelect, StringComparison.Ordinal);
+        Assert.Contains("button[aria-selected=\"true\"]", filterSelectStyles, StringComparison.Ordinal);
+        Assert.Contains("background: transparent;", filterSelectStyles, StringComparison.Ordinal);
         Assert.Contains("role=\"listbox\"", decisionSelect, StringComparison.Ordinal);
+        Assert.Contains("button[aria-selected=\"true\"]", decisionSelectStyles, StringComparison.Ordinal);
+        Assert.Contains("background: transparent;", decisionSelectStyles, StringComparison.Ordinal);
         Assert.Contains("VppDecisionOption<TValue>", decisionSelect, StringComparison.Ordinal);
         Assert.Contains("record VppDecisionOption<TValue>", decisionOption, StringComparison.Ordinal);
         Assert.DoesNotContain("VppFilterOption", decisionSelect, StringComparison.Ordinal);
@@ -114,6 +118,7 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains(".rz-pager .rz-dropdown .rz-dropdown-trigger", bridge, StringComparison.Ordinal);
         Assert.Contains("display: none;", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-dropdown-panel :is(.rz-dropdown-item, .rz-dropdown-items > li).rz-state-highlight", bridge, StringComparison.Ordinal);
+        Assert.Contains(".rz-state-highlight::after", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-compact", bridge, StringComparison.Ordinal);
         Assert.Contains(".vpp-data-grid.vpp-data-density-rich-two-line", bridge, StringComparison.Ordinal);
         Assert.DoesNotContain("body .rz-data-grid", bridge, StringComparison.Ordinal);

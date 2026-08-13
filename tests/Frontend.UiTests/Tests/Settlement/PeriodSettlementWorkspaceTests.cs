@@ -46,6 +46,12 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await Assertions.Expect(Page.Locator(".vpp-settlement-decision-cards:visible"))
             .ToBeVisibleAsync();
         await Assertions.Expect(Page.Locator(".vpp-settlement-export-card:visible")).ToHaveCountAsync(2);
+        var decisionCardWidths = await Page.Locator(
+                ".vpp-settlement-decision-cards:visible > .vpp-decision-select, "
+                + ".vpp-settlement-decision-cards:visible > .vpp-settlement-export-card")
+            .EvaluateAllAsync<double[]>("cards => cards.map(card => card.getBoundingClientRect().width)");
+        (decisionCardWidths.Max() - decisionCardWidths.Min()).Should().BeLessThanOrEqualTo(1,
+            "the four settlement cards must share one equal-width grid");
         await Assertions.Expect(Page.GetByText("Phương án chốt", new() { Exact = true })).ToHaveCountAsync(0);
         await Assertions.Expect(Page.GetByRole(
                 AriaRole.Button,
@@ -82,6 +88,10 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             ".vpp-decision-select-popover:popover-open [role='option'][aria-selected='true']");
         await Assertions.Expect(selectedSupplier).ToBeVisibleAsync();
         await Assertions.Expect(selectedSupplier.Locator(".vpp-icon")).ToBeVisibleAsync();
+        var selectedSupplierBackground = await selectedSupplier.EvaluateAsync<string>(
+            "option => getComputedStyle(option).backgroundColor");
+        selectedSupplierBackground.Should().Be("rgba(0, 0, 0, 0)",
+            "selected vertical options stay neutral until hover or focus");
         await selectedSupplier.ClickAsync();
 
         await AssertColumnsAsync(surface, ["Tạm tính", "Thuế GTGT (VAT)", "Thành tiền (gồm VAT)"]);
