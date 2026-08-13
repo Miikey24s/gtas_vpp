@@ -11,6 +11,50 @@ namespace gtas_vpp_be.Tests.Services;
 public sealed class ReportServiceTests
 {
     [Fact]
+    public async Task Summary_RejectsInvalidScope()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = new ReportService(context);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.GetSummaryAsync(
+            "invalid", 10, "IT", "77500", 2026, 7));
+    }
+
+    [Fact]
+    public async Task Summary_RequiresMemberCompany()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = new ReportService(context);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.GetSummaryAsync(
+            ReportScopes.All, 10, "IT", "", 2026, 7));
+    }
+
+    [Fact]
+    public async Task Summary_RequiresDepartmentForDepartmentScope()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = new ReportService(context);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.GetSummaryAsync(
+            ReportScopes.Department, 10, "", "77500", 2026, 7));
+    }
+
+    [Theory]
+    [InlineData(1999, 7)]
+    [InlineData(2101, 7)]
+    [InlineData(2026, 0)]
+    [InlineData(2026, 13)]
+    public async Task Summary_RejectsOutOfRangePeriod(int year, int month)
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var service = new ReportService(context);
+
+        await Assert.ThrowsAnyAsync<ArgumentOutOfRangeException>(() => service.GetSummaryAsync(
+            ReportScopes.All, 10, "IT", "77500", year, month));
+    }
+
+    [Fact]
     public async Task Summary_EnforcesOwnDepartmentCompanyScopesBeforeAggregating()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
@@ -155,6 +199,14 @@ public sealed class ReportServiceTests
         });
         var settlementId = Guid.NewGuid();
         var itemId = Guid.NewGuid();
+        context.Set<Settlement>().Add(CreateSettlement(
+            productId,
+            headerId,
+            detailId,
+            revisionNumber: 1,
+            isCurrentRevision: false,
+            grossAmount: 999,
+            productCode: "P-OLD"));
         context.Set<Settlement>().Add(new Settlement
         {
             Id = settlementId,
@@ -243,9 +295,78 @@ public sealed class ReportServiceTests
         Assert.Equal(1234, summary.TotalAmount);
         Assert.Equal(1234, summary.SettlementAllocationTotal);
         Assert.Equal(0, summary.SettlementVariance);
+        Assert.Equal(1, summary.SettlementRevisionNumber);
+        Assert.Equal("P-1", Assert.Single(summary.TopProducts).ProductCode);
     }
 
-    private static async Task AddOrderAsync(
+    [Fact]
+    public async Task ExportWorkbook_AppliesOwnScopeToSettlementAllocations()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var firstProductId = Guid.NewGuid();
+        var secondProductId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, firstProductId);
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, secondProductId);
+        var ownHeaderId = await AddOrderAsync(context, firstProductId, 10, "IT", "77500", 2, 100);
+        var otherHeaderId = await AddOrderAsync(context, secondProductId, 11, "IT", "77500", 3, 100);
+        var ownDetailId = context.Set<VppRequestDetail>().Single(x => x.RequestId == ownHeaderId).Id;
+        var otherDetailId = context.Set<VppRequestDetail>().Single(x => x.RequestId == otherHeaderId).Id;
+        var settlementId = Guid.NewGuid();
+        var ownItemId = Guid.NewGuid();
+        var otherItemId = Guid.NewGuid();
+        var now = new DateTime(2026, 7, 16, 0, 0, 0, DateTimeKind.Utc);
+        context.Set<Settlement>().Add(new Settlement
+        {
+            Id = settlementId,
+            PeriodId = Guid.NewGuid(),
+            MemberCompanyCode = "77500",
+            Year = 2026,
+            Month = 7,
+            RevisionNumber = 2,
+            IsCurrentRevision = true,
+            PrimarySupplierId = Guid.NewGuid(),
+            PrimarySupplierName = "Supplier",
+            PriceListId = Guid.NewGuid(),
+            PriceListName = "Book",
+            PriceListVersion = 1,
+            PriceAsOfUtc = now,
+            CalculationVersion = "price-vat-v2-vnd-whole",
+            InputHash = new string('A', 64),
+            IdempotencyKey = "report-scope-0001",
+            CommandPayloadHash = new string('B', 64),
+            CurrencyCode = "VND",
+            Subtotal = 500,
+            VatAmount = 50,
+            GrandTotal = 550,
+            ConfirmedAtUtc = now,
+            ConfirmedByUserId = 5615,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now,
+            Items =
+            [
+                CreateSettlementItem(settlementId, ownItemId, firstProductId, "P-OWN", 2, 200, now),
+                CreateSettlementItem(settlementId, otherItemId, secondProductId, "P-OTHER", 3, 300, now)
+            ],
+            Allocations =
+            [
+                CreateAllocation(settlementId, ownItemId, ownHeaderId, ownDetailId, 10, "IT", 2, 220, now),
+                CreateAllocation(settlementId, otherItemId, otherHeaderId, otherDetailId, 11, "IT", 3, 330, now)
+            ]
+        });
+        await context.SaveChangesAsync();
+
+        var export = await new ReportService(context).ExportWorkbookAsync(
+            ReportScopes.Own, 10, "IT", "77500", 2026, 7);
+
+        using var archive = new ZipArchive(new MemoryStream(export.Content), ZipArchiveMode.Read);
+        var itemSheet = ReadEntry(archive, "xl/worksheets/sheet2.xml");
+        Assert.Contains("P-OWN", itemSheet, StringComparison.Ordinal);
+        Assert.DoesNotContain("P-OTHER", itemSheet, StringComparison.Ordinal);
+    }
+
+    private static async Task<Guid> AddOrderAsync(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
         Guid productId,
         int userId,
@@ -285,7 +406,114 @@ public sealed class ReportServiceTests
         });
         context.Add(header);
         await context.SaveChangesAsync();
+        return headerId;
     }
+
+    private static Settlement CreateSettlement(
+        Guid productId,
+        Guid headerId,
+        Guid detailId,
+        int revisionNumber,
+        bool isCurrentRevision,
+        decimal grossAmount,
+        string productCode)
+    {
+        var settlementId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var now = new DateTime(2026, 7, 15, 0, 0, 0, DateTimeKind.Utc);
+        return new Settlement
+        {
+            Id = settlementId,
+            PeriodId = Guid.NewGuid(),
+            MemberCompanyCode = "77500",
+            Year = 2026,
+            Month = 7,
+            RevisionNumber = revisionNumber,
+            IsCurrentRevision = isCurrentRevision,
+            PrimarySupplierId = Guid.NewGuid(),
+            PrimarySupplierName = "Old supplier",
+            PriceListId = Guid.NewGuid(),
+            PriceListName = "Old book",
+            PriceListVersion = 1,
+            PriceAsOfUtc = now,
+            CalculationVersion = "price-vat-v2-vnd-whole",
+            InputHash = new string('C', 64),
+            IdempotencyKey = $"report-old-{Guid.NewGuid():N}",
+            CommandPayloadHash = new string('D', 64),
+            CurrencyCode = "VND",
+            Subtotal = grossAmount,
+            VatAmount = 0,
+            GrandTotal = grossAmount,
+            ConfirmedAtUtc = now,
+            ConfirmedByUserId = 5615,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now,
+            Items = [CreateSettlementItem(settlementId, itemId, productId, productCode, 1, grossAmount, now)],
+            Allocations = [CreateAllocation(settlementId, itemId, headerId, detailId, 10, "IT", 1, grossAmount, now)]
+        };
+    }
+
+    private static SettlementItem CreateSettlementItem(
+        Guid settlementId,
+        Guid itemId,
+        Guid productId,
+        string productCode,
+        decimal quantity,
+        decimal grossAmount,
+        DateTime now) => new()
+        {
+            Id = itemId,
+            SettlementId = settlementId,
+            VppId = productId,
+            VppCode = productCode,
+            VppName = productCode,
+            UomId = Guid.NewGuid(),
+            UomCode = "EA",
+            UomName = "Each",
+            SupplierId = Guid.NewGuid(),
+            PriceListId = Guid.NewGuid(),
+            PriceBookItemId = Guid.NewGuid(),
+            Quantity = quantity,
+            NetUnitPrice = grossAmount / quantity,
+            VatRate = 0,
+            NetAmount = grossAmount,
+            VatAmount = 0,
+            GrossAmount = grossAmount,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now
+        };
+
+    private static SettlementAllocation CreateAllocation(
+        Guid settlementId,
+        Guid itemId,
+        Guid headerId,
+        Guid detailId,
+        int requesterUserId,
+        string departmentCode,
+        decimal quantity,
+        decimal grossAmount,
+        DateTime now) => new()
+        {
+            Id = Guid.NewGuid(),
+            SettlementId = settlementId,
+            SettlementItemId = itemId,
+            RequestHeaderId = headerId,
+            RequestDetailId = detailId,
+            DepartmentCode = departmentCode,
+            RequesterUserId = requesterUserId,
+            Quantity = quantity,
+            NetAmount = grossAmount,
+            VatAmount = 0,
+            GrossAmount = grossAmount,
+            CreatedByUserId = 5615,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 5615,
+            UpdatedAtUtc = now
+        };
 
     private static string ReadEntry(ZipArchive archive, string path)
     {
