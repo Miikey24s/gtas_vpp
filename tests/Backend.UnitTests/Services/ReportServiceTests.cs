@@ -14,30 +14,30 @@ public sealed class ReportServiceTests
     public async Task Summary_RejectsInvalidScope()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
         await Assert.ThrowsAsync<ArgumentException>(() => service.GetSummaryAsync(
-            "invalid", 10, "IT", "77500", 2026, 7));
+            Query("invalid", year: 2026, month: 7)));
     }
 
     [Fact]
     public async Task Summary_RequiresMemberCompany()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
         await Assert.ThrowsAsync<ArgumentException>(() => service.GetSummaryAsync(
-            ReportScopes.All, 10, "IT", "", 2026, 7));
+            Query(ReportScopes.All, companyCode: "", year: 2026, month: 7)));
     }
 
     [Fact]
     public async Task Summary_RequiresDepartmentForDepartmentScope()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
         await Assert.ThrowsAsync<ArgumentException>(() => service.GetSummaryAsync(
-            ReportScopes.Department, 10, "", "77500", 2026, 7));
+            Query(ReportScopes.Department, departmentCode: "", year: 2026, month: 7)));
     }
 
     [Theory]
@@ -48,10 +48,10 @@ public sealed class ReportServiceTests
     public async Task Summary_RejectsOutOfRangePeriod(int year, int month)
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
         await Assert.ThrowsAnyAsync<ArgumentOutOfRangeException>(() => service.GetSummaryAsync(
-            ReportScopes.All, 10, "IT", "77500", year, month));
+            Query(ReportScopes.All, year: year, month: month)));
     }
 
     [Fact]
@@ -64,14 +64,11 @@ public sealed class ReportServiceTests
         await AddOrderAsync(context, productId, 11, "IT", "77500", 3, 100);
         await AddOrderAsync(context, productId, 12, "HR", "77500", 4, 100);
         await AddOrderAsync(context, productId, 10, "IT", "88000", 50, 100);
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
-        var own = await service.GetSummaryAsync(
-            ReportScopes.Own, 10, "IT", "77500", 2026, null);
-        var department = await service.GetSummaryAsync(
-            ReportScopes.Department, 10, "IT", "77500", 2026, null);
-        var all = await service.GetSummaryAsync(
-            ReportScopes.All, 10, "IT", "77500", 2026, null);
+        var own = await service.GetSummaryAsync(Query(ReportScopes.Own, year: 2026));
+        var department = await service.GetSummaryAsync(Query(ReportScopes.Department, year: 2026));
+        var all = await service.GetSummaryAsync(Query(ReportScopes.All, year: 2026));
 
         Assert.Equal((1, 2, 200L), (own.TotalOrders, own.TotalQuantity, own.TotalAmount));
         Assert.Equal((2, 5, 500L), (department.TotalOrders, department.TotalQuantity, department.TotalAmount));
@@ -99,10 +96,9 @@ public sealed class ReportServiceTests
         var productId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, productId);
         await AddOrderAsync(context, productId, 10, "IT", "77500", 2, 100);
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
-        var export = await service.ExportCsvAsync(
-            ReportScopes.All, 10, "IT", "77500", 2026, 7);
+        var export = await service.ExportCsvAsync(Query(ReportScopes.All, year: 2026, month: 7));
 
         Assert.Equal("GTAS-VPP-Bao-cao-all-2026-07.csv", export.FileName);
         Assert.Equal("text/csv; charset=utf-8", export.ContentType);
@@ -124,10 +120,9 @@ public sealed class ReportServiceTests
         var productId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, productId);
         await AddOrderAsync(context, productId, 10, "IT", "77500", 2, 100);
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
-        var export = await service.ExportWorkbookAsync(
-            ReportScopes.All, 10, "IT", "77500", 2026, 7);
+        var export = await service.ExportWorkbookAsync(Query(ReportScopes.All, year: 2026, month: 7));
 
         Assert.EndsWith(".xlsx", export.FileName, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", export.ContentType);
@@ -150,10 +145,9 @@ public sealed class ReportServiceTests
         var productId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, productId);
         await AddOrderAsync(context, productId, 10, "IT", "77500", 2, 100);
-        var service = new ReportService(context);
+        var service = CreateService(context);
 
-        var export = await service.ExportPdfAsync(
-            ReportScopes.All, 10, "IT", "77500", 2026, 7);
+        var export = await service.ExportPdfAsync(Query(ReportScopes.All, year: 2026, month: 7));
 
         Assert.Equal(ExportFileContract.PdfContentType, export.ContentType);
         Assert.Equal("GTAS-VPP-Bao-cao-all-2026-07.pdf", export.FileName);
@@ -288,8 +282,8 @@ public sealed class ReportServiceTests
         });
         await context.SaveChangesAsync();
 
-        var summary = await new ReportService(context).GetSummaryAsync(
-            ReportScopes.All, 10, "IT", "77500", 2026, 7);
+        var summary = await CreateService(context).GetSummaryAsync(
+            Query(ReportScopes.All, year: 2026, month: 7));
 
         Assert.True(summary.IsSettlementReconciled);
         Assert.Equal(1234, summary.TotalAmount);
@@ -357,8 +351,8 @@ public sealed class ReportServiceTests
         });
         await context.SaveChangesAsync();
 
-        var export = await new ReportService(context).ExportWorkbookAsync(
-            ReportScopes.Own, 10, "IT", "77500", 2026, 7);
+        var export = await CreateService(context).ExportWorkbookAsync(
+            Query(ReportScopes.Own, year: 2026, month: 7));
 
         using var archive = new ZipArchive(new MemoryStream(export.Content), ZipArchiveMode.Read);
         var itemSheet = ReadEntry(archive, "xl/worksheets/sheet2.xml");
@@ -408,6 +402,23 @@ public sealed class ReportServiceTests
         await context.SaveChangesAsync();
         return headerId;
     }
+
+    private static ReportService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context) =>
+        new(context, new CurrentSettlementReportReader(context));
+
+    private static ReportQueryContext Query(
+        string scope,
+        int userId = 10,
+        string departmentCode = "IT",
+        string companyCode = "77500",
+        int? year = null,
+        int? month = null) => new(
+            scope,
+            userId,
+            departmentCode,
+            companyCode,
+            year,
+            month);
 
     private static Settlement CreateSettlement(
         Guid productId,

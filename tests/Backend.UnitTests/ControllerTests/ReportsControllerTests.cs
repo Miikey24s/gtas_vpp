@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Security.Claims;
 using gtas_vpp_be.Authorization;
-using gtas_vpp_be.Controllers;
+using gtas_vpp_be.Features.Reports;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Reports;
@@ -113,12 +113,13 @@ public sealed class ReportsControllerTests
         var reportService = new Mock<IReportService>();
         reportService
             .Setup(service => service.GetSummaryAsync(
-                scope,
-                5615,
-                "IT",
-                "77500",
-                2026,
-                7,
+                It.Is<ReportQueryContext>(query =>
+                    query.Scope == scope
+                    && query.UserId == 5615
+                    && query.DepartmentCode == "IT"
+                    && query.MemberCompanyCode == "77500"
+                    && query.Year == 2026
+                    && query.Month == 7),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
         var permissionService = AllowPermission(permission);
@@ -153,15 +154,18 @@ public sealed class ReportsControllerTests
         var reportService = new Mock<IReportService>();
         reportService
             .Setup(service => service.ExportCsvAsync(
-                ReportScopes.All, 5615, "IT", "77500", 2026, 7, It.IsAny<CancellationToken>()))
+                It.Is<ReportQueryContext>(query => IsAllScopeQuery(query, 2026, 7)),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(csv);
         reportService
             .Setup(service => service.ExportWorkbookAsync(
-                ReportScopes.All, 5615, "IT", "77500", 2026, 7, It.IsAny<CancellationToken>()))
+                It.Is<ReportQueryContext>(query => IsAllScopeQuery(query, 2026, 7)),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(workbook);
         reportService
             .Setup(service => service.ExportPdfAsync(
-                ReportScopes.All, 5615, "IT", "77500", 2026, 7, It.IsAny<CancellationToken>()))
+                It.Is<ReportQueryContext>(query => IsAllScopeQuery(query, 2026, 7)),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(pdf);
         var controller = CreateController(
             reportService: reportService.Object,
@@ -186,12 +190,13 @@ public sealed class ReportsControllerTests
         var reportService = new Mock<IReportService>();
         reportService
             .Setup(service => service.GetSummaryAsync(
-                ReportScopes.Own,
-                5615,
-                "IT",
-                "77500",
-                null,
-                null,
+                It.Is<ReportQueryContext>(query =>
+                    query.Scope == ReportScopes.Own
+                    && query.UserId == 5615
+                    && query.DepartmentCode == "IT"
+                    && query.MemberCompanyCode == "77500"
+                    && query.Year == null
+                    && query.Month == null),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(summary);
         var insightService = new Mock<IReportInsightService>();
@@ -276,4 +281,12 @@ public sealed class ReportsControllerTests
         Assert.Equal(expected.ContentType, file.ContentType);
         Assert.Equal(expected.FileName, file.FileDownloadName);
     }
+
+    private static bool IsAllScopeQuery(ReportQueryContext query, int year, int month) =>
+        query.Scope == ReportScopes.All
+        && query.UserId == 5615
+        && query.DepartmentCode == "IT"
+        && query.MemberCompanyCode == "77500"
+        && query.Year == year
+        && query.Month == month;
 }

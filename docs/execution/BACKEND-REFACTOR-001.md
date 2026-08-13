@@ -34,7 +34,7 @@
 | Model/quota routing | Snapshot 13/08 còn `1243%` weekly aggregate, 13/14 account khả dụng nhưng thiếu coverage 5 giờ. Dùng `gpt-5.6-terra` high cho lát refactor rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; kết luận hiện tại `SLICE_ONLY`, đủ mở một checkpoint sau khi duyệt, chưa cam kết chạy liền toàn plan | [Routing](#plan-detail-routing) |
 | Kiểm tra | Mỗi checkpoint khóa route/permission/JSON trước, chạy focused test trong vòng lặp và full backend gate trước commit. Chức năng mới chỉ chuyển từ `FROZEN` sang `ACCEPTED` sau checklist thực tế của owner và regression test tương ứng | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Gọi code là “cũ” nhưng vẫn dùng chung period/settlement/pricing mới; refactor vô tình hợp thức hóa bug chưa nghiệm thu; `VPPContext`, Shared DTO, seed và `Program.cs` gây ảnh hưởng xuyên module | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Owner duyệt sequencing mới; sau đó chỉ mở **B2F/B2A Reports**. Không chạm Period, Requests, Pricing import/AI, Settlement/Correction hoặc schema trước vòng kiểm tra chức năng mới | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | B2F–B2C Reports đang được thực thi liên tục theo owner approval; sau khi gate xanh sẽ rà vùng cũ độc lập tiếp theo. Không chạm Period, Requests, Pricing import/AI, Settlement/Correction hoặc schema trước vòng kiểm tra chức năng mới | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -427,7 +427,7 @@ src/Backend/
 | **B1a-2b2 — COMPLETE 2026-08-04** | Xóa legacy code/config sau khi request service không còn consumer | Đã xóa BaseServices/factory/resolver/Jira chain; cập nhật Program/appsettings/helper/routing tests; giữ framework runtime dependencies | `gpt-5.6-terra` high, review `sol` xhigh | Actual aggregate checkpoint `21%` | Consumer search 0; focused `41/41`; backend `503/503`; full verify + review PASS |
 | **B1b-A — COMPLETE 2026-08-04** | Repo metadata không còn duplicate/ghost/stale command file | Đã xóa nested Git metadata, stale API readme và ghost csproj include | `gpt-5.6-terra` medium | Actual aggregate checkpoint `34%` | Ignore/attr/XML/API build; backend `503/503`; full verify PASS |
 | **B1b-B — COMPLETE 2026-08-04** | `.http` dùng route hiện hành, không credential/mutation | Health + authenticated read-only examples với bearer/order placeholders; không đụng local artifacts | `gpt-5.6-terra` medium | Actual aggregate checkpoint `4%` | GET-only/no-secret scan; manifest `1/1`; API build PASS |
-| **B2 — Reports cũ, chỉ đọc** (`READY_AFTER_FREEZE`) | Chốt pattern module ở vùng ít mutation nhất mà không thay đổi nghiệp vụ mới | `B2F` freeze/dependency map + characterization; `B2A` query context và pure export seam; `B2B` ownership + `AddReportsModule`; `B2C` verify/handoff. Phần đọc settlement snapshot giữ như compatibility adapter, không đổi allocation/pricing/revision | `gpt-5.6-terra` high implement, review `gpt-5.6-sol` high | 15–50% aggregate/checkpoint, confidence thấp; đo lại từng checkpoint | Route/auth/ProblemDetails/frontend parity; totals/allocation parity; CSV/XLSX/PDF bytes/name/MIME/signature; DI resolve; EF zero delta |
+| **B2 — Reports cũ, chỉ đọc** (`COMPLETE 2026-08-13`) | Chốt pattern module ở vùng ít mutation nhất mà không thay đổi nghiệp vụ mới | B2F khóa validation/current revision/scope; B2A có `ReportQueryContext`, settlement reader và CSV builder; B2B có `Api/Features/Reports` + `AddReportsModule`; B2C đã handoff vào code-reading guide | `gpt-5.6-terra` high implement, review `gpt-5.6-sol` high | Chưa có đo aggregate riêng đáng tin cậy | Focused 51/51; backend 543/543; frontend client 6/6; disposable SQL 24/24; EF zero delta; formatter/analyzer scoped PASS. Full verify chỉ còn blocker encoding migration import ngoài B2 |
 | **UAT-N — Owner kiểm tra chức năng mới** | Xác nhận hành vi thật trước khi refactor module mới | Period, chốt kỳ, correction sau chốt, price-list import và AI mapping; phân loại `PASS/BUG/UI/BUSINESS DECISION` | Owner chạy luồng thật; agent dùng `gpt-5.6-sol` high khi phân tích bug khó | Không tính như production refactor | Checklist acceptance hoàn tất theo từng module; bug fix commit riêng và regression test xanh |
 | **B3 — Catalog & Pricing** (`FROZEN` đến khi pricing accepted) | Typed read/write/import paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, price resolver, import parser/workflow, AI mapping boundary; retire generic writes từng consumer | `gpt-5.6-sol` high design/review, `terra` high implement | Reforecast sau UAT | Consumer ledger 0; price/import/AI fallback tests; LocalDB parity; permission parity |
 | **B4 — Period & Requests** (`FROZEN` đến khi period/request accepted) | Tách lifecycle kỳ khỏi god request service mà giữ nguyên toàn bộ luồng đơn | Period query/schedule/lifecycle trước; sau đó request query/history, create-update-cancel, supplement workflow, demand và notification boundary | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | Reforecast sau UAT | Schedule/time boundary, idempotency/concurrency/revision/history, route/auth/JSON và focused LocalDB |
@@ -691,11 +691,11 @@ tận dụng thời gian để xử lý module cũ thực sự độc lập.
 | B0R-D1 | APPROVED/IMPLEMENTED 2026-08-04 | Pending filter dùng `APPROVE OR REJECT` như pending grid | Owner phương án A + B0R ledger mục 5 |
 | B0R-D2 | APPROVED/IMPLEMENTED 2026-08-04 | History dùng authenticated + resource scope như detail/PDF/XLSX | Owner phương án A + B0R ledger mục 5 |
 | B2-D1 | SUPERSEDED 2026-08-13 | Capacity gate cũ đã được refresh; sequencing mới dùng B2F/B2A và freeze vùng mới | Snapshot mới + owner đổi thứ tự |
-| BR-D4 | PENDING OWNER APPROVAL | Refactor vùng cũ độc lập trước; chức năng mới `FROZEN` đến khi owner acceptance; vùng giao nhau không refactor sớm | Owner đề xuất ngày 2026-08-13; record này cụ thể hóa |
-| BR-D5 | PENDING OWNER APPROVAL | Bug fix và refactor là change-set riêng; module mới mở khóa từng phần, không cần chờ nghiệm thu toàn hệ thống | Risk control của plan refresh |
+| BR-D4 | APPROVED/IN FORCE 2026-08-13 | Refactor vùng cũ độc lập trước; chức năng mới `FROZEN` đến khi owner acceptance; vùng giao nhau không refactor sớm | Owner: “làm full plan... phần nào làm trước được thì cứ làm trước” |
+| BR-D5 | APPROVED/IN FORCE 2026-08-13 | Bug fix và refactor là change-set riêng; module mới mở khóa từng phần, không cần chờ nghiệm thu toàn hệ thống | Owner yêu cầu chạy liên tục, không chờ từng turn |
 
-B0R/B1 giữ nguyên bằng chứng hoàn tất. Chỉ BR-D4/BR-D5 và execution sequencing mới cần owner duyệt; chưa có
-production code nào được sửa bởi refresh này.
+B0R/B1 giữ nguyên bằng chứng hoàn tất. BR-D4/BR-D5 đã được owner duyệt; agent tiếp tục checkpoint an toàn
+không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/database boundary thật sự.
 
 <a id="plan-detail-continuation"></a>
 
@@ -708,8 +708,11 @@ production code nào được sửa bởi refresh này.
 - Current hotspot snapshot: `VPPRequestService` khoảng 2570 dòng, `PeriodSettlementService` 1366,
   `VppPeriodService` 999, `LibraryController` 917, `PermissionController` 981 và `ReportService` 482.
   Số dòng chỉ dùng để định hướng, không phải tiêu chí tự động tách class.
-- Next exact action sau owner approval: thực hiện **B2F test/docs-only**; sau đó báo diff và gate trước khi
-  mở B2A production. Không chạm frontend, Shared wire shape, migration history hoặc schema trong B2.
+- Current execution: B2F characterization commit `d2fd8598`; B2A–B2C Reports hoàn tất. Evidence:
+  focused `51/51`, backend unit `543/543`, frontend Reports client `6/6`, disposable SQL `24/24`, EF zero
+  delta và scoped whitespace/analyzer PASS. Full verify dừng sau các gate xanh vì migration
+  `20260810233259_AddPriceListImportBatches.cs` có lỗi `CHARSET`; file thuộc vùng pricing/import đang
+  `FROZEN`, không sửa trong B2. Tiếp theo rà Notifications và pure platform/file seams có test evidence.
 - Do not redo: B0R route/auth/ProblemDetails characterization và B1 dead-code/base-service cleanup đã có.
 
 ## 15. Research sources

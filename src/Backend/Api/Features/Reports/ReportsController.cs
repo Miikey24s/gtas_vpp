@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace gtas_vpp_be.Controllers;
+namespace gtas_vpp_be.Features.Reports;
 
 [ApiController]
 [Authorize]
@@ -40,7 +40,8 @@ public sealed class ReportsController(
         }
 
         return Ok(await _reportService.GetSummaryAsync(
-            scope, userId, departmentCode, companyCode, year, month, cancellationToken));
+            CreateQuery(scope, userId, departmentCode, companyCode, year, month),
+            cancellationToken));
     }
 
     [HttpGet("export")]
@@ -64,7 +65,8 @@ public sealed class ReportsController(
         }
 
         var export = await _reportService.ExportCsvAsync(
-            scope, userId, departmentCode, companyCode, year, month, cancellationToken);
+            CreateQuery(scope, userId, departmentCode, companyCode, year, month),
+            cancellationToken);
         return File(export.Content, export.ContentType, export.FileName);
     }
 
@@ -89,7 +91,8 @@ public sealed class ReportsController(
         }
 
         var export = await _reportService.ExportWorkbookAsync(
-            scope, userId, departmentCode, companyCode, year, month, cancellationToken);
+            CreateQuery(scope, userId, departmentCode, companyCode, year, month),
+            cancellationToken);
         return File(export.Content, export.ContentType, export.FileName);
     }
 
@@ -114,7 +117,8 @@ public sealed class ReportsController(
         }
 
         var export = await _reportService.ExportPdfAsync(
-            scope, userId, departmentCode, companyCode, year, month, cancellationToken);
+            CreateQuery(scope, userId, departmentCode, companyCode, year, month),
+            cancellationToken);
         return File(export.Content, export.ContentType, export.FileName);
     }
 
@@ -139,7 +143,8 @@ public sealed class ReportsController(
         }
 
         var summary = await _reportService.GetSummaryAsync(
-            scope, userId, departmentCode, companyCode, year, month, cancellationToken);
+            CreateQuery(scope, userId, departmentCode, companyCode, year, month),
+            cancellationToken);
         return Ok(await _reportInsightService.GenerateAsync(summary, language, cancellationToken));
     }
 
@@ -168,4 +173,18 @@ public sealed class ReportsController(
         return int.TryParse(User.FindFirstValue("UserID"), out userId)
             && !string.IsNullOrWhiteSpace(companyCode);
     }
+
+    private static ReportQueryContext CreateQuery(
+        string scope,
+        int userId,
+        string departmentCode,
+        string companyCode,
+        int? year,
+        int? month) => new(
+            scope,
+            userId,
+            departmentCode,
+            companyCode,
+            year,
+            month);
 }

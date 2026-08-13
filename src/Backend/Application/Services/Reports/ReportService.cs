@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text;
 using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_shared.Constants;
@@ -11,64 +9,39 @@ namespace gtas_vpp_be.Service.Services;
 public interface IReportService
 {
     Task<ReportSummaryResDTO> GetSummaryAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default);
 
     Task<ReportExportResult> ExportCsvAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default);
 
     Task<ReportExportResult> ExportPdfAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default);
 
     Task<ReportExportResult> ExportWorkbookAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default);
 }
 
-public sealed class ReportService(VPPContext context) : IReportService
+public sealed class ReportService(
+    VPPContext context,
+    ICurrentSettlementReportReader settlementReader) : IReportService
 {
     private const int MaxExportRows = 50_000;
     private readonly VPPContext _context = context;
+    private readonly ICurrentSettlementReportReader _settlementReader = settlementReader;
 
     public async Task<ReportSummaryResDTO> GetSummaryAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default)
     {
-        Validate(scope, Code, memberCompanyCode, year, month);
+        query.Validate();
 
         var scopedHeaders = ApplyScope(
             _context.Set<VppRequest>().AsNoTracking().Where(order => !order.IsDeleted),
-            scope,
-            userId,
-            Code,
-            memberCompanyCode);
+            query);
 
         var availableYears = await scopedHeaders
             .Select(order => order.Year)
@@ -77,8 +50,8 @@ public sealed class ReportService(VPPContext context) : IReportService
             .ToListAsync(cancellationToken);
 
         var filteredHeaders = scopedHeaders
-            .Where(order => !year.HasValue || order.Year == year.Value)
-            .Where(order => !month.HasValue || order.Month == month.Value);
+            .Where(order => !query.Year.HasValue || order.Year == query.Year.Value)
+            .Where(order => !query.Month.HasValue || order.Month == query.Month.Value);
         var filteredHeaderIds = filteredHeaders.Select(order => order.Id);
         var filteredDetails = _context.Set<VppRequestDetail>()
             .AsNoTracking()
@@ -104,31 +77,9 @@ public sealed class ReportService(VPPContext context) : IReportService
             })
             .FirstOrDefaultAsync(cancellationToken);
 
-        Settlement? settlement = null;
-        var scopedSettlementAllocations = new List<SettlementAllocation>();
-        if (year.HasValue && month.HasValue)
-        {
-            settlement = await _context.Set<Settlement>()
-                .AsNoTracking()
-                .Include(item => item.Items)
-                .Include(item => item.Allocations)
-                .FirstOrDefaultAsync(item => !item.IsDeleted
-                    && item.IsCurrentRevision
-                    && item.MemberCompanyCode == memberCompanyCode
-                    && item.Year == year.Value
-                    && item.Month == month.Value, cancellationToken);
-            if (settlement is not null)
-            {
-                scopedSettlementAllocations = settlement.Allocations
-                    .Where(allocation => scope switch
-                    {
-                        ReportScopes.Own => allocation.RequesterUserId == userId,
-                        ReportScopes.Department => allocation.DepartmentCode == Code,
-                        _ => true
-                    })
-                    .ToList();
-            }
-        }
+        var settlementSnapshot = await _settlementReader.ReadAsync(query, cancellationToken);
+        var settlement = settlementSnapshot?.Settlement;
+        var scopedSettlementAllocations = settlementSnapshot?.ScopedAllocations ?? [];
 
         var periodRaw = await filteredHeaders
             .GroupBy(order => new { order.Year, order.Month })
@@ -249,9 +200,9 @@ public sealed class ReportService(VPPContext context) : IReportService
 
         return new ReportSummaryResDTO
         {
-            Scope = scope,
-            Year = year,
-            Month = month,
+            Scope = query.Scope,
+            Year = query.Year,
+            Month = query.Month,
             GeneratedAt = DateTime.UtcNow,
             AvailableYears = availableYears,
             TotalOrders = effectiveTotalOrders,
@@ -288,24 +239,16 @@ public sealed class ReportService(VPPContext context) : IReportService
     }
 
     public async Task<ReportExportResult> ExportCsvAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default)
     {
-        Validate(scope, Code, memberCompanyCode, year, month);
+        query.Validate();
 
         var headers = ApplyScope(
                 _context.Set<VppRequest>().AsNoTracking().Where(order => !order.IsDeleted),
-                scope,
-                userId,
-                Code,
-                memberCompanyCode)
-            .Where(order => !year.HasValue || order.Year == year.Value)
-            .Where(order => !month.HasValue || order.Month == month.Value);
+                query)
+            .Where(order => !query.Year.HasValue || order.Year == query.Year.Value)
+            .Where(order => !query.Month.HasValue || order.Month == query.Month.Value);
         var headerIds = headers.Select(order => order.Id);
 
         var rowCount = await _context.Set<VppRequestDetail>()
@@ -325,108 +268,55 @@ public sealed class ReportService(VPPContext context) : IReportService
             .ThenBy(detail => detail.Request.DepartmentCode)
             .ThenBy(detail => detail.Request.VppCode)
             .ThenBy(detail => detail.VppItem.VppCode)
-            .Select(detail => new
-            {
+            .Select(detail => new ReportCsvRow(
                 detail.Request.Year,
                 detail.Request.Month,
                 detail.Request.DepartmentCode,
-                OrderCode = detail.Request.VppCode,
+                detail.Request.VppCode,
                 detail.Request.Status,
                 detail.Request.IsAdditionalOrder,
-                ProductCode = detail.VppItem.VppCode,
-                ProductName = detail.VppItem.VppName,
+                detail.VppItem.VppCode,
+                detail.VppItem.VppName,
                 detail.Qty,
-                detail.CurrentSinglePrice
-            })
+                detail.CurrentSinglePrice))
             .ToListAsync(cancellationToken);
-
-        var csv = new StringBuilder(Math.Max(1024, rows.Count * 120));
-        csv.AppendLine("sep=,");
-        csv.AppendLine("Kỳ,Phòng ban,Mã đơn,Trạng thái,Đơn bổ sung,Mã mặt hàng,Tên mặt hàng,Số lượng,Đơn giá,Thành tiền");
-        foreach (var row in rows)
-        {
-            var amount = row.Qty * row.CurrentSinglePrice;
-            csv.AppendLine(string.Join(",",
-            [
-                EscapeCsvCell($"{row.Month:00}/{row.Year}"),
-                EscapeCsvCell(row.DepartmentCode),
-                EscapeCsvCell(row.OrderCode),
-                EscapeCsvCell(VppStatusContract.GetText(row.Status, culture: CultureInfo.GetCultureInfo("vi-VN"))),
-                EscapeCsvCell(row.IsAdditionalOrder ? "Có" : "Không"),
-                EscapeCsvCell(row.ProductCode),
-                EscapeCsvCell(row.ProductName),
-                row.Qty.ToString(CultureInfo.InvariantCulture),
-                row.CurrentSinglePrice.ToString(CultureInfo.InvariantCulture),
-                amount.ToString(CultureInfo.InvariantCulture)
-            ]));
-        }
-
-        var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
-        var content = encoding.GetPreamble().Concat(encoding.GetBytes(csv.ToString())).ToArray();
         return new ReportExportResult(
-            content,
-            ExportFileContract.Report(scope, year, month, "csv"),
+            ReportCsvBuilder.Build(rows),
+            ExportFileContract.Report(query.Scope, query.Year, query.Month, "csv"),
             ExportFileContract.CsvContentType);
     }
 
     public async Task<ReportExportResult> ExportPdfAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default)
     {
-        var summary = await GetSummaryAsync(
-            scope, userId, Code, memberCompanyCode, year, month, cancellationToken);
+        var summary = await GetSummaryAsync(query, cancellationToken);
         return new ReportExportResult(
             ReportPdfBuilder.Build(summary),
-            ExportFileContract.Report(scope, year, month, "pdf"),
+            ExportFileContract.Report(query.Scope, query.Year, query.Month, "pdf"),
             ExportFileContract.PdfContentType);
     }
 
     public async Task<ReportExportResult> ExportWorkbookAsync(
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month,
+        ReportQueryContext query,
         CancellationToken cancellationToken = default)
     {
-        Validate(scope, Code, memberCompanyCode, year, month);
-        var summary = await GetSummaryAsync(
-            scope, userId, Code, memberCompanyCode, year, month, cancellationToken);
+        query.Validate();
+        var summary = await GetSummaryAsync(query, cancellationToken);
         var items = new List<ReportWorkbookItem>();
 
-        if (year.HasValue && month.HasValue)
+        var settlementSnapshot = await _settlementReader.ReadAsync(query, cancellationToken);
+        if (settlementSnapshot is not null)
         {
-            var settlement = await _context.Set<Settlement>()
-                .AsNoTracking()
-                .Include(item => item.Items)
-                .Include(item => item.Allocations)
-                .FirstOrDefaultAsync(item => !item.IsDeleted
-                    && item.IsCurrentRevision
-                    && item.MemberCompanyCode == memberCompanyCode
-                    && item.Year == year.Value
-                    && item.Month == month.Value, cancellationToken);
-            if (settlement is not null)
-            {
-                var itemById = settlement.Items.ToDictionary(item => item.Id);
-                var scoped = settlement.Allocations.Where(allocation => scope switch
+            var settlement = settlementSnapshot.Settlement;
+            var itemById = settlement.Items.ToDictionary(item => item.Id);
+            items = settlementSnapshot.ScopedAllocations
+                .Where(allocation => itemById.ContainsKey(allocation.SettlementItemId))
+                .Select(allocation =>
                 {
-                    ReportScopes.Own => allocation.RequesterUserId == userId,
-                    ReportScopes.Department => allocation.DepartmentCode == Code,
-                    _ => true
-                });
-                items = scoped
-                    .Where(allocation => itemById.ContainsKey(allocation.SettlementItemId))
-                    .Select(allocation =>
-                    {
-                        var item = itemById[allocation.SettlementItemId];
-                        return new ReportWorkbookItem(
-                            $"{month:00}/{year}",
+                    var item = itemById[allocation.SettlementItemId];
+                    return new ReportWorkbookItem(
+                            $"{query.Month:00}/{query.Year}",
                             allocation.DepartmentCode ?? "-",
                             allocation.RequesterUserId,
                             item.VppCode,
@@ -445,77 +335,32 @@ public sealed class ReportService(VPPContext context) : IReportService
                                 ? settlement.PriceListName
                                 : $"Exception price book {item.PriceListId}",
                             item.IsSupplierException);
-                    })
-                    .OrderBy(item => item.Code)
-                    .ThenBy(item => item.ProductCode)
-                    .ToList();
-            }
+                })
+                .OrderBy(item => item.Code)
+                .ThenBy(item => item.ProductCode)
+                .ToList();
         }
 
         return new ReportExportResult(
             ReportWorkbookBuilder.Build(summary, items),
-            ExportFileContract.Report(scope, year, month, "xlsx"),
+            ExportFileContract.Report(query.Scope, query.Year, query.Month, "xlsx"),
             ExportFileContract.ExcelContentType);
     }
 
-    public static string EscapeCsvCell(string? value)
-    {
-        var safe = value ?? string.Empty;
-        if (safe.Length > 0 && safe[0] is '=' or '+' or '-' or '@')
-        {
-            safe = $"'{safe}";
-        }
-
-        return $"\"{safe.Replace("\"", "\"\"")}\"";
-    }
+    public static string EscapeCsvCell(string? value) => ReportCsvBuilder.EscapeCell(value);
 
     private static IQueryable<VppRequest> ApplyScope(
         IQueryable<VppRequest> query,
-        string scope,
-        int userId,
-        string Code,
-        string memberCompanyCode)
+        ReportQueryContext context)
     {
-        query = query.Where(order => order.MemberCompanyCode == memberCompanyCode);
-        return scope switch
+        query = query.Where(order => order.MemberCompanyCode == context.MemberCompanyCode);
+        return context.Scope switch
         {
-            ReportScopes.Own => query.Where(order => order.CreatedByUserId == userId),
-            ReportScopes.Department => query.Where(order => order.DepartmentCode == Code),
+            ReportScopes.Own => query.Where(order => order.CreatedByUserId == context.UserId),
+            ReportScopes.Department => query.Where(order => order.DepartmentCode == context.DepartmentCode),
             ReportScopes.All => query,
             _ => query.Where(_ => false)
         };
     }
 
-    private static void Validate(
-        string scope,
-        string Code,
-        string memberCompanyCode,
-        int? year,
-        int? month)
-    {
-        if (!ReportScopes.IsValid(scope))
-        {
-            throw new ArgumentException("Report scope is invalid.", nameof(scope));
-        }
-
-        if (string.IsNullOrWhiteSpace(memberCompanyCode))
-        {
-            throw new ArgumentException("Member company is required.", nameof(memberCompanyCode));
-        }
-
-        if (scope == ReportScopes.Department && string.IsNullOrWhiteSpace(Code))
-        {
-            throw new ArgumentException("Department is required for department reports.", nameof(Code));
-        }
-
-        if (year is < 2000 or > 2100)
-        {
-            throw new ArgumentOutOfRangeException(nameof(year));
-        }
-
-        if (month is < 1 or > 12)
-        {
-            throw new ArgumentOutOfRangeException(nameof(month));
-        }
-    }
 }

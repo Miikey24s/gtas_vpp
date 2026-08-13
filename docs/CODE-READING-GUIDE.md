@@ -195,6 +195,21 @@ hash, security stamp và token không được render hoặc đưa vào form.
 **Report hỗ trợ PDF, XLSX và CSV**; format được map qua `VppFileExportFormat`/`ReportsApiClient`, không
 suy luận từ extension rải trong page.
 
+Luồng backend hiện tại:
+
+```text
+GET /api/reports/*
+  → Api/Features/Reports/ReportsController
+  → ReportQueryContext (scope lấy từ claims đã xác thực)
+  → ReportService
+      → dữ liệu đơn đang hoạt động từ VPPContext
+      → CurrentSettlementReportReader chỉ đọc snapshot hiện hành khi đã chốt kỳ
+      → ReportCsvBuilder / ReportPdfBuilder / ReportWorkbookBuilder
+```
+
+`AddReportsModule` là owner đăng ký DI cho query, settlement reader và insight providers. Reader settlement
+chỉ là compatibility boundary của Reports; nó không được xác nhận/chỉnh sửa/chuyển trạng thái kỳ.
+
 `Report.razor` dùng cùng `scope/year/month` cho summary và ba export. Search phòng ban chỉ lọc
 client-side `DepartmentBreakdown`; bảng chỉ hiển thị field DTO thật. Trend bind `TotalAmount`. Khi
 `SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại. Trend

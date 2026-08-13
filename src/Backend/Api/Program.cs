@@ -134,8 +134,7 @@ builder.Services.AddScoped<IPeriodSettlementService, PeriodSettlementService>();
 builder.Services.AddScoped<IPostSettlementOrderCorrectionService, PostSettlementOrderCorrectionService>();
 builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
 builder.Services.AddScoped<ILibraryIntegrityService, LibraryIntegrityService>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddReportInsights(Configuration);
+builder.Services.AddReportsModule(Configuration);
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
