@@ -19,6 +19,8 @@
     <Primary>
         <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                                  Density="VppDataDensity.Compact"
+                                 IsBusy="@isCategoryLoading"
+                                 State="@(isCategoryLoading ? VppDataSurfaceState.Loading : categoryCount == 0 ? HasCategoryFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                                  AriaLabel="@Loc["ClassDefinitions"]"
                                  TestId="lookup-categories-data-surface"
                                  Class="vpp-admin-data-surface">
@@ -134,6 +136,8 @@
     <Secondary>
         <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                                  Density="VppDataDensity.Compact"
+                                 IsBusy="@isValueLoading"
+                                 State="@(isValueLoading ? VppDataSurfaceState.Loading : valueCount == 0 ? HasValueFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                                  AriaLabel="@Loc["Value"]"
                                  TestId="lookup-values-data-surface"
                                  Class="vpp-admin-data-surface">

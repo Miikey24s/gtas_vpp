@@ -191,6 +191,16 @@
     min-width: 760px;
 }
 
+.vpp-order-builder-virtual-body:has(.vpp-data-grid-empty-state) {
+    display: flex;
+    min-height: var(--vpp-data-empty-min-height);
+}
+
+.vpp-order-builder-virtual-body ::deep .vpp-data-grid-empty-state {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
 .vpp-order-builder-virtual-row {
     height: var(--vpp-data-row-rich-two-line-height);
     border-bottom: 1px solid var(--vpp-border-default);

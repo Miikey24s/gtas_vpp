@@ -6,6 +6,8 @@
 <VppCollectionWorkspace FillAvailableSpace="true" IsBusy="@isLoading">
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                          Density="VppDataDensity.Compact"
+                         IsBusy="@isLoading"
+                         State="@(isLoading ? VppDataSurfaceState.Loading : totalCount == 0 ? HasFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                          AriaLabel="@Loc["Suppliers"]"
                          TestId="supplier-admin-data-surface"
                          Class="vpp-admin-data-surface vpp-admin-collection-surface">

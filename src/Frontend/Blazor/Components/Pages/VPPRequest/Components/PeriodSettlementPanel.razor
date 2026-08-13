@@ -129,6 +129,8 @@
     @* TABLE: Snapshot đơn hàng theo kỳ, bộ lọc, dòng dữ liệu và phân trang. *@
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
                          Density="VppDataDensity.Compact"
+                         IsBusy="@isGridLoading"
+                         State="@SettlementSurfaceState"
                          AriaLabel="@Loc["PeriodSettlement"]"
                          TestId="period-settlement-data-surface"
                          Class="vpp-period-data-frame vpp-settlement-orders-frame">
@@ -392,10 +394,12 @@
 
     @if (pendingPostSettlementCorrections.Count > 0)
     {
+        @* Route-local workflow exception: panel này chưa phát hành khi không có yêu cầu hiệu chỉnh. *@
         <VppDataSurfaceFrame AriaLabel="@Loc["PendingAdjustments"]"
                              TestId="post-settlement-corrections"
                              DataSourceMode="VppDataSourceMode.Static"
-                             Density="VppDataDensity.Compact">
+                             Density="VppDataDensity.Compact"
+                             State="VppDataSurfaceState.Populated">
             <Header>
                 <VppCollectionHeader Title="@Loc["PendingAdjustments"]"
                                      Summary="@(string.Format(Loc["PendingAdjustmentCount"], pendingPostSettlementCorrections.Count))" />
@@ -418,6 +422,10 @@
                                 AllowFiltering="false"
                                 Density="Density.Compact"
                                 class="vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-settlement-correction-grid">
+                    <EmptyTemplate>
+                        <VppDataGridEmptyState Icon="fact_check"
+                                               Title="@Loc["AllClear"]" />
+                    </EmptyTemplate>
                     <Columns>
                         <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Title="@Loc["Order"]" Width="220px">
                             <Template Context="correction"><strong>@correction.RequestCode</strong></Template>

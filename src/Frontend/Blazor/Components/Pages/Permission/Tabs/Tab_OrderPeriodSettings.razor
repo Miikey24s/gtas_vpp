@@ -181,6 +181,7 @@ else
 
                 <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
                                      Density="VppDataDensity.Compact"
+                                     State="@(History.Count == 0 ? VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                                      AriaLabel="@Loc["OrderPeriodSettingsHistory"]"
                                      Class="vpp-order-period-settings-history">
                     <Header>
@@ -188,16 +189,7 @@ else
                                              Summary="@HistorySummary" />
                     </Header>
                     <ChildContent>
-                        @if (History.Count == 0)
-                        {
-                            <VppContentState State="VppContentStateKind.Empty"
-                                             Icon="history"
-                                             Title="@Loc["OrderPeriodSettingsHistoryEmpty"]"
-                                             Description="@Loc["OrderPeriodSettingsHistoryEmptyDescription"]" />
-                        }
-                        else
-                        {
-                            <RadzenDataGrid TItem="VppOrderPeriodSettingsResDTO"
+                        <RadzenDataGrid TItem="VppOrderPeriodSettingsResDTO"
                                             Data="@History"
                                             AllowPaging="true"
                                             PageSize="10"
@@ -212,6 +204,11 @@ else
                                             Density="Density.Compact"
                                             GridLines="DataGridGridLines.Horizontal"
                                             class="vpp-admin-grid vpp-data-grid vpp-data-density-compact">
+                                <EmptyTemplate>
+                                    <VppDataGridEmptyState Icon="history"
+                                                           Title="@Loc["OrderPeriodSettingsHistoryEmpty"]"
+                                                           Description="@Loc["OrderPeriodSettingsHistoryEmptyDescription"]" />
+                                </EmptyTemplate>
                                 <Columns>
                                     <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="Name"
                                                           Title="@Loc["ConfigurationName"]" MinWidth="190px" />
@@ -235,7 +232,6 @@ else
                                     </RadzenDataGridColumn>
                                 </Columns>
                             </RadzenDataGrid>
-                        }
                     </ChildContent>
                 </VppDataSurfaceFrame>
             </div>

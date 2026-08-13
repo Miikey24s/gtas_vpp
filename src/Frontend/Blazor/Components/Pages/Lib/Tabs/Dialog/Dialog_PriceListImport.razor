@@ -212,6 +212,10 @@
                                     Density="Density.Compact"
                                     GridLines="DataGridGridLines.Horizontal"
                                     class="vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-price-import-grid">
+                        <EmptyTemplate>
+                            <VppDataGridEmptyState Icon="preview"
+                                                   Title="@Loc["NoData"]" />
+                        </EmptyTemplate>
                         <Columns>
                             <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="RowNumber" Title="@Loc["Row"]" Width="68px" TextAlign="TextAlign.Center" />
                             <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="ItemCode" Title="@Loc["ProductCode"]" Width="130px" />

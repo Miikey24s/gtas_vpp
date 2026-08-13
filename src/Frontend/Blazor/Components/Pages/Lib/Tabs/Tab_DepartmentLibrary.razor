@@ -4,7 +4,7 @@
 @inherits VppServerGridComponentBase<DepartmentResDTO>
 
 <VppCollectionWorkspace FillAvailableSpace="true" IsBusy="@isLoading">
-    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging" Density="VppDataDensity.Compact" AriaLabel="@Loc["Departments"]" TestId="department-admin-data-surface" Class="vpp-admin-data-surface vpp-admin-collection-surface">
+    <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging" Density="VppDataDensity.Compact" IsBusy="@isLoading" State="@(isLoading ? VppDataSurfaceState.Loading : totalCount == 0 ? HasFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)" AriaLabel="@Loc["Departments"]" TestId="department-admin-data-surface" Class="vpp-admin-data-surface vpp-admin-collection-surface">
         <Header><VppCollectionHeader Title="@Loc["Departments"]" Summary="@Loc["RecordsCount", totalCount]" AddText="@Loc["AddDepartment"]" CompactAddText="@Loc["Add"]" ShowAddAction="@CanModify" AddClicked="@OpenCreateAsync" /></Header>
         <Toolbar><VppDataToolbar AriaLabel="@Loc["Departments"]" Class="vpp-admin-grid-toolbar"><VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchDepartments"]" AriaLabel="@Loc["LibrarySearchDepartments"]" /><VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasFilters" Clicked="@ClearFiltersAsync" /><VppColumnPicker TItem="DepartmentResDTO" GridAccessor="@(() => grid)" /></VppDataToolbar></Toolbar>
         <ChildContent>

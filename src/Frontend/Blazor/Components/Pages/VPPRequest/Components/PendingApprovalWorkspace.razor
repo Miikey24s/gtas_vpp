@@ -192,7 +192,7 @@
                                 ? Loc["ApprovalDecisionHint"]
                                 : Loc["SupplementApprovalExpiredHint"])</span>
                             <div class="vpp-approval-action-buttons">
-                                @if (CanReject)
+                                @if (CanReject && RejectRequested.HasDelegate)
                                 {
                                     <RadzenButton Icon="cancel"
                                                   Text="@Loc["Reject"]"
@@ -203,7 +203,7 @@
                                                   aria-label="@string.Format(Loc["RejectOrderAria"], SelectedOrder.VppCode)"
                                                   Click="@(_ => RejectRequested.InvokeAsync(SelectedOrder))" />
                                 }
-                                @if (CanApprove)
+                                @if (CanApprove && ApproveRequested.HasDelegate)
                                 {
                                     <RadzenButton Icon="check_circle"
                                                   Text="@Loc["Approve"]"

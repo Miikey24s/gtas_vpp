@@ -23,6 +23,7 @@
             <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ClientSnapshotPaged"
                                  Density="VppDataDensity.RichTwoLine"
                                  Bordered="false"
+                                 State="@(ProductCount == 0 ? HasProductFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                                  AriaLabelledBy="order-catalog-title"
                                  TestId="order-create-catalog-data-surface"
                                  Class="vpp-order-builder-data-surface">
@@ -71,9 +72,17 @@
 
                     @* ROWS: Các dòng mặt hàng trong danh mục. *@
                     <div class="vpp-order-builder-virtual-body" role="rowgroup">
-                        @foreach (var row in VisibleProductOptions)
+                        @if (ProductCount == 0)
                         {
-                            <div @key="row.Id"
+                            <VppDataGridEmptyState State="@(HasProductFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                   Title="@(HasProductFilters ? Loc["NoCatalogProductsMatchQuery"] : Loc["NoData"])"
+                                                   Description="@(HasProductFilters ? Loc["AdjustCatalogFilters"].Value : null)" />
+                        }
+                        else
+                        {
+                            @foreach (var row in VisibleProductOptions)
+                            {
+                                <div @key="row.Id"
                                  class="vpp-order-builder-virtual-row @(IsSelected(row.Id) ? "vpp-wizard-row-selected" : string.Empty)"
                                  role="row">
                                 <span class="vpp-order-builder-virtual-cell is-index" role="cell">@GetProductRowNumber(row)</span>
@@ -114,7 +123,8 @@
                                         </button>
                                     }
                                 </div>
-                            </div>
+                                </div>
+                            }
                         }
                     </div>
                 </div>

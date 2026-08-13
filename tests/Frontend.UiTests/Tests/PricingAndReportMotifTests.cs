@@ -185,9 +185,19 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             (await surface.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("static");
             (await surface.GetAttributeAsync("data-vpp-data-density")).Should().Be("compact");
             (await surface.Locator(".vpp-data-summary-footer").CountAsync()).Should().Be(1);
+            (await surface.Locator(".vpp-data-grid").CountAsync()).Should().Be(1,
+                "report evidence surfaces keep their column frame even when filtered empty");
             (await surface.Locator(".rz-paginator, .rz-pager").CountAsync()).Should().Be(0,
                 "evidence tables are bounded static collections, not fake paged grids");
         }
+
+        var departmentSurface = Page.GetByTestId("report-departments-data-surface");
+        var departmentSearch = Page.Locator(".vpp-report-filter-surface .vpp-filter-search input");
+        await departmentSearch.FillAsync("__gtas_no_report_department__");
+        await Assertions.Expect(departmentSurface.Locator(".vpp-data-grid-empty-state")).ToBeVisibleAsync();
+        (await departmentSurface.GetAttributeAsync("data-vpp-surface-state")).Should().Be("filtered-empty");
+        (await departmentSurface.Locator("thead").CountAsync()).Should().Be(1);
+        await departmentSearch.FillAsync(string.Empty);
 
         (await analytics.Locator(".vpp-report-chart-grid .vpp-report-card").CountAsync()).Should().Be(2);
         await AssertNoDocumentOverflowAsync(viewportWidth, "reports");

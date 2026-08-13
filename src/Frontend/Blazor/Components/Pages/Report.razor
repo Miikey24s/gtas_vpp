@@ -205,6 +205,7 @@ else
                     <section class="vpp-report-table-grid" aria-label="@Loc["ReportEvidenceTables"]">
                         <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.Static"
                                              Density="VppDataDensity.Compact"
+                                             State="@(FilteredDepartmentBreakdown.Count == 0 ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Populated)"
                                              AriaLabel="@Loc["ReportDepartments"]"
                                              TestId="report-departments-data-surface"
                                              Class="vpp-report-table-surface">
@@ -214,16 +215,7 @@ else
                             </Header>
                             <ChildContent>
                                 <p class="vpp-report-table-note">@(Summary.SettlementId.HasValue ? Loc["ReportDepartmentsSettledDescription"] : Loc["ReportDepartmentsLiveDescription"])</p>
-                                @if (FilteredDepartmentBreakdown.Count == 0)
-                                {
-                                    <VppContentState State="VppContentStateKind.FilteredEmpty"
-                                                     Icon="search_off"
-                                                     Title="@Loc["NoDepartmentReportData"]"
-                                                     Description="@Loc["ReportDepartmentSearchPlaceholder"]" />
-                                }
-                                else
-                                {
-                                    <RadzenDataGrid TItem="ReportDepartmentPointResDTO"
+                                <RadzenDataGrid TItem="ReportDepartmentPointResDTO"
                                                     data-vpp-grid-region="true"
                                                     aria-label="@Loc["ReportDepartments"]"
                                                     Data="@FilteredDepartmentBreakdown"
@@ -235,6 +227,12 @@ else
                                                     Density="Density.Compact"
                                                     GridLines="DataGridGridLines.Horizontal"
                                                     class="vpp-report-department-grid vpp-report-static-grid vpp-data-grid vpp-data-density-compact">
+                                        <EmptyTemplate>
+                                            <VppDataGridEmptyState State="VppContentStateKind.FilteredEmpty"
+                                                                   Icon="search_off"
+                                                                   Title="@Loc["NoDepartmentReportData"]"
+                                                                   Description="@Loc["ReportDepartmentSearchPlaceholder"]" />
+                                        </EmptyTemplate>
                                         <Columns>
                                             <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="Code" Title="@Loc["DepartmentCode"]" />
                                             <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="OrderCount" Title="@Loc["OrderCount"]" TextAlign="TextAlign.Right"><Template Context="department">@department.OrderCount.ToString("N0")</Template></RadzenDataGridColumn>
@@ -242,7 +240,6 @@ else
                                             <RadzenDataGridColumn TItem="ReportDepartmentPointResDTO" Property="TotalAmount" Title="@Loc["TotalAmount"]" TextAlign="TextAlign.Right"><Template Context="department">@FormatAmount(department.TotalAmount)</Template></RadzenDataGridColumn>
                                         </Columns>
                                     </RadzenDataGrid>
-                                }
                             </ChildContent>
                             <Footer>
                                 <VppDataSummaryFooter Mode="VppDataFooterMode.Static" Summary="@Loc["RecordsCount", FilteredDepartmentBreakdown.Count]" />
@@ -251,6 +248,7 @@ else
 
                         <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.Static"
                                              Density="VppDataDensity.Compact"
+                                             State="@(Summary.TopProducts.Count == 0 ? VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                                              AriaLabel="@Loc["TopProducts"]"
                                              TestId="report-products-data-surface"
                                              Class="vpp-report-table-surface">
@@ -260,16 +258,7 @@ else
                             </Header>
                             <ChildContent>
                                 <p class="vpp-report-table-note">@Loc["TopProductsDescription"]</p>
-                                @if (Summary.TopProducts.Count == 0)
-                                {
-                                    <VppContentState State="VppContentStateKind.Empty"
-                                                     Icon="inventory_2"
-                                                     Title="@Loc["NoReportData"]"
-                                                     Description="@Loc["NoReportDataDescription"]" />
-                                }
-                                else
-                                {
-                                    <RadzenDataGrid TItem="ReportProductPointResDTO"
+                                <RadzenDataGrid TItem="ReportProductPointResDTO"
                                                     data-vpp-grid-region="true"
                                                     aria-label="@Loc["TopProducts"]"
                                                     Data="@Summary.TopProducts"
@@ -281,6 +270,11 @@ else
                                                     Density="Density.Compact"
                                                     GridLines="DataGridGridLines.Horizontal"
                                                     class="vpp-report-static-grid vpp-data-grid vpp-data-density-compact">
+                                        <EmptyTemplate>
+                                            <VppDataGridEmptyState Icon="inventory_2"
+                                                                   Title="@Loc["NoReportData"]"
+                                                                   Description="@Loc["NoReportDataDescription"]" />
+                                        </EmptyTemplate>
                                         <Columns>
                                             <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductCode" Title="@Loc["ProductCode"]" />
                                             <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="ProductName" Title="@Loc["ProductName"]" />
@@ -288,7 +282,6 @@ else
                                             <RadzenDataGridColumn TItem="ReportProductPointResDTO" Property="TotalAmount" Title="@Loc["TotalAmount"]" TextAlign="TextAlign.Right"><Template Context="item">@FormatAmount(item.TotalAmount)</Template></RadzenDataGridColumn>
                                         </Columns>
                                     </RadzenDataGrid>
-                                }
                             </ChildContent>
                             <Footer>
                                 <VppDataSummaryFooter Mode="VppDataFooterMode.Static" Summary="@Loc["RecordsCount", Summary.TopProducts.Count]" />

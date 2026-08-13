@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `FR0–FR8C COMPLETE; FOLLOW-UP FR9 STABLE CAPABILITY SURFACE PLANNED AFTER NEW-FEATURE OWNER REVIEW`
+- Status: `FR0–FR9 COMPLETE; STABLE CAPABILITY SURFACE AUDIT PASS 2026-08-13`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -775,7 +775,7 @@ FE-D2..D8 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
-- Current status: **FR0–FR8C, core mutation E2E, correction UX A và owner final visual acceptance đã hoàn tất; FR9 Stable Capability Surface đã được duyệt nhưng chưa retrofit toàn project**. `OrderPeriodManagementWorkspace` là reference đã triển khai; owner kiểm tra chức năng mới trước, sau đó FR9 đi theo module boundary. Golden artifact chưa tạo và không block backend.
+- Current status: **FR0–FR9, core mutation E2E, correction UX A và owner final visual acceptance đã hoàn tất**. FR9 đã được audit bổ sung ngày 2026-08-13: typed state và canonical empty template được khóa bằng architecture test; Report, Create Order và lịch sử cấu hình kỳ giữ nguyên data-surface shell khi rỗng. Golden artifact chưa tạo và không block backend.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,
   `ProductCatalogTests.cs` và hai text extraction artifact; không stage/overwrite.

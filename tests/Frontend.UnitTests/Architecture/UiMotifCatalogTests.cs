@@ -98,6 +98,60 @@ public sealed class UiMotifCatalogTests
     }
 
     [Fact]
+    public void StableCapabilitySurface_DataFramesDeclareTypedStateAndDataGridsKeepEmptyTemplates()
+    {
+        var root = FindRepositoryRoot();
+        var frontend = Path.Combine(root, "src", "Frontend", "Blazor");
+        var componentRoot = Path.Combine(frontend, "Components");
+
+        var frameOffenders = Directory
+            .EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
+            .Select(path => new { Path = path, Source = File.ReadAllText(path) })
+            .Where(file => file.Source.Contains("<VppDataSurfaceFrame", StringComparison.Ordinal))
+            .SelectMany(file => System.Text.RegularExpressions.Regex
+                .Matches(file.Source, @"<VppDataSurfaceFrame[\s\S]*?>")
+                .Select((match, index) => new
+                {
+                    File = Path.GetRelativePath(frontend, file.Path),
+                    Index = index + 1,
+                    Markup = match.Value
+                }))
+            .Where(frame => !frame.Markup.Contains(" State=", StringComparison.Ordinal))
+            .Select(frame => $"{frame.File}#{frame.Index}")
+            .ToArray();
+
+        Assert.True(
+            frameOffenders.Length == 0,
+            $"Every data frame must expose its typed surface state: {string.Join(", ", frameOffenders)}");
+
+        var excludedDataGridConsumers = new[]
+        {
+            Path.Combine("Components", "DesignSystem", "Composites", "VppColumnPicker.razor"),
+            Path.Combine("Components", "Pages", "VPPRequest", "Tabs", "Tab_DepartmentSummary.razor")
+        };
+        var gridOffenders = Directory
+            .EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
+            .Where(path => !excludedDataGridConsumers.Contains(Path.GetRelativePath(frontend, path), StringComparer.OrdinalIgnoreCase))
+            .Select(path => new { Path = path, Source = File.ReadAllText(path) })
+            .Where(file => file.Source.Contains("<RadzenDataGrid", StringComparison.Ordinal)
+                && !file.Source.Contains("<EmptyTemplate>", StringComparison.Ordinal))
+            .Select(file => Path.GetRelativePath(frontend, file.Path))
+            .ToArray();
+
+        Assert.True(
+            gridOffenders.Length == 0,
+            $"Every authored data grid must keep a canonical empty template: {string.Join(", ", gridOffenders)}");
+
+        var report = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "Report.razor"));
+        var periodSettings = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "Permission", "Tabs", "Tab_OrderPeriodSettings.razor"));
+        Assert.Contains("<RadzenDataGrid TItem=\"ReportDepartmentPointResDTO\"", report, StringComparison.Ordinal);
+        Assert.Contains("<RadzenDataGrid TItem=\"ReportProductPointResDTO\"", report, StringComparison.Ordinal);
+        Assert.Contains("<RadzenDataGrid TItem=\"VppOrderPeriodSettingsResDTO\"", periodSettings, StringComparison.Ordinal);
+        Assert.DoesNotContain("@if (FilteredDepartmentBreakdown.Count == 0)", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("@if (History.Count == 0)", periodSettings, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RetiredUiAdaptersAndLegacySelectorsCannotReturn()
     {
         var root = FindRepositoryRoot();

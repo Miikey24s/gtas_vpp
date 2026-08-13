@@ -5,6 +5,8 @@
 <VppCollectionWorkspace FillAvailableSpace="true" IsBusy="@isLoading" Class="vpp-admin-workspace vpp-price-list-workspace">
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                          Density="VppDataDensity.Compact"
+                         IsBusy="@isLoading"
+                         State="@(isLoading ? VppDataSurfaceState.Loading : count == 0 ? HasFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                          AriaLabel="@Loc["PriceLists"]"
                          TestId="price-lists-data-surface"
                          Class="vpp-admin-data-surface">

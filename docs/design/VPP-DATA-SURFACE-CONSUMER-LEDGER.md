@@ -2,7 +2,7 @@
 
 > Snapshot: `2026-08-09` · Authority: [`UI-DATA-SURFACE-001`](../execution/UI-DATA-SURFACE-001.md) · Trạng thái: `DS0–DS4 + R1 DONE; PERIOD/PRICING/REPORT RETROFIT IMPLEMENTED`
 >
-> Contract update: `2026-08-13` · `CAPABILITY-SURFACE` retrofit được duyệt và lên lịch theo `FR9`; chưa được xem là đã áp dụng toàn bộ consumer.
+> Contract update: `2026-08-13` · `CAPABILITY-SURFACE` retrofit đã hoàn tất và được audit bổ sung: mọi `VppDataSurfaceFrame` khai báo typed state; mọi authored DataGrid thực có canonical empty template; Report và lịch sử cấu hình kỳ không còn tháo grid khi rỗng. `VppColumnPicker` là popover control, `Tab_DepartmentSummary` chỉ chứa fragment cột dùng lại nên không phải grid consumer.
 
 Ledger này là bản đồ migration, không phải yêu cầu mọi bảng phải giống hệt nhau. Shared foundation chỉ sở hữu frame, toolbar, density, footer và transient cell value; route vẫn sở hữu dữ liệu, cột, API, permission và action.
 

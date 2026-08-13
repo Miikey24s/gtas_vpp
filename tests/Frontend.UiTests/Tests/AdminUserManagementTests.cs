@@ -34,15 +34,14 @@ public sealed class AdminUserManagementTests : TestBase, IAuthenticatedUiTest
         (await surface.GetByRole(AriaRole.Button, new() { Name = "Gửi liên kết đặt lại mật khẩu", Exact = true }).CountAsync())
             .Should().Be(0, "secondary account operations must not compete with the row's state action");
         var userMoreActions = Page.GetByTestId("user-row-more-actions");
-        if (await userMoreActions.CountAsync() > 0)
-        {
-            await userMoreActions.First.ClickAsync();
-            var userActionMenu = Page.Locator(".rz-context-menu:visible");
-            await userActionMenu.WaitForAsync();
-            (await userActionMenu.Locator(".rz-menuitem").CountAsync()).Should().BeGreaterThan(0,
-                "enabled secondary account operations belong in the full-text overflow menu");
-            await Page.Keyboard.PressAsync("Escape");
-        }
+        (await userMoreActions.CountAsync()).Should().BeGreaterThan(0,
+            "authorized account secondary actions keep a stable menu even when invitation delivery is unavailable");
+        await userMoreActions.First.ClickAsync();
+        var userActionMenu = Page.Locator(".rz-context-menu:visible");
+        await userActionMenu.WaitForAsync();
+        (await userActionMenu.Locator(".rz-menuitem, .rz-navigation-item").CountAsync()).Should().BeGreaterThan(0,
+            "secondary account operations belong in the full-text overflow menu");
+        await Page.Keyboard.PressAsync("Escape");
         (await Page.EvaluateAsync<bool>(
             "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
             .Should().BeFalse("the grid owns horizontal overflow instead of the document");

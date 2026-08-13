@@ -48,6 +48,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool HasPriceFilters => !string.IsNullOrWhiteSpace(searchText)
             || !string.IsNullOrWhiteSpace(selectedCategory)
             || !string.IsNullOrWhiteSpace(selectedMappingStatus);
+        private VppDataSurfaceState PriceSurfaceState => !string.IsNullOrWhiteSpace(loadError)
+            ? VppDataSurfaceState.Error
+            : isLoading
+                ? VppDataSurfaceState.Loading
+                : priceCount == 0
+                    ? HasPriceFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty
+                    : VppDataSurfaceState.Populated;
         private PriceListResDTO? SelectedPriceList => priceLists.FirstOrDefault(x => x.Id == selectedPriceListId);
         private bool IsSelectedPriceListEditable
             => SelectedPriceList is { IsDeleted: false } row && row.Status != "Expired";

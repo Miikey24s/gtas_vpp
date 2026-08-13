@@ -61,7 +61,7 @@
                                               ExportRequested="@ExportRequested"
                                               AriaContext="@Order.VppCode" />
                     }
-                    @if (!ReadOnly && ShowEditAction && EditRequested.HasDelegate)
+                    @if (ShowEditAction && EditRequested.HasDelegate)
                     {
                         <RadzenButton Icon="edit"
                                       Text="@Loc["Edit"]"
@@ -73,7 +73,7 @@
                                       aria-label="@string.Format(Loc["EditOrderAria"], Order.VppCode)"
                                       Disabled="@(!CanEdit)" />
                     }
-                    @if (!ReadOnly && ShowCancelAction && CancelRequested.HasDelegate)
+                    @if (ShowCancelAction && CancelRequested.HasDelegate)
                     {
                         <RadzenButton Icon="@VppIcons.Rejected"
                                       Text="@Loc["Cancel"]"
@@ -86,7 +86,7 @@
                                       Disabled="@(!CanCancel || IsCancelling)"
                                       IsBusy="@IsCancelling" />
                     }
-                    @if (!ReadOnly && ShowRestoreAction && RestoreRequested.HasDelegate)
+                    @if (ShowRestoreAction && RestoreRequested.HasDelegate)
                     {
                         <RadzenButton Icon="undo"
                                       Text="@Loc["RestoreOrder"]"
@@ -99,7 +99,7 @@
                                       Disabled="@(!CanRestore || IsRestoring)"
                                       IsBusy="@IsRestoring" />
                     }
-                    @if (!ReadOnly && ShowRecreateAction && RecreateRequested.HasDelegate)
+                    @if (ShowRecreateAction && RecreateRequested.HasDelegate)
                     {
                         <RadzenButton Icon="@VppIcons.Add"
                                       Text="@Loc["RecreateOrder"]"

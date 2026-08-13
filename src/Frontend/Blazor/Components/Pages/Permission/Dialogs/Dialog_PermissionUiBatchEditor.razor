@@ -54,6 +54,10 @@
                                 Density="Density.Compact"
                                 class="permission-component-grid vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-permission-editor-grid"
                                 Style="--vpp-admin-grid-min-width: 920px;">
+                    <EmptyTemplate>
+                        <VppDataGridEmptyState Icon="rule"
+                                               Title="@Loc["NoPermissionMappings"]" />
+                    </EmptyTemplate>
                     <Columns>
                         <RadzenDataGridColumn TItem="PermissionUiMappingEditModel" Title="#" Width="52px" Sortable="false" TextAlign="TextAlign.Center">
                             <Template Context="component">@(selectedPage.Components.IndexOf(component) + 1)</Template>

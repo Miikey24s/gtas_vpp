@@ -7,6 +7,8 @@
     <VppCollectionWorkspace FillAvailableSpace="true" Class="vpp-security-audit-page vpp-admin-workspace">
         <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                              Density="VppDataDensity.Compact"
+                             IsBusy="@(isLoading || isLoadingOptions)"
+                             State="@(isLoading || isLoadingOptions ? VppDataSurfaceState.Loading : auditCount == 0 ? HasFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                              AriaLabel="@Loc["SecurityAudit"]"
                              TestId="security-audit-data-surface"
                              Class="vpp-admin-data-surface">

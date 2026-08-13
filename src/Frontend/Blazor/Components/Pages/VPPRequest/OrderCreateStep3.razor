@@ -42,18 +42,8 @@
             </button>
         }
 
-        @* SELECTED ITEMS: Trạng thái rỗng hoặc bảng các mặt hàng đã chọn. *@
-        @if (Editor.SelectedItemCount == 0)
-        {
-            <VppContentState State="VppContentStateKind.Empty"
-                             Icon="remove_shopping_cart"
-                             Title="@Loc["WizardNoItemsToSubmit"]"
-                             Description="@Loc["WizardNoItemsToSubmitDesc"]" />
-        }
-        else
-        {
-            @* ROWS: Các mặt hàng đã chọn trước khi submit. *@
-            <div class="vpp-order-review-grid-frame">
+        @* SELECTED ITEMS: Giữ nguyên khung bảng khi đơn chưa có mặt hàng. *@
+        <div class="vpp-order-review-grid-frame">
                 <RadzenDataGrid TItem="OrderEditorSession.SelectedItem"
                                 Data="@Editor.SelectedItems"
                                 AllowVirtualization="true"
@@ -64,7 +54,12 @@
                                 AllowAlternatingRows="false"
                                 Density="Density.Compact"
                                 GridLines="DataGridGridLines.Horizontal"
-                                class="vpp-order-review-grid">
+                                class="vpp-order-review-grid vpp-data-grid vpp-data-density-rich-two-line">
+                    <EmptyTemplate>
+                        <VppDataGridEmptyState Icon="remove_shopping_cart"
+                                               Title="@Loc["WizardNoItemsToSubmit"]"
+                                               Description="@Loc["WizardNoItemsToSubmitDesc"]" />
+                    </EmptyTemplate>
                     <Columns>
                         <RadzenDataGridColumn TItem="OrderEditorSession.SelectedItem" Title="#" Width="56px" TextAlign="TextAlign.Center">
                             <Template Context="item">@Editor.GetItemNumber(item)</Template>
@@ -95,11 +90,9 @@
                         </RadzenDataGridColumn>
                     </Columns>
                 </RadzenDataGrid>
-            </div>
-            @* FOOTER: Tổng kết số mặt hàng và tổng số lượng. *@
-            <footer class="vpp-order-builder-data-footer">@Loc["SelectedItemsSummary", Editor.SelectedItemCount, Editor.TotalQuantity]</footer>
-            }
-        }
+        </div>
+        @* FOOTER: Tổng kết số mặt hàng và tổng số lượng. *@
+        <footer class="vpp-order-builder-data-footer">@Loc["SelectedItemsSummary", Editor.SelectedItemCount, Editor.TotalQuantity]</footer>
     </section>
 </div>
 

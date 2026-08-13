@@ -122,6 +122,19 @@ public partial class PeriodSettlementPanel : IDisposable
             ? !string.IsNullOrWhiteSpace(selectedItemCategory) || !string.IsNullOrWhiteSpace(selectedItemUom)
             : !string.IsNullOrWhiteSpace(selectedOrderType) || selectedStatus.HasValue || !string.IsNullOrWhiteSpace(selectedDepartment));
 
+    private VppDataSurfaceState SettlementSurfaceState => isGridLoading
+        ? VppDataSurfaceState.Loading
+        : CurrentVisibleRowCount == 0
+            ? HasFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty
+            : VppDataSurfaceState.Populated;
+
+    private int CurrentVisibleRowCount => viewMode switch
+    {
+        ItemsView => FilteredItemRows.Count,
+        RequestersView => FilteredRequesterRows.Count,
+        _ => FilteredDepartmentRows.Count
+    };
+
     private string CurrentFilterClass => viewMode switch
     {
         ItemsView => "is-item-view",

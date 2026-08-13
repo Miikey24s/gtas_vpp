@@ -30,8 +30,12 @@ public sealed class OrderPeriodSettingsTests : TestBase, IAuthenticatedUiTest
         (await workspace.Locator(".rz-numeric").CountAsync()).Should().BeGreaterThanOrEqualTo(7);
         (await workspace.GetByText("Chỉ áp dụng cho kỳ được tạo sau này", new() { Exact = true }).CountAsync())
             .Should().Be(1);
-        (await workspace.GetByRole(AriaRole.Button, new() { Name = "Lưu phiên bản mới", Exact = true }).CountAsync())
+        (await workspace.GetByRole(AriaRole.Button, new() { Name = "Lưu cấu hình áp dụng", Exact = true }).CountAsync())
             .Should().Be(1);
+        var historySurface = workspace.Locator(".vpp-order-period-settings-history");
+        (await historySurface.Locator(".vpp-data-grid").CountAsync()).Should().Be(1,
+            "settings history keeps its columns and empty template instead of removing the grid");
+        (await historySurface.GetAttributeAsync("data-vpp-surface-state")).Should().BeOneOf("populated", "empty");
         (await Page.EvaluateAsync<bool>(
             "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
             .Should().BeFalse($"the settings route must remain bounded at {width}x{height}");
@@ -42,7 +46,7 @@ public sealed class OrderPeriodSettingsTests : TestBase, IAuthenticatedUiTest
             var canScroll = await layoutBody.EvaluateAsync<bool>(
                 "element => element.scrollHeight > element.clientHeight + 2 && ['auto', 'scroll'].includes(getComputedStyle(element).overflowY)");
             canScroll.Should().BeTrue("mobile settings form must own a vertical scroll range");
-            var saveButton = workspace.GetByRole(AriaRole.Button, new() { Name = "Lưu phiên bản mới", Exact = true });
+            var saveButton = workspace.GetByRole(AriaRole.Button, new() { Name = "Lưu cấu hình áp dụng", Exact = true });
             await saveButton.ScrollIntoViewIfNeededAsync();
             await Assertions.Expect(saveButton).ToBeVisibleAsync();
         }

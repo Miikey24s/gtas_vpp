@@ -13,6 +13,8 @@
     <VppCollectionWorkspace FillAvailableSpace="true" Class="vpp-permission-user-page vpp-admin-workspace">
         <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                              Density="VppDataDensity.Compact"
+                             IsBusy="@(isUserLoading || isUserLookupLoading)"
+                             State="@(isUserLoading || isUserLookupLoading ? VppDataSurfaceState.Loading : userCount == 0 ? HasUserFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
                              AriaLabel="@Loc["UserManagementTitle"]"
                              TestId="permission-users-data-surface"
                              Class="vpp-admin-data-surface">
@@ -139,7 +141,7 @@
                                                               Disabled="@(!CanToggleUserAccess(user))"
                                                               Class="vpp-admin-user-access-switch" />
                                     }
-                                    @if (CanManageUsers && accountCapabilities.InvitationEnabled)
+                                    @if (CanManageUsers)
                                     {
                                         <VppAdminActionMenu Title="@Loc["MoreActions"]"
                                                             Items="@UserSecondaryActions(user)"

@@ -26,9 +26,11 @@
         <ChildContent>
             @if (selectedPermissionView == 0)
             {
-                <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
-                                     Density="VppDataDensity.Compact"
-                                     AriaLabel="@Loc["GroupName"]"
+        <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
+                             Density="VppDataDensity.Compact"
+                             IsBusy="@IsLoading"
+                             State="@(IsLoading ? VppDataSurfaceState.Loading : groupCount == 0 ? !string.IsNullOrWhiteSpace(groupSearchText) ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty : VppDataSurfaceState.Populated)"
+                             AriaLabel="@Loc["GroupName"]"
                                      TestId="permission-groups-data-surface"
                                      Class="vpp-admin-data-surface vpp-permission-group-surface">
                     <Header>
