@@ -17,6 +17,7 @@
         @* CONTENT: Danh sách đơn chờ duyệt và panel chi tiết đơn đang chọn. *@
         <VppListDetailWorkspace Ratio="VppListDetailRatio.WideDetail"
                                 ScrollMode="VppWorkspaceScrollMode.Internal"
+                                ShowDetail="@ShouldShowDetailPane"
                                 DetailLabel="@Loc["OrderDetails"]"
                                 Class="vpp-approval-workspace">
             <List>
@@ -257,6 +258,7 @@
     private int? activeCodeNumber;
     private int? activeNoteNumber;
     private IList<VppRequestResDTO> selectedOrders = [];
+    private bool ShouldShowDetailPane => TotalCount > 0;
     private VppDataSurfaceState ApprovalSurfaceState => HasGridLoadError
         ? VppDataSurfaceState.Error
         : IsGridLoading

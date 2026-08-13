@@ -337,6 +337,98 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
         }
     }
 
+    [Fact]
+    public async Task CanonicalDataSurfaces_HaveOneOuterChromeAndOneFooterSeam()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+
+        foreach (var route in new[]
+                 {
+                     (Path: "library?tab=1", TestId: "category-admin-data-surface"),
+                     (Path: "library?tab=6&pricingTab=price-lists", TestId: "price-lists-data-surface"),
+                     (Path: "dashboard?tab=5&periodTab=pending", TestId: "pending-approval-list")
+                 })
+        {
+            await Page.GotoAsync($"{BaseUrl}{route.Path}", new() { WaitUntil = WaitUntilState.Load });
+            var surface = Page.GetByTestId(route.TestId);
+            await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+            await WaitForDataGridsToSettleAsync();
+
+            var seam = await surface.EvaluateAsync<string>("""
+                element => {
+                    const grid = element.querySelector('.vpp-data-grid');
+                    const scroller = element.querySelector('.vpp-data-grid .rz-data-grid-data');
+                    const pager = element.querySelector('.vpp-data-grid :is(.rz-paginator, .rz-pager)');
+                    const lastCells = [...element.querySelectorAll('.vpp-data-grid tbody > tr:last-child > td')];
+                    if (!grid || !scroller || !pager) return 'missing';
+
+                    const gridStyle = getComputedStyle(grid);
+                    const scrollerStyle = getComputedStyle(scroller);
+                    const pagerStyle = getComputedStyle(pager);
+                    const flatGrid = Number.parseFloat(gridStyle.borderTopWidth) === 0
+                        && Number.parseFloat(gridStyle.borderTopLeftRadius) === 0
+                        && gridStyle.boxShadow === 'none';
+                    const flatScroller = Number.parseFloat(scrollerStyle.borderTopLeftRadius) === 0
+                        && scrollerStyle.boxShadow === 'none';
+                    const oneFooterSeam = Number.parseFloat(pagerStyle.borderTopWidth) === 1;
+                    const lastRowIsNotASecondSeam = lastCells.every(cell =>
+                        getComputedStyle(cell).borderBottomColor === 'rgba(0, 0, 0, 0)'
+                        || getComputedStyle(cell).borderBottomColor === 'transparent');
+                    return `${flatGrid && flatScroller && oneFooterSeam && lastRowIsNotASecondSeam}`
+                        + `|grid=${gridStyle.borderTopWidth}/${gridStyle.borderTopLeftRadius}/${gridStyle.boxShadow}`
+                        + `|scroller=${scrollerStyle.borderTopLeftRadius}/${scrollerStyle.boxShadow}`
+                        + `|pager=${pagerStyle.borderTopWidth}`;
+                }
+                """);
+
+            seam.Should().StartWith("true", $"{route.Path}: frame owns the outer chrome and pager owns the only footer seam");
+        }
+    }
+
+    [Fact]
+    public async Task PendingApprovalEmptyQueue_UsesTheFullWorkspaceWidth()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=5&periodTab=pending", new() { WaitUntil = WaitUntilState.Load });
+
+        var surface = Page.GetByTestId("pending-approval-list");
+        await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await WaitForDataGridsToSettleAsync();
+        if (await surface.GetAttributeAsync("data-vpp-surface-state") is not ("empty" or "filtered-empty"))
+        {
+            return;
+        }
+
+        var geometry = await Page.Locator(".vpp-approval-workspace").EvaluateAsync<double[]>("""
+            workspace => {
+                const list = workspace.querySelector('.vpp-list-detail-workspace-list');
+                const detail = workspace.querySelector('.vpp-list-detail-workspace-detail');
+                const pager = workspace.querySelector('.rz-paginator, .rz-pager');
+                const workspaceRect = workspace.getBoundingClientRect();
+                const listRect = list?.getBoundingClientRect();
+                const pagerRect = pager?.getBoundingClientRect();
+                return [
+                    detail ? 1 : 0,
+                    listRect?.width ?? 0,
+                    workspaceRect.width,
+                    Math.abs((listRect?.left ?? 0) - workspaceRect.left),
+                    Math.abs((listRect?.right ?? 0) - workspaceRect.right),
+                    Math.abs((pagerRect?.bottom ?? 0) - workspaceRect.bottom)
+                ];
+            }
+            """);
+
+        geometry[0].Should().Be(0, "empty queue has no meaningless detail placeholder");
+        geometry[1].Should().BeApproximately(geometry[2] - 2, 1,
+            "the preserved list shell fills the workspace inside its one-pixel outer border");
+        geometry[3].Should().BeLessThanOrEqualTo(1);
+        geometry[4].Should().BeLessThanOrEqualTo(1);
+        geometry[5].Should().BeLessThanOrEqualTo(1, "the empty pager remains anchored to the workspace bottom");
+        await CaptureAsync("pending-approval-empty-full-width-1366x768.png");
+    }
+
     private async Task AssertDesktopRhythmAsync()
     {
         var rhythm = await Page.EvaluateAsync<double[]>("""

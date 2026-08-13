@@ -242,15 +242,11 @@
 .vpp-order-grid .rz-datatable-scrollable-body,
 .vpp-order-grid .rz-datatable-scrollable-wrapper,
 .vpp-order-grid .rz-datatable-tablewrapper,
-.vpp-order-grid .rz-paginator,
-.vpp-order-grid .rz-pager,
 .vpp-wizard-panel-card .rz-data-grid-data,
 .vpp-wizard-panel-card .rz-datatable-scrollable-header,
 .vpp-wizard-panel-card .rz-datatable-scrollable-body,
 .vpp-wizard-panel-card .rz-datatable-scrollable-wrapper,
-.vpp-wizard-panel-card .rz-datatable-tablewrapper,
-.vpp-wizard-panel-card .rz-paginator,
-.vpp-wizard-panel-card .rz-pager {
+.vpp-wizard-panel-card .rz-datatable-tablewrapper {
     background: transparent;
     box-shadow: none;
     outline: none;
@@ -559,9 +555,16 @@
 }
 
 .vpp-order-grid .rz-paginator,
-.vpp-wizard-panel-card .rz-paginator {
+.vpp-order-grid .rz-pager,
+.vpp-wizard-panel-card .rz-paginator,
+.vpp-wizard-panel-card .rz-pager {
     border-top: 1px solid var(--vpp-border-default);
     padding: var(--vpp-space-3) var(--vpp-space-4);
+    background: var(--vpp-bg-elevated);
+    box-shadow: none;
+    outline: 0;
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 @media (max-width: 1440px) {

@@ -103,6 +103,10 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("--rz-grid-header-font-size: var(--vpp-text-sm);", bridge, StringComparison.Ordinal);
         Assert.Contains("[data-vpp-data-surface=\"true\"] .vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
         Assert.Contains("--rz-grid-border-radius: 0;", bridge, StringComparison.Ordinal);
+        Assert.Contains("--rz-grid-data-border-shadow: none;", bridge, StringComparison.Ordinal);
+        Assert.Contains("> .vpp-data-surface-body > .vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
+        Assert.Contains("border-bottom-color: transparent;", bridge, StringComparison.Ordinal);
+        Assert.Contains("z-index: 2;", bridge, StringComparison.Ordinal);
         Assert.Contains("--vpp-data-grid-min-width", bridge, StringComparison.Ordinal);
         Assert.Contains("overflow: auto;", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-paginator .rz-dropdown", bridge, StringComparison.Ordinal);
@@ -116,6 +120,30 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("th:has(.rz-sortable-column-icon):focus-within", dataGrid, StringComparison.Ordinal);
         Assert.Contains("opacity: 0;", dataGrid, StringComparison.Ordinal);
         Assert.Contains(":is(.rzi-sort-asc, .rzi-sort-desc)", dataGrid, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-order-grid .rz-datatable-tablewrapper,\n.vpp-order-grid .rz-paginator", dataGrid, StringComparison.Ordinal);
+        Assert.Contains(".vpp-order-grid .rz-pager,", dataGrid, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PendingApproval_UsesFullWidthListWhenTheQueueIsEmpty()
+    {
+        var root = GetFrontendRoot();
+        var patterns = Path.Combine(root, "Components", "DesignSystem", "Patterns");
+        var listDetail = Read(patterns, "VppListDetailWorkspace.razor");
+        var listDetailStyles = Read(patterns, "VppListDetailWorkspace.razor.css");
+        var approval = File.ReadAllText(Path.Combine(
+            root,
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "Components",
+            "PendingApprovalWorkspace.razor"));
+
+        Assert.Contains("bool ShowDetail", listDetail, StringComparison.Ordinal);
+        Assert.Contains("is-list-only", listDetail, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: minmax(0, 1fr);", listDetailStyles, StringComparison.Ordinal);
+        Assert.Contains("ShowDetail=\"@ShouldShowDetailPane\"", approval, StringComparison.Ordinal);
+        Assert.Contains("ShouldShowDetailPane => TotalCount > 0", approval, StringComparison.Ordinal);
     }
 
     [Fact]

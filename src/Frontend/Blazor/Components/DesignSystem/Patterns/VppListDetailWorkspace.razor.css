@@ -21,14 +21,21 @@
     grid-template-columns: minmax(22rem, 0.78fr) minmax(0, 1.22fr);
 }
 
+.vpp-list-detail-workspace.is-list-only {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .vpp-list-detail-workspace.is-scroll-page {
     overflow: visible;
 }
 
 .vpp-list-detail-workspace-list,
 .vpp-list-detail-workspace-detail {
+    display: flex;
     min-width: 0;
     min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 @media (max-width: 1100px) {
@@ -36,6 +43,11 @@
     .vpp-list-detail-workspace.is-ratio-widelist,
     .vpp-list-detail-workspace.is-ratio-widedetail {
         grid-template-columns: 1fr;
+        overflow: visible;
+    }
+
+    .vpp-list-detail-workspace-list,
+    .vpp-list-detail-workspace-detail {
         overflow: visible;
     }
 }

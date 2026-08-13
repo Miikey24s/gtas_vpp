@@ -263,7 +263,6 @@
 
 .vpp-admin-page-grid.vpp-admin-grid .rz-data-grid-data {
     border-top: 1px solid var(--vpp-border-default);
-    border-bottom: 1px solid var(--vpp-border-default);
 }
 
 .vpp-admin-page-grid.vpp-admin-grid .rz-paginator,

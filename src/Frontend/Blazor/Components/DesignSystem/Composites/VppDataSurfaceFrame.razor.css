@@ -23,6 +23,8 @@
 .vpp-data-surface-footer-slot {
     flex: 0 0 auto;
     min-width: 0;
+    border-radius: 0;
+    background: var(--vpp-bg-elevated);
 }
 
 .vpp-data-surface-body {
@@ -32,6 +34,7 @@
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
+    border-radius: 0;
 }
 
 /* Empty/error/filtered-empty là nội dung chính của data surface tại thời điểm

@@ -510,6 +510,20 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   Import bảng giá `1/1` qua 4 viewport, mapping/preview/confirm, footer clickability, Dark mode và axe
   không có violation critical/serious. Visual runtime đã kiểm bằng mắt; evidence nằm trong Temp, không commit.
 
+### 7.12 — Correction: một chủ sở hữu chrome cho DataGrid — 2026-08-13
+
+- `VppDataSurfaceFrame` là lớp duy nhất sở hữu border/radius ngoài; Radzen grid và vùng cuộn bên trong
+  được làm phẳng, bỏ shadow/outline/bo góc lồng nhau. Header, body và footer vì vậy nối thành một mặt
+  liên tục thay vì các card nhỏ chồng lên nhau.
+- Pager/footer sở hữu duy nhất đường phân cách cuối bảng. Cạnh dưới của hàng cuối được làm trong suốt
+  để khi cuộn sát đáy không tạo đường viền kép hoặc bị đè lên footer; rule legacy từng reset toàn bộ
+  pager về `border: 0` đã được tách khỏi scroll-container rule.
+- `Duyệt đơn bổ sung` giữ nguyên toolbar, cột, empty state và footer khi hàng đợi rỗng nhưng danh sách
+  mở rộng toàn workspace; panel chi tiết chỉ xuất hiện khi thực sự có đơn để chọn. Đây là base-empty
+  của list, không phải trạng thái “chưa chọn chi tiết”.
+- Architecture/browser gate khóa outer chrome, footer seam và full-width empty queue trên các surface
+  đại diện Library, Bảng giá và Duyệt đơn bổ sung.
+
 ---
 
 ## 8. Rủi ro và recovery

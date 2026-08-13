@@ -60,10 +60,6 @@
     min-height: var(--vpp-data-footer-height);
 }
 
-.vpp-catalog-grid ::deep .rz-grid-table tbody > tr:last-child > td {
-    border-bottom: 0;
-}
-
 .vpp-catalog-item-cell {
     display: grid;
     gap: 2px;

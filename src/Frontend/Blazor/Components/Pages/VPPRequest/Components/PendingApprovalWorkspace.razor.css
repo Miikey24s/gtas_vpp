@@ -8,6 +8,10 @@
     box-shadow: none;
 }
 
+::deep .vpp-approval-workspace.is-list-only .vpp-approval-list-surface {
+    width: 100%;
+}
+
 ::deep .vpp-approval-list-surface,
 ::deep .vpp-approval-list-grid {
     height: 100%;

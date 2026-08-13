@@ -2,17 +2,21 @@
     <div class="vpp-list-detail-workspace-list @ListClass">
         @List
     </div>
-    <aside class="vpp-list-detail-workspace-detail @DetailClass"
-           aria-live="@(AnnounceDetailChanges ? "polite" : null)"
-           aria-label="@DetailLabel">
-        @Detail
-    </aside>
+    @if (ShowDetail)
+    {
+        <aside class="vpp-list-detail-workspace-detail @DetailClass"
+               aria-live="@(AnnounceDetailChanges ? "polite" : null)"
+               aria-label="@DetailLabel">
+            @Detail
+        </aside>
+    }
 </div>
 
 @code {
     [Parameter, EditorRequired] public RenderFragment? List { get; set; }
     [Parameter, EditorRequired] public RenderFragment? Detail { get; set; }
     [Parameter] public VppListDetailRatio Ratio { get; set; } = VppListDetailRatio.Standard;
+    [Parameter] public bool ShowDetail { get; set; } = true;
     [Parameter] public bool AnnounceDetailChanges { get; set; } = true;
     [Parameter] public VppWorkspaceScrollMode ScrollMode { get; set; } = VppWorkspaceScrollMode.Adaptive;
     [Parameter] public string? DetailLabel { get; set; }
@@ -20,6 +24,6 @@
     [Parameter] public string? ListClass { get; set; }
     [Parameter] public string? DetailClass { get; set; }
 
-    private string RootClass => $"vpp-list-detail-workspace is-ratio-{Ratio.ToString().ToLowerInvariant()} is-scroll-{ScrollModeValue} {Class}";
+    private string RootClass => $"vpp-list-detail-workspace is-ratio-{Ratio.ToString().ToLowerInvariant()} is-scroll-{ScrollModeValue} {(ShowDetail ? "has-detail" : "is-list-only")} {Class}";
     private string ScrollModeValue => ScrollMode.ToString().ToLowerInvariant();
 }

@@ -737,11 +737,29 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
     --rz-grid-border-color: var(--vpp-border-default);
 }
 
-/* Khung data surface sở hữu bo góc ngoài; grid ghép dưới toolbar phải giữ cạnh nối thẳng. */
+/* Khung data surface sở hữu toàn bộ chrome ngoài. Grid Radzen bên trong chỉ giữ
+   cấu trúc header/body/footer để không tạo thêm viền, shadow hoặc bo góc lồng nhau. */
 [data-vpp-data-surface="true"] .vpp-data-grid.rz-data-grid,
 [data-vpp-data-surface="true"] .vpp-data-grid.rz-datatable {
     --rz-grid-border-radius: 0;
+    --rz-grid-shadow: none;
+    --rz-grid-data-border-shadow: none;
+    border: 0;
     border-radius: 0;
+    box-shadow: none;
+}
+
+[data-vpp-data-surface="true"] .vpp-data-grid {
+    isolation: auto;
+}
+
+/* Grid là nội dung trực tiếp của frame phải lấp đầy thân surface ở cả populated
+   lẫn empty; nếu không, pager sẽ dừng ngay sau vài hàng và bỏ trống phần dưới. */
+[data-vpp-data-surface="true"] > .vpp-data-surface-body > .vpp-data-grid.rz-data-grid,
+[data-vpp-data-surface="true"] > .vpp-data-surface-body > .vpp-data-grid.rz-datatable {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
 }
 
 /* Data surface giữ schema cột ổn định khi vùng nội dung hẹp hoặc browser zoom cao.
@@ -753,6 +771,9 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
     min-width: 0;
     min-height: 0;
     overflow: auto;
+    border-radius: 0;
+    box-shadow: none;
+    outline: 0;
 }
 
 [data-vpp-data-surface="true"] .vpp-data-grid .rz-grid-table {
@@ -809,7 +830,17 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
 
 .vpp-data-grid .rz-paginator,
 .vpp-data-grid .rz-pager {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
     min-height: var(--vpp-data-footer-height);
     border-top: var(--vpp-border-width) solid var(--vpp-border-default);
     background: var(--vpp-bg-elevated);
+    box-shadow: none;
+}
+
+/* Footer là chủ sở hữu duy nhất của đường phân cách cuối bảng. Bỏ cạnh dưới
+   của hàng cuối để khi cuộn sát đáy không xuất hiện đường viền kép hoặc chồng nét. */
+[data-vpp-data-surface="true"] .vpp-data-grid .rz-grid-table tbody > tr:last-child > td {
+    border-bottom-color: transparent;
 }
