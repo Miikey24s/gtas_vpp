@@ -217,6 +217,16 @@ vẫn ở module gần consumer (`Order*`, `Report*`, `Settlement*`); không t�
 Adapter HTTP dùng chung nằm ở `Api/Platform/Middleware`; factory chỉ phục vụ lệnh EF design-time nằm ở
 `Api/Platform/DatabaseInitialization`. Namespace công khai được giữ nguyên để pipeline và test không đổi.
 
+Các primitive Platform phía Application được chia theo mục đích, không gom vào một thư mục `Helpers` chung:
+
+- `Application/Platform/Configuration`: lựa chọn database và cấu hình JWT lúc khởi động;
+- `Application/Platform/Time`: nguồn thời gian dùng chung của các use case;
+- `Application/Platform/Testing`: contract fail-closed nhận diện database QA cô lập;
+- `Application/Platform/Files`: primitive tạo file dùng chung đã nêu ở trên.
+
+Việc sắp xếp này chỉ làm rõ owner của hạ tầng. Namespace và contract hiện hữu được giữ nguyên; `VPPContext`,
+seed/demo, SQL và runtime database initialization chưa được di chuyển ở checkpoint này.
+
 `Report.razor` dùng cùng `scope/year/month` cho summary và ba export. Search phòng ban chỉ lọc
 client-side `DepartmentBreakdown`; bảng chỉ hiển thị field DTO thật. Trend bind `TotalAmount`. Khi
 `SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại. Trend
