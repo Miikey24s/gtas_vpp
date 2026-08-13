@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: B0R + B1 COMPLETE — REFRESHED FOR STAGED OLD/NEW REFACTOR — AWAITING OWNER APPROVAL
+- Status: PRE-ACCEPTANCE LEGACY SLICES COMPLETE — NEW FEATURE ACCEPTANCE NEXT
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -8,7 +8,7 @@
 - Branch: `Nam`
 - Base commit: `46560f6020824cbea9e02bcb8bb06131f1efd501`
 - Planned at: `2026-07-29T05:17:46+07:00`
-- Refreshed against: `8b651bb3` at `2026-08-13`
+- Refreshed through: pre-acceptance checkpoint series ending at `e5589326` on `2026-08-13`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`,
   [`BACKEND-REFACTOR-001-B0R-LEDGER.md`](./BACKEND-REFACTOR-001-B0R-LEDGER.md)
@@ -17,7 +17,7 @@
   `docs/execution/REFACTOR-001.md`; lịch sử R-0/R-2 của record cũ vẫn giữ nguyên
 - User approval: B0R-D1/B0R-D2 và toàn bộ B1a/B1b-A/B đã hoàn tất theo quyết định trước. Ngày
   2026-08-13 owner chọn hướng mới: refactor vùng cũ độc lập trước, giữ nguyên vùng chức năng mới để
-  kiểm tra thực tế, sau đó mới refactor vùng mới. Execution sequencing mới trong record này đang chờ
+  kiểm tra thực tế, sau đó mới refactor vùng mới. Execution sequencing mới trong record này đã được
   owner duyệt trước khi sửa production code.
 
 <a id="plan-overview"></a>
@@ -31,10 +31,10 @@
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | Đã xong B0R/B1 → khóa ranh giới cũ/mới/giao nhau → refactor **Reports cũ, chỉ đọc** → owner kiểm tra chức năng mới → sửa bug nghiệp vụ riêng → refactor Catalog/Pricing → Period/Requests → Settlement/Correction → Identity/Platform/Persistence | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English, ưu tiên từ đầy đủ và từ vựng nghiệp vụ; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**, không mặc định gắn số mục luận văn vào source | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | Snapshot 13/08 còn `1243%` weekly aggregate, 13/14 account khả dụng nhưng thiếu coverage 5 giờ. Dùng `gpt-5.6-terra` high cho lát refactor rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; kết luận hiện tại `SLICE_ONLY`, đủ mở một checkpoint sau khi duyệt, chưa cam kết chạy liền toàn plan | [Routing](#plan-detail-routing) |
+| Model/quota routing | Snapshot gần nhất 13/08 còn `1222%` weekly aggregate, 13/14 account khả dụng nhưng thiếu coverage 5 giờ. Dùng `gpt-5.6-terra` high cho lát refactor rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; checkpoint nhỏ và đo lại tại ranh giới wave | [Routing](#plan-detail-routing) |
 | Kiểm tra | Mỗi checkpoint khóa route/permission/JSON trước, chạy focused test trong vòng lặp và full backend gate trước commit. Chức năng mới chỉ chuyển từ `FROZEN` sang `ACCEPTED` sau checklist thực tế của owner và regression test tương ứng | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Gọi code là “cũ” nhưng vẫn dùng chung period/settlement/pricing mới; refactor vô tình hợp thức hóa bug chưa nghiệm thu; `VPPContext`, Shared DTO, seed và `Program.cs` gây ảnh hưởng xuyên module | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | B2F–B2C Reports đang được thực thi liên tục theo owner approval; sau khi gate xanh sẽ rà vùng cũ độc lập tiếp theo. Không chạm Period, Requests, Pricing import/AI, Settlement/Correction hoặc schema trước vòng kiểm tra chức năng mới | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Các lát cũ độc lập trước acceptance đã hoàn tất. Owner chạy checklist Period → Settlement/Correction → Price import/AI một lượt; nhóm nào `PASS` sẽ được mở refactor tiếp mà không phải chờ toàn hệ thống | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -247,7 +247,7 @@ test chứng minh nó không ghi hoặc điều khiển lifecycle mới.
 
 | Nhóm | Trạng thái hiện tại | Phạm vi | Quy tắc trước owner acceptance |
 |---|---|---|---|
-| **Ổn định cũ** | `READY_AFTER_FREEZE` | Reports query/export/insight hiện hành; module Notifications chỉ audit, chưa move | Được refactor nếu giữ nguyên route, scope, DTO, bytes export và không extract/move logic Settlement mới |
+| **Ổn định cũ** | `COMPLETE_PRE_ACCEPTANCE` | Reports query/export/insight; Notifications; primitive file/config/time/QA và API middleware/design-time factory | Đã refactor theo checkpoint nhỏ, giữ nguyên route, scope, DTO, bytes export, namespace và business behavior |
 | **Chức năng mới** | `FROZEN` | rolling order periods; sửa/gia hạn/đóng/mở kỳ; post-close adjustment window; settlement reopen guard; hiệu chỉnh đơn sau chốt; import bảng giá; AI gợi ý mapping cột | Chỉ sửa bug owner phát hiện hoặc test bảo vệ; không rename/move/split/generalize trước acceptance |
 | **Vùng giao nhau** | `FROZEN` | `VPPRequestService`, `VPPRequestController`, `VppPeriodService`, `PeriodSettlementService`, `ReportService` phần đọc `Settlement`, `LibraryController`, `VPPContext`, `Program.cs`, Shared VPP/Library DTO và seed/demo | Không refactor trong wave cũ. Nếu B2 Reports cần chạm, giữ đoạn integration tại chỗ và coi đó là compatibility adapter |
 | **Nền tảng rủi ro cao** | `DEFERRED` | `PermissionController`, generic repository/controller, auth/bootstrap, hai DbContext, migration/model snapshot, database initialization | Làm sau các module nghiệp vụ; thay đổi DB phải chuyển sang task dùng skill DB safety |
@@ -701,7 +701,8 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
 
 ## 14. Continuation note
 
-- Current HEAD: branch `Nam` @ `8b651bb3`; preflight backend PASS và worktree sạch trước plan edit.
+- Checkpoint series hiện tại trên branch `Nam`: `d2fd8598` → `0c74f911` → `65a72d66` → `b14716b7`
+  → `de0a20fb` → `e5589326`; mỗi lát giữ repository chạy được trước khi mở lát tiếp theo.
 - B0R/B1 cleanup đã hoàn tất trước đó. Từ sau mốc 04/08, backend đã thêm standalone supplements,
   rolling periods, settlement reopen/correction window, post-settlement correction, price-list import và AI
   column mapping; vì vậy các execution card B3–B5 cũ không còn được chạy nguyên trạng.
@@ -716,13 +717,24 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
 - Independent legacy slice sau B2: Notifications đã chuyển persistence/inbox/email-outbox service về
   Application; API chỉ giữ HTTP controller, SignalR adapter và module composition. Namespace/interface giữ
   nguyên nên Request/Settlement/Identity consumers không đổi. Focused registration/notification/
-  architecture/config gates `53/53` PASS; chờ full backend unit + scoped format trước commit.
+  architecture/config gates `53/53` PASS; backend unit `544/544` và scoped whitespace/analyzer PASS;
+  commit `65a72d66`.
 - Pure file seam: bốn primitive dùng chung `ExportFileContract`, `SimpleWorkbookBuilder`,
   `VppPdfFontRegistry`, `VppPdfTheme` đã chuyển sang `Application/Platform/Files`; namespace và consumer
   không đổi. Focused export/report/import gates `35/35` PASS; đây chỉ là ownership move, không đổi bytes.
 - Pure API platform seam: middleware dùng chung đã vào `Api/Platform/Middleware`; EF design-time factory vào
   `Api/Platform/DatabaseInitialization`. Giữ namespace/pipeline nguyên trạng; focused middleware/deployment/
-  manifest gates `25/25` PASS. Không tách runtime database initialization ở checkpoint này.
+  manifest gates `25/25` PASS; backend unit `544/544`; commit `de0a20fb`. Không tách runtime database
+  initialization ở checkpoint này.
+- Pure Application platform seam: database/JWT configuration, time provider và QA fixture identity contract
+  đã được xếp vào `Application/Platform/{Configuration,Time,Testing}`. Đây là move-only checkpoint, giữ namespace
+  và mọi consumer; focused configuration/construction gates `41/41`, backend unit `544/544` và scoped
+  whitespace/analyzer PASS; commit `e5589326`. `VPPContext`, UnitOfWork, seed/demo, SQL và runtime DB init vẫn
+  giữ nguyên vì là vùng giao nhau hoặc rủi ro cao.
+- Điểm dừng pre-acceptance: controller còn lại thuộc Identity hoặc trực tiếp nằm trong Period/Requests,
+  Settlement/Correction và Catalog/Pricing mới. Không có lát cũ độc lập nào còn đủ an toàn để tách mà không
+  vượt freeze map. Checklist owner chạy một lượt nằm tại
+  [`BACKEND-REFACTOR-001-NEW-FEATURE-ACCEPTANCE.md`](BACKEND-REFACTOR-001-NEW-FEATURE-ACCEPTANCE.md).
 - Do not redo: B0R route/auth/ProblemDetails characterization và B1 dead-code/base-service cleanup đã có.
 
 ## 15. Research sources
