@@ -131,6 +131,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         private bool CanView => PermissionState.HasPermission(Permissions.RequestViewOwn);
         private bool CanCreate => PermissionState.HasPermission(Permissions.RequestCreate);
+        private bool CanUpdateOwnOrders => PermissionState.HasPermission(Permissions.RequestUpdateOwn);
+        private bool CanCancelOwnOrders => PermissionState.HasPermission(Permissions.RequestCancelOwn);
         private bool CanCreateRegular => CanCreate && PeriodInfo?.CanCreateOrder == true;
         private bool CanCreateSupplement => CanCreate && PeriodInfo?.CanCreateAdditional == true;
         private bool CanCopyPrevious => CanCreate && PeriodInfo?.CanCopyPrevious == true;

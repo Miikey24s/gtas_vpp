@@ -7,8 +7,9 @@
               IsBusy="@IsBusy"
               Click="@Click"
               class="@CssClass"
-              title="@Title"
+              title="@EffectiveTitle"
               aria-label="@Title"
+              aria-description="@EffectiveDescription"
               data-testid="@TestId"
               @onclick:stopPropagation="true" />
 
@@ -20,9 +21,18 @@
     [Parameter] public Variant Variant { get; set; } = Variant.Filled;
     [Parameter] public EventCallback<MouseEventArgs> Click { get; set; }
     [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? DisabledReason { get; set; }
     [Parameter] public bool IsBusy { get; set; }
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? TestId { get; set; }
+
+    private string EffectiveTitle => Disabled && !string.IsNullOrWhiteSpace(DisabledReason)
+        ? DisabledReason
+        : Title;
+
+    private string? EffectiveDescription => Disabled && !string.IsNullOrWhiteSpace(DisabledReason)
+        ? DisabledReason
+        : null;
 
     private string CssClass
     {

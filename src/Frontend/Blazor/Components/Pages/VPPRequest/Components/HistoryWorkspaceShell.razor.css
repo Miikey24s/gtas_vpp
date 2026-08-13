@@ -666,6 +666,38 @@
     vertical-align: middle;
 }
 
+::deep .vpp-history-grid tbody tr:has(.vpp-data-grid-empty-state),
+::deep .vpp-history-grid tbody tr:has(.vpp-data-grid-empty-state) td {
+    height: 100%;
+    max-height: none;
+    min-height: var(--vpp-data-empty-min-height);
+    cursor: default;
+}
+
+::deep .vpp-history-grid tbody tr:has(.vpp-data-grid-empty-state) td,
+::deep .vpp-history-grid tbody tr:has(.vpp-data-grid-empty-state) td > .rz-cell-data {
+    width: 100% !important;
+    max-width: none;
+    overflow: visible;
+    white-space: normal;
+}
+
+::deep .vpp-history-grid tbody tr:has(.vpp-data-grid-empty-state) .vpp-data-grid-empty-state {
+    position: absolute;
+    inset-inline: 0;
+    width: 100%;
+    max-width: none;
+    text-align: center;
+}
+
+::deep .vpp-history-grid tbody:has(.vpp-data-grid-empty-state) {
+    position: relative;
+}
+
+::deep .vpp-history-grid tbody tr:has(.vpp-data-grid-empty-state):hover {
+    background: transparent;
+}
+
 ::deep .vpp-history-grid tbody tr:hover,
 ::deep .vpp-history-grid tbody tr[aria-selected="true"] {
     background: color-mix(in srgb, var(--vpp-primary-500) 7%, var(--vpp-bg-elevated));

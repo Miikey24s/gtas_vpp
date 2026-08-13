@@ -36,6 +36,7 @@
                                  TestId="order-period-management-table"
                                  DataSourceMode="VppDataSourceMode.Static"
                                  Density="VppDataDensity.Compact"
+                                 State="@PeriodSurfaceState"
                                  Class="vpp-admin-data-surface vpp-admin-collection-surface vpp-order-period-data-surface">
                 <Header>
                     <VppCollectionHeader Title="Các kỳ đặt hàng"
@@ -65,23 +66,6 @@
                     </VppDataToolbar>
                 </Toolbar>
                 <ChildContent>
-                    @if (Periods.Count == 0)
-                    {
-                        <VppContentState State="VppContentStateKind.Empty" Icon="calendar_month"
-                                         FillAvailable="true"
-                                         Title="Chưa có kỳ đặt hàng"
-                                         Description="Hệ thống sẽ tự tạo kỳ theo cấu hình của quản trị hệ thống." />
-                    }
-                    else if (FilteredPeriods.Count == 0)
-                    {
-                        <VppContentState State="VppContentStateKind.FilteredEmpty"
-                                         FillAvailable="true"
-                                         Icon="search_off"
-                                         Title="Không tìm thấy kỳ phù hợp"
-                                         Description="Hãy điều chỉnh hoặc xóa bộ lọc hiện tại." />
-                    }
-                    else
-                    {
                         <RadzenDataGrid TItem="VppManagedPeriodResDTO"
                                         data-vpp-grid-region="true"
                                         aria-label="Các kỳ đặt hàng"
@@ -102,6 +86,12 @@
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-admin-grid vpp-data-grid vpp-data-density-compact vpp-order-period-grid">
+                            <EmptyTemplate>
+                                <VppDataGridEmptyState State="@(HasPeriodFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                       Icon="@(HasPeriodFilters ? "search_off" : "calendar_month")"
+                                                       Title="@(HasPeriodFilters ? "Không tìm thấy kỳ phù hợp" : "Chưa có kỳ đặt hàng")"
+                                                       Description="@(HasPeriodFilters ? "Hãy điều chỉnh hoặc xóa bộ lọc hiện tại." : "Hệ thống sẽ tự tạo kỳ theo cấu hình của quản trị hệ thống.")" />
+                            </EmptyTemplate>
                             <Columns>
                                 <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Title="#" Width="52px" MinWidth="52px"
                                                       Filterable="false" Sortable="false" TextAlign="TextAlign.Center"
@@ -168,7 +158,6 @@
                                 </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
-                    }
                 </ChildContent>
             </VppDataSurfaceFrame>
 

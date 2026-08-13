@@ -4,6 +4,7 @@
     <VppDataSurfaceFrame DataSourceMode="@DataSourceMode"
                          Density="VppDataDensity.RichTwoLine"
                          Bordered="false"
+                         State="@SurfaceState"
                          AriaLabel="@AriaLabel"
                          TestId="@($"{TestId}-data-surface")"
                          Class="vpp-order-items-data-frame">
@@ -257,6 +258,11 @@
     [Parameter] public EventCallback TransientSurfacesClosed { get; set; }
 
     private RadzenDataGrid<VppOrderDetailItem>? _grid;
+    private VppDataSurfaceState SurfaceState => Items.Count > 0
+        ? VppDataSurfaceState.Populated
+        : TotalItemCount > 0 || HasFilters
+            ? VppDataSurfaceState.FilteredEmpty
+            : VppDataSurfaceState.Empty;
     private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
     private string EffectiveEmptyActionTestId => string.IsNullOrWhiteSpace(EmptyActionTestId)

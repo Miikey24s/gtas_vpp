@@ -14,7 +14,7 @@
                                  Summary="@Loc["RecordsCount", totalCount]"
                                  AddText="@Loc["AddSupplier"]"
                                  CompactAddText="@Loc["Add"]"
-                                 Disabled="@(!CanModify)"
+                                 ShowAddAction="@CanModify"
                                  AddClicked="@OpenCreateAsync" />
         </Header>
         <Toolbar>
@@ -35,6 +35,7 @@
                             Density="Density.Compact"
                             GridLines="DataGridGridLines.Horizontal" RowRender="@OnRowRender"
                             class="vpp-admin-grid vpp-data-grid vpp-data-density-compact" ColumnWidth="150px" Style="--vpp-admin-grid-min-width: 960px; --vpp-admin-actions-width: 140px;">
+                <EmptyTemplate><VppDataGridEmptyState State="@(HasFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)" Title="@(HasFilters ? Loc["NoOrdersMatchSelectedFilters"] : Loc["NoData"])" Description="@(HasFilters ? Loc["HistoryAdjustFilters"].Value : null)" /></EmptyTemplate>
                 <Columns>
                     <RadzenDataGridColumn TItem="SupplierResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                         <Template Context="row">@(currentSkip + rows.IndexOf(row) + 1)</Template>
@@ -56,10 +57,10 @@
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="SupplierResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Title="@Loc["Actions"]" Width="140px" MinWidth="140px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions" Visible="@CanModify">
                         <Template Context="row">
                             <div class="vpp-admin-actions">
-                                <VppAdminIconAction Icon="edit" Text="@Loc["Edit"]" Title="@Loc["Edit"]" Disabled="@(!CanModify)" Click="@(() => OpenEditAsync(row))" />
+                                <VppAdminIconAction Icon="edit" Text="@Loc["Edit"]" Title="@Loc["Edit"]" Click="@(() => OpenEditAsync(row))" />
                                 <VppAdminLifecycleMenu Title="@Loc["MoreActions"]"
                                                        RestoreText="@Loc["Restore"]"
                                                        DeactivateText="@Loc["Deactivate"]"

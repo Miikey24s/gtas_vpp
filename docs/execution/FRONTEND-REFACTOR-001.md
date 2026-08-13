@@ -550,7 +550,7 @@ dùng worktree riêng và không chạm cùng module.
 | FR7 | `CORE MUTATION E2E + CORRECTION UX A COMPLETE` | Không còn frontend mutation gate |
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
 | FR8C | `COMPLETE — OWNER APPROVED 2026-08-04` | Golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
-| FR9 | `PLANNED — OWNER APPROVED 2026-08-13` | Chờ owner kiểm tra chức năng mới; sau đó retrofit theo module. `OrderPeriodManagementWorkspace` là reference đã triển khai, không đại diện toàn project |
+| FR9 | `COMPLETE — QA PASS 2026-08-13` | Stable Capability Surface đã retrofit shared contract, Admin, Requests, Operations và Analytics; frontend `434/434`, route-real `2/2 + 10/10 + 5/5`, visual representative routes đã review |
 
 ### FR9 contract và thứ tự thực thi
 

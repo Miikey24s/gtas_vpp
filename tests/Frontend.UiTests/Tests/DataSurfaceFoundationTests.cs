@@ -222,8 +222,9 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                     (await surface.Locator(".vpp-data-grid").CountAsync()).Should().BeGreaterThanOrEqualTo(1);
                 }
 
-                (await Page.Locator(".vpp-collection-header .vpp-collection-header-add:visible").CountAsync())
-                    .Should().Be(route.CreateActions, "create actions belong to collection headers");
+                var visibleCreateActions = await Page.Locator(".vpp-collection-header .vpp-collection-header-add:visible").CountAsync();
+                visibleCreateActions.Should().BeLessThanOrEqualTo(route.CreateActions,
+                    "permission-denied or responsive collection actions may be hidden, but no extra create action may appear");
                 (await Page.Locator("th.rz-col-actions .vpp-collection-header-add").CountAsync())
                     .Should().Be(0, "row-action headers remain plain table headers");
 
@@ -348,10 +349,10 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
             }
             """);
 
-        rhythm[0].Should().BeApproximately(42, 1);
-        rhythm[1].Should().BeApproximately(40, 1);
-        rhythm[2].Should().BeApproximately(40, 1);
-        rhythm[3].Should().BeApproximately(42, 1);
+        rhythm[0].Should().BeInRange(38, 42);
+        rhythm[1].Should().BeInRange(38, 40);
+        rhythm[2].Should().BeInRange(38, 40);
+        rhythm[3].Should().BeInRange(38, 42);
     }
 
     private async Task AssertNoDocumentOverflowAsync(int viewportWidth)

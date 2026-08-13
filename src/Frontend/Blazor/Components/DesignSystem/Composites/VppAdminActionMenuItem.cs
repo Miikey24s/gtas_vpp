@@ -13,4 +13,5 @@ public sealed record VppAdminActionMenuItem(
     string Icon,
     Func<Task> ExecuteAsync,
     bool Disabled = false,
-    VppAdminActionTone Tone = VppAdminActionTone.Default);
+    VppAdminActionTone Tone = VppAdminActionTone.Default,
+    string? DisabledReason = null);

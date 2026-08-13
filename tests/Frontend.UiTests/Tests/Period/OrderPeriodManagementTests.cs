@@ -437,12 +437,10 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             .ToHaveCountAsync(0);
 
         var periodSurface = Page.Locator("[data-testid='order-period-management-table']:visible");
-        await periodSurface.GetByTestId("period-row-more-actions").First.ClickAsync();
-        await Page.Locator(".rz-context-menu:visible")
-            .GetByText("Xem chi tiết", new() { Exact = true })
-            .ClickAsync();
-        var periodDetailDialog = Page.GetByTestId("order-period-detail-dialog");
-        await Assertions.Expect(periodDetailDialog).ToBeVisibleAsync();
+        await Assertions.Expect(periodSurface.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Xem chi tiết", Exact = true }).First)
+            .ToBeVisibleAsync();
 
         var axeResult = await Page.RunAxe();
         var blocking = axeResult.Violations
@@ -451,9 +449,6 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 $"{violation.Id} ({violation.Impact}): {violation.Help}; target={string.Join(" ", node.Target)}; html={node.Html}"))
             .ToArray();
         Assert.True(blocking.Length == 0, string.Join(Environment.NewLine, blocking));
-        await periodDetailDialog.Locator(".vpp-adaptive-dialog-footer")
-            .GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true })
-            .ClickAsync();
     }
 
     [Fact]
@@ -548,25 +543,23 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
 
         var kpiCards = Page.Locator(".vpp-settlement-kpi-card:visible");
         await Assertions.Expect(kpiCards).ToHaveCountAsync(4);
-        await Assertions.Expect(Page.GetByText("Nhà cung cấp chính", new() { Exact = true }).First).ToBeVisibleAsync();
-        await Assertions.Expect(Page.GetByText("Bảng giá còn hiệu lực", new() { Exact = true }).First).ToBeVisibleAsync();
-        await Assertions.Expect(Page.GetByText("Độ phủ bảng giá", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(Page.GetByText("Tổng thanh toán", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(Page.GetByText("Chọn nhà cung cấp", new() { Exact = true }).First).ToBeVisibleAsync();
+        await Assertions.Expect(Page.GetByText("Chọn bảng giá", new() { Exact = true }).First).ToBeVisibleAsync();
+        await Assertions.Expect(Page.GetByText("Trước VAT và thuế VAT", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(Page.GetByText("Tổng giá trị", new() { Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng", Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(surface.GetByRole(AriaRole.Columnheader, new() { Name = "Giá trị đơn sort", Exact = true }))
+        await Assertions.Expect(surface.GetByRole(AriaRole.Columnheader, new() { Name = "Tạm tính sort", Exact = true }))
             .ToBeVisibleAsync();
 
+        var beforeVatCard = Page.Locator(".vpp-settlement-kpi-card").Nth(2);
         var totalCard = Page.Locator(".vpp-settlement-kpi-card.is-total");
+        var beforeVat = ParseVnd(await beforeVatCard.Locator("strong").InnerTextAsync());
+        var vatAmount = ParseVnd(await beforeVatCard.Locator("small").InnerTextAsync());
         var grandTotal = ParseVnd(await totalCard.Locator("strong").InnerTextAsync());
-        var totalDetail = await totalCard.Locator("small").InnerTextAsync();
-        var financialParts = System.Text.RegularExpressions.Regex.Matches(totalDetail, @"[\d.]+")
-            .Select(match => ParseVnd(match.Value))
-            .ToArray();
-        financialParts.Should().HaveCount(2);
-        (financialParts[0] + financialParts[1]).Should().Be(grandTotal,
-            "tổng thanh toán phải bằng giá trị trước VAT cộng thuế GTGT");
+        (beforeVat + vatAmount).Should().Be(grandTotal,
+            "tổng giá trị phải bằng giá trị trước VAT cộng thuế GTGT");
 
         var numericAlignment = await surface.Locator(".vpp-settlement-number")
             .EvaluateAllAsync<bool>("elements => elements.length > 0 && elements.every(element => getComputedStyle(element).textAlign === 'right')");

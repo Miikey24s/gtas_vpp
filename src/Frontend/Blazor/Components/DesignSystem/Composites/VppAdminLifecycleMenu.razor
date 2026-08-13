@@ -1,6 +1,7 @@
 <VppAdminActionMenu Title="@Title"
                     Items="@MenuItems"
                     Disabled="@Disabled"
+                    AllowOpenWhenAllDisabled="true"
                     TestId="@TestId" />
 
 @code {
@@ -12,6 +13,8 @@
     [Parameter] public bool CanToggle { get; set; }
     [Parameter] public bool CanHardDelete { get; set; }
     [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? ToggleDisabledReason { get; set; }
+    [Parameter] public string? HardDeleteDisabledReason { get; set; }
     [Parameter] public EventCallback<bool> DeletedChanged { get; set; }
     [Parameter] public EventCallback HardDeleteRequested { get; set; }
     [Parameter] public string? TestId { get; set; }
@@ -23,13 +26,15 @@
             IsDeleted ? RestoreText : DeactivateText,
             IsDeleted ? "restore_from_trash" : "block",
             async () => await DeletedChanged.InvokeAsync(!IsDeleted),
-            !CanToggle),
+            !CanToggle,
+            DisabledReason: ToggleDisabledReason ?? Loc["RequestActionUnavailable"].Value),
         new(
             "hard-delete",
             HardDeleteText,
             "delete_forever",
             async () => await HardDeleteRequested.InvokeAsync(),
             !CanHardDelete,
-            VppAdminActionTone.Danger)
+            VppAdminActionTone.Danger,
+            HardDeleteDisabledReason ?? Loc["RequestActionUnavailable"].Value)
     ];
 }

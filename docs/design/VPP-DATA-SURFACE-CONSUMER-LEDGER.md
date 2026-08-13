@@ -63,13 +63,15 @@ Source hiện có **21 file / 26 DataGrid thật**. Generic type reference trong
 
 | Nhóm | Consumer ưu tiên | Việc cần khóa | Trạng thái |
 |---|---|---|---|
-| Reference | `OrderPeriodManagementWorkspace` | Primary action ổn định; menu đủ action theo thứ tự cố định; unavailable disabled; menu toàn disabled vẫn mở có chủ đích | `REFERENCE IMPLEMENTED` |
-| Admin collections | Category, Supplier, Item, Department, Lookup, Price List, Price, User, Permission | Cùng action set cho cùng entity; permission hidden; lifecycle unavailable disabled; base-empty giữ toolbar/cột/footer | `PLANNED FR9-A` |
-| Requests read/write | My Orders, History, Product Catalog, Department Summary, Order Create | Giữ command footprint; archive/read-only dùng disabled đúng nghĩa; empty/filtered-empty không giả row tương tác | `PLANNED FR9-B` |
-| Operations | Pending Approval, Settlement, Period Settings | Workflow action theo capability; busy giữ geometry; denied không lộ chức năng; error retry giữ frame | `PLANNED FR9-C` |
-| Analytics/feeds | Report, Security Audit, Notifications | Static/analytics empty state đúng shell; không pager giả; action/filter không nhảy theo data | `PLANNED FR9-D` |
+| Reference | `OrderPeriodManagementWorkspace` | Primary action ổn định; menu đủ action theo thứ tự cố định; unavailable disabled; menu toàn disabled vẫn mở có chủ đích | `IMPLEMENTED` |
+| Admin collections | Category, Supplier, Item, Department, Lookup, Price List, Price, User, Permission | Cùng action set cho cùng entity; permission hidden; lifecycle unavailable disabled; base-empty giữ toolbar/cột/footer | `DONE` |
+| Requests read/write | My Orders, History, Product Catalog, Department Summary, Order Create | Giữ command footprint; archive/read-only dùng disabled đúng nghĩa; empty/filtered-empty không giả row tương tác | `DONE` |
+| Operations | Pending Approval, Settlement, Period Settings | Workflow action theo capability; busy giữ geometry; denied không lộ chức năng; error retry giữ frame | `DONE` |
+| Analytics/feeds | Report, Security Audit, Notifications | Static/analytics empty state đúng shell; không pager giả; action/filter không nhảy theo data | `DONE` |
 
 Mỗi nhóm chỉ chuyển `DONE` sau architecture test, focused route test và browser review tại viewport phù hợp. Không chạy mass-rewrite; áp dụng theo module boundary để tránh trộn refactor cấu trúc với thay đổi nghiệp vụ.
+
+Implementation 2026-08-13 thêm typed `VppDataSurfaceState`, canonical `VppDataGridEmptyState`, `DisabledReason` cho action/menu và permission-aware action-column visibility. Frontend unit/architecture `434/434`; route-real `ContentStateGeometryTests` `2/2`, `OrderPeriodManagementTests` `10/10`, `DataSurfaceFoundationTests` `5/5`; ảnh catalog/history/my-orders tại `1920×1080` đã review trực tiếp và không lưu vào Git.
 
 ## DS2 reference group
 

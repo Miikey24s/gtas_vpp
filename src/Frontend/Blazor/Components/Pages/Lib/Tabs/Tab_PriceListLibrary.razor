@@ -13,7 +13,7 @@
                                  Summary="@Loc["RecordsCount", count]"
                                  AddText="@Loc["AddPriceList"]"
                                  CompactAddText="@Loc["Add"]"
-                                 Disabled="@(!CanModify)"
+                                 ShowAddAction="@CanModify"
                                  AddClicked="@AddAsync" />
         </Header>
         <Toolbar>
@@ -53,7 +53,6 @@
                             PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
                             Density="Density.Compact"
                             GridLines="DataGridGridLines.Horizontal"
-                            EmptyText="@Loc["NoPriceListAvailable"]"
                             AllowFiltering="false"
                             LogicalFilterOperator="LogicalFilterOperator.And"
                             AllowColumnResize="true"
@@ -63,6 +62,11 @@
                             RowRender="@OnRowRenderPriceList"
                             class="vpp-admin-grid vpp-admin-page-grid vpp-data-grid vpp-data-density-compact vpp-price-list-grid"
                             ColumnWidth="150px">
+                <EmptyTemplate>
+                    <VppDataGridEmptyState State="@(HasFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                           Title="@(HasFilters ? Loc["NoOrdersMatchSelectedFilters"] : Loc["NoPriceListAvailable"])"
+                                           Description="@(HasFilters ? Loc["HistoryAdjustFilters"].Value : null)" />
+                </EmptyTemplate>
                 <Columns>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index"><Template Context="row">@(currentSkip + priceLists.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="190px" MinWidth="180px"><Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.PriceListName ?? "–")</strong><small>@(row.PriceListCode ?? "–")</small></div></Template></RadzenDataGridColumn>
@@ -90,12 +94,14 @@
                                                     Text="@PriceListPrimaryActionText(row)"
                                                     Title="@PriceListPrimaryActionText(row)"
                                                     ButtonStyle="ButtonStyle.Warning"
-                                                    Disabled="@(row.IsDeleted || !CanModify)"
                                                     Click="@(() => OpenPricesAsync(row))" />
-                                <VppAdminActionMenu Title="@Loc["MoreActions"]"
-                                                    Items="@PriceListSecondaryActions(row)"
-                                                    Disabled="@(!CanModify)"
-                                                    TestId="price-list-lifecycle-menu" />
+                                @if (CanModify)
+                                {
+                                    <VppAdminActionMenu Title="@Loc["MoreActions"]"
+                                                        Items="@PriceListSecondaryActions(row)"
+                                                        AllowOpenWhenAllDisabled="true"
+                                                        TestId="price-list-lifecycle-menu" />
+                                }
                             </div>
                         </Template>
                     </RadzenDataGridColumn>

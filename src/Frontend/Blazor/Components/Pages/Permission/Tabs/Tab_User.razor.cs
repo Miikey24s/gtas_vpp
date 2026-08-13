@@ -640,17 +640,15 @@ public partial class Tab_User : IDisposable
             : Loc["SendPasswordLink"].Value;
 
     private IReadOnlyList<VppAdminActionMenuItem> UserSecondaryActions(UserAdministrationResDTO user) =>
-        accountCapabilities.InvitationEnabled
-            ?
-            [
-                new(
-                    "send-password-link",
-                    GetPasswordLinkTitle(user),
-                    "mark_email_unread",
-                    () => SendPasswordResetLinkAsync(user),
-                    !CanSendPasswordLink(user))
-            ]
-            : [];
+    [
+        new(
+            "send-password-link",
+            Loc["SendPasswordLink"].Value,
+            "mark_email_unread",
+            () => SendPasswordResetLinkAsync(user),
+            !CanSendPasswordLink(user),
+            DisabledReason: GetPasswordLinkTitle(user))
+    ];
 
     private string GetAccessToggleTitle(UserAdministrationResDTO user) =>
         user.IsActive ? Loc["DisableUserAccess"].Value

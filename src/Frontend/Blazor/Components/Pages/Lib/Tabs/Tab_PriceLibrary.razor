@@ -13,12 +13,16 @@
         <VppCollectionHeader Title="@Loc["Prices"]"
                              Summary="@Loc["RecordsCount", priceCount]">
             <Actions>
-                <RadzenButton Text="@Loc["ImportPriceList"]"
-                              Icon="upload_file"
-                              Size="ButtonSize.Small"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Disabled="@(!CanImportPrices)"
-                              Click="@ImportPricesAsync" />
+                @if (CanModify)
+                {
+                    <RadzenButton Text="@Loc["ImportPriceList"]"
+                                  Icon="upload_file"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Disabled="@(!CanImportPrices)"
+                                  title="@(CanImportPrices ? Loc["ImportPriceList"] : Loc["RequestActionUnavailable"])"
+                                  Click="@ImportPricesAsync" />
+                }
             </Actions>
         </VppCollectionHeader>
         <section class="vpp-price-context" aria-label="@Loc["PriceContext"]" data-testid="price-context">
@@ -92,7 +96,6 @@
                     PageSize="@VppPagingProfiles.Collection.DefaultPageSize"
                     PageSizeOptions="@VppPagingProfiles.Collection.PageSizeOptions"
                     Density="Density.Compact"
-                    EmptyText="@GridEmptyText"
                     GridLines="DataGridGridLines.Horizontal"
                     AllowFiltering="false"
                     LogicalFilterOperator="LogicalFilterOperator.And"
@@ -103,6 +106,11 @@
                     RowRender="@OnRowRenderPrice"
                     class="vpp-admin-grid vpp-admin-page-grid vpp-price-grid vpp-data-grid vpp-data-density-compact"
                     ColumnWidth="150px">
+        <EmptyTemplate>
+            <VppDataGridEmptyState State="@(HasPriceFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                   Title="@GridEmptyText"
+                                   Description="@(HasPriceFilters ? Loc["HistoryAdjustFilters"].Value : null)" />
+        </EmptyTemplate>
         <Columns>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="#" Width="52px" MinWidth="52px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                 <Template Context="row">
@@ -154,17 +162,22 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppCode" Title="@Loc["ProductCode"]" Width="124px" Visible="false" Pickable="true" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium" Visible="@CanModify">
                 <Template Context="row">
                     <div class="vpp-admin-actions">
                         <VppAdminIconAction Icon="edit"
                                             Text="@GetEditPriceActionTitle(row)"
                                             Title="@GetEditPriceActionTitle(row)"
-                                            Disabled="@(row.IsDeleted || !IsSelectedPriceListEditable)"
+                                            Disabled="@row.IsDeleted"
+                                            DisabledReason="@Loc["RequestActionUnavailable"]"
                                             Click="@(() => EditPriceAsync(row))" />
-                        <VppAdminActionMenu Title="@Loc["MoreActions"]"
-                                            Items="@PriceRowSecondaryActions(row)"
-                                            TestId="price-row-more-actions" />
+                        @if (CanModify)
+                        {
+                            <VppAdminActionMenu Title="@Loc["MoreActions"]"
+                                                Items="@PriceRowSecondaryActions(row)"
+                                                AllowOpenWhenAllDisabled="true"
+                                                TestId="price-row-more-actions" />
+                        }
                     </div>
                 </Template>
             </RadzenDataGridColumn>

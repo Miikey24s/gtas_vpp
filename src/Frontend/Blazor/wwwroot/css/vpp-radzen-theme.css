@@ -658,6 +658,19 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
     color: var(--vpp-text-primary);
 }
 
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem, .rz-navigation-item).rz-state-disabled,
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem, .rz-navigation-item)[aria-disabled="true"] {
+    background: transparent;
+    color: var(--vpp-text-disabled);
+    cursor: not-allowed;
+}
+
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem, .rz-navigation-item).rz-state-disabled:hover,
+.rz-context-menu.vpp-admin-action-menu-surface :is(.rz-menuitem, .rz-navigation-item)[aria-disabled="true"]:hover {
+    background: transparent;
+    color: var(--vpp-text-disabled);
+}
+
 .rz-context-menu.vpp-admin-action-menu-surface :is(
     .rz-menuitem,
     .rz-navigation-item,
@@ -734,12 +747,42 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
 /* Data surface giữ schema cột ổn định khi vùng nội dung hẹp hoặc browser zoom cao.
    Route chỉ khai báo min-width cần thiết; khung dùng native scroll thay vì ép cột chồng lên nhau. */
 [data-vpp-data-surface="true"] .vpp-data-grid .rz-data-grid-data {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
     min-width: 0;
+    min-height: 0;
     overflow: auto;
 }
 
 [data-vpp-data-surface="true"] .vpp-data-grid .rz-grid-table {
+    flex: 1 0 auto;
     min-width: var(--vpp-data-grid-min-width, 100%);
+}
+
+[data-vpp-capability-surface="true"][data-vpp-surface-state="empty"] .vpp-data-surface-body,
+[data-vpp-capability-surface="true"][data-vpp-surface-state="filtered-empty"] .vpp-data-surface-body,
+[data-vpp-capability-surface="true"][data-vpp-surface-state="error"] .vpp-data-surface-body {
+    min-height: var(--vpp-data-empty-min-height);
+}
+
+[data-vpp-capability-surface="true"]:is([data-vpp-surface-state="empty"], [data-vpp-surface-state="filtered-empty"])
+    .vpp-data-surface-body .vpp-data-grid.rz-data-grid,
+[data-vpp-capability-surface="true"]:is([data-vpp-surface-state="empty"], [data-vpp-surface-state="filtered-empty"])
+    .vpp-data-surface-body .vpp-data-grid.rz-datatable {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+}
+
+[data-vpp-capability-surface="true"]:is([data-vpp-surface-state="empty"], [data-vpp-surface-state="filtered-empty"])
+    .vpp-data-grid .rz-grid-table {
+    height: 100%;
+}
+
+[data-vpp-capability-surface="true"]:is([data-vpp-surface-state="empty"], [data-vpp-surface-state="filtered-empty"])
+    .vpp-data-grid .rz-grid-table tbody:has(.vpp-data-grid-empty-state) {
+    height: calc(100% - var(--vpp-data-header-height));
 }
 
 .vpp-data-grid .rz-grid-table thead > tr > th {

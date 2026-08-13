@@ -149,10 +149,11 @@
                         <VppCategoryChip Text="@SettlementVersionText"
                                          Tone="VppCategoryTone.Neutral" />
                     }
-                    @if (CanExportSettlement)
+                    @if (status?.IsSettled == true)
                     {
                         <VppFileExportActions BusyFormat="@exportingSettlementFormat"
                                               ExportRequested="@ExportSettlementAsync"
+                                              Disabled="@(!CanExportSettlement)"
                                               AriaContext="@($"{Loc["Period"]} {Month:00}/{Year}")" />
                     }
                     @if (status?.IsSettled == true)
@@ -166,7 +167,7 @@
                                       Disabled="@isLoadingSettlementHistory"
                                       Click="@OpenSettlementHistoryDialogAsync" />
                     }
-                    @if (CanCorrectSettlement)
+                    @if (status?.IsSettled == true)
                     {
                         <RadzenButton Text="@Loc["AdjustSettlementResult"]"
                                       Icon="edit_note"
@@ -174,7 +175,8 @@
                                       ButtonStyle="ButtonStyle.Warning"
                                       Variant="Variant.Outlined"
                                       IsBusy="@isCorrectingSettlement"
-                                      Disabled="@isCorrectingSettlement"
+                                      Disabled="@(!CanCorrectSettlement || isCorrectingSettlement)"
+                                      title="@(CanCorrectSettlement ? Loc["AdjustSettlementResult"] : Loc["RequestActionUnavailable"])"
                                       Click="@OpenSettlementCorrectionDialogAsync" />
                     }
                 </Actions>
@@ -247,17 +249,7 @@
             }
             else if (viewMode == ItemsView)
             {
-                @if (FilteredItemRows.Count == 0 && !isGridLoading)
-                {
-                    <VppContentState State="VppContentStateKind.FilteredEmpty"
-                                     FillAvailable="true"
-                                     Icon="search_off"
-                                     Title="@Loc["NoCatalogProductsMatchQuery"]"
-                                     Description="@Loc["HistoryAdjustFilters"]" />
-                }
-                else
-                {
-                    <div class="vpp-period-grid-wrap">
+                <div class="vpp-period-grid-wrap">
                         <RadzenDataGrid TItem="AggregatedVppItemResDTO"
                                         Data="@FilteredItemRows"
                                         AllowPaging="true"
@@ -277,6 +269,11 @@
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-order-grid vpp-data-grid vpp-data-density-compact vpp-settlement-order-grid">
+                            <EmptyTemplate>
+                                <VppDataGridEmptyState State="@(HasFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                       Title="@(HasFilters ? Loc["NoCatalogProductsMatchQuery"] : Loc["NoData"])"
+                                                       Description="@(HasFilters ? Loc["HistoryAdjustFilters"].Value : null)" />
+                            </EmptyTemplate>
                             <Columns>
                                 <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row">@(FilteredItemRows.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="AggregatedVppItemResDTO" Property="@nameof(AggregatedVppItemResDTO.VppName)" Title="@Loc["OrderItems"]" Width="260px">
@@ -295,22 +292,11 @@
                                 </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
-                    </div>
-                }
+                </div>
             }
             else if (viewMode == RequestersView)
             {
-                @if (FilteredRequesterRows.Count == 0)
-                {
-                    <VppContentState State="VppContentStateKind.FilteredEmpty"
-                                     FillAvailable="true"
-                                     Icon="search_off"
-                                     Title="@Loc["NoData"]"
-                                     Description="@Loc["HistoryAdjustFilters"]" />
-                }
-                else
-                {
-                    <div class="vpp-period-grid-wrap">
+                <div class="vpp-period-grid-wrap">
                         <RadzenDataGrid TItem="RequesterSettlementRow"
                                         Data="@FilteredRequesterRows"
                                         AllowPaging="true"
@@ -329,6 +315,11 @@
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-order-grid vpp-data-grid vpp-data-density-compact vpp-settlement-order-grid">
+                            <EmptyTemplate>
+                                <VppDataGridEmptyState State="@(HasFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                       Title="@Loc["NoData"]"
+                                                       Description="@(HasFilters ? Loc["HistoryAdjustFilters"].Value : null)" />
+                            </EmptyTemplate>
                             <Columns>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row">@(FilteredRequesterRows.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="RequesterSettlementRow" Property="RequesterName" Title="@Loc["User"]" Width="220px">
@@ -348,16 +339,7 @@
                                 </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
-                    </div>
-                }
-            }
-            else if (FilteredDepartmentRows.Count == 0)
-            {
-                <VppContentState State="VppContentStateKind.FilteredEmpty"
-                                 FillAvailable="true"
-                                 Icon="search_off"
-                                 Title="@Loc["NoData"]"
-                                 Description="@Loc["HistoryAdjustFilters"]" />
+                </div>
             }
             else
             {
@@ -380,6 +362,11 @@
                                     Density="Density.Compact"
                                     GridLines="DataGridGridLines.Horizontal"
                                     class="vpp-order-grid vpp-data-grid vpp-data-density-compact vpp-settlement-order-grid">
+                        <EmptyTemplate>
+                            <VppDataGridEmptyState State="@(HasFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                   Title="@Loc["NoData"]"
+                                                   Description="@(HasFilters ? Loc["HistoryAdjustFilters"].Value : null)" />
+                        </EmptyTemplate>
                         <Columns>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Title="#" Width="52px" TextAlign="TextAlign.Center" Sortable="false"><Template Context="row">@(FilteredDepartmentRows.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="DepartmentSettlementRow" Property="DepartmentName" Title="@Loc["Department"]" Width="220px">

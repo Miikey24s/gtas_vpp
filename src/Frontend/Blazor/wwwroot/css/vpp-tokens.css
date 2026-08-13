@@ -365,6 +365,7 @@
     --vpp-data-row-compact-height: 40px;
     --vpp-data-row-rich-two-line-height: 52px;
     --vpp-data-footer-height: 42px;
+    --vpp-data-empty-min-height: 12rem;
     --vpp-data-toolbar-gap: var(--vpp-space-2);
     --vpp-data-toolbar-padding-block: var(--vpp-space-1);
     --vpp-data-toolbar-padding-inline: var(--vpp-space-3);

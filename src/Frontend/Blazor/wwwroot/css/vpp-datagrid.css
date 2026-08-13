@@ -105,11 +105,14 @@
 }
 
 /* ── DataGrid không có dữ liệu ──────────────────────────────── */
-.vpp-datagrid .rz-datatable-empty {
-    padding: var(--vpp-space-12);
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid) .rz-datatable-empty {
+    height: 100%;
+    min-height: var(--vpp-data-empty-min-height);
+    padding: var(--vpp-space-6) var(--vpp-space-4);
     text-align: center;
     color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-base);
+    vertical-align: middle;
 }
 
 /* Empty/filtered-empty là content state, không phải data row tương tác. */
@@ -123,6 +126,40 @@
     .rz-grid-table tbody > tr:has(:is(.rz-datatable-empty, .vpp-content-state, .vpp-order-grid-empty)):hover > td {
     background: transparent;
     cursor: default;
+}
+
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(:is(.rz-datatable-empty, .vpp-content-state, .vpp-order-grid-empty)) {
+    height: 100%;
+    min-height: var(--vpp-data-empty-min-height);
+}
+
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(:is(.rz-datatable-empty, .vpp-content-state, .vpp-order-grid-empty)) .vpp-content-state {
+    width: 100%;
+    min-height: var(--vpp-data-empty-min-height);
+    place-content: center;
+}
+
+/* Radzen bọc EmptyTemplate trong .rz-cell-data và vẫn áp padding cell mặc định.
+   Loại padding ở đúng empty row để content state chạm đều bốn cạnh vùng rỗng. */
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(.vpp-data-grid-empty-state) > td {
+    padding: 0 !important;
+}
+
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(.vpp-data-grid-empty-state) > td > .rz-cell-data {
+    display: flex;
+    width: 100%;
+    min-height: var(--vpp-data-empty-min-height);
+    padding: 0;
+}
+
+:is(.vpp-datagrid, .vpp-order-grid, .vpp-data-grid)
+    .rz-grid-table tbody > tr:has(.vpp-data-grid-empty-state) .vpp-data-grid-empty-state {
+    flex: 1 1 auto;
+    height: 100%;
 }
 
 /* ── F-41: Lưới chi tiết đơn hàng được nhúng ─────────────────────

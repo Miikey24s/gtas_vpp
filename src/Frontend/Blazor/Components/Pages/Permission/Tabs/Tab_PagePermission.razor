@@ -79,6 +79,11 @@
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="permission-group-grid vpp-admin-grid vpp-admin-page-grid vpp-data-grid vpp-data-density-compact"
                                         Style="--vpp-admin-grid-min-width: 760px;">
+                            <EmptyTemplate>
+                                <VppDataGridEmptyState State="@(!string.IsNullOrWhiteSpace(groupSearchText) ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                       Title="@(!string.IsNullOrWhiteSpace(groupSearchText) ? Loc["NoOrdersMatchSelectedFilters"] : Loc["NoData"])"
+                                                       Description="@(!string.IsNullOrWhiteSpace(groupSearchText) ? Loc["HistoryAdjustFilters"].Value : null)" />
+                            </EmptyTemplate>
                             <Columns>
                                 <RadzenDataGridColumn TItem="PermissionGroupDto" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
                                     <Template Context="group">@(currentGroupSkip + list_Group.IndexOf(group) + 1)</Template>
@@ -88,8 +93,8 @@
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.UserCount)" Title="@Loc["Users"]" Width="100px" TextAlign="TextAlign.Center" Filterable="false" />
                                 <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.Description)" Title="@Loc["Description"]" Width="420px" Pickable="true" />
-                                <RadzenDataGridColumn TItem="PermissionGroupDto" Title="@Loc["Actions"]" Width="96px" MinWidth="96px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions">
-                                    <Template Context="group"><div class="vpp-admin-actions"><VppAdminIconAction Icon="tune" Title="@Loc["ConfigureUiPermissions"]" Disabled="@(!PermissionState.HasPermission(Permissions.PermissionManage))" Click="@(() => OpenPermissionEditorForGroupAsync(group))" /></div></Template>
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Title="@Loc["Actions"]" Width="96px" MinWidth="96px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions" Visible="@PermissionState.HasPermission(Permissions.PermissionManage)">
+                                    <Template Context="group"><div class="vpp-admin-actions"><VppAdminIconAction Icon="tune" Title="@Loc["ConfigureUiPermissions"]" Click="@(() => OpenPermissionEditorForGroupAsync(group))" /></div></Template>
                                 </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>

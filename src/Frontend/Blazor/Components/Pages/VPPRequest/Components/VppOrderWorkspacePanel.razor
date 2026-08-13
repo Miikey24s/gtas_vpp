@@ -61,7 +61,7 @@
                                               ExportRequested="@ExportRequested"
                                               AriaContext="@Order.VppCode" />
                     }
-                    @if (!ReadOnly && CanEdit)
+                    @if (!ReadOnly && ShowEditAction && EditRequested.HasDelegate)
                     {
                         <RadzenButton Icon="edit"
                                       Text="@Loc["Edit"]"
@@ -69,10 +69,11 @@
                                       ButtonStyle="ButtonStyle.Base"
                                       Variant="Variant.Text"
                                       Click="@(async _ => await EditRequested.InvokeAsync(Order))"
-                                      Title="@Loc["Edit"]"
-                                      aria-label="@string.Format(Loc["EditOrderAria"], Order.VppCode)" />
+                                      Title="@(CanEdit ? Loc["Edit"] : Loc["RequestActionUnavailable"])"
+                                      aria-label="@string.Format(Loc["EditOrderAria"], Order.VppCode)"
+                                      Disabled="@(!CanEdit)" />
                     }
-                    @if (!ReadOnly && CanCancel)
+                    @if (!ReadOnly && ShowCancelAction && CancelRequested.HasDelegate)
                     {
                         <RadzenButton Icon="@VppIcons.Rejected"
                                       Text="@Loc["Cancel"]"
@@ -82,10 +83,10 @@
                                       Click="@(async _ => await CancelRequested.InvokeAsync(Order))"
                                       Title="@Loc["Cancel"]"
                                       aria-label="@string.Format(Loc["CancelOrderAria"], Order.VppCode)"
-                                      Disabled="@IsCancelling"
+                                      Disabled="@(!CanCancel || IsCancelling)"
                                       IsBusy="@IsCancelling" />
                     }
-                    @if (!ReadOnly && CanRestore)
+                    @if (!ReadOnly && ShowRestoreAction && RestoreRequested.HasDelegate)
                     {
                         <RadzenButton Icon="undo"
                                       Text="@Loc["RestoreOrder"]"
@@ -95,10 +96,10 @@
                                       Click="@(async _ => await RestoreRequested.InvokeAsync(Order))"
                                       Title="@Loc["RestoreOrder"]"
                                       aria-label="@string.Format(Loc["RestoreOrderAria"], Order.VppCode)"
-                                      Disabled="@IsRestoring"
+                                      Disabled="@(!CanRestore || IsRestoring)"
                                       IsBusy="@IsRestoring" />
                     }
-                    @if (!ReadOnly && CanRecreate)
+                    @if (!ReadOnly && ShowRecreateAction && RecreateRequested.HasDelegate)
                     {
                         <RadzenButton Icon="@VppIcons.Add"
                                       Text="@Loc["RecreateOrder"]"
@@ -106,8 +107,9 @@
                                       ButtonStyle="@(HasPrimaryAction ? ButtonStyle.Base : ButtonStyle.Primary)"
                                       Variant="@(HasPrimaryAction ? Variant.Text : Variant.Filled)"
                                       Click="@(async _ => await RecreateRequested.InvokeAsync(Order))"
-                                      Title="@Loc["RecreateOrder"]"
-                                      aria-label="@string.Format(Loc["RecreateOrderAria"], Order.VppCode)" />
+                                      Title="@(CanRecreate ? Loc["RecreateOrder"] : Loc["RequestActionUnavailable"])"
+                                      aria-label="@string.Format(Loc["RecreateOrderAria"], Order.VppCode)"
+                                      Disabled="@(!CanRecreate)" />
                     }
                     @if (!string.IsNullOrWhiteSpace(PrimaryActionText) && PrimaryActionRequested.HasDelegate)
                     {
@@ -177,6 +179,10 @@
     [Parameter] public bool CanRestore { get; set; }
     [Parameter] public bool CanRecreate { get; set; }
     [Parameter] public bool CanCancel { get; set; }
+    [Parameter] public bool ShowEditAction { get; set; }
+    [Parameter] public bool ShowRestoreAction { get; set; }
+    [Parameter] public bool ShowRecreateAction { get; set; }
+    [Parameter] public bool ShowCancelAction { get; set; }
     [Parameter] public bool IsCancelling { get; set; }
     [Parameter] public bool IsRestoring { get; set; }
     [Parameter, EditorRequired] public string EmptyIcon { get; set; } = VppIcons.Orders;

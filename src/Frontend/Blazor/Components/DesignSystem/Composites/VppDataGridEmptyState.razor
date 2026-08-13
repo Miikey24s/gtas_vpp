@@ -1,0 +1,26 @@
+<VppContentState State="@State"
+                 FillAvailable="true"
+                 Icon="@EffectiveIcon"
+                 Title="@EffectiveTitle"
+                 Description="@Description"
+                 PrimaryActionText="@PrimaryActionText"
+                 PrimaryActionIcon="@PrimaryActionIcon"
+                 PrimaryAction="@PrimaryAction"
+                 Class="@CssClass" />
+
+@code {
+    [Parameter] public VppContentStateKind State { get; set; } = VppContentStateKind.Empty;
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? PrimaryActionText { get; set; }
+    [Parameter] public string? PrimaryActionIcon { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> PrimaryAction { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private string EffectiveIcon => Icon ?? (State == VppContentStateKind.FilteredEmpty ? "search_off" : VppIcons.Inbox);
+    private string EffectiveTitle => Title ?? Loc["NoData"];
+    private string CssClass => string.IsNullOrWhiteSpace(Class)
+        ? "vpp-data-grid-empty-state"
+        : $"vpp-data-grid-empty-state {Class}";
+}

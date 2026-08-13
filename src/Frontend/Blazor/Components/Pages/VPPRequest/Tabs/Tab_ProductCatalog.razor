@@ -17,6 +17,8 @@
             <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                                  Density="VppDataDensity.RichTwoLine"
                                  Bordered="true"
+                                 IsBusy="@IsGridLoading"
+                                 State="@CatalogSurfaceState"
                                  AriaLabel="@Loc["ProductCatalog"]"
                                  TestId="catalog-data-surface"
                                  Class="vpp-catalog-data-frame">
@@ -47,29 +49,6 @@
                     </Toolbar>
                     @* CONTENT: Trạng thái lỗi/rỗng hoặc bảng dữ liệu danh mục. *@
                     <ChildContent>
-                    @if (HasLoadError)
-                    {
-                        <VppContentState State="VppContentStateKind.Error"
-                                         FillAvailable="true"
-                                         Icon="error_outline"
-                                         Title="@Loc["CatalogLoadFailed"]"
-                                         Description="@Loc["CatalogLoadFailedDescription"]"
-                                         PrimaryActionText="@Loc["Retry"]"
-                                         PrimaryActionIcon="@VppIcons.Reset"
-                                         PrimaryAction="@(_ => ReloadAsync())"
-                                         Class="vpp-catalog-state" />
-                    }
-                    else if (ProductCount == 0 && !IsGridLoading)
-                    {
-                        <VppContentState State="VppContentStateKind.FilteredEmpty"
-                                         FillAvailable="true"
-                                         Icon="search_off"
-                                         Title="@Loc["NoCatalogProductsMatchQuery"]"
-                                         Description="@Loc["AdjustCatalogFilters"]"
-                                         Class="vpp-catalog-state" />
-                    }
-                    else
-                    {
                         <div class="vpp-catalog-grid-frame">
                             @* TABLE: Bảng danh mục với paging và sorting phía server. *@
                             <RadzenDataGrid @ref="productGrid"
@@ -95,6 +74,15 @@
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-catalog-grid vpp-data-grid vpp-data-density-rich-two-line">
+                            <EmptyTemplate>
+                                <VppDataGridEmptyState State="@(HasLoadError ? VppContentStateKind.Error : HasFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                       Icon="@(HasLoadError ? "error_outline" : null)"
+                                                       Title="@(HasLoadError ? Loc["CatalogLoadFailed"].Value : HasFilters ? Loc["NoCatalogProductsMatchQuery"].Value : Loc["NoData"].Value)"
+                                                       Description="@(HasLoadError ? Loc["CatalogLoadFailedDescription"].Value : HasFilters ? Loc["AdjustCatalogFilters"].Value : null)"
+                                                       PrimaryActionText="@(HasLoadError ? Loc["Retry"].Value : null)"
+                                                       PrimaryActionIcon="@(HasLoadError ? VppIcons.Reset : null)"
+                                                       PrimaryAction="@(_ => ReloadAsync())" />
+                            </EmptyTemplate>
                             @* COLUMNS: STT, mặt hàng, danh mục, đơn vị và mô tả. *@
                             <Columns>
                                 <RadzenDataGridColumn TItem="VppItemResDTO" Title="#" Width="56px" MinWidth="56px" TextAlign="TextAlign.Center" Sortable="false" Resizable="false">
@@ -118,7 +106,6 @@
                             </Columns>
                             </RadzenDataGrid>
                         </div>
-                    }
                     </ChildContent>
             </VppDataSurfaceFrame>
         }
@@ -134,4 +121,14 @@ else
                      Description="@Loc["NoPermission"]"
                      SecondaryActionText="@Loc["BackToAllowedPage"]"
                      SecondaryActionHref="/" />
+}
+
+@code {
+    private VppDataSurfaceState CatalogSurfaceState => HasLoadError
+        ? VppDataSurfaceState.Error
+        : IsGridLoading
+            ? VppDataSurfaceState.Loading
+            : ProductCount == 0
+                ? HasFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty
+                : VppDataSurfaceState.Populated;
 }

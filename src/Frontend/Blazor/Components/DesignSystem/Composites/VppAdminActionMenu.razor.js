@@ -49,6 +49,25 @@ function positionMenu(anchor, menu) {
     finishOpening();
 }
 
+function applyDisabledReasons(menu, disabledReasons) {
+    if (!(menu instanceof HTMLElement) || !Array.isArray(disabledReasons)) return;
+
+    const menuItems = [...menu.querySelectorAll(':scope .rz-menuitem, :scope .rz-navigation-item')];
+    menuItems.forEach((item, index) => {
+        if (!(item instanceof HTMLElement)) return;
+        const reason = disabledReasons[index];
+        if (!reason) return;
+
+        item.title = reason;
+        item.setAttribute('aria-description', reason);
+        const link = item.querySelector('.rz-menuitem-link, .rz-navigation-item-link');
+        if (link instanceof HTMLElement) {
+            link.title = reason;
+            link.setAttribute('aria-description', reason);
+        }
+    });
+}
+
 function clearActivePlacement(anchor) {
     if (anchor && activePlacement?.anchor !== anchor) return;
     const activeAnchor = activePlacement?.anchor;
@@ -84,7 +103,7 @@ function removeToggleProbe(anchor) {
     delete anchor.dataset.vppAdminActionMenuWasOpen;
 }
 
-export function placeAdminActionMenu(anchor, openedByPointer) {
+export function placeAdminActionMenu(anchor, openedByPointer, disabledReasons) {
     if (!(anchor instanceof HTMLElement)) return;
 
     clearActivePlacement();
@@ -99,6 +118,7 @@ export function placeAdminActionMenu(anchor, openedByPointer) {
             frame = 0;
             menu = findVisibleContextMenu();
             if (menu instanceof HTMLElement) {
+                applyDisabledReasons(menu, disabledReasons);
                 positionMenu(anchor, menu);
                 if (openedByPointer) {
                     const focusedItem = menu.querySelector(':focus');

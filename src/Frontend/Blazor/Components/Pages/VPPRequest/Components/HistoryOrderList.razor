@@ -8,6 +8,8 @@
     <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                          Density="VppDataDensity.Compact"
                          Bordered="false"
+                         IsBusy="@IsGridLoading"
+                         State="@SurfaceState"
                          AriaLabelledBy="history-orders-title"
                          TestId="@TestId"
                          Class="vpp-history-data-frame">
@@ -43,29 +45,6 @@
         </VppDataToolbar>
     </Toolbar>
     <ChildContent>
-    @if (HasGridLoadError)
-    {
-        <VppContentState State="VppContentStateKind.Error"
-                         FillAvailable="true"
-                         Icon="error"
-                         Title="@Loc["HistoryLoadFailed"]"
-                         Description="@Loc["HistoryLoadErrorDescription"]"
-                         PrimaryActionText="@Loc["Retry"]"
-                         PrimaryActionIcon="@VppIcons.Reset"
-                         PrimaryAction="@(_ => RetryRequested.InvokeAsync())"
-                         Class="vpp-history-state-panel vpp-history-grid-state" />
-    }
-    else if (TotalCount == 0 && !IsGridLoading)
-    {
-        <VppContentState State="VppContentStateKind.FilteredEmpty"
-                         FillAvailable="true"
-                         Icon="search_off"
-                         Title="@Loc["NoOrdersMatchSelectedFilters"]"
-                         Description="@Loc["HistoryAdjustFilters"]"
-                         Class="vpp-history-state-panel vpp-history-grid-state" />
-    }
-    else
-    {
         @* ROWS: Danh sách phiếu lịch sử có phân trang. *@
         <div class="vpp-history-grid-wrap">
             <RadzenDataGrid TItem="VppRequestResDTO"
@@ -91,6 +70,15 @@
                             GridLines="DataGridGridLines.Horizontal"
                             IsLoading="@IsGridLoading"
                             class="vpp-history-grid vpp-data-grid vpp-data-density-compact">
+                <EmptyTemplate>
+                    <VppDataGridEmptyState State="@(HasGridLoadError ? VppContentStateKind.Error : HasTableFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                           Icon="@(HasGridLoadError ? "error" : null)"
+                                           Title="@(HasGridLoadError ? Loc["HistoryLoadFailed"].Value : HasTableFilters ? Loc["NoOrdersMatchSelectedFilters"].Value : Loc["NoData"].Value)"
+                                           Description="@(HasGridLoadError ? Loc["HistoryLoadErrorDescription"].Value : HasTableFilters ? Loc["HistoryAdjustFilters"].Value : null)"
+                                           PrimaryActionText="@(HasGridLoadError ? Loc["Retry"].Value : null)"
+                                           PrimaryActionIcon="@(HasGridLoadError ? VppIcons.Reset : null)"
+                                           PrimaryAction="@(_ => RetryRequested.InvokeAsync())" />
+                </EmptyTemplate>
                 @* COLUMNS: Kỳ, trạng thái kỳ, mã đơn, loại đơn, trạng thái đơn, ngày gửi và ghi chú. *@
                 <Columns>
                     @if (Columns is not null)
@@ -193,7 +181,6 @@
                 </button>
             }
         </div>
-    }
     </ChildContent>
     </VppDataSurfaceFrame>
 </section>
@@ -230,6 +217,13 @@
     [Parameter] public EventCallback<string?> CopyRequested { get; set; }
 
     private IList<VppRequestResDTO> selectedOrders = [];
+    private VppDataSurfaceState SurfaceState => HasGridLoadError
+        ? VppDataSurfaceState.Error
+        : IsGridLoading
+            ? VppDataSurfaceState.Loading
+            : TotalCount == 0
+                ? HasTableFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty
+                : VppDataSurfaceState.Populated;
 
     protected override void OnParametersSet()
     {

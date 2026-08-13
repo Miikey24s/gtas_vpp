@@ -285,35 +285,40 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             new(
                 "edit",
                 Loc["Edit"].Value,
-                "edit",
-                () => EditAsync(row),
-                row.IsDeleted || row.Status == "Expired" || !CanModify),
+                 "edit",
+                 () => EditAsync(row),
+                 row.IsDeleted || row.Status == "Expired",
+                 DisabledReason: Loc["RequestActionUnavailable"].Value),
             new(
                 "default",
                 Loc["SetAsDefault"].Value,
-                "star",
-                () => SetDefaultAsync(row),
-                row.IsDefault || !IsPriceListActive(row) || !CanModify),
+                 "star",
+                 () => SetDefaultAsync(row),
+                 row.IsDefault || !IsPriceListActive(row),
+                 DisabledReason: row.IsDefault ? Loc["Default"].Value : Loc["RequestActionUnavailable"].Value),
             new(
                 "clone",
                 Loc["CopyAsNewPriceList"].Value,
-                "content_copy",
-                () => CloneAsync(row),
-                !IsPriceListActive(row) || !CanModify),
+                 "content_copy",
+                 () => CloneAsync(row),
+                 !IsPriceListActive(row),
+                 DisabledReason: Loc["RequestActionUnavailable"].Value),
             new(
                 "toggle-active",
                 IsPriceListActive(row) ? Loc["Deactivate"].Value : Loc["Restore"].Value,
-                IsPriceListActive(row) ? "block" : "restore_from_trash",
-                () => SetDeletedAsync(row, IsPriceListActive(row)),
-                row.IsDefault || !CanModify),
+                 IsPriceListActive(row) ? "block" : "restore_from_trash",
+                 () => SetDeletedAsync(row, IsPriceListActive(row)),
+                 row.IsDefault,
+                 DisabledReason: row.IsDefault ? Loc["RequestActionUnavailable"].Value : null),
             new(
                 "hard-delete",
                 Loc["HardDelete"].Value,
-                "delete_forever",
-                () => HardDeleteAsync(row),
-                !CanModify || !row.IsDeleted,
-                VppAdminActionTone.Danger)
-        ];
+                 "delete_forever",
+                 () => HardDeleteAsync(row),
+                 !row.IsDeleted,
+                 VppAdminActionTone.Danger,
+                 Loc["RequestActionUnavailable"].Value)
+         ];
 
         private async Task<PriceListUpdateReqDTO?> OpenEditorAsync(
             string title,

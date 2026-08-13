@@ -72,7 +72,11 @@
             }
         });
 
-        await module.InvokeVoidAsync("placeAdminActionMenu", anchor, args.Detail > 0);
+        await module.InvokeVoidAsync(
+            "placeAdminActionMenu",
+            anchor,
+            args.Detail > 0,
+            Items.Select(item => item.Disabled ? item.DisabledReason : null).ToArray());
     }
 
     public async ValueTask DisposeAsync()

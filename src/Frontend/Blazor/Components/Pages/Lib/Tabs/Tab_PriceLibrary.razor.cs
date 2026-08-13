@@ -321,23 +321,25 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             new(
                 "set-default",
                 Loc["SetDefault"].Value,
-                "star",
-                () => SetDefaultAsync(row),
-                !row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted || !IsSelectedPriceListEditable),
+                 "star",
+                 () => SetDefaultAsync(row),
+                 !row.PriceMappingId.HasValue || row.IsDefault || row.IsDeleted || !IsSelectedPriceListEditable),
             new(
                 "toggle-active",
                 row.IsDeleted ? Loc["Restore"].Value : Loc["Deactivate"].Value,
-                row.IsDeleted ? "restore_from_trash" : "block",
-                () => SetDeletedPriceAsync(row, !row.IsDeleted),
-                !row.PriceMappingId.HasValue || !IsSelectedPriceListEditable),
+                 row.IsDeleted ? "restore_from_trash" : "block",
+                 () => SetDeletedPriceAsync(row, !row.IsDeleted),
+                 !row.PriceMappingId.HasValue || !IsSelectedPriceListEditable,
+                 DisabledReason: Loc["RequestActionUnavailable"].Value),
             new(
                 "hard-delete",
                 Loc["HardDelete"].Value,
                 "delete_forever",
-                () => HardDeletePriceAsync(row),
-                !row.PriceMappingId.HasValue || !row.IsDeleted || !IsSelectedPriceListEditable,
-                VppAdminActionTone.Danger)
-        ];
+                 () => HardDeletePriceAsync(row),
+                 !row.PriceMappingId.HasValue || !row.IsDeleted || !IsSelectedPriceListEditable,
+                 VppAdminActionTone.Danger,
+                 Loc["RequestActionUnavailable"].Value)
+         ];
 
         private async Task SetDeletedPriceAsync(VppItemPriceResDTO row, bool isDeleted)
         {

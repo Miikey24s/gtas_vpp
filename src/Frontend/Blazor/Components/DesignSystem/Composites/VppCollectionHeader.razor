@@ -7,11 +7,11 @@
         }
     </div>
 
-    @if (Actions is not null || AddClicked.HasDelegate)
+    @if (Actions is not null || (ShowAddAction && AddClicked.HasDelegate))
     {
         <div class="vpp-collection-header-actions">
             @Actions
-            @if (AddClicked.HasDelegate)
+            @if (ShowAddAction && AddClicked.HasDelegate)
             {
                 <button type="button"
                         class="vpp-collection-header-add"
@@ -34,6 +34,7 @@
     [Parameter] public string AddText { get; set; } = string.Empty;
     [Parameter] public string CompactAddText { get; set; } = string.Empty;
     [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool ShowAddAction { get; set; } = true;
     [Parameter] public string? DisabledReason { get; set; }
     [Parameter] public EventCallback AddClicked { get; set; }
     [Parameter] public RenderFragment? Actions { get; set; }

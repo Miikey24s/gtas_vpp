@@ -1243,7 +1243,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("ToggleDetailNote", history, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", historyOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("Title=\"#\" Width=\"42px\"", historyDrawer, StringComparison.Ordinal);
-        Assert.Contains("VppContentState State=\"VppContentStateKind.Error\"", historyOrders, StringComparison.Ordinal);
+        Assert.Contains("HasGridLoadError ? VppContentStateKind.Error", historyOrders, StringComparison.Ordinal);
+        Assert.Contains("<VppDataGridEmptyState", historyOrders, StringComparison.Ordinal);
         Assert.Contains("RadzenStackedColumnSeries", historyChart, StringComparison.Ordinal);
         Assert.Contains("vpp-history-drawer", historyDrawer, StringComparison.Ordinal);
         Assert.Contains("VppOrderItemsSurfaceVariant.HistoryDrawer", historyDrawer, StringComparison.Ordinal);
@@ -1366,8 +1367,8 @@ public sealed class SharedUiFoundationTests
         var catalog = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
         Assert.Contains("VppContentStateKind.FilteredEmpty", historyOrders, StringComparison.Ordinal);
         Assert.Contains("VppContentStateKind.Error", catalog, StringComparison.Ordinal);
-        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Reset\"", historyOrders, StringComparison.Ordinal);
-        Assert.Contains("PrimaryActionIcon=\"@VppIcons.Reset\"", catalog, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionIcon=\"@(HasGridLoadError ? VppIcons.Reset : null)\"", historyOrders, StringComparison.Ordinal);
+        Assert.Contains("PrimaryActionIcon=\"@(HasLoadError ? VppIcons.Reset : null)\"", catalog, StringComparison.Ordinal);
     }
 
     [Fact]

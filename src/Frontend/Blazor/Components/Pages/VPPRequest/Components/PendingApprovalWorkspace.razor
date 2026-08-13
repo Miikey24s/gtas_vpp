@@ -12,25 +12,6 @@
     {
         <SkeletonPage Cards="0" Rows="8" Cols="7" FillAvailable="true" />
     }
-    else if (HasGridLoadError)
-    {
-        <VppContentState State="VppContentStateKind.Error"
-                         FillAvailable="true"
-                         Icon="error"
-                         Title="@Loc["PendingApprovalLoadFailed"]"
-                         Description="@Loc["HistoryLoadErrorDescription"]"
-                         PrimaryActionText="@Loc["Retry"]"
-                         PrimaryActionIcon="@VppIcons.Reset"
-                         PrimaryAction="@(_ => ReloadRequested.InvokeAsync())" />
-    }
-    else if (TotalCount == 0 && !IsGridLoading)
-    {
-        <VppContentState State="VppContentStateKind.Success"
-                         FillAvailable="true"
-                         Icon="check_circle"
-                         Title="@Loc["AllClear"]"
-                         Description="@Loc["NoPendingAdditionalOrders"]" />
-    }
     else
     {
         @* CONTENT: Danh sách đơn chờ duyệt và panel chi tiết đơn đang chọn. *@
@@ -42,6 +23,8 @@
                 <VppDataSurfaceFrame DataSourceMode="VppDataSourceMode.ServerPaging"
                                      Density="VppDataDensity.RichTwoLine"
                                      Bordered="false"
+                                     IsBusy="@IsGridLoading"
+                                     State="@ApprovalSurfaceState"
                                      AriaLabel="@Loc["PendingOrders"]"
                                      TestId="pending-approval-list"
                                      Class="vpp-approval-list-surface">
@@ -96,6 +79,15 @@
                                         Density="Density.Compact"
                                         GridLines="DataGridGridLines.Horizontal"
                                         class="vpp-approval-list-grid vpp-data-grid vpp-data-density-rich-two-line">
+                            <EmptyTemplate>
+                                <VppDataGridEmptyState State="@(HasGridLoadError ? VppContentStateKind.Error : HasFilters ? VppContentStateKind.FilteredEmpty : VppContentStateKind.Empty)"
+                                                       Icon="@(HasGridLoadError ? "error" : "check_circle")"
+                                                       Title="@(HasGridLoadError ? Loc["PendingApprovalLoadFailed"].Value : HasFilters ? Loc["NoOrdersMatchSelectedFilters"].Value : Loc["AllClear"].Value)"
+                                                       Description="@(HasGridLoadError ? Loc["HistoryLoadErrorDescription"].Value : HasFilters ? Loc["HistoryAdjustFilters"].Value : Loc["NoPendingAdditionalOrders"].Value)"
+                                                       PrimaryActionText="@(HasGridLoadError ? Loc["Retry"].Value : null)"
+                                                       PrimaryActionIcon="@(HasGridLoadError ? VppIcons.Reset : null)"
+                                                       PrimaryAction="@(_ => ReloadRequested.InvokeAsync())" />
+                            </EmptyTemplate>
                             @* COLUMNS: STT, mã đơn, người tạo, thời gian và trạng thái. *@
                             <Columns>
                                 <RadzenDataGridColumn TItem="VppRequestResDTO" Title="#" Width="48px" TextAlign="TextAlign.Center" Sortable="false">
@@ -200,22 +192,24 @@
                                 ? Loc["ApprovalDecisionHint"]
                                 : Loc["SupplementApprovalExpiredHint"])</span>
                             <div class="vpp-approval-action-buttons">
-                                @if (CanReject && SelectedOrder.CanRejectSupplement)
+                                @if (CanReject)
                                 {
                                     <RadzenButton Icon="cancel"
                                                   Text="@Loc["Reject"]"
                                                   ButtonStyle="ButtonStyle.Danger"
                                                   Variant="Variant.Text"
-                                                  Disabled="@Processing(SelectedOrder.Id)"
+                                                  Disabled="@(!SelectedOrder.CanRejectSupplement || Processing(SelectedOrder.Id))"
+                                                  title="@(SelectedOrder.CanRejectSupplement ? Loc["Reject"] : Loc["RequestActionUnavailable"])"
                                                   aria-label="@string.Format(Loc["RejectOrderAria"], SelectedOrder.VppCode)"
                                                   Click="@(_ => RejectRequested.InvokeAsync(SelectedOrder))" />
                                 }
-                                @if (CanApprove && SelectedOrder.CanApproveSupplement)
+                                @if (CanApprove)
                                 {
                                     <RadzenButton Icon="check_circle"
                                                   Text="@Loc["Approve"]"
                                                   ButtonStyle="ButtonStyle.Primary"
-                                                  Disabled="@Processing(SelectedOrder.Id)"
+                                                  Disabled="@(!SelectedOrder.CanApproveSupplement || Processing(SelectedOrder.Id))"
+                                                  title="@(SelectedOrder.CanApproveSupplement ? Loc["Approve"] : Loc["SupplementApprovalExpiredHint"])"
                                                   IsBusy="@Processing(SelectedOrder.Id)"
                                                   aria-label="@string.Format(Loc["ApproveOrderAria"], SelectedOrder.VppCode)"
                                                   Click="@(_ => ApproveRequested.InvokeAsync(SelectedOrder))" />
@@ -263,6 +257,13 @@
     private int? activeCodeNumber;
     private int? activeNoteNumber;
     private IList<VppRequestResDTO> selectedOrders = [];
+    private VppDataSurfaceState ApprovalSurfaceState => HasGridLoadError
+        ? VppDataSurfaceState.Error
+        : IsGridLoading
+            ? VppDataSurfaceState.Loading
+            : TotalCount == 0
+                ? HasFilters ? VppDataSurfaceState.FilteredEmpty : VppDataSurfaceState.Empty
+                : VppDataSurfaceState.Populated;
 
     private IReadOnlyList<VppOrderDetailItem> DetailItems => SelectedOrder?.Items?
         .Select((item, index) => new VppOrderDetailItem(

@@ -61,6 +61,43 @@ public sealed class UiMotifCatalogTests
     }
 
     [Fact]
+    public void StableCapabilitySurface_IsImplementedBySharedComponentsAndRepresentativeRoutes()
+    {
+        var root = FindRepositoryRoot();
+        var frontend = Path.Combine(root, "src", "Frontend", "Blazor");
+        var actionItem = File.ReadAllText(Path.Combine(frontend, "Components", "DesignSystem", "Composites", "VppAdminActionMenuItem.cs"));
+        var actionMenu = File.ReadAllText(Path.Combine(frontend, "Components", "DesignSystem", "Composites", "VppAdminActionMenu.razor"));
+        var actionMenuJs = File.ReadAllText(Path.Combine(frontend, "Components", "DesignSystem", "Composites", "VppAdminActionMenu.razor.js"));
+        var dataFrame = File.ReadAllText(Path.Combine(frontend, "Components", "DesignSystem", "Composites", "VppDataSurfaceFrame.razor"));
+        var dataGridCss = File.ReadAllText(Path.Combine(frontend, "wwwroot", "css", "vpp-datagrid.css"));
+        var periods = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Components", "OrderPeriodManagementWorkspace.razor.cs"));
+        var users = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "Permission", "Tabs", "Tab_User.razor"));
+        var approvals = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Components", "PendingApprovalWorkspace.razor"));
+        var orders = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
+        var history = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Components", "HistoryOrderList.razor"));
+        var catalogRoute = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "VPPRequest", "Tabs", "Tab_ProductCatalog.razor"));
+        var priceLists = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor"));
+        var lookup = File.ReadAllText(Path.Combine(frontend, "Components", "Pages", "Lib", "Tabs", "Tab_LookupLibrary.razor"));
+
+        Assert.Contains("string? DisabledReason", actionItem, StringComparison.Ordinal);
+        Assert.Contains("Items.Select(item => item.Disabled ? item.DisabledReason : null)", actionMenu, StringComparison.Ordinal);
+        Assert.Contains("applyDisabledReasons", actionMenuJs, StringComparison.Ordinal);
+        Assert.Contains("data-vpp-capability-surface=\"true\"", dataFrame, StringComparison.Ordinal);
+        Assert.Contains("VppDataSurfaceState State", dataFrame, StringComparison.Ordinal);
+        Assert.Contains(".rz-datatable-empty", dataGridCss, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !period.CanDelete", periods, StringComparison.Ordinal);
+        Assert.Contains("Visible=\"@CanManageUsers\"", users, StringComparison.Ordinal);
+        Assert.Contains("Disabled=\"@(!SelectedOrder.CanApproveSupplement", approvals, StringComparison.Ordinal);
+        Assert.Contains("ShowEditAction", orders, StringComparison.Ordinal);
+        Assert.Contains("Disabled=\"@(!CanEdit)\"", orders, StringComparison.Ordinal);
+        Assert.Contains("<VppDataGridEmptyState", history, StringComparison.Ordinal);
+        Assert.Contains("State=\"@CatalogSurfaceState\"", catalogRoute, StringComparison.Ordinal);
+        Assert.Contains("<VppDataGridEmptyState", catalogRoute, StringComparison.Ordinal);
+        Assert.DoesNotContain("EmptyText=", priceLists, StringComparison.Ordinal);
+        Assert.DoesNotContain("EmptyText=", lookup, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RetiredUiAdaptersAndLegacySelectorsCannotReturn()
     {
         var root = FindRepositoryRoot();

@@ -45,7 +45,12 @@ public partial class OrderPeriodManagementWorkspace
 
     private bool HasPeriodFilters => !string.IsNullOrWhiteSpace(periodSearchText)
         || !string.IsNullOrWhiteSpace(selectedPeriodState)
-        || selectedPeriodYear.HasValue;
+            || selectedPeriodYear.HasValue;
+    private VppDataSurfaceState PeriodSurfaceState => FilteredPeriods.Count > 0
+        ? VppDataSurfaceState.Populated
+        : HasPeriodFilters
+            ? VppDataSurfaceState.FilteredEmpty
+            : VppDataSurfaceState.Empty;
 
     private List<VppManagedPeriodResDTO> FilteredPeriods => Periods
         .Where(period => string.IsNullOrWhiteSpace(periodSearchText)
@@ -87,40 +92,41 @@ public partial class OrderPeriodManagementWorkspace
             "Chốt kỳ",
             "fact_check",
             () => NavigateToSettlementAsync(period),
-            Disabled: !CanSettlePeriod(period)));
+            Disabled: !CanSettlePeriod(period),
+            DisabledReason: "Kỳ chưa đủ điều kiện để chốt."));
 
         items.Add(new(
             ExtendAction,
             "Gia hạn kỳ",
             "event_repeat",
             () => ExtendDeadlineAsync(period),
-            Disabled: !period.CanExtendDeadline));
+            Disabled: !period.CanExtendDeadline,
+            DisabledReason: "Không thể gia hạn kỳ ở trạng thái hiện tại."));
 
         items.Add(new(
             EditAction,
             "Sửa lịch",
             "edit_calendar",
             () => EditScheduleAsync(period),
-            Disabled: !period.CanEditSchedule));
+            Disabled: !period.CanEditSchedule,
+            DisabledReason: "Không thể sửa lịch vì kỳ đã có đơn hoặc không còn ở trạng thái cho phép."));
 
-        if (period.CanReopenSubmissions)
-        {
-            items.Add(new(
-                ReopenAction,
-                "Mở lại nhận đơn",
-                "play_circle",
-                () => ReopenSubmissionsAsync(period)));
-        }
+        items.Add(new(
+            ReopenAction,
+            "Mở lại nhận đơn",
+            "play_circle",
+            () => ReopenSubmissionsAsync(period),
+            Disabled: !period.CanReopenSubmissions,
+            DisabledReason: "Chỉ có thể mở lại khi kỳ đã khóa và chưa chốt."));
 
-        if (period.CanDelete)
-        {
-            items.Add(new(
-                DeleteAction,
-                "Xóa kỳ",
-                "delete_forever",
-                () => DeletePeriodAsync(period),
-                Tone: VppAdminActionTone.Danger));
-        }
+        items.Add(new(
+            DeleteAction,
+            "Xóa kỳ",
+            "delete_forever",
+            () => DeletePeriodAsync(period),
+            Disabled: !period.CanDelete,
+            Tone: VppAdminActionTone.Danger,
+            DisabledReason: "Chỉ có thể xóa kỳ chưa có đơn và chưa phát sinh xử lý."));
 
         return items;
     }

@@ -53,7 +53,7 @@ public sealed class ContentStateGeometryTests : TestBase, IAuthenticatedUiTest
         var catalogSurface = Page.GetByTestId("catalog-data-surface");
         await catalogSurface.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         await catalogSurface.Locator(".vpp-filter-search input").FillAsync("__gtas_no_catalog_match__");
-        var catalogState = catalogSurface.Locator(".vpp-catalog-state");
+        var catalogState = catalogSurface.Locator(".vpp-data-grid-empty-state");
         await catalogState.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         (await MeasureFillGeometryAsync(catalogState)).Should().StartWith(
             "true|",
@@ -65,7 +65,7 @@ public sealed class ContentStateGeometryTests : TestBase, IAuthenticatedUiTest
         var historySurface = Page.GetByTestId("history-orders-data-surface");
         await historySurface.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         await historySurface.Locator(".vpp-filter-search input").FillAsync("__gtas_no_history_match__");
-        var historyState = historySurface.Locator(".vpp-history-grid-state");
+        var historyState = historySurface.Locator(".vpp-data-grid-empty-state");
         await historyState.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         (await MeasureFillGeometryAsync(historyState)).Should().StartWith(
             "true|",
@@ -84,14 +84,26 @@ public sealed class ContentStateGeometryTests : TestBase, IAuthenticatedUiTest
                 const bodyRect = body.getBoundingClientRect();
                 const stateRect = state.getBoundingClientRect();
                 const stateStyle = getComputedStyle(state);
-                const bottomDelta = Math.abs(bodyRect.bottom - stateRect.bottom);
-                const heightDelta = Math.abs(bodyRect.height - stateRect.height);
+                const dataRegion = state.closest('.rz-data-grid-data');
+                const region = dataRegion instanceof HTMLElement ? dataRegion : state;
+                const regionRect = region.getBoundingClientRect();
+                const tableHeader = region.querySelector('thead');
+                const headerHeight = tableHeader instanceof HTMLElement
+                    ? tableHeader.getBoundingClientRect().height
+                    : 0;
+                const expectedTop = regionRect.top + headerHeight;
+                const topDelta = Math.abs(expectedTop - stateRect.top);
+                const bottomDelta = Math.abs(regionRect.bottom - stateRect.bottom);
+                const expectedHeight = Math.max(0, regionRect.height - headerHeight);
+                const heightDelta = Math.abs(expectedHeight - stateRect.height);
                 const ok = state.classList.contains('is-fill-available')
+                    && topDelta <= 3
                     && bottomDelta <= 2
-                    && heightDelta <= 2
-                    && stateStyle.height !== 'auto';
-                return `${ok}|bottom=${bottomDelta}|height=${heightDelta}`
-                    + `|body=${bodyRect.height}|state=${stateRect.height}|css=${stateStyle.height}`;
+                    && heightDelta <= 3
+                    && stateStyle.minHeight !== '0px';
+                return `${ok}|top=${topDelta}|bottom=${bottomDelta}|height=${heightDelta}`
+                    + `|body=${bodyRect.height}|region=${regionRect.height}|header=${headerHeight}`
+                    + `|state=${stateRect.height}|css=${stateStyle.minHeight}`;
             }
             """);
 
