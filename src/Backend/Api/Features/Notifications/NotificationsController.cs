@@ -4,7 +4,7 @@ using gtas_vpp_shared.DTOs.Res.Notifications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace gtas_vpp_be.Controllers;
+namespace gtas_vpp_be.Features.Notifications;
 
 [ApiController]
 [Authorize]

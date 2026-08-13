@@ -713,6 +713,10 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
   delta và scoped whitespace/analyzer PASS. Full verify dừng sau các gate xanh vì migration
   `20260810233259_AddPriceListImportBatches.cs` có lỗi `CHARSET`; file thuộc vùng pricing/import đang
   `FROZEN`, không sửa trong B2. Tiếp theo rà Notifications và pure platform/file seams có test evidence.
+- Independent legacy slice sau B2: Notifications đã chuyển persistence/inbox/email-outbox service về
+  Application; API chỉ giữ HTTP controller, SignalR adapter và module composition. Namespace/interface giữ
+  nguyên nên Request/Settlement/Identity consumers không đổi. Focused registration/notification/
+  architecture/config gates `53/53` PASS; chờ full backend unit + scoped format trước commit.
 - Do not redo: B0R route/auth/ProblemDetails characterization và B1 dead-code/base-service cleanup đã có.
 
 ## 15. Research sources

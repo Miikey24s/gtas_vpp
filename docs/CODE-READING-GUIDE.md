@@ -227,6 +227,15 @@ không cố render SVG suy biến.
 audit, component gắn `data-vpp-grid-region="true"`; `wwwroot/js/vpp-interactions.js` chuẩn hóa role của
 wrapper/table, vùng cuộn keyboard-focus và `aria-disabled` do Radzen 11.1.4 sinh ra.
 
+Backend Notifications được chia theo trách nhiệm:
+
+- `Application/Services/Notifications`: inbox, publish, permission recipients, email outbox và SMTP contract;
+- `Api/Notifications`: SignalR hub/realtime adapter và `AddNotificationsModule`/`MapNotificationsModule`;
+- `Api/Features/Notifications/NotificationsController`: HTTP transport.
+
+Các module Request, Settlement và Identity vẫn gọi chung `IAppNotificationService`; controller nghiệp vụ
+không biết SignalR hay cách lưu outbox.
+
 **Evidence index hiện tại:** `RouteAcceptanceManifest` giữ 44 logical route/query key; frontend unit/architecture
 `373/373` và checkpoint verify gần nhất pass build/unit/UI smoke. E2E tải thật cover report PDF/XLSX/CSV và
 order PDF/XLSX; settlement mutation cô lập chứng minh revision 1 bất biến, cùng người bị four-eyes từ chối

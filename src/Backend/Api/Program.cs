@@ -185,23 +185,6 @@ builder.Services
     })
     .AddEntityFrameworkStores<VPPContext>()
     .AddDefaultTokenProviders();
-builder.Services.AddOptions<AccountEmailOptions>()
-    .Bind(Configuration.GetSection(AccountEmailOptions.SectionName))
-    .Validate(options => Uri.TryCreate(options.PublicBaseUrl, UriKind.Absolute, out _),
-        "EmailNotifications:PublicBaseUrl must be an absolute URL.")
-    .Validate(options => options.SmtpPort is >= 1 and <= 65535,
-        "EmailNotifications:SmtpPort must be a valid TCP port.")
-    .Validate(options => !options.Enabled || !string.IsNullOrWhiteSpace(options.SmtpHost),
-        "EmailNotifications:SmtpHost is required when email is enabled.")
-    .Validate(options => !options.Enabled
-            || System.Net.Mail.MailAddress.TryCreate(options.FromAddress, out _),
-        "EmailNotifications:FromAddress must be a valid email address when email is enabled.")
-    .ValidateOnStart();
-builder.Services.AddScoped<IEmailOutboxService, EmailOutboxService>();
-builder.Services.AddScoped<ICurrentMemberCompanyProvider, DefaultMemberCompanyProvider>();
-builder.Services.AddScoped<SmtpAccountEmailSender>();
-builder.Services.AddScoped<IAccountEmailSender, OutboxAccountEmailSender>();
-builder.Services.AddHostedService<EmailOutboxWorker>();
 builder.Services.AddScoped<IAccountLifecycleService, AccountLifecycleService>();
 builder.Services.AddRateLimiter(options =>
 {
@@ -419,8 +402,7 @@ builder.Services.AddOptions<AuthBootstrapOptions>()
 builder.Services.AddScoped<IAuthBootstrapProvisioner, AuthBootstrapProvisioner>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddSingleton<IPermissionChangeNotifier, PermissionChangeNotifier>();
-builder.Services.AddScoped<IAppNotificationService, AppNotificationService>();
-builder.Services.AddSingleton<INotificationRealtimeNotifier, NotificationRealtimeNotifier>();
+builder.Services.AddNotificationsModule(Configuration);
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in Permissions.All)
@@ -566,7 +548,7 @@ if (qaFixtureIdentity is not null)
         .ExcludeFromDescription();
 }
 app.MapHub<PermissionHub>("/hubs/permissions");
-app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapNotificationsModule();
 
 app.Run();
 

@@ -19,11 +19,6 @@ public sealed class NotificationHub : Hub
     internal static string UserChannel(int userId) => $"notifications-user:{userId}";
 }
 
-public interface INotificationRealtimeNotifier
-{
-    Task NotifyUserAsync(int userId, CancellationToken cancellationToken = default);
-}
-
 public sealed class NotificationRealtimeNotifier(IHubContext<NotificationHub> hubContext)
     : INotificationRealtimeNotifier
 {
