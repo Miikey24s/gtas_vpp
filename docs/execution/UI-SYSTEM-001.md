@@ -560,6 +560,22 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   hiển thị `Bản chốt N`; `Lịch sử chốt` mở danh sách các bản, còn `Điều chỉnh bản chốt` chọn lại dữ liệu chốt
   và lưu bản mới. Chỉnh/sửa một đơn sau chốt vẫn là capability riêng trong chi tiết đơn.
 
+### 7.14 — Compact settlement decision và selector thời gian/kỳ — 2026-08-14
+
+- Dòng `Tổng cộng` là authority cho số liệu tiền theo cột, vì vậy hai KPI `Trước VAT và thuế VAT` /
+  `Tổng giá trị` ở đầu Chốt kỳ bị loại bỏ. Vùng đầu chỉ còn một thanh `Phương án chốt` compact với
+  hai decision NCC/bảng giá; desktop nằm cùng hàng, mobile xếp dọc nhưng không tạo card KPI rời.
+- `VppPeriodPickerPopover` là composite chung cho chọn một kỳ và khoảng kỳ. Tháng/năm dùng
+  `VppDecisionSelect<int>`, header có icon calendar, không lặp lại cùng kỳ ở cả summary và field label.
+  History, Tổng hợp phòng ban và Chốt kỳ không tự dựng popup khác.
+- Toàn bộ DatePicker runtime hiện có nằm trong dialog gia hạn kỳ và được normalize qua Radzen bridge:
+  cùng control height, radius, hover/focus, popup border/shadow và calendar header theo token; binding,
+  validation và nghiệp vụ không đổi.
+- Footer Chốt kỳ bỏ border, shadow và pseudo separator của ô thao tác frozen, đồng thời bỏ border cạnh
+  của ô tổng liền trước. Header/body vẫn giữ separator frozen để người dùng nhận ra cột action.
+- Evidence: frontend Release build sạch; architecture `185/185`; Chốt kỳ route-real `4/4` ở
+  `390×844`, `768×1024`, `1366×768`, `1920×1080`; picker/history/dialog ngày dùng focused browser gate.
+
 ---
 
 ## 8. Rủi ro và recovery

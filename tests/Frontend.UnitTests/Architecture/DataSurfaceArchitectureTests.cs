@@ -341,7 +341,8 @@ public sealed class DataSurfaceArchitectureTests
             "DesignSystem",
             "Composites",
             "VppPeriodPickerPopover.razor"));
-        Assert.Equal(4, periodPicker.Split("<VppFilterSelect TValue=\"int\"", StringSplitOptions.None).Length - 1);
+        Assert.Equal(4, periodPicker.Split("<VppDecisionSelect TValue=\"int\"", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("<VppFilterSelect TValue=\"int\"", periodPicker, StringComparison.Ordinal);
         Assert.DoesNotContain("input type=\"month\"", periodPicker, StringComparison.Ordinal);
         Assert.Equal(4, Regex.Matches(settlement, "<RadzenDataGrid(?=\\s|>)").Count);
         Assert.Contains("AggregatedVppItemResDTO", settlement, StringComparison.Ordinal);

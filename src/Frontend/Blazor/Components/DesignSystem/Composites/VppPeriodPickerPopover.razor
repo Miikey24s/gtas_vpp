@@ -10,12 +10,15 @@
                  aria-label="@Title"
                  @onclick:stopPropagation>
             <header>
-                <div>
-                    <h2>@Title</h2>
-                    @if (!string.IsNullOrWhiteSpace(Summary))
-                    {
-                        <p>@Summary</p>
-                    }
+                <div class="vpp-period-picker-heading">
+                    <VppIcon Name="@VppIcons.Calendar" />
+                    <div>
+                        <h2>@Title</h2>
+                        @if (!string.IsNullOrWhiteSpace(Summary))
+                        {
+                            <p>@Summary</p>
+                        }
+                    </div>
                 </div>
                 <button type="button"
                         class="vpp-period-picker-close"
@@ -28,22 +31,23 @@
 
             <div class="vpp-period-picker-fields">
                 <div class="vpp-period-picker-field" role="group" aria-label="@StartLabel">
-                    <span class="vpp-period-picker-label">@StartLabel</span>
+                    @if (IsRange)
+                    {
+                        <span class="vpp-period-picker-label">@StartLabel</span>
+                    }
                     <div class="vpp-period-picker-selects">
-                        <VppFilterSelect TValue="int"
-                                         Value="@StartMonth"
-                                         Options="@MonthOptions"
-                                         ValueChanged="@OnStartMonthChangedAsync"
-                                         Active="false"
-                                         Placeholder="@Loc["Month"]"
-                                         AriaLabel="@($"{StartLabel} · {Loc["Month"]}")" />
-                        <VppFilterSelect TValue="int"
-                                         Value="@StartYear"
-                                         Options="@YearOptions"
-                                         ValueChanged="@OnStartYearChangedAsync"
-                                         Active="false"
-                                         Placeholder="@Loc["Year"]"
-                                         AriaLabel="@($"{StartLabel} · {Loc["Year"]}")" />
+                        <VppDecisionSelect TValue="int"
+                                           Value="@StartMonth"
+                                           Options="@MonthOptions"
+                                           ValueChanged="@OnStartMonthChangedAsync"
+                                           Placeholder="@Loc["Month"]"
+                                           AriaLabel="@($"{StartLabel} · {Loc["Month"]}")" />
+                        <VppDecisionSelect TValue="int"
+                                           Value="@StartYear"
+                                           Options="@YearOptions"
+                                           ValueChanged="@OnStartYearChangedAsync"
+                                           Placeholder="@Loc["Year"]"
+                                           AriaLabel="@($"{StartLabel} · {Loc["Year"]}")" />
                     </div>
                 </div>
 
@@ -53,20 +57,18 @@
                     <div class="vpp-period-picker-field" role="group" aria-label="@EndLabel">
                         <span class="vpp-period-picker-label">@EndLabel</span>
                         <div class="vpp-period-picker-selects">
-                            <VppFilterSelect TValue="int"
-                                             Value="@EndMonth"
-                                             Options="@MonthOptions"
-                                             ValueChanged="@OnEndMonthChangedAsync"
-                                             Active="false"
-                                             Placeholder="@Loc["Month"]"
-                                             AriaLabel="@($"{EndLabel} · {Loc["Month"]}")" />
-                            <VppFilterSelect TValue="int"
-                                             Value="@EndYear"
-                                             Options="@YearOptions"
-                                             ValueChanged="@OnEndYearChangedAsync"
-                                             Active="false"
-                                             Placeholder="@Loc["Year"]"
-                                             AriaLabel="@($"{EndLabel} · {Loc["Year"]}")" />
+                            <VppDecisionSelect TValue="int"
+                                               Value="@EndMonth"
+                                               Options="@MonthOptions"
+                                               ValueChanged="@OnEndMonthChangedAsync"
+                                               Placeholder="@Loc["Month"]"
+                                               AriaLabel="@($"{EndLabel} · {Loc["Month"]}")" />
+                            <VppDecisionSelect TValue="int"
+                                               Value="@EndYear"
+                                               Options="@YearOptions"
+                                               ValueChanged="@OnEndYearChangedAsync"
+                                               Placeholder="@Loc["Year"]"
+                                               AriaLabel="@($"{EndLabel} · {Loc["Year"]}")" />
                         </div>
                     </div>
                 }
@@ -109,16 +111,20 @@
     private int StartYear => ParsePeriod(StartValue).Year;
     private int EndMonth => ParsePeriod(EndValue).Month;
     private int EndYear => ParsePeriod(EndValue).Year;
-    private int EffectiveMinYear => Math.Min(MinYear ?? (DateTime.Today.Year - 10), EffectiveMaxYear);
-    private int EffectiveMaxYear => Math.Max(MaxYear ?? (DateTime.Today.Year + 1), DateTime.Today.Year);
-    private IReadOnlyList<VppFilterOption<int>> MonthOptions => Enumerable.Range(1, 12)
-        .Select(month => new VppFilterOption<int>(month, $"{Loc["Month"]} {month:00}"))
+    private int EffectiveMinYear => Math.Min(
+        MinYear ?? (DateTime.Today.Year - 10),
+        Math.Min(StartYear, EndYear));
+    private int EffectiveMaxYear => Math.Max(
+        MaxYear ?? (DateTime.Today.Year + 1),
+        Math.Max(DateTime.Today.Year, Math.Max(StartYear, EndYear)));
+    private IReadOnlyList<VppDecisionOption<int>> MonthOptions => Enumerable.Range(1, 12)
+        .Select(month => new VppDecisionOption<int>(month, $"{Loc["Month"]} {month:00}"))
         .ToArray();
-    private IReadOnlyList<VppFilterOption<int>> YearOptions => Enumerable.Range(
+    private IReadOnlyList<VppDecisionOption<int>> YearOptions => Enumerable.Range(
             EffectiveMinYear,
             (EffectiveMaxYear - EffectiveMinYear) + 1)
         .Reverse()
-        .Select(year => new VppFilterOption<int>(year, year.ToString(CultureInfo.InvariantCulture)))
+        .Select(year => new VppDecisionOption<int>(year, year.ToString(CultureInfo.InvariantCulture)))
         .ToArray();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

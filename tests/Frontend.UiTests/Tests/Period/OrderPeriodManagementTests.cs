@@ -73,7 +73,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 .ClickAsync();
 
             var dataRows = periodSurface.Locator("tbody tr");
-            var actionMenus = periodSurface.GetByTestId("period-row-more-actions");
+            var actionMenus = periodSurface.Locator(".vpp-admin-action-menu-trigger");
             (await actionMenus.CountAsync()).Should().Be(await dataRows.CountAsync(),
                 "mọi kỳ phải luôn có nhóm thao tác phụ ổn định");
 
@@ -92,7 +92,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                         AriaRole.Button,
                         new() { Name = "Chốt kỳ", Exact = true }))
                     .ToBeDisabledAsync();
-                await Assertions.Expect(settledRow.GetByTestId("period-row-more-actions"))
+                await Assertions.Expect(settledRow.Locator(".vpp-admin-action-menu-trigger"))
                     .ToBeDisabledAsync();
             }
 
@@ -100,7 +100,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             {
                 HasTextString = "Đang chốt"
             }).First;
-            await Assertions.Expect(pricingRow.GetByTestId("period-row-more-actions"))
+            await Assertions.Expect(pricingRow.Locator(".vpp-admin-action-menu-trigger"))
                 .ToBeDisabledAsync();
 
             var openRowWithOrders = dataRows.Filter(new LocatorFilterOptions
@@ -543,7 +543,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
     [Theory]
     [InlineData(1366, 768)]
     [InlineData(1920, 1080)]
-    public async Task PeriodSettlement_UsesClearFinancialKpisAndAlignedDataColumns(int width, int height)
+    public async Task PeriodSettlement_UsesCompactDecisionBarAndAlignedDataColumns(int width, int height)
     {
         await Page.SetViewportSizeAsync(width, height);
         await LoginAsDefaultUserAsync();
@@ -554,25 +554,20 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
         await Assertions.Expect(surface.Locator(".vpp-skeleton-page"))
             .ToBeHiddenAsync(new() { Timeout = 15_000 });
 
-        var kpiCards = Page.Locator(".vpp-settlement-kpi-card:visible");
-        await Assertions.Expect(kpiCards).ToHaveCountAsync(4);
+        var decisionBar = Page.Locator(".vpp-settlement-decision-bar:visible");
+        await Assertions.Expect(decisionBar).ToBeVisibleAsync();
+        await Assertions.Expect(Page.Locator(".vpp-settlement-kpi-card:visible")).ToHaveCountAsync(0);
+        await Assertions.Expect(decisionBar.GetByText("Phương án chốt", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(decisionBar.Locator(".vpp-decision-select")).ToHaveCountAsync(2);
         await Assertions.Expect(Page.GetByText("Chọn nhà cung cấp", new() { Exact = true }).First).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByText("Chọn bảng giá", new() { Exact = true }).First).ToBeVisibleAsync();
-        await Assertions.Expect(Page.GetByText("Trước VAT và thuế VAT", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(Page.GetByText("Tổng giá trị", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(Page.GetByText("Trước VAT và thuế VAT", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(Page.GetByText("Tổng giá trị", new() { Exact = true })).ToHaveCountAsync(0);
         await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Theo phòng ban", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Theo người đặt", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Theo mặt hàng", Exact = true })).ToBeVisibleAsync();
         await Assertions.Expect(surface.GetByRole(AriaRole.Columnheader, new() { Name = "Tạm tính sort", Exact = true }))
             .ToBeVisibleAsync();
-
-        var beforeVatCard = Page.Locator(".vpp-settlement-kpi-card").Nth(2);
-        var totalCard = Page.Locator(".vpp-settlement-kpi-card.is-total");
-        var beforeVat = ParseVnd(await beforeVatCard.Locator("strong").InnerTextAsync());
-        var vatAmount = ParseVnd(await beforeVatCard.Locator("small").InnerTextAsync());
-        var grandTotal = ParseVnd(await totalCard.Locator("strong").InnerTextAsync());
-        (beforeVat + vatAmount).Should().Be(grandTotal,
-            "tổng giá trị phải bằng giá trị trước VAT cộng thuế GTGT");
 
         var numericAlignment = await surface.Locator(".vpp-settlement-number")
             .EvaluateAllAsync<bool>("elements => elements.length > 0 && elements.every(element => getComputedStyle(element).textAlign === 'right')");
@@ -584,7 +579,7 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
             Directory.CreateDirectory(evidenceDirectory);
             await Page.ScreenshotAsync(new PageScreenshotOptions
             {
-                Path = Path.Combine(evidenceDirectory, $"period-settlement-kpis-{width}x{height}.png"),
+                Path = Path.Combine(evidenceDirectory, $"period-settlement-decision-bar-{width}x{height}.png"),
                 FullPage = false,
                 Animations = ScreenshotAnimations.Disabled,
                 Caret = ScreenshotCaret.Hide,
@@ -632,10 +627,6 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
         public double ClientHeight { get; init; }
         public string OverflowY { get; init; } = string.Empty;
     }
-
-    private static long ParseVnd(string value) => long.Parse(
-        new string(value.Where(char.IsDigit).ToArray()),
-        CultureInfo.InvariantCulture);
 
     private sealed class MenuItemStyle
     {

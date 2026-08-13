@@ -25,7 +25,6 @@
                     <VppPeriodPickerPopover IsOpen="true"
                                             IsRange="false"
                                             Title="@Loc["SettlementCustomPeriod"]"
-                                            Summary="@CustomPeriodSummary"
                                             StartLabel="@Loc["TargetPeriod"]"
                                             StartValue="@pendingCustomPeriod"
                                             StartChanged="@OnCustomPeriodChanged"
@@ -44,52 +43,35 @@
 
     </div>
 
-    @* DECISION: Chọn nhà cung cấp, bảng giá và hành động chốt/sửa kỳ. *@
-    @* TOOLBAR: Chọn nhà cung cấp, bảng giá và thao tác chốt/sửa kỳ. *@
+    @* DECISION: Phương án nhà cung cấp và bảng giá; tổng tiền đã nằm trong footer theo cột của bảng. *@
     <section class="vpp-settlement-decision-area" aria-label="@Loc["SettlementSupplierDecision"]">
-        <div class="vpp-settlement-kpi-grid">
-            <article class="vpp-settlement-kpi-card is-select">
-                <div class="vpp-settlement-kpi-heading">
-                    <VppIcon Name="storefront" />
+        <div class="vpp-settlement-decision-bar">
+            <div class="vpp-settlement-decision-title">
+                <VppIcon Name="@VppIcons.Tune" />
+                <span>@Loc["SettlementDecisionPlan"]</span>
+            </div>
+            <div class="vpp-settlement-decision-fields">
+                <div class="vpp-settlement-decision-field">
                     <span>@Loc["SettlementSelectSupplier"]</span>
+                    <VppDecisionSelect TValue="Guid?"
+                                       Value="@SelectedSupplierId"
+                                       Options="@SupplierOptions"
+                                       ValueChanged="@OnSupplierChangedAsync"
+                                       Placeholder="@Loc["SettlementSelectSupplier"]"
+                                       AriaLabel="@Loc["SettlementSelectSupplier"]"
+                                       Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
                 </div>
-                <VppDecisionSelect TValue="Guid?"
-                                   Value="@SelectedSupplierId"
-                                   Options="@SupplierOptions"
-                                   ValueChanged="@OnSupplierChangedAsync"
-                                   Placeholder="@Loc["SettlementSelectSupplier"]"
-                                   AriaLabel="@Loc["SettlementSelectSupplier"]"
-                                   Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
-            </article>
-            <article class="vpp-settlement-kpi-card is-select">
-                <div class="vpp-settlement-kpi-heading">
-                    <VppIcon Name="request_quote" />
+                <div class="vpp-settlement-decision-field">
                     <span>@Loc["SettlementSelectPriceList"]</span>
+                    <VppDecisionSelect TValue="Guid?"
+                                       Value="@SelectedPriceListId"
+                                       Options="@PriceListOptions"
+                                       ValueChanged="@OnPriceListChangedAsync"
+                                       Placeholder="@Loc["SettlementSelectPriceList"]"
+                                       AriaLabel="@Loc["SettlementSelectPriceList"]"
+                                       Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
                 </div>
-                <VppDecisionSelect TValue="Guid?"
-                                   Value="@SelectedPriceListId"
-                                   Options="@PriceListOptions"
-                                   ValueChanged="@OnPriceListChangedAsync"
-                                   Placeholder="@Loc["SettlementSelectPriceList"]"
-                                   AriaLabel="@Loc["SettlementSelectPriceList"]"
-                                   Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
-            </article>
-            <article class="vpp-settlement-kpi-card">
-                <div class="vpp-settlement-kpi-heading">
-                    <VppIcon Name="receipt_long" />
-                    <span>@Loc["SettlementSubtotalAndVat"]</span>
-                </div>
-                <strong>@FormatMoney(SettlementBeforeVat)</strong>
-                <small>@Loc["SettlementVatAmount"] @FormatMoney(SettlementVatAmount)</small>
-            </article>
-            <article class="vpp-settlement-kpi-card is-total">
-                <div class="vpp-settlement-kpi-heading">
-                    <VppIcon Name="payments" />
-                    <span>@Loc["SettlementGrandTotal"]</span>
-                </div>
-                <strong>@FormatMoney(SettlementGrandTotal)</strong>
-                <small>@Loc["SettlementIncludesVat"]</small>
-            </article>
+            </div>
         </div>
     </section>
 

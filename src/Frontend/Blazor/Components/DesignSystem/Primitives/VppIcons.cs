@@ -59,6 +59,7 @@ public static class VppIcons
     public const string Supplier = "local_shipping";
     public const string Table = "table_view";
     public const string TeamManagement = "groups";
+    public const string Tune = "tune";
     public const string Reset = "restart_alt";
     public const string Search = "search";
     public const string Select = "touch_app";

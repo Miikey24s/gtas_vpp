@@ -44,68 +44,66 @@
 .vpp-settlement-decision-area {
     display: grid;
     min-width: 0;
-    gap: var(--vpp-space-2);
 }
 
-.vpp-settlement-kpi-grid {
-    display: grid;
-    min-width: 0;
-    gap: var(--vpp-space-2);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.vpp-settlement-kpi-card {
-    display: grid;
-    min-width: 0;
-    min-height: 92px;
-    align-content: center;
-    gap: var(--vpp-space-1);
-    padding: var(--vpp-space-3);
-    border: var(--vpp-border-width) solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-card);
-    background: var(--vpp-bg-elevated);
-    box-shadow: var(--vpp-shadow-xs);
-}
-
-.vpp-settlement-kpi-heading {
+.vpp-settlement-decision-bar {
     display: flex;
     min-width: 0;
+    min-height: var(--vpp-data-toolbar-height);
+    align-items: center;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-lg);
+    background: var(--vpp-bg-elevated);
+}
+
+.vpp-settlement-decision-title {
+    display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: var(--vpp-space-2);
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-semibold);
+}
+
+.vpp-settlement-decision-title ::deep .vpp-icon {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
+}
+
+.vpp-settlement-decision-fields {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: var(--vpp-space-2);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vpp-settlement-decision-field {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.vpp-settlement-decision-field > span {
     color: var(--vpp-text-muted);
     font-size: var(--vpp-text-xs);
-}
-
-.vpp-settlement-kpi-heading ::deep .vpp-icon {
-    flex: 0 0 auto;
-    color: var(--vpp-text-secondary);
-}
-
-.vpp-settlement-kpi-card strong {
-    overflow: hidden;
-    color: var(--vpp-text-primary);
-    font-size: var(--vpp-text-lg);
-    font-variant-numeric: tabular-nums;
-    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.vpp-settlement-kpi-card small {
-    overflow: hidden;
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.vpp-settlement-kpi-card.is-select ::deep .vpp-decision-select {
+.vpp-settlement-decision-field ::deep .vpp-decision-select {
     width: 100%;
+    min-width: 0;
     max-width: none;
 }
 
-.vpp-settlement-kpi-card.is-total {
-    border-color: color-mix(in srgb, var(--vpp-action-primary) 22%, var(--vpp-border-default));
-    background: color-mix(in srgb, var(--vpp-action-primary) 4%, var(--vpp-bg-elevated));
+.vpp-settlement-decision-field ::deep .vpp-decision-select-trigger {
+    min-height: var(--vpp-button-height-compact);
+    padding-inline: var(--vpp-space-2);
+    border-radius: var(--vpp-radius-button);
+    background: transparent;
 }
 
 .vpp-settlement-blocker-bar {
@@ -230,6 +228,25 @@
     vertical-align: middle;
 }
 
+::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td.rz-col-actions {
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-inline-start: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+
+::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td:has(+ td.rz-col-actions) {
+    /* Cột frozen vẫn cần separator ở header/body, nhưng dòng tổng phải là một dải liền mạch. */
+    border-right: 0 !important;
+    border-inline-end: 0 !important;
+}
+
+::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td.rz-col-actions::before,
+::deep .vpp-settlement-order-grid .rz-grid-table tfoot > tr > td.rz-col-actions::after {
+    display: none !important;
+}
+
 ::deep .vpp-settlement-order-grid .vpp-settlement-number {
     text-align: right !important;
     font-variant-numeric: tabular-nums;
@@ -298,8 +315,9 @@
         flex-direction: column;
     }
 
-    .vpp-settlement-kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .vpp-settlement-decision-bar {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .vpp-settlement-selector-groups {
@@ -325,7 +343,7 @@
         flex-direction: column;
     }
 
-    .vpp-settlement-kpi-grid {
+    .vpp-settlement-decision-fields {
         grid-template-columns: 1fr;
     }
 

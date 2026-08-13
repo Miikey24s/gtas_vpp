@@ -1083,6 +1083,7 @@
   <data name="OrderCount" xml:space="preserve"><value>Số đơn</value></data>
   <data name="SettlementViewMode" xml:space="preserve"><value>Chế độ xem chốt kỳ</value></data>
   <data name="SettlementSupplierDecision" xml:space="preserve"><value>Nhà cung cấp và bảng giá dùng để chốt kỳ</value></data>
+  <data name="SettlementDecisionPlan" xml:space="preserve"><value>Phương án chốt</value></data>
   <data name="SettlementAllDepartments" xml:space="preserve"><value>Tất cả phòng ban</value></data>
   <data name="SettlementDepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm phòng ban hoặc mã đơn</value></data>
   <data name="SettlementRequesterSearchPlaceholder" xml:space="preserve"><value>Tìm người dùng hoặc mã đơn</value></data>

@@ -8,7 +8,7 @@
     inset-block-start: calc(100% + var(--vpp-space-2));
     inset-inline-start: 0;
     display: grid;
-    width: min(620px, calc(100vw - 16px));
+    width: min(600px, calc(100vw - 16px));
     overflow: hidden;
     border: var(--vpp-border-width) solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-card);
@@ -18,7 +18,7 @@
 }
 
 .vpp-period-picker-popover.is-single {
-    width: min(330px, calc(100vw - 16px));
+    width: min(360px, calc(100vw - 16px));
 }
 
 .vpp-period-picker-popover.is-above {
@@ -36,6 +36,22 @@
     justify-content: space-between;
     gap: var(--vpp-space-3);
     padding: var(--vpp-space-3);
+}
+
+.vpp-period-picker-heading {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-period-picker-heading > div {
+    min-width: 0;
+}
+
+.vpp-period-picker-heading ::deep .vpp-icon {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
 }
 
 .vpp-period-picker-popover > header {
@@ -88,7 +104,7 @@
     display: grid;
     align-items: center;
     gap: var(--vpp-space-2);
-    padding: var(--vpp-space-3);
+    padding: var(--vpp-space-4);
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 }
 
@@ -116,8 +132,20 @@
 }
 
 .vpp-period-picker-selects ::deep .vpp-filter-select,
-.vpp-period-picker-selects ::deep .vpp-filter-select-trigger {
+.vpp-period-picker-selects ::deep .vpp-filter-select-trigger,
+.vpp-period-picker-selects ::deep .vpp-decision-select,
+.vpp-period-picker-selects ::deep .vpp-decision-select-trigger {
     width: 100%;
+}
+
+.vpp-period-picker-selects ::deep .vpp-decision-select {
+    min-width: 0;
+}
+
+.vpp-period-picker-selects ::deep .vpp-decision-select-trigger {
+    min-height: var(--vpp-control-height);
+    border-radius: var(--vpp-radius-button);
+    background: transparent;
 }
 
 .vpp-period-picker-separator {
@@ -162,6 +190,7 @@
     }
 
     .vpp-period-picker-fields {
+        padding: var(--vpp-space-3);
         grid-template-columns: 1fr;
     }
 

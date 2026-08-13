@@ -41,8 +41,10 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
 
         await Assertions.Expect(Page.GetByText("Độ phủ bảng giá", new() { Exact = true }))
             .ToHaveCountAsync(0);
-        await Assertions.Expect(Page.Locator(".vpp-settlement-kpi-card.is-select > small"))
+        await Assertions.Expect(Page.Locator(".vpp-settlement-kpi-card"))
             .ToHaveCountAsync(0);
+        await Assertions.Expect(Page.Locator(".vpp-settlement-decision-bar:visible"))
+            .ToBeVisibleAsync();
         await Assertions.Expect(Page.GetByRole(
                 AriaRole.Button,
                 new() { Name = "Tạo phiên bản hiệu chỉnh", Exact = true }))
@@ -328,6 +330,27 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                 const numericCells = footerCells.filter(cell => cell.classList.contains('vpp-settlement-number'));
                 if (numericCells.some(cell => getComputedStyle(cell).textAlign !== 'right')) {
                     messages.push('Có ô số trong dòng tổng hợp chưa canh phải.');
+                }
+                const actionCell = footer.querySelector('td.rz-col-actions');
+                if (actionCell) {
+                    const actionStyle = getComputedStyle(actionCell);
+                    const separatorWidth = Number.parseFloat(actionStyle.borderInlineStartWidth || actionStyle.borderLeftWidth);
+                    const previousCell = actionCell.previousElementSibling;
+                    const previousStyle = previousCell ? getComputedStyle(previousCell) : null;
+                    const previousSeparatorWidth = previousStyle
+                        ? Number.parseFloat(previousStyle.borderInlineEndWidth || previousStyle.borderRightWidth)
+                        : 0;
+                    const beforeStyle = getComputedStyle(actionCell, '::before');
+                    const afterStyle = getComputedStyle(actionCell, '::after');
+                    const hasPseudoSeparator = [beforeStyle, afterStyle].some(style =>
+                        style.display !== 'none'
+                        && (Number.parseFloat(style.width) > 0 || Number.parseFloat(style.borderLeftWidth) > 0));
+                    if (separatorWidth > 0
+                        || previousSeparatorWidth > 0
+                        || actionStyle.boxShadow !== 'none'
+                        || hasPseudoSeparator) {
+                        messages.push('Separator cột thao tác vẫn đè lên dòng tổng hợp.');
+                    }
                 }
                 return messages;
             }

@@ -50,7 +50,11 @@ public sealed class UiSelectorAndHistoryNavigationTests : TestBase, IAuthenticat
         });
         (await selectedRows.CountAsync()).Should().BeGreaterThan(0,
             "the deep-linked order must be visibly selected in the order list");
-        (await Page.Locator(".vpp-history-drawer-close").IsVisibleAsync()).Should().BeFalse();
+        var drawerClose = Page.Locator(".vpp-history-drawer-close");
+        (await drawerClose.IsVisibleAsync()).Should().BeTrue(
+            "drawer chi tiết phải luôn có nút đóng rõ ràng theo dialog/drawer contract");
+        await drawerClose.ClickAsync();
+        await Assertions.Expect(Page.Locator(".vpp-history-drawer.is-open")).ToHaveCountAsync(0);
 
         var historySelector = Page.Locator(".vpp-history-scope-selector");
         var historyWidths = await historySelector.Locator(":scope > button").EvaluateAllAsync<double[]>(
@@ -63,6 +67,10 @@ public sealed class UiSelectorAndHistoryNavigationTests : TestBase, IAuthenticat
         await WaitForRenderSettleAsync();
         (await periodPopover.GetByRole(AriaRole.Button, new() { Name = "Áp dụng", Exact = true }).CountAsync())
             .Should().Be(1);
+        var periodValues = await periodPopover.Locator(".vpp-decision-select-label").AllTextContentsAsync();
+        periodValues.Should().HaveCount(4);
+        periodValues.Should().OnlyContain(value => !string.Equals(value.Trim(), "Năm", StringComparison.OrdinalIgnoreCase),
+            "picker phải giữ hiển thị năm đang chọn kể cả khi năm đó nằm ngoài biên dữ liệu tổng hợp mới nhất");
         var periodPopoverGeometry = await periodPopover.EvaluateAsync<double[]>(
             """
             element => {

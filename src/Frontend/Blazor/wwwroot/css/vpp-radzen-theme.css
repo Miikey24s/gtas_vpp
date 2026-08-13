@@ -222,6 +222,74 @@
     vertical-align: middle;
 }
 
+/* Date/time picker dùng cùng ngôn ngữ control và transient surface với selector chung. */
+.rz-datepicker {
+    min-height: var(--vpp-control-height);
+    border: 0 !important;
+    border-radius: var(--vpp-radius-input) !important;
+    background: var(--vpp-surface-control) !important;
+    box-shadow: inset 0 0 0 1px var(--vpp-border-default) !important;
+    transition: background-color var(--vpp-transition-fast),
+                box-shadow var(--vpp-transition-fast) !important;
+}
+
+.rz-datepicker:not(.rz-state-disabled):hover {
+    background: color-mix(in srgb, var(--vpp-text-primary) 5%, var(--vpp-surface-control)) !important;
+    box-shadow: inset 0 0 0 1px var(--vpp-border-strong) !important;
+}
+
+.rz-datepicker:focus-within {
+    outline: 0 !important;
+    box-shadow: inset 0 0 0 2px var(--vpp-border-focus) !important;
+}
+
+.rz-datepicker > .rz-inputtext {
+    min-height: var(--vpp-control-height);
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--vpp-text-primary) !important;
+}
+
+.rz-datepicker-popup-container {
+    overflow: hidden;
+    border: var(--vpp-border-width) solid var(--vpp-border-default) !important;
+    border-radius: var(--vpp-radius-lg) !important;
+    background: var(--vpp-surface-menu) !important;
+    box-shadow: var(--vpp-shadow-lg) !important;
+}
+
+.rz-datepicker-popup-container .rz-calendar-header {
+    min-height: var(--vpp-control-height);
+    border-bottom: var(--vpp-border-width) solid var(--vpp-border-default) !important;
+    background: var(--vpp-bg-elevated) !important;
+    color: var(--vpp-text-primary) !important;
+}
+
+.rz-datepicker-popup-container :is(.rz-calendar-prev, .rz-calendar-next) {
+    border-radius: var(--vpp-radius-button) !important;
+}
+
+.rz-datepicker-popup-container .rz-calendar-view td :is(.rz-state-active, .rz-state-active.rz-calendar-today) {
+    background: var(--vpp-action-primary) !important;
+    color: var(--vpp-text-on-action) !important;
+}
+
+.rz-datepicker-popup-container .rz-calendar-view td :is(.rz-state-active, .rz-state-active.rz-calendar-today):hover {
+    background: var(--vpp-action-primary-hover) !important;
+    color: var(--vpp-text-on-action) !important;
+}
+
+.rz-datepicker-popup-container .rz-timepicker .rz-button-md {
+    border-radius: var(--vpp-radius-button) !important;
+    background: var(--vpp-action-primary) !important;
+    color: var(--vpp-text-on-action) !important;
+}
+
+.rz-datepicker-popup-container .rz-timepicker .rz-button-md:hover {
+    background: var(--vpp-action-primary-hover) !important;
+}
+
 .rz-button.rz-variant-text {
     background: transparent;
 }
