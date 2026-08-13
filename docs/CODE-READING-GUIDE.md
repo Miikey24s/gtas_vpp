@@ -210,6 +210,10 @@ GET /api/reports/*
 `AddReportsModule` là owner đăng ký DI cho query, settlement reader và insight providers. Reader settlement
 chỉ là compatibility boundary của Reports; nó không được xác nhận/chỉnh sửa/chuyển trạng thái kỳ.
 
+Các primitive tạo file dùng chung nằm ở `Application/Platform/Files`:
+`ExportFileContract`, `SimpleWorkbookBuilder`, `VppPdfFontRegistry` và `VppPdfTheme`. Builder theo nghiệp vụ
+vẫn ở module gần consumer (`Order*`, `Report*`, `Settlement*`); không tạo một generic export service mới.
+
 `Report.razor` dùng cùng `scope/year/month` cho summary và ba export. Search phòng ban chỉ lọc
 client-side `DepartmentBreakdown`; bảng chỉ hiển thị field DTO thật. Trend bind `TotalAmount`. Khi
 `SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại. Trend

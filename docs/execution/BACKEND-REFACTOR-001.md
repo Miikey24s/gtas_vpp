@@ -717,6 +717,9 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
   Application; API chỉ giữ HTTP controller, SignalR adapter và module composition. Namespace/interface giữ
   nguyên nên Request/Settlement/Identity consumers không đổi. Focused registration/notification/
   architecture/config gates `53/53` PASS; chờ full backend unit + scoped format trước commit.
+- Pure file seam: bốn primitive dùng chung `ExportFileContract`, `SimpleWorkbookBuilder`,
+  `VppPdfFontRegistry`, `VppPdfTheme` đã chuyển sang `Application/Platform/Files`; namespace và consumer
+  không đổi. Focused export/report/import gates `35/35` PASS; đây chỉ là ownership move, không đổi bytes.
 - Do not redo: B0R route/auth/ProblemDetails characterization và B1 dead-code/base-service cleanup đã có.
 
 ## 15. Research sources
