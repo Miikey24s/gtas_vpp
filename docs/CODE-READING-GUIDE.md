@@ -214,6 +214,9 @@ Các primitive tạo file dùng chung nằm ở `Application/Platform/Files`:
 `ExportFileContract`, `SimpleWorkbookBuilder`, `VppPdfFontRegistry` và `VppPdfTheme`. Builder theo nghiệp vụ
 vẫn ở module gần consumer (`Order*`, `Report*`, `Settlement*`); không tạo một generic export service mới.
 
+Adapter HTTP dùng chung nằm ở `Api/Platform/Middleware`; factory chỉ phục vụ lệnh EF design-time nằm ở
+`Api/Platform/DatabaseInitialization`. Namespace công khai được giữ nguyên để pipeline và test không đổi.
+
 `Report.razor` dùng cùng `scope/year/month` cho summary và ba export. Search phòng ban chỉ lọc
 client-side `DepartmentBreakdown`; bảng chỉ hiển thị field DTO thật. Trend bind `TotalAmount`. Khi
 `SettlementId` có giá trị, số liệu và bằng chứng hiển thị là snapshot lúc chốt kỳ, không tính lại. Trend

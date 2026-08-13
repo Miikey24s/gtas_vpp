@@ -720,6 +720,9 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
 - Pure file seam: bốn primitive dùng chung `ExportFileContract`, `SimpleWorkbookBuilder`,
   `VppPdfFontRegistry`, `VppPdfTheme` đã chuyển sang `Application/Platform/Files`; namespace và consumer
   không đổi. Focused export/report/import gates `35/35` PASS; đây chỉ là ownership move, không đổi bytes.
+- Pure API platform seam: middleware dùng chung đã vào `Api/Platform/Middleware`; EF design-time factory vào
+  `Api/Platform/DatabaseInitialization`. Giữ namespace/pipeline nguyên trạng; focused middleware/deployment/
+  manifest gates `25/25` PASS. Không tách runtime database initialization ở checkpoint này.
 - Do not redo: B0R route/auth/ProblemDetails characterization và B1 dead-code/base-service cleanup đã có.
 
 ## 15. Research sources
