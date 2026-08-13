@@ -153,10 +153,6 @@
     align-items: center;
 }
 
-.vpp-order-builder-virtual-body > .vpp-order-builder-virtual-row:last-child {
-    border-bottom: 0;
-}
-
 .vpp-order-builder-data-surface ::deep .vpp-order-builder-pager {
     min-height: var(--vpp-data-footer-height);
     border-top: 1px solid var(--vpp-border-default);

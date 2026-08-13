@@ -347,7 +347,8 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                  {
                      (Path: "library?tab=1", TestId: "category-admin-data-surface"),
                      (Path: "library?tab=6&pricingTab=price-lists", TestId: "price-lists-data-surface"),
-                     (Path: "dashboard?tab=5&periodTab=pending", TestId: "pending-approval-list")
+                     (Path: "dashboard?tab=5&periodTab=pending", TestId: "pending-approval-list"),
+                     (Path: "dashboard?tab=5&periodTab=periods", TestId: "order-period-management-table")
                  })
         {
             await Page.GotoAsync($"{BaseUrl}{route.Path}", new() { WaitUntil = WaitUntilState.Load });
@@ -372,17 +373,24 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
                     const flatScroller = Number.parseFloat(scrollerStyle.borderTopLeftRadius) === 0
                         && scrollerStyle.boxShadow === 'none';
                     const oneFooterSeam = Number.parseFloat(pagerStyle.borderTopWidth) === 1;
-                    const lastRowIsNotASecondSeam = lastCells.every(cell =>
-                        getComputedStyle(cell).borderBottomColor === 'rgba(0, 0, 0, 0)'
-                        || getComputedStyle(cell).borderBottomColor === 'transparent');
-                    return `${flatGrid && flatScroller && oneFooterSeam && lastRowIsNotASecondSeam}`
+                    const lastRowKeepsItsSeparator = lastCells.length === 0 || lastCells.every(cell => {
+                        const style = getComputedStyle(cell);
+                        return Number.parseFloat(style.borderBottomWidth) === 1
+                            && style.borderBottomColor !== 'rgba(0, 0, 0, 0)'
+                            && style.borderBottomColor !== 'transparent';
+                    });
+                    const scrollerRect = scroller.getBoundingClientRect();
+                    const pagerRect = pager.getBoundingClientRect();
+                    const footerDoesNotOverlapBody = Math.abs(pagerRect.top - scrollerRect.bottom) <= 1;
+                    return `${flatGrid && flatScroller && oneFooterSeam && lastRowKeepsItsSeparator && footerDoesNotOverlapBody}`
                         + `|grid=${gridStyle.borderTopWidth}/${gridStyle.borderTopLeftRadius}/${gridStyle.boxShadow}`
                         + `|scroller=${scrollerStyle.borderTopLeftRadius}/${scrollerStyle.boxShadow}`
-                        + `|pager=${pagerStyle.borderTopWidth}`;
+                        + `|pager=${pagerStyle.borderTopWidth}`
+                        + `|gap=${pagerRect.top - scrollerRect.bottom}`;
                 }
                 """);
 
-            seam.Should().StartWith("true", $"{route.Path}: frame owns the outer chrome and pager owns the only footer seam");
+            seam.Should().StartWith("true", $"{route.Path}: frame owns outer chrome, data rows keep separators and pager does not overlap the body");
         }
     }
 

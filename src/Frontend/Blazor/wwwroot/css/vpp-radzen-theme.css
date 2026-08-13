@@ -838,9 +838,3 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
     background: var(--vpp-bg-elevated);
     box-shadow: none;
 }
-
-/* Footer là chủ sở hữu duy nhất của đường phân cách cuối bảng. Bỏ cạnh dưới
-   của hàng cuối để khi cuộn sát đáy không xuất hiện đường viền kép hoặc chồng nét. */
-[data-vpp-data-surface="true"] .vpp-data-grid .rz-grid-table tbody > tr:last-child > td {
-    border-bottom-color: transparent;
-}

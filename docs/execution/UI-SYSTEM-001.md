@@ -515,9 +515,10 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - `VppDataSurfaceFrame` là lớp duy nhất sở hữu border/radius ngoài; Radzen grid và vùng cuộn bên trong
   được làm phẳng, bỏ shadow/outline/bo góc lồng nhau. Header, body và footer vì vậy nối thành một mặt
   liên tục thay vì các card nhỏ chồng lên nhau.
-- Pager/footer sở hữu duy nhất đường phân cách cuối bảng. Cạnh dưới của hàng cuối được làm trong suốt
-  để khi cuộn sát đáy không tạo đường viền kép hoặc bị đè lên footer; rule legacy từng reset toàn bộ
-  pager về `border: 0` đã được tách khỏi scroll-container rule.
+- Mỗi dòng dữ liệu, kể cả dòng cuối, giữ separator cạnh dưới để bảng không bị cụt nét khi còn khoảng trống
+  trước footer. Pager giữ cạnh trên riêng và nằm sau vùng cuộn theo normal flow; kiểm thử geometry khóa hai
+  vùng không chồng lên nhau thay vì xóa viền của dòng cuối. Rule legacy từng reset toàn bộ pager về
+  `border: 0` đã được tách khỏi scroll-container rule.
 - Empty state nằm trong ô dữ liệu không còn kế thừa card chrome của `VppContentState`: bỏ border,
   radius và shadow riêng để chỉ còn đúng khung ngoài của data surface.
 - `Duyệt đơn bổ sung` giữ nguyên toolbar, cột, empty state và footer khi hàng đợi rỗng nhưng danh sách
@@ -525,6 +526,29 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   của list, không phải trạng thái “chưa chọn chi tiết”.
 - Architecture/browser gate khóa outer chrome, footer seam và full-width empty queue trên các surface
   đại diện Library, Bảng giá và Duyệt đơn bổ sung.
+
+### 7.13 — Plan đề xuất: dòng tổng hợp theo cột tại Chốt kỳ — 2026-08-13
+
+> Trạng thái: `PENDING OWNER APPROVAL` — chưa sửa markup, dữ liệu hoặc CSS của Chốt kỳ.
+
+- **Vị trí khuyến nghị:** thêm đúng một dòng `Tổng cộng` trong footer cột của DataGrid, nằm cố định ngay
+  trên pager và cuộn ngang cùng schema cột. Không đặt thành KPI/card thứ năm hoặc thanh rời bên ngoài vì sẽ
+  khó giữ thẳng cột khi có horizontal scroll và cột thao tác frozen.
+- **Phạm vi tính:** tổng trên toàn bộ kết quả sau bộ lọc hiện tại và trước paging; đổi trang hoặc page-size
+  không làm số tổng thay đổi. Khi đang lọc, nhãn đổi thành `Tổng sau lọc`; khi không có kết quả vẫn giữ dòng
+  và hiển thị `0` ở metric cộng được để geometry không nhảy.
+- **Theo phòng ban / Theo người đặt:** cộng `Tổng đơn`, `Đơn thường`, `Đơn bổ sung`, `Tổng mặt hàng`,
+  `Tổng số lượng`, `Tạm tính`, `Thuế GTGT` và `Thành tiền`. Cột tên hiển thị nhãn tổng; `#` và `Thao tác`
+  để trống.
+- **Theo mặt hàng:** cộng `Tổng số lượng`, `Tạm tính` và `Thành tiền`; `Số đơn` phải là số đơn **không trùng**
+  trong các mặt hàng sau lọc, không cộng thẳng số đơn của từng dòng. `Đơn giá` và `% VAT` không cộng được
+  nên hiển thị `–`; cột danh mục, đơn vị và thao tác để trống.
+- **Cách làm:** dùng `RadzenDataGridColumn.FooterTemplate` của đúng phiên bản Radzen hiện tại; tính qua một
+  projection typed từ snapshot đã có, không gọi thêm API và không đặt phép cộng rải trong Razor. Footer dùng
+  nền header trung tính, border trên rõ hơn row separator, số căn phải/tabular và không có card/radius/shadow.
+- **Kiểm tra bắt buộc:** unit test semantics của ba view; filter → total đổi đúng, paging → total giữ nguyên;
+  route-real tại `1366×768` và `1920×1080`; sai lệch trục header/body/footer không quá `1px`; horizontal scroll,
+  frozen action, empty/filtered-empty và pager không chồng nhau.
 
 ---
 

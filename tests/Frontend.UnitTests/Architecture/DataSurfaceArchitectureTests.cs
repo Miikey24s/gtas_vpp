@@ -105,7 +105,8 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("--rz-grid-border-radius: 0;", bridge, StringComparison.Ordinal);
         Assert.Contains("--rz-grid-data-border-shadow: none;", bridge, StringComparison.Ordinal);
         Assert.Contains("> .vpp-data-surface-body > .vpp-data-grid.rz-data-grid", bridge, StringComparison.Ordinal);
-        Assert.Contains("border-bottom-color: transparent;", bridge, StringComparison.Ordinal);
+        Assert.DoesNotContain("tbody > tr:last-child > td", bridge, StringComparison.Ordinal);
+        Assert.DoesNotContain("border-bottom-color: transparent;", bridge, StringComparison.Ordinal);
         Assert.Contains("z-index: 2;", bridge, StringComparison.Ordinal);
         Assert.Contains("--vpp-data-grid-min-width", bridge, StringComparison.Ordinal);
         Assert.Contains("overflow: auto;", bridge, StringComparison.Ordinal);
@@ -125,6 +126,14 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("box-shadow: none;", dataGrid, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-order-grid .rz-datatable-tablewrapper,\n.vpp-order-grid .rz-paginator", dataGrid, StringComparison.Ordinal);
         Assert.Contains(".vpp-order-grid .rz-pager,", dataGrid, StringComparison.Ordinal);
+
+        var orderBuilderStyles = File.ReadAllText(Path.Combine(
+            root,
+            "Components",
+            "Pages",
+            "VPPRequest",
+            "OrderCreateStep2.razor.css"));
+        Assert.DoesNotContain(".vpp-order-builder-virtual-body > .vpp-order-builder-virtual-row:last-child", orderBuilderStyles, StringComparison.Ordinal);
     }
 
     [Fact]
