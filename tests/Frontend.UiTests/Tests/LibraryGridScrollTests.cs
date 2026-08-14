@@ -459,6 +459,8 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 
         var supplierSelect = dialog.Locator(".vpp-decision-select");
         await Assertions.Expect(supplierSelect).ToHaveCountAsync(1);
+        await Assertions.Expect(supplierSelect.GetByText("Chọn nhà cung cấp", new() { Exact = true })).ToHaveCountAsync(1);
+        await Assertions.Expect(supplierSelect.Locator("small")).ToHaveCountAsync(0);
         await Assertions.Expect(dialog.Locator(".rz-dropdown")).ToHaveCountAsync(0);
         var supplierTrigger = supplierSelect.Locator(".vpp-decision-select-trigger");
         var supplierPopover = dialog.Locator(".vpp-decision-select-popover");

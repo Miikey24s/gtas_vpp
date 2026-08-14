@@ -23,7 +23,6 @@
                                    Options="@SupplierOptions"
                                    Placeholder="@Loc["PriceListSelectSupplier"]"
                                    AriaLabel="@Loc["PriceListSupplier"]"
-                                   Eyebrow="@Loc["PriceListSupplier"]"
                                    Disabled="@(SupplierOptions.Count == 0)" />
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"><RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" /><RadzenText Text="@Loc["PriceListUseAsDefault"]" TextStyle="TextStyle.Body2" /></RadzenStack>
             }
