@@ -372,7 +372,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
     }
 
     [Fact]
-    public async Task PriceList_Editor_UsesWorkspaceAdaptiveDialog()
+    public async Task PriceList_Editor_HidesDeferredCommercialTerms()
     {
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 768);
@@ -383,13 +383,29 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await createButton.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await createButton.ClickAsync();
 
-        var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--workspace:visible");
+        var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--standard:visible");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await dialog.Locator("[data-testid='price-list-editor']").CountAsync()).Should().Be(1);
-        await Assertions.Expect(dialog.GetByText("Khoản giảm thêm", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(dialog.GetByText("Phụ phí", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(dialog.GetByText("Phí vận chuyển", new() { Exact = true })).ToBeVisibleAsync();
-        await Assertions.Expect(dialog.GetByText("Rebate", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(dialog.GetByText("Mã hợp đồng tham chiếu", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(dialog.GetByText("Chiết khấu (%)", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(dialog.GetByText("Khoản giảm thêm", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(dialog.GetByText("Phụ phí", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(dialog.GetByText("Phí vận chuyển", new() { Exact = true })).ToHaveCountAsync(0);
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "price-list-editor-deferred-terms-hidden.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
         await Page.Keyboard.PressAsync("Escape");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
     }

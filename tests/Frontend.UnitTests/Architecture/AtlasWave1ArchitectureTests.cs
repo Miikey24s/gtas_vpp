@@ -97,8 +97,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("SupplierCompact", page, StringComparison.Ordinal);
         Assert.DoesNotContain("VersionCompact", page, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-admin-switch-readonly", page, StringComparison.Ordinal);
-        Assert.Contains("Loc[\"PriceListAdditionalReduction\"]", editor, StringComparison.Ordinal);
-        Assert.Contains("Loc[\"PriceListCommercialTermsHint\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceListContractReference\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceListDiscountRate\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceListAdditionalReduction\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceListAdditionalFee\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceListShippingFee\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceListCommercialTermsHint\"]", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("Text=\"Rebate\"", editor, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UOM\"]", pricePage, StringComparison.Ordinal);
         Assert.Contains("Loc[\"SupplierSku\"]", pricePage, StringComparison.Ordinal);
@@ -110,6 +114,7 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("LeadTimeCompact", pricePage, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-admin-switch-readonly", pricePage, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", editor, StringComparison.Ordinal);
+        Assert.Contains("Size=\"VppAdminDialogSize.Standard\"", editor, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", priceEditor, StringComparison.Ordinal);
         Assert.Contains("VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard", priceCode, StringComparison.Ordinal);
         Assert.Contains("data-vpp-admin-dialog-size=\"@SizeCssClass\"", ReadFrontendSource("Components/DesignSystem/Composites/VppAdaptiveDialogShell.razor"), StringComparison.Ordinal);

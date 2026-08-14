@@ -333,7 +333,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     [nameof(Dialog_PriceListEditor.IsClone)] = isClone,
                     [nameof(Dialog_PriceListEditor.Suppliers)] = suppliers
                 },
-                VppAdminDialogProfiles.Create(VppAdminDialogSize.Workspace, title, closeAriaLabel: Loc["Close"].Value));
+                VppAdminDialogProfiles.Create(VppAdminDialogSize.Standard, title, closeAriaLabel: Loc["Close"].Value));
 
             return result as PriceListUpdateReqDTO;
         }

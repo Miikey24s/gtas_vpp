@@ -4,7 +4,7 @@
 @using gtas_vpp_shared.DTOs.Req.Library
 @using gtas_vpp_shared.DTOs.Res.Library
 
-<VppAdaptiveDialogShell Size="VppAdminDialogSize.Workspace" TestId="price-list-editor">
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="price-list-editor">
     <ChildContent>
         <RadzenStack Gap="1rem">
             <RadzenRow>
@@ -27,17 +27,9 @@
                                     Placeholder="@Loc["PriceListSelectSupplier"]"
                                     Style="width:100%" />
                 </RadzenFormField>
-                <RadzenRow>
-                    <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListCurrency"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Disabled="true" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                    <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListContractReference"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.ContractCode" MaxLength="128" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                </RadzenRow>
-                <RadzenRow>
-                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListDiscountRate"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.DiscountRate" Min="0" Max="100" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListAdditionalReduction"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.RebateAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListAdditionalFee"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.FeeAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListShippingFee"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.ShippingAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                </RadzenRow>
-                <RadzenText Text="@Loc["PriceListCommercialTermsHint"]" TextStyle="TextStyle.Caption" />
+                <RadzenFormField Text="@Loc["PriceListCurrency"]" Variant="Variant.Outlined">
+                    <RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Disabled="true" Style="width:100%" />
+                </RadzenFormField>
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"><RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" /><RadzenText Text="@Loc["PriceListUseAsDefault"]" TextStyle="TextStyle.Body2" /></RadzenStack>
             }
             <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>
