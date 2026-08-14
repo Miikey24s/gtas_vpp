@@ -542,7 +542,7 @@ public sealed class DataSurfaceArchitectureTests
                 column.Value.Contains("Property=\"Id\"", StringComparison.Ordinal)
                 || column.Value.Contains("Property=\"PriceMappingId\"", StringComparison.Ordinal)
                 || Regex.IsMatch(column.Value, "Property=\\\"@nameof\\([^)]*\\.Id\\)\\\"", RegexOptions.CultureInvariant),
-                "Chỉ ID hệ thống của chính bản ghi được phép xuất hiện trong bộ chọn cột.");
+                "Chỉ ID của chính bản ghi được phép xuất hiện trong bộ chọn cột.");
         });
 
         foreach (var consumer in pickerConsumers)

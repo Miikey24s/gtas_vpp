@@ -33,7 +33,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var labels = await popover.Locator(".vpp-column-picker-label").AllInnerTextsAsync();
         labels.Should().NotContain("#");
         labels.Should().NotContain("Thao tác");
-        labels.Should().ContainSingle(label => label == "ID hệ thống");
+        labels.Should().ContainSingle(label => label == "ID");
         labels.Should().Contain("Mã loại");
         labels.Should().Contain("Tên loại");
 

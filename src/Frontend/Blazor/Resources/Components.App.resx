@@ -1059,7 +1059,7 @@
   <data name="PermissionModel" xml:space="preserve"><value>Mô hình</value></data>
   <data name="CanonicalRoleReadOnly" xml:space="preserve"><value>Vai trò chuẩn · chỉ đọc</value></data>
   <data name="Identifier" xml:space="preserve"><value>Định danh</value></data>
-  <data name="SystemId" xml:space="preserve"><value>ID hệ thống</value></data>
+  <data name="SystemId" xml:space="preserve"><value>ID</value></data>
   <data name="PermissionUpdated" xml:space="preserve"><value>Đã cập nhật phân quyền</value></data>
   <data name="PermissionComponentUpdated" xml:space="preserve"><value>Đã cập nhật thành phần “{0}”.</value></data>
   <data name="RoleInspectorTitle" xml:space="preserve"><value>Vai trò: {0}</value></data>

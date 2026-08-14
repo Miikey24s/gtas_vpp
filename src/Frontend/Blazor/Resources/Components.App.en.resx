@@ -1059,7 +1059,7 @@
   <data name="PermissionModel" xml:space="preserve"><value>Model</value></data>
   <data name="CanonicalRoleReadOnly" xml:space="preserve"><value>Canonical role · read only</value></data>
   <data name="Identifier" xml:space="preserve"><value>Identifier</value></data>
-  <data name="SystemId" xml:space="preserve"><value>System ID</value></data>
+  <data name="SystemId" xml:space="preserve"><value>ID</value></data>
   <data name="PermissionUpdated" xml:space="preserve"><value>Permission updated</value></data>
   <data name="PermissionComponentUpdated" xml:space="preserve"><value>Component “{0}” was updated.</value></data>
   <data name="RoleInspectorTitle" xml:space="preserve"><value>Role: {0}</value></data>

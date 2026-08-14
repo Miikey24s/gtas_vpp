@@ -31,7 +31,7 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
         labels.Should().Contain("Tên bảng giá");
         labels.Should().Contain("Mã bảng giá");
         labels.Should().Contain("Nhà cung cấp");
-        labels.Should().ContainSingle(label => label == "ID hệ thống");
+        labels.Should().ContainSingle(label => label == "ID");
         labels.Should().NotContain(label => label == "#"
             || label == "Thao tác"
             || label.Contains("RowVersion", StringComparison.OrdinalIgnoreCase));
