@@ -18,9 +18,10 @@ namespace gtas_vpp_be.Controllers
         private readonly IPriceListService _priceListService;
         private readonly IPriceBookWorkflowService? _workflowService;
         private readonly IPriceListImportService? _importService;
+        private readonly IPriceListExportService? _exportService;
 
         public VPPPriceListController(IPriceListService priceListService)
-            : this(priceListService, null, null)
+            : this(priceListService, null, null, null)
         {
         }
 
@@ -28,11 +29,13 @@ namespace gtas_vpp_be.Controllers
         public VPPPriceListController(
             IPriceListService priceListService,
             IPriceBookWorkflowService? workflowService,
-            IPriceListImportService? importService)
+            IPriceListImportService? importService,
+            IPriceListExportService? exportService = null)
         {
             _priceListService = priceListService;
             _workflowService = workflowService;
             _importService = importService;
+            _exportService = exportService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -211,6 +214,30 @@ namespace gtas_vpp_be.Controllers
 
             var template = await _importService.BuildTemplateAsync(id, cancellationToken);
             return File(template.Content, template.ContentType, template.FileName);
+        }
+
+        [HttpGet("imports/template.xlsx")]
+        [Authorize(Policy = Permissions.LibraryManage)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> DownloadGenericImportTemplate(CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+
+            var template = await _importService.BuildTemplateAsync(null, cancellationToken);
+            return File(template.Content, template.ContentType, template.FileName);
+        }
+
+        [HttpGet("{id:guid}/export.xlsx")]
+        [Authorize(Policy = Permissions.LibraryView)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ExportExcel(Guid id, CancellationToken cancellationToken)
+        {
+            if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
+            if (_exportService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+
+            var export = await _exportService.ExportExcelAsync(id, cancellationToken);
+            return File(export.Content, export.ContentType, export.FileName);
         }
 
         [HttpPost("{id:guid}/imports/preview")]

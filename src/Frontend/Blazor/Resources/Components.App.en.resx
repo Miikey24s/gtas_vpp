@@ -483,11 +483,15 @@
   <data name="CopyAsNewPriceList" xml:space="preserve"><value>Duplicate price list</value></data>
   <data name="PriceListCopyNameSuffix" xml:space="preserve"><value>Copy</value></data>
   <data name="ImportPriceList" xml:space="preserve"><value>Import price list</value></data>
+  <data name="ImportFromFile" xml:space="preserve"><value>Import from file</value></data>
   <data name="PriceImport" xml:space="preserve"><value>Import price list</value></data>
   <data name="DownloadTemplate" xml:space="preserve"><value>Download template</value></data>
+  <data name="PriceImportTarget" xml:space="preserve"><value>Target price list</value></data>
+  <data name="SelectPriceListBeforeImport" xml:space="preserve"><value>Select a price list before choosing a file</value></data>
+  <data name="SelectPriceListBeforeImportHint" xml:space="preserve"><value>The file will be validated and applied to the selected price list.</value></data>
   <data name="ConfirmImport" xml:space="preserve"><value>Confirm import</value></data>
   <data name="PriceImportSafeTitle" xml:space="preserve"><value>Review before saving</value></data>
-  <data name="PriceImportSafeDescription" xml:space="preserve"><value>The system previews every change. The database is updated only after confirmation and when no row errors remain.</value></data>
+  <data name="PriceImportSafeDescription" xml:space="preserve"><value>The system previews every change. Data is updated only after confirmation and when no row errors remain.</value></data>
   <data name="PriceImportChooseFile" xml:space="preserve"><value>Choose a price file</value></data>
   <data name="PriceImportFileHint" xml:space="preserve"><value>Excel (.xlsx) or UTF-8 CSV, up to 5 MB and 5,000 rows.</value></data>
   <data name="ChooseAnotherFile" xml:space="preserve"><value>Choose another file</value></data>
@@ -503,6 +507,7 @@
   <data name="PriceImportCompleted" xml:space="preserve"><value>Price list imported</value></data>
   <data name="PriceImportResult" xml:space="preserve"><value>Import result</value></data>
   <data name="PriceImportFileTooLarge" xml:space="preserve"><value>The file exceeds the 5 MB limit.</value></data>
+  <data name="PriceImportUnsupportedFile" xml:space="preserve"><value>Only Excel (.xlsx) or CSV (.csv) files are supported.</value></data>
   <data name="PriceImportPreviewFailed" xml:space="preserve"><value>Could not preview the price file.</value></data>
   <data name="PriceImportConfirmFailed" xml:space="preserve"><value>Could not import the price list.</value></data>
   <data name="Rows" xml:space="preserve"><value>rows</value></data>

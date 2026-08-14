@@ -95,12 +95,56 @@ public sealed class VPPPriceListImportControllerTests
         imports.VerifyAll();
     }
 
-    private static VPPPriceListController Controller(IPriceListImportService importService)
+    [Fact]
+    public async Task DownloadGenericTemplate_ReturnsWorkbookWithoutSelectingPriceList()
+    {
+        var expected = new PriceListImportTemplateResult(
+            [0x50, 0x4B, 0x03, 0x04],
+            "GTAS-VPP-Mau-nhap-bang-gia-bang-gia.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        var imports = new Mock<IPriceListImportService>();
+        imports.Setup(service => service.BuildTemplateAsync(null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+        var controller = Controller(imports.Object);
+
+        var result = await controller.DownloadGenericImportTemplate(TestContext.Current.CancellationToken);
+
+        var file = Assert.IsType<FileContentResult>(result);
+        Assert.Equal(expected.Content, file.FileContents);
+        Assert.Equal(expected.FileName, file.FileDownloadName);
+        imports.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ExportExcel_ReturnsSelectedPriceListWorkbook()
+    {
+        var priceListId = Guid.NewGuid();
+        var expected = new PriceListExportResult(
+            [0x50, 0x4B, 0x03, 0x04],
+            "GTAS-VPP-Bang-gia-BG-01.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        var exports = new Mock<IPriceListExportService>();
+        exports.Setup(service => service.ExportExcelAsync(priceListId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+        var controller = Controller(Mock.Of<IPriceListImportService>(), exports.Object);
+
+        var result = await controller.ExportExcel(priceListId, TestContext.Current.CancellationToken);
+
+        var file = Assert.IsType<FileContentResult>(result);
+        Assert.Equal(expected.Content, file.FileContents);
+        Assert.Equal(expected.FileName, file.FileDownloadName);
+        exports.VerifyAll();
+    }
+
+    private static VPPPriceListController Controller(
+        IPriceListImportService importService,
+        IPriceListExportService? exportService = null)
     {
         var controller = new VPPPriceListController(
             Mock.Of<IPriceListService>(),
             Mock.Of<IPriceBookWorkflowService>(),
-            importService);
+            importService,
+            exportService);
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext

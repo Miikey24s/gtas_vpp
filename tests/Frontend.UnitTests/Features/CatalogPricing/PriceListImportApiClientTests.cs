@@ -59,6 +59,8 @@ public sealed class PriceListImportApiClientTests
         await client.ConfirmAsync(priceListId, batchId, [1, 2, 3]);
         await client.ListAsync(priceListId);
         await client.DownloadTemplateAsync(priceListId, TestContext.Current.CancellationToken);
+        await client.DownloadTemplateAsync(TestContext.Current.CancellationToken);
+        await client.ExportExcelAsync(priceListId, TestContext.Current.CancellationToken);
 
         Assert.Contains(calls, call => call.Method == "FILE"
             && call.Endpoint == $"/api/vpppricelist/{priceListId}/imports/analyze");
@@ -69,18 +71,20 @@ public sealed class PriceListImportApiClientTests
             && call.Body is PriceListImportConfirmReqDTO);
         Assert.Contains(calls, call => call.Method == "GET"
             && call.Endpoint == $"/api/vpppricelist/{priceListId}/imports?top=20");
-        Assert.Equal($"/api/vpppricelist/{priceListId}/imports/template.xlsx", downloads.Endpoint);
+        Assert.Contains($"/api/vpppricelist/{priceListId}/imports/template.xlsx", downloads.Endpoints);
+        Assert.Contains("/api/vpppricelist/imports/template.xlsx", downloads.Endpoints);
+        Assert.Contains($"/api/vpppricelist/{priceListId}/export.xlsx", downloads.Endpoints);
     }
 
     private sealed class RecordingDownloadService : IBrowserFileDownloadService
     {
-        public string? Endpoint { get; private set; }
+        public List<string> Endpoints { get; } = [];
 
         public Task<BrowserFileDownloadResult> DownloadFromApiAsync(
             string endpoint,
             CancellationToken cancellationToken = default)
         {
-            Endpoint = endpoint;
+            Endpoints.Add(endpoint);
             return Task.FromResult(new BrowserFileDownloadResult("template.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 42));
         }
     }

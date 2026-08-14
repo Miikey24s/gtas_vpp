@@ -127,6 +127,7 @@ builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
 builder.Services.AddScoped<IPriceAsOfResolver, PriceAsOfResolver>();
 builder.Services.AddScoped<IPriceBookWorkflowService, PriceBookWorkflowService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
+builder.Services.AddScoped<IPriceListExportService, PriceListExportService>();
 builder.Services.AddSingleton<PriceListImportFileParser>();
 builder.Services.AddPriceListColumnMapping(Configuration);
 builder.Services.AddScoped<IPriceListImportService, PriceListImportService>();

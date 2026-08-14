@@ -28,6 +28,16 @@ public static class ExportFileContract
         return BuildSegments("GTAS-VPP-Bao-cao", scope, period, extension);
     }
 
+    public static string PriceList(
+        string? priceListCode,
+        string? priceListName,
+        string extension)
+        => BuildWithFallback(
+            "GTAS-VPP-Bang-gia",
+            string.IsNullOrWhiteSpace(priceListCode) ? priceListName : priceListCode,
+            "Du-lieu",
+            extension);
+
     private static string BuildWithFallback(string prefix, string? segment, string fallback, string extension)
         => $"{prefix}-{SanitizeSegment(segment, fallback)}.{NormalizeExtension(extension)}";
 

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
 using Microsoft.Playwright;
+using System.IO.Compression;
 
 namespace gtas_vpp_fe.UITests.Tests;
 
@@ -85,6 +86,50 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             await Page.Keyboard.PressAsync("Escape");
             await popover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
         }
+    }
+
+    [Fact]
+    public async Task PriceListCollectionFileActions_SelectTargetAndDownloadRealWorkbooks()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists", new()
+        {
+            WaitUntil = WaitUntilState.Load
+        });
+
+        var surface = Page.GetByTestId("price-lists-data-surface");
+        await WaitForSurfaceAsync(surface);
+        var templateButton = surface.GetByRole(AriaRole.Button, new() { Name = "Tải file mẫu" });
+        var importButton = surface.GetByRole(AriaRole.Button, new() { Name = "Nhập từ file" });
+        await Assertions.Expect(templateButton).ToHaveCountAsync(1);
+        await Assertions.Expect(importButton).ToHaveCountAsync(1);
+        await CaptureAsync("price-list-collection-file-actions.png");
+
+        await importButton.ClickAsync();
+        var dialog = Page.GetByTestId("price-list-import-dialog");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var targetSelector = dialog.Locator(".vpp-decision-select-trigger");
+        await Assertions.Expect(targetSelector).ToHaveCountAsync(1);
+        await targetSelector.ClickAsync();
+        await dialog.Locator(".vpp-decision-select-popover:popover-open button").First.ClickAsync();
+        await dialog.Locator(".vpp-price-import-dropzone").WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Assertions.Expect(dialog.Locator(".vpp-adaptive-dialog-leading-actions .rz-button"))
+            .ToHaveCountAsync(0);
+        await CaptureAsync("price-list-import-target-selected.png");
+        await Page.Keyboard.PressAsync("Escape");
+        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+
+        var templateDownload = await Page.RunAndWaitForDownloadAsync(() => templateButton.ClickAsync());
+        await AssertXlsxDownloadAsync(templateDownload, "GTAS-VPP-Mau-nhap-bang-gia-");
+
+        var menuButton = surface.GetByTestId("price-list-lifecycle-menu").First;
+        await menuButton.ClickAsync();
+        var menu = Page.Locator(".rz-context-menu:visible");
+        await menu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var exportAction = menu.GetByText("Xuất Excel", new() { Exact = true });
+        var exportDownload = await Page.RunAndWaitForDownloadAsync(() => exportAction.ClickAsync());
+        await AssertXlsxDownloadAsync(exportDownload, "GTAS-VPP-Bang-gia-");
     }
 
     [Fact]
@@ -246,6 +291,18 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             null,
             new() { Timeout = 60_000 });
         await WaitForRenderSettleAsync();
+    }
+
+    private static async Task AssertXlsxDownloadAsync(IDownload download, string fileNamePrefix)
+    {
+        (await download.FailureAsync()).Should().BeNull();
+        download.SuggestedFilename.Should().StartWith(fileNamePrefix);
+        download.SuggestedFilename.Should().EndWith(".xlsx");
+        var path = await download.PathAsync();
+        path.Should().NotBeNullOrWhiteSpace();
+        using var archive = ZipFile.OpenRead(path!);
+        archive.GetEntry("xl/workbook.xml").Should().NotBeNull();
+        archive.GetEntry("xl/styles.xml").Should().NotBeNull();
     }
 
     private async Task AssertReportContractsAsync(int viewportWidth, int viewportHeight)

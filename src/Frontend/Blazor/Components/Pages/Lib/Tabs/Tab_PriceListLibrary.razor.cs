@@ -20,6 +20,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
     {
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] public PricingApiClient PricingApi { get; set; } = default!;
+        [Inject] public PriceListImportApiClient PriceListFiles { get; set; } = default!;
         [Inject] public IToastService _toastService { get; set; } = default!;
         [Inject] public DialogService DialogService { get; set; } = default!;
         [Inject] private NavigationManager NavigationManager { get; set; } = default!;
@@ -28,6 +29,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private List<SupplierResDTO> suppliers = [];
         private RadzenDataGrid<PriceListResDTO> grid = default!;
         private bool isLoading;
+        private bool isFileActionBusy;
         private int count;
         private int currentSkip;
         private string selectedActivity = string.Empty;
@@ -281,45 +283,156 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private string PriceListPrimaryActionText(PriceListResDTO row) => Loc["View"].Value;
 
-        private IReadOnlyList<VppAdminActionMenuItem> PriceListSecondaryActions(PriceListResDTO row) =>
-        [
-            new(
-                "edit",
-                Loc["Edit"].Value,
-                 "edit",
-                 () => EditAsync(row),
-                 row.IsDeleted || row.Status == "Expired",
-                 DisabledReason: Loc["RequestActionUnavailable"].Value),
-            new(
-                "default",
-                Loc["SetAsDefault"].Value,
-                 "star",
-                 () => SetDefaultAsync(row),
-                 row.IsDefault || !IsPriceListActive(row),
-                 DisabledReason: row.IsDefault ? Loc["Default"].Value : Loc["RequestActionUnavailable"].Value),
-            new(
-                "clone",
-                Loc["CopyAsNewPriceList"].Value,
-                 "content_copy",
-                 () => CloneAsync(row),
-                 !IsPriceListActive(row),
-                 DisabledReason: Loc["RequestActionUnavailable"].Value),
-            new(
-                "toggle-active",
-                IsPriceListActive(row) ? Loc["Deactivate"].Value : Loc["Restore"].Value,
-                 IsPriceListActive(row) ? "block" : "restore_from_trash",
-                 () => SetDeletedAsync(row, IsPriceListActive(row)),
-                 row.IsDefault,
-                 DisabledReason: row.IsDefault ? Loc["RequestActionUnavailable"].Value : null),
-            new(
-                "hard-delete",
-                Loc["HardDelete"].Value,
-                 "delete_forever",
-                 () => HardDeleteAsync(row),
-                 !row.IsDeleted,
-                 VppAdminActionTone.Danger,
-                 Loc["RequestActionUnavailable"].Value)
-         ];
+        private IReadOnlyList<VppAdminActionMenuItem> PriceListSecondaryActions(PriceListResDTO row)
+        {
+            var actions = new List<VppAdminActionMenuItem>
+            {
+                new(
+                    "export-excel",
+                    Loc["ExportExcel"].Value,
+                    "table_view",
+                    () => ExportExcelAsync(row),
+                    isFileActionBusy,
+                    DisabledReason: Loc["RequestActionUnavailable"].Value)
+            };
+
+            if (!CanModify)
+            {
+                return actions;
+            }
+
+            actions.AddRange(
+            [
+                new(
+                    "edit",
+                    Loc["Edit"].Value,
+                    "edit",
+                    () => EditAsync(row),
+                    row.IsDeleted || row.Status == "Expired",
+                    DisabledReason: Loc["RequestActionUnavailable"].Value),
+                new(
+                    "default",
+                    Loc["SetAsDefault"].Value,
+                    "star",
+                    () => SetDefaultAsync(row),
+                    row.IsDefault || !IsPriceListActive(row),
+                    DisabledReason: row.IsDefault ? Loc["Default"].Value : Loc["RequestActionUnavailable"].Value),
+                new(
+                    "clone",
+                    Loc["CopyAsNewPriceList"].Value,
+                    "content_copy",
+                    () => CloneAsync(row),
+                    !IsPriceListActive(row),
+                    DisabledReason: Loc["RequestActionUnavailable"].Value),
+                new(
+                    "toggle-active",
+                    IsPriceListActive(row) ? Loc["Deactivate"].Value : Loc["Restore"].Value,
+                    IsPriceListActive(row) ? "block" : "restore_from_trash",
+                    () => SetDeletedAsync(row, IsPriceListActive(row)),
+                    row.IsDefault,
+                    DisabledReason: row.IsDefault ? Loc["RequestActionUnavailable"].Value : null),
+                new(
+                    "hard-delete",
+                    Loc["HardDelete"].Value,
+                    "delete_forever",
+                    () => HardDeleteAsync(row),
+                    !row.IsDeleted,
+                    VppAdminActionTone.Danger,
+                    Loc["RequestActionUnavailable"].Value)
+            ]);
+            return actions;
+        }
+
+        private async Task DownloadGenericTemplateAsync(MouseEventArgs _)
+        {
+            if (!CanModify || isFileActionBusy)
+            {
+                return;
+            }
+
+            isFileActionBusy = true;
+            try
+            {
+                await PriceListFiles.DownloadTemplateAsync();
+            }
+            catch (Exception ex)
+            {
+                _toastService.Error(Loc["DownloadTemplate"], UiErrorMapper.GetMessage(ex, Loc));
+            }
+            finally
+            {
+                isFileActionBusy = false;
+            }
+        }
+
+        private async Task ImportFromFileAsync(MouseEventArgs _)
+        {
+            if (!CanModify || isFileActionBusy)
+            {
+                return;
+            }
+
+            isFileActionBusy = true;
+            try
+            {
+                var referenceData = await PricingApi.GetPricingReferenceDataAsync();
+                var activePriceLists = referenceData.PriceLists
+                    .Where(IsPriceListActive)
+                    .OrderBy(item => item.PriceListName ?? item.PriceListCode)
+                    .ToArray();
+                if (activePriceLists.Length == 0)
+                {
+                    Notify(NotificationSeverity.Warning, Loc["PriceImport"].Value, Loc["NoPriceListAvailable"].Value);
+                    return;
+                }
+
+                var imported = await DialogService.OpenAsync<Dialog_PriceListImport>(
+                    Loc["PriceImport"].Value,
+                    new Dictionary<string, object?>
+                    {
+                        [nameof(Dialog_PriceListImport.PriceLists)] = activePriceLists
+                    },
+                    VppAdminDialogProfiles.Create(
+                        VppAdminDialogSize.Workspace,
+                        Loc["PriceImport"].Value,
+                        closeAriaLabel: Loc["Close"].Value));
+
+                if (imported is true)
+                {
+                    await LoadAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _toastService.Error(Loc["PriceImport"], UiErrorMapper.GetMessage(ex, Loc));
+            }
+            finally
+            {
+                isFileActionBusy = false;
+            }
+        }
+
+        private async Task ExportExcelAsync(PriceListResDTO row)
+        {
+            if (isFileActionBusy)
+            {
+                return;
+            }
+
+            isFileActionBusy = true;
+            try
+            {
+                await PriceListFiles.ExportExcelAsync(row.Id);
+            }
+            catch (Exception ex)
+            {
+                _toastService.Error(Loc["ExportExcel"], UiErrorMapper.GetMessage(ex, Loc));
+            }
+            finally
+            {
+                isFileActionBusy = false;
+            }
+        }
 
         private async Task<PriceListUpdateReqDTO?> OpenEditorAsync(
             string title,

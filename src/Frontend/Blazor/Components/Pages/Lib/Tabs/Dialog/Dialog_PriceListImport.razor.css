@@ -5,6 +5,7 @@
 }
 
 .vpp-price-import-context,
+.vpp-price-import-target,
 .vpp-price-import-file {
     display: flex;
     align-items: center;
@@ -13,6 +14,30 @@
     border: var(--vpp-border-width) solid var(--vpp-border-default);
     border-radius: var(--vpp-radius-card);
     background: var(--vpp-bg-subtle);
+}
+
+.vpp-price-import-target {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(12rem, 1fr);
+    align-items: stretch;
+}
+
+.vpp-price-import-target ::deep .vpp-decision-select {
+    width: 100%;
+    min-width: 0;
+}
+
+.vpp-price-import-target-meta {
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    min-width: 0;
+}
+
+.vpp-price-import-target-meta strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .vpp-price-import-context > div {
@@ -251,6 +276,11 @@
     .vpp-price-import-context {
         align-items: stretch;
         flex-direction: column;
+        gap: var(--vpp-space-2);
+    }
+
+    .vpp-price-import-target {
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--vpp-space-2);
     }
 

@@ -483,11 +483,15 @@
   <data name="CopyAsNewPriceList" xml:space="preserve"><value>Nhân bản bảng giá</value></data>
   <data name="PriceListCopyNameSuffix" xml:space="preserve"><value>Bản sao</value></data>
   <data name="ImportPriceList" xml:space="preserve"><value>Import bảng giá</value></data>
+  <data name="ImportFromFile" xml:space="preserve"><value>Nhập từ file</value></data>
   <data name="PriceImport" xml:space="preserve"><value>Nhập bảng giá</value></data>
   <data name="DownloadTemplate" xml:space="preserve"><value>Tải file mẫu</value></data>
+  <data name="PriceImportTarget" xml:space="preserve"><value>Bảng giá cần nhập</value></data>
+  <data name="SelectPriceListBeforeImport" xml:space="preserve"><value>Chọn bảng giá trước khi chọn file</value></data>
+  <data name="SelectPriceListBeforeImportHint" xml:space="preserve"><value>Dữ liệu trong file sẽ được kiểm tra và cập nhật vào bảng giá bạn chọn.</value></data>
   <data name="ConfirmImport" xml:space="preserve"><value>Xác nhận nhập</value></data>
   <data name="PriceImportSafeTitle" xml:space="preserve"><value>Kiểm tra trước khi lưu</value></data>
-  <data name="PriceImportSafeDescription" xml:space="preserve"><value>Hệ thống sẽ xem trước toàn bộ thay đổi. Database chỉ được cập nhật sau khi bạn xác nhận và không có dòng lỗi.</value></data>
+  <data name="PriceImportSafeDescription" xml:space="preserve"><value>Hệ thống sẽ xem trước toàn bộ thay đổi. Dữ liệu chỉ được cập nhật sau khi bạn xác nhận và không có dòng lỗi.</value></data>
   <data name="PriceImportChooseFile" xml:space="preserve"><value>Chọn file bảng giá</value></data>
   <data name="PriceImportFileHint" xml:space="preserve"><value>Excel (.xlsx) hoặc CSV UTF-8, tối đa 5 MB và 5.000 dòng.</value></data>
   <data name="ChooseAnotherFile" xml:space="preserve"><value>Chọn file khác</value></data>
@@ -503,6 +507,7 @@
   <data name="PriceImportCompleted" xml:space="preserve"><value>Đã nhập bảng giá</value></data>
   <data name="PriceImportResult" xml:space="preserve"><value>Kết quả nhập bảng giá</value></data>
   <data name="PriceImportFileTooLarge" xml:space="preserve"><value>File vượt quá giới hạn 5 MB.</value></data>
+  <data name="PriceImportUnsupportedFile" xml:space="preserve"><value>Chỉ hỗ trợ file Excel (.xlsx) hoặc CSV (.csv).</value></data>
   <data name="PriceImportPreviewFailed" xml:space="preserve"><value>Không thể xem trước file bảng giá.</value></data>
   <data name="PriceImportConfirmFailed" xml:space="preserve"><value>Không thể nhập bảng giá.</value></data>
   <data name="Rows" xml:space="preserve"><value>dòng</value></data>

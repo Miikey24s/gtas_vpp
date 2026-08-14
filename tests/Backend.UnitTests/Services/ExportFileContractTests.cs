@@ -13,6 +13,7 @@ public sealed class ExportFileContractTests
         Assert.Equal("GTAS-VPP-Don-VPP-2026-07.pdf", ExportFileContract.Order(" VPP/2026 07 ", id, ".PDF"));
         Assert.Equal("GTAS-VPP-Chot-ky-2026-07-R2.xlsx", ExportFileContract.Settlement(2026, 7, 2, "xlsx"));
         Assert.Equal("GTAS-VPP-Bao-cao-department-2026-07.csv", ExportFileContract.Report("department", 2026, 7, "csv"));
+        Assert.Equal("GTAS-VPP-Bang-gia-BG-2026-08.xlsx", ExportFileContract.PriceList("BG/2026 08", "Bảng giá", "xlsx"));
     }
 
     [Fact]

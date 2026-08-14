@@ -16,7 +16,27 @@
                                  AddText="@Loc["AddPriceList"]"
                                  CompactAddText="@Loc["Add"]"
                                  ShowAddAction="@CanModify"
-                                 AddClicked="@AddAsync" />
+                                 AddClicked="@AddAsync">
+                <Actions>
+                    @if (CanModify)
+                    {
+                        <RadzenButton Text="@Loc["DownloadTemplate"]"
+                                      Icon="download"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Disabled="@isFileActionBusy"
+                                      Click="@DownloadGenericTemplateAsync" />
+                        <RadzenButton Text="@Loc["ImportFromFile"]"
+                                      Icon="upload_file"
+                                      Size="ButtonSize.Small"
+                                      ButtonStyle="ButtonStyle.Base"
+                                      Variant="Variant.Text"
+                                      Disabled="@isFileActionBusy"
+                                      Click="@ImportFromFileAsync" />
+                    }
+                </Actions>
+            </VppCollectionHeader>
         </Header>
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["PriceLists"]" Class="vpp-admin-grid-toolbar">
@@ -108,13 +128,10 @@
                                                     Title="@PriceListPrimaryActionText(row)"
                                                     ButtonStyle="ButtonStyle.Warning"
                                                     Click="@(() => OpenPricesAsync(row))" />
-                                @if (CanModify)
-                                {
-                                    <VppAdminActionMenu Title="@Loc["MoreActions"]"
-                                                        Items="@PriceListSecondaryActions(row)"
-                                                        AllowOpenWhenAllDisabled="true"
-                                                        TestId="price-list-lifecycle-menu" />
-                                }
+                                <VppAdminActionMenu Title="@Loc["MoreActions"]"
+                                                    Items="@PriceListSecondaryActions(row)"
+                                                    AllowOpenWhenAllDisabled="true"
+                                                    TestId="price-list-lifecycle-menu" />
                             </div>
                         </Template>
                     </RadzenDataGridColumn>

@@ -18,6 +18,7 @@ public partial class Dialog_PriceListImport
     [Parameter] public Guid PriceListId { get; set; }
     [Parameter] public string PriceListName { get; set; } = string.Empty;
     [Parameter] public string SupplierName { get; set; } = string.Empty;
+    [Parameter] public IReadOnlyList<PriceListResDTO> PriceLists { get; set; } = [];
     [Inject] public PriceListImportApiClient ImportApi { get; set; } = default!;
     [Inject] public DialogService DialogService { get; set; } = default!;
     [Inject] public IToastService Toast { get; set; } = default!;
@@ -34,6 +35,23 @@ public partial class Dialog_PriceListImport
 
     protected override async Task OnInitializedAsync()
     {
+        if (PriceListId == Guid.Empty && PriceLists.Count == 1)
+        {
+            PriceListId = PriceLists[0].Id;
+        }
+
+        SyncSelectedPriceList();
+        await LoadRecentImportsAsync();
+    }
+
+    private async Task LoadRecentImportsAsync()
+    {
+        if (PriceListId == Guid.Empty)
+        {
+            RecentImports = [];
+            return;
+        }
+
         try
         {
             RecentImports = await ImportApi.ListAsync(PriceListId);
@@ -44,6 +62,42 @@ public partial class Dialog_PriceListImport
         }
     }
 
+    private async Task OnPriceListChangedAsync(Guid value)
+    {
+        if (value == PriceListId)
+        {
+            return;
+        }
+
+        PriceListId = value;
+        SyncSelectedPriceList();
+        ResetFileState();
+        await LoadRecentImportsAsync();
+    }
+
+    private void SyncSelectedPriceList()
+    {
+        var selected = PriceLists.FirstOrDefault(item => item.Id == PriceListId);
+        if (selected is null)
+        {
+            return;
+        }
+
+        PriceListName = selected.PriceListName ?? selected.PriceListCode ?? "–";
+        SupplierName = selected.SupplierName ?? "–";
+    }
+
+    private void ResetFileState()
+    {
+        SelectedFileContent = null;
+        SelectedFileName = string.Empty;
+        SelectedFileContentType = "application/octet-stream";
+        Analysis = null;
+        MappingRows = [];
+        Preview = null;
+        Completed = null;
+    }
+
     private async Task OnFileSelectedAsync(InputFileChangeEventArgs args)
     {
         if (IsBusy)
@@ -52,6 +106,14 @@ public partial class Dialog_PriceListImport
         }
 
         var file = args.File;
+        var extension = Path.GetExtension(file.Name);
+        if (!extension.Equals(".xlsx", StringComparison.OrdinalIgnoreCase)
+            && !extension.Equals(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            Toast.Warning(Loc["PriceImport"], Loc["PriceImportUnsupportedFile"]);
+            return;
+        }
+
         if (file.Size > MaximumFileSize)
         {
             Toast.Warning(Loc["PriceImport"], Loc["PriceImportFileTooLarge"]);
@@ -222,6 +284,12 @@ public partial class Dialog_PriceListImport
         new("IsDefault", FieldLabel("IsDefault")),
         new("Note", FieldLabel("Note"))
     ];
+
+    private IReadOnlyList<VppDecisionOption<Guid>> PriceListOptions => PriceLists
+        .Select(item => new VppDecisionOption<Guid>(
+            item.Id,
+            $"{item.PriceListName ?? item.PriceListCode ?? "–"} · {item.SupplierName ?? "–"}"))
+        .ToArray();
 
     private bool MappingHasDuplicates => MappingRows
         .Where(row => !string.IsNullOrWhiteSpace(row.TargetField))

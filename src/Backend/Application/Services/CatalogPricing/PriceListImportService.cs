@@ -289,46 +289,17 @@ public sealed class PriceListImportService(
     }
 
     public async Task<PriceListImportTemplateResult> BuildTemplateAsync(
-        Guid priceListId,
+        Guid? priceListId = null,
         CancellationToken cancellationToken = default)
     {
-        var priceList = await EnsurePriceListExistsAsync(priceListId, cancellationToken);
-        var columns = new[]
-        {
-            new SimpleWorkbookColumn("ItemCode", 22),
-            new SimpleWorkbookColumn("SupplierSku", 22),
-            new SimpleWorkbookColumn("ItemName", 34),
-            new SimpleWorkbookColumn("UnitPrice", 18, SimpleWorkbookCellFormat.Decimal),
-            new SimpleWorkbookColumn("VatRate", 14, SimpleWorkbookCellFormat.Decimal),
-            new SimpleWorkbookColumn("MinimumOrderQuantity", 24, SimpleWorkbookCellFormat.Decimal),
-            new SimpleWorkbookColumn("LeadTimeDays", 18, SimpleWorkbookCellFormat.Integer),
-            new SimpleWorkbookColumn("IsDefault", 14),
-            new SimpleWorkbookColumn("Note", 32)
-        };
-        IReadOnlyList<IReadOnlyList<object?>> guideRows =
-        [
-            ["ItemCode", "Bắt buộc. Nhập đúng mã mặt hàng trong hệ thống."],
-            ["UnitPrice", "Bắt buộc. Đơn giá VND, lớn hơn hoặc bằng 0."],
-            ["VatRate", "Không bắt buộc. Từ 0 đến 100; để trống sẽ giữ giá trị cũ hoặc dùng 0 khi thêm mới."],
-            ["MinimumOrderQuantity", "Không bắt buộc. Số lượng đặt tối thiểu."],
-            ["LeadTimeDays", "Không bắt buộc. Số ngày giao hàng."],
-            ["IsDefault", "Không bắt buộc. Có/Không, Yes/No, True/False hoặc 1/0."],
-            ["Lưu ý", "Không đổi tên cột bắt buộc. Không thêm mặt hàng mới bằng file bảng giá."]
-        ];
-        var workbook = SimpleWorkbookBuilder.Build(
-        [
-            new SimpleWorkbookSheet("BangGia", columns, []),
-            new SimpleWorkbookSheet(
-                "HuongDan",
-                [new("Cột", 28), new("Cách nhập", 60)],
-                guideRows,
-                new SimpleWorkbookSheetOptions(Orientation: "portrait"))
-        ]);
-        var code = SanitizeFileName(priceList.PriceListCode ?? "bang-gia");
+        var priceList = priceListId.HasValue
+            ? await EnsurePriceListExistsAsync(priceListId.Value, cancellationToken)
+            : null;
+        var code = SanitizeFileName(priceList?.PriceListCode ?? "bang-gia");
         return new PriceListImportTemplateResult(
-            workbook,
+            PriceListWorkbookBuilder.BuildTemplate(),
             $"GTAS-VPP-Mau-nhap-bang-gia-{code}.xlsx",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            ExportFileContract.ExcelContentType);
     }
 
     private async Task<EvaluationResult> EvaluateAsync(

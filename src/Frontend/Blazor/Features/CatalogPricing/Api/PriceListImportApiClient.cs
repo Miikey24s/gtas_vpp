@@ -75,4 +75,17 @@ public sealed class PriceListImportApiClient(
         => fileDownloads.DownloadFromApiAsync(
             $"{PriceListEndpoint}/{priceListId}/imports/template.xlsx",
             cancellationToken);
+
+    public Task<BrowserFileDownloadResult> DownloadTemplateAsync(
+        CancellationToken cancellationToken = default)
+        => fileDownloads.DownloadFromApiAsync(
+            $"{PriceListEndpoint}/imports/template.xlsx",
+            cancellationToken);
+
+    public Task<BrowserFileDownloadResult> ExportExcelAsync(
+        Guid priceListId,
+        CancellationToken cancellationToken = default)
+        => fileDownloads.DownloadFromApiAsync(
+            $"{PriceListEndpoint}/{priceListId}/export.xlsx",
+            cancellationToken);
 }

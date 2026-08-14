@@ -33,6 +33,6 @@ public interface IPriceListImportService
         CancellationToken cancellationToken = default);
 
     Task<PriceListImportTemplateResult> BuildTemplateAsync(
-        Guid priceListId,
+        Guid? priceListId = null,
         CancellationToken cancellationToken = default);
 }

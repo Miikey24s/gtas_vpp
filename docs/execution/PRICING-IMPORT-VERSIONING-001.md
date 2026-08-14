@@ -265,6 +265,8 @@ Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riê
 - Audit xác nhận `PriceList.Version` còn tham gia snapshot chốt kỳ, price resolution và unique key. W1 chỉ bỏ khỏi UI; kết luận W5 là giữ field này ở backend.
 - Template/matching giữ đúng quyết định mục 3: `ItemCode` exact là authority, import v1 chỉ thêm mới/cập nhật, không tự tạo mặt hàng và không thay thế toàn bộ.
 - W2/W3 đã có audit batch additive, API preview/confirm/template/history, parser Excel/CSV, dialog responsive và import route-real trên bốn viewport.
+- Collection file actions 2026-08-15: `Tải file mẫu` và `Nhập từ file` nằm tại header danh sách bảng giá; dialog chọn bảng giá đích đang hoạt động. Mỗi dòng có `Xuất Excel`; file xuất dùng cùng workbook contract với file mẫu nên có thể sửa và nhập lại.
+- Sai format được xử lý theo hai tầng: file `.xlsx/.csv` có tên cột khác thì ghép cột thủ công/AI gợi ý rồi preview; file sai loại, hỏng, quá giới hạn hoặc thiếu dữ liệu bắt buộc bị chặn và không tạo mutation.
 - W4a phân tích header không tạo audit batch, hiển thị sample values, cho ghép từng cột bằng decision select rồi mới preview; mapping đã dùng được lưu trong audit batch.
 - W4b dùng Gemini structured output cho các cột chưa nhận diện, chỉ nhận gợi ý confidence từ 0,75, chặn target trùng/sai contract và tự fallback về ghép thủ công khi thiếu key, timeout, quota hoặc JSON lỗi. Key đọc từ `GEMINI_API_KEY`/`GOOGLE_API_KEY`, không nằm trong source hoặc appsettings.
 - W5 dừng sau audit: `PriceList.Version` vẫn là compatibility contract của snapshot, price resolution và unique key; giữ nội bộ là quyết định an toàn, không còn kế hoạch drop trong scope này.

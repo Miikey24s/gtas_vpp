@@ -3,18 +3,44 @@
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Workspace" TestId="price-list-import-dialog">
     <ChildContent>
         <div class="vpp-price-import">
-            <header class="vpp-price-import-context">
-                <div>
-                    <span>@Loc["PriceList"]</span>
-                    <strong>@PriceListName</strong>
-                </div>
-                <div>
-                    <span>@Loc["Supplier"]</span>
-                    <strong>@SupplierName</strong>
-                </div>
-            </header>
+            @if (PriceLists.Count > 0)
+            {
+                <section class="vpp-price-import-target">
+                    <VppDecisionSelect TValue="Guid"
+                                       Value="@PriceListId"
+                                       ValueChanged="@OnPriceListChangedAsync"
+                                       Options="@PriceListOptions"
+                                       Placeholder="@Loc["SelectPriceList"]"
+                                       AriaLabel="@Loc["SelectPriceList"]"
+                                       Eyebrow="@Loc["PriceImportTarget"]" />
+                    <div class="vpp-price-import-target-meta">
+                        <span>@Loc["Supplier"]</span>
+                        <strong>@(PriceListId == Guid.Empty ? "–" : SupplierName)</strong>
+                    </div>
+                </section>
+            }
+            else
+            {
+                <header class="vpp-price-import-context">
+                    <div>
+                        <span>@Loc["PriceList"]</span>
+                        <strong>@PriceListName</strong>
+                    </div>
+                    <div>
+                        <span>@Loc["Supplier"]</span>
+                        <strong>@SupplierName</strong>
+                    </div>
+                </header>
+            }
 
-            @if (Completed is not null)
+            @if (PriceListId == Guid.Empty)
+            {
+                <VppContentState State="VppContentStateKind.Disabled"
+                                 Icon="price_check"
+                                 Title="@Loc["SelectPriceListBeforeImport"]"
+                                 Description="@Loc["SelectPriceListBeforeImportHint"]" />
+            }
+            else if (Completed is not null)
             {
                 <VppContentState State="VppContentStateKind.Success"
                                  Icon="task_alt"
@@ -245,7 +271,7 @@
                           CancelClick="@Cancel"
                           PrimaryClick="@PrimaryAsync">
             <LeadingActions>
-                @if (Completed is null)
+                @if (Completed is null && PriceLists.Count == 0)
                 {
                     <RadzenButton Text="@Loc["DownloadTemplate"]"
                                   Icon="download"

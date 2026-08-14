@@ -37,6 +37,8 @@ public sealed partial class LocalizationResourceTests
             "Email",
             "IsDeleted",
             "AiGenerated",
+            "PriceListDataSourceCsv",
+            "PriceListDataSourceExcel",
             "SettlementVatAmount",
             "SystemId"
         };

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -103,6 +104,22 @@ public sealed class PriceListImportServiceTests
         Assert.Contains(issues, issue => issue.Code == "VATRATE_INVALID");
         Assert.Contains(issues, issue => issue.Code == "MINIMUMORDERQUANTITY_INVALID");
         Assert.Contains(issues, issue => issue.Code == "LEADTIMEDAYS_INVALID");
+    }
+
+    [Fact]
+    public async Task Parser_RejectsUnsupportedAndDamagedFilesWithFriendlyMessages()
+    {
+        var parser = new PriceListImportFileParser();
+
+        var unsupported = await Assert.ThrowsAsync<BusinessException>(() => parser.ParseAsync(
+            new MemoryStream("not-a-workbook"u8.ToArray()),
+            "bang-gia.txt"));
+        var damaged = await Assert.ThrowsAsync<BusinessException>(() => parser.ParseAsync(
+            new MemoryStream("not-a-workbook"u8.ToArray()),
+            "bang-gia.xlsx"));
+
+        Assert.Contains("Excel (.xlsx) hoặc CSV (.csv)", unsupported.Message, StringComparison.Ordinal);
+        Assert.Contains("không hợp lệ hoặc đã bị hỏng", damaged.Message, StringComparison.Ordinal);
     }
 
     [Fact]

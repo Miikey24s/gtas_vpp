@@ -1893,6 +1893,8 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Cờ bảng giá mặc định là thông tin nhận biết, hiển thị bằng badge trung tính; không dùng disabled switch vì tạo cảm giác đây là nút bật/tắt trực tiếp.
 - Bảng `Giá mặt hàng` áp dụng cùng quy tắc: dùng đầy đủ `Đơn vị`, `Mã hàng nhà cung cấp`, `Số lượng tối thiểu`, `Ngày giao`; giá mặc định cũng là badge trung tính thay vì disabled switch.
 - Import bảng giá đã triển khai theo `docs/execution/PRICING-IMPORT-VERSIONING-001.md`: template chuẩn tự nhận diện; file NCC dùng tên cột lạ mở bước ghép cột có sample values rồi mới preview/xác nhận. Mapping được lưu trong lịch sử lần nhập; Gemini chỉ gợi ý các cột chưa nhận diện khi có key environment, luôn giữ bước xác nhận và fallback thủ công.
+- Owner refinement 2026-08-15: `Tải file mẫu` và `Nhập từ file` là action cấp collection, nằm trên header `Danh sách bảng giá` trước action chính `Thêm bảng giá`. Dialog nhập từ collection bắt buộc chọn một bảng giá đang hoạt động; `Xuất Excel` là action cấp dòng trong menu `...` vì phụ thuộc bảng giá cụ thể.
+- File Excel xuất từ từng bảng giá giữ đúng cấu trúc import (`ItemCode`, `UnitPrice`, VAT, MOQ, ngày giao, mã NCC, mặc định, ghi chú) để có thể chỉnh rồi nhập lại. Tên cột khác mẫu đi qua bước ghép cột; thiếu `Mã mặt hàng`/`Đơn giá`, dữ liệu dòng sai, file hỏng, sai loại, quá 5 MB hoặc quá 5.000 dòng đều không được ghi database.
 
 ### 16.7 Column picker và identity-cell contract — 2026-08-14
 
