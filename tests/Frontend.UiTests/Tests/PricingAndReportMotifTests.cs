@@ -8,6 +8,42 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task PriceListColumnPicker_ShowsBusinessColumnsAndHidesTechnicalFields()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=price-lists", new()
+        {
+            WaitUntil = WaitUntilState.Load
+        });
+
+        var surface = Page.GetByTestId("price-lists-data-surface");
+        await WaitForSurfaceAsync(surface);
+        var trigger = surface.Locator(".vpp-column-picker-trigger");
+        await trigger.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        (await trigger.Locator(".vpp-column-picker-count").InnerTextAsync())
+            .Should().MatchRegex("^\\d+/\\d+$");
+
+        await trigger.ClickAsync();
+        var popover = Page.Locator(".vpp-column-picker-popover:popover-open");
+        await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var labels = await popover.Locator(".vpp-column-picker-label").AllInnerTextsAsync();
+        labels.Should().Contain("Tên bảng giá");
+        labels.Should().Contain("Mã bảng giá");
+        labels.Should().Contain("Nhà cung cấp");
+        labels.Should().NotContain(label => label == "#"
+            || label == "Thao tác"
+            || label == "ID"
+            || label.Contains("RowVersion", StringComparison.OrdinalIgnoreCase));
+
+        var selectedBackground = await popover.Locator(".vpp-column-picker-option.is-selected").First
+            .EvaluateAsync<string>("element => getComputedStyle(element).backgroundColor");
+        selectedBackground.Should().Be("rgba(0, 0, 0, 0)");
+        await Page.Keyboard.PressAsync("Escape");
+        await popover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+    }
+
+    [Fact]
     public async Task PricingAndReports_KeepCanonicalContractsAcrossResponsiveViewports()
     {
         await LoginAsDefaultUserAsync();

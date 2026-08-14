@@ -26,7 +26,7 @@ public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiT
         var groupSurface = Page.Locator("[data-testid='permission-groups-data-surface']");
         await groupSurface.WaitForAsync();
         await Page.WaitForFunctionAsync(
-            "() => document.querySelectorAll('.permission-group-grid .permission-group-identity').length > 0");
+            "() => document.querySelectorAll('.permission-group-grid .vpp-permission-group-code').length > 0");
         (await Page.Locator(".vpp-permission-detail-shell").CountAsync()).Should().Be(0);
         (await Page.Locator(".permission-group-grid .rz-switch").CountAsync()).Should().Be(0);
         await AssertNoDocumentOverflowAsync("desktop permission group table");
@@ -81,7 +81,7 @@ public sealed class AdminPermissionManagementTests : TestBase, IAuthenticatedUiT
                 const grid = document.querySelector('.permission-group-grid');
                 return grid
                     && !grid.classList.contains('rz-datatable-loading')
-                    && document.querySelectorAll('.permission-group-grid .permission-group-identity').length > 0;
+                    && document.querySelectorAll('.permission-group-grid .vpp-permission-group-code').length > 0;
             }
             """);
         (await Page.GetByRole(AriaRole.Button, new() { Name = "Cấu hình quyền UI", Exact = true }).CountAsync())

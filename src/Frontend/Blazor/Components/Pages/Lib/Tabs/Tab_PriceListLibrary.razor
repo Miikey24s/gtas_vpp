@@ -70,8 +70,9 @@
                                            Description="@(HasFilters ? Loc["HistoryAdjustFilters"].Value : null)" />
                 </EmptyTemplate>
                 <Columns>
-                    <RadzenDataGridColumn TItem="PriceListResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index"><Template Context="row">@(currentSkip + priceLists.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListName" Title="@Loc["PriceList"]" Width="190px" MinWidth="180px"><Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.PriceListName ?? "–")</strong><small>@(row.PriceListCode ?? "–")</small></div></Template></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" Reorderable="false" Pickable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index"><Template Context="row">@(currentSkip + priceLists.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListName" Title="@Loc["PriceListName"]" Width="210px" MinWidth="180px" />
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" Width="145px" MinWidth="130px" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="SupplierName" Title="@Loc["Supplier"]" Width="150px" MinWidth="140px" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="Status" Title="@Loc["Status"]" Width="110px" TextAlign="TextAlign.Center" Filterable="false"><Template Context="row"><VppStatusBadge Text="@GetStatusLabel(row)" Tone="@GetStatusTone(row)" /></Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="IsDefault" Title="@Loc["Default"]" Width="110px" TextAlign="TextAlign.Center" Filterable="false">
@@ -87,8 +88,11 @@
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="ItemCount" Title="@Loc["ItemCount"]" Width="130px" MinWidth="120px" TextAlign="TextAlign.Center" Filterable="false"><Template Context="row">@row.ItemCount</Template></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="PriceListCode" Title="@Loc["PriceListCode"]" Width="130px" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" />
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="CreatedByUserName" Title="@Loc["CreatedBy"]" Width="160px" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="CreatedAtUtc" Title="@Loc["CreatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="UpdatedByUserName" Title="@Loc["UpdatedBy"]" Width="160px" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium">
                         <Template Context="row">
                             <div class="vpp-admin-actions">

@@ -10,6 +10,70 @@ namespace gtas_vpp_fe.UITests.Tests.Library;
 public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task LookupColumnPicker_TogglesAndResetsWithVisibleTotalCount()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+        await Page.GotoAsync($"{BaseUrl}library?tab=0", new() { WaitUntil = WaitUntilState.Load });
+
+        var surface = Page.GetByTestId("lookup-categories-data-surface");
+        await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var trigger = surface.Locator(".vpp-column-picker-trigger");
+        await trigger.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var initialCount = await trigger.Locator(".vpp-column-picker-count").InnerTextAsync();
+        var countParts = initialCount.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        countParts.Should().HaveCount(2);
+        var initialVisible = int.Parse(countParts[0]);
+        var total = int.Parse(countParts[1]);
+        total.Should().BeGreaterThan(initialVisible);
+
+        await trigger.ClickAsync();
+        var popover = Page.Locator(".vpp-column-picker-popover:popover-open");
+        await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var labels = await popover.Locator(".vpp-column-picker-label").AllInnerTextsAsync();
+        labels.Should().NotContain("#");
+        labels.Should().NotContain("Thao tác");
+        labels.Should().NotContain("ID");
+        labels.Should().Contain("Mã loại");
+        labels.Should().Contain("Tên loại");
+
+        var selectedBackground = await popover.Locator(".vpp-column-picker-option.is-selected").First
+            .EvaluateAsync<string>("element => getComputedStyle(element).backgroundColor");
+        selectedBackground.Should().Be("rgba(0, 0, 0, 0)");
+
+        var targetLabel = await popover.EvaluateAsync<string>("""
+            element => {
+                const option = [...element.querySelectorAll('.vpp-column-picker-option')]
+                    .find(candidate => {
+                        const checkbox = candidate.querySelector('input[type="checkbox"]');
+                        return checkbox && !checkbox.checked && !checkbox.disabled;
+                    });
+                const label = option?.querySelector('.vpp-column-picker-label')?.textContent?.trim();
+                if (!label) {
+                    throw new Error('No hidden pickable lookup column was rendered.');
+                }
+
+                return label;
+            }
+            """);
+        var hiddenOption = popover.Locator(".vpp-column-picker-option")
+            .Filter(new() { HasText = targetLabel });
+        await hiddenOption.ClickAsync();
+        await Assertions.Expect(trigger.Locator(".vpp-column-picker-count"))
+            .ToHaveTextAsync($"{initialVisible + 1}/{total}");
+        await surface.Locator("thead th").Filter(new() { HasText = targetLabel }).WaitForAsync();
+
+        if (!await popover.IsVisibleAsync())
+        {
+            await trigger.ClickAsync();
+            await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        }
+
+        await popover.Locator(".vpp-column-picker-reset").ClickAsync();
+        await Assertions.Expect(trigger.Locator(".vpp-column-picker-count")).ToHaveTextAsync(initialCount);
+    }
+
+    [Fact]
     public async Task LookupRowActions_KeepEditDirectAndMoveLifecycleIntoOverflow()
     {
         await LoginAsDefaultUserAsync();
@@ -629,8 +693,13 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             });
         }
 
-        var initialVisibleCount = int.Parse(await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync());
+        var initialCountParts = (await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync())
+            .Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        initialCountParts.Should().HaveCount(2);
+        var initialVisibleCount = int.Parse(initialCountParts[0]);
+        var totalPickableCount = int.Parse(initialCountParts[1]);
         initialVisibleCount.Should().BeGreaterThan(0);
+        totalPickableCount.Should().BeGreaterThanOrEqualTo(initialVisibleCount);
         await pickerTrigger.ClickAsync();
         var pickerPanel = Page.Locator(".vpp-column-picker-popover:popover-open");
         await pickerPanel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
@@ -663,6 +732,20 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         pickerChrome[5].Should().Be(1);
         pickerChrome[6].Should().Be(1);
         pickerChrome[7].Should().Be(1);
+
+        var selectedOptionChrome = await pickerPanel.Locator(".vpp-column-picker-option.is-selected").First
+            .EvaluateAsync<string[]>("""
+                element => {
+                    const checkbox = element.querySelector('.vpp-column-picker-checkbox');
+                    return [
+                        getComputedStyle(element).backgroundColor,
+                        checkbox ? getComputedStyle(checkbox).backgroundColor : ''
+                    ];
+                }
+                """);
+        selectedOptionChrome[0].Should().Be("rgba(0, 0, 0, 0)",
+            "dòng đã chọn chỉ dùng checkbox, không phủ nền xanh lên option");
+        selectedOptionChrome[1].Should().NotBe("rgba(0, 0, 0, 0)");
 
         var search = pickerPanel.Locator(".vpp-column-picker-search input");
         var initialOptionCount = await pickerPanel.Locator(".vpp-column-picker-option").CountAsync();
@@ -726,7 +809,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var toggleDeadline = DateTime.UtcNow.AddSeconds(15);
         while (DateTime.UtcNow < toggleDeadline)
         {
-            actualVisibleCount = int.Parse(await pickerCount.InnerTextAsync());
+            actualVisibleCount = int.Parse((await pickerCount.InnerTextAsync()).Split('/')[0]);
             if (actualVisibleCount == expectedVisibleCount)
             {
                 break;
@@ -761,10 +844,11 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Page.WaitForFunctionAsync(
             """
             expected => document.querySelector(
-                '[data-testid="lookup-categories-data-surface"] .vpp-column-picker-count')?.textContent?.trim() === expected.toString()
+                '[data-testid="lookup-categories-data-surface"] .vpp-column-picker-count')?.textContent?.trim() === expected
             """,
-            initialVisibleCount);
-        int.Parse(await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync()).Should().Be(initialVisibleCount);
+            $"{initialVisibleCount}/{totalPickableCount}");
+        (await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync())
+            .Should().Be($"{initialVisibleCount}/{totalPickableCount}");
         await targetHeader.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 
         await Page.SetViewportSizeAsync(1024, 768);

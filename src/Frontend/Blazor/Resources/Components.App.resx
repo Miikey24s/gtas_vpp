@@ -257,6 +257,7 @@
   <data name="SupplierName" xml:space="preserve"><value>Tên nhà cung cấp</value></data>
   <data name="DepartmentCode" xml:space="preserve"><value>Mã phòng ban</value></data>
   <data name="DepartmentName" xml:space="preserve"><value>Tên phòng ban</value></data>
+  <data name="PermissionGroupCode" xml:space="preserve"><value>Mã nhóm quyền</value></data>
   <data name="Address1" xml:space="preserve"><value>Địa chỉ 1</value></data>
   <data name="Address2" xml:space="preserve"><value>Địa chỉ 2</value></data>
   <data name="Address3" xml:space="preserve"><value>Địa chỉ 3</value></data>
@@ -293,6 +294,8 @@
   <data name="Categories" xml:space="preserve"><value>Nhóm hàng</value></data>
   <data name="ItemCode" xml:space="preserve"><value>Mã mặt hàng</value></data>
   <data name="ItemName" xml:space="preserve"><value>Mặt hàng</value></data>
+  <data name="SupplierCount" xml:space="preserve"><value>Số nhà cung cấp</value></data>
+  <data name="DefaultVatRate" xml:space="preserve"><value>VAT mặc định</value></data>
   <data name="ItemsPerPage" xml:space="preserve"><value>mục/trang</value></data>
   <data name="Month" xml:space="preserve"><value>Tháng</value></data>
   <data name="No" xml:space="preserve"><value>Không</value></data>

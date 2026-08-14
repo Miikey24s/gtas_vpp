@@ -139,8 +139,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("BindingFlags.Instance | BindingFlags.NonPublic", source, StringComparison.Ordinal);
         Assert.Contains("\"SetVisible\"", source, StringComparison.Ordinal);
         Assert.Contains("\"ChangeState\"", source, StringComparison.Ordinal);
+        Assert.Contains("private string CompactCount => $\"{VisibleCount}/{PickableColumns.Count}\";", source, StringComparison.Ordinal);
+        Assert.Contains("aria-label=\"@PickerAriaLabel\"", source, StringComparison.Ordinal);
         Assert.Contains(".vpp-column-picker-trigger", scopedCss, StringComparison.Ordinal);
         Assert.Contains("::deep .vpp-icon", scopedCss, StringComparison.Ordinal);
+        Assert.Contains(".vpp-column-picker-option.is-selected", scopedCss, StringComparison.Ordinal);
+        Assert.Contains("background: transparent;", scopedCss, StringComparison.Ordinal);
+        Assert.DoesNotContain(".vpp-column-picker-option.is-selected::before", scopedCss, StringComparison.Ordinal);
         Assert.DoesNotContain(".vpp-column-picker-", adminCss, StringComparison.Ordinal);
 
         var otherReflectionConsumers = Directory

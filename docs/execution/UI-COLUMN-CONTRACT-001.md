@@ -1,6 +1,6 @@
 # UI-COLUMN-CONTRACT-001 — Chuẩn hóa cột, bộ chọn cột và ô nhận diện
 
-> Trạng thái: `PLANNED — OWNER REVIEW`
+> Trạng thái: `C0–C4 IMPLEMENTED — OWNER VISUAL REVIEW`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), [`UI-DATA-SURFACE-001`](./UI-DATA-SURFACE-001.md) và [`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN`](../design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md).
 > Phạm vi: frontend Blazor/Radzen; chưa đổi API, database, DTO hoặc nghiệp vụ.
 
@@ -28,11 +28,11 @@ Chuẩn hóa toàn bộ data grid để người dùng luôn hiểu:
 
 | Phase | Làm gì | Kết quả | Gate |
 |---|---|---|---|
-| C0 — Khóa contract | Chốt phân loại cột, quy tắc hai dòng và danh sách route | Một chuẩn dùng chung trước khi sửa code | Owner duyệt file này |
-| C1 — Sửa foundation | Làm rõ trigger `Cột đang hiện/tổng`; cố định `#`, `Thao tác`; loại trường kỹ thuật | Bộ chọn cột không còn gây hiểu nhầm | Unit/architecture + 2 route mẫu |
-| C2 — Chuẩn hóa Library/Admin | Tách hoặc gộp `Tên/Mã` đúng ngữ cảnh; bổ sung các cột nghiệp vụ đang thiếu | Các trang quản trị đồng nhất và dễ tra cứu | Route-real toàn bộ 11 picker |
-| C3 — Chuẩn hóa toàn frontend | Rà các grid không có picker, thứ tự filter–cột, tên cột và responsive | Không còn mỗi trang dùng một quy tắc riêng | Architecture inventory + browser matrix |
-| C4 — Khóa bằng test/docs | Thêm contract test và cập nhật design system | Sửa sau này không làm drift trở lại | Frontend verify + owner visual review |
+| C0 — Khóa contract | Chốt phân loại cột, quy tắc hai dòng và danh sách route | Một chuẩn dùng chung trước khi sửa code | `DONE` |
+| C1 — Sửa foundation | Làm rõ trigger `Cột đang hiện/tổng`; cố định `#`, `Thao tác`; loại trường kỹ thuật | Bộ chọn cột không còn gây hiểu nhầm | `DONE` — unit/architecture pass |
+| C2 — Chuẩn hóa Library/Admin | Tách hoặc gộp `Tên/Mã` đúng ngữ cảnh; bổ sung các cột nghiệp vụ đang thiếu | Các trang quản trị đồng nhất và dễ tra cứu | `DONE` — 11/11 picker route-real pass |
+| C3 — Chuẩn hóa toàn frontend | Rà các grid không có picker, thứ tự filter–cột, tên cột và responsive | Không còn mỗi trang dùng một quy tắc riêng | `DONE` — 21 file/26 grid audited |
+| C4 — Khóa bằng test/docs | Thêm contract test và cập nhật design system | Sửa sau này không làm drift trở lại | `IMPLEMENTED` — chờ owner nhìn route thật |
 
 ### Model + effort khuyến nghị
 
@@ -130,4 +130,23 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 - Tách `Tên/Mã` có thể làm bảng rộng hơn; phải kết hợp default visibility và responsive priority, không tăng horizontal scroll mù quáng.
 - Không thêm field chỉ vì DTO có sẵn; field phải hỗ trợ tra cứu, quyết định hoặc audit thực tế.
 - `NetPrice`, trường thương mại/hợp đồng và lookup `ExtraField` cần quyết định nghiệp vụ riêng trước khi đưa lên UI.
-- C0 chỉ là tài liệu. Chỉ bắt đầu C1–C4 sau khi owner duyệt contract này.
+- Owner visual review vẫn là gate cuối trước khi đổi trạng thái thành accepted.
+
+## 7. Kết quả triển khai — 2026-08-14
+
+- `VppColumnPicker` hiển thị `đang hiện/tổng`, ví dụ `6/8`; trigger và accessibility label dùng cùng một số liệu.
+- Dòng đã chọn trong popup không còn phủ nền xanh; trạng thái được thể hiện bằng checkbox, hover vẫn dùng transient surface chung.
+- Toàn bộ 11 picker loại `#`, `Thao tác` và trường kỹ thuật khỏi danh sách lựa chọn.
+- Category, Department, Item, Price list, Item price và Permission group đã tách `Tên`/`Mã`; User, Supplier và Security audit giữ hai dòng đúng vai trò metadata.
+- Bổ sung các cột nghiệp vụ/audit hợp lệ: mã, VAT mặc định, số nhà cung cấp, mô tả, người/ngày tạo và cập nhật nơi DTO hỗ trợ.
+- Quét 21 file chứa 26 `RadzenDataGrid`: không còn hard-coded English title; các ô hai dòng còn lại thuộc allow-list giao dịch, identity hỗ trợ hoặc audit.
+
+### Bằng chứng
+
+- `./scripts/gtas.cmd test-frontend`: `445/445` pass.
+- `ColumnPickerContractTests.AllAdminColumnPickers_ExposeBusinessFieldsWithStableChrome`: pass; mở đủ `11/11` picker và spot-check `390×844`, `768×1024`, `1366×768`, `1920×1080`.
+- `PricingAndReportMotifTests.PriceListColumnPicker_ShowsBusinessColumnsAndHidesTechnicalFields`: pass.
+- `LibraryGridScrollTests.LookupColumnPicker_TogglesAndResetsWithVisibleTotalCount`: pass.
+- Test rộng `Class_Definitions_Use_Compact_Master_Detail_Layout` còn fail ở assertion document scroll `290px` trước khi đi tới picker. Đây là layout issue độc lập, không được che bằng cách hạ assertion trong slice này.
+- Test rộng `PermissionAdministration_UsesFullWidthGroupTableAndAdaptiveBatchEditor` đi qua UI mới nhưng dừng ở fixture count cũ `18`, trong khi TEST hiện có `19` dòng quyền API; không sửa assertion theo dữ liệu tạm trong slice này.
+- `./scripts/gtas.cmd verify -Scope frontend`: agent setup `63/63`, Release build `0 warning/error`, frontend unit `445/445`, anonymous UI smoke `2/2` và NuGet audit pass; gate cuối dừng tại lỗi charset có sẵn ở migration backend `20260810233259_AddPriceListImportBatches.cs`, ngoài frontend scope.

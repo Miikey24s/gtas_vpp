@@ -293,27 +293,12 @@
     vertical-align: middle;
 }
 
-.permission-group-grid.vpp-admin-grid .rz-grid-table td {
-    height: 3rem;
-    vertical-align: middle;
-}
-
 .permission-component-grid.vpp-admin-grid .rz-paginator,
 .permission-component-grid.vpp-admin-grid .rz-pager {
     background: var(--vpp-bg-surface) !important;
 }
 
-.permission-group-identity {
-    display: grid;
-    gap: 0.12rem;
-}
-
-.permission-group-identity strong {
-    color: var(--vpp-text-primary);
-    font-weight: var(--vpp-font-weight-semibold);
-}
-
-.permission-group-identity small {
+.vpp-permission-group-code {
     color: var(--vpp-text-secondary);
     font-family: var(--vpp-font-mono, ui-monospace, monospace);
     font-size: var(--vpp-text-xs);

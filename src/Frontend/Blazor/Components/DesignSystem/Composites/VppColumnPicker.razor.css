@@ -169,27 +169,15 @@
 }
 
 .vpp-column-picker-option {
-    position: relative;
     display: flex;
     align-items: center;
     gap: 0.65rem;
     min-height: 38px;
     padding: 0.45rem 0.6rem;
-    overflow: hidden;
     border-radius: var(--vpp-radius-md);
     color: var(--vpp-text-secondary);
     font-size: var(--vpp-text-sm);
     cursor: pointer;
-}
-
-.vpp-column-picker-option::before {
-    position: absolute;
-    inset-block: 0.4rem;
-    inset-inline-start: 0;
-    width: 3px;
-    border-radius: 999px;
-    background: transparent;
-    content: "";
 }
 
 .vpp-column-picker-option:hover {
@@ -198,12 +186,8 @@
 }
 
 .vpp-column-picker-option.is-selected {
-    background: color-mix(in srgb, var(--vpp-primary-500) 8%, transparent);
+    background: transparent;
     color: var(--vpp-text-primary);
-}
-
-.vpp-column-picker-option.is-selected::before {
-    background: var(--vpp-primary-500);
 }
 
 .vpp-column-picker-option input {

@@ -87,14 +87,17 @@
                                                        Description="@(!string.IsNullOrWhiteSpace(groupSearchText) ? Loc["HistoryAdjustFilters"].Value : null)" />
                             </EmptyTemplate>
                             <Columns>
-                                <RadzenDataGridColumn TItem="PermissionGroupDto" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" Reorderable="false" Pickable="false" TextAlign="TextAlign.Center">
                                     <Template Context="group">@(currentGroupSkip + list_Group.IndexOf(group) + 1)</Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.GroupName)" Title="@Loc["GroupName"]" Width="260px">
-                                    <Template Context="group"><div class="permission-group-identity"><strong>@GetGroupDisplayName(group)</strong><small>@GetGroupCode(group)</small></div></Template>
-                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.GroupName)" Title="@Loc["GroupName"]" Width="230px"><Template Context="group">@GetGroupDisplayName(group)</Template></RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.GroupCode)" Title="@Loc["PermissionGroupCode"]" Width="150px"><Template Context="group"><span class="vpp-permission-group-code">@GetGroupCode(group)</span></Template></RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.UserCount)" Title="@Loc["Users"]" Width="100px" TextAlign="TextAlign.Center" Filterable="false" />
                                 <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.Description)" Title="@Loc["Description"]" Width="420px" Pickable="true" />
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.CreatedByUserName)" Title="@Loc["CreatedBy"]" Width="160px" Visible="false" Pickable="true" />
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.CreatedAtUtc)" Title="@Loc["CreatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.UpdatedByUserName)" Title="@Loc["UpdatedBy"]" Width="160px" Visible="false" Pickable="true" />
+                                <RadzenDataGridColumn TItem="PermissionGroupDto" Property="@nameof(PermissionGroupDto.UpdatedAtUtc)" Title="@Loc["UpdatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                                 <RadzenDataGridColumn TItem="PermissionGroupDto" Title="@Loc["Actions"]" Width="96px" MinWidth="96px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions" HeaderCssClass="rz-col-actions" Visible="@PermissionState.HasPermission(Permissions.PermissionManage)">
                                     <Template Context="group"><div class="vpp-admin-actions"><VppAdminIconAction Icon="tune" Title="@Loc["ConfigureUiPermissions"]" Click="@(() => OpenPermissionEditorForGroupAsync(group))" /></div></Template>
                                 </RadzenDataGridColumn>

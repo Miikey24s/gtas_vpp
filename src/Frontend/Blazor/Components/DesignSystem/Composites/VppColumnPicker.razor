@@ -6,10 +6,11 @@
             class="vpp-column-picker-trigger"
             popovertarget="@PopoverId"
             style="anchor-name: @AnchorName"
-            aria-label="@Loc["VisibleColumns"]">
+            aria-label="@PickerAriaLabel"
+            title="@PickerAriaLabel">
         <VppIcon Name="@VppIcons.Columns" Class="vpp-column-picker-leading-icon" />
         <span>@Loc["Columns"]</span>
-        <span class="vpp-column-picker-count">@VisibleCount</span>
+        <span class="vpp-column-picker-count">@CompactCount</span>
         <VppIcon Name="@VppIcons.ExpandMore" Class="vpp-column-picker-chevron" />
     </button>
 
@@ -107,6 +108,8 @@
         .ToList();
 
     private int VisibleCount => PickableColumns.Count(column => column.GetVisible());
+    private string CompactCount => $"{VisibleCount}/{PickableColumns.Count}";
+    private string PickerAriaLabel => string.Format(Loc["SelectedColumnsCount"], VisibleCount, PickableColumns.Count);
 
     private bool CanReset => PickableColumns.Any(column =>
         initialVisibility.TryGetValue(column, out var wasVisible) && column.GetVisible() != wasVisible);

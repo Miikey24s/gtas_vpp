@@ -385,6 +385,7 @@ public sealed class DataSurfaceArchitectureTests
             Slice(user, "<Columns>", "</Columns>"),
             "Title=\"@Loc[\"User\"]\"",
             "Title=\"@Loc[\"Email\"]\"",
+            "Title=\"@Loc[\"EmployeeCode\"]\"",
             "Title=\"@Loc[\"AccountStatus\"]\"",
             "Title=\"@Loc[\"PermissionGroup\"]\"",
             "Title=\"@Loc[\"Department\"]\"",
@@ -420,6 +421,7 @@ public sealed class DataSurfaceArchitectureTests
         AssertAppearsInOrder(
             Slice(price, "<Columns>", "</Columns>"),
             "Property=\"VppName\"",
+            "Property=\"VppCode\"",
             "Property=\"CategoryName\"",
             "Property=\"UomName\"",
             "Property=\"IsDeleted\"",
@@ -438,9 +440,9 @@ public sealed class DataSurfaceArchitectureTests
             "Property=\"IsDeleted\"",
             "Property=\"Sort\"",
             "Property=\"Description\"",
-            "Property=\"CreatedByUserId\"",
+            "Property=\"CreatedByUserName\"",
             "Property=\"CreatedAtUtc\"",
-            "Property=\"UpdatedByUserId\"",
+            "Property=\"UpdatedByUserName\"",
             "Property=\"UpdatedAtUtc\"",
             "Title=\"@Loc[\"Actions\"]\"");
 
@@ -482,13 +484,141 @@ public sealed class DataSurfaceArchitectureTests
             "Text=\"Chốt kỳ\"",
             "<VppAdminActionMenu");
 
-        Assert.Contains("Title=\"@Loc[\"Category\"]\"", category, StringComparison.Ordinal);
+        AssertAppearsInOrder(
+            Slice(category, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"CategoryName\"]\"",
+            "Title=\"@Loc[\"CategoryCode\"]\"",
+            "Title=\"@Loc[\"Status\"]\"");
         Assert.Contains("Title=\"@Loc[\"Supplier\"]\"", supplier, StringComparison.Ordinal);
-        Assert.Contains("Title=\"@Loc[\"Department\"]\"", department, StringComparison.Ordinal);
-        Assert.Contains("Title=\"@Loc[\"ItemName\"]\"", item, StringComparison.Ordinal);
-        Assert.Contains("Title=\"@Loc[\"ItemName\"]\"", price, StringComparison.Ordinal);
+        AssertAppearsInOrder(
+            Slice(department, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"DepartmentName\"]\"",
+            "Title=\"@Loc[\"DepartmentCode\"]\"",
+            "Title=\"@Loc[\"ParentDepartment\"]\"");
+        AssertAppearsInOrder(
+            Slice(item, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"ItemName\"]\"",
+            "Title=\"@Loc[\"ItemCode\"]\"",
+            "Title=\"@Loc[\"Category\"]\"");
+        AssertAppearsInOrder(
+            Slice(price, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"ItemName\"]\"",
+            "Title=\"@Loc[\"ProductCode\"]\"",
+            "Title=\"@Loc[\"Category\"]\"");
         Assert.Contains("Title=\"@Loc[\"ItemName\"]\"", priceImport, StringComparison.Ordinal);
-        Assert.Contains("Title=\"@Loc[\"PriceList\"]\"", priceList, StringComparison.Ordinal);
+        AssertAppearsInOrder(
+            Slice(priceList, "<Columns>", "</Columns>"),
+            "Title=\"@Loc[\"PriceListName\"]\"",
+            "Title=\"@Loc[\"PriceListCode\"]\"",
+            "Title=\"@Loc[\"Supplier\"]\"");
+    }
+
+    [Fact]
+    public void ColumnPickerConsumers_KeepStructuralColumnsFixedAndTechnicalFieldsHidden()
+    {
+        var componentRoot = Path.Combine(GetFrontendRoot(), "Components", "Pages");
+        var pickerConsumers = Directory
+            .EnumerateFiles(componentRoot, "*.razor", SearchOption.AllDirectories)
+            .Select(path => new { Path = path, Source = File.ReadAllText(path) })
+            .Where(file => file.Source.Contains("<VppColumnPicker", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Equal(10, pickerConsumers.Length);
+        Assert.Equal(11, pickerConsumers.Sum(file => Regex.Matches(file.Source, "<VppColumnPicker\\b").Count));
+
+        foreach (var consumer in pickerConsumers)
+        {
+            var columnDeclarations = string.Join(
+                '\n',
+                Regex.Matches(
+                        consumer.Source,
+                        "<RadzenDataGridColumn\\b[^>]*>",
+                        RegexOptions.CultureInvariant)
+                    .Cast<Match>()
+                    .Select(match => match.Value));
+            var rowNumberColumns = Regex.Matches(
+                columnDeclarations,
+                "<RadzenDataGridColumn(?=[^>]*Title=\\\"#\\\")[^>]*>",
+                RegexOptions.CultureInvariant);
+
+            Assert.All(
+                rowNumberColumns.Cast<Match>(),
+                column => Assert.Contains("Pickable=\"false\"", column.Value, StringComparison.Ordinal));
+
+            var actionColumns = Regex.Matches(
+                columnDeclarations,
+                "<RadzenDataGridColumn(?=[^>]*Title=\\\"@Loc\\[\\\"Actions\\\"\\]\\\")[^>]*>",
+                RegexOptions.CultureInvariant);
+            Assert.All(
+                actionColumns.Cast<Match>(),
+                column => Assert.Contains("Pickable=\"false\"", column.Value, StringComparison.Ordinal));
+
+            var pickerToolbars = Regex.Matches(
+                consumer.Source,
+                "<VppDataToolbar\\b[\\s\\S]*?</VppDataToolbar>",
+                RegexOptions.CultureInvariant)
+                .Cast<Match>()
+                .Where(match => match.Value.Contains("<VppColumnPicker", StringComparison.Ordinal))
+                .ToArray();
+            Assert.NotEmpty(pickerToolbars);
+            Assert.All(
+                pickerToolbars,
+                toolbar => AssertAppearsInOrder(
+                    toolbar.Value,
+                    "<VppFilterSearch",
+                    "<VppClearFiltersButton",
+                    "<VppColumnPicker"));
+
+            var columnBlocks = Regex.Matches(
+                    consumer.Source,
+                    "<Columns>[\\s\\S]*?</Columns>",
+                    RegexOptions.CultureInvariant)
+                .Cast<Match>()
+                .Where(match => match.Value.Contains("Title=\"@Loc[\"Actions\"]\"", StringComparison.Ordinal))
+                .ToArray();
+            Assert.All(
+                columnBlocks,
+                block => Assert.True(
+                    block.Value.LastIndexOf("Title=\"@Loc[\"Actions\"]\"", StringComparison.Ordinal)
+                    > block.Value.LastIndexOf("<RadzenDataGridColumn", StringComparison.Ordinal),
+                    "Thao tác phải là cột cuối cùng của grid."));
+
+            foreach (var forbiddenProperty in new[]
+                     {
+                         "Property=\"Id\"",
+                         "Property=\"LookupCategoryId\"",
+                         "Property=\"CreatedByUserId\"",
+                         "Property=\"UpdatedByUserId\"",
+                         "nameof(UserAdministrationResDTO.UserId)",
+                         "nameof(UserAdministrationResDTO.RowVersion)"
+                     })
+            {
+                Assert.DoesNotContain(forbiddenProperty, columnDeclarations, StringComparison.Ordinal);
+            }
+        }
+    }
+
+    [Fact]
+    public void AdminLibraryIdentityColumns_SeparateBusinessCodesFromNames()
+    {
+        var root = GetFrontendRoot();
+        var adminSources = new[]
+        {
+            ReadPage(root, "Lib", "Tabs", "Tab_CategoryLibrary.razor"),
+            ReadPage(root, "Lib", "Tabs", "Tab_DepartmentLibrary.razor"),
+            ReadPage(root, "Lib", "Tabs", "Tab_ItemLibrary.razor"),
+            ReadPage(root, "Lib", "Tabs", "Tab_PriceListLibrary.razor"),
+            ReadPage(root, "Lib", "Tabs", "Tab_PriceLibrary.razor"),
+            ReadPage(root, "Permission", "Tabs", "Tab_PagePermission.razor")
+        };
+
+        Assert.All(adminSources, source => Assert.DoesNotContain("vpp-admin-two-line-cell", source, StringComparison.Ordinal));
+        Assert.Contains("Property=\"VppCategoryCode\"", adminSources[0], StringComparison.Ordinal);
+        Assert.Contains("Property=\"Code\"", adminSources[1], StringComparison.Ordinal);
+        Assert.Contains("Property=\"VppCode\"", adminSources[2], StringComparison.Ordinal);
+        Assert.Contains("Property=\"PriceListCode\"", adminSources[3], StringComparison.Ordinal);
+        Assert.Contains("Property=\"VppCode\"", adminSources[4], StringComparison.Ordinal);
+        Assert.Contains("nameof(PermissionGroupDto.GroupCode)", adminSources[5], StringComparison.Ordinal);
     }
 
     [Fact]

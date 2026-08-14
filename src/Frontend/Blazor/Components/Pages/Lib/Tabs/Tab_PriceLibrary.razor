@@ -114,12 +114,13 @@
                                    Description="@(HasPriceFilters ? Loc["HistoryAdjustFilters"].Value : null)" />
         </EmptyTemplate>
         <Columns>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="#" Width="52px" MinWidth="52px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="#" Width="52px" MinWidth="52px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" Reorderable="false" Pickable="false" CssClass="rz-col-index" HeaderCssClass="rz-col-index">
                 <Template Context="row">
                     @(currentSkip + displayItems.IndexOf(row) + 1)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppName" Title="@Loc["ItemName"]" Width="240px" MinWidth="210px"><Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.VppName ?? "–")</strong><small>@(row.VppCode ?? "–")</small></div></Template></RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppName" Title="@Loc["ItemName"]" Width="220px" MinWidth="190px" />
+            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppCode" Title="@Loc["ProductCode"]" Width="145px" MinWidth="130px" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="CategoryName" Title="@Loc["Category"]" Width="140px" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="UomName" Title="@Loc["UOM"]" Width="100px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDeleted" Title="@Loc["PriceStatus"]" Width="125px" MinWidth="115px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
@@ -165,7 +166,6 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="VppCode" Title="@Loc["ProductCode"]" Width="124px" Visible="false" Pickable="true" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Sortable="false" Filterable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium" Visible="@CanModify">
                 <Template Context="row">

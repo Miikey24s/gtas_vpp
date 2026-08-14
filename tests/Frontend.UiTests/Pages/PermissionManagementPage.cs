@@ -19,7 +19,7 @@ public sealed class PermissionManagementPage
         await page.GotoAsync($"{baseUrl}permission?tab=1");
         await page.Locator("[data-testid='permission-groups-data-surface']").WaitForAsync();
         await page.WaitForFunctionAsync(
-            "() => document.querySelectorAll('.permission-group-grid .permission-group-identity').length > 0");
+            "() => document.querySelectorAll('.permission-group-grid .vpp-permission-group-code').length > 0");
     }
 
     public async Task SetComponentVisibilityAsync(
@@ -77,7 +77,7 @@ public sealed class PermissionManagementPage
     private async Task OpenGroupEditorAsync(string groupCode)
     {
         var groupCell = page
-            .Locator(".permission-group-grid .permission-group-identity small")
+            .Locator(".permission-group-grid .vpp-permission-group-code")
             .GetByText(groupCode, new LocatorGetByTextOptions { Exact = true })
             .First;
 
