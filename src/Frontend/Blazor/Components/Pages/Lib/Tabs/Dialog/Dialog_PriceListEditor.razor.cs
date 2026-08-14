@@ -1,6 +1,7 @@
 // PAGE LOGIC: Lib/Tabs/Dialog/Dialog_PriceListEditor.razor.cs
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
+using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Services;
 using Microsoft.AspNetCore.Components;
 using Radzen;
@@ -14,6 +15,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog
         [Parameter] public PriceListUpdateReqDTO Model { get; set; } = new();
         [Parameter] public bool IsClone { get; set; }
         [Parameter] public List<SupplierResDTO> Suppliers { get; set; } = [];
+
+        private IReadOnlyList<VppDecisionOption<Guid?>> SupplierOptions => Suppliers
+            .OrderBy(supplier => supplier.SupplierName)
+            .Select(supplier => new VppDecisionOption<Guid?>(supplier.Id, supplier.SupplierName ?? "–"))
+            .ToList();
+
+        private void OnSupplierChanged(Guid? supplierId)
+        {
+            Model.SupplierId = supplierId;
+        }
 
         private void Save()
         {

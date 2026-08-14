@@ -82,6 +82,7 @@ public sealed class AtlasWave1ArchitectureTests
         var priceEditor = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_PriceEditor.razor");
         var pricePage = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor");
         var priceCode = ReadFrontendSource("Components/Pages/Lib/Tabs/Tab_PriceLibrary.razor.cs");
+        var viResources = ReadFrontendSource("Resources/Components.App.resx");
 
         Assert.Contains("<VppCollectionWorkspace", page, StringComparison.Ordinal);
         Assert.DoesNotContain("<VppListDetailWorkspace", page, StringComparison.Ordinal);
@@ -106,6 +107,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("Loc[\"PriceListCurrency\"]", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("Model.CurrencyCode", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("Text=\"Rebate\"", editor, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionSelect TValue=\"Guid?\"", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("<RadzenDropDown", editor, StringComparison.Ordinal);
+        Assert.Contains("<value>Nhân bản bảng giá</value>", viResources, StringComparison.Ordinal);
+        Assert.DoesNotContain("<value>Sao chép thành bảng giá mới</value>", viResources, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UOM\"]", pricePage, StringComparison.Ordinal);
         Assert.Contains("Loc[\"SupplierSku\"]", pricePage, StringComparison.Ordinal);
         Assert.Contains("Loc[\"MinimumOrderShort\"]", pricePage, StringComparison.Ordinal);

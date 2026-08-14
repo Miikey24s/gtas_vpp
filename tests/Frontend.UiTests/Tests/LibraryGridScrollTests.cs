@@ -372,7 +372,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
     }
 
     [Fact]
-    public async Task PriceList_Editor_HidesDeferredCommercialTerms()
+    public async Task PriceList_Editor_UsesCanonicalSupplierSelect_AndHidesDeferredFields()
     {
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 768);
@@ -393,13 +393,30 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Assertions.Expect(dialog.GetByText("Phí vận chuyển", new() { Exact = true })).ToHaveCountAsync(0);
         await Assertions.Expect(dialog.GetByText("Đơn vị tiền tệ", new() { Exact = true })).ToHaveCountAsync(0);
 
+        var supplierSelect = dialog.Locator(".vpp-decision-select");
+        await Assertions.Expect(supplierSelect).ToHaveCountAsync(1);
+        await Assertions.Expect(dialog.Locator(".rz-dropdown")).ToHaveCountAsync(0);
+        var supplierTrigger = supplierSelect.Locator(".vpp-decision-select-trigger");
+        var supplierPopover = dialog.Locator(".vpp-decision-select-popover");
+        var supplierOptionCount = await supplierPopover.Locator("button[role='option']").CountAsync();
+        if (supplierOptionCount > 0)
+        {
+            await supplierTrigger.ClickAsync();
+            await supplierPopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            await Assertions.Expect(supplierPopover.Locator("input")).ToHaveCountAsync(0);
+        }
+        else
+        {
+            await Assertions.Expect(supplierTrigger).ToBeDisabledAsync();
+        }
+
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
         {
             Directory.CreateDirectory(evidenceDirectory);
             await Page.ScreenshotAsync(new PageScreenshotOptions
             {
-                Path = Path.Combine(evidenceDirectory, "price-list-editor-deferred-terms-hidden.png"),
+                Path = Path.Combine(evidenceDirectory, "price-list-editor-design-system-select.png"),
                 FullPage = false,
                 Animations = ScreenshotAnimations.Disabled,
                 Caret = ScreenshotCaret.Hide,
@@ -407,6 +424,11 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             });
         }
 
+        if (supplierOptionCount > 0)
+        {
+            await Page.Keyboard.PressAsync("Escape");
+            await supplierPopover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
         await Page.Keyboard.PressAsync("Escape");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
     }

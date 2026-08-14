@@ -248,7 +248,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             var result = await OpenEditorAsync(Loc["CopyAsNewPriceList"].Value, new PriceListUpdateReqDTO
             {
                 Code = $"{row.PriceListCode}-COPY",
-                Name = $"{row.PriceListName} Copy",
+                Name = $"{row.PriceListName} - {Loc["PriceListCopyNameSuffix"].Value}",
                 Description = row.Description
             }, isClone: true);
             if (result is null) return;

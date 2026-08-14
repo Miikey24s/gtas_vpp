@@ -466,7 +466,8 @@
   <data name="IsDefault" xml:space="preserve"><value>Default</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Set as Default</value></data>
   <data name="Clone" xml:space="preserve"><value>Clone</value></data>
-  <data name="CopyAsNewPriceList" xml:space="preserve"><value>Copy as new price list</value></data>
+  <data name="CopyAsNewPriceList" xml:space="preserve"><value>Duplicate price list</value></data>
+  <data name="PriceListCopyNameSuffix" xml:space="preserve"><value>Copy</value></data>
   <data name="ImportPriceList" xml:space="preserve"><value>Import price list</value></data>
   <data name="PriceImport" xml:space="preserve"><value>Import price list</value></data>
   <data name="DownloadTemplate" xml:space="preserve"><value>Download template</value></data>
@@ -504,7 +505,7 @@
   <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Delete this price list?</value></data>
   <data name="PriceListSaved" xml:space="preserve"><value>Price list saved</value></data>
   <data name="PriceListDeleted" xml:space="preserve"><value>Price list deleted</value></data>
-  <data name="PriceListCloned" xml:space="preserve"><value>Price list cloned</value></data>
+  <data name="PriceListCloned" xml:space="preserve"><value>Price list duplicated</value></data>
   <data name="PeriodOperations" xml:space="preserve"><value>Order period management</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Pending Approvals</value></data>
   <data name="PeriodSettlement" xml:space="preserve"><value>Period Settlement</value></data>
@@ -1426,5 +1427,5 @@
   <data name="PriceListUseAsDefault" xml:space="preserve"><value>Use as the default price list</value></data>
   <data name="PriceListIdentityRequired" xml:space="preserve"><value>Enter a price-list code and name.</value></data>
   <data name="PriceListSupplierRequired" xml:space="preserve"><value>Select the applicable supplier.</value></data>
-  <data name="PriceListCloneTermsHint" xml:space="preserve"><value>The supplier, item prices, and commercial terms are copied from the source price list.</value></data>
+  <data name="PriceListCloneTermsHint" xml:space="preserve"><value>The supplier and item prices are taken from the source price list.</value></data>
 </root>

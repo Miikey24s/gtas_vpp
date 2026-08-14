@@ -466,7 +466,8 @@
   <data name="IsDefault" xml:space="preserve"><value>Mặc định</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Đặt làm mặc định</value></data>
   <data name="Clone" xml:space="preserve"><value>Sao chép</value></data>
-  <data name="CopyAsNewPriceList" xml:space="preserve"><value>Sao chép thành bảng giá mới</value></data>
+  <data name="CopyAsNewPriceList" xml:space="preserve"><value>Nhân bản bảng giá</value></data>
+  <data name="PriceListCopyNameSuffix" xml:space="preserve"><value>Bản sao</value></data>
   <data name="ImportPriceList" xml:space="preserve"><value>Import bảng giá</value></data>
   <data name="PriceImport" xml:space="preserve"><value>Nhập bảng giá</value></data>
   <data name="DownloadTemplate" xml:space="preserve"><value>Tải file mẫu</value></data>
@@ -504,7 +505,7 @@
   <data name="ConfirmDeletePriceList" xml:space="preserve"><value>Xóa bảng giá này?</value></data>
   <data name="PriceListSaved" xml:space="preserve"><value>Đã lưu bảng giá</value></data>
   <data name="PriceListDeleted" xml:space="preserve"><value>Đã xóa bảng giá</value></data>
-  <data name="PriceListCloned" xml:space="preserve"><value>Đã sao chép bảng giá</value></data>
+  <data name="PriceListCloned" xml:space="preserve"><value>Đã nhân bản bảng giá</value></data>
   <data name="PeriodOperations" xml:space="preserve"><value>Quản lý kỳ đặt hàng</value></data>
   <data name="PendingApprovals" xml:space="preserve"><value>Đơn bổ sung chờ duyệt</value></data>
   <data name="PeriodSettlement" xml:space="preserve"><value>Chốt kỳ</value></data>
@@ -1426,5 +1427,5 @@
   <data name="PriceListUseAsDefault" xml:space="preserve"><value>Dùng làm bảng giá mặc định</value></data>
   <data name="PriceListIdentityRequired" xml:space="preserve"><value>Vui lòng nhập mã và tên bảng giá.</value></data>
   <data name="PriceListSupplierRequired" xml:space="preserve"><value>Vui lòng chọn nhà cung cấp áp dụng.</value></data>
-  <data name="PriceListCloneTermsHint" xml:space="preserve"><value>Nhà cung cấp, giá mặt hàng và các điều khoản sẽ được sao chép từ bảng giá gốc.</value></data>
+  <data name="PriceListCloneTermsHint" xml:space="preserve"><value>Nhà cung cấp và giá mặt hàng sẽ được lấy từ bảng giá gốc.</value></data>
 </root>
