@@ -22,7 +22,21 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
         var trigger = surface.Locator(".vpp-column-picker-trigger");
         await trigger.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await trigger.Locator(".vpp-column-picker-count").InnerTextAsync())
-            .Should().MatchRegex("^\\d+/\\d+$");
+            .Should().MatchRegex("^\\d+$");
+
+        var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            Directory.CreateDirectory(evidenceDirectory);
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "column-picker-toolbar-trigger.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
 
         await trigger.ClickAsync();
         var popover = Page.Locator(".vpp-column-picker-popover:popover-open");

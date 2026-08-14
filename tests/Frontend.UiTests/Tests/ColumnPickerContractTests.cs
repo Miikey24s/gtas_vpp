@@ -43,18 +43,14 @@ public sealed class ColumnPickerContractTests : TestBase, IAuthenticatedUiTest
                 await trigger.WaitForAsync(new() { State = WaitForSelectorState.Visible });
 
                 var countText = (await trigger.Locator(".vpp-column-picker-count").InnerTextAsync()).Trim();
-                var countParts = countText.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                countParts.Should().HaveCount(2, $"{surfaceId} must show visible/total columns");
-                var visibleCount = int.Parse(countParts[0]);
-                var totalCount = int.Parse(countParts[1]);
+                var visibleCount = int.Parse(countText);
                 visibleCount.Should().BeGreaterThan(0);
-                totalCount.Should().BeGreaterThanOrEqualTo(visibleCount);
 
                 await trigger.ClickAsync();
                 var popover = Page.Locator(".vpp-column-picker-popover:popover-open");
                 await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
                 var labels = await popover.Locator(".vpp-column-picker-label").AllInnerTextsAsync();
-                labels.Should().HaveCount(totalCount);
+                labels.Count.Should().BeGreaterThanOrEqualTo(visibleCount);
                 labels.Should().NotContain("#");
                 labels.Should().NotContain("Thao tác");
                 labels.Should().ContainSingle(label => label == "ID");
@@ -85,9 +81,15 @@ public sealed class ColumnPickerContractTests : TestBase, IAuthenticatedUiTest
                 WaitUntil = WaitUntilState.DOMContentLoaded
             });
 
-            var trigger = Page.GetByTestId("price-lists-data-surface").Locator(".vpp-column-picker-trigger");
+            var representativeSurface = Page.GetByTestId("price-lists-data-surface");
+            var trigger = representativeSurface.Locator(".vpp-column-picker-trigger");
             await trigger.WaitForAsync(new() { State = WaitForSelectorState.Visible });
             await trigger.ScrollIntoViewIfNeededAsync();
+            var triggerHeight = await trigger.EvaluateAsync<double>("element => element.getBoundingClientRect().height");
+            var searchHeight = await representativeSurface.Locator(".vpp-filter-search")
+                .EvaluateAsync<double>("element => element.getBoundingClientRect().height");
+            triggerHeight.Should().BeApproximately(32, 1);
+            triggerHeight.Should().BeApproximately(searchHeight, 1);
             await trigger.ClickAsync();
             var popover = Page.Locator(".vpp-column-picker-popover:popover-open");
             await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });

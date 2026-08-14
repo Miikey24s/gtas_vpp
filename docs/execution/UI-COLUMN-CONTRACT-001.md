@@ -18,7 +18,7 @@ Chuẩn hóa toàn bộ data grid để người dùng luôn hiểu:
 
 ### Phát hiện hiện tại
 
-1. Trigger `Cột 6` đang hiển thị **6 cột đang bật**, không phải tổng số trường có thể chọn. Popup bên trong mới hiển thị dạng `6/8`, nên trigger dễ làm người dùng nghĩ chỉ có 6 cột.
+1. Owner refinement ngày 2026-08-15: trigger `Cột` chủ đích chỉ hiển thị **số cột đang bật**, ví dụ `Cột 6`, để toolbar gọn; tổng số tiếp tục hiện trong popup và nhãn trợ năng.
 2. `Mã bảng giá` đã được khai báo `Visible="false" Pickable="true"`; theo source hiện tại nó phải có trong popup, chỉ đang ẩn mặc định. Nếu route thật không thấy, đó là lỗi đăng ký/trạng thái popup cần sửa ở phase C1.
 3. Cột `#` ở phần lớn grid chưa đặt rõ `Pickable="false"`, nên có thể bị đưa nhầm vào bộ chọn cột. Cột `Thao tác` đa số đã cố định đúng.
 4. Một số picker đang cho phép hiện trường kỹ thuật như `UserId`, `LookupCategoryId`, `CreatedByUserId`, `RowVersion`; các trường này không phù hợp với người dùng nghiệp vụ.
@@ -29,7 +29,7 @@ Chuẩn hóa toàn bộ data grid để người dùng luôn hiểu:
 | Phase | Làm gì | Kết quả | Gate |
 |---|---|---|---|
 | C0 — Khóa contract | Chốt phân loại cột, quy tắc hai dòng và danh sách route | Một chuẩn dùng chung trước khi sửa code | `DONE` |
-| C1 — Sửa foundation | Làm rõ trigger `Cột đang hiện/tổng`; cố định `#`, `Thao tác`; loại trường kỹ thuật | Bộ chọn cột không còn gây hiểu nhầm | `DONE` — unit/architecture pass |
+| C1 — Sửa foundation | Giữ trigger `Cột + số đang hiện` gọn; popup/aria nêu đầy đủ đang hiện/tổng; cố định `#`, `Thao tác`; loại trường kỹ thuật | Bộ chọn cột gọn nhưng vẫn đủ ngữ cảnh khi mở | `DONE` — unit/architecture pass |
 | C2 — Chuẩn hóa Library/Admin | Tách hoặc gộp `Tên/Mã` đúng ngữ cảnh; bổ sung các cột nghiệp vụ đang thiếu | Các trang quản trị đồng nhất và dễ tra cứu | `DONE` — 11/11 picker route-real pass |
 | C3 — Chuẩn hóa toàn frontend | Rà các grid không có picker, thứ tự filter–cột, tên cột và responsive | Không còn mỗi trang dùng một quy tắc riêng | `DONE` — 21 file/26 grid audited |
 | C4 — Khóa bằng test/docs | Thêm contract test và cập nhật design system | Sửa sau này không làm drift trở lại | `IMPLEMENTED` — chờ owner nhìn route thật |
@@ -54,7 +54,7 @@ Chuẩn hóa toàn bộ data grid để người dùng luôn hiểu:
 | ID của bản ghi | `Id`; riêng giá mặt hàng dùng `PriceMappingId` | Chỉ có ở màn quản trị, tên `ID`, luôn ẩn mặc định nhưng được phép bật từ picker |
 | Kỹ thuật quan hệ/đồng thời | Foreign-key ID, numeric `UserId`, `RowVersion`, raw concurrency token | Không xuất hiện trong picker; audit route chỉ ngoại lệ cho correlation/resource identifier có ý nghĩa điều tra |
 
-Trigger picker đề xuất hiển thị `Cột 6/8`. Popup tiếp tục ghi rõ `Đang hiện 6/8`, có tìm kiếm và reset. Con số không bao gồm `#`, checkbox chọn dòng hoặc `Thao tác`.
+Trigger picker hiển thị `Cột 6`; popup tiếp tục ghi rõ `Đã chọn 6 trên 8 cột`, có tìm kiếm và reset. Con số không bao gồm `#`, checkbox chọn dòng hoặc `Thao tác`. Trigger cao đúng 32px để thẳng nhịp với search/filter của `FILTER-TOOLBAR`.
 
 ### 2.2 Quy tắc `Tên + mã`
 
@@ -116,7 +116,7 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 - mọi cột `#`, checkbox chọn dòng và `Thao tác` phải `Pickable="false"`;
 - Mỗi picker quản trị có đúng một `ID` của chính bản ghi, `Visible="false" Pickable="true"`;
 - `RowVersion`, foreign-key ID, numeric `UserId` và concurrency token không được có trong picker ngoài allow-list audit;
-- trigger và popup dùng cùng `visible/total`;
+- trigger hiện `visible`; popup và aria-label giữ `visible/total`;
 - filter theo cùng thứ tự với cột tương ứng;
 - route admin đã xác định mã là khóa quản trị phải có cột mã riêng;
 - label picker phải là tiếng Việt thân thiện, không fallback tên property kỹ thuật.
@@ -138,13 +138,14 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 
 ## 7. Kết quả triển khai — 2026-08-14
 
-- `VppColumnPicker` hiển thị `đang hiện/tổng`, ví dụ `6/8`; trigger và accessibility label dùng cùng một số liệu.
+- `VppColumnPicker` hiển thị số đang bật trên trigger, ví dụ `6`; popup và accessibility label vẫn nêu đầy đủ `Đã chọn 6 trên 8 cột`. Trigger dùng chiều cao toolbar 32px cố định.
 - Dòng đã chọn trong popup không còn phủ nền xanh; trạng thái được thể hiện bằng checkbox, hover vẫn dùng transient surface chung.
 - Toàn bộ 11 picker loại `#`, `Thao tác`, khóa ngoại và concurrency token khỏi danh sách lựa chọn.
 - Category, Department, Item, Price list, Item price và Permission group đã tách `Tên`/`Mã`; User, Supplier và Security audit giữ hai dòng đúng vai trò metadata.
 - Bổ sung các cột nghiệp vụ/audit hợp lệ: mã, VAT mặc định, số nhà cung cấp, mô tả, người/ngày tạo và cập nhật nơi DTO hỗ trợ.
 - Owner feedback ngày 2026-08-14: `Tạo lúc`/`Cập nhật lúc` đổi thành `Ngày tạo`/`Ngày cập nhật`; cả 11 picker quản trị có `ID` (GUID) nhưng ẩn mặc định. Đây là ID của chính bản ghi, không mở lại các khóa ngoại hoặc concurrency token đã loại bỏ.
 - Owner feedback tiếp theo ngày 2026-08-14: bật mặc định các số liệu quyết định gồm `Số giá trị`, `Số mặt hàng`, `Số nhà cung cấp`, `Số người dùng`, `Số quyền` và `Ngày cập nhật` của bảng giá; giữ `Số bảng giá`, `Lần nhập gần nhất`, `Lần đăng nhập gần nhất`, `Ngày cập nhật` của giá mặt hàng và `ID tài nguyên` ở trạng thái ẩn/pickable.
+- Owner refinement ngày 2026-08-15: badge ngoài trigger rút gọn từ `7/13` còn `7`; tổng số vẫn có trong popup/aria. Trigger dùng chiều cao cố định 32px và đã được khóa bằng geometry test để thẳng hàng với search/filter ở desktop, tablet và mobile.
 - Nhà cung cấp hiển thị một cột `Địa chỉ` đã ghép; `Thành phố`, `Phường/Xã`, `Địa chỉ 2`, `Địa chỉ 3` vẫn có thể bật riêng từ picker. Người dùng hiển thị mã nhân viên ở dòng nhận diện phụ nhưng vẫn giữ cột `Mã nhân viên` riêng trong picker.
 - Dữ liệu mới lấy từ bảng và quan hệ hiện có; không tạo migration: lookup value, mặt hàng, ánh xạ giá, bảng giá/lần nhập, membership, lần đăng nhập và permission mapping.
 - Quét 21 file chứa 26 `RadzenDataGrid`: không còn hard-coded English title; các ô hai dòng còn lại thuộc allow-list giao dịch, identity hỗ trợ hoặc audit.
@@ -156,7 +157,7 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 - `ColumnPickerContractTests.AllAdminColumnPickers_ExposeBusinessFieldsWithStableChrome`: pass; mở đủ `11/11` picker, xác nhận mỗi picker có đúng một `ID` ẩn mặc định và spot-check `390×844`, `768×1024`, `1366×768`, `1920×1080`.
 - `PricingAndReportMotifTests.PricingAndReports_KeepCanonicalContractsAcrossResponsiveViewports`: final pass; ảnh thật xác nhận bảng giá dùng cuộn ngang nội bộ ở laptop thay vì ép ngắn các tiêu đề `Trạng thái`, `Mặc định`, `Số mặt hàng`.
 - `PricingAndReportMotifTests.PriceListColumnPicker_ShowsBusinessColumnsAndHidesTechnicalFields`: pass.
-- `LibraryGridScrollTests.LookupColumnPicker_TogglesAndResetsWithVisibleTotalCount`: pass.
+- `LibraryGridScrollTests.LookupColumnPicker_TogglesAndResetsWithVisibleCount`: pass.
 - Test rộng `Class_Definitions_Use_Compact_Master_Detail_Layout` còn fail ở assertion document scroll `290px` trước khi đi tới picker. Đây là layout issue độc lập, không được che bằng cách hạ assertion trong slice này.
 - Test rộng `PermissionAdministration_UsesFullWidthGroupTableAndAdaptiveBatchEditor` đi qua UI mới nhưng dừng ở fixture count cũ `18`, trong khi TEST hiện có `19` dòng quyền API; không sửa assertion theo dữ liệu tạm trong slice này.
 - `./scripts/gtas.cmd verify -Scope frontend`: agent setup `63/63`, Release build `0 warning/error`, frontend unit `445/445`, anonymous UI smoke `2/2` và NuGet audit pass; gate cuối dừng tại lỗi charset có sẵn ở migration backend `20260810233259_AddPriceListImportBatches.cs`, ngoài frontend scope.

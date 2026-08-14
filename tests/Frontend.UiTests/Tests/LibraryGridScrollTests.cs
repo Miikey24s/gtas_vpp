@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.UITests.Tests.Library;
 public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task LookupColumnPicker_TogglesAndResetsWithVisibleTotalCount()
+    public async Task LookupColumnPicker_TogglesAndResetsWithVisibleCount()
     {
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 768);
@@ -21,16 +21,13 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var trigger = surface.Locator(".vpp-column-picker-trigger");
         await trigger.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var initialCount = await trigger.Locator(".vpp-column-picker-count").InnerTextAsync();
-        var countParts = initialCount.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        countParts.Should().HaveCount(2);
-        var initialVisible = int.Parse(countParts[0]);
-        var total = int.Parse(countParts[1]);
-        total.Should().BeGreaterThan(initialVisible);
+        var initialVisible = int.Parse(initialCount);
 
         await trigger.ClickAsync();
         var popover = Page.Locator(".vpp-column-picker-popover:popover-open");
         await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var labels = await popover.Locator(".vpp-column-picker-label").AllInnerTextsAsync();
+        labels.Count.Should().BeGreaterThan(initialVisible);
         labels.Should().NotContain("#");
         labels.Should().NotContain("Thao tác");
         labels.Should().ContainSingle(label => label == "ID");
@@ -60,7 +57,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             .Filter(new() { HasText = targetLabel });
         await hiddenOption.ClickAsync();
         await Assertions.Expect(trigger.Locator(".vpp-column-picker-count"))
-            .ToHaveTextAsync($"{initialVisible + 1}/{total}");
+            .ToHaveTextAsync($"{initialVisible + 1}");
         await surface.Locator("thead th").Filter(new() { HasText = targetLabel }).WaitForAsync();
 
         if (!await popover.IsVisibleAsync())
@@ -695,16 +692,14 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             });
         }
 
-        var initialCountParts = (await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync())
-            .Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        initialCountParts.Should().HaveCount(2);
-        var initialVisibleCount = int.Parse(initialCountParts[0]);
-        var totalPickableCount = int.Parse(initialCountParts[1]);
+        var initialVisibleCount = int.Parse(
+            await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync());
         initialVisibleCount.Should().BeGreaterThan(0);
-        totalPickableCount.Should().BeGreaterThanOrEqualTo(initialVisibleCount);
         await pickerTrigger.ClickAsync();
         var pickerPanel = Page.Locator(".vpp-column-picker-popover:popover-open");
         await pickerPanel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible });
+        var totalPickableCount = await pickerPanel.Locator(".vpp-column-picker-option").CountAsync();
+        totalPickableCount.Should().BeGreaterThanOrEqualTo(initialVisibleCount);
         var pickerChrome = await pickerPanel.EvaluateAsync<double[]>("""
             element => {
                 const header = element.querySelector('.vpp-column-picker-heading');
@@ -811,7 +806,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var toggleDeadline = DateTime.UtcNow.AddSeconds(15);
         while (DateTime.UtcNow < toggleDeadline)
         {
-            actualVisibleCount = int.Parse((await pickerCount.InnerTextAsync()).Split('/')[0]);
+            actualVisibleCount = int.Parse(await pickerCount.InnerTextAsync());
             if (actualVisibleCount == expectedVisibleCount)
             {
                 break;
@@ -848,9 +843,9 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
             expected => document.querySelector(
                 '[data-testid="lookup-categories-data-surface"] .vpp-column-picker-count')?.textContent?.trim() === expected
             """,
-            $"{initialVisibleCount}/{totalPickableCount}");
+            $"{initialVisibleCount}");
         (await pickerTrigger.Locator(".vpp-column-picker-count").InnerTextAsync())
-            .Should().Be($"{initialVisibleCount}/{totalPickableCount}");
+            .Should().Be($"{initialVisibleCount}");
         await targetHeader.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden });
 
         await Page.SetViewportSizeAsync(1024, 768);

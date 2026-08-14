@@ -4,10 +4,12 @@
 }
 
 .vpp-column-picker-trigger {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    min-height: var(--vpp-button-height);
+    height: var(--vpp-data-control-height);
+    min-height: var(--vpp-data-control-height);
     padding: 0 var(--vpp-button-padding-inline);
     border: 1px solid var(--vpp-border-strong);
     border-radius: var(--vpp-radius-button);
@@ -16,6 +18,7 @@
     font: inherit;
     font-size: var(--vpp-text-sm);
     font-weight: var(--vpp-font-weight-medium);
+    line-height: 1;
     cursor: pointer;
     transition: border-color var(--vpp-transition-fast),
                 box-shadow var(--vpp-transition-fast),

@@ -1897,7 +1897,7 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 ### 16.7 Column picker và identity-cell contract — 2026-08-14
 
 - Execution plan canonical: [`UI-COLUMN-CONTRACT-001`](../execution/UI-COLUMN-CONTRACT-001.md), trạng thái `C0–C6 IMPLEMENTED — OWNER VISUAL REVIEW`.
-- Trigger column picker phải diễn đạt rõ số cột đang hiện trên tổng số cột có thể chọn, ví dụ `Cột 6/8`; không tính `#`, checkbox chọn dòng hoặc `Thao tác`.
+- Trigger column picker chỉ hiển thị số cột đang bật, ví dụ `Cột 6`, để giữ toolbar gọn; tổng số cột vẫn hiện đầy đủ trong popup và aria-label. Số đếm không tính `#`, checkbox chọn dòng hoặc `Thao tác`; trigger cao đúng 32px để thẳng nhịp với search/filter của `FILTER-TOOLBAR`.
 - Cột cấu trúc phải cố định và không pickable. Raw GUID/FK ID, `RowVersion` và concurrency token không được đưa vào picker; audit route chỉ ngoại lệ cho identifier thực sự phục vụ điều tra.
 - Bảng giao dịch/đọc nhanh dùng ô hai dòng `Tên + mã`. Màn quản trị nơi mã là khóa tra cứu, import, sort hoặc copy phải tách `Tên` và `Mã` thành hai cột.
 - Thứ tự chuẩn là `nhận diện → phân loại/quan hệ → trạng thái → định lượng → mô tả/audit → thao tác`; toolbar filter bám theo đúng thứ tự cột có thể lọc.
