@@ -856,6 +856,9 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
     min-width: 0;
     min-height: 0;
     overflow: auto;
+    /* Chá»«a sáºµn ráº¡nh scrollbar native á»Ÿ cáº¡nh cuá»‘i Ä‘á»ƒ schema cá»™t khÃ´ng nháº£y
+       khi data vá»«a Ä‘á»§/khÃ´ng Ä‘á»§ táº¡o vertical overflow. KhÃ´ng dÃ¹ng both-edges vÃ¬ sáº½ táº¡o gutter giáº£ hai bÃªn. */
+    scrollbar-gutter: stable;
     border-radius: 0;
     box-shadow: none;
     outline: 0;

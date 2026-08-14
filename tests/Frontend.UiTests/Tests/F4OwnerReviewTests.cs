@@ -395,7 +395,10 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
                     .every(element => {
                         const style = getComputedStyle(element);
                         const webkitScrollbar = getComputedStyle(element, '::-webkit-scrollbar');
-                        return style.scrollbarGutter === 'auto'
+                        const isCanonicalGridBody = element.matches(
+                            '[data-vpp-data-surface="true"] .vpp-data-grid .rz-data-grid-data');
+                        const expectedGutter = isCanonicalGridBody ? 'stable' : 'auto';
+                        return style.scrollbarGutter === expectedGutter
                             && (!style.scrollbarWidth || style.scrollbarWidth === 'auto')
                             && webkitScrollbar.width === 'auto';
                     });

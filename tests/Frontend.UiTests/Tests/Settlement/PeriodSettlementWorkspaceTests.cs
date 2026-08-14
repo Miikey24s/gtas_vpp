@@ -100,6 +100,9 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             .ToBeVisibleAsync();
         await AssertCompactRowRhythmAsync(surface);
         await AssertSettlementSummaryFooterAsync(surface);
+        await AssertStableGridScrollbarGutterAsync(surface);
+        await AssertScrollbarAppearanceDoesNotShiftColumnsAsync(surface);
+        await AssertSettlementBadgeTracksAsync(surface);
         await Assertions.Expect(surface.Locator("thead").GetByText("Trạng thái", new() { Exact = true }))
             .ToBeVisibleAsync();
         await Assertions.Expect(surface.Locator("tbody .vpp-settlement-status-count").First.Locator(".vpp-status-badge"))
@@ -512,6 +515,88 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
                     }
                     if (actionStyle.position === 'sticky') {
                         messages.push('Ô thao tác của dòng tổng hợp vẫn bị frozen/sticky và có thể đè lên dải tổng.');
+                    }
+                }
+                return messages;
+            }
+            """);
+
+        errors.Should().BeEmpty(string.Join(Environment.NewLine, errors));
+    }
+
+    private static async Task AssertStableGridScrollbarGutterAsync(ILocator surface)
+    {
+        var gutter = await surface.Locator(".vpp-settlement-order-grid:visible .rz-data-grid-data")
+            .First
+            .EvaluateAsync<string>("node => getComputedStyle(node).scrollbarGutter");
+
+        gutter.Should().Be("stable", "grid phải giữ sẵn rãnh scrollbar native để cột không nhảy khi overflow thay đổi");
+    }
+
+    private static async Task AssertScrollbarAppearanceDoesNotShiftColumnsAsync(ILocator surface)
+    {
+        var errors = await surface.Locator(".vpp-settlement-order-grid:visible").First.EvaluateAsync<string[]>(
+            """
+            grid => {
+                const scroll = grid.querySelector('.rz-data-grid-data');
+                const headers = [...grid.querySelectorAll('thead th')];
+                if (!scroll || headers.length === 0) {
+                    return ['Không tìm thấy vùng cuộn hoặc header để kiểm tra scrollbar gutter.'];
+                }
+
+                const originalOverflowY = scroll.style.overflowY;
+                const snapshot = () => headers.map(header => {
+                    const box = header.getBoundingClientRect();
+                    return [box.left, box.right, box.width];
+                });
+                const before = snapshot();
+                scroll.style.overflowY = 'scroll';
+                const after = snapshot();
+                scroll.style.overflowY = originalOverflowY;
+
+                const messages = [];
+                before.forEach((box, index) => {
+                    const delta = Math.max(
+                        Math.abs(box[0] - after[index][0]),
+                        Math.abs(box[1] - after[index][1]),
+                        Math.abs(box[2] - after[index][2]));
+                    if (delta > 1) {
+                        messages.push(`Cột ${index + 1} dịch ${delta}px khi scrollbar xuất hiện.`);
+                    }
+                });
+                return messages;
+            }
+            """);
+
+        errors.Should().BeEmpty(string.Join(Environment.NewLine, errors));
+    }
+
+    private static async Task AssertSettlementBadgeTracksAsync(ILocator surface)
+    {
+        var errors = await surface.Locator(".vpp-settlement-order-grid:visible").First.EvaluateAsync<string[]>(
+            """
+            grid => {
+                const messages = [];
+                for (const groupSelector of ['.vpp-settlement-order-count', '.vpp-settlement-status-count']) {
+                    const bodyGroup = grid.querySelector(`tbody ${groupSelector}`);
+                    const summaryGroup = grid.querySelector(`tfoot ${groupSelector}`);
+                    const bodyBadges = bodyGroup ? [...bodyGroup.querySelectorAll('.vpp-status-badge')] : [];
+                    const summaryBadges = summaryGroup ? [...summaryGroup.querySelectorAll('.vpp-status-badge')] : [];
+                    if (bodyBadges.length !== 2 || summaryBadges.length !== 2) {
+                        continue;
+                    }
+
+                    for (let index = 0; index < 2; index++) {
+                        const bodyBox = bodyBadges[index].getBoundingClientRect();
+                        const summaryBox = summaryBadges[index].getBoundingClientRect();
+                        const bodyCenter = bodyBox.left + bodyBox.width / 2;
+                        const summaryCenter = summaryBox.left + summaryBox.width / 2;
+                        if (Math.abs(bodyCenter - summaryCenter) > 1) {
+                            messages.push(`${groupSelector} badge ${index + 1} lệch tâm ${Math.abs(bodyCenter - summaryCenter)}px giữa body và dòng tổng.`);
+                        }
+                        if (Math.abs(bodyBox.width - summaryBox.width) > 1) {
+                            messages.push(`${groupSelector} badge ${index + 1} đổi width theo số đếm (${bodyBox.width}px/${summaryBox.width}px).`);
+                        }
                     }
                 }
                 return messages;

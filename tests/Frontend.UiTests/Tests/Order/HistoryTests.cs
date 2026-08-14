@@ -1206,12 +1206,12 @@ public sealed class HistoryTests : TestBase, IAuthenticatedUiTest
                         if (!surface) return 'missing';
                         const style = getComputedStyle(surface);
                         const native = !surface.classList.contains('has-vertical-overflow')
-                            && style.scrollbarGutter === 'auto'
+                            && style.scrollbarGutter === 'stable'
                             && (!style.scrollbarWidth || style.scrollbarWidth === 'auto');
                         return `${native}|gutter=${style.scrollbarGutter}|width=${style.scrollbarWidth}|class=${surface.classList.contains('has-vertical-overflow')}`;
                     }
                 """);
-                nativeScrollbarContract.Should().StartWith("true", "History must keep the browser-native scrollbar without authored gutters or width overrides");
+                nativeScrollbarContract.Should().StartWith("true", "History must keep the browser-native scrollbar with one stable layout gutter and no authored width override");
 
                 if (viewport.Width >= 1366)
                 {

@@ -114,6 +114,8 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("z-index: 2;", bridge, StringComparison.Ordinal);
         Assert.Contains("--vpp-data-grid-min-width", bridge, StringComparison.Ordinal);
         Assert.Contains("overflow: auto;", bridge, StringComparison.Ordinal);
+        Assert.Contains("scrollbar-gutter: stable;", bridge, StringComparison.Ordinal);
+        Assert.DoesNotContain("scrollbar-gutter: stable both-edges", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-paginator .rz-dropdown", bridge, StringComparison.Ordinal);
         Assert.Contains(".rz-pager .rz-dropdown .rz-dropdown-trigger", bridge, StringComparison.Ordinal);
         Assert.Contains("display: none;", bridge, StringComparison.Ordinal);

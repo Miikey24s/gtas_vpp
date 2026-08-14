@@ -28,7 +28,7 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 | `SPLIT-EDITOR` | Hai vùng chọn/chỉnh sửa | Lookup, Create Order | `VppSplitEditorWorkspace` | resizable/fixed, stacked tablet | pane scroll ownership, seam |
 | `OPERATION` | Workflow/operation screen | Chốt kỳ, approval, order create | `VppOperationWorkspace` + `VppWorkflowStepper` | compact steps, action footer | step geometry, active/completed/pending states |
 | `ANALYTICS` | KPI/chart/list/detail data story | History, department summary, report | `VppAnalyticsWorkspace` | chart/list/detail arrangement | KPI rhythm, chart empty state, detail alignment |
-| `DATA-FRAME` | Header/toolbar/grid/footer frame | Bảng/list có data surface | `VppDataSurfaceFrame` | `ServerPaging`, `ClientSnapshotPaged`, `ClientSnapshotVirtualized`, `Static` | border, overflow, footer anchor |
+| `DATA-FRAME` | Header/toolbar/grid/footer frame | Bảng/list có data surface | `VppDataSurfaceFrame`; Radzen body bridge giữ `scrollbar-gutter: stable` một cạnh | `ServerPaging`, `ClientSnapshotPaged`, `ClientSnapshotVirtualized`, `Static` | border, overflow, footer anchor; đổi trục cột khi scrollbar xuất hiện hoặc dùng `both-edges` tạo gutter giả hai bên |
 | `COLLECTION-HEADER` | Identity + count + collection action | Add/import/export thuộc cả collection | `VppCollectionHeader` | add/secondary/disabled | CRUD trong toolbar hoặc header cột |
 | `BUTTON-ACTION` | Button có text/icon theo cấp hành động | Collection, query, workflow, dialog | Radzen button bridge trong `vpp-radzen-theme.css`; token `--vpp-button-*`; component domain chỉ khi có behavior riêng | standard 32px, compact/icon-only 28px, icon 16px; primary/secondary/light/success/warning/danger | action button cao 36–44px, shadow/translate/oval focus riêng theo route; universal button wrapper chỉ đổi tên markup |
 | `ADMIN-ROW-ACTIONS` | Action chính theo trạng thái + lifecycle/destructive của một dòng | Các bảng quản trị | `VppAdminIconAction`, `VppAdminActionMenu`, `VppAdminLifecycleMenu`, `VppAdminActiveToggle`, cột `vpp-admin-actions` | một action trực tiếp có nhãn ngắn; menu overflow full-text dùng cùng surface, row rhythm và hover của select dọc; active toggle chỉ khi trạng thái là quyết định trực tiếp của page | dàn 3–5 icon ngang hàng; giấu Duyệt/Từ chối/Chốt kỳ trong menu; route tự đặt kích thước/icon chrome hoặc dựng switch shell khác |
@@ -125,6 +125,12 @@ Quy tắc `CAPABILITY-SURFACE`:
 - Base-empty vẫn giữ collection header, toolbar, column header, body và footer/pager theo cùng geometry với populated state. Collection action hợp lệ như `Thêm` hoặc `Import` vẫn hoạt động; filter/pager không có dữ liệu có thể disabled nhưng không bị tháo khỏi layout.
 - Filtered-empty giữ filter và `Xóa bộ lọc` hoạt động. Body chỉ hiển thị một `VppContentState` căn giữa cả hai trục; không tạo fake data row, không hover/cursor/action-row affordance. Footer hiển thị tổng `0` và pager disabled nếu surface có paging.
 - Error state giữ cùng frame và có `Thử lại`; denied state không được để lộ action/cột bị chặn bởi permission. Menu toàn disabled chỉ được mở khi nó giải thích rõ capability của cùng nhóm; không render menu rỗng.
+
+Quy tắc ổn định trục DataGrid:
+
+- Vùng cuộn canonical của DataGrid dùng scrollbar native và `scrollbar-gutter: stable` ở cạnh cuối để header, body, footer và grid kế bên không nhảy chiều rộng khi vertical overflow xuất hiện hoặc biến mất.
+- Không dùng `stable both-edges`, custom scrollbar width/color hoặc pseudo-element scrollbar; các cách đó tạo dải trống giả, lệch tâm hoặc conflict theo browser/theme.
+- Nhóm badge so sánh cùng schema dùng track cố định theo vị trí semantic. Độ dài số (`1`, `51`, `100`) không được làm thay đổi tâm giữa body và dòng tổng.
 
 Quy tắc scroll ownership của workspace:
 

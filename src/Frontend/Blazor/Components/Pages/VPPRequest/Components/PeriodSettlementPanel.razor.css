@@ -318,13 +318,18 @@
 }
 
 .vpp-settlement-order-count {
-    display: flex;
+    display: grid;
     width: 100%;
     min-width: 0;
     align-items: center;
     justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--vpp-space-1);
     white-space: nowrap;
+}
+
+.vpp-settlement-order-count:has(> :only-child) {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 ::deep .vpp-settlement-order-grid :is(th, td).vpp-settlement-order-count-cell {
@@ -348,18 +353,29 @@
 
 .vpp-settlement-order-count ::deep .vpp-category-chip {
     display: inline-flex;
+    width: 100%;
     align-items: center;
+    justify-content: center;
     font-variant-numeric: tabular-nums;
 }
 
 .vpp-settlement-status-count {
-    display: flex;
+    display: grid;
     width: 100%;
     min-width: 0;
     align-items: center;
     justify-content: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--vpp-space-1);
     white-space: nowrap;
+}
+
+.vpp-settlement-status-count:has(> :only-child) {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.vpp-settlement-status-count ::deep .vpp-status-badge {
+    width: 100%;
 }
 
 .vpp-settlement-status-count.is-summary {
