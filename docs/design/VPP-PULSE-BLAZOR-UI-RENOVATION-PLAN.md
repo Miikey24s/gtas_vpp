@@ -1892,3 +1892,12 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Cờ bảng giá mặc định là thông tin nhận biết, hiển thị bằng badge trung tính; không dùng disabled switch vì tạo cảm giác đây là nút bật/tắt trực tiếp.
 - Bảng `Giá mặt hàng` áp dụng cùng quy tắc: dùng đầy đủ `Đơn vị`, `Mã hàng nhà cung cấp`, `Số lượng tối thiểu`, `Ngày giao`; giá mặc định cũng là badge trung tính thay vì disabled switch.
 - Import bảng giá đã triển khai theo `docs/execution/PRICING-IMPORT-VERSIONING-001.md`: template chuẩn tự nhận diện; file NCC dùng tên cột lạ mở bước ghép cột có sample values rồi mới preview/xác nhận. Mapping được lưu trong lịch sử lần nhập; Gemini chỉ gợi ý các cột chưa nhận diện khi có key environment, luôn giữ bước xác nhận và fallback thủ công.
+
+### 16.7 Column picker và identity-cell contract — 2026-08-14
+
+- Execution plan canonical: [`UI-COLUMN-CONTRACT-001`](../execution/UI-COLUMN-CONTRACT-001.md), trạng thái `PLANNED — OWNER REVIEW`; chưa triển khai UI.
+- Trigger column picker phải diễn đạt rõ số cột đang hiện trên tổng số cột có thể chọn, ví dụ `Cột 6/8`; không tính `#`, checkbox chọn dòng hoặc `Thao tác`.
+- Cột cấu trúc phải cố định và không pickable. Raw GUID/FK ID, `RowVersion` và concurrency token không được đưa vào picker; audit route chỉ ngoại lệ cho identifier thực sự phục vụ điều tra.
+- Bảng giao dịch/đọc nhanh dùng ô hai dòng `Tên + mã`. Màn quản trị nơi mã là khóa tra cứu, import, sort hoặc copy phải tách `Tên` và `Mã` thành hai cột.
+- Thứ tự chuẩn là `nhận diện → phân loại/quan hệ → trạng thái → định lượng → mô tả/audit → thao tác`; toolbar filter bám theo đúng thứ tự cột có thể lọc.
+- Không tự đưa mọi property DTO lên UI. Mỗi cột phải có label thân thiện, lý do nghiệp vụ, visibility mặc định, pickability, sort/filter và responsive priority rõ ràng.
