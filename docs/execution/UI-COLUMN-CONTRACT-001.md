@@ -131,4 +131,3 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 - Không thêm field chỉ vì DTO có sẵn; field phải hỗ trợ tra cứu, quyết định hoặc audit thực tế.
 - `NetPrice`, trường thương mại/hợp đồng và lookup `ExtraField` cần quyết định nghiệp vụ riêng trước khi đưa lên UI.
 - C0 chỉ là tài liệu. Chỉ bắt đầu C1–C4 sau khi owner duyệt contract này.
-
