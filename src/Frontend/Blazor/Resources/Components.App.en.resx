@@ -1414,4 +1414,17 @@
   <data name="PriceImportCheckData" xml:space="preserve"><value>Validate data</value></data>
   <data name="PriceImportChooseFileToContinue" xml:space="preserve"><value>Choose a file to continue</value></data>
   <data name="PriceImportCustomMapping" xml:space="preserve"><value>Custom column mapping</value></data>
+  <data name="PriceListSupplier" xml:space="preserve"><value>Applicable supplier</value></data>
+  <data name="PriceListSelectSupplier" xml:space="preserve"><value>Select supplier</value></data>
+  <data name="PriceListCurrency" xml:space="preserve"><value>Currency</value></data>
+  <data name="PriceListContractReference" xml:space="preserve"><value>Contract reference</value></data>
+  <data name="PriceListDiscountRate" xml:space="preserve"><value>Discount (%)</value></data>
+  <data name="PriceListAdditionalReduction" xml:space="preserve"><value>Additional reduction</value></data>
+  <data name="PriceListAdditionalFee" xml:space="preserve"><value>Additional fee</value></data>
+  <data name="PriceListShippingFee" xml:space="preserve"><value>Shipping fee</value></data>
+  <data name="PriceListCommercialTermsHint" xml:space="preserve"><value>These terms apply to the whole price list when comparing suppliers and calculating the settlement total.</value></data>
+  <data name="PriceListUseAsDefault" xml:space="preserve"><value>Use as the default price list</value></data>
+  <data name="PriceListIdentityRequired" xml:space="preserve"><value>Enter a price-list code and name.</value></data>
+  <data name="PriceListSupplierRequired" xml:space="preserve"><value>Select the applicable supplier.</value></data>
+  <data name="PriceListCloneTermsHint" xml:space="preserve"><value>The supplier, item prices, and commercial terms are copied from the source price list.</value></data>
 </root>

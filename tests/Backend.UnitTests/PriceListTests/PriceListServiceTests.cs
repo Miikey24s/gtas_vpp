@@ -65,13 +65,15 @@ public class PriceListServiceTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 5, 21, 9, 0, 0);
         await SeedListAsync(context, "OLD", "Old", isDefault: true, now);
+        var supplierId = await SeedSupplierAsync(context, now);
         var service = CreateService(context, now);
 
         var result = await service.CreateAsync(new PriceListCreateReqDTO
         {
             Code = "NEW",
             Name = "New",
-            IsDefault = true
+            IsDefault = true,
+            SupplierId = supplierId
         }, 5615);
 
         Assert.True(result.IsDefault);
@@ -82,6 +84,24 @@ public class PriceListServiceTests
         Assert.Equal(2, lists.Count);
         Assert.Single(lists, x => x.IsDefault);
         Assert.True(lists.Single(x => x.Id == result.Id).IsDefault);
+    }
+
+    [Fact]
+    public async Task Create_MissingSupplier_Throws()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        var service = CreateService(context, now);
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() => service.CreateAsync(
+            new PriceListCreateReqDTO
+            {
+                Code = "NO-SUPPLIER",
+                Name = "Missing supplier"
+            },
+            5615));
+
+        Assert.Contains("supplier is required", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -194,6 +214,7 @@ public class PriceListServiceTests
         var now = new DateTime(2026, 5, 21, 9, 0, 0);
         var firstId = await SeedListAsync(context, "A", "A", isDefault: true, now);
         var secondId = await SeedListAsync(context, "B", "B", isDefault: false, now);
+        var supplierId = await SeedSupplierAsync(context, now);
         var service = CreateService(context, now);
 
         await service.UpdateAsync(new PriceListUpdateReqDTO
@@ -201,7 +222,8 @@ public class PriceListServiceTests
             Id = secondId,
             Code = "B2",
             Name = "B2",
-            IsDefault = true
+            IsDefault = true,
+            SupplierId = supplierId
         }, 5615);
 
         var lists = await context.Set<PriceList>().ToListAsync();

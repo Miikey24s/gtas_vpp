@@ -17,9 +17,26 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog
 
         private void Save()
         {
-            if (string.IsNullOrWhiteSpace(Model.Code) || string.IsNullOrWhiteSpace(Model.Name))
+            if (string.IsNullOrWhiteSpace(Model.Code)
+                || string.IsNullOrWhiteSpace(Model.Name))
             {
-                ToastService.Show(NotificationSeverity.Warning, Loc["ValidationTitle"], Loc["PriceListName"], 4000, false);
+                ToastService.Show(
+                    NotificationSeverity.Warning,
+                    Loc["ValidationTitle"],
+                    Loc["PriceListIdentityRequired"],
+                    4000,
+                    false);
+                return;
+            }
+
+            if (!IsClone && !Model.SupplierId.HasValue)
+            {
+                ToastService.Show(
+                    NotificationSeverity.Warning,
+                    Loc["ValidationTitle"],
+                    Loc["PriceListSupplierRequired"],
+                    4000,
+                    false);
                 return;
             }
 

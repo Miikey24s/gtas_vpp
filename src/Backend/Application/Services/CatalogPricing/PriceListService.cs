@@ -581,6 +581,11 @@ namespace gtas_vpp_be.Service.Services
             DateTime? effectiveToUtc,
             string currencyCode)
         {
+            if (!supplierId.HasValue || supplierId.Value == Guid.Empty)
+            {
+                throw new BusinessException("A supplier is required for a price list.");
+            }
+
             if (version <= 0)
             {
                 throw new BusinessException("Price book version must be greater than zero.");
@@ -596,8 +601,6 @@ namespace gtas_vpp_be.Service.Services
             {
                 throw new BusinessException("CurrencyCode must contain exactly three letters.");
             }
-
-            _ = supplierId;
         }
 
         private static string NormalizeCurrency(string value)

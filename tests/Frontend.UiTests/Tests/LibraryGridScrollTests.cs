@@ -386,6 +386,10 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         var dialog = Page.Locator(".rz-dialog.vpp-admin-dialog--workspace:visible");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         (await dialog.Locator("[data-testid='price-list-editor']").CountAsync()).Should().Be(1);
+        await Assertions.Expect(dialog.GetByText("Khoản giảm thêm", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(dialog.GetByText("Phụ phí", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(dialog.GetByText("Phí vận chuyển", new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(dialog.GetByText("Rebate", new() { Exact = true })).ToHaveCountAsync(0);
         await Page.Keyboard.PressAsync("Escape");
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
     }

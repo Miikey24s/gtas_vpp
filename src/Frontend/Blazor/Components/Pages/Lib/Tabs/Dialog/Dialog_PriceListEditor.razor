@@ -8,23 +8,37 @@
     <ChildContent>
         <RadzenStack Gap="1rem">
             <RadzenRow>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListCode"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Code" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListName"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Name" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListCode"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Code" MaxLength="50" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListName"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.Name" MaxLength="200" Style="width:100%" /></RadzenFormField></RadzenColumn>
             </RadzenRow>
-            <RadzenFormField Text="Nhà cung cấp" Variant="Variant.Outlined"><RadzenDropDown TValue="Guid?" Data="@Suppliers" TextProperty="SupplierName" ValueProperty="Id" @bind-Value="Model.SupplierId" AllowFiltering="true" Style="width:100%" /></RadzenFormField>
-            <RadzenRow>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Tiền tệ" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="Mã hợp đồng" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.ContractCode" Style="width:100%" /></RadzenFormField></RadzenColumn>
-            </RadzenRow>
-            <RadzenRow>
-                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Chiết khấu %" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.DiscountRate" Min="0" Max="100" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Rebate" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.RebateAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Phí" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.FeeAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="Vận chuyển" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.ShippingAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
-            </RadzenRow>
-            @if (!IsClone)
+            @if (IsClone)
             {
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"><RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" /><RadzenText Text="@Loc["IsDefault"]" TextStyle="TextStyle.Body2" /></RadzenStack>
+                <RadzenText Text="@Loc["PriceListCloneTermsHint"]" TextStyle="TextStyle.Caption" />
+            }
+            else
+            {
+                <RadzenFormField Text="@Loc["PriceListSupplier"]" Variant="Variant.Outlined">
+                    <RadzenDropDown TValue="Guid?"
+                                    Data="@Suppliers"
+                                    TextProperty="SupplierName"
+                                    ValueProperty="Id"
+                                    @bind-Value="Model.SupplierId"
+                                    AllowFiltering="true"
+                                    Placeholder="@Loc["PriceListSelectSupplier"]"
+                                    Style="width:100%" />
+                </RadzenFormField>
+                <RadzenRow>
+                    <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListCurrency"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Disabled="true" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="6"><RadzenFormField Text="@Loc["PriceListContractReference"]" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="Model.ContractCode" MaxLength="128" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListDiscountRate"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.DiscountRate" Min="0" Max="100" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListAdditionalReduction"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.RebateAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListAdditionalFee"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.FeeAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                    <RadzenColumn Size="12" SizeMD="3"><RadzenFormField Text="@Loc["PriceListShippingFee"]" Variant="Variant.Outlined"><RadzenNumeric TValue="decimal" @bind-Value="Model.ShippingAmount" Min="0" Style="width:100%" /></RadzenFormField></RadzenColumn>
+                </RadzenRow>
+                <RadzenText Text="@Loc["PriceListCommercialTermsHint"]" TextStyle="TextStyle.Caption" />
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"><RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" /><RadzenText Text="@Loc["PriceListUseAsDefault"]" TextStyle="TextStyle.Body2" /></RadzenStack>
             }
             <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>
         </RadzenStack>

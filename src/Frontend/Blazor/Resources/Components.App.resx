@@ -1414,4 +1414,17 @@
   <data name="PriceImportCheckData" xml:space="preserve"><value>Kiểm tra dữ liệu</value></data>
   <data name="PriceImportChooseFileToContinue" xml:space="preserve"><value>Chọn file để tiếp tục</value></data>
   <data name="PriceImportCustomMapping" xml:space="preserve"><value>Ánh xạ cột tùy chỉnh</value></data>
+  <data name="PriceListSupplier" xml:space="preserve"><value>Nhà cung cấp áp dụng</value></data>
+  <data name="PriceListSelectSupplier" xml:space="preserve"><value>Chọn nhà cung cấp</value></data>
+  <data name="PriceListCurrency" xml:space="preserve"><value>Đơn vị tiền tệ</value></data>
+  <data name="PriceListContractReference" xml:space="preserve"><value>Mã hợp đồng tham chiếu</value></data>
+  <data name="PriceListDiscountRate" xml:space="preserve"><value>Chiết khấu (%)</value></data>
+  <data name="PriceListAdditionalReduction" xml:space="preserve"><value>Khoản giảm thêm</value></data>
+  <data name="PriceListAdditionalFee" xml:space="preserve"><value>Phụ phí</value></data>
+  <data name="PriceListShippingFee" xml:space="preserve"><value>Phí vận chuyển</value></data>
+  <data name="PriceListCommercialTermsHint" xml:space="preserve"><value>Các khoản này áp dụng cho toàn bộ bảng giá khi hệ thống so sánh nhà cung cấp và tính tổng giá trị chốt kỳ.</value></data>
+  <data name="PriceListUseAsDefault" xml:space="preserve"><value>Dùng làm bảng giá mặc định</value></data>
+  <data name="PriceListIdentityRequired" xml:space="preserve"><value>Vui lòng nhập mã và tên bảng giá.</value></data>
+  <data name="PriceListSupplierRequired" xml:space="preserve"><value>Vui lòng chọn nhà cung cấp áp dụng.</value></data>
+  <data name="PriceListCloneTermsHint" xml:space="preserve"><value>Nhà cung cấp, giá mặt hàng và các điều khoản sẽ được sao chép từ bảng giá gốc.</value></data>
 </root>
