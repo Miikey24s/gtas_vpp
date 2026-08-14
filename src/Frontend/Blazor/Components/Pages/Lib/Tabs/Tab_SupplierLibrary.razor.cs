@@ -25,13 +25,22 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
     private int totalCount;
     private int currentSkip;
     private string searchText = string.Empty;
+    private string selectedActivity = string.Empty;
     private bool isLoading;
     private CancellationTokenSource? searchDebounce;
 
-    private bool HasFilters => !string.IsNullOrWhiteSpace(searchText);
+    private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
+        || !string.IsNullOrWhiteSpace(selectedActivity);
     private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
 
     protected override RadzenDataGrid<SupplierResDTO>? InitialGrid => grid;
+
+    private IReadOnlyList<VppFilterOption<string>> StatusOptions =>
+    [
+        new(string.Empty, Loc["LibraryAllStatuses"]),
+        new("active", Loc["LibraryStatusActive"]),
+        new("inactive", Loc["LibraryStatusInactive"])
+    ];
 
     private async Task LoadDataAsync(LoadDataArgs args)
     {
@@ -43,7 +52,8 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
                 args.Skip ?? 0,
                 args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
                 searchText,
-                args.OrderBy));
+                args.OrderBy,
+                selectedActivity));
             rows = result.Items.ToList();
             totalCount = result.TotalCount;
         }
@@ -146,7 +156,18 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
         catch (OperationCanceledException) { }
     }
 
-    private async Task ClearFiltersAsync() { searchText = string.Empty; await grid.FirstPage(true); }
+    private async Task OnStatusChangedAsync(string value)
+    {
+        selectedActivity = value ?? string.Empty;
+        await grid.FirstPage(true);
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        searchText = string.Empty;
+        selectedActivity = string.Empty;
+        await grid.FirstPage(true);
+    }
 
     private static string FormatSupplierAddress(SupplierResDTO row)
     {

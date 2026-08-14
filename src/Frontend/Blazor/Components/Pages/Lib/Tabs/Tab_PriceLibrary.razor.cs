@@ -29,11 +29,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private List<SupplierResDTO> suppliers = [];
         private List<VppItemPriceResDTO> displayItems = [];
         private List<string> categories = [];
+        private List<string> units = [];
         private RadzenDataGrid<VppItemPriceResDTO> grid = default!;
         private Guid? selectedPriceListId;
         private Guid? selectedSupplierId;
         private string searchText = "";
         private string selectedCategory = "";
+        private string selectedUom = "";
         private string selectedMappingStatus = "";
         private string? loadError;
         private bool interactiveLookupsRefreshed;
@@ -47,6 +49,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool CanImportPrices => CanModify && IsSelectedPriceListActive && selectedPriceListId.HasValue;
         private bool HasPriceFilters => !string.IsNullOrWhiteSpace(searchText)
             || !string.IsNullOrWhiteSpace(selectedCategory)
+            || !string.IsNullOrWhiteSpace(selectedUom)
             || !string.IsNullOrWhiteSpace(selectedMappingStatus);
         private VppDataSurfaceState PriceSurfaceState => !string.IsNullOrWhiteSpace(loadError)
             ? VppDataSurfaceState.Error
@@ -62,6 +65,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             => priceLists.Select(row => new VppFilterOption<Guid?>(row.Id, FormatPriceListOption(row))).ToList();
         private IReadOnlyList<VppFilterOption<string>> CategoryFilterOptions =>
             [new(string.Empty, Loc["AllCategories"].Value), .. categories.Select(category => new VppFilterOption<string>(category, category))];
+        private IReadOnlyList<VppFilterOption<string>> UomFilterOptions =>
+            [new(string.Empty, Loc["AllUnits"].Value), .. units.Select(unit => new VppFilterOption<string>(unit, unit))];
         private IReadOnlyList<VppFilterOption<string>> MappingStatusOptions =>
         [
             new(string.Empty, Loc["AllPriceMappings"].Value),
@@ -125,7 +130,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
                 _ = InvokeAsync(async () =>
                 {
-                    await LoadCategoryOptionsAsync();
+                    await LoadFilterOptionsAsync();
                     await LoadPricesAsync();
                     StateHasChanged();
                 });
@@ -148,7 +153,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 selectedPriceListId = ResolveSelectedPriceListId();
                 selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
 
-                await LoadCategoryOptionsAsync();
+                await LoadFilterOptionsAsync();
                 await LoadPricesAsync();
             }
             catch (Exception ex)
@@ -198,7 +203,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     searchText,
                     selectedCategory,
                     selectedMappingStatus,
-                    args.OrderBy));
+                    args.OrderBy,
+                    selectedUom));
 
                 displayItems = result.Items.ToList();
                 priceCount = result.TotalCount;
@@ -233,6 +239,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             if (grid is not null) await grid.FirstPage(true);
         }
 
+        private async Task OnUomChangedAsync(string value)
+        {
+            selectedUom = value;
+            if (grid is not null) await grid.FirstPage(true);
+        }
+
         private async Task OnMappingStatusChangedAsync(string value)
         {
             selectedMappingStatus = value;
@@ -243,6 +255,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             searchText = string.Empty;
             selectedCategory = string.Empty;
+            selectedUom = string.Empty;
             selectedMappingStatus = string.Empty;
             if (grid is not null) await grid.FirstPage(true);
         }
@@ -461,8 +474,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             selectedPriceListId = value;
             selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
             selectedCategory = string.Empty;
+            selectedUom = string.Empty;
             selectedMappingStatus = string.Empty;
-            await LoadCategoryOptionsAsync();
+            await LoadFilterOptionsAsync();
             await LoadPricesAsync();
         }
 
@@ -480,17 +494,24 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 ?? priceLists.FirstOrDefault()?.Id;
         }
 
-        private async Task LoadCategoryOptionsAsync()
+        private async Task LoadFilterOptionsAsync()
         {
             categories = [];
+            units = [];
             if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
             {
                 return;
             }
 
-            categories = (await PricingApi.GetItemPriceCategoriesAsync(
+            var categoriesTask = PricingApi.GetItemPriceCategoriesAsync(
                 selectedSupplierId.Value,
-                selectedPriceListId.Value)).ToList();
+                selectedPriceListId.Value);
+            var unitsTask = PricingApi.GetItemPriceUnitsAsync(
+                selectedSupplierId.Value,
+                selectedPriceListId.Value);
+            await Task.WhenAll(categoriesTask, unitsTask);
+            categories = (await categoriesTask).ToList();
+            units = (await unitsTask).ToList();
         }
 
         private async Task ReloadGridAsync()
@@ -553,7 +574,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
             if (imported is true)
             {
-                await LoadCategoryOptionsAsync();
+                await LoadFilterOptionsAsync();
                 await LoadPricesAsync();
             }
         }

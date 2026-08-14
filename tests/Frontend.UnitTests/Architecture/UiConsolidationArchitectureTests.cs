@@ -160,8 +160,11 @@ public sealed class UiConsolidationArchitectureTests
         Assert.Contains("data-testid=\"price-context\"", prices, StringComparison.Ordinal);
         Assert.DoesNotContain("OnSupplierChangedAsync", prices, StringComparison.Ordinal);
         Assert.Contains("PricingApi.GetItemPriceCategoriesAsync", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("PricingApi.GetItemPriceUnitsAsync", pricesCode, StringComparison.Ordinal);
         Assert.Contains("PricingApi.GetItemPricesAsync", pricesCode, StringComparison.Ordinal);
-        Assert.Contains("distinct=CategoryName", pricingClient, StringComparison.Ordinal);
+        Assert.Contains("GetItemPriceDistinctValuesAsync", pricingClient, StringComparison.Ordinal);
+        Assert.Contains("\"CategoryName\"", pricingClient, StringComparison.Ordinal);
+        Assert.Contains("\"UomName\"", pricingClient, StringComparison.Ordinal);
         Assert.Contains("MappingStatus switch", pricingClient, StringComparison.Ordinal);
         Assert.Contains("<VppAdminActionMenu", prices, StringComparison.Ordinal);
         Assert.Contains("PriceRowSecondaryActions", pricesCode, StringComparison.Ordinal);

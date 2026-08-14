@@ -121,7 +121,8 @@ namespace gtas_vpp_be.Service.Services
                     (x.VppCode != null && x.VppCode.Contains(searchText))
                     || (x.VppName != null && x.VppName.Contains(searchText))
                     || (x.CategoryName != null && x.CategoryName.Contains(searchText))
-                    || (x.UomName != null && x.UomName.Contains(searchText)));
+                    || (x.UomName != null && x.UomName.Contains(searchText))
+                    || (x.SupplierSku != null && x.SupplierSku.Contains(searchText)));
             }
 
             if (!string.IsNullOrWhiteSpace(filter))

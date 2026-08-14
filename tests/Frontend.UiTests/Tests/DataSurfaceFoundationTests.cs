@@ -395,6 +395,62 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
     }
 
     [Fact]
+    public async Task AdminLibraryFilters_FollowVisibleColumnOrderAndExposeUsefulFacets()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+
+        var routes = new[]
+        {
+            (Path: "library?tab=1", TestId: "category-admin-data-surface", Filters: new[] { "Tất cả trạng thái" }),
+            (Path: "library?tab=2", TestId: "item-admin-data-surface", Filters: new[] { "Tất cả danh mục", "Tất cả đơn vị", "Tất cả nhà cung cấp", "Tất cả trạng thái" }),
+            (Path: "library?tab=3", TestId: "supplier-admin-data-surface", Filters: new[] { "Tất cả trạng thái" }),
+            (Path: "library?tab=5", TestId: "department-admin-data-surface", Filters: new[] { "Tất cả phòng ban cha", "Tất cả trạng thái" }),
+            (Path: "library?tab=6&pricingTab=price-lists", TestId: "price-lists-data-surface", Filters: new[] { "Tất cả nhà cung cấp", "Tất cả trạng thái" }),
+            (Path: "library?tab=6&pricingTab=prices", TestId: "prices-data-surface", Filters: new[] { "Tất cả danh mục", "Tất cả đơn vị", "Tất cả trạng thái giá" })
+        };
+
+        foreach (var route in routes)
+        {
+            await Page.GotoAsync($"{BaseUrl}{route.Path}", new() { WaitUntil = WaitUntilState.Load });
+            var surface = Page.GetByTestId(route.TestId);
+            await surface.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+            await WaitForDataGridsToSettleAsync();
+            var filterTexts = await surface.Locator(".vpp-data-toolbar .vpp-filter-select-label")
+                .AllInnerTextsAsync();
+            filterTexts.Select(text => text.Trim()).Should().Equal(route.Filters, route.Path);
+
+            if (route.TestId == "price-lists-data-surface")
+            {
+                await surface.Locator(".vpp-data-toolbar .vpp-filter-select-trigger").First.ClickAsync();
+                var supplierMenu = surface.Locator(".vpp-filter-select-popover:popover-open");
+                await supplierMenu.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+                await supplierMenu.GetByText("VPP Gia Định", new() { Exact = true }).ClickAsync();
+                await WaitForDataGridsToSettleAsync();
+
+                (await surface.Locator(".vpp-data-toolbar .vpp-filter-select-label").First.InnerTextAsync()).Trim()
+                    .Should().Be("VPP Gia Định", "supplier is a real server-side price-list facet, not only a decorative control");
+                (await surface.Locator("tbody tr").Filter(new() { HasText = "VPP Gia Định" }).CountAsync())
+                    .Should().BeGreaterThan(0, "the selected supplier keeps only matching price lists");
+            }
+
+            await CaptureAsync($"admin-library-filters-{route.TestId}-1366x768.png");
+        }
+
+        await Page.SetViewportSizeAsync(768, 900);
+        foreach (var route in routes.Where(route => route.TestId is "item-admin-data-surface" or "price-lists-data-surface"))
+        {
+            await Page.GotoAsync($"{BaseUrl}{route.Path}", new() { WaitUntil = WaitUntilState.Load });
+            var toolbar = Page.GetByTestId(route.TestId).Locator(".vpp-data-toolbar");
+            await toolbar.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+            await WaitForDataGridsToSettleAsync();
+            var toolbarFits = await toolbar.EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth + 1");
+            toolbarFits.Should().BeTrue($"{route.Path}: toolbar filters must wrap inside the admin surface on laptop widths");
+            await CaptureAsync($"admin-library-filters-{route.TestId}-768x900.png");
+        }
+    }
+
+    [Fact]
     public async Task PendingApprovalEmptyQueue_UsesTheFullWorkspaceWidth()
     {
         await LoginAsDefaultUserAsync();

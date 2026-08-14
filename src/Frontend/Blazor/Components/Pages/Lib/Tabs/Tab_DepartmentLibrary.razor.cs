@@ -28,13 +28,35 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
     private int currentSkip;
     private bool isLoading;
     private string searchText = string.Empty;
+    private string parentDepartmentFilter = string.Empty;
+    private string selectedActivity = string.Empty;
 
-    private bool HasFilters => !string.IsNullOrWhiteSpace(searchText);
+    private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
+        || !string.IsNullOrWhiteSpace(parentDepartmentFilter)
+        || !string.IsNullOrWhiteSpace(selectedActivity);
 
     private bool CanModify => PagePermissionResDTO.Components.Any(
         component => component.IsVisible && component.IsEnable);
 
     protected override RadzenDataGrid<DepartmentResDTO>? InitialGrid => grid;
+
+    private IReadOnlyList<VppFilterOption<string>> ParentDepartmentOptions =>
+    [
+        new(string.Empty, Loc["AllParentDepartments"]),
+        new("root", Loc["NoParentDepartment"]),
+        .. allDepartments
+            .OrderBy(department => department.Name ?? department.Code)
+            .Select(department => new VppFilterOption<string>(
+                department.Id.ToString(),
+                department.Name ?? department.Code ?? string.Empty))
+    ];
+
+    private IReadOnlyList<VppFilterOption<string>> StatusOptions =>
+    [
+        new(string.Empty, Loc["LibraryAllStatuses"]),
+        new("active", Loc["LibraryStatusActive"]),
+        new("inactive", Loc["LibraryStatusInactive"])
+    ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,7 +80,10 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
                 args.Skip ?? 0,
                 args.Top ?? VppPagingProfiles.Collection.DefaultPageSize,
                 searchText,
-                args.OrderBy));
+                args.OrderBy,
+                selectedActivity,
+                Guid.TryParse(parentDepartmentFilter, out var parentId) ? parentId : null,
+                parentDepartmentFilter == "root"));
             rows = result.Items.ToList();
             totalCount = result.TotalCount;
         }
@@ -212,6 +237,20 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
     private async Task ClearFiltersAsync()
     {
         searchText = string.Empty;
+        parentDepartmentFilter = string.Empty;
+        selectedActivity = string.Empty;
+        await grid.FirstPage(true);
+    }
+
+    private async Task OnParentDepartmentChangedAsync(string value)
+    {
+        parentDepartmentFilter = value ?? string.Empty;
+        await grid.FirstPage(true);
+    }
+
+    private async Task OnStatusChangedAsync(string value)
+    {
+        selectedActivity = value ?? string.Empty;
         await grid.FirstPage(true);
     }
 

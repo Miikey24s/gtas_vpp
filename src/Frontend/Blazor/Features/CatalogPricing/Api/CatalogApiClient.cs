@@ -8,7 +8,10 @@ public sealed record CatalogQuery(
     int Skip,
     int Top,
     string Search = "",
-    string? OrderBy = null);
+    string? OrderBy = null,
+    string Activity = "",
+    Guid? ParentDepartmentId = null,
+    bool ParentDepartmentIsRoot = false);
 
 public sealed record CatalogPage<T>(
     IReadOnlyList<T> Items,
@@ -25,11 +28,14 @@ public sealed record CatalogItemQuery(
     string Search = "",
     Guid? CategoryId = null,
     Guid? UomId = null,
-    string? OrderBy = null);
+    string? OrderBy = null,
+    string SupplierName = "",
+    string Activity = "");
 
 public sealed record CatalogItemReferenceData(
     IReadOnlyList<VppCategoryResDTO> Categories,
-    IReadOnlyList<LookupValueResDTO> Uoms);
+    IReadOnlyList<LookupValueResDTO> Uoms,
+    IReadOnlyList<SupplierResDTO> Suppliers);
 
 public sealed record CatalogItemStatusChange(bool IsDeleted);
 
@@ -122,10 +128,13 @@ public sealed class CatalogApiClient(IAPIServices api)
             $"{CategoryEndpoint}?showDeleted=true");
         var uomsTask = api.GetFromApiAsync<List<LookupValueResDTO>>(
             $"{LookupValueEndpoint}?showDeleted=true");
-        await Task.WhenAll(categoriesTask, uomsTask);
+        var suppliersTask = api.GetFromApiAsync<List<SupplierResDTO>>(
+            $"{SupplierEndpoint}?showDeleted=true");
+        await Task.WhenAll(categoriesTask, uomsTask, suppliersTask);
         return new CatalogItemReferenceData(
             await categoriesTask ?? [],
-            await uomsTask ?? []);
+            await uomsTask ?? [],
+            await suppliersTask ?? []);
     }
 
     public async Task<CatalogPage<VppItemResDTO>> GetItemsAsync(CatalogItemQuery query)
@@ -171,6 +180,7 @@ public sealed class CatalogApiClient(IAPIServices api)
         string nameProperty)
     {
         var queryParams = new List<string> { "showDeleted=true" };
+        var filters = new List<string>();
         var search = query.Search.Trim();
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -178,10 +188,30 @@ public sealed class CatalogApiClient(IAPIServices api)
                 .Replace("\\", "\\\\", StringComparison.Ordinal)
                 .Replace("\"", "\\\"", StringComparison.Ordinal)
                 .ToLowerInvariant();
-            var filter =
+            filters.Add(
                 $"(({codeProperty} ?? \"\").ToLower().Contains(\"{escaped}\") || " +
-                $"({nameProperty} ?? \"\").ToLower().Contains(\"{escaped}\"))";
-            queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+                $"({nameProperty} ?? \"\").ToLower().Contains(\"{escaped}\"))");
+        }
+
+        filters.AddRange(query.Activity switch
+        {
+            "active" => ["IsDeleted == false"],
+            "inactive" => ["IsDeleted == true"],
+            _ => []
+        });
+
+        if (query.ParentDepartmentIsRoot)
+        {
+            filters.Add("ParentDepartmentId == null");
+        }
+        else if (query.ParentDepartmentId.HasValue)
+        {
+            filters.Add($"ParentDepartmentId == \"{query.ParentDepartmentId.Value}\"");
+        }
+
+        if (filters.Count > 0)
+        {
+            queryParams.Add($"filter={Uri.EscapeDataString(string.Join(" && ", filters))}");
         }
 
         queryParams.Add($"skip={Math.Max(0, query.Skip)}");
@@ -212,10 +242,27 @@ public sealed class CatalogApiClient(IAPIServices api)
             queryParams.Add($"categoryId={query.CategoryId.Value}");
         }
 
+        var filters = new List<string>();
         if (query.UomId.HasValue)
         {
-            var filter = $"UomId == \"{query.UomId.Value}\"";
-            queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            filters.Add($"UomId == \"{query.UomId.Value}\"");
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.SupplierName))
+        {
+            filters.Add($"DefaultSupplierName == \"{EscapeDynamicString(query.SupplierName.Trim())}\"");
+        }
+
+        filters.AddRange(query.Activity switch
+        {
+            "active" => ["IsDeleted == false"],
+            "inactive" => ["IsDeleted == true"],
+            _ => []
+        });
+
+        if (filters.Count > 0)
+        {
+            queryParams.Add($"filter={Uri.EscapeDataString(string.Join(" && ", filters))}");
         }
 
         if (!string.IsNullOrWhiteSpace(query.OrderBy))
@@ -242,4 +289,8 @@ public sealed class CatalogApiClient(IAPIServices api)
 
         return $"{DepartmentEndpoint}?{string.Join("&", queryParams)}";
     }
+
+    private static string EscapeDynamicString(string value) => value
+        .Replace("\\", "\\\\", StringComparison.Ordinal)
+        .Replace("\"", "\\\"", StringComparison.Ordinal);
 }

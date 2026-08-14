@@ -22,17 +22,22 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
     private List<VppItemResDTO> rows = [];
     private List<VppCategoryResDTO> categories = [];
     private List<LookupValueResDTO> uoms = [];
+    private List<SupplierResDTO> suppliers = [];
     private RadzenDataGrid<VppItemResDTO> grid = default!;
     private int totalCount;
     private int currentSkip;
     private string searchText = string.Empty;
     private string categoryFilter = string.Empty;
     private string uomFilter = string.Empty;
+    private string supplierFilter = string.Empty;
+    private string selectedActivity = string.Empty;
     private bool isLoading;
 
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
         || !string.IsNullOrWhiteSpace(categoryFilter)
-        || !string.IsNullOrWhiteSpace(uomFilter);
+        || !string.IsNullOrWhiteSpace(uomFilter)
+        || !string.IsNullOrWhiteSpace(supplierFilter)
+        || !string.IsNullOrWhiteSpace(selectedActivity);
 
     private bool CanModify => PagePermissionResDTO.Components.Any(
         component => component.IsVisible && component.IsEnable);
@@ -59,6 +64,25 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
                 uom.Value ?? uom.Code ?? string.Empty))
     ];
 
+    private IReadOnlyList<VppFilterOption<string>> supplierOptions =>
+    [
+        new(string.Empty, Loc["AllSuppliers"]),
+        .. suppliers
+            .Where(supplier => !supplier.IsDeleted)
+            .Select(supplier => supplier.SupplierName ?? supplier.SupplierShortName)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(name => name)
+            .Select(name => new VppFilterOption<string>(name!, name!))
+    ];
+
+    private IReadOnlyList<VppFilterOption<string>> StatusOptions =>
+    [
+        new(string.Empty, Loc["LibraryAllStatuses"]),
+        new("active", Loc["LibraryStatusActive"]),
+        new("inactive", Loc["LibraryStatusInactive"])
+    ];
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -66,6 +90,7 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
             var referenceData = await CatalogApi.GetItemReferenceDataAsync();
             categories = referenceData.Categories.ToList();
             uoms = referenceData.Uoms.ToList();
+            suppliers = referenceData.Suppliers.ToList();
         }
         catch (Exception ex)
         {
@@ -85,7 +110,9 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
                 searchText,
                 Guid.TryParse(categoryFilter, out var categoryId) ? categoryId : null,
                 Guid.TryParse(uomFilter, out var uomId) ? uomId : null,
-                args.OrderBy));
+                args.OrderBy,
+                supplierFilter,
+                selectedActivity));
             rows = result.Items.ToList();
             totalCount = result.TotalCount;
         }
@@ -223,11 +250,25 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
         await ReloadAsync();
     }
 
+    private async Task OnSupplierChangedAsync(string value)
+    {
+        supplierFilter = value ?? string.Empty;
+        await ReloadAsync();
+    }
+
+    private async Task OnStatusChangedAsync(string value)
+    {
+        selectedActivity = value ?? string.Empty;
+        await ReloadAsync();
+    }
+
     private async Task ClearFiltersAsync()
     {
         searchText = string.Empty;
         categoryFilter = string.Empty;
         uomFilter = string.Empty;
+        supplierFilter = string.Empty;
+        selectedActivity = string.Empty;
         await ReloadAsync();
     }
 

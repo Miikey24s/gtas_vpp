@@ -761,6 +761,9 @@
   <data name="SearchCatalogItems" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
   <data name="AllCategories" xml:space="preserve"><value>Tất cả danh mục</value></data>
   <data name="AllUnits" xml:space="preserve"><value>Tất cả đơn vị</value></data>
+  <data name="AllSuppliers" xml:space="preserve"><value>Tất cả nhà cung cấp</value></data>
+  <data name="AllParentDepartments" xml:space="preserve"><value>Tất cả phòng ban cha</value></data>
+  <data name="NoParentDepartment" xml:space="preserve"><value>Không có phòng ban cha</value></data>
   <data name="ClearFilters" xml:space="preserve"><value>Xóa bộ lọc</value></data>
   <data name="DownloadCatalog" xml:space="preserve"><value>Tải danh mục</value></data>
   <data name="AvailableCatalogItems" xml:space="preserve"><value>{0} mặt hàng có thể đặt</value></data>

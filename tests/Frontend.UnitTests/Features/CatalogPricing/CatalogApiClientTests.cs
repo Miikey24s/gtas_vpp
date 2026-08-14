@@ -22,7 +22,12 @@ public sealed class CatalogApiClientTests
         };
         var client = new CatalogApiClient(api);
 
-        await client.GetCategoriesAsync(new CatalogQuery(10, 25, "Paper", "VppCategoryName desc"));
+        await client.GetCategoriesAsync(new CatalogQuery(
+            10,
+            25,
+            "Paper",
+            "VppCategoryName desc",
+            Activity: "active"));
 
         Assert.NotNull(endpoint);
         Assert.StartsWith("/api/Library/vpp-categories?showDeleted=true&", endpoint);
@@ -31,6 +36,7 @@ public sealed class CatalogApiClientTests
         Assert.Contains("orderby=VppCategoryName%20desc", endpoint);
         Assert.Contains("VppCategoryCode", Uri.UnescapeDataString(endpoint));
         Assert.Contains("VppCategoryName", Uri.UnescapeDataString(endpoint));
+        Assert.Contains("IsDeleted == false", Uri.UnescapeDataString(endpoint));
     }
 
     [Fact]
@@ -94,11 +100,12 @@ public sealed class CatalogApiClientTests
         };
         var client = new CatalogApiClient(api);
 
-        await client.GetSuppliersAsync(new CatalogQuery(0, 15, "office"));
+        await client.GetSuppliersAsync(new CatalogQuery(0, 15, "office", Activity: "inactive"));
         await client.GetSupplierDependencyImpactAsync(id);
         await client.SetSupplierDeletedAsync(id, new CatalogStatusChange(true, DateTime.UnixEpoch, 42));
 
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/suppliers?showDeleted=true&", StringComparison.Ordinal));
+        Assert.Contains(endpoints, endpoint => Uri.UnescapeDataString(endpoint).Contains("IsDeleted == true", StringComparison.Ordinal));
         Assert.Contains($"/api/Library/suppliers/{id}/dependency-impact", endpoints);
         Assert.Contains($"/api/Library/suppliers/{id}", endpoints);
     }
@@ -127,12 +134,18 @@ public sealed class CatalogApiClientTests
 
         await client.GetActiveDepartmentsAsync();
         await client.GetActiveDepartmentsAsync(1000, "Name");
-        await client.GetDepartmentsAsync(new CatalogQuery(0, 15, "IT"));
+        await client.GetDepartmentsAsync(new CatalogQuery(
+            0,
+            15,
+            "IT",
+            Activity: "active",
+            ParentDepartmentId: id));
         await client.GetDepartmentDependencyImpactAsync(id);
 
         Assert.Contains("/api/Library/departments?showDeleted=false", endpoints);
         Assert.Contains("/api/Library/departments?top=1000&showDeleted=false&orderby=Name", endpoints);
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/departments?showDeleted=true&", StringComparison.Ordinal));
+        Assert.Contains(endpoints, endpoint => Uri.UnescapeDataString(endpoint).Contains($"ParentDepartmentId == \"{id}\"", StringComparison.Ordinal));
         Assert.Contains($"/api/Library/departments/{id}/dependency-impact", endpoints);
     }
 
@@ -150,7 +163,9 @@ public sealed class CatalogApiClientTests
                 calls.Add(("GET", endpoint, null));
                 object data = type == typeof(List<VppCategoryResDTO>)
                     ? new List<VppCategoryResDTO>()
-                    : new List<LookupValueResDTO>();
+                    : type == typeof(List<LookupValueResDTO>)
+                        ? new List<LookupValueResDTO>()
+                        : new List<SupplierResDTO>();
                 return Task.FromResult<object?>(data);
             },
             GetWithTotalCountAsync = (endpoint, _) =>
@@ -177,16 +192,27 @@ public sealed class CatalogApiClientTests
         var client = new CatalogApiClient(api);
 
         await client.GetItemReferenceDataAsync();
-        await client.GetItemsAsync(new CatalogItemQuery(10, 25, "pen", categoryId, uomId, "VppName"));
+        await client.GetItemsAsync(new CatalogItemQuery(
+            10,
+            25,
+            "pen",
+            categoryId,
+            uomId,
+            "VppName",
+            "VPP Gia Định",
+            "active"));
         await client.CreateItemAsync(new VppItemCreateRequest());
         await client.UpdateItemAsync(new VppItemUpdateRequest { Id = itemId });
         await client.SetItemDeletedAsync(itemId, true);
 
         Assert.Contains(calls, call => call.Endpoint == "/api/Library/vpp-categories?showDeleted=true");
         Assert.Contains(calls, call => call.Endpoint == "/api/Library/lookup-values?showDeleted=true");
+        Assert.Contains(calls, call => call.Endpoint == "/api/Library/suppliers?showDeleted=true");
         var pageEndpoint = Assert.Single(calls, call => call.Method == "GET_PAGE").Endpoint;
         Assert.Contains("categoryId=77777777-7777-7777-7777-777777777777", pageEndpoint);
         Assert.Contains("UomId%20%3D%3D%20%2288888888-8888-8888-8888-888888888888%22", pageEndpoint);
+        Assert.Contains("DefaultSupplierName == \"VPP Gia Định\"", Uri.UnescapeDataString(pageEndpoint));
+        Assert.Contains("IsDeleted == false", Uri.UnescapeDataString(pageEndpoint));
         Assert.Contains(calls, call => call.Method == "POST" && call.Body is VppItemCreateRequest);
         Assert.Contains(calls, call => call.Method == "PUT" && call.Body is VppItemUpdateRequest);
         Assert.Contains(calls, call => call.Method == "PATCH"

@@ -54,6 +54,7 @@
     <VppDataToolbar AriaLabel="@Loc["Prices"]" Class="vpp-admin-grid-toolbar vpp-price-filterbar">
         <VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchPrices"]" AriaLabel="@Loc["LibrarySearchPrices"]" />
         <VppFilterSelect TValue="string" Value="@selectedCategory" Options="@CategoryFilterOptions" ValueChanged="@OnCategoryChangedAsync" Placeholder="@Loc["AllCategories"]" AriaLabel="@Loc["AllCategories"]" Disabled="@(!HasPriceListSelected)" />
+        <VppFilterSelect TValue="string" Value="@selectedUom" Options="@UomFilterOptions" ValueChanged="@OnUomChangedAsync" Placeholder="@Loc["AllUnits"]" AriaLabel="@Loc["AllUnits"]" Disabled="@(!HasPriceListSelected)" />
         <VppFilterSelect TValue="string" Value="@selectedMappingStatus" Options="@MappingStatusOptions" ValueChanged="@OnMappingStatusChangedAsync" Placeholder="@Loc["AllPriceMappings"]" AriaLabel="@Loc["AllPriceMappings"]" Disabled="@(!HasPriceListSelected)" />
         <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasPriceFilters" Clicked="@ClearFiltersAsync" />
         <VppColumnPicker TItem="VppItemPriceResDTO" GridAccessor="@(() => grid)" />

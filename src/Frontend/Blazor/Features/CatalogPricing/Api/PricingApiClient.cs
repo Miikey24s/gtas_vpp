@@ -9,7 +9,8 @@ public sealed record PriceListQuery(
     int Top,
     string Search = "",
     string? Activity = null,
-    string? OrderBy = null);
+    string? OrderBy = null,
+    Guid? SupplierId = null);
 
 public sealed record PriceListDeletedChange(bool IsDeleted);
 
@@ -25,7 +26,8 @@ public sealed record ItemPriceQuery(
     string Search = "",
     string Category = "",
     string MappingStatus = "",
-    string? OrderBy = null);
+    string? OrderBy = null,
+    string Uom = "");
 
 public sealed record PriceMappingDeletedChange(bool IsDeleted);
 
@@ -98,7 +100,22 @@ public sealed class PricingApiClient(IAPIServices api)
 
     public async Task<IReadOnlyList<string>> GetItemPriceCategoriesAsync(
         Guid supplierId,
-        Guid priceListId)
+        Guid priceListId) => await GetItemPriceDistinctValuesAsync(
+            supplierId,
+            priceListId,
+            "CategoryName");
+
+    public async Task<IReadOnlyList<string>> GetItemPriceUnitsAsync(
+        Guid supplierId,
+        Guid priceListId) => await GetItemPriceDistinctValuesAsync(
+            supplierId,
+            priceListId,
+            "UomName");
+
+    private async Task<IReadOnlyList<string>> GetItemPriceDistinctValuesAsync(
+        Guid supplierId,
+        Guid priceListId,
+        string property)
     {
         const int batchSize = 200;
         var skip = 0;
@@ -108,14 +125,15 @@ public sealed class PricingApiClient(IAPIServices api)
         {
             var endpoint =
                 $"{ItemPriceEndpoint}?supplierId={supplierId}&priceListId={priceListId}" +
-                $"&showDeleted=true&distinct=CategoryName&skip={skip}&top={batchSize}";
+                $"&showDeleted=true&distinct={property}&skip={skip}&top={batchSize}";
             var result = await api.GetFromApiWithTotalCountAsync<List<VppItemPriceResDTO>>(endpoint);
             var rows = result.Data ?? [];
             foreach (var row in rows)
             {
-                if (!string.IsNullOrWhiteSpace(row.CategoryName))
+                var value = property == "CategoryName" ? row.CategoryName : row.UomName;
+                if (!string.IsNullOrWhiteSpace(value))
                 {
-                    values.Add(row.CategoryName.Trim());
+                    values.Add(value.Trim());
                 }
             }
 
@@ -152,6 +170,7 @@ public sealed class PricingApiClient(IAPIServices api)
     internal static string BuildPriceListEndpoint(PriceListQuery query)
     {
         var queryParams = new List<string> { "showDeleted=true" };
+        var filters = new List<string>();
         if (!string.IsNullOrWhiteSpace(query.Activity))
         {
             var filter = query.Activity switch
@@ -162,8 +181,18 @@ public sealed class PricingApiClient(IAPIServices api)
             };
             if (filter is not null)
             {
-                queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+                filters.Add(filter);
             }
+        }
+
+        if (query.SupplierId.HasValue)
+        {
+            filters.Add($"SupplierId == \"{query.SupplierId.Value}\"");
+        }
+
+        if (filters.Count > 0)
+        {
+            queryParams.Add($"filter={Uri.EscapeDataString(string.Join(" && ", filters))}");
         }
 
         queryParams.Add($"skip={Math.Max(0, query.Skip)}");
@@ -198,6 +227,11 @@ public sealed class PricingApiClient(IAPIServices api)
         if (!string.IsNullOrWhiteSpace(query.Category))
         {
             filters.Add($"CategoryName == \"{EscapeDynamicString(query.Category)}\"");
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Uom))
+        {
+            filters.Add($"UomName == \"{EscapeDynamicString(query.Uom)}\"");
         }
 
         filters.AddRange(query.MappingStatus switch

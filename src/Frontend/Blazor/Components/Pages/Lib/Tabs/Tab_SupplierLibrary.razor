@@ -22,6 +22,7 @@
         <Toolbar>
             <VppDataToolbar AriaLabel="@Loc["Suppliers"]" Class="vpp-admin-grid-toolbar">
                 <VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchSuppliers"]" AriaLabel="@Loc["LibrarySearchSuppliers"]" />
+                <VppFilterSelect TValue="string" Value="@selectedActivity" Options="@StatusOptions" ValueChanged="@OnStatusChangedAsync" Placeholder="@Loc["LibraryAllStatuses"]" AriaLabel="@Loc["Status"]" />
                 <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasFilters" Clicked="@ClearFiltersAsync" />
                 <VppColumnPicker TItem="SupplierResDTO" GridAccessor="@(() => grid)" />
             </VppDataToolbar>

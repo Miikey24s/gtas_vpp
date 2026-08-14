@@ -21,8 +21,9 @@ public sealed class PricingApiClientTests
             }
         };
         var client = new PricingApiClient(api);
+        var supplierId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
-        await client.GetPriceListsAsync(new PriceListQuery(20, 15, "Office", "active", "Version desc"));
+        await client.GetPriceListsAsync(new PriceListQuery(20, 15, "Office", "active", "Version desc", supplierId));
 
         Assert.NotNull(endpoint);
         Assert.StartsWith("/api/vpppricelist?showDeleted=true&", endpoint);
@@ -31,6 +32,7 @@ public sealed class PricingApiClientTests
         Assert.Contains("top=15", endpoint);
         Assert.Contains("orderby=Version%20desc", endpoint);
         Assert.Contains("search=Office", endpoint);
+        Assert.Contains($"SupplierId == \"{supplierId}\"", Uri.UnescapeDataString(endpoint));
     }
 
     [Fact]
@@ -89,7 +91,6 @@ public sealed class PricingApiClientTests
         var priceListId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
         var mappingId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
         var calls = new List<(string Method, string Endpoint, object? Body)>();
-        var pageCall = 0;
         var api = new StubApiServices
         {
             GetAsync = (endpoint, type) =>
@@ -103,11 +104,13 @@ public sealed class PricingApiClientTests
             GetWithTotalCountAsync = (endpoint, _) =>
             {
                 calls.Add(("GET_PAGE", endpoint, null));
-                pageCall++;
-                object data = pageCall == 2
+                object data = endpoint.Contains("distinct=CategoryName", StringComparison.Ordinal)
                     ? new List<VppItemPriceResDTO> { new() { CategoryName = "Paper" } }
-                    : new List<VppItemPriceResDTO>();
-                return Task.FromResult<(object?, int)>((data, pageCall == 2 ? 1 : 0));
+                    : endpoint.Contains("distinct=UomName", StringComparison.Ordinal)
+                        ? new List<VppItemPriceResDTO> { new() { UomName = "Ram" } }
+                        : new List<VppItemPriceResDTO>();
+                var count = data is List<VppItemPriceResDTO> rows ? rows.Count : 0;
+                return Task.FromResult<(object?, int)>((data, count));
             },
             PostAsync = (endpoint, body, _) =>
             {
@@ -141,8 +144,10 @@ public sealed class PricingApiClientTests
             "pen",
             "Paper",
             "active",
-            "VppName"));
+            "VppName",
+            "Ram"));
         await client.GetItemPriceCategoriesAsync(supplierId, priceListId);
+        await client.GetItemPriceUnitsAsync(supplierId, priceListId);
         await client.CreateItemPriceAsync(new SupplierProductPriceCreateReqDTO());
         await client.UpdateItemPriceAsync(mappingId, new SupplierProductPriceUpdateReqDTO { Id = mappingId });
         await client.SetItemPriceDeletedAsync(mappingId, true);
@@ -154,7 +159,9 @@ public sealed class PricingApiClientTests
         var itemPage = calls.First(call => call.Method == "GET_PAGE").Endpoint;
         Assert.Contains($"supplierId={supplierId}", itemPage);
         Assert.Contains("CategoryName%20%3D%3D%20%22Paper%22", itemPage);
+        Assert.Contains("UomName%20%3D%3D%20%22Ram%22", itemPage);
         Assert.Contains("PriceMappingId%20%21%3D%20null", itemPage);
+        Assert.Contains(calls, call => call.Endpoint.Contains("distinct=UomName", StringComparison.Ordinal));
         Assert.Contains(calls, call => call.Endpoint == "/api/vppprice" && call.Body is SupplierProductPriceCreateReqDTO);
         Assert.Contains(calls, call => call.Endpoint == $"/api/vppprice/{mappingId}" && call.Body is SupplierProductPriceUpdateReqDTO);
         Assert.Contains(calls, call => call.Endpoint == $"/api/Library/supplier-product-mappings/{mappingId}"

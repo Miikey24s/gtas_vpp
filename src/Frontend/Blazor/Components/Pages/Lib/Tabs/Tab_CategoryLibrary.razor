@@ -26,6 +26,12 @@
                                  Input="@OnSearchInputAsync"
                                  Placeholder="@Loc["LibrarySearchCategories"]"
                                  AriaLabel="@Loc["LibrarySearchCategories"]" />
+                <VppFilterSelect TValue="string"
+                                 Value="@selectedActivity"
+                                 Options="@StatusOptions"
+                                 ValueChanged="@OnStatusChangedAsync"
+                                 Placeholder="@Loc["LibraryAllStatuses"]"
+                                 AriaLabel="@Loc["Status"]" />
                 <VppClearFiltersButton Text="@Loc["ClearFilters"]"
                                        IsActive="@HasFilters"
                                        Clicked="@ClearFiltersAsync" />

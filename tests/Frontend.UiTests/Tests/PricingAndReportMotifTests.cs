@@ -205,8 +205,8 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             await WaitForRenderSettleAsync();
             (await context.Locator(".vpp-filter-select").CountAsync()).Should().Be(1,
                 "bảng giá là context selector duy nhất; nhà cung cấp được suy ra từ bảng giá");
-            (await prices.Locator(".vpp-data-toolbar .vpp-filter-select").CountAsync()).Should().Be(2,
-                "toolbar chỉ chứa category và mapping status query filters");
+            (await prices.Locator(".vpp-data-toolbar .vpp-filter-select").CountAsync()).Should().Be(3,
+                "toolbar chứa danh mục, đơn vị và trạng thái giá theo đúng thứ tự cột");
             (await context.Locator("dd").CountAsync()).Should().Be(2);
             (await prices.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
             await AssertNoDocumentOverflowAsync(viewport.Width, "item prices");

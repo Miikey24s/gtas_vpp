@@ -11,6 +11,8 @@
                 <VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchItems"]" AriaLabel="@Loc["LibrarySearchItems"]" />
                 <VppFilterSelect TValue="string" Value="@categoryFilter" Options="@categoryOptions" ValueChanged="@OnCategoryChangedAsync" Placeholder="@Loc["AllCategories"]" AriaLabel="@Loc["AllCategories"]" />
                 <VppFilterSelect TValue="string" Value="@uomFilter" Options="@uomOptions" ValueChanged="@OnUomChangedAsync" Placeholder="@Loc["AllUnits"]" AriaLabel="@Loc["AllUnits"]" />
+                <VppFilterSelect TValue="string" Value="@supplierFilter" Options="@supplierOptions" ValueChanged="@OnSupplierChangedAsync" Placeholder="@Loc["AllSuppliers"]" AriaLabel="@Loc["Supplier"]" />
+                <VppFilterSelect TValue="string" Value="@selectedActivity" Options="@StatusOptions" ValueChanged="@OnStatusChangedAsync" Placeholder="@Loc["LibraryAllStatuses"]" AriaLabel="@Loc["Status"]" />
                 <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasFilters" Clicked="@ClearFiltersAsync" />
                 <VppColumnPicker TItem="VppItemResDTO" GridAccessor="@(() => grid)" />
             </VppDataToolbar>

@@ -32,9 +32,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private bool isFileActionBusy;
         private int count;
         private int currentSkip;
+        private Guid? selectedSupplierId;
         private string selectedActivity = string.Empty;
         private string searchText = string.Empty;
-        private bool HasFilters => !string.IsNullOrWhiteSpace(selectedActivity) || !string.IsNullOrWhiteSpace(searchText);
+        private bool HasFilters => selectedSupplierId.HasValue
+            || !string.IsNullOrWhiteSpace(selectedActivity)
+            || !string.IsNullOrWhiteSpace(searchText);
         private bool CanModify => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
         protected override RadzenDataGrid<PriceListResDTO>? InitialGrid => grid;
 
@@ -43,6 +46,17 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             new(string.Empty, Loc["LibraryAllStatuses"].Value),
             new("active", Loc["LibraryStatusActive"].Value),
             new("inactive", Loc["LibraryStatusInactive"].Value)
+        ];
+
+        private IReadOnlyList<VppFilterOption<Guid?>> SupplierFilterOptions =>
+        [
+            new(null, Loc["AllSuppliers"].Value),
+            .. suppliers
+                .Where(supplier => !supplier.IsDeleted)
+                .OrderBy(supplier => supplier.SupplierName ?? supplier.SupplierShortName)
+                .Select(supplier => new VppFilterOption<Guid?>(
+                    supplier.Id,
+                    supplier.SupplierName ?? supplier.SupplierShortName ?? "–"))
         ];
 
         protected override async Task OnInitializedAsync()
@@ -76,7 +90,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                     args.Top ?? 20,
                     searchText,
                     string.IsNullOrWhiteSpace(selectedActivity) ? null : selectedActivity,
-                    args.OrderBy));
+                    args.OrderBy,
+                    selectedSupplierId));
                 priceLists = result.Items.ToList();
                 count = result.TotalCount;
             }
@@ -208,7 +223,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task OnStatusChangedAsync(string value)
         {
             selectedActivity = value ?? string.Empty;
-            await LoadAsync();
+            await grid.FirstPage(true);
+        }
+
+        private async Task OnSupplierChangedAsync(Guid? value)
+        {
+            selectedSupplierId = value;
+            await grid.FirstPage(true);
         }
 
         private async Task OnSearchInputAsync(ChangeEventArgs args)
@@ -220,6 +241,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task ClearFiltersAsync()
         {
             searchText = string.Empty;
+            selectedSupplierId = null;
             selectedActivity = string.Empty;
             await grid.FirstPage(true);
         }

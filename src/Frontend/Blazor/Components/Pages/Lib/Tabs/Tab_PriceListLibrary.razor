@@ -44,6 +44,12 @@
                                  Input="@OnSearchInputAsync"
                                  Placeholder="@Loc["LibrarySearchPriceLists"]"
                                  AriaLabel="@Loc["LibrarySearchPriceLists"]" />
+                <VppFilterSelect TValue="Guid?"
+                                 Value="@selectedSupplierId"
+                                 Options="@SupplierFilterOptions"
+                                 ValueChanged="@OnSupplierChangedAsync"
+                                 Placeholder="@Loc["AllSuppliers"]"
+                                 AriaLabel="@Loc["Supplier"]" />
                 <VppFilterSelect TValue="string"
                                  Value="@selectedActivity"
                                  Options="@PriceListStatusOptions"
