@@ -99,6 +99,7 @@
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Name" Title="@Loc["LookupCategoryName"]" Width="130px" MinWidth="120px" CssClass="vpp-class-name-column" HeaderCssClass="vpp-class-name-column">
                         <Template Context="data"><span class="vpp-class-name-value">@data.Name</span></Template>
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Id" Title="@Loc["SystemId"]" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="80px" MinWidth="80px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" CssClass="vpp-class-status-column" HeaderCssClass="vpp-class-status-column">
                         <Template Context="data">
                             <VppStatusBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(data.IsDeleted ? "Inactive" : "Active")" />
@@ -209,6 +210,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Code" Title="@Loc["Code"]" Width="125px" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Value" Title="@Loc["Value"]" Width="170px" />
+                    <RadzenDataGridColumn TItem="LookupValueResDTO" Property="Id" Title="@Loc["SystemId"]" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupValueResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="90px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="data">
                             <VppStatusBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(data.IsDeleted ? "Inactive" : "Active")" />

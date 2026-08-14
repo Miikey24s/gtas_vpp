@@ -1,6 +1,6 @@
 # UI-COLUMN-CONTRACT-001 — Chuẩn hóa cột, bộ chọn cột và ô nhận diện
 
-> Trạng thái: `C0–C4 IMPLEMENTED — OWNER VISUAL REVIEW`
+> Trạng thái: `C0–C5 IMPLEMENTED — OWNER VISUAL REVIEW`
 > Authority cha: [`UI-SYSTEM-001`](./UI-SYSTEM-001.md), [`UI-DATA-SURFACE-001`](./UI-DATA-SURFACE-001.md) và [`VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN`](../design/VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md).
 > Phạm vi: frontend Blazor/Radzen; chưa đổi API, database, DTO hoặc nghiệp vụ.
 
@@ -33,6 +33,7 @@ Chuẩn hóa toàn bộ data grid để người dùng luôn hiểu:
 | C2 — Chuẩn hóa Library/Admin | Tách hoặc gộp `Tên/Mã` đúng ngữ cảnh; bổ sung các cột nghiệp vụ đang thiếu | Các trang quản trị đồng nhất và dễ tra cứu | `DONE` — 11/11 picker route-real pass |
 | C3 — Chuẩn hóa toàn frontend | Rà các grid không có picker, thứ tự filter–cột, tên cột và responsive | Không còn mỗi trang dùng một quy tắc riêng | `DONE` — 21 file/26 grid audited |
 | C4 — Khóa bằng test/docs | Thêm contract test và cập nhật design system | Sửa sau này không làm drift trở lại | `IMPLEMENTED` — chờ owner nhìn route thật |
+| C5 — ID hệ thống và nhãn ngày | Thêm GUID của chính bản ghi vào picker nhưng ẩn mặc định; chuẩn hóa nhãn ngày tạo/cập nhật | Quản trị viên có thể tra cứu ID khi cần mà grid mặc định vẫn gọn | `IMPLEMENTED` — chờ owner duyệt cột nào nên bật mặc định |
 
 ### Model + effort khuyến nghị
 
@@ -49,7 +50,8 @@ Chuẩn hóa toàn bộ data grid để người dùng luôn hiểu:
 | Cố định cấu trúc | `#`, checkbox chọn dòng, `Thao tác` | Luôn `Pickable="false"`; không tính vào số cột người dùng có thể chọn |
 | Nghiệp vụ chính | Tên, mã, trạng thái, nhà cung cấp, phòng ban, số tiền | Hiện mặc định; được phép ẩn nếu không phá thao tác chính |
 | Nghiệp vụ phụ | Mô tả, địa chỉ phụ, người/ngày cập nhật | Ẩn mặc định nhưng có trong picker với tên thân thiện |
-| Kỹ thuật | GUID nội bộ, foreign-key ID, `RowVersion`, raw concurrency token | Không xuất hiện trong picker; audit route chỉ ngoại lệ cho correlation/resource identifier có ý nghĩa điều tra |
+| ID hệ thống của bản ghi | `Id`; riêng giá mặt hàng dùng `PriceMappingId` | Chỉ có ở màn quản trị, tên `ID hệ thống`, luôn ẩn mặc định nhưng được phép bật từ picker |
+| Kỹ thuật quan hệ/đồng thời | Foreign-key ID, numeric `UserId`, `RowVersion`, raw concurrency token | Không xuất hiện trong picker; audit route chỉ ngoại lệ cho correlation/resource identifier có ý nghĩa điều tra |
 
 Trigger picker đề xuất hiển thị `Cột 6/8`. Popup tiếp tục ghi rõ `Đang hiện 6/8`, có tìm kiếm và reset. Con số không bao gồm `#`, checkbox chọn dòng hoặc `Thao tác`.
 
@@ -111,7 +113,8 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 ### Architecture tests
 
 - mọi cột `#`, checkbox chọn dòng và `Thao tác` phải `Pickable="false"`;
-- `RowVersion`, raw GUID/FK ID và concurrency token không được có trong picker ngoài allow-list audit;
+- Mỗi picker quản trị có đúng một `ID hệ thống` của chính bản ghi, `Visible="false" Pickable="true"`;
+- `RowVersion`, foreign-key ID, numeric `UserId` và concurrency token không được có trong picker ngoài allow-list audit;
 - trigger và popup dùng cùng `visible/total`;
 - filter theo cùng thứ tự với cột tương ứng;
 - route admin đã xác định mã là khóa quản trị phải có cột mã riêng;
@@ -136,17 +139,36 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 
 - `VppColumnPicker` hiển thị `đang hiện/tổng`, ví dụ `6/8`; trigger và accessibility label dùng cùng một số liệu.
 - Dòng đã chọn trong popup không còn phủ nền xanh; trạng thái được thể hiện bằng checkbox, hover vẫn dùng transient surface chung.
-- Toàn bộ 11 picker loại `#`, `Thao tác` và trường kỹ thuật khỏi danh sách lựa chọn.
+- Toàn bộ 11 picker loại `#`, `Thao tác`, khóa ngoại và concurrency token khỏi danh sách lựa chọn.
 - Category, Department, Item, Price list, Item price và Permission group đã tách `Tên`/`Mã`; User, Supplier và Security audit giữ hai dòng đúng vai trò metadata.
 - Bổ sung các cột nghiệp vụ/audit hợp lệ: mã, VAT mặc định, số nhà cung cấp, mô tả, người/ngày tạo và cập nhật nơi DTO hỗ trợ.
+- Owner feedback ngày 2026-08-14: `Tạo lúc`/`Cập nhật lúc` đổi thành `Ngày tạo`/`Ngày cập nhật`; cả 11 picker quản trị có `ID hệ thống` (GUID) nhưng ẩn mặc định. Đây là ID của chính bản ghi, không mở lại các khóa ngoại hoặc concurrency token đã loại bỏ.
 - Quét 21 file chứa 26 `RadzenDataGrid`: không còn hard-coded English title; các ô hai dòng còn lại thuộc allow-list giao dịch, identity hỗ trợ hoặc audit.
 
 ### Bằng chứng
 
 - `./scripts/gtas.cmd test-frontend`: `445/445` pass.
-- `ColumnPickerContractTests.AllAdminColumnPickers_ExposeBusinessFieldsWithStableChrome`: pass; mở đủ `11/11` picker và spot-check `390×844`, `768×1024`, `1366×768`, `1920×1080`.
+- `ColumnPickerContractTests.AllAdminColumnPickers_ExposeBusinessFieldsWithStableChrome`: pass; mở đủ `11/11` picker, xác nhận mỗi picker có đúng một `ID hệ thống` ẩn mặc định và spot-check `390×844`, `768×1024`, `1366×768`, `1920×1080`.
 - `PricingAndReportMotifTests.PriceListColumnPicker_ShowsBusinessColumnsAndHidesTechnicalFields`: pass.
 - `LibraryGridScrollTests.LookupColumnPicker_TogglesAndResetsWithVisibleTotalCount`: pass.
 - Test rộng `Class_Definitions_Use_Compact_Master_Detail_Layout` còn fail ở assertion document scroll `290px` trước khi đi tới picker. Đây là layout issue độc lập, không được che bằng cách hạ assertion trong slice này.
 - Test rộng `PermissionAdministration_UsesFullWidthGroupTableAndAdaptiveBatchEditor` đi qua UI mới nhưng dừng ở fixture count cũ `18`, trong khi TEST hiện có `19` dòng quyền API; không sửa assertion theo dữ liệu tạm trong slice này.
 - `./scripts/gtas.cmd verify -Scope frontend`: agent setup `63/63`, Release build `0 warning/error`, frontend unit `445/445`, anonymous UI smoke `2/2` và NuGet audit pass; gate cuối dừng tại lỗi charset có sẵn ở migration backend `20260810233259_AddPriceListImportBatches.cs`, ngoài frontend scope.
+
+## 8. Cột đang ẩn để owner duyệt — 2026-08-14
+
+Tất cả cột dưới đây vẫn có trong picker nhưng không làm rộng grid mặc định. `ID hệ thống` luôn giữ ẩn mặc định; các cột còn lại chỉ bật mặc định sau khi owner duyệt theo nhu cầu tra cứu thực tế.
+
+| Màn quản trị | Cột đang ẩn mặc định |
+|---|---|
+| Loại danh mục | `ID hệ thống`, `Mô-đun`, `Mô tả`, `Người tạo`, `Ngày tạo`, `Người cập nhật`, `Ngày cập nhật` |
+| Giá trị danh mục | `ID hệ thống`, `Mô tả`, `Người tạo`, `Ngày tạo`, `Người cập nhật`, `Ngày cập nhật` |
+| Danh mục | `ID hệ thống`, `Ngày tạo` (`Ngày cập nhật` đang hiện mặc định) |
+| Mặt hàng | `ID hệ thống`, `Số nhà cung cấp`, `VAT mặc định`, `Mô tả`, `Ngày tạo`, `Ngày cập nhật` |
+| Nhà cung cấp | `ID hệ thống`, `Phường/Xã`, `Địa chỉ 2`, `Địa chỉ 3`, `Mô tả`, `Ngày tạo`, `Ngày cập nhật` |
+| Phòng ban | `ID hệ thống`, `Ngày tạo`, `Ngày cập nhật` |
+| Bảng giá | `ID hệ thống`, `Mô tả`, `Người tạo`, `Ngày tạo`, `Người cập nhật`, `Ngày cập nhật` |
+| Giá mặt hàng | `ID hệ thống` (ID ánh xạ giá), `Mô tả` |
+| Người dùng | `ID hệ thống`, `Mã nhân viên`, `Mô tả`, `Người tạo`, `Ngày tạo`, `Người cập nhật`, `Ngày cập nhật` |
+| Nhóm quyền | `ID hệ thống`, `Người tạo`, `Ngày tạo`, `Người cập nhật`, `Ngày cập nhật` |
+| Nhật ký bảo mật | `ID hệ thống`, `Lý do`, `Mã tương quan` |

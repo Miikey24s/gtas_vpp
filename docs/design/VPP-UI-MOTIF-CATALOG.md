@@ -91,6 +91,8 @@ Quy tắc tên cột:
 - Header ưu tiên 1–3 từ và bỏ từ đã rõ từ context: `Hạn duyệt bổ sung` thay cho `Hạn duyệt đơn bổ sung`; `Cập nhật` thay cho `Thay đổi gần nhất`. Không viết acronym kỹ thuật như `NCC`, `MĐ`, `SL` hoặc nhãn tiếng Anh nội bộ trong UI tiếng Việt.
 - Không đổi nghĩa chỉ để tránh ellipsis. Nếu tên ngắn hợp lệ vẫn bị cắt ở desktop, chỉnh track/min-width/priority cột; chỉ cột phụ mới ẩn vào `VppColumnPicker` trên viewport hẹp.
 - Cột ẩn/pickable và danh sách `Cột` giữ đúng thứ tự khai báo của grid; metadata registry dùng tên người dùng hiểu, không dùng `Class Code`, `VPP Category`, `Create User` hoặc identifier kỹ thuật tương tự.
+- Màn quản trị được phép có đúng một cột `ID hệ thống` của chính bản ghi để tra cứu/hỗ trợ; cột này luôn `Visible="false" Pickable="true"`. Không áp dụng ngoại lệ này cho foreign-key ID, numeric `UserId`, `RowVersion` hoặc concurrency token.
+- Nhãn audit thời gian trong màn quản trị dùng `Ngày tạo` và `Ngày cập nhật`, không dùng `Tạo lúc` hoặc `Cập nhật lúc` như tên cột.
 - Default sort: dữ liệu vận hành và audit mới → cũ; danh mục theo tên/mã tự nhiên; thứ tự cấu hình/lookup theo trường nghiệp vụ. Không đảo sort chỉ để đổi bố cục cột.
 
 Quy tắc thứ tự action:

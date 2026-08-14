@@ -73,6 +73,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="VppCategoryName" Title="@Loc["CategoryName"]" Width="220px" MinWidth="190px" />
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="VppCategoryCode" Title="@Loc["CategoryCode"]" Width="140px" MinWidth="125px" />
+                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="Id" Title="@Loc["SystemId"]" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
                     </RadzenDataGridColumn>

@@ -8,7 +8,7 @@ namespace gtas_vpp_fe.UITests.Tests;
 public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task PriceListColumnPicker_ShowsBusinessColumnsAndHidesTechnicalFields()
+    public async Task PriceListColumnPicker_ShowsBusinessColumnsAndOptionalSystemId()
     {
         await LoginAsDefaultUserAsync();
         await Page.SetViewportSizeAsync(1366, 768);
@@ -31,9 +31,9 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
         labels.Should().Contain("Tên bảng giá");
         labels.Should().Contain("Mã bảng giá");
         labels.Should().Contain("Nhà cung cấp");
+        labels.Should().ContainSingle(label => label == "ID hệ thống");
         labels.Should().NotContain(label => label == "#"
             || label == "Thao tác"
-            || label == "ID"
             || label.Contains("RowVersion", StringComparison.OrdinalIgnoreCase));
 
         var selectedBackground = await popover.Locator(".vpp-column-picker-option.is-selected").First

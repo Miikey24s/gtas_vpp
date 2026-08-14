@@ -22,6 +22,7 @@
                     <RadzenDataGridColumn TItem="VppItemResDTO" Title="#" Width="52px" MinWidth="52px" Filterable="false" Sortable="false" Reorderable="false" Pickable="false" TextAlign="TextAlign.Center" CssClass="rz-col-index" HeaderCssClass="rz-col-index"><Template Context="row">@(currentSkip + rows.IndexOf(row) + 1)</Template></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="VppName" Title="@Loc["ItemName"]" Width="220px" MinWidth="190px" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="VppCode" Title="@Loc["ItemCode"]" Width="150px" MinWidth="135px" />
+                    <RadzenDataGridColumn TItem="VppItemResDTO" Property="Id" Title="@Loc["SystemId"]" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="VppCategoryName" Title="@Loc["Category"]" Width="150px" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="UomName" Title="@Loc["UOM"]" Width="92px" TextAlign="TextAlign.Center" Filterable="false"><HeaderTemplate><span title="@Loc["UOM"]">@Loc["UomCompact"]</span></HeaderTemplate></RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="DefaultSupplierName" Title="@Loc["Supplier"]" Width="140px" />

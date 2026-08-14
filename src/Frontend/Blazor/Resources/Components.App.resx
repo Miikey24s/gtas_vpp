@@ -678,7 +678,7 @@
   <data name="Retry" xml:space="preserve"><value>Thử tải lại</value></data>
   <data name="Reason" xml:space="preserve"><value>Lý do</value></data>
   <data name="Revision" xml:space="preserve"><value>Phiên bản</value></data>
-  <data name="UpdatedAt" xml:space="preserve"><value>Cập nhật lúc</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Ngày cập nhật</value></data>
   <data name="RejectReason" xml:space="preserve"><value>Lý do từ chối</value></data>
   <data name="RejectReasonHelp" xml:space="preserve"><value>Nêu lý do cụ thể để người gửi có thể điều chỉnh và gửi lại.</value></data>
   <data name="RejectReasonRequired" xml:space="preserve"><value>Vui lòng nhập lý do từ chối.</value></data>
@@ -1059,6 +1059,7 @@
   <data name="PermissionModel" xml:space="preserve"><value>Mô hình</value></data>
   <data name="CanonicalRoleReadOnly" xml:space="preserve"><value>Vai trò chuẩn · chỉ đọc</value></data>
   <data name="Identifier" xml:space="preserve"><value>Định danh</value></data>
+  <data name="SystemId" xml:space="preserve"><value>ID hệ thống</value></data>
   <data name="PermissionUpdated" xml:space="preserve"><value>Đã cập nhật phân quyền</value></data>
   <data name="PermissionComponentUpdated" xml:space="preserve"><value>Đã cập nhật thành phần “{0}”.</value></data>
   <data name="RoleInspectorTitle" xml:space="preserve"><value>Vai trò: {0}</value></data>
@@ -1343,7 +1344,7 @@
   <data name="OrderPeriodOpenCountShort" xml:space="preserve"><value>Số kỳ</value></data>
   <data name="DefaultSchedule" xml:space="preserve"><value>Ngày mở → đóng</value></data>
   <data name="SupplementGraceShort" xml:space="preserve"><value>Duyệt bổ sung</value></data>
-  <data name="CreatedAt" xml:space="preserve"><value>Tạo lúc</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Ngày tạo</value></data>
   <data name="DefaultConfiguration" xml:space="preserve"><value>Mặc định hệ thống</value></data>
   <data name="SettingsVersionCount" xml:space="preserve"><value>{0} phiên bản</value></data>
   <data name="SettingsApplicationCount" xml:space="preserve"><value>{0} lần áp dụng</value></data>

@@ -678,7 +678,7 @@
   <data name="Retry" xml:space="preserve"><value>Try again</value></data>
   <data name="Reason" xml:space="preserve"><value>Reason</value></data>
   <data name="Revision" xml:space="preserve"><value>Revision</value></data>
-  <data name="UpdatedAt" xml:space="preserve"><value>Updated at</value></data>
+  <data name="UpdatedAt" xml:space="preserve"><value>Updated date</value></data>
   <data name="RejectReason" xml:space="preserve"><value>Rejection reason</value></data>
   <data name="RejectReasonHelp" xml:space="preserve"><value>Give a specific reason so the requester can correct and resubmit.</value></data>
   <data name="RejectReasonRequired" xml:space="preserve"><value>Enter a rejection reason.</value></data>
@@ -1059,6 +1059,7 @@
   <data name="PermissionModel" xml:space="preserve"><value>Model</value></data>
   <data name="CanonicalRoleReadOnly" xml:space="preserve"><value>Canonical role · read only</value></data>
   <data name="Identifier" xml:space="preserve"><value>Identifier</value></data>
+  <data name="SystemId" xml:space="preserve"><value>System ID</value></data>
   <data name="PermissionUpdated" xml:space="preserve"><value>Permission updated</value></data>
   <data name="PermissionComponentUpdated" xml:space="preserve"><value>Component “{0}” was updated.</value></data>
   <data name="RoleInspectorTitle" xml:space="preserve"><value>Role: {0}</value></data>
@@ -1344,7 +1345,7 @@
   <data name="OrderPeriodOpenCountShort" xml:space="preserve"><value>Periods</value></data>
   <data name="DefaultSchedule" xml:space="preserve"><value>Open → close day</value></data>
   <data name="SupplementGraceShort" xml:space="preserve"><value>Supplement grace</value></data>
-  <data name="CreatedAt" xml:space="preserve"><value>Created at</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Created date</value></data>
   <data name="DefaultConfiguration" xml:space="preserve"><value>System default</value></data>
   <data name="SettingsVersionCount" xml:space="preserve"><value>{0} versions</value></data>
   <data name="SettingsApplicationCount" xml:space="preserve"><value>{0} applications</value></data>

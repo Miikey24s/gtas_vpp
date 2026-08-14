@@ -45,6 +45,7 @@
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="SupplierName" Title="@Loc["Supplier"]" Width="250px" MinWidth="220px">
                         <Template Context="row"><div class="vpp-admin-two-line-cell"><strong>@(row.SupplierName ?? "–")</strong><small>@(row.SupplierShortName ?? "–")</small></div></Template>
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="Id" Title="@Loc["SystemId"]" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
                     </RadzenDataGridColumn>

@@ -57,7 +57,7 @@ public sealed class ColumnPickerContractTests : TestBase, IAuthenticatedUiTest
                 labels.Should().HaveCount(totalCount);
                 labels.Should().NotContain("#");
                 labels.Should().NotContain("Thao tác");
-                labels.Should().NotContain("ID");
+                labels.Should().ContainSingle(label => label == "ID hệ thống");
                 labels.Should().NotContain(label => label.Contains("RowVersion", StringComparison.OrdinalIgnoreCase));
 
                 var selectedBackground = await popover.Locator(".vpp-column-picker-option.is-selected").First

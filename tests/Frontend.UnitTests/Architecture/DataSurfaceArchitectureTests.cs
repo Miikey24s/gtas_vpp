@@ -514,7 +514,7 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
-    public void ColumnPickerConsumers_KeepStructuralColumnsFixedAndTechnicalFieldsHidden()
+    public void ColumnPickerConsumers_KeepStructuralColumnsFixedAndExposeOnlyOptionalSystemIds()
     {
         var componentRoot = Path.Combine(GetFrontendRoot(), "Components", "Pages");
         var pickerConsumers = Directory
@@ -525,6 +525,25 @@ public sealed class DataSurfaceArchitectureTests
 
         Assert.Equal(10, pickerConsumers.Length);
         Assert.Equal(11, pickerConsumers.Sum(file => Regex.Matches(file.Source, "<VppColumnPicker\\b").Count));
+
+        var systemIdColumns = pickerConsumers
+            .SelectMany(consumer => Regex.Matches(
+                    consumer.Source,
+                    "<RadzenDataGridColumn\\b[^>]*Title=\\\"@Loc\\[\\\"SystemId\\\"\\]\\\"[^>]*>",
+                    RegexOptions.CultureInvariant)
+                .Cast<Match>())
+            .ToArray();
+        Assert.Equal(11, systemIdColumns.Length);
+        Assert.All(systemIdColumns, column =>
+        {
+            Assert.Contains("Visible=\"false\"", column.Value, StringComparison.Ordinal);
+            Assert.Contains("Pickable=\"true\"", column.Value, StringComparison.Ordinal);
+            Assert.True(
+                column.Value.Contains("Property=\"Id\"", StringComparison.Ordinal)
+                || column.Value.Contains("Property=\"PriceMappingId\"", StringComparison.Ordinal)
+                || Regex.IsMatch(column.Value, "Property=\\\"@nameof\\([^)]*\\.Id\\)\\\"", RegexOptions.CultureInvariant),
+                "Chỉ ID hệ thống của chính bản ghi được phép xuất hiện trong bộ chọn cột.");
+        });
 
         foreach (var consumer in pickerConsumers)
         {
@@ -585,7 +604,6 @@ public sealed class DataSurfaceArchitectureTests
 
             foreach (var forbiddenProperty in new[]
                      {
-                         "Property=\"Id\"",
                          "Property=\"LookupCategoryId\"",
                          "Property=\"CreatedByUserId\"",
                          "Property=\"UpdatedByUserId\"",
