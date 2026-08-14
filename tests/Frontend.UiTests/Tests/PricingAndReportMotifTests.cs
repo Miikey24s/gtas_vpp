@@ -41,20 +41,50 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
         await trigger.ClickAsync();
         var popover = Page.Locator(".vpp-column-picker-popover:popover-open");
         await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await popover.Locator(".vpp-column-picker-option").First
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
         var labels = await popover.Locator(".vpp-column-picker-label").AllInnerTextsAsync();
         labels.Should().Contain("Tên bảng giá");
         labels.Should().Contain("Mã bảng giá");
         labels.Should().Contain("Nhà cung cấp");
+        labels.Should().Contain("Nguồn dữ liệu");
+        labels.Should().NotContain("Nhập gần nhất");
         labels.Should().ContainSingle(label => label == "ID");
         labels.Should().NotContain(label => label == "#"
             || label == "Thao tác"
             || label.Contains("RowVersion", StringComparison.OrdinalIgnoreCase));
 
+        var sourceOption = popover.Locator(".vpp-column-picker-option")
+            .Filter(new() { HasText = "Nguồn dữ liệu" });
+        await sourceOption.ScrollIntoViewIfNeededAsync();
+
+        if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+        {
+            await Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(evidenceDirectory, "price-list-data-source-picker.png"),
+                FullPage = false,
+                Animations = ScreenshotAnimations.Disabled,
+                Caret = ScreenshotCaret.Hide,
+                Scale = ScreenshotScale.Css
+            });
+        }
+
         var selectedBackground = await popover.Locator(".vpp-column-picker-option.is-selected").First
             .EvaluateAsync<string>("element => getComputedStyle(element).backgroundColor");
         selectedBackground.Should().Be("rgba(0, 0, 0, 0)");
-        await Page.Keyboard.PressAsync("Escape");
-        await popover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+
+        await sourceOption.ClickAsync();
+        await surface.Locator("thead th").Filter(new() { HasText = "Nguồn dữ liệu" })
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Assertions.Expect(surface.Locator("tbody .vpp-category-chip").Filter(new() { HasText = "Mặc định" }))
+            .ToHaveCountAsync(1);
+
+        if (await popover.IsVisibleAsync())
+        {
+            await Page.Keyboard.PressAsync("Escape");
+            await popover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
     }
 
     [Fact]

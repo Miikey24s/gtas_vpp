@@ -1,7 +1,8 @@
 .vpp-clear-filters {
+    box-sizing: border-box;
     display: inline-flex;
     min-width: 112px;
-    height: var(--vpp-button-height-compact);
+    height: var(--vpp-data-control-height);
     align-items: center;
     justify-content: center;
     gap: var(--vpp-space-1);
@@ -12,6 +13,7 @@
     color: var(--vpp-primary-700);
     font: inherit;
     font-size: var(--vpp-text-sm);
+    line-height: 1;
     white-space: nowrap;
     cursor: pointer;
     transition: background-color var(--vpp-transition-fast), color var(--vpp-transition-fast), box-shadow var(--vpp-transition-fast);

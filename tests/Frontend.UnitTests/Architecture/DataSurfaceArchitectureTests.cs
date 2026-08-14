@@ -638,13 +638,14 @@ public sealed class DataSurfaceArchitectureTests
         Assert.Contains("Property=\"PriceListCount\"", supplier, StringComparison.Ordinal);
         Assert.Contains("Title=\"@Loc[\"FullAddress\"]\"", supplier, StringComparison.Ordinal);
         Assert.Contains("Property=\"UserCount\"", department, StringComparison.Ordinal);
-        Assert.Contains("Property=\"LastImportAtUtc\"", priceList, StringComparison.Ordinal);
+        Assert.Contains("Property=\"DataSource\"", priceList, StringComparison.Ordinal);
+        Assert.DoesNotContain("LastImportAtUtc", priceList, StringComparison.Ordinal);
         Assert.Contains("Property=\"UpdatedAtUtc\"", price, StringComparison.Ordinal);
         Assert.Contains("nameof(UserAdministrationResDTO.LastLoginAtUtc)", user, StringComparison.Ordinal);
         Assert.Contains("nameof(PermissionGroupDto.PermissionCount)", permissionGroup, StringComparison.Ordinal);
         Assert.Contains("nameof(SecurityAuditResDTO.ResourceId)", audit, StringComparison.Ordinal);
 
-        Assert.Contains("Property=\"LastImportAtUtc\" Title=\"@Loc[\"LastImportAt\"]\" Width=\"160px\" FormatString=\"{0:dd/MM/yyyy HH:mm}\" Visible=\"false\" Pickable=\"true\"", priceList, StringComparison.Ordinal);
+        Assert.Contains("Property=\"DataSource\" Title=\"@Loc[\"PriceListDataSource\"]\" Width=\"150px\" MinWidth=\"140px\" Visible=\"false\" Pickable=\"true\"", priceList, StringComparison.Ordinal);
         Assert.Contains("nameof(UserAdministrationResDTO.LastLoginAtUtc)\" Width=\"170px\" FormatString=\"{0:dd/MM/yyyy HH:mm}\" Visible=\"false\" Pickable=\"true\"", user, StringComparison.Ordinal);
         Assert.Contains("nameof(SecurityAuditResDTO.ResourceId)\" Title=\"@Loc[\"AuditResourceId\"]\" Width=\"220px\" Visible=\"false\" Pickable=\"true\"", audit, StringComparison.Ordinal);
     }

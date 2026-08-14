@@ -88,8 +88,11 @@ public sealed class ColumnPickerContractTests : TestBase, IAuthenticatedUiTest
             var triggerHeight = await trigger.EvaluateAsync<double>("element => element.getBoundingClientRect().height");
             var searchHeight = await representativeSurface.Locator(".vpp-filter-search")
                 .EvaluateAsync<double>("element => element.getBoundingClientRect().height");
+            var clearFiltersHeight = await representativeSurface.Locator(".vpp-clear-filters")
+                .EvaluateAsync<double>("element => element.getBoundingClientRect().height");
             triggerHeight.Should().BeApproximately(32, 1);
             triggerHeight.Should().BeApproximately(searchHeight, 1);
+            clearFiltersHeight.Should().BeApproximately(searchHeight, 1);
             await trigger.ClickAsync();
             var popover = Page.Locator(".vpp-column-picker-popover:popover-open");
             await popover.WaitForAsync(new() { State = WaitForSelectorState.Visible });

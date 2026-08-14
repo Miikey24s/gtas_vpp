@@ -226,7 +226,7 @@ namespace gtas_vpp_be.Service.Services
                 defaultPriceList = new PriceList
                 {
                     Id = DefaultPriceListId,
-                    PriceListCode = "DEFAULT",
+                    PriceListCode = VppPricingDefaults.DefaultPriceListCode,
                     PriceListName = "Default Price List",
                     IsDefault = true,
                     CreatedByUserId = DefaultUserId,

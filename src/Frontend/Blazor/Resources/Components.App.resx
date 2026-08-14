@@ -471,7 +471,11 @@
   <data name="PriceListCount" xml:space="preserve"><value>Số bảng giá</value></data>
   <data name="UserCount" xml:space="preserve"><value>Số người dùng</value></data>
   <data name="PermissionCount" xml:space="preserve"><value>Số quyền</value></data>
-  <data name="LastImportAt" xml:space="preserve"><value>Nhập gần nhất</value></data>
+  <data name="PriceListDataSource" xml:space="preserve"><value>Nguồn dữ liệu</value></data>
+  <data name="PriceListDataSourceDefault" xml:space="preserve"><value>Mặc định</value></data>
+  <data name="PriceListDataSourceManual" xml:space="preserve"><value>Thủ công</value></data>
+  <data name="PriceListDataSourceExcel" xml:space="preserve"><value>Excel</value></data>
+  <data name="PriceListDataSourceCsv" xml:space="preserve"><value>CSV</value></data>
   <data name="LastLoginAt" xml:space="preserve"><value>Đăng nhập gần nhất</value></data>
   <data name="IsDefault" xml:space="preserve"><value>Mặc định</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Đặt làm mặc định</value></data>

@@ -307,7 +307,7 @@ public static class DemoWorkbookSeeder
             context.PriceLists.Add(priceList);
         }
 
-        priceList.PriceListCode = "DEFAULT";
+        priceList.PriceListCode = VppPricingDefaults.DefaultPriceListCode;
         priceList.PriceListName = "Bảng giá mặc định từ dữ liệu đăng ký VPP";
         priceList.IsDefault = true;
         priceList.SupplierId = supplier.Id;

@@ -90,7 +90,11 @@
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="ItemCount" Title="@Loc["ItemCount"]" Width="155px" MinWidth="155px" TextAlign="TextAlign.Center" Filterable="false" CssClass="vpp-price-list-item-count" HeaderCssClass="vpp-price-list-item-count"><Template Context="row">@row.ItemCount</Template></RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="LastImportAtUtc" Title="@Loc["LastImportAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="PriceListResDTO" Property="DataSource" Title="@Loc["PriceListDataSource"]" Width="150px" MinWidth="140px" Visible="false" Pickable="true" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                        <Template Context="row">
+                            <VppCategoryChip Text="@GetDataSourceLabel(row)" Tone="@GetDataSourceTone(row)" />
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="CreatedByUserName" Title="@Loc["CreatedBy"]" Width="160px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="PriceListResDTO" Property="CreatedAtUtc" Title="@Loc["CreatedAt"]" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />

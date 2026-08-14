@@ -471,7 +471,11 @@
   <data name="PriceListCount" xml:space="preserve"><value>Price-list count</value></data>
   <data name="UserCount" xml:space="preserve"><value>User count</value></data>
   <data name="PermissionCount" xml:space="preserve"><value>Permission count</value></data>
-  <data name="LastImportAt" xml:space="preserve"><value>Last import</value></data>
+  <data name="PriceListDataSource" xml:space="preserve"><value>Data source</value></data>
+  <data name="PriceListDataSourceDefault" xml:space="preserve"><value>Default</value></data>
+  <data name="PriceListDataSourceManual" xml:space="preserve"><value>Manual</value></data>
+  <data name="PriceListDataSourceExcel" xml:space="preserve"><value>Excel</value></data>
+  <data name="PriceListDataSourceCsv" xml:space="preserve"><value>CSV</value></data>
   <data name="LastLoginAt" xml:space="preserve"><value>Last login</value></data>
   <data name="IsDefault" xml:space="preserve"><value>Default</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Set as Default</value></data>

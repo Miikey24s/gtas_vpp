@@ -34,7 +34,7 @@ Chuẩn hóa toàn bộ data grid để người dùng luôn hiểu:
 | C3 — Chuẩn hóa toàn frontend | Rà các grid không có picker, thứ tự filter–cột, tên cột và responsive | Không còn mỗi trang dùng một quy tắc riêng | `DONE` — 21 file/26 grid audited |
 | C4 — Khóa bằng test/docs | Thêm contract test và cập nhật design system | Sửa sau này không làm drift trở lại | `IMPLEMENTED` — chờ owner nhìn route thật |
 | C5 — ID và nhãn ngày | Thêm GUID của chính bản ghi vào picker nhưng ẩn mặc định; chuẩn hóa nhãn ngày tạo/cập nhật | Quản trị viên có thể tra cứu ID khi cần mà grid mặc định vẫn gọn | `IMPLEMENTED` — chờ owner duyệt cột nào nên bật mặc định |
-| C6 — Cột quyết định và hoạt động | Bổ sung số bản ghi liên quan, lần nhập/đăng nhập gần nhất và resource ID từ dữ liệu hiện có | Grid mặc định ưu tiên thông tin giúp quản trị viên ra quyết định; metadata ít dùng vẫn nằm trong picker | `IMPLEMENTED` — backend/frontend tests pass |
+| C6 — Cột quyết định và hoạt động | Bổ sung số bản ghi liên quan, nguồn dữ liệu bảng giá, lần đăng nhập gần nhất và resource ID từ dữ liệu hiện có | Grid mặc định ưu tiên thông tin giúp quản trị viên ra quyết định; metadata ít dùng vẫn nằm trong picker | `IMPLEMENTED` — backend/frontend tests pass |
 
 ### Model + effort khuyến nghị
 
@@ -144,7 +144,7 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 - Category, Department, Item, Price list, Item price và Permission group đã tách `Tên`/`Mã`; User, Supplier và Security audit giữ hai dòng đúng vai trò metadata.
 - Bổ sung các cột nghiệp vụ/audit hợp lệ: mã, VAT mặc định, số nhà cung cấp, mô tả, người/ngày tạo và cập nhật nơi DTO hỗ trợ.
 - Owner feedback ngày 2026-08-14: `Tạo lúc`/`Cập nhật lúc` đổi thành `Ngày tạo`/`Ngày cập nhật`; cả 11 picker quản trị có `ID` (GUID) nhưng ẩn mặc định. Đây là ID của chính bản ghi, không mở lại các khóa ngoại hoặc concurrency token đã loại bỏ.
-- Owner feedback tiếp theo ngày 2026-08-14: bật mặc định các số liệu quyết định gồm `Số giá trị`, `Số mặt hàng`, `Số nhà cung cấp`, `Số người dùng`, `Số quyền` và `Ngày cập nhật` của bảng giá; giữ `Số bảng giá`, `Lần nhập gần nhất`, `Lần đăng nhập gần nhất`, `Ngày cập nhật` của giá mặt hàng và `ID tài nguyên` ở trạng thái ẩn/pickable.
+- Owner feedback tiếp theo ngày 2026-08-14/15: bật mặc định các số liệu quyết định gồm `Số giá trị`, `Số mặt hàng`, `Số nhà cung cấp`, `Số người dùng`, `Số quyền` và `Ngày cập nhật` của bảng giá; giữ `Số bảng giá`, `Nguồn dữ liệu`, `Lần đăng nhập gần nhất`, `Ngày cập nhật` của giá mặt hàng và `ID tài nguyên` ở trạng thái ẩn/pickable. `Nguồn dữ liệu` thay cột thời gian nhập trùng ý với ngày cập nhật và phân biệt `Mặc định`, `Excel`, `CSV`, `Thủ công`.
 - Owner refinement ngày 2026-08-15: badge ngoài trigger rút gọn từ `7/13` còn `7`; tổng số vẫn có trong popup/aria. Trigger dùng chiều cao cố định 32px và đã được khóa bằng geometry test để thẳng hàng với search/filter ở desktop, tablet và mobile.
 - Nhà cung cấp hiển thị một cột `Địa chỉ` đã ghép; `Thành phố`, `Phường/Xã`, `Địa chỉ 2`, `Địa chỉ 3` vẫn có thể bật riêng từ picker. Người dùng hiển thị mã nhân viên ở dòng nhận diện phụ nhưng vẫn giữ cột `Mã nhân viên` riêng trong picker.
 - Dữ liệu mới lấy từ bảng và quan hệ hiện có; không tạo migration: lookup value, mặt hàng, ánh xạ giá, bảng giá/lần nhập, membership, lần đăng nhập và permission mapping.
@@ -153,7 +153,7 @@ Mỗi route phải có một record gồm: cột nguồn, label, thứ tự, vis
 ### Bằng chứng
 
 - Frontend unit hiện tại: `446/446` pass; trong đó contract C6 khóa các cột tổng hợp/hoạt động đã duyệt và trạng thái visible/hidden của metadata.
-- Backend unit hiện tại: `550/550` pass; có test projection cho số mặt hàng/bảng giá của NCC, số NCC của mặt hàng, lần nhập gần nhất, ngày cập nhật giá, lần đăng nhập và số quyền.
+- Backend unit có test projection cho số mặt hàng/bảng giá của NCC, số NCC của mặt hàng, nguồn dữ liệu bảng giá, ngày cập nhật giá, lần đăng nhập và số quyền.
 - `ColumnPickerContractTests.AllAdminColumnPickers_ExposeBusinessFieldsWithStableChrome`: pass; mở đủ `11/11` picker, xác nhận mỗi picker có đúng một `ID` ẩn mặc định và spot-check `390×844`, `768×1024`, `1366×768`, `1920×1080`.
 - `PricingAndReportMotifTests.PricingAndReports_KeepCanonicalContractsAcrossResponsiveViewports`: final pass; ảnh thật xác nhận bảng giá dùng cuộn ngang nội bộ ở laptop thay vì ép ngắn các tiêu đề `Trạng thái`, `Mặc định`, `Số mặt hàng`.
 - `PricingAndReportMotifTests.PriceListColumnPicker_ShowsBusinessColumnsAndHidesTechnicalFields`: pass.
@@ -174,7 +174,7 @@ Tất cả cột dưới đây vẫn có trong picker nhưng không làm rộng 
 | Mặt hàng | `ID`, `VAT mặc định`, `Mô tả`, `Ngày tạo`, `Ngày cập nhật` |
 | Nhà cung cấp | `ID`, `Số bảng giá`, `Thành phố`, `Phường/Xã`, `Địa chỉ 2`, `Địa chỉ 3`, `Mô tả`, `Ngày tạo`, `Ngày cập nhật` |
 | Phòng ban | `ID`, `Ngày tạo`, `Ngày cập nhật` |
-| Bảng giá | `ID`, `Lần nhập gần nhất`, `Mô tả`, `Người tạo`, `Ngày tạo`, `Người cập nhật` |
+| Bảng giá | `ID`, `Nguồn dữ liệu`, `Mô tả`, `Người tạo`, `Ngày tạo`, `Người cập nhật` |
 | Giá mặt hàng | `ID` (ID ánh xạ giá), `Mô tả`, `Ngày cập nhật` |
 | Người dùng | `ID`, `Mã nhân viên`, `Lần đăng nhập gần nhất`, `Mô tả`, `Người tạo`, `Ngày tạo`, `Người cập nhật`, `Ngày cập nhật` |
 | Nhóm quyền | `ID`, `Người tạo`, `Ngày tạo`, `Người cập nhật`, `Ngày cập nhật` |

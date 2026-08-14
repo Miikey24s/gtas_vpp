@@ -3,6 +3,7 @@ using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Library;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -60,7 +61,7 @@ public class PriceListServiceTests
     }
 
     [Fact]
-    public async Task Query_ProjectsLatestCompletedImportTime()
+    public async Task Query_ProjectsDataSourceFromLatestCompletedImport()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 8, 14, 9, 0, 0);
@@ -85,9 +86,9 @@ public class PriceListServiceTests
                 Id = Guid.NewGuid(),
                 PriceListId = priceListId,
                 SupplierId = supplierId,
-                OriginalFileName = "latest.xlsx",
+                OriginalFileName = "latest.csv",
                 FileHash = "latest",
-                FileFormat = "xlsx",
+                FileFormat = "csv",
                 Status = PriceListImportBatchStatus.Completed,
                 CompletedAtUtc = now.AddDays(-1),
                 CreatedAtUtc = now.AddDays(-1),
@@ -110,7 +111,21 @@ public class PriceListServiceTests
 
         var result = await CreateService(context, now).QueryAsync(search: "IMPORT");
 
-        Assert.Equal(now.AddDays(-1), Assert.Single(result.Data).LastImportAtUtc);
+        Assert.Equal(PriceListDataSources.Csv, Assert.Single(result.Data).DataSource);
+    }
+
+    [Theory]
+    [InlineData("DEFAULT", PriceListDataSources.Default)]
+    [InlineData("MANUAL", PriceListDataSources.Manual)]
+    public async Task Query_ProjectsDataSourceWithoutCompletedImport(string code, string expectedSource)
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 8, 15, 9, 0, 0);
+        await SeedListAsync(context, code, code, isDefault: code == "DEFAULT", now);
+
+        var result = await CreateService(context, now).QueryAsync(search: code);
+
+        Assert.Equal(expectedSource, Assert.Single(result.Data).DataSource);
     }
 
     [Fact]

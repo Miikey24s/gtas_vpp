@@ -5,6 +5,7 @@ using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Features.CatalogPricing.Api;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Auth;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -360,6 +361,20 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private static bool IsPriceListActive(PriceListResDTO row) =>
             !row.IsDeleted && row.Status == "Published";
+
+        private string GetDataSourceLabel(PriceListResDTO row) => row.DataSource switch
+        {
+            PriceListDataSources.Default => Loc["PriceListDataSourceDefault"],
+            PriceListDataSources.Excel => Loc["PriceListDataSourceExcel"],
+            PriceListDataSources.Csv => Loc["PriceListDataSourceCsv"],
+            _ => Loc["PriceListDataSourceManual"]
+        };
+
+        private static VppCategoryTone GetDataSourceTone(PriceListResDTO row) => row.DataSource switch
+        {
+            PriceListDataSources.Excel or PriceListDataSources.Csv => VppCategoryTone.Primary,
+            _ => VppCategoryTone.Neutral
+        };
 
         // Atlas cột "Hiệu lực": khoảng dd/MM–dd/MM (kèm năm khi khác năm hiện tại);
         // bảng giá chưa có ngày kết thúc hiển thị mũi tên mở.

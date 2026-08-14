@@ -2,6 +2,7 @@ using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Domain;
 using gtas_vpp_be.Service.Exceptions;
 using gtas_vpp_be.Service.Helpers;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Library;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.Data.SqlClient;
@@ -528,10 +529,15 @@ namespace gtas_vpp_be.Service.Services
                 StatusReason = x.StatusReason,
                 RowVersion = x.RowVersion,
                 ItemCount = x.SupplierProductMappings!.Count(m => showDeleted || !m.IsDeleted),
-                LastImportAtUtc = x.ImportBatches!
+                DataSource = x.ImportBatches!
                     .Where(batch => !batch.IsDeleted
                         && batch.Status == PriceListImportBatchStatus.Completed)
-                    .Max(batch => batch.CompletedAtUtc)
+                    .OrderByDescending(batch => batch.CompletedAtUtc)
+                    .Select(batch => batch.FileFormat)
+                    .FirstOrDefault()
+                    ?? (x.PriceListCode == VppPricingDefaults.DefaultPriceListCode
+                        ? PriceListDataSources.Default
+                        : PriceListDataSources.Manual)
             });
         }
 

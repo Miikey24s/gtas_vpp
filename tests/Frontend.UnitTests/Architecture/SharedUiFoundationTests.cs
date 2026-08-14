@@ -1243,7 +1243,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<VppClearFiltersButton", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("vpp-history-detail-clear", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("VppIcons.FilterOff", clearFiltersButton, StringComparison.Ordinal);
-        Assert.Contains("height: var(--vpp-button-height-compact);", clearFiltersStyles, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-data-control-height);", clearFiltersStyles, StringComparison.Ordinal);
         Assert.Contains("min-height: var(--vpp-data-footer-height);", orderItemsStyles, StringComparison.Ordinal);
         Assert.Contains("vpp-history-chart-legend-label", historyChart, StringComparison.Ordinal);
         Assert.Contains("Property=\"Note\"", orderItemsSurface, StringComparison.Ordinal);

@@ -28,7 +28,7 @@ namespace gtas_vpp_shared.DTOs.Res.Library
         public string? StatusReason { get; set; }
         public byte[]? RowVersion { get; set; }
         public int ItemCount { get; set; }
-        public DateTime? LastImportAtUtc { get; set; }
+        public string DataSource { get; set; } = string.Empty;
         public string? CreatedByUserName { get; set; }
         public string? UpdatedByUserName { get; set; }
     }
