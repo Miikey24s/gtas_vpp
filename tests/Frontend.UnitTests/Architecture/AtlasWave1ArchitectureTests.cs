@@ -103,6 +103,8 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("Loc[\"PriceListAdditionalFee\"]", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("Loc[\"PriceListShippingFee\"]", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("Loc[\"PriceListCommercialTermsHint\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceListCurrency\"]", editor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Model.CurrencyCode", editor, StringComparison.Ordinal);
         Assert.DoesNotContain("Text=\"Rebate\"", editor, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UOM\"]", pricePage, StringComparison.Ordinal);
         Assert.Contains("Loc[\"SupplierSku\"]", pricePage, StringComparison.Ordinal);

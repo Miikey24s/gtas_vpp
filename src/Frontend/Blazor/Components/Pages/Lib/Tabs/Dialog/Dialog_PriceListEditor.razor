@@ -27,9 +27,6 @@
                                     Placeholder="@Loc["PriceListSelectSupplier"]"
                                     Style="width:100%" />
                 </RadzenFormField>
-                <RadzenFormField Text="@Loc["PriceListCurrency"]" Variant="Variant.Outlined">
-                    <RadzenTextBox @bind-Value="Model.CurrencyCode" MaxLength="3" Disabled="true" Style="width:100%" />
-                </RadzenFormField>
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"><RadzenCheckBox TValue="bool" @bind-Value="Model.IsDefault" /><RadzenText Text="@Loc["PriceListUseAsDefault"]" TextStyle="TextStyle.Body2" /></RadzenStack>
             }
             <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined"><RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" /></RadzenFormField>

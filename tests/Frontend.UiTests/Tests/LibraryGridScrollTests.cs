@@ -391,6 +391,7 @@ public class LibraryGridScrollTests : TestBase, IAuthenticatedUiTest
         await Assertions.Expect(dialog.GetByText("Khoản giảm thêm", new() { Exact = true })).ToHaveCountAsync(0);
         await Assertions.Expect(dialog.GetByText("Phụ phí", new() { Exact = true })).ToHaveCountAsync(0);
         await Assertions.Expect(dialog.GetByText("Phí vận chuyển", new() { Exact = true })).ToHaveCountAsync(0);
+        await Assertions.Expect(dialog.GetByText("Đơn vị tiền tệ", new() { Exact = true })).ToHaveCountAsync(0);
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))
