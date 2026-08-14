@@ -8,6 +8,7 @@ namespace gtas_vpp_shared.DTOs.Res.Library
         public string? Code { get; set; }
         public string? Name { get; set; }
         public Guid? ParentDepartmentId { get; set; }
+        public int UserCount { get; set; }
         public ICollection<UserGroupMembershipResDTO>? UserGroupMemberships { get; set; }
     }
 }

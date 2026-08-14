@@ -1895,7 +1895,7 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 
 ### 16.7 Column picker và identity-cell contract — 2026-08-14
 
-- Execution plan canonical: [`UI-COLUMN-CONTRACT-001`](../execution/UI-COLUMN-CONTRACT-001.md), trạng thái `C0–C4 IMPLEMENTED — OWNER VISUAL REVIEW`.
+- Execution plan canonical: [`UI-COLUMN-CONTRACT-001`](../execution/UI-COLUMN-CONTRACT-001.md), trạng thái `C0–C6 IMPLEMENTED — OWNER VISUAL REVIEW`.
 - Trigger column picker phải diễn đạt rõ số cột đang hiện trên tổng số cột có thể chọn, ví dụ `Cột 6/8`; không tính `#`, checkbox chọn dòng hoặc `Thao tác`.
 - Cột cấu trúc phải cố định và không pickable. Raw GUID/FK ID, `RowVersion` và concurrency token không được đưa vào picker; audit route chỉ ngoại lệ cho identifier thực sự phục vụ điều tra.
 - Bảng giao dịch/đọc nhanh dùng ô hai dòng `Tên + mã`. Màn quản trị nơi mã là khóa tra cứu, import, sort hoặc copy phải tách `Tên` và `Mã` thành hai cột.
@@ -1903,3 +1903,4 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Không tự đưa mọi property DTO lên UI. Mỗi cột phải có label thân thiện, lý do nghiệp vụ, visibility mặc định, pickability, sort/filter và responsive priority rõ ràng.
 - Implementation 2026-08-14 đã audit 21 file/26 grid và mở route thật đủ 11/11 picker; architecture test khóa cột cấu trúc/kỹ thuật, thứ tự toolbar và identity-cell policy. Lookup master-detail còn một layout gate độc lập về document scroll, theo dõi ngoài column-contract slice.
 - Owner refinement 2026-08-14: cả 11 picker quản trị có thêm `ID` của chính bản ghi, luôn ẩn mặc định; foreign-key ID, numeric `UserId` và `RowVersion` vẫn bị loại. Nhãn cột audit đổi thành `Ngày tạo`/`Ngày cập nhật`. Danh sách toàn bộ cột đang ẩn để duyệt nằm tại mục 8 của `UI-COLUMN-CONTRACT-001`.
+- Owner refinement 2026-08-14 (C6): các grid quản trị dùng số liệu quan hệ đang hoạt động để hỗ trợ quyết định (`Số giá trị`, `Số mặt hàng`, `Số nhà cung cấp`, `Số người dùng`, `Số quyền`). Bảng giá hiện `Ngày cập nhật`; `Lần nhập gần nhất`, `Lần đăng nhập gần nhất`, `Ngày cập nhật` của giá mặt hàng và `ID tài nguyên` chỉ nằm trong picker. Supplier dùng một cột địa chỉ ghép; field kỹ thuật, khóa ngoại và dữ liệu thương mại hoãn vẫn không xuất hiện.

@@ -612,6 +612,15 @@ public partial class Tab_User : IDisposable
 
     private bool IsCurrentUser(UserAdministrationResDTO user) => user.UserId == UserClaims;
 
+    private static string GetUserSecondaryIdentity(UserAdministrationResDTO user)
+    {
+        var parts = new[] { user.UserLogin, user.EmployeeCode }
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        var value = string.Join(" · ", parts);
+        return string.IsNullOrWhiteSpace(value) ? "–" : value;
+    }
+
     private string GetAssignmentTitle(UserAdministrationResDTO user) =>
         IsCurrentUser(user)
             ? Loc["SelfMembershipChangeBlocked"].Value

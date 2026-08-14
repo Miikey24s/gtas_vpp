@@ -6,6 +6,7 @@ namespace gtas_vpp_shared.DTOs.Res.Library
     {
         public string? VppCategoryCode { get; set; }
         public string? VppCategoryName { get; set; }
+        public int ItemCount { get; set; }
         public ICollection<VppItemResDTO>? VppItems { get; set; }
     }
 }

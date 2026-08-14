@@ -11,6 +11,8 @@ namespace gtas_vpp_shared.DTOs.Res.Library
         public string? Address3 { get; set; }
         public string? Ward { get; set; }
         public string? City { get; set; }
+        public int ItemCount { get; set; }
+        public int PriceListCount { get; set; }
         public ICollection<SupplierProductMappingResDTO>? SupplierProductMappings { get; set; }
     }
 }

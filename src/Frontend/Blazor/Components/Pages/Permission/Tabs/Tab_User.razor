@@ -80,7 +80,7 @@
                     </EmptyTemplate>
                     <Columns>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Width="52px" MinWidth="52px" Title="#" Reorderable="false" Filterable="false" Pickable="false" Sortable="false" TextAlign="TextAlign.Center"><Template Context="user">@(currentUserSkip + users.IndexOf(user) + 1)</Template></RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["User"]" Property="@nameof(UserAdministrationResDTO.FullName)" Width="220px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.FullName ?? "–") @if (IsCurrentUser(user)) { <span class="vpp-admin-current-account">@Loc["CurrentAccount"]</span> }</strong><small>@(user.UserLogin ?? "–")</small></div></Template></RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["User"]" Property="@nameof(UserAdministrationResDTO.FullName)" Width="240px"><Template Context="user"><div class="vpp-admin-two-line-cell"><strong>@(user.FullName ?? "–") @if (IsCurrentUser(user)) { <span class="vpp-admin-current-account">@Loc["CurrentAccount"]</span> }</strong><small>@GetUserSecondaryIdentity(user)</small></div></Template></RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["SystemId"]" Property="@nameof(UserAdministrationResDTO.Id)" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Email"]" Property="@nameof(UserAdministrationResDTO.Email)" Width="250px" />
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["EmployeeCode"]" Property="@nameof(UserAdministrationResDTO.EmployeeCode)" Width="140px" Visible="false" Pickable="true" />
@@ -124,6 +124,7 @@
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["CreatedAt"]" Property="@nameof(UserAdministrationResDTO.CreatedAtUtc)" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["UpdatedBy"]" Property="@nameof(UserAdministrationResDTO.UpdatedByUserName)" Width="160px" Visible="false" Pickable="true" />
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["UpdatedAt"]" Property="@nameof(UserAdministrationResDTO.UpdatedAtUtc)" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
+                        <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["LastLoginAt"]" Property="@nameof(UserAdministrationResDTO.LastLoginAtUtc)" Width="170px" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                         <RadzenDataGridColumn TItem="UserAdministrationResDTO" Title="@Loc["Actions"]" Width="154px" MinWidth="154px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" Visible="@CanManageUsers">
                             <Template Context="user">
                                 <div class="vpp-admin-actions">

@@ -261,6 +261,7 @@
   <data name="Address1" xml:space="preserve"><value>Địa chỉ 1</value></data>
   <data name="Address2" xml:space="preserve"><value>Địa chỉ 2</value></data>
   <data name="Address3" xml:space="preserve"><value>Địa chỉ 3</value></data>
+  <data name="FullAddress" xml:space="preserve"><value>Địa chỉ</value></data>
   <data name="Ward" xml:space="preserve"><value>Phường/Xã</value></data>
   <data name="City" xml:space="preserve"><value>Tỉnh/Thành</value></data>
   <data name="Location" xml:space="preserve"><value>Khu vực</value></data>
@@ -466,6 +467,12 @@
   <data name="PriceListCode" xml:space="preserve"><value>Mã bảng giá</value></data>
   <data name="PriceListName" xml:space="preserve"><value>Tên bảng giá</value></data>
   <data name="ItemCount" xml:space="preserve"><value>Số mặt hàng</value></data>
+  <data name="ValueCount" xml:space="preserve"><value>Số giá trị</value></data>
+  <data name="PriceListCount" xml:space="preserve"><value>Số bảng giá</value></data>
+  <data name="UserCount" xml:space="preserve"><value>Số người dùng</value></data>
+  <data name="PermissionCount" xml:space="preserve"><value>Số quyền</value></data>
+  <data name="LastImportAt" xml:space="preserve"><value>Nhập gần nhất</value></data>
+  <data name="LastLoginAt" xml:space="preserve"><value>Đăng nhập gần nhất</value></data>
   <data name="IsDefault" xml:space="preserve"><value>Mặc định</value></data>
   <data name="SetAsDefault" xml:space="preserve"><value>Đặt làm mặc định</value></data>
   <data name="Clone" xml:space="preserve"><value>Sao chép</value></data>
@@ -1172,6 +1179,7 @@
   <data name="AuditAction" xml:space="preserve"><value>Hành động</value></data>
   <data name="AuditOutcome" xml:space="preserve"><value>Kết quả</value></data>
   <data name="AuditResource" xml:space="preserve"><value>Tài nguyên</value></data>
+  <data name="AuditResourceId" xml:space="preserve"><value>ID đối tượng</value></data>
   <data name="AuditSummary" xml:space="preserve"><value>Tóm tắt</value></data>
   <data name="AuditCorrelationId" xml:space="preserve"><value>Mã tương quan</value></data>
   <data name="SecurityAuditDetail" xml:space="preserve"><value>Chi tiết nhật ký bảo mật</value></data>

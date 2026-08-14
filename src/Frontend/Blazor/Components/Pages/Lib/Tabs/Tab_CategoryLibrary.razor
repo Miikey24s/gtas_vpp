@@ -77,11 +77,12 @@
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="ItemCount" Title="@Loc["ItemCount"]" Width="120px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" />
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="Description" Title="@Loc["Description"]" Width="260px" MinWidth="220px">
                         <Template Context="row"><span class="vpp-admin-truncate" title="@row.Description">@(string.IsNullOrWhiteSpace(row.Description) ? "–" : row.Description)</span></Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="CreatedAtUtc" Title="@Loc["CreatedAt"]" Width="160px" TextAlign="TextAlign.Center" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
-                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="150px" TextAlign="TextAlign.Center" FormatString="{0:dd/MM/yyyy HH:mm}" Pickable="true" />
+                    <RadzenDataGridColumn TItem="VppCategoryResDTO" Property="UpdatedAtUtc" Title="@Loc["UpdatedAt"]" Width="150px" TextAlign="TextAlign.Center" FormatString="{0:dd/MM/yyyy HH:mm}" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="VppCategoryResDTO" Title="@Loc["Actions"]" Width="128px" MinWidth="128px" Filterable="false" Sortable="false" Reorderable="false" Resizable="false" Pickable="false" Frozen="true" FrozenPosition="FrozenColumnPosition.Right" TextAlign="TextAlign.Center" CssClass="rz-col-actions rz-col-actions-medium" HeaderCssClass="rz-col-actions rz-col-actions-medium" Visible="@CanModify">
                         <Template Context="row">
                             <div class="vpp-admin-actions">

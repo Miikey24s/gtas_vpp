@@ -14,6 +14,8 @@ namespace gtas_vpp_shared.DTOs.Res.Library
 
         public string? UpdatedByUserName { get; set; }
 
+        public int ValueCount { get; set; }
+
         public virtual ICollection<LookupValueResDTO>? LookupValues { get; set; }
     }
 }

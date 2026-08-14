@@ -105,6 +105,7 @@
                             <VppStatusBadge Text="@(data.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(data.IsDeleted ? "Inactive" : "Active")" />
                         </Template>
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="ValueCount" Title="@Loc["ValueCount"]" Width="105px" MinWidth="100px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="ModuleName" Title="@Loc["ModuleName"]" Width="120px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="Description" Title="@Loc["Description"]" Width="210px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="LookupCategoryResDTO" Property="CreatedByUserName" Title="@Loc["CreatedBy"]" Width="160px" Visible="false" Pickable="true" />

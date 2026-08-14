@@ -17,5 +17,6 @@ namespace gtas_vpp_shared.DTOs.Res.Permission
         public string? GroupName { get; set; }
         public Guid? ParentGroupId { get; set; }
         public int UserCount { get; set; }
+        public int PermissionCount { get; set; }
     }
 }

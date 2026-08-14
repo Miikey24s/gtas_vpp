@@ -21,6 +21,8 @@ public sealed class MembershipPermissionControllerTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var activeAccount = AddAccount(context, 1_000_000_201, "active.admin");
+        var lastLoginAtUtc = new DateTime(2026, 8, 14, 8, 30, 0, DateTimeKind.Utc);
+        activeAccount.LastLoginAtUtc = lastLoginAtUtc;
         var tombstoneOnlyAccount = AddAccount(context, 1_000_000_202, "legacy.tombstone");
         var systemGroup = new PermissionGroup
         {
@@ -74,6 +76,7 @@ public sealed class MembershipPermissionControllerTests
         Assert.True(active.IsAdmin);
         Assert.Equal(systemGroup.Id, active.GroupId);
         Assert.False(active.IsDeleted);
+        Assert.Equal(lastLoginAtUtc, active.LastLoginAtUtc);
         var tombstone = Assert.Single(users, item => item.UserId == tombstoneOnlyAccount.Id);
         Assert.False(tombstone.IsAdmin);
         Assert.Equal(Guid.Empty, tombstone.GroupId);

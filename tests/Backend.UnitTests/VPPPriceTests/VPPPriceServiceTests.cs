@@ -180,6 +180,41 @@ public class VPPPriceServiceTests
     }
 
     [Fact]
+    public async Task QueryItemPrices_ProjectsMappingUpdatedTime()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 8, 14, 9, 0, 0);
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var vpp = await context.Set<VppItem>().SingleAsync(item => item.Id == vppId);
+        context.Set<LookupValue>().Add(new LookupValue
+        {
+            Id = vpp.UomId,
+            Code = "EA",
+            Value = "Cái",
+            Sort = 1,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            IsDeleted = false
+        });
+        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
+        var supplierId = await SeedSupplierAsync(context, "Supplier", now);
+        context.Set<SupplierProductMapping>().Add(PriceRow(
+            vppId,
+            supplierId,
+            priceListId,
+            1000,
+            isDefault: true,
+            now));
+        await context.SaveChangesAsync();
+
+        var result = await CreatePriceService(context, now)
+            .QueryItemPricesAsync(supplierId, priceListId);
+
+        Assert.Equal(now, Assert.Single(result.Data).UpdatedAtUtc);
+    }
+
+    [Fact]
     public async Task GetCurrentSinglePrice_WithDefault_PrefersDefault()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

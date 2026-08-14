@@ -110,7 +110,8 @@ namespace gtas_vpp_be.Service.Services
                     SupplierSku = mapping == null ? null : mapping.SupplierSku,
                     IsDefault = mapping != null && mapping.IsDefault,
                     IsDeleted = mapping != null && mapping.IsDeleted,
-                    Description = mapping == null ? null : mapping.Description
+                    Description = mapping == null ? null : mapping.Description,
+                    UpdatedAtUtc = mapping == null ? null : mapping.UpdatedAtUtc
                 };
 
             if (!string.IsNullOrWhiteSpace(search))

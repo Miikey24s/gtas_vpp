@@ -617,6 +617,39 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
+    public void AdminColumnPickers_ExposeApprovedBusinessCountsAndActivityFields()
+    {
+        var root = GetFrontendRoot();
+        var lookup = ReadPage(root, "Lib", "Tabs", "Tab_LookupLibrary.razor");
+        var category = ReadPage(root, "Lib", "Tabs", "Tab_CategoryLibrary.razor");
+        var item = ReadPage(root, "Lib", "Tabs", "Tab_ItemLibrary.razor");
+        var supplier = ReadPage(root, "Lib", "Tabs", "Tab_SupplierLibrary.razor");
+        var department = ReadPage(root, "Lib", "Tabs", "Tab_DepartmentLibrary.razor");
+        var priceList = ReadPage(root, "Lib", "Tabs", "Tab_PriceListLibrary.razor");
+        var price = ReadPage(root, "Lib", "Tabs", "Tab_PriceLibrary.razor");
+        var user = ReadPage(root, "Permission", "Tabs", "Tab_User.razor");
+        var permissionGroup = ReadPage(root, "Permission", "Tabs", "Tab_PagePermission.razor");
+        var audit = ReadPage(root, "Permission", "Tabs", "Tab_SecurityAudit.razor");
+
+        Assert.Contains("Property=\"ValueCount\"", lookup, StringComparison.Ordinal);
+        Assert.Contains("Property=\"ItemCount\"", category, StringComparison.Ordinal);
+        Assert.Contains("Property=\"SupplierCount\"", item, StringComparison.Ordinal);
+        Assert.Contains("Property=\"ItemCount\"", supplier, StringComparison.Ordinal);
+        Assert.Contains("Property=\"PriceListCount\"", supplier, StringComparison.Ordinal);
+        Assert.Contains("Title=\"@Loc[\"FullAddress\"]\"", supplier, StringComparison.Ordinal);
+        Assert.Contains("Property=\"UserCount\"", department, StringComparison.Ordinal);
+        Assert.Contains("Property=\"LastImportAtUtc\"", priceList, StringComparison.Ordinal);
+        Assert.Contains("Property=\"UpdatedAtUtc\"", price, StringComparison.Ordinal);
+        Assert.Contains("nameof(UserAdministrationResDTO.LastLoginAtUtc)", user, StringComparison.Ordinal);
+        Assert.Contains("nameof(PermissionGroupDto.PermissionCount)", permissionGroup, StringComparison.Ordinal);
+        Assert.Contains("nameof(SecurityAuditResDTO.ResourceId)", audit, StringComparison.Ordinal);
+
+        Assert.Contains("Property=\"LastImportAtUtc\" Title=\"@Loc[\"LastImportAt\"]\" Width=\"160px\" FormatString=\"{0:dd/MM/yyyy HH:mm}\" Visible=\"false\" Pickable=\"true\"", priceList, StringComparison.Ordinal);
+        Assert.Contains("nameof(UserAdministrationResDTO.LastLoginAtUtc)\" Width=\"170px\" FormatString=\"{0:dd/MM/yyyy HH:mm}\" Visible=\"false\" Pickable=\"true\"", user, StringComparison.Ordinal);
+        Assert.Contains("nameof(SecurityAuditResDTO.ResourceId)\" Title=\"@Loc[\"AuditResourceId\"]\" Width=\"220px\" Visible=\"false\" Pickable=\"true\"", audit, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AdminLibraryIdentityColumns_SeparateBusinessCodesFromNames()
     {
         var root = GetFrontendRoot();

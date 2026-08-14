@@ -99,7 +99,22 @@ namespace gtas_vpp_be.Controllers
                     ParentGroupId = group.ParentGroupId,
                     UserCount = group.UserGroupMemberships == null
                         ? 0
-                        : group.UserGroupMemberships.Count(membership => !membership.IsDeleted)
+                        : group.UserGroupMemberships
+                            .Where(membership => !membership.IsDeleted)
+                            .Select(membership => membership.AccountId ?? membership.UserId)
+                            .Distinct()
+                            .Count(),
+                    PermissionCount = group.GroupPageComponentMappings == null
+                        ? 0
+                        : group.GroupPageComponentMappings.Count(mapping =>
+                            mapping.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
+                            && mapping.IsVisible
+                            && mapping.IsEnable
+                            && mapping.PageComponentMapping != null
+                            && mapping.PageComponentMapping.PermissionPage != null
+                            && !mapping.PageComponentMapping.PermissionPage.IsDeleted
+                            && mapping.PageComponentMapping.PermissionComponent != null
+                            && !mapping.PageComponentMapping.PermissionComponent.IsDeleted)
                 });
 
             if (!string.IsNullOrWhiteSpace(filter))
@@ -789,6 +804,7 @@ namespace gtas_vpp_be.Controllers
                 usersQuery = usersQuery.Where(x =>
                     (x.UserName != null && x.UserName.Contains(searchText))
                     || (x.Email != null && x.Email.Contains(searchText))
+                    || (x.EmployeeCode != null && x.EmployeeCode.Contains(searchText))
                     || (x.FullName != null && x.FullName.Contains(searchText)));
             }
 
@@ -842,6 +858,7 @@ namespace gtas_vpp_be.Controllers
                          : user.AccountStatus == AppAccountStatus.PendingApproval
                              ? nameof(AppAccountStatus.PendingApproval)
                              : nameof(AppAccountStatus.Disabled),
+                    LastLoginAtUtc = user.LastLoginAtUtc,
                     SessionVersion = user.SessionVersion,
                     GroupCode = userGroup == null || userGroup.PermissionGroup == null
                          ? null
@@ -1055,6 +1072,8 @@ namespace gtas_vpp_be.Controllers
                 "targetfullname desc" => query.OrderByDescending(audit => audit.TargetFullName).ThenByDescending(audit => audit.OccurredAtUtc),
                 "resourcetype asc" => query.OrderBy(audit => audit.ResourceType).ThenByDescending(audit => audit.OccurredAtUtc),
                 "resourcetype desc" => query.OrderByDescending(audit => audit.ResourceType).ThenByDescending(audit => audit.OccurredAtUtc),
+                "resourceid asc" => query.OrderBy(audit => audit.ResourceId).ThenByDescending(audit => audit.OccurredAtUtc),
+                "resourceid desc" => query.OrderByDescending(audit => audit.ResourceId).ThenByDescending(audit => audit.OccurredAtUtc),
                 "summary asc" => query.OrderBy(audit => audit.Summary).ThenByDescending(audit => audit.OccurredAtUtc),
                 "summary desc" => query.OrderByDescending(audit => audit.Summary).ThenByDescending(audit => audit.OccurredAtUtc),
                 "reason asc" => query.OrderBy(audit => audit.Reason).ThenByDescending(audit => audit.OccurredAtUtc),

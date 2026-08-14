@@ -17,5 +17,6 @@ namespace gtas_vpp_shared.DTOs.Res.Library
         public bool IsDefault { get; set; }
         public bool IsDeleted { get; set; }
         public string? Description { get; set; }
+        public DateTime? UpdatedAtUtc { get; set; }
     }
 }

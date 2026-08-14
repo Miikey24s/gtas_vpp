@@ -128,4 +128,128 @@ public class LibraryControllerTests
         Assert.DoesNotContain(list, x => x.SupplierShortName == "Deleted 1");
         Assert.DoesNotContain(list, x => x.SupplierShortName == "Deleted 2");
     }
+
+    [Fact]
+    public async Task GenericGet_SupplierTable_ProjectsActiveItemAndPriceListCounts()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 8, 14, 9, 0, 0);
+        var supplierId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
+        var priceListId = Guid.NewGuid();
+        var supplier = new Supplier
+        {
+            Id = supplierId,
+            SupplierShortName = "COUNT",
+            SupplierName = "Count supplier",
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            IsDeleted = false
+        };
+        context.Set<Supplier>().Add(supplier);
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, itemId);
+        context.Set<PriceList>().Add(new PriceList
+        {
+            Id = priceListId,
+            PriceListCode = "COUNT-2026",
+            PriceListName = "Count price list",
+            SupplierId = supplierId,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            IsDeleted = false
+        });
+        context.Set<SupplierProductMapping>().Add(new SupplierProductMapping
+        {
+            Id = Guid.NewGuid(),
+            SupplierId = supplierId,
+            VppItemId = itemId,
+            PriceListId = priceListId,
+            Price = 1000,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            IsDeleted = false
+        });
+        await context.SaveChangesAsync();
+
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        var serviceProvider = new Mock<IServiceProvider>();
+        serviceProvider.Setup(x => x.GetService(typeof(IGenericRepository<Supplier>)))
+            .Returns(new GenericRepository<Supplier>(unitOfWork.Object));
+        var userNameResolver = new Mock<IUserNameResolver>();
+        userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<Supplier>>(), context))
+            .ReturnsAsync((List<Supplier> list, gtas_vpp_be.Service.Helpers.Context.VPPContext _) => list);
+        var controller = new LibraryController(
+            serviceProvider.Object,
+            userNameResolver.Object,
+            unitOfWork.Object,
+            new FakeDateTimeProvider(now))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var result = await controller.GenericGet(
+            tableCode: "suppliers",
+            id: null,
+            searchText: null,
+            lookupCategoryId: null,
+            filter: null,
+            skip: 0,
+            top: 20,
+            orderby: null,
+            distinct: null,
+            distinctFilter: null);
+
+        var rows = Assert.IsType<List<SupplierResDTO>>(Assert.IsType<OkObjectResult>(result).Value);
+        var row = Assert.Single(rows);
+        Assert.Equal(1, row.ItemCount);
+        Assert.Equal(1, row.PriceListCount);
+    }
+
+    [Fact]
+    public async Task GenericGet_VppItems_ProjectsSupplierCountFromDefaultPriceList()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 8, 14, 9, 0, 0);
+        var itemId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, itemId);
+        var item = await context.Set<VppItem>().FindAsync(itemId);
+        context.Set<LookupValue>().Add(new LookupValue
+        {
+            Id = item!.UomId,
+            Code = "EA",
+            Value = "Cái",
+            Sort = 1,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+            IsDeleted = false
+        });
+        await ServiceTestHelpers.SeedDefaultPriceListAsync(context, (itemId, 1000));
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        var userNameResolver = new Mock<IUserNameResolver>();
+        userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<VppItemResDTO>>(), context))
+            .ReturnsAsync((List<VppItemResDTO> list, gtas_vpp_be.Service.Helpers.Context.VPPContext _) => list);
+        var controller = new LibraryController(
+            Mock.Of<IServiceProvider>(),
+            userNameResolver.Object,
+            unitOfWork.Object,
+            new FakeDateTimeProvider(now))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+
+        var result = await controller.GenericGet(
+            tableCode: "vpp-items",
+            id: null,
+            searchText: null,
+            lookupCategoryId: null,
+            filter: null,
+            skip: 0,
+            top: 20,
+            orderby: null,
+            distinct: null,
+            distinctFilter: null);
+
+        var rows = Assert.IsType<List<VppItemResDTO>>(Assert.IsType<OkObjectResult>(result).Value);
+        Assert.Equal(1, Assert.Single(rows).SupplierCount);
+    }
 }

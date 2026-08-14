@@ -49,10 +49,12 @@
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
                         <Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="City" Title="@Loc["City"]" Width="170px" />
-                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="Address1" Title="@Loc["Address1"]" Width="270px" MinWidth="220px">
-                        <Template Context="row"><span class="vpp-admin-truncate" title="@row.Address1">@(string.IsNullOrWhiteSpace(row.Address1) ? "–" : row.Address1)</span></Template>
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="ItemCount" Title="@Loc["ItemCount"]" Width="120px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" />
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="PriceListCount" Title="@Loc["PriceListCount"]" Width="125px" MinWidth="115px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" Visible="false" Pickable="true" />
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="Address1" Title="@Loc["FullAddress"]" Width="360px" MinWidth="280px">
+                        <Template Context="row"><span class="vpp-admin-truncate" title="@FormatSupplierAddress(row)">@FormatSupplierAddress(row)</span></Template>
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="SupplierResDTO" Property="City" Title="@Loc["City"]" Width="170px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="Ward" Title="@Loc["Ward"]" Width="150px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="Address2" Title="@Loc["Address2"]" Width="220px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="SupplierResDTO" Property="Address3" Title="@Loc["Address3"]" Width="220px" Visible="false" Pickable="true" />

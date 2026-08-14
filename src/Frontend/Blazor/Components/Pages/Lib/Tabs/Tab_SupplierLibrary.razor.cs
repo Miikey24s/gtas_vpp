@@ -148,6 +148,16 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
 
     private async Task ClearFiltersAsync() { searchText = string.Empty; await grid.FirstPage(true); }
 
+    private static string FormatSupplierAddress(SupplierResDTO row)
+    {
+        var parts = new[] { row.Address1, row.Address2, row.Address3, row.Ward, row.City }
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value!.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        var value = string.Join(", ", parts);
+        return string.IsNullOrWhiteSpace(value) ? "–" : value;
+    }
+
     private static SupplierResDTO Clone(SupplierResDTO row) => new()
     {
         Id = row.Id,
@@ -158,6 +168,8 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
         Address3 = row.Address3,
         Ward = row.Ward,
         City = row.City,
+        ItemCount = row.ItemCount,
+        PriceListCount = row.PriceListCount,
         Description = row.Description,
         IsDeleted = row.IsDeleted,
         CreatedAtUtc = row.CreatedAtUtc,

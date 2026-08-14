@@ -956,6 +956,34 @@
     --vpp-admin-actions-width: 190px;
 }
 
+.vpp-price-list-grid .rz-grid-table th.vpp-price-list-status,
+.vpp-price-list-grid .rz-grid-table td.vpp-price-list-status {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+}
+
+.vpp-price-list-grid .rz-grid-table th.vpp-price-list-default,
+.vpp-price-list-grid .rz-grid-table td.vpp-price-list-default {
+    width: 135px !important;
+    min-width: 135px !important;
+    max-width: 135px !important;
+}
+
+.vpp-price-list-grid .rz-grid-table th.vpp-price-list-item-count,
+.vpp-price-list-grid .rz-grid-table td.vpp-price-list-item-count {
+    width: 155px !important;
+    min-width: 155px !important;
+    max-width: 155px !important;
+}
+
+.vpp-price-list-grid .rz-grid-table th.vpp-price-list-updated,
+.vpp-price-list-grid .rz-grid-table td.vpp-price-list-updated {
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+}
+
 .vpp-admin-grid .rz-grid-table td.rz-col-actions .rz-cell-data,
 .vpp-admin-grid .rz-grid-table td.rz-col-isdeleted .rz-cell-data {
     overflow: hidden;

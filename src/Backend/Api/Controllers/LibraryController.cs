@@ -1,3 +1,4 @@
+using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
@@ -178,6 +179,7 @@ namespace gtas_vpp_be.Controllers
                 .Select(m => new
                 {
                     m.VppItemId,
+                    m.SupplierId,
                     m.Price,
                     m.IsDefault,
                     SupplierShortName = m.Supplier != null ? m.Supplier.SupplierShortName : null,
@@ -199,7 +201,8 @@ namespace gtas_vpp_be.Controllers
                         return new
                         {
                             Price = bestMapping?.Price,
-                            SupplierName = bestMapping?.SupplierName
+                            SupplierName = bestMapping?.SupplierName,
+                            SupplierCount = g.Select(m => m.SupplierId).Distinct().Count()
                         };
                     }
                 );
@@ -223,6 +226,7 @@ namespace gtas_vpp_be.Controllers
                     DefaultVatRate = VppPricingDefaults.VatRate,
                     DefaultPrice = priceInfo?.Price,
                     DefaultSupplierName = priceInfo?.SupplierName,
+                    SupplierCount = priceInfo?.SupplierCount ?? 0,
                     Uom = x.Uom == null ? null : new LookupValueResDTO
                     {
                         Id = x.Uom.Id,
@@ -317,6 +321,13 @@ namespace gtas_vpp_be.Controllers
                         .ThenBy(m => m.Supplier != null ? m.Supplier.SupplierName : null)
                         .Select(m => m.Supplier != null ? m.Supplier.SupplierName : null)
                         .FirstOrDefault(),
+                    SupplierCount = x.SupplierProductMappings!
+                        .Where(m => (showDeleted || !m.IsDeleted)
+                            && m.PriceListId == defaultPriceListId
+                            && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
+                        .Select(m => m.SupplierId)
+                        .Distinct()
+                        .Count(),
                     Uom = x.Uom == null ? null : new LookupValueResDTO
                     {
                         Id = x.Uom.Id,
@@ -460,6 +471,7 @@ namespace gtas_vpp_be.Controllers
                     && (m.Supplier == null || showDeleted || !m.Supplier.IsDeleted))
                 .Select(m => new
                 {
+                    m.SupplierId,
                     m.Price,
                     m.IsDefault,
                     SupplierShortName = m.Supplier != null ? m.Supplier.SupplierShortName : null,
@@ -488,7 +500,8 @@ namespace gtas_vpp_be.Controllers
                 VppCategoryId = vpp.VppCategoryId,
                 DefaultVatRate = VppPricingDefaults.VatRate,
                 DefaultPrice = bestMapping?.Price,
-                DefaultSupplierName = bestMapping?.SupplierName
+                DefaultSupplierName = bestMapping?.SupplierName,
+                SupplierCount = mappings.Select(mapping => mapping.SupplierId).Distinct().Count()
             };
 
             return Ok(dto);
@@ -628,6 +641,7 @@ namespace gtas_vpp_be.Controllers
                 var pageEntities = await query.ToListAsync();
                 var enriched = await _userNameResolver.WithUserNamesAsync(pageEntities, _unitOfWork.VPPContext);
                 var dtoList = enriched.Adapt<List<TDto>>();
+                await EnrichAdministrationDtosAsync(dtoList);
 
                 Response.Headers.Append("X-Total-Count", totalCount.ToString());
 
@@ -637,6 +651,115 @@ namespace gtas_vpp_be.Controllers
             {
                 Serilog.Log.Warning(ex, "Library query failed");
                 return BadRequest(new { Message = "An error occurred while processing the request." });
+            }
+        }
+
+        private async Task EnrichAdministrationDtosAsync<TDto>(List<TDto> rows)
+        {
+            if (rows.Count == 0)
+            {
+                return;
+            }
+
+            if (typeof(TDto) == typeof(LookupCategoryResDTO))
+            {
+                var typedRows = rows.Cast<LookupCategoryResDTO>().ToList();
+                var ids = typedRows.Select(row => row.Id).ToArray();
+                var counts = await _unitOfWork.VPPContext.Set<LookupValue>()
+                    .AsNoTracking()
+                    .Where(value => value.LookupCategoryId.HasValue
+                        && ids.Contains(value.LookupCategoryId.Value)
+                        && !value.IsDeleted)
+                    .GroupBy(value => value.LookupCategoryId!.Value)
+                    .Select(group => new { Id = group.Key, Count = group.Count() })
+                    .ToDictionaryAsync(row => row.Id, row => row.Count);
+
+                foreach (var row in typedRows)
+                {
+                    row.ValueCount = counts.GetValueOrDefault(row.Id);
+                }
+
+                return;
+            }
+
+            if (typeof(TDto) == typeof(VppCategoryResDTO))
+            {
+                var typedRows = rows.Cast<VppCategoryResDTO>().ToList();
+                var ids = typedRows.Select(row => row.Id).ToArray();
+                var counts = await _unitOfWork.VPPContext.Set<VppItem>()
+                    .AsNoTracking()
+                    .Where(item => ids.Contains(item.VppCategoryId) && !item.IsDeleted)
+                    .GroupBy(item => item.VppCategoryId)
+                    .Select(group => new { Id = group.Key, Count = group.Count() })
+                    .ToDictionaryAsync(row => row.Id, row => row.Count);
+
+                foreach (var row in typedRows)
+                {
+                    row.ItemCount = counts.GetValueOrDefault(row.Id);
+                }
+
+                return;
+            }
+
+            if (typeof(TDto) == typeof(SupplierResDTO))
+            {
+                var typedRows = rows.Cast<SupplierResDTO>().ToList();
+                var ids = typedRows.Select(row => row.Id).ToArray();
+                var itemCounts = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
+                    .AsNoTracking()
+                    .Where(mapping => ids.Contains(mapping.SupplierId)
+                        && !mapping.IsDeleted
+                        && mapping.VppItem != null
+                        && !mapping.VppItem.IsDeleted)
+                    .GroupBy(mapping => mapping.SupplierId)
+                    .Select(group => new
+                    {
+                        Id = group.Key,
+                        Count = group.Select(mapping => mapping.VppItemId).Distinct().Count()
+                    })
+                    .ToDictionaryAsync(row => row.Id, row => row.Count);
+                var priceListCounts = await _unitOfWork.VPPContext.Set<PriceList>()
+                    .AsNoTracking()
+                    .Where(priceList => priceList.SupplierId.HasValue
+                        && ids.Contains(priceList.SupplierId.Value)
+                        && !priceList.IsDeleted)
+                    .GroupBy(priceList => priceList.SupplierId!.Value)
+                    .Select(group => new { Id = group.Key, Count = group.Count() })
+                    .ToDictionaryAsync(row => row.Id, row => row.Count);
+
+                foreach (var row in typedRows)
+                {
+                    row.ItemCount = itemCounts.GetValueOrDefault(row.Id);
+                    row.PriceListCount = priceListCounts.GetValueOrDefault(row.Id);
+                }
+
+                return;
+            }
+
+            if (typeof(TDto) == typeof(DepartmentResDTO))
+            {
+                var typedRows = rows.Cast<DepartmentResDTO>().ToList();
+                var ids = typedRows.Select(row => row.Id).ToArray();
+                var counts = await (
+                    from membership in _unitOfWork.VPPContext.Set<UserGroupMembership>().AsNoTracking()
+                    join user in _unitOfWork.VPPContext.Users.AsNoTracking()
+                        on membership.AccountId equals (int?)user.Id
+                    where ids.Contains(membership.DepartmentId)
+                          && !membership.IsDeleted
+                          && user.AccountStatus == AppAccountStatus.Active
+                    group membership by membership.DepartmentId
+                    into grouped
+                    select new
+                    {
+                        Id = grouped.Key,
+                        Count = grouped.Select(membership => membership.AccountId).Distinct().Count()
+                    })
+                    .ToDictionaryAsync(row => row.Id, row => row.Count);
+
+                foreach (var row in typedRows)
+                {
+                    row.UserCount = counts.GetValueOrDefault(row.Id);
+                }
             }
         }
 
@@ -673,7 +796,12 @@ namespace gtas_vpp_be.Controllers
             {
                 return (IQueryable<TModel>)((IQueryable<Supplier>)query).Where(x =>
                     (x.SupplierShortName != null && x.SupplierShortName.Contains(searchText))
-                    || (x.SupplierName != null && x.SupplierName.Contains(searchText)));
+                    || (x.SupplierName != null && x.SupplierName.Contains(searchText))
+                    || (x.Address1 != null && x.Address1.Contains(searchText))
+                    || (x.Address2 != null && x.Address2.Contains(searchText))
+                    || (x.Address3 != null && x.Address3.Contains(searchText))
+                    || (x.Ward != null && x.Ward.Contains(searchText))
+                    || (x.City != null && x.City.Contains(searchText)));
             }
 
             if (typeof(TModel) == typeof(Department))

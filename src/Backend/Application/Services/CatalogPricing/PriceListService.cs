@@ -527,7 +527,11 @@ namespace gtas_vpp_be.Service.Services
                 ExpiredByUserId = x.ExpiredByUserId,
                 StatusReason = x.StatusReason,
                 RowVersion = x.RowVersion,
-                ItemCount = x.SupplierProductMappings!.Count(m => showDeleted || !m.IsDeleted)
+                ItemCount = x.SupplierProductMappings!.Count(m => showDeleted || !m.IsDeleted),
+                LastImportAtUtc = x.ImportBatches!
+                    .Where(batch => !batch.IsDeleted
+                        && batch.Status == PriceListImportBatchStatus.Completed)
+                    .Max(batch => batch.CompletedAtUtc)
             });
         }
 

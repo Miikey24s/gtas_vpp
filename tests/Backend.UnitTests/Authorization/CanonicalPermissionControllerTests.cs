@@ -46,6 +46,42 @@ public sealed class CanonicalPermissionControllerTests
             UpdatedAtUtc = DateTime.UtcNow,
             IsDeleted = false
         });
+        var permissionPage = new PermissionPage
+        {
+            Id = Guid.NewGuid(),
+            PageCode = "ADMIN_TEST",
+            PageName = "Admin test",
+            Type = "Page",
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+        var permissionComponent = new PermissionComponent
+        {
+            Id = Guid.NewGuid(),
+            ComponentCode = "ADMIN_TEST_VIEW",
+            ComponentName = "View admin test",
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+        var pageComponentMapping = new PageComponentMapping
+        {
+            Id = Guid.NewGuid(),
+            PermissionPageId = permissionPage.Id,
+            PermissionPage = permissionPage,
+            PermissionComponentId = permissionComponent.Id,
+            PermissionComponent = permissionComponent
+        };
+        context.GroupPageComponentMappings.Add(new GroupPageComponentMapping
+        {
+            PermissionGroupId = CanonicalRbac.SystemAdmin.GroupId,
+            PageComponentMappingId = pageComponentMapping.Id,
+            PageComponentMapping = pageComponentMapping,
+            MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
+            IsVisible = true,
+            IsEnable = true,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        });
         await context.SaveChangesAsync();
         var controller = CreateController(context);
 
@@ -62,6 +98,7 @@ public sealed class CanonicalPermissionControllerTests
             CanonicalRbac.Personas.Select(persona => persona.GroupCode).Order(),
             groups.Select(group => group.GroupCode).Order());
         Assert.Equal(1, groups.Single(group => group.Id == CanonicalRbac.SystemAdmin.GroupId).UserCount);
+        Assert.Equal(1, groups.Single(group => group.Id == CanonicalRbac.SystemAdmin.GroupId).PermissionCount);
     }
 
     [Fact]

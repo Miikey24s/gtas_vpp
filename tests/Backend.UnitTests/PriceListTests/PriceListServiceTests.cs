@@ -60,6 +60,60 @@ public class PriceListServiceTests
     }
 
     [Fact]
+    public async Task Query_ProjectsLatestCompletedImportTime()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 8, 14, 9, 0, 0);
+        var supplierId = await SeedSupplierAsync(context, now);
+        var priceListId = await SeedListAsync(context, "IMPORT", "Imported list", isDefault: false, now);
+        context.Set<PriceListImportBatch>().AddRange(
+            new PriceListImportBatch
+            {
+                Id = Guid.NewGuid(),
+                PriceListId = priceListId,
+                SupplierId = supplierId,
+                OriginalFileName = "old.xlsx",
+                FileHash = "old",
+                FileFormat = "xlsx",
+                Status = PriceListImportBatchStatus.Completed,
+                CompletedAtUtc = now.AddDays(-2),
+                CreatedAtUtc = now.AddDays(-2),
+                UpdatedAtUtc = now.AddDays(-2)
+            },
+            new PriceListImportBatch
+            {
+                Id = Guid.NewGuid(),
+                PriceListId = priceListId,
+                SupplierId = supplierId,
+                OriginalFileName = "latest.xlsx",
+                FileHash = "latest",
+                FileFormat = "xlsx",
+                Status = PriceListImportBatchStatus.Completed,
+                CompletedAtUtc = now.AddDays(-1),
+                CreatedAtUtc = now.AddDays(-1),
+                UpdatedAtUtc = now.AddDays(-1)
+            },
+            new PriceListImportBatch
+            {
+                Id = Guid.NewGuid(),
+                PriceListId = priceListId,
+                SupplierId = supplierId,
+                OriginalFileName = "failed.xlsx",
+                FileHash = "failed",
+                FileFormat = "xlsx",
+                Status = PriceListImportBatchStatus.Failed,
+                CompletedAtUtc = now,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now
+            });
+        await context.SaveChangesAsync();
+
+        var result = await CreateService(context, now).QueryAsync(search: "IMPORT");
+
+        Assert.Equal(now.AddDays(-1), Assert.Single(result.Data).LastImportAtUtc);
+    }
+
+    [Fact]
     public async Task Create_DefaultTrue_DemotesPrevious()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

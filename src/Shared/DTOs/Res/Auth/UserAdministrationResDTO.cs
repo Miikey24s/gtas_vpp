@@ -27,6 +27,7 @@ namespace gtas_vpp_shared.DTOs.Res.Auth
         public string? DepartmentName { get; set; }
         public Guid? DepartmentId { get; set; }
         public string? AccountStatus { get; set; }
+        public DateTime? LastLoginAtUtc { get; set; }
         public long SessionVersion { get; set; }
         public string? GroupCode { get; set; }
         public bool IsActive { get; set; }
