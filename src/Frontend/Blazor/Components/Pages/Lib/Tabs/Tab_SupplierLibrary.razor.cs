@@ -66,7 +66,6 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
         finally
         {
             isLoading = false;
-            StateHasChanged();
         }
     }
 
@@ -149,21 +148,22 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
     private async Task OnSearchInputAsync(ChangeEventArgs args)
     {
         searchText = args.Value?.ToString() ?? string.Empty;
-        searchDebounce?.Cancel();
-        searchDebounce?.Dispose();
-        searchDebounce = new CancellationTokenSource();
-        try { await Task.Delay(280, searchDebounce.Token); await grid.FirstPage(true); }
-        catch (OperationCanceledException) { }
+        CancelPendingSearch();
+        var debounce = searchDebounce = new CancellationTokenSource();
+        try { await Task.Delay(280, debounce.Token); await grid.FirstPage(true); }
+        catch (OperationCanceledException) when (debounce.IsCancellationRequested) { }
     }
 
     private async Task OnStatusChangedAsync(string value)
     {
+        CancelPendingSearch();
         selectedActivity = value ?? string.Empty;
         await grid.FirstPage(true);
     }
 
     private async Task ClearFiltersAsync()
     {
+        CancelPendingSearch();
         searchText = string.Empty;
         selectedActivity = string.Empty;
         await grid.FirstPage(true);
@@ -205,5 +205,12 @@ public partial class Tab_SupplierLibrary : VppServerGridComponentBase<SupplierRe
             args.Attributes["class"] = args.Attributes.TryGetValue("class", out var current) ? $"{current} vpp-admin-row-deleted" : "vpp-admin-row-deleted";
     }
 
-    public void Dispose() { searchDebounce?.Cancel(); searchDebounce?.Dispose(); }
+    private void CancelPendingSearch()
+    {
+        searchDebounce?.Cancel();
+        searchDebounce?.Dispose();
+        searchDebounce = null;
+    }
+
+    public void Dispose() => CancelPendingSearch();
 }

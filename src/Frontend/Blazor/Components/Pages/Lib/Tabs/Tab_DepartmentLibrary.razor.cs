@@ -12,7 +12,7 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs;
 
-public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<DepartmentResDTO>
+public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<DepartmentResDTO>, IDisposable
 {
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
 
@@ -30,6 +30,8 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
     private string searchText = string.Empty;
     private string parentDepartmentFilter = string.Empty;
     private string selectedActivity = string.Empty;
+    private CancellationTokenSource? searchDebounce;
+    private IReadOnlyList<VppFilterOption<string>> ParentDepartmentOptions = [];
 
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
         || !string.IsNullOrWhiteSpace(parentDepartmentFilter)
@@ -39,17 +41,6 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
         component => component.IsVisible && component.IsEnable);
 
     protected override RadzenDataGrid<DepartmentResDTO>? InitialGrid => grid;
-
-    private IReadOnlyList<VppFilterOption<string>> ParentDepartmentOptions =>
-    [
-        new(string.Empty, Loc["AllParentDepartments"]),
-        new("root", Loc["NoParentDepartment"]),
-        .. allDepartments
-            .OrderBy(department => department.Name ?? department.Code)
-            .Select(department => new VppFilterOption<string>(
-                department.Id.ToString(),
-                department.Name ?? department.Code ?? string.Empty))
-    ];
 
     private IReadOnlyList<VppFilterOption<string>> StatusOptions =>
     [
@@ -68,6 +59,16 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
         {
             ToastService.Error(ex, Loc, "LoadLibraryDataFailed");
         }
+        ParentDepartmentOptions =
+        [
+            new(string.Empty, Loc["AllParentDepartments"]),
+            new("root", Loc["NoParentDepartment"]),
+            .. allDepartments
+                .OrderBy(department => department.Name ?? department.Code)
+                .Select(department => new VppFilterOption<string>(
+                    department.Id.ToString(),
+                    department.Name ?? department.Code ?? string.Empty))
+        ];
     }
 
     private async Task LoadDataAsync(LoadDataArgs args)
@@ -96,7 +97,6 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
         finally
         {
             isLoading = false;
-            StateHasChanged();
         }
     }
 
@@ -231,11 +231,21 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
     private async Task OnSearchInputAsync(ChangeEventArgs args)
     {
         searchText = args.Value?.ToString() ?? string.Empty;
-        await grid.FirstPage(true);
+        CancelPendingSearch();
+        var debounce = searchDebounce = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(280, debounce.Token);
+            await grid.FirstPage(true);
+        }
+        catch (OperationCanceledException) when (debounce.IsCancellationRequested)
+        {
+        }
     }
 
     private async Task ClearFiltersAsync()
     {
+        CancelPendingSearch();
         searchText = string.Empty;
         parentDepartmentFilter = string.Empty;
         selectedActivity = string.Empty;
@@ -244,14 +254,28 @@ public partial class Tab_DepartmentLibrary : VppServerGridComponentBase<Departme
 
     private async Task OnParentDepartmentChangedAsync(string value)
     {
+        CancelPendingSearch();
         parentDepartmentFilter = value ?? string.Empty;
         await grid.FirstPage(true);
     }
 
     private async Task OnStatusChangedAsync(string value)
     {
+        CancelPendingSearch();
         selectedActivity = value ?? string.Empty;
         await grid.FirstPage(true);
+    }
+
+    private void CancelPendingSearch()
+    {
+        searchDebounce?.Cancel();
+        searchDebounce?.Dispose();
+        searchDebounce = null;
+    }
+
+    public void Dispose()
+    {
+        CancelPendingSearch();
     }
 
     private string GetParentName(Guid? id) => id.HasValue

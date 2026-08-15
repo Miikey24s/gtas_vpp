@@ -593,6 +593,25 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Owner feedback: breakdown `Trạng thái` của Chốt kỳ luôn giữ `Đã gửi: n` và `Đã duyệt: n`; trạng thái không có
   dữ liệu hiển thị `0`, còn khi lọc trạng thái thì chỉ hiện badge của trạng thái được chọn.
 
+### 7.16 — UI performance hardening không đổi behavior — 2026-08-15
+
+- Loại bỏ lần tải lookup/grid lặp ở Giá mặt hàng; các callback `LoadData` phổ biến không còn yêu cầu thêm một
+  completion render sau khi Blazor/Radzen đã tự render kết quả. Search server-side ở Catalog, Pricing và
+  Permission được debounce `280–300 ms`; đổi filter hoặc dispose sẽ hủy lượt chờ cũ để không phát request muộn.
+- `VppColumnPicker` dựng một snapshot cột cho mỗi render thay vì lặp `ColumnsCollection` nhiều lần. Các option
+  sinh từ dữ liệu tham chiếu và tab được phép xem chỉ rebuild khi source data, URL hoặc permission thật sự đổi;
+  sidebar không còn dựng lại toàn bộ cây navigation theo mỗi busy-state render.
+- Global mutation observer chỉ normalize/định vị dropdown một lần trong RAF flush. History/Department Summary
+  chỉ gọi JS render nhãn biểu đồ khi summary hoặc series đổi; summary và danh sách độc lập được tải song song.
+  Hai realtime service của shell cũng khởi động song song nhưng vẫn giữ error isolation riêng.
+- Guard mới tại `UiPerformanceArchitectureTests` khóa duplicate first-load, extra completion render, debounce,
+  option/tab snapshot, mutation coalescing và chart revision. Không thêm cache dữ liệu nghiệp vụ dài hạn nên dữ
+  liệu giữa người dùng không bị stale; API, DTO, RBAC, copy và layout không đổi.
+- Evidence: Release frontend unit `495/495`; focused route-real performance/regression `4/4`; post-wave Giá mặt
+  hàng ready `1.894 s`; burst `250` scroll event chỉ tạo `5` RAF; 8 vòng enhanced navigation giữ `3` document,
+  `712` node, `60→61` listener, trung bình `417/456 ms`; unrelated DOM churn `58.7 ms`. Hai assertion E2E nền
+  ngoài diff còn lệch (`RBAC action 18→19`, focus CSS), được giữ nguyên để xử lý đúng scope thay vì sửa test ép pass.
+
 ---
 
 ## 8. Rủi ro và recovery

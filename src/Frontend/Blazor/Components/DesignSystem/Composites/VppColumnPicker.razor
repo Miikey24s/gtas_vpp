@@ -1,16 +1,20 @@
 @typeparam TItem where TItem : notnull
 @using System.Reflection
 
+@{
+    var pickerState = BuildRenderState();
+}
+
 <div class="vpp-column-picker-shell">
     <button type="button"
             class="vpp-column-picker-trigger"
             popovertarget="@PopoverId"
             style="anchor-name: @AnchorName"
-            aria-label="@PickerAriaLabel"
-            title="@PickerAriaLabel">
+            aria-label="@pickerState.AriaLabel"
+            title="@pickerState.AriaLabel">
         <VppIcon Name="@VppIcons.Columns" Class="vpp-column-picker-leading-icon" />
         <span>@Loc["Columns"]</span>
-        <span class="vpp-column-picker-count">@VisibleCount</span>
+        <span class="vpp-column-picker-count">@pickerState.VisibleCount</span>
         <VppIcon Name="@VppIcons.ExpandMore" Class="vpp-column-picker-chevron" />
     </button>
 
@@ -21,7 +25,7 @@
         <div class="vpp-column-picker-heading">
             <div>
                 <strong>@Loc["VisibleColumns"]</strong>
-                <span>@string.Format(Loc["SelectedColumnsCount"], VisibleCount, PickableColumns.Count)</span>
+                <span>@string.Format(Loc["SelectedColumnsCount"], pickerState.VisibleCount, pickerState.PickableColumns.Count)</span>
             </div>
             <button type="button"
                     class="vpp-column-picker-close"
@@ -41,10 +45,10 @@
         </label>
 
         <div class="vpp-column-picker-list">
-            @foreach (var column in FilteredColumns)
+            @foreach (var column in pickerState.FilteredColumns)
             {
                 var isVisible = column.GetVisible();
-                var isLastVisible = isVisible && VisibleCount == 1;
+                var isLastVisible = isVisible && pickerState.VisibleCount == 1;
 
                 <label class="vpp-column-picker-option @(isVisible ? "is-selected" : null)"
                        @onclick="@(() => SetColumnVisibilityAsync(column, !isVisible))"
@@ -60,14 +64,14 @@
                 </label>
             }
 
-            @if (FilteredColumns.Count == 0)
+            @if (pickerState.FilteredColumns.Count == 0)
             {
                 <div class="vpp-column-picker-empty">@Loc["NoMatchingColumns"]</div>
             }
         </div>
 
         <div class="vpp-column-picker-footer">
-            <button type="button" class="vpp-column-picker-reset" @onclick="ResetAsync" disabled="@(!CanReset)">
+            <button type="button" class="vpp-column-picker-reset" @onclick="ResetAsync" disabled="@(!pickerState.CanReset)">
                 <VppIcon Name="@VppIcons.Reset" />
                 <span>@Loc["Reset"]</span>
             </button>
@@ -98,24 +102,9 @@
     private string PopoverId => $"vpp-column-picker-{instanceId}";
     private string AnchorName => $"--vpp-column-picker-{instanceId}";
 
-    private List<RadzenDataGridColumn<TItem>> PickableColumns => Grid?.ColumnsCollection
-        .Where(column => column.Pickable)
-        .ToList() ?? [];
-
-    private List<RadzenDataGridColumn<TItem>> FilteredColumns => PickableColumns
-        .Where(column => string.IsNullOrWhiteSpace(searchText)
-            || GetColumnTitle(column).Contains(searchText, StringComparison.CurrentCultureIgnoreCase))
-        .ToList();
-
-    private int VisibleCount => PickableColumns.Count(column => column.GetVisible());
-    private string PickerAriaLabel => string.Format(Loc["SelectedColumnsCount"], VisibleCount, PickableColumns.Count);
-
-    private bool CanReset => PickableColumns.Any(column =>
-        initialVisibility.TryGetValue(column, out var wasVisible) && column.GetVisible() != wasVisible);
-
     protected override void OnAfterRender(bool firstRender)
     {
-        var columns = PickableColumns;
+        var columns = GetPickableColumns();
         if (columns.Count == knownColumnCount)
         {
             return;
@@ -137,7 +126,7 @@
 
     private async Task SetColumnVisibilityAsync(RadzenDataGridColumn<TItem> column, bool isVisible)
     {
-        if (!isVisible && VisibleCount == 1)
+        if (!isVisible && GetPickableColumns().Count(item => item.GetVisible()) == 1)
         {
             return;
         }
@@ -148,7 +137,7 @@
 
     private async Task ResetAsync()
     {
-        foreach (var column in PickableColumns)
+        foreach (var column in GetPickableColumns())
         {
             if (initialVisibility.TryGetValue(column, out var isVisible))
             {
@@ -176,6 +165,30 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private PickerRenderState BuildRenderState()
+    {
+        var pickableColumns = GetPickableColumns();
+        var filteredColumns = pickableColumns
+            .Where(column => string.IsNullOrWhiteSpace(searchText)
+                || GetColumnTitle(column).Contains(searchText, StringComparison.CurrentCultureIgnoreCase))
+            .ToArray();
+        var visibleCount = pickableColumns.Count(column => column.GetVisible());
+        var canReset = pickableColumns.Any(column =>
+            initialVisibility.TryGetValue(column, out var wasVisible) && column.GetVisible() != wasVisible);
+
+        return new PickerRenderState(
+            pickableColumns,
+            filteredColumns,
+            visibleCount,
+            string.Format(Loc["SelectedColumnsCount"], visibleCount, pickableColumns.Count),
+            canReset);
+    }
+
+    private IReadOnlyList<RadzenDataGridColumn<TItem>> GetPickableColumns()
+        => Grid?.ColumnsCollection
+            .Where(column => column.Pickable)
+            .ToArray() ?? [];
+
     private static string GetColumnTitle(RadzenDataGridColumn<TItem> column)
     {
         if (!string.IsNullOrWhiteSpace(column.Title))
@@ -190,4 +203,11 @@
 
         return "Column";
     }
+
+    private sealed record PickerRenderState(
+        IReadOnlyList<RadzenDataGridColumn<TItem>> PickableColumns,
+        IReadOnlyList<RadzenDataGridColumn<TItem>> FilteredColumns,
+        int VisibleCount,
+        string AriaLabel,
+        bool CanReset);
 }

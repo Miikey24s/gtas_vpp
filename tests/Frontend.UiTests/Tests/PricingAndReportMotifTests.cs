@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
 using Microsoft.Playwright;
@@ -8,6 +9,13 @@ namespace gtas_vpp_fe.UITests.Tests;
 [Collection(ReadOnlyE2ECollection.Name)]
 public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
 {
+    private readonly ITestOutputHelper output;
+
+    public PricingAndReportMotifTests(ITestOutputHelper output)
+    {
+        this.output = output;
+    }
+
     [Fact]
     public async Task PriceListColumnPicker_ShowsBusinessColumnsAndOptionalSystemId()
     {
@@ -130,6 +138,51 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
         var exportAction = menu.GetByText("Xuất Excel", new() { Exact = true });
         var exportDownload = await Page.RunAndWaitForDownloadAsync(() => exportAction.ClickAsync());
         await AssertXlsxDownloadAsync(exportDownload, "GTAS-VPP-Bang-gia-");
+    }
+
+    [Fact]
+    public async Task ItemPrices_InitialDataLoadStaysWithinInteractiveBudget()
+    {
+        await LoginAsDefaultUserAsync();
+        await Page.SetViewportSizeAsync(1366, 768);
+
+        var stopwatch = Stopwatch.StartNew();
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices");
+
+        var prices = Page.GetByTestId("prices-data-surface");
+        await WaitForSurfaceAsync(prices);
+        var context = Page.GetByTestId("price-context");
+        await context.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await Page.WaitForFunctionAsync(
+            """
+            () => {
+                const context = document.querySelector('[data-testid="price-context"]');
+                const trigger = context?.querySelector('.vpp-filter-select-trigger');
+                const grid = document.querySelector('[data-testid="prices-data-surface"] .vpp-price-grid');
+                const loadingDone = [...document.querySelectorAll('.rz-datatable-loading')].every(element => {
+                    const style = getComputedStyle(element);
+                    const rect = element.getBoundingClientRect();
+                    return style.display === 'none'
+                        || style.visibility === 'hidden'
+                        || Number.parseFloat(style.opacity || '1') === 0
+                        || rect.width === 0
+                        || rect.height === 0;
+                });
+                return !!trigger
+                    && !trigger.hasAttribute('disabled')
+                    && !/chọn bảng giá|select price list/i.test(trigger.textContent || '')
+                    && loadingDone
+                    && (grid?.querySelectorAll('tbody > tr > td').length || 0) > 1;
+            }
+            """,
+            null,
+            new() { Timeout = 15_000 });
+        stopwatch.Stop();
+
+        output.WriteLine("Item prices initial data ready in {0} ms.", stopwatch.ElapsedMilliseconds);
+        stopwatch.Elapsed.Should().BeLessThan(
+            TimeSpan.FromSeconds(6),
+            "the item-price route should avoid duplicate reference and grid loads on the interactive critical path");
     }
 
     [Fact]

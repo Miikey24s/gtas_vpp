@@ -13,7 +13,7 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
-    public partial class Tab_LookupLibrary
+    public partial class Tab_LookupLibrary : IDisposable
     {
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] public LookupApiClient LookupApi { get; set; } = default!;
@@ -30,6 +30,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private int currentCategorySkip { get; set; }
         private string categorySearchText = string.Empty;
         private string categoryStatusFilter = string.Empty;
+        private CancellationTokenSource? categorySearchDebounce;
         private bool hasAutoSelectedInitialCategory;
 
         // Giá trị lookup.
@@ -40,6 +41,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private int currentValueSkip { get; set; }
         private string valueSearchText = string.Empty;
         private string valueStatusFilter = string.Empty;
+        private CancellationTokenSource? valueSearchDebounce;
         private bool CanModifyLookup => PagePermissionResDTO.Components.Any(component => component.IsVisible && component.IsEnable);
 
         private IReadOnlyList<VppFilterOption<string>> CategoryStatusOptions =>
@@ -117,12 +119,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             finally
             {
                 isCategoryLoading = false;
-                StateHasChanged();
             }
         }
 
         protected async Task OnCategorySelected(LookupCategoryResDTO data)
         {
+            CancelValueSearch();
             selectedLookupCategories = new List<LookupCategoryResDTO> { data };
             await valueGrid.Reload();
         }
@@ -130,17 +132,28 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task OnCategorySearchInputAsync(ChangeEventArgs args)
         {
             categorySearchText = args.Value?.ToString() ?? string.Empty;
-            await categoryGrid.FirstPage(true);
+            CancelCategorySearch();
+            var debounce = categorySearchDebounce = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(280, debounce.Token);
+                await categoryGrid.FirstPage(true);
+            }
+            catch (OperationCanceledException) when (debounce.IsCancellationRequested)
+            {
+            }
         }
 
         private async Task OnCategoryStatusChangedAsync(string value)
         {
+            CancelCategorySearch();
             categoryStatusFilter = value;
             await categoryGrid.FirstPage(true);
         }
 
         private async Task ClearCategoryFiltersAsync()
         {
+            CancelCategorySearch();
             categorySearchText = string.Empty;
             categoryStatusFilter = string.Empty;
             await categoryGrid.FirstPage(true);
@@ -149,20 +162,51 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task OnValueSearchInputAsync(ChangeEventArgs args)
         {
             valueSearchText = args.Value?.ToString() ?? string.Empty;
-            await valueGrid.FirstPage(true);
+            CancelValueSearch();
+            var debounce = valueSearchDebounce = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(280, debounce.Token);
+                await valueGrid.FirstPage(true);
+            }
+            catch (OperationCanceledException) when (debounce.IsCancellationRequested)
+            {
+            }
         }
 
         private async Task OnValueStatusChangedAsync(string value)
         {
+            CancelValueSearch();
             valueStatusFilter = value;
             await valueGrid.FirstPage(true);
         }
 
         private async Task ClearValueFiltersAsync()
         {
+            CancelValueSearch();
             valueSearchText = string.Empty;
             valueStatusFilter = string.Empty;
             await valueGrid.FirstPage(true);
+        }
+
+        private void CancelCategorySearch()
+        {
+            categorySearchDebounce?.Cancel();
+            categorySearchDebounce?.Dispose();
+            categorySearchDebounce = null;
+        }
+
+        private void CancelValueSearch()
+        {
+            valueSearchDebounce?.Cancel();
+            valueSearchDebounce?.Dispose();
+            valueSearchDebounce = null;
+        }
+
+        public void Dispose()
+        {
+            CancelCategorySearch();
+            CancelValueSearch();
         }
 
         protected async Task ToggleCategoryDeleted(LookupCategoryResDTO data, bool isDeleted)
@@ -353,7 +397,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             finally
             {
                 isValueLoading = false;
-                StateHasChanged();
             }
         }
 

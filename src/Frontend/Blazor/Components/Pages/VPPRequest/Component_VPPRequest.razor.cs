@@ -34,10 +34,10 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         [Inject] private PermissionState PermissionState { get; set; } = default!;
 
         private readonly TabPosition tabPosition = TabPosition.Top;
+        private IReadOnlyList<DashboardTabDefinition> authorizedTabs = [];
         private int SelectedIndex { get; set; }
 
-        private IReadOnlyList<DashboardTabDefinition> AuthorizedTabs =>
-            DashboardTabs.Where(tab => CanViewDashboardTab(tab.Permissions)).ToArray();
+        private IReadOnlyList<DashboardTabDefinition> AuthorizedTabs => authorizedTabs;
 
         private bool HasAnyAuthorizedDashboardTab => AuthorizedTabs.Count > 0;
 
@@ -50,6 +50,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             NavigationManager.LocationChanged += OnLocationChanged;
             PermissionState.Changed += OnPermissionStateChanged;
             await PermissionState.EnsureLoadedAsync();
+            RefreshAuthorizedTabs();
             SetSelectedIndexFromUri(NavigationManager.Uri);
         }
 
@@ -71,6 +72,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
         private void OnPermissionStateChanged()
         {
+            RefreshAuthorizedTabs();
             SetSelectedIndexFromUri(NavigationManager.Uri);
             _ = InvokeAsync(StateHasChanged);
         }
@@ -120,7 +122,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
 
             var requestedTab = GetRequestedTabIndex(location);
             var selectedIndex = requestedTab.HasValue
-                ? authorizedTabs.ToList().FindIndex(tab => tab.QueryIndex == requestedTab.Value)
+                ? FindTabIndex(authorizedTabs, requestedTab.Value)
                 : 0;
 
             SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
@@ -166,6 +168,29 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         {
             return permissions.Any(permission =>
                 PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Dashboard, permission));
+        }
+
+        private bool HasAuthorizedDashboardTab(int queryIndex)
+            => AuthorizedTabs.Any(tab => tab.QueryIndex == queryIndex);
+
+        private void RefreshAuthorizedTabs()
+        {
+            authorizedTabs = DashboardTabs
+                .Where(tab => CanViewDashboardTab(tab.Permissions))
+                .ToArray();
+        }
+
+        private static int FindTabIndex(IReadOnlyList<DashboardTabDefinition> tabs, int queryIndex)
+        {
+            for (var index = 0; index < tabs.Count; index++)
+            {
+                if (tabs[index].QueryIndex == queryIndex)
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
 
         public void Dispose()

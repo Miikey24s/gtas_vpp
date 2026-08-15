@@ -44,6 +44,8 @@ public partial class Tab_User : IDisposable
     private bool hasRequestedInitialUserGridLoad;
     private AccountAdministrationCapabilitiesResDTO accountCapabilities = new();
     private CancellationTokenSource? searchDebounceCts;
+    private IReadOnlyList<VppFilterOption<Guid?>> GroupFilterOptions = [];
+    private IReadOnlyList<VppFilterOption<Guid?>> DepartmentFilterOptions = [];
     private bool HasUserFilters => !string.IsNullOrWhiteSpace(SearchText)
                                    || !string.IsNullOrWhiteSpace(SelectedAccountStatus)
                                    || SelectedGroupId.HasValue
@@ -60,11 +62,6 @@ public partial class Tab_User : IDisposable
         new("PendingApproval", Loc["AccountStatusPendingApproval"].Value),
         new("Disabled", Loc["AccountStatusDisabled"].Value)
     ];
-    private IReadOnlyList<VppFilterOption<Guid?>> GroupFilterOptions
-        => permissionGroups.Select(group => new VppFilterOption<Guid?>(group.Id, group.GroupName ?? "–")).ToList();
-    private IReadOnlyList<VppFilterOption<Guid?>> DepartmentFilterOptions
-        => departments.Select(department => new VppFilterOption<Guid?>(department.Id, department.Name ?? "–")).ToList();
-
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -102,13 +99,19 @@ public partial class Tab_User : IDisposable
         }
         finally
         {
+            GroupFilterOptions = permissionGroups
+                .Select(group => new VppFilterOption<Guid?>(group.Id, group.GroupName ?? "–"))
+                .ToArray();
+            DepartmentFilterOptions = departments
+                .Select(department => new VppFilterOption<Guid?>(department.Id, department.Name ?? "–"))
+                .ToArray();
             isUserLookupLoading = false;
-            StateHasChanged();
         }
     }
 
     protected async Task ButtonOnClick_Clear()
     {
+        CancelPendingSearch();
         SearchText = string.Empty;
         SelectedAccountStatus = null;
         SelectedGroupId = null;
@@ -121,6 +124,7 @@ public partial class Tab_User : IDisposable
 
     protected async Task OnAccountStatusChangedAsync(string value)
     {
+        CancelPendingSearch();
         SelectedAccountStatus = string.IsNullOrWhiteSpace(value) ? null : value;
         if (userGrid is not null)
         {
@@ -130,12 +134,14 @@ public partial class Tab_User : IDisposable
 
     private async Task OnGroupFilterChangedAsync(Guid? value)
     {
+        CancelPendingSearch();
         SelectedGroupId = value;
         if (userGrid is not null) await userGrid.FirstPage(true);
     }
 
     private async Task OnDepartmentFilterChangedAsync(Guid? value)
     {
+        CancelPendingSearch();
         SelectedDepartmentId = value;
         if (userGrid is not null) await userGrid.FirstPage(true);
     }
@@ -170,25 +176,23 @@ public partial class Tab_User : IDisposable
         finally
         {
             isUserLoading = false;
-            StateHasChanged();
         }
     }
 
     protected async Task SearchTextOnInput(ChangeEventArgs args)
     {
         SearchText = args.Value?.ToString() ?? string.Empty;
-        searchDebounceCts?.Cancel();
-        searchDebounceCts?.Dispose();
-        searchDebounceCts = new CancellationTokenSource();
+        CancelPendingSearch();
+        var debounce = searchDebounceCts = new CancellationTokenSource();
         try
         {
-            await Task.Delay(300, searchDebounceCts.Token);
+            await Task.Delay(300, debounce.Token);
             if (userGrid is not null)
             {
                 await userGrid.FirstPage(true);
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (debounce.IsCancellationRequested)
         {
         }
     }
@@ -676,7 +680,13 @@ public partial class Tab_User : IDisposable
 
     public void Dispose()
     {
+        CancelPendingSearch();
+    }
+
+    private void CancelPendingSearch()
+    {
         searchDebounceCts?.Cancel();
         searchDebounceCts?.Dispose();
+        searchDebounceCts = null;
     }
 }

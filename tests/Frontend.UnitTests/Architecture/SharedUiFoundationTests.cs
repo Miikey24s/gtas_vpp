@@ -139,9 +139,9 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("BindingFlags.Instance | BindingFlags.NonPublic", source, StringComparison.Ordinal);
         Assert.Contains("\"SetVisible\"", source, StringComparison.Ordinal);
         Assert.Contains("\"ChangeState\"", source, StringComparison.Ordinal);
-        Assert.Contains("<span class=\"vpp-column-picker-count\">@VisibleCount</span>", source, StringComparison.Ordinal);
+        Assert.Contains("<span class=\"vpp-column-picker-count\">@pickerState.VisibleCount</span>", source, StringComparison.Ordinal);
         Assert.DoesNotContain("CompactCount", source, StringComparison.Ordinal);
-        Assert.Contains("aria-label=\"@PickerAriaLabel\"", source, StringComparison.Ordinal);
+        Assert.Contains("aria-label=\"@pickerState.AriaLabel\"", source, StringComparison.Ordinal);
         Assert.Contains(".vpp-column-picker-trigger", scopedCss, StringComparison.Ordinal);
         Assert.Contains("height: var(--vpp-data-control-height);", scopedCss, StringComparison.Ordinal);
         Assert.Contains("::deep .vpp-icon", scopedCss, StringComparison.Ordinal);

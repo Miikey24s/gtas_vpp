@@ -19,7 +19,7 @@ using PermissionGroupDto = gtas_vpp_shared.DTOs.Res.Permission.PermissionGroupRe
 
 namespace gtas_vpp_fe.Components.Pages.Permission.Tabs;
 
-public partial class Tab_PagePermission
+public partial class Tab_PagePermission : IDisposable
 {
     [Inject] public PermissionAdministrationApiClient PermissionAdminApi { get; set; } = default!;
     [Inject] public PermissionState PermissionState { get; set; } = default!;
@@ -37,6 +37,7 @@ public partial class Tab_PagePermission
     private int groupCount;
     private int currentGroupSkip;
     private string groupSearchText = string.Empty;
+    private CancellationTokenSource? groupSearchDebounce;
     private bool hasRequestedInitialGroupGridLoad;
 
     private IReadOnlyList<VppSegmentedOption<int>> PermissionViewOptions =>
@@ -99,20 +100,41 @@ public partial class Tab_PagePermission
         finally
         {
             IsLoading = false;
-            StateHasChanged();
         }
     }
 
     private async Task OnGroupSearchInputAsync(ChangeEventArgs args)
     {
         groupSearchText = args.Value?.ToString() ?? string.Empty;
-        await grid.FirstPage(true);
+        CancelPendingGroupSearch();
+        var debounce = groupSearchDebounce = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(280, debounce.Token);
+            await grid.FirstPage(true);
+        }
+        catch (OperationCanceledException) when (debounce.IsCancellationRequested)
+        {
+        }
     }
 
     private async Task ClearGroupFiltersAsync()
     {
+        CancelPendingGroupSearch();
         groupSearchText = string.Empty;
         await grid.FirstPage(true);
+    }
+
+    private void CancelPendingGroupSearch()
+    {
+        groupSearchDebounce?.Cancel();
+        groupSearchDebounce?.Dispose();
+        groupSearchDebounce = null;
+    }
+
+    public void Dispose()
+    {
+        CancelPendingGroupSearch();
     }
 
     private async Task OpenPermissionEditorAsync(PermissionGroupDto group)

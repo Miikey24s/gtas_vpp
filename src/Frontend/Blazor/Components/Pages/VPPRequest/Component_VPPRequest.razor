@@ -12,7 +12,7 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex="@SelectedIndex">
         <Tabs>
-            @if (CanViewDashboardTab(Permissions.RequestOrder))
+            @if (HasAuthorizedDashboardTab(0))
             {
                 <RadzenTabsItem Text="@Loc["MyOrders"]">
                     @if (IsActiveTab(0))
@@ -21,7 +21,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewDashboardTab(Permissions.RequestHistory))
+            @if (HasAuthorizedDashboardTab(1))
             {
                 <RadzenTabsItem Text="@Loc["History"]">
                     @if (IsActiveTab(1))
@@ -32,7 +32,7 @@
             }
             @* D2/D8: tab "Tổng hợp toàn công ty" đã gỡ; URL cũ managementTab=all
                được chuyển sang màn Chốt kỳ hợp nhất. *@
-            @if (CanViewDashboardTab(Permissions.RequestDepartmentSummary))
+            @if (HasAuthorizedDashboardTab(3))
             {
                 <RadzenTabsItem Text="@Loc["DepartmentSummary"]">
                     @if (IsActiveTab(3))
@@ -41,7 +41,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewDashboardTab(Permissions.RequestProductCatalog))
+            @if (HasAuthorizedDashboardTab(2))
             {
                 <RadzenTabsItem Text="@Loc["Catalog"]">
                     @if (IsActiveTab(2))
@@ -50,7 +50,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewDashboardTab(Permissions.RequestAdminApproval, Permissions.PeriodSettle))
+            @if (HasAuthorizedDashboardTab(5))
             {
                 <RadzenTabsItem Text="@Loc["PeriodOperations"]">
                     @if (IsActiveTab(5))

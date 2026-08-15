@@ -35,16 +35,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             {
             }
         }
-        protected override async Task OnParametersSetAsync()
-        {
-            await base.OnParametersSetAsync();
-        }
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            await base.OnAfterRenderAsync(firstRender);
-
-        }
-
         private void OnPermissionStateChanged()
         {
             HandlePermissionStateChanged(PageOptions);

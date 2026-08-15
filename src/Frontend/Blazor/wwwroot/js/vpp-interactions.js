@@ -1156,9 +1156,6 @@
             });
             mutation.addedNodes.forEach(function (node) {
                 addMinimalMutationRoot(pendingAddedRoots, node);
-                if (node instanceof Element && containsNormalizationTarget(node)) {
-                    scheduleRadzenDropdownDirection(node);
-                }
             });
         });
         scheduleInteractionTreeFlush();

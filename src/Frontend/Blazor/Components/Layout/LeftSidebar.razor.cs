@@ -43,17 +43,22 @@ namespace gtas_vpp_fe.Components.Layout
         public const string QueryParameter = "theme";
         public string theme = "material3-base";
         private bool _isPrerendering = true;
+        private bool canViewDashboardMenu;
+        private bool canViewLibraryMenu;
+        private bool canViewReportMenu;
+        private bool canViewPermissionMenu;
+        private bool canViewPeriodMenu;
+        private bool canViewPricingMenu;
+        private IReadOnlyList<HeaderTab> headerTabs = [];
 
         // PERMISSIONS: Xác định nhóm menu nào được phép hiển thị.
-        private bool CanViewDashboardMenu => CanViewSection(ShellNavigationCatalog.Dashboard);
-        private bool CanViewLibraryMenu => CanViewSection(ShellNavigationCatalog.Library);
-        private bool CanViewReportMenu => CanViewShellItem(ShellNavigationCatalog.Reports);
-        private bool CanViewPermissionMenu => CanViewSection(ShellNavigationCatalog.Permission);
-        private bool CanViewPeriodMenu => CanViewShellItem(ShellNavigationCatalog.PeriodPolicy)
-            || CanViewShellItem(ShellNavigationCatalog.PendingApproval)
-            || CanViewShellItem(ShellNavigationCatalog.PeriodReview);
-        private bool CanViewPricingMenu => CanViewShellItem(ShellNavigationCatalog.PriceLists)
-            || CanViewShellItem(ShellNavigationCatalog.Prices);
+        private bool CanViewDashboardMenu => canViewDashboardMenu;
+        private bool CanViewLibraryMenu => canViewLibraryMenu;
+        private bool CanViewReportMenu => canViewReportMenu;
+        private bool CanViewPermissionMenu => canViewPermissionMenu;
+        private bool CanViewPeriodMenu => canViewPeriodMenu;
+        private bool CanViewPricingMenu => canViewPricingMenu;
+        private IReadOnlyList<HeaderTab> HeaderTabs => headerTabs;
         private bool HasExpandableSidebarGroups => CanViewDashboardMenu || CanViewLibraryMenu || CanViewPermissionMenu;
 
         private bool AreAllSidebarGroupsExpanded =>
@@ -73,6 +78,7 @@ namespace gtas_vpp_fe.Components.Layout
             if (!RendererInfo.IsInteractive)
             {
                 currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+                RefreshNavigationState();
                 return;
             }
 
@@ -90,12 +96,14 @@ namespace gtas_vpp_fe.Components.Layout
             }
 
             currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+            RefreshNavigationState();
             NavigationManager.LocationChanged += OnLocationChanged;
         }
         // NAVIGATION: Đồng bộ URL hiện tại để cập nhật tab đang active.
         private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
         {
             currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+            RefreshNavigationState();
             StateHasChanged();
         }
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -369,238 +377,235 @@ namespace gtas_vpp_fe.Components.Layout
         }
 
         // HEADER TABS: Tạo tab theo route, query parameter và quyền người dùng.
-        private IReadOnlyList<HeaderTab> HeaderTabs
+        private IReadOnlyList<HeaderTab> BuildHeaderTabs()
         {
-            get
+            var url = currentUrl ?? string.Empty;
+            var path = url.Split('?', 2)[0].Trim('/').ToLowerInvariant();
+            var query = ParseQuery(url);
+            query.TryGetValue("tab", out var tab);
+            query.TryGetValue("periodTab", out var periodTab);
+            query.TryGetValue("pricingTab", out var pricingTab);
+            var tabs = new List<HeaderTab>();
+
+            switch (path)
             {
-                var url = currentUrl ?? string.Empty;
-                var path = url.Split('?', 2)[0].Trim('/').ToLowerInvariant();
-                var query = ParseQuery(url);
-                query.TryGetValue("tab", out var tab);
-                query.TryGetValue("periodTab", out var periodTab);
-                query.TryGetValue("pricingTab", out var pricingTab);
-                var tabs = new List<HeaderTab>();
+                case "" or "dashboard" or "dashboard/order-create":
+                    var isOrderCreate = path == "dashboard/order-create";
+                    var myOrdersActive = isOrderCreate || tab is null or "" or "0";
+                    if (CanViewShellItem(ShellNavigationCatalog.MyOrders))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.MyOrders.LabelKey],
+                            ShellNavigationCatalog.MyOrders.Path,
+                            myOrdersActive));
+                    }
 
-                switch (path)
-                {
-                    case "" or "dashboard" or "dashboard/order-create":
-                        var isOrderCreate = path == "dashboard/order-create";
-                        var myOrdersActive = isOrderCreate || tab is null or "" or "0";
-                        if (CanViewShellItem(ShellNavigationCatalog.MyOrders))
+                    if (CanViewShellItem(ShellNavigationCatalog.History))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.History.LabelKey],
+                            ShellNavigationCatalog.History.Path,
+                            tab == "1"));
+                    }
+
+                    if (CanViewShellItem(ShellNavigationCatalog.DepartmentSummary))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.DepartmentSummary.LabelKey],
+                            ShellNavigationCatalog.DepartmentSummary.Path,
+                            tab == "3"));
+                    }
+
+                    if (CanViewShellItem(ShellNavigationCatalog.Catalog))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Catalog.LabelKey],
+                            ShellNavigationCatalog.Catalog.Path,
+                            tab == "2"));
+                    }
+
+                    var canPolicy = CanViewShellItem(ShellNavigationCatalog.PeriodPolicy);
+                    var canSettle = CanViewShellItem(ShellNavigationCatalog.PeriodReview);
+                    var canApproval = CanViewShellItem(ShellNavigationCatalog.PendingApproval);
+                    if (canPolicy || canSettle || canApproval)
+                    {
+                        var periodPath = canPolicy
+                            ? ShellNavigationCatalog.PeriodPolicy.Path
+                            : canSettle
+                                ? ShellNavigationCatalog.PeriodReview.Path
+                                : ShellNavigationCatalog.PendingApproval.Path;
+                        var periodChildren = new List<VppHeaderSubTab>();
+                        var pendingActive = tab == "5"
+                            && string.Equals(periodTab, "pending", StringComparison.OrdinalIgnoreCase)
+                            && canApproval;
+                        var reviewActive = tab == "5"
+                            && canSettle
+                            && (string.Equals(periodTab, "review", StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(periodTab, "demand", StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(periodTab, "supply", StringComparison.OrdinalIgnoreCase)
+                                || string.Equals(periodTab, "settle", StringComparison.OrdinalIgnoreCase));
+                        var policyActive = tab == "5"
+                            && canPolicy
+                            && !pendingActive
+                            && !reviewActive;
+
+                        if (canPolicy)
                         {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.MyOrders.LabelKey],
-                                ShellNavigationCatalog.MyOrders.Path,
-                                myOrdersActive));
+                            periodChildren.Add(new(
+                                Loc[ShellNavigationCatalog.PeriodPolicy.LabelKey],
+                                ShellNavigationCatalog.PeriodPolicy.Path,
+                                policyActive));
                         }
 
-                        if (CanViewShellItem(ShellNavigationCatalog.History))
+                        if (canSettle)
                         {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.History.LabelKey],
-                                ShellNavigationCatalog.History.Path,
-                                tab == "1"));
+                            periodChildren.Add(new(
+                                Loc[ShellNavigationCatalog.PeriodReview.LabelKey],
+                                ShellNavigationCatalog.PeriodReview.Path,
+                                reviewActive || (tab == "5" && !canPolicy && !pendingActive)));
                         }
 
-                        if (CanViewShellItem(ShellNavigationCatalog.DepartmentSummary))
+                        if (canApproval)
                         {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.DepartmentSummary.LabelKey],
-                                ShellNavigationCatalog.DepartmentSummary.Path,
-                                tab == "3"));
+                            periodChildren.Add(new(
+                                Loc[ShellNavigationCatalog.PendingApproval.LabelKey],
+                                ShellNavigationCatalog.PendingApproval.Path,
+                                tab == "5" && (pendingActive || (!canPolicy && !canSettle))));
                         }
 
-                        if (CanViewShellItem(ShellNavigationCatalog.Catalog))
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.PeriodOperations.LabelKey],
+                            periodPath,
+                            tab == "5",
+                            periodChildren));
+                    }
+
+                    break;
+                case "library":
+                    if (CanViewShellItem(ShellNavigationCatalog.Classes))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Classes.LabelKey],
+                            ShellNavigationCatalog.Classes.Path,
+                            tab is null or "" or "0"));
+                    }
+
+                    if (CanViewShellItem(ShellNavigationCatalog.Categories))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Categories.LabelKey],
+                            ShellNavigationCatalog.Categories.Path,
+                            tab == "1"));
+                    }
+
+                    if (CanViewShellItem(ShellNavigationCatalog.Items))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Items.LabelKey],
+                            ShellNavigationCatalog.Items.Path,
+                            tab == "2"));
+                    }
+
+                    if (CanViewShellItem(ShellNavigationCatalog.Suppliers))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Suppliers.LabelKey],
+                            ShellNavigationCatalog.Suppliers.Path,
+                            tab == "3"));
+                    }
+
+                    if (CanViewPricingMenu)
+                    {
+                        var canViewPriceLists = CanViewShellItem(ShellNavigationCatalog.PriceLists);
+                        var canViewPrices = CanViewShellItem(ShellNavigationCatalog.Prices);
+                        var pricingPath = canViewPriceLists
+                            ? ShellNavigationCatalog.PriceLists.Path
+                            : ShellNavigationCatalog.Prices.Path;
+                        var pricingActive = tab is "4" or "6";
+                        var pricesActive = pricingActive
+                            && canViewPrices
+                            && (tab == "4" || string.Equals(pricingTab, "prices", StringComparison.OrdinalIgnoreCase));
+                        var pricingChildren = new List<VppHeaderSubTab>();
+
+                        if (canViewPriceLists)
                         {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Catalog.LabelKey],
-                                ShellNavigationCatalog.Catalog.Path,
-                                tab == "2"));
+                            pricingChildren.Add(new(
+                                Loc[ShellNavigationCatalog.PriceLists.LabelKey],
+                                ShellNavigationCatalog.PriceLists.Path,
+                                pricingActive && !pricesActive));
                         }
 
-                        var canPolicy = CanViewShellItem(ShellNavigationCatalog.PeriodPolicy);
-                        var canSettle = CanViewShellItem(ShellNavigationCatalog.PeriodReview);
-                        var canApproval = CanViewShellItem(ShellNavigationCatalog.PendingApproval);
-                        if (canPolicy || canSettle || canApproval)
+                        if (canViewPrices)
                         {
-                            var periodPath = canPolicy
-                                ? ShellNavigationCatalog.PeriodPolicy.Path
-                                : canSettle
-                                    ? ShellNavigationCatalog.PeriodReview.Path
-                                    : ShellNavigationCatalog.PendingApproval.Path;
-                            var periodChildren = new List<VppHeaderSubTab>();
-                            var pendingActive = tab == "5"
-                                && string.Equals(periodTab, "pending", StringComparison.OrdinalIgnoreCase)
-                                && canApproval;
-                            var reviewActive = tab == "5"
-                                && canSettle
-                                && (string.Equals(periodTab, "review", StringComparison.OrdinalIgnoreCase)
-                                    || string.Equals(periodTab, "demand", StringComparison.OrdinalIgnoreCase)
-                                    || string.Equals(periodTab, "supply", StringComparison.OrdinalIgnoreCase)
-                                    || string.Equals(periodTab, "settle", StringComparison.OrdinalIgnoreCase));
-                            var policyActive = tab == "5"
-                                && canPolicy
-                                && !pendingActive
-                                && !reviewActive;
-
-                            if (canPolicy)
-                            {
-                                periodChildren.Add(new(
-                                    Loc[ShellNavigationCatalog.PeriodPolicy.LabelKey],
-                                    ShellNavigationCatalog.PeriodPolicy.Path,
-                                    policyActive));
-                            }
-
-                            if (canSettle)
-                            {
-                                periodChildren.Add(new(
-                                    Loc[ShellNavigationCatalog.PeriodReview.LabelKey],
-                                    ShellNavigationCatalog.PeriodReview.Path,
-                                    reviewActive || (tab == "5" && !canPolicy && !pendingActive)));
-                            }
-
-                            if (canApproval)
-                            {
-                                periodChildren.Add(new(
-                                    Loc[ShellNavigationCatalog.PendingApproval.LabelKey],
-                                    ShellNavigationCatalog.PendingApproval.Path,
-                                    tab == "5" && (pendingActive || (!canPolicy && !canSettle))));
-                            }
-
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.PeriodOperations.LabelKey],
-                                periodPath,
-                                tab == "5",
-                                periodChildren));
+                            pricingChildren.Add(new(
+                                Loc[ShellNavigationCatalog.Prices.LabelKey],
+                                ShellNavigationCatalog.Prices.Path,
+                                pricingActive && (pricesActive || !canViewPriceLists)));
                         }
 
-                        break;
-                    case "library":
-                        if (CanViewShellItem(ShellNavigationCatalog.Classes))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Classes.LabelKey],
-                                ShellNavigationCatalog.Classes.Path,
-                                tab is null or "" or "0"));
-                        }
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Pricing.LabelKey],
+                            pricingPath,
+                            pricingActive,
+                            pricingChildren));
+                    }
 
-                        if (CanViewShellItem(ShellNavigationCatalog.Categories))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Categories.LabelKey],
-                                ShellNavigationCatalog.Categories.Path,
-                                tab == "1"));
-                        }
+                    if (CanViewShellItem(ShellNavigationCatalog.Departments))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Departments.LabelKey],
+                            ShellNavigationCatalog.Departments.Path,
+                            tab == "5"));
+                    }
 
-                        if (CanViewShellItem(ShellNavigationCatalog.Items))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Items.LabelKey],
-                                ShellNavigationCatalog.Items.Path,
-                                tab == "2"));
-                        }
+                    break;
+                case "permission":
+                    if (CanViewShellItem(ShellNavigationCatalog.Users))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Users.LabelKey],
+                            ShellNavigationCatalog.Users.Path,
+                            tab is null or "" or "0"));
+                    }
 
-                        if (CanViewShellItem(ShellNavigationCatalog.Suppliers))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Suppliers.LabelKey],
-                                ShellNavigationCatalog.Suppliers.Path,
-                                tab == "3"));
-                        }
+                    if (CanViewShellItem(ShellNavigationCatalog.GroupsAndPermissions))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.GroupsAndPermissions.LabelKey],
+                            ShellNavigationCatalog.GroupsAndPermissions.Path,
+                            tab == "1"));
+                    }
 
-                        if (CanViewPricingMenu)
-                        {
-                            var canViewPriceLists = CanViewShellItem(ShellNavigationCatalog.PriceLists);
-                            var canViewPrices = CanViewShellItem(ShellNavigationCatalog.Prices);
-                            var pricingPath = canViewPriceLists
-                                ? ShellNavigationCatalog.PriceLists.Path
-                                : ShellNavigationCatalog.Prices.Path;
-                            var pricingActive = tab is "4" or "6";
-                            var pricesActive = pricingActive
-                                && canViewPrices
-                                && (tab == "4" || string.Equals(pricingTab, "prices", StringComparison.OrdinalIgnoreCase));
-                            var pricingChildren = new List<VppHeaderSubTab>();
+                    if (CanViewShellItem(ShellNavigationCatalog.SecurityAudit))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.SecurityAudit.LabelKey],
+                            ShellNavigationCatalog.SecurityAudit.Path,
+                            tab == "2"));
+                    }
 
-                            if (canViewPriceLists)
-                            {
-                                pricingChildren.Add(new(
-                                    Loc[ShellNavigationCatalog.PriceLists.LabelKey],
-                                    ShellNavigationCatalog.PriceLists.Path,
-                                    pricingActive && !pricesActive));
-                            }
+                    if (CanViewShellItem(ShellNavigationCatalog.OrderPeriodSettings))
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.OrderPeriodSettings.LabelKey],
+                            ShellNavigationCatalog.OrderPeriodSettings.Path,
+                            tab == "3"));
+                    }
 
-                            if (canViewPrices)
-                            {
-                                pricingChildren.Add(new(
-                                    Loc[ShellNavigationCatalog.Prices.LabelKey],
-                                    ShellNavigationCatalog.Prices.Path,
-                                    pricingActive && (pricesActive || !canViewPriceLists)));
-                            }
+                    break;
+                case "report":
+                    if (CanViewReportMenu)
+                    {
+                        tabs.Add(new(
+                            Loc[ShellNavigationCatalog.Reports.LabelKey],
+                            ShellNavigationCatalog.Reports.Path,
+                            true));
+                    }
 
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Pricing.LabelKey],
-                                pricingPath,
-                                pricingActive,
-                                pricingChildren));
-                        }
-
-                        if (CanViewShellItem(ShellNavigationCatalog.Departments))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Departments.LabelKey],
-                                ShellNavigationCatalog.Departments.Path,
-                                tab == "5"));
-                        }
-
-                        break;
-                    case "permission":
-                        if (CanViewShellItem(ShellNavigationCatalog.Users))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Users.LabelKey],
-                                ShellNavigationCatalog.Users.Path,
-                                tab is null or "" or "0"));
-                        }
-
-                        if (CanViewShellItem(ShellNavigationCatalog.GroupsAndPermissions))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.GroupsAndPermissions.LabelKey],
-                                ShellNavigationCatalog.GroupsAndPermissions.Path,
-                                tab == "1"));
-                        }
-
-                        if (CanViewShellItem(ShellNavigationCatalog.SecurityAudit))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.SecurityAudit.LabelKey],
-                                ShellNavigationCatalog.SecurityAudit.Path,
-                                tab == "2"));
-                        }
-
-                        if (CanViewShellItem(ShellNavigationCatalog.OrderPeriodSettings))
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.OrderPeriodSettings.LabelKey],
-                                ShellNavigationCatalog.OrderPeriodSettings.Path,
-                                tab == "3"));
-                        }
-
-                        break;
-                    case "report":
-                        if (CanViewReportMenu)
-                        {
-                            tabs.Add(new(
-                                Loc[ShellNavigationCatalog.Reports.LabelKey],
-                                ShellNavigationCatalog.Reports.Path,
-                                true));
-                        }
-
-                        break;
-                }
-
-                return tabs;
+                    break;
             }
+
+            return tabs;
         }
 
         // QUERY: Đọc các query parameter dùng để xác định tab đang active.
@@ -670,7 +675,22 @@ namespace gtas_vpp_fe.Components.Layout
         // STATE EVENTS: Render lại sidebar khi user, quyền hoặc trạng thái bận thay đổi.
         private void OnPermissionStateChanged()
         {
+            RefreshNavigationState();
             _ = InvokeAsync(StateHasChanged);
+        }
+
+        private void RefreshNavigationState()
+        {
+            canViewDashboardMenu = CanViewSection(ShellNavigationCatalog.Dashboard);
+            canViewLibraryMenu = CanViewSection(ShellNavigationCatalog.Library);
+            canViewReportMenu = CanViewShellItem(ShellNavigationCatalog.Reports);
+            canViewPermissionMenu = CanViewSection(ShellNavigationCatalog.Permission);
+            canViewPeriodMenu = CanViewShellItem(ShellNavigationCatalog.PeriodPolicy)
+                || CanViewShellItem(ShellNavigationCatalog.PendingApproval)
+                || CanViewShellItem(ShellNavigationCatalog.PeriodReview);
+            canViewPricingMenu = CanViewShellItem(ShellNavigationCatalog.PriceLists)
+                || CanViewShellItem(ShellNavigationCatalog.Prices);
+            headerTabs = BuildHeaderTabs();
         }
 
         private void OnCurrentUserStateChanged()

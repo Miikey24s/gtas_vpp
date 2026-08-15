@@ -94,40 +94,41 @@ public partial class Tab_SecurityAudit : IDisposable
         finally
         {
             isLoading = false;
-            StateHasChanged();
         }
     }
 
     private async Task SearchTextOnInput(ChangeEventArgs args)
     {
         SearchText = args.Value?.ToString() ?? string.Empty;
-        searchDebounceCts?.Cancel();
-        searchDebounceCts?.Dispose();
-        searchDebounceCts = new CancellationTokenSource();
+        CancelPendingSearch();
+        var debounce = searchDebounceCts = new CancellationTokenSource();
         try
         {
-            await Task.Delay(300, searchDebounceCts.Token);
+            await Task.Delay(300, debounce.Token);
             if (auditGrid is not null) await auditGrid.FirstPage(true);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (debounce.IsCancellationRequested)
         {
         }
     }
 
     private async Task OnActionChangedAsync(string value)
     {
+        CancelPendingSearch();
         SelectedAction = string.IsNullOrWhiteSpace(value) ? null : value;
         if (auditGrid is not null) await auditGrid.FirstPage(true);
     }
 
     private async Task OnOutcomeChangedAsync(string value)
     {
+        CancelPendingSearch();
         SelectedOutcome = string.IsNullOrWhiteSpace(value) ? null : value;
         if (auditGrid is not null) await auditGrid.FirstPage(true);
     }
 
     private async Task ClearFiltersAsync()
     {
+        CancelPendingSearch();
         SearchText = string.Empty;
         SelectedAction = null;
         SelectedOutcome = null;
@@ -206,7 +207,13 @@ public partial class Tab_SecurityAudit : IDisposable
 
     public void Dispose()
     {
+        CancelPendingSearch();
+    }
+
+    private void CancelPendingSearch()
+    {
         searchDebounceCts?.Cancel();
         searchDebounceCts?.Dispose();
+        searchDebounceCts = null;
     }
 }

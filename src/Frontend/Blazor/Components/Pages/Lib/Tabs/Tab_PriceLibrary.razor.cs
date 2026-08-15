@@ -31,6 +31,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private List<string> categories = [];
         private List<string> units = [];
         private RadzenDataGrid<VppItemPriceResDTO> grid = default!;
+        private IReadOnlyList<VppFilterOption<Guid?>> PriceListFilterOptions = [];
+        private IReadOnlyList<VppFilterOption<string>> CategoryFilterOptions = [];
+        private IReadOnlyList<VppFilterOption<string>> UomFilterOptions = [];
         private Guid? selectedPriceListId;
         private Guid? selectedSupplierId;
         private string searchText = "";
@@ -38,7 +41,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private string selectedUom = "";
         private string selectedMappingStatus = "";
         private string? loadError;
-        private bool interactiveLookupsRefreshed;
+        private CancellationTokenSource? searchDebounce;
         private bool isLoading;
         private int priceCount;
         private int currentSkip;
@@ -61,12 +64,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private PriceListResDTO? SelectedPriceList => priceLists.FirstOrDefault(x => x.Id == selectedPriceListId);
         private bool IsSelectedPriceListEditable
             => SelectedPriceList is { IsDeleted: false } row && row.Status != "Expired";
-        private IReadOnlyList<VppFilterOption<Guid?>> PriceListFilterOptions
-            => priceLists.Select(row => new VppFilterOption<Guid?>(row.Id, FormatPriceListOption(row))).ToList();
-        private IReadOnlyList<VppFilterOption<string>> CategoryFilterOptions =>
-            [new(string.Empty, Loc["AllCategories"].Value), .. categories.Select(category => new VppFilterOption<string>(category, category))];
-        private IReadOnlyList<VppFilterOption<string>> UomFilterOptions =>
-            [new(string.Empty, Loc["AllUnits"].Value), .. units.Select(unit => new VppFilterOption<string>(unit, unit))];
         private IReadOnlyList<VppFilterOption<string>> MappingStatusOptions =>
         [
             new(string.Empty, Loc["AllPriceMappings"].Value),
@@ -106,26 +103,12 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             await LoadLookupsAsync();
         }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            // OnAfterRender không chạy trong prerender. Vì vậy đây là một lần refresh
-            // có chủ đích sau khi circuit đã nhận auth state, kể cả prerender từng trả
-            // danh sách rỗng mà không ném lỗi.
-            if (firstRender && !interactiveLookupsRefreshed)
-            {
-                interactiveLookupsRefreshed = true;
-                await LoadLookupsAsync();
-                StateHasChanged();
-            }
-
-            await base.OnAfterRenderAsync(firstRender);
-        }
-
         private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
         {
             var newPriceListId = ResolveSelectedPriceListId();
             if (newPriceListId != selectedPriceListId)
             {
+                CancelPendingSearch();
                 selectedPriceListId = newPriceListId;
                 selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
                 _ = InvokeAsync(async () =>
@@ -139,6 +122,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         public void Dispose()
         {
+            CancelPendingSearch();
             NavigationManager.LocationChanged -= OnLocationChanged;
         }
 
@@ -149,6 +133,9 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 var referenceData = await PricingApi.GetPricingReferenceDataAsync();
                 priceLists = referenceData.PriceLists.ToList();
                 suppliers = referenceData.Suppliers.ToList();
+                PriceListFilterOptions = priceLists
+                    .Select(row => new VppFilterOption<Guid?>(row.Id, FormatPriceListOption(row)))
+                    .ToArray();
 
                 selectedPriceListId = ResolveSelectedPriceListId();
                 selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
@@ -220,39 +207,51 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             finally
             {
                 isLoading = false;
-                StateHasChanged();
             }
         }
 
         private async Task OnSearchInputAsync(ChangeEventArgs args)
         {
             searchText = args.Value?.ToString() ?? "";
-            if (grid is not null)
+            CancelPendingSearch();
+            var debounce = searchDebounce = new CancellationTokenSource();
+            try
             {
-                await grid.FirstPage(true);
+                await Task.Delay(280, debounce.Token);
+                if (grid is not null)
+                {
+                    await grid.FirstPage(true);
+                }
+            }
+            catch (OperationCanceledException) when (debounce.IsCancellationRequested)
+            {
             }
         }
 
         private async Task OnCategoryChangedAsync(string value)
         {
+            CancelPendingSearch();
             selectedCategory = value;
             if (grid is not null) await grid.FirstPage(true);
         }
 
         private async Task OnUomChangedAsync(string value)
         {
+            CancelPendingSearch();
             selectedUom = value;
             if (grid is not null) await grid.FirstPage(true);
         }
 
         private async Task OnMappingStatusChangedAsync(string value)
         {
+            CancelPendingSearch();
             selectedMappingStatus = value;
             if (grid is not null) await grid.FirstPage(true);
         }
 
         private async Task ClearFiltersAsync()
         {
+            CancelPendingSearch();
             searchText = string.Empty;
             selectedCategory = string.Empty;
             selectedUom = string.Empty;
@@ -471,6 +470,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task OnPriceListChangedAsync(Guid? value)
         {
+            CancelPendingSearch();
             selectedPriceListId = value;
             selectedSupplierId = priceLists.FirstOrDefault(x => x.Id == selectedPriceListId)?.SupplierId;
             selectedCategory = string.Empty;
@@ -478,6 +478,13 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             selectedMappingStatus = string.Empty;
             await LoadFilterOptionsAsync();
             await LoadPricesAsync();
+        }
+
+        private void CancelPendingSearch()
+        {
+            searchDebounce?.Cancel();
+            searchDebounce?.Dispose();
+            searchDebounce = null;
         }
 
         private Guid? ResolveSelectedPriceListId()
@@ -498,6 +505,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         {
             categories = [];
             units = [];
+            RefreshDistinctFilterOptions();
             if (!selectedSupplierId.HasValue || !selectedPriceListId.HasValue)
             {
                 return;
@@ -512,6 +520,21 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             await Task.WhenAll(categoriesTask, unitsTask);
             categories = (await categoriesTask).ToList();
             units = (await unitsTask).ToList();
+            RefreshDistinctFilterOptions();
+        }
+
+        private void RefreshDistinctFilterOptions()
+        {
+            CategoryFilterOptions =
+            [
+                new(string.Empty, Loc["AllCategories"].Value),
+                .. categories.Select(category => new VppFilterOption<string>(category, category))
+            ];
+            UomFilterOptions =
+            [
+                new(string.Empty, Loc["AllUnits"].Value),
+                .. units.Select(unit => new VppFilterOption<string>(unit, unit))
+            ];
         }
 
         private async Task ReloadGridAsync()

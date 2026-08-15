@@ -13,7 +13,7 @@
                 RenderMode="TabRenderMode.Client"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
-            @if (CanViewPermissionTab(Permissions.PermissionUser))
+            @if (HasAuthorizedPermissionTab(0))
             {
                 <RadzenTabsItem Text="@Loc["Users"]">
                     @if (IsActiveTab(0))
@@ -22,7 +22,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewPermissionTab(Permissions.PermissionComponent))
+            @if (HasAuthorizedPermissionTab(1))
             {
                 <RadzenTabsItem Text="@Loc["GroupsAndPermissions"]">
                     @if (IsActiveTab(1))
@@ -31,7 +31,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewPermissionTab(Permissions.PermissionManage))
+            @if (HasAuthorizedPermissionTab(2))
             {
                 <RadzenTabsItem Text="@Loc["SecurityAudit"]">
                     @if (IsActiveTab(2))
@@ -40,7 +40,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewPermissionTab(Permissions.PeriodSettingsManage))
+            @if (HasAuthorizedPermissionTab(3))
             {
                 <RadzenTabsItem Text="@Loc["OrderPeriodSettings"]">
                     @if (IsActiveTab(3))

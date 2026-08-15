@@ -62,6 +62,8 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     protected int? _activeDetailNoteNumber;
     protected bool _showRegularSeries = true;
     protected bool _showAdditionalSeries = true;
+    private int _chartRevision;
+    private int _renderedChartRevision = -1;
     private VppRequestResDTO? _requestedOrder;
 
     // DISPLAY STATE: Trạng thái refresh và giới hạn kỳ dùng cho UI.
@@ -94,13 +96,14 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
         {
             await LoadCurrentPeriodAsync();
             await PrepareRequestedOrderAsync();
-            await base.OnInitializedAsync();
+            await Task.WhenAll(
+                base.OnInitializedAsync(),
+                LoadSummaryAsync());
             if (_requestedOrder is not null && Orders.All(order => order.Id != _requestedOrder.Id))
             {
                 Orders.Insert(0, _requestedOrder);
                 TotalCount = Math.Max(TotalCount + 1, Orders.Count);
             }
-            await LoadSummaryAsync();
             if (_requestedOrder is not null)
             {
                 var requestedOrder = Orders.FirstOrDefault(order => order.Id == _requestedOrder.Id) ?? _requestedOrder;
@@ -182,7 +185,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
             await _module.InvokeVoidAsync("observeHistoryViewport", HistoryRoot, _dotNetReference);
         }
 
-        if (_module is not null)
+        if (_module is not null && _renderedChartRevision != _chartRevision)
         {
             var periods = _summary?.Periods ?? [];
             await _module.InvokeVoidAsync(
@@ -192,6 +195,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
                 periods.Select(period => period.AdditionalQuantity).ToArray(),
                 _showRegularSeries,
                 _showAdditionalSeries);
+            _renderedChartRevision = _chartRevision;
         }
 
     }
@@ -229,6 +233,7 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
         try
         {
             _summary = await Requests.GetHistorySummaryAsync(HistoryScope, _fromPeriod, _toPeriod);
+            _chartRevision++;
         }
         catch (Exception ex)
         {
@@ -359,14 +364,16 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     {
         _selectedPeriod = null;
         CurrentSkip = 0;
-        await LoadSummaryAsync();
-        await LoadOrdersAndSelectAsync();
+        await Task.WhenAll(
+            LoadSummaryAsync(),
+            LoadOrdersAndSelectAsync());
     }
 
     protected async Task RefreshAsync()
     {
-        await LoadSummaryAsync();
-        await LoadOrdersAndSelectAsync();
+        await Task.WhenAll(
+            LoadSummaryAsync(),
+            LoadOrdersAndSelectAsync());
     }
 
     protected async Task OnChartSeriesClick(SeriesClickEventArgs args)
@@ -502,10 +509,12 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
         if (series == RegularSeries)
         {
             _showRegularSeries = !_showRegularSeries;
+            _chartRevision++;
             return;
         }
 
         _showAdditionalSeries = !_showAdditionalSeries;
+        _chartRevision++;
     }
 
     protected async Task SelectStatusAsync(int? status)

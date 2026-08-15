@@ -55,6 +55,13 @@
             return;
         }
 
+        await Task.WhenAll(
+            StartPermissionRealtimeSafelyAsync(),
+            StartNotificationInboxSafelyAsync());
+    }
+
+    private async Task StartPermissionRealtimeSafelyAsync()
+    {
         try
         {
             await PermissionRealtime.StartAsync();
@@ -65,7 +72,10 @@
             // refresh UI, nên sự cố hub tạm thời không được làm hỏng page.
             Logger.LogWarning(ex, "Permission realtime connection is unavailable.");
         }
+    }
 
+    private async Task StartNotificationInboxSafelyAsync()
+    {
         try
         {
             await NotificationInbox.StartAsync();

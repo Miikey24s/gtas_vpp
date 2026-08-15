@@ -14,7 +14,7 @@
                 RenderMode="TabRenderMode.Server"
                 @bind-SelectedIndex=SelectedIndex>
         <Tabs>
-            @if (CanViewLibraryTab(Permissions.LibraryClass))
+            @if (HasAuthorizedLibraryTab(0))
             {
                 <RadzenTabsItem Text="@Loc["ClassDefinitions"]">
                     @if (IsActiveTab(0))
@@ -23,7 +23,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewLibraryTab(Permissions.LibraryCategory))
+            @if (HasAuthorizedLibraryTab(1))
             {
                 <RadzenTabsItem Text="@Loc["OperationCategories"]">
                     @if (IsActiveTab(1))
@@ -32,7 +32,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewLibraryTab(Permissions.LibraryItem))
+            @if (HasAuthorizedLibraryTab(2))
             {
                 <RadzenTabsItem Text="@Loc["Operations"]">
                     @if (IsActiveTab(2))
@@ -41,7 +41,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewLibraryTab(Permissions.LibrarySupplier))
+            @if (HasAuthorizedLibraryTab(3))
             {
                 <RadzenTabsItem Text="@Loc["Suppliers"]">
                     @if (IsActiveTab(3))
@@ -50,7 +50,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewLibraryTab(Permissions.LibraryPriceList, Permissions.LibraryPrice))
+            @if (HasAuthorizedLibraryTab(6))
             {
                 <RadzenTabsItem Text="@Loc["Pricing"]">
                     @if (IsActiveTab(6))
@@ -77,7 +77,7 @@
                     }
                 </RadzenTabsItem>
             }
-            @if (CanViewLibraryTab(Permissions.LibraryDepartment))
+            @if (HasAuthorizedLibraryTab(5))
             {
                 <RadzenTabsItem Text="@Loc["Departments"]">
                     @if (IsActiveTab(5))

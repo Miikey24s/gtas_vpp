@@ -38,40 +38,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         [Inject] private PermissionState PermissionState { get; set; } = default!;
 
         private readonly TabPosition tabPosition = TabPosition.Top;
+        private IReadOnlyList<LibraryTabDefinition> authorizedTabs = [];
+        private IReadOnlyList<int> authorizedPricingTabs = [];
         private int SelectedIndex { get; set; }
         private int PricingSelectedIndex { get; set; }
 
-        private IReadOnlyList<LibraryTabDefinition> AuthorizedTabs =>
-            LibraryTabs
-                .Where(tab => CanViewLibraryTab(tab.Permissions))
-                .OrderBy(GetVisualTabOrder)
-                .ToArray();
+        private IReadOnlyList<LibraryTabDefinition> AuthorizedTabs => authorizedTabs;
 
         private bool HasAnyVisibleLibraryTab => AuthorizedTabs.Count > 0;
 
-        private IReadOnlyList<int> AuthorizedPricingTabs
-        {
-            get
-            {
-                var tabs = new List<int>();
-
-                if (CanShowPriceLists)
-                {
-                    tabs.Add(PriceListTabIndex);
-                }
-
-                if (CanShowPrices)
-                {
-                    tabs.Add(PriceTabIndex);
-                }
-
-                return tabs;
-            }
-        }
-
-        private bool CanShowPriceLists => CanViewLibraryTab(Permissions.LibraryPriceList);
-
-        private bool CanShowPrices => CanViewLibraryTab(Permissions.LibraryPrice);
+        private IReadOnlyList<int> AuthorizedPricingTabs => authorizedPricingTabs;
 
         private bool ShowPricingNavigation => AuthorizedPricingTabs.Count > 0;
 
@@ -89,6 +65,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             NavigationManager.LocationChanged += OnLocationChanged;
             PermissionState.Changed += OnPermissionStateChanged;
             await PermissionState.EnsureLoadedAsync();
+            RefreshAuthorizedTabs();
             SetSelectedIndexFromUri(NavigationManager.Uri);
         }
 
@@ -110,6 +87,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
         private void OnPermissionStateChanged()
         {
+            RefreshAuthorizedTabs();
             SetSelectedIndexFromUri(NavigationManager.Uri);
             _ = InvokeAsync(StateHasChanged);
         }
@@ -150,7 +128,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
             var requestedTab = GetRequestedTabIndex(location);
             var normalizedRequestedTab = requestedTab == PriceTabIndex ? PricingTabIndex : requestedTab;
             var selectedIndex = normalizedRequestedTab.HasValue
-                ? authorizedTabs.ToList().FindIndex(tab => tab.QueryIndex == normalizedRequestedTab.Value)
+                ? FindTabIndex(authorizedTabs, normalizedRequestedTab.Value)
                 : 0;
 
             SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
@@ -183,7 +161,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib
 
             var requestedPricingTab = GetRequestedPricingTabIndex(location, requestedTab);
             var selectedIndex = requestedPricingTab.HasValue
-                ? pricingTabs.ToList().FindIndex(tab => tab == requestedPricingTab.Value)
+                ? FindPricingTabIndex(pricingTabs, requestedPricingTab.Value)
                 : 0;
 
             PricingSelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
@@ -227,6 +205,54 @@ namespace gtas_vpp_fe.Components.Pages.Lib
         {
             return permissions.Any(permission =>
                 PermissionState.HasVisibleComponent(Config.Page_ComponentCode.PageCode.Library, permission));
+        }
+
+        private bool HasAuthorizedLibraryTab(int queryIndex)
+            => AuthorizedTabs.Any(tab => tab.QueryIndex == queryIndex);
+
+        private void RefreshAuthorizedTabs()
+        {
+            authorizedTabs = LibraryTabs
+                .Where(tab => CanViewLibraryTab(tab.Permissions))
+                .OrderBy(GetVisualTabOrder)
+                .ToArray();
+
+            var pricingTabs = new List<int>(2);
+            if (CanViewLibraryTab(Permissions.LibraryPriceList))
+            {
+                pricingTabs.Add(PriceListTabIndex);
+            }
+            if (CanViewLibraryTab(Permissions.LibraryPrice))
+            {
+                pricingTabs.Add(PriceTabIndex);
+            }
+            authorizedPricingTabs = pricingTabs;
+        }
+
+        private static int FindTabIndex(IReadOnlyList<LibraryTabDefinition> tabs, int queryIndex)
+        {
+            for (var index = 0; index < tabs.Count; index++)
+            {
+                if (tabs[index].QueryIndex == queryIndex)
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int FindPricingTabIndex(IReadOnlyList<int> tabs, int queryIndex)
+        {
+            for (var index = 0; index < tabs.Count; index++)
+            {
+                if (tabs[index] == queryIndex)
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
 
         private static int GetVisualTabOrder(LibraryTabDefinition tab)

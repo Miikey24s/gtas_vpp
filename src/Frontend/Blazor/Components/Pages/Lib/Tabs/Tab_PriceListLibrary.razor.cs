@@ -16,7 +16,7 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
-    public partial class Tab_PriceListLibrary : VppServerGridComponentBase<PriceListResDTO>
+    public partial class Tab_PriceListLibrary : VppServerGridComponentBase<PriceListResDTO>, IDisposable
     {
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
         [Inject] public PricingApiClient PricingApi { get; set; } = default!;
@@ -30,6 +30,8 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private RadzenDataGrid<PriceListResDTO> grid = default!;
         private bool isLoading;
         private bool isFileActionBusy;
+        private CancellationTokenSource? searchDebounce;
+        private IReadOnlyList<VppFilterOption<Guid?>> SupplierFilterOptions = [];
         private int count;
         private int currentSkip;
         private Guid? selectedSupplierId;
@@ -48,17 +50,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             new("inactive", Loc["LibraryStatusInactive"].Value)
         ];
 
-        private IReadOnlyList<VppFilterOption<Guid?>> SupplierFilterOptions =>
-        [
-            new(null, Loc["AllSuppliers"].Value),
-            .. suppliers
-                .Where(supplier => !supplier.IsDeleted)
-                .OrderBy(supplier => supplier.SupplierName ?? supplier.SupplierShortName)
-                .Select(supplier => new VppFilterOption<Guid?>(
-                    supplier.Id,
-                    supplier.SupplierName ?? supplier.SupplierShortName ?? "–"))
-        ];
-
         protected override async Task OnInitializedAsync()
         {
             try
@@ -69,6 +60,16 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             {
                 _toastService.Error(ex, Loc, "LoadLibraryDataFailed");
             }
+            SupplierFilterOptions =
+            [
+                new(null, Loc["AllSuppliers"].Value),
+                .. suppliers
+                    .Where(supplier => !supplier.IsDeleted)
+                    .OrderBy(supplier => supplier.SupplierName ?? supplier.SupplierShortName)
+                    .Select(supplier => new VppFilterOption<Guid?>(
+                        supplier.Id,
+                        supplier.SupplierName ?? supplier.SupplierShortName ?? "–"))
+            ];
         }
 
         private async Task LoadAsync()
@@ -102,7 +103,6 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
             finally
             {
                 isLoading = false;
-                StateHasChanged();
             }
         }
 
@@ -222,12 +222,14 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task OnStatusChangedAsync(string value)
         {
+            CancelPendingSearch();
             selectedActivity = value ?? string.Empty;
             await grid.FirstPage(true);
         }
 
         private async Task OnSupplierChangedAsync(Guid? value)
         {
+            CancelPendingSearch();
             selectedSupplierId = value;
             await grid.FirstPage(true);
         }
@@ -235,15 +237,37 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
         private async Task OnSearchInputAsync(ChangeEventArgs args)
         {
             searchText = args.Value?.ToString() ?? string.Empty;
-            await grid.FirstPage(true);
+            CancelPendingSearch();
+            var debounce = searchDebounce = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(280, debounce.Token);
+                await grid.FirstPage(true);
+            }
+            catch (OperationCanceledException) when (debounce.IsCancellationRequested)
+            {
+            }
         }
 
         private async Task ClearFiltersAsync()
         {
+            CancelPendingSearch();
             searchText = string.Empty;
             selectedSupplierId = null;
             selectedActivity = string.Empty;
             await grid.FirstPage(true);
+        }
+
+        private void CancelPendingSearch()
+        {
+            searchDebounce?.Cancel();
+            searchDebounce?.Dispose();
+            searchDebounce = null;
+        }
+
+        public void Dispose()
+        {
+            CancelPendingSearch();
         }
 
         private void OnRowRenderPriceList(RowRenderEventArgs<PriceListResDTO> args)

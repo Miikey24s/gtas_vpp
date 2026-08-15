@@ -11,7 +11,7 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs;
 
-public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
+public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>, IDisposable
 {
     [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
 
@@ -31,7 +31,11 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
     private string uomFilter = string.Empty;
     private string supplierFilter = string.Empty;
     private string selectedActivity = string.Empty;
+    private CancellationTokenSource? searchDebounce;
     private bool isLoading;
+    private IReadOnlyList<VppFilterOption<string>> categoryOptions = [];
+    private IReadOnlyList<VppFilterOption<string>> uomOptions = [];
+    private IReadOnlyList<VppFilterOption<string>> supplierOptions = [];
 
     private bool HasFilters => !string.IsNullOrWhiteSpace(searchText)
         || !string.IsNullOrWhiteSpace(categoryFilter)
@@ -43,38 +47,6 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
         component => component.IsVisible && component.IsEnable);
 
     protected override RadzenDataGrid<VppItemResDTO>? InitialGrid => grid;
-
-    private IReadOnlyList<VppFilterOption<string>> categoryOptions =>
-    [
-        new(string.Empty, Loc["AllCategories"]),
-        .. categories
-            .Where(category => !category.IsDeleted)
-            .Select(category => new VppFilterOption<string>(
-                category.Id.ToString(),
-                category.VppCategoryName ?? category.VppCategoryCode ?? string.Empty))
-    ];
-
-    private IReadOnlyList<VppFilterOption<string>> uomOptions =>
-    [
-        new(string.Empty, Loc["AllUnits"]),
-        .. uoms
-            .Where(uom => !uom.IsDeleted)
-            .Select(uom => new VppFilterOption<string>(
-                uom.Id.ToString(),
-                uom.Value ?? uom.Code ?? string.Empty))
-    ];
-
-    private IReadOnlyList<VppFilterOption<string>> supplierOptions =>
-    [
-        new(string.Empty, Loc["AllSuppliers"]),
-        .. suppliers
-            .Where(supplier => !supplier.IsDeleted)
-            .Select(supplier => supplier.SupplierName ?? supplier.SupplierShortName)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Distinct(StringComparer.CurrentCultureIgnoreCase)
-            .OrderBy(name => name)
-            .Select(name => new VppFilterOption<string>(name!, name!))
-    ];
 
     private IReadOnlyList<VppFilterOption<string>> StatusOptions =>
     [
@@ -96,6 +68,40 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
         {
             ToastService.Error(ex, Loc, "LoadLibraryDataFailed");
         }
+        RefreshFilterOptions();
+    }
+
+    private void RefreshFilterOptions()
+    {
+        categoryOptions =
+        [
+            new(string.Empty, Loc["AllCategories"]),
+            .. categories
+                .Where(category => !category.IsDeleted)
+                .Select(category => new VppFilterOption<string>(
+                    category.Id.ToString(),
+                    category.VppCategoryName ?? category.VppCategoryCode ?? string.Empty))
+        ];
+        uomOptions =
+        [
+            new(string.Empty, Loc["AllUnits"]),
+            .. uoms
+                .Where(uom => !uom.IsDeleted)
+                .Select(uom => new VppFilterOption<string>(
+                    uom.Id.ToString(),
+                    uom.Value ?? uom.Code ?? string.Empty))
+        ];
+        supplierOptions =
+        [
+            new(string.Empty, Loc["AllSuppliers"]),
+            .. suppliers
+                .Where(supplier => !supplier.IsDeleted)
+                .Select(supplier => supplier.SupplierName ?? supplier.SupplierShortName)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(name => name)
+                .Select(name => new VppFilterOption<string>(name!, name!))
+        ];
     }
 
     private async Task LoadDataAsync(LoadDataArgs args)
@@ -125,7 +131,6 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
         finally
         {
             isLoading = false;
-            StateHasChanged();
         }
     }
 
@@ -235,35 +240,49 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
     private async Task OnSearchInputAsync(ChangeEventArgs args)
     {
         searchText = args.Value?.ToString() ?? string.Empty;
-        await ReloadAsync();
+        CancelPendingSearch();
+        var debounce = searchDebounce = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(280, debounce.Token);
+            await ReloadAsync();
+        }
+        catch (OperationCanceledException) when (debounce.IsCancellationRequested)
+        {
+        }
     }
 
     private async Task OnCategoryChangedAsync(string value)
     {
+        CancelPendingSearch();
         categoryFilter = value;
         await ReloadAsync();
     }
 
     private async Task OnUomChangedAsync(string value)
     {
+        CancelPendingSearch();
         uomFilter = value;
         await ReloadAsync();
     }
 
     private async Task OnSupplierChangedAsync(string value)
     {
+        CancelPendingSearch();
         supplierFilter = value ?? string.Empty;
         await ReloadAsync();
     }
 
     private async Task OnStatusChangedAsync(string value)
     {
+        CancelPendingSearch();
         selectedActivity = value ?? string.Empty;
         await ReloadAsync();
     }
 
     private async Task ClearFiltersAsync()
     {
+        CancelPendingSearch();
         searchText = string.Empty;
         categoryFilter = string.Empty;
         uomFilter = string.Empty;
@@ -278,6 +297,18 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
         {
             await grid.FirstPage(true);
         }
+    }
+
+    private void CancelPendingSearch()
+    {
+        searchDebounce?.Cancel();
+        searchDebounce?.Dispose();
+        searchDebounce = null;
+    }
+
+    public void Dispose()
+    {
+        CancelPendingSearch();
     }
 
     private static VppItemResDTO Clone(VppItemResDTO row) => new()

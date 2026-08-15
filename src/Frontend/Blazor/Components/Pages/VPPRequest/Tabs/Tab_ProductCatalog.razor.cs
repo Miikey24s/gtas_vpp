@@ -120,41 +120,42 @@ public partial class Tab_ProductCatalog : IDisposable
             _isFirstLoad = false;
             IsFirstLoading = false;
             IsGridLoading = false;
-            StateHasChanged();
         }
     }
 
     private async Task OnSearchInput(ChangeEventArgs args)
     {
         SearchText = args.Value?.ToString();
-        _searchDebounceCts?.Cancel();
-        _searchDebounceCts?.Dispose();
-        _searchDebounceCts = new CancellationTokenSource();
+        CancelPendingSearch();
+        var debounce = _searchDebounceCts = new CancellationTokenSource();
 
         try
         {
-            await Task.Delay(300, _searchDebounceCts.Token);
+            await Task.Delay(300, debounce.Token);
             await ReloadFromFirstPageAsync();
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (debounce.IsCancellationRequested)
         {
         }
     }
 
     private async Task OnCategoryChanged(string value)
     {
+        CancelPendingSearch();
         CategoryFilter = Guid.TryParse(value, out var categoryId) ? categoryId : null;
         await ReloadFromFirstPageAsync();
     }
 
     private async Task OnUnitChanged(string value)
     {
+        CancelPendingSearch();
         UnitFilter = string.IsNullOrWhiteSpace(value) ? null : value;
         await ReloadFromFirstPageAsync();
     }
 
     private async Task ClearFiltersAsync()
     {
+        CancelPendingSearch();
         SearchText = null;
         CategoryFilter = null;
         UnitFilter = null;
@@ -173,7 +174,13 @@ public partial class Tab_ProductCatalog : IDisposable
 
     public void Dispose()
     {
+        CancelPendingSearch();
+    }
+
+    private void CancelPendingSearch()
+    {
         _searchDebounceCts?.Cancel();
         _searchDebounceCts?.Dispose();
+        _searchDebounceCts = null;
     }
 }

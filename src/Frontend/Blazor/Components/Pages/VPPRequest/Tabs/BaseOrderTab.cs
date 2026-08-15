@@ -99,6 +99,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected async Task OnFilterChanged()
         {
             _filterDebounce?.Cancel();
+            _filterDebounce?.Dispose();
             _filterDebounce = new CancellationTokenSource();
             var token = _filterDebounce.Token;
 
