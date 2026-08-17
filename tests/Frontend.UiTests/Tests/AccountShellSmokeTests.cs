@@ -155,6 +155,35 @@ public sealed class AccountShellSmokeTests : TestBase
         (await Page.GetByText("Email công ty", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
         (await Page.GetByText("Xác nhận mật khẩu", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
         (await Page.Locator(".vpp-account-description").CountAsync()).Should().Be(1, "the account card shows the Atlas context description under the title");
+        (await Page.Locator(".vpp-account-description").InnerTextAsync()).Should().Be("Xác nhận email và chờ phê duyệt.");
+
+        var registerLinks = Page.Locator(".vpp-login-links > a");
+        (await registerLinks.CountAsync()).Should().Be(2);
+        (await registerLinks.Nth(0).InnerTextAsync()).Should().Contain("Quay lại đăng nhập");
+        (await registerLinks.Nth(1).InnerTextAsync()).Should().Be("Gửi lại xác nhận");
+        var registerLinkGeometry = await Page.Locator(".vpp-login-links").EvaluateAsync<double[]>("""
+            element => {
+                const links = [...element.querySelectorAll(':scope > a')];
+                const first = links[0]?.getBoundingClientRect();
+                const second = links[1]?.getBoundingClientRect();
+                if (!first || !second) {
+                    throw new Error('Unable to measure registration links.');
+                }
+
+                return [
+                    first.left,
+                    second.left,
+                    first.top,
+                    second.top,
+                    links[0].scrollWidth - links[0].clientWidth,
+                    links[1].scrollWidth - links[1].clientWidth
+                ];
+            }
+            """);
+        registerLinkGeometry[0].Should().BeLessThan(registerLinkGeometry[1], "back to login should be the left action");
+        Math.Abs(registerLinkGeometry[2] - registerLinkGeometry[3]).Should().BeLessThan(1, "registration links should stay on one row");
+        registerLinkGeometry[4].Should().BeLessThanOrEqualTo(1, "back to login should not wrap or overflow");
+        registerLinkGeometry[5].Should().BeLessThanOrEqualTo(1, "resend confirmation should not wrap or overflow");
 
         var registerButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Tạo tài khoản");
         var before = await registerButton.BoundingBoxAsync();
@@ -199,6 +228,7 @@ public sealed class AccountShellSmokeTests : TestBase
         await Page.GetByText("Please enter your username.", new() { Exact = true }).WaitForAsync();
         (await Page.GetByText("Company email", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
         (await Page.GetByText("Confirm password", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+        (await Page.Locator(".vpp-account-description").InnerTextAsync()).Should().Be("Confirm your email and wait for approval.");
 
         await Page.GotoAsync($"{BaseUrl}set-language?culture=vi&returnUrl=%2FAccount%2FLogin");
         var loginButton = await GetInteractiveButtonAsync(Page.Locator("body"), "Đăng nhập");

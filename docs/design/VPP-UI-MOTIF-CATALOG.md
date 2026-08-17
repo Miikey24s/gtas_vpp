@@ -88,6 +88,8 @@ Không gộp chúng thành một component string-configured. Dùng typed compon
   không đặt validator bằng inline style hoặc để icon mắt chồng lên border/input text.
 - Text/password field chỉ có một viền trạng thái do account field sở hữu; không chồng thêm outline hoặc halo từ
   focus/validation bridge toàn cục. Bộ chọn ngôn ngữ dùng segmented selector nhưng không bao giờ cuộn theo trục dọc.
+- Copy tài khoản ưu tiên một câu ngắn, đủ ý. Khi có hai điều hướng phụ, hành động quay lại đặt bên trái, hành động
+  bổ sung đặt bên phải và cả hai giữ trên một dòng ở desktop.
 
 ## 3.1. `DATA-SURFACE-ORDER`
 

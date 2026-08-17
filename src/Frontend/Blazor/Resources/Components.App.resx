@@ -25,7 +25,7 @@
   <data name="LoginRequestFailed" xml:space="preserve"><value>Hệ thống chưa thể xử lý yêu cầu đăng nhập. Vui lòng thử lại.</value></data>
   <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
   <data name="SigningOut" xml:space="preserve"><value>Đang đăng xuất</value></data>
-  <data name="LogoutRedirectMessage" xml:space="preserve"><value>Đang kết thúc phiên và quay lại trang đăng nhập...</value></data>
+  <data name="LogoutRedirectMessage" xml:space="preserve"><value>Đang đăng xuất...</value></data>
   <data name="Username" xml:space="preserve"><value>Tên đăng nhập</value></data>
   <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
   <data name="Dashboard" xml:space="preserve"><value>Bảng điều khiển</value></data>
@@ -54,7 +54,7 @@
   <data name="Export" xml:space="preserve"><value>Xuất file</value></data>
   <data name="Loading" xml:space="preserve"><value>Đang tải...</value></data>
   <data name="RedirectingToAllowedWorkspace" xml:space="preserve"><value>Đang mở khu vực bạn được phép sử dụng.</value></data>
-  <data name="LoginRedirectMessage" xml:space="preserve"><value>Đang hoàn tất đăng nhập...</value></data>
+  <data name="LoginRedirectMessage" xml:space="preserve"><value>Đang đăng nhập...</value></data>
   <data name="ConnectionStatus" xml:space="preserve"><value>Trạng thái kết nối</value></data>
   <data name="ReconnectTitle" xml:space="preserve"><value>Đang kết nối lại</value></data>
   <data name="ReconnectingToServer" xml:space="preserve"><value>Kết nối tạm thời bị gián đoạn. Hệ thống đang tự khôi phục phiên làm việc.</value></data>
@@ -79,14 +79,14 @@
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
   <data name="SendRecoveryInstructions" xml:space="preserve"><value>Gửi liên kết</value></data>
   <data name="BackToLogin" xml:space="preserve"><value>Quay lại đăng nhập</value></data>
-  <data name="RecoveryRequestAccepted" xml:space="preserve"><value>Nếu tài khoản tồn tại, hướng dẫn khôi phục đã được gửi tới email đã đăng ký.</value></data>
+  <data name="RecoveryRequestAccepted" xml:space="preserve"><value>Nếu tài khoản tồn tại, liên kết đã được gửi.</value></data>
   <data name="RecoveryConnectionFailed" xml:space="preserve"><value>Chưa thể kết nối máy chủ. Vui lòng thử lại sau.</value></data>
   <data name="ResetPasswordTitle" xml:space="preserve"><value>Đặt lại</value></data>
   <data name="ResetPasswordAccent" xml:space="preserve"><value>mật khẩu</value></data>
   <data name="NewPassword" xml:space="preserve"><value>Mật khẩu mới</value></data>
   <data name="ConfirmNewPassword" xml:space="preserve"><value>Xác nhận mật khẩu mới</value></data>
   <data name="ResetPasswordAction" xml:space="preserve"><value>Đặt lại mật khẩu</value></data>
-  <data name="ResetPasswordSuccess" xml:space="preserve"><value>Đã đặt lại mật khẩu. Bạn có thể đăng nhập bằng mật khẩu mới.</value></data>
+  <data name="ResetPasswordSuccess" xml:space="preserve"><value>Đã đặt lại mật khẩu.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>Liên kết đặt lại không hợp lệ hoặc đã hết hạn.</value></data>
   <data name="RegisterTitle" xml:space="preserve"><value>Tạo tài khoản</value></data>
   <data name="CompanyEmail" xml:space="preserve"><value>Email công ty</value></data>
@@ -99,23 +99,23 @@
   <data name="ConfirmPasswordRequired" xml:space="preserve"><value>Vui lòng nhập lại mật khẩu.</value></data>
   <data name="NewPasswordRequired" xml:space="preserve"><value>Vui lòng nhập mật khẩu mới.</value></data>
   <data name="CurrentPasswordRequired" xml:space="preserve"><value>Vui lòng nhập mật khẩu hiện tại.</value></data>
-  <data name="RegistrationAccepted" xml:space="preserve"><value>Nếu thông tin hợp lệ, yêu cầu đăng ký đã được tiếp nhận và đang chờ quản trị viên phê duyệt.</value></data>
+  <data name="RegistrationAccepted" xml:space="preserve"><value>Đã nhận đăng ký và đang chờ phê duyệt.</value></data>
   <data name="RegistrationFieldsRequired" xml:space="preserve"><value>Vui lòng nhập đầy đủ tên đăng nhập, email và họ tên.</value></data>
   <data name="RegistrationInvalid" xml:space="preserve"><value>Thông tin đăng ký chưa đáp ứng chính sách tài khoản. Vui lòng kiểm tra lại.</value></data>
   <data name="ConfirmEmailTitle" xml:space="preserve"><value>Xác nhận</value></data>
   <data name="ConfirmEmailAccent" xml:space="preserve"><value>email</value></data>
-  <data name="CheckingConfirmationLink" xml:space="preserve"><value>Đang kiểm tra liên kết xác nhận...</value></data>
+  <data name="CheckingConfirmationLink" xml:space="preserve"><value>Đang xác nhận...</value></data>
   <data name="GoToLogin" xml:space="preserve"><value>Đi tới đăng nhập</value></data>
   <data name="EmailConfirmed" xml:space="preserve"><value>Email đã được xác nhận.</value></data>
   <data name="ConfirmationLinkInvalid" xml:space="preserve"><value>Liên kết xác nhận không hợp lệ hoặc đã hết hạn.</value></data>
-  <data name="ResendConfirmationTitle" xml:space="preserve"><value>Gửi lại email xác nhận</value></data>
-  <data name="ResendConfirmationDescription" xml:space="preserve"><value>Nhập email đã dùng để đăng ký tài khoản.</value></data>
-  <data name="ResendConfirmationSafetyNote" xml:space="preserve"><value>Vì lý do bảo mật, hệ thống luôn trả về cùng một thông báo dù tài khoản có tồn tại hay không.</value></data>
-  <data name="ResendConfirmationAction" xml:space="preserve"><value>Gửi lại email</value></data>
-  <data name="ResendConfirmationLink" xml:space="preserve"><value>Chưa nhận được email xác nhận?</value></data>
-  <data name="ResendConfirmationAccepted" xml:space="preserve"><value>Nếu tài khoản hợp lệ và chưa xác nhận email, yêu cầu gửi lại đã được tiếp nhận.</value></data>
+  <data name="ResendConfirmationTitle" xml:space="preserve"><value>Gửi lại xác nhận</value></data>
+  <data name="ResendConfirmationDescription" xml:space="preserve"><value>Nhập email đăng ký.</value></data>
+  <data name="ResendConfirmationSafetyNote" xml:space="preserve"><value>Hệ thống không tiết lộ tài khoản có tồn tại hay không.</value></data>
+  <data name="ResendConfirmationAction" xml:space="preserve"><value>Gửi email</value></data>
+  <data name="ResendConfirmationLink" xml:space="preserve"><value>Gửi lại xác nhận</value></data>
+  <data name="ResendConfirmationAccepted" xml:space="preserve"><value>Đã tiếp nhận yêu cầu gửi lại.</value></data>
   <data name="ChangePasswordTitle" xml:space="preserve"><value>Đổi mật khẩu</value></data>
-  <data name="ChangePasswordRequired" xml:space="preserve"><value>Bạn cần đổi mật khẩu tạm thời trước khi tiếp tục sử dụng hệ thống.</value></data>
+  <data name="ChangePasswordRequired" xml:space="preserve"><value>Hãy đổi mật khẩu tạm thời để tiếp tục.</value></data>
   <data name="CurrentPassword" xml:space="preserve"><value>Mật khẩu hiện tại</value></data>
   <data name="SaveNewPassword" xml:space="preserve"><value>Đổi mật khẩu</value></data>
   <data name="ChangePasswordSuccess" xml:space="preserve"><value>Đã đổi mật khẩu. Hệ thống sẽ yêu cầu bạn đăng nhập lại.</value></data>
@@ -124,7 +124,7 @@
   <data name="AccountUnavailable" xml:space="preserve"><value>Tài khoản hiện không khả dụng.</value></data>
   <data name="AccountNotFound" xml:space="preserve"><value>Không tìm thấy tài khoản.</value></data>
   <data name="AccountNotActive" xml:space="preserve"><value>Chỉ tài khoản đang hoạt động mới thực hiện được thao tác này.</value></data>
-  <data name="PasswordRequirementHint" xml:space="preserve"><value>Tối thiểu 10 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</value></data>
+  <data name="PasswordRequirementHint" xml:space="preserve"><value>Từ 10 ký tự, có hoa, thường, số và ký tự đặc biệt.</value></data>
   <data name="BackToApplication" xml:space="preserve"><value>Quay lại ứng dụng</value></data>
   <data name="LoadLibraryDataFailed" xml:space="preserve"><value>Không thể tải dữ liệu danh mục. Vui lòng thử lại.</value></data>
   <data name="CreateRecordFailed" xml:space="preserve"><value>Không thể tạo bản ghi. Vui lòng kiểm tra dữ liệu và thử lại.</value></data>
@@ -819,12 +819,12 @@
   <data name="HistoryKpiTotalLines" xml:space="preserve"><value>Mặt hàng đã đặt</value></data>
   <data name="FullNameLong" xml:space="preserve"><value>Họ và tên</value></data>
   <data name="ConfirmPassword" xml:space="preserve"><value>Xác nhận mật khẩu</value></data>
-  <data name="LoginDescription" xml:space="preserve"><value>Nhập thông tin tài khoản GTAS để tiếp tục</value></data>
-  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Nhập email đã đăng ký. Hệ thống sẽ gửi liên kết để bạn đặt lại mật khẩu.</value></data>
-  <data name="ResetPasswordDescription" xml:space="preserve"><value>Tạo mật khẩu mới cho tài khoản của bạn.</value></data>
-  <data name="ChangePasswordDescription" xml:space="preserve"><value>Xác nhận mật khẩu hiện tại trước khi tạo mật khẩu mới.</value></data>
-  <data name="RegisterDescription" xml:space="preserve"><value>Tạo tài khoản; xác nhận email và chờ quản trị viên phê duyệt trước khi đăng nhập.</value></data>
-  <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>Vì lý do bảo mật, hệ thống luôn trả về cùng một thông báo dù email có tồn tại hay không.</value></data>
+  <data name="LoginDescription" xml:space="preserve"><value>Nhập tài khoản để tiếp tục.</value></data>
+  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Nhập email để nhận liên kết đặt lại mật khẩu.</value></data>
+  <data name="ResetPasswordDescription" xml:space="preserve"><value>Tạo mật khẩu mới.</value></data>
+  <data name="ChangePasswordDescription" xml:space="preserve"><value>Nhập mật khẩu hiện tại và mật khẩu mới.</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Xác nhận email và chờ phê duyệt.</value></data>
+  <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>Hệ thống không tiết lộ email có tồn tại hay không.</value></data>
   <data name="HistoryRequester" xml:space="preserve"><value>Người đặt</value></data>
   <data name="DepartmentSearchPlaceholder" xml:space="preserve"><value>Tìm mã đơn hoặc họ tên</value></data>
   <data name="DepartmentPeriodMetaFormat" xml:space="preserve"><value>Kỳ {0}</value></data>

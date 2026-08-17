@@ -1878,6 +1878,7 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Nếu logout cũ đến sau khi người dùng đã đăng nhập lại và cookie hiện tại mang token mới, endpoint frontend bỏ qua logout cũ và giữ phiên mới. Logout chủ động không có fingerprint vẫn thu hồi backend session và xóa cookie như trước.
 - Login form chỉ dùng submit của form, có guard `isLoading` để không gửi trùng khi Enter/click nhanh; không render lại circuit sau khi đã bắt đầu full-navigation tới `perform-login`.
 - Universal flat-button bridge chỉ áp cho Radzen action button, không áp mù lên native `<button>`. Login CTA giữ motion riêng của `ACCOUNT`; password eye dùng khung `28px`, icon `16px` và neo phía trên underline.
+- Owner correction 2026-08-17: copy toàn bộ account flow dùng câu ngắn, đủ ý; cặp điều hướng phụ luôn đặt `Quay lại đăng nhập` bên trái, hành động bổ sung bên phải và không xuống dòng ở desktop.
 
 ### 16.5 Stable grouped-header navigation — 2026-08-10
 

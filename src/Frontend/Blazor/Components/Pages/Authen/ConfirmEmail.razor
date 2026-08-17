@@ -23,13 +23,13 @@
     }
 
     <div class="vpp-login-links @(!string.IsNullOrWhiteSpace(ErrorMessage) ? string.Empty : "vpp-login-links-single")">
+        <a class="vpp-account-back-link" href="/Account/Login">
+            <VppIcon Name="@VppIcons.ArrowBack" />
+            <span>@Loc["BackToLogin"]</span>
+        </a>
         @if (!string.IsNullOrWhiteSpace(ErrorMessage))
         {
             <a href="/Account/ResendConfirmation">@Loc["ResendConfirmationLink"]</a>
         }
-        <a class="vpp-account-back-link" href="/Account/Login">
-            <VppIcon Name="@VppIcons.ArrowBack" />
-            <span>@Loc["GoToLogin"]</span>
-        </a>
     </div>
 </VppAccountWorkspace>

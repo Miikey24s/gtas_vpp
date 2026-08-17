@@ -25,7 +25,7 @@
   <data name="LoginRequestFailed" xml:space="preserve"><value>The login request could not be completed. Please try again.</value></data>
   <data name="Logout" xml:space="preserve"><value>Logout</value></data>
   <data name="SigningOut" xml:space="preserve"><value>Signing out</value></data>
-  <data name="LogoutRedirectMessage" xml:space="preserve"><value>Ending your session and returning to the login page...</value></data>
+  <data name="LogoutRedirectMessage" xml:space="preserve"><value>Signing out...</value></data>
   <data name="Username" xml:space="preserve"><value>Username</value></data>
   <data name="Password" xml:space="preserve"><value>Password</value></data>
   <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
@@ -54,7 +54,7 @@
   <data name="Export" xml:space="preserve"><value>Export</value></data>
   <data name="Loading" xml:space="preserve"><value>Loading...</value></data>
   <data name="RedirectingToAllowedWorkspace" xml:space="preserve"><value>Opening the first workspace you can access.</value></data>
-  <data name="LoginRedirectMessage" xml:space="preserve"><value>Completing sign-in...</value></data>
+  <data name="LoginRedirectMessage" xml:space="preserve"><value>Signing in...</value></data>
   <data name="ConnectionStatus" xml:space="preserve"><value>Connection status</value></data>
   <data name="ReconnectTitle" xml:space="preserve"><value>Reconnecting</value></data>
   <data name="ReconnectingToServer" xml:space="preserve"><value>The connection was interrupted. The app is restoring your session automatically.</value></data>
@@ -79,14 +79,14 @@
   <data name="ForgotPasswordAccent" xml:space="preserve"><value>password</value></data>
   <data name="SendRecoveryInstructions" xml:space="preserve"><value>Send link</value></data>
   <data name="BackToLogin" xml:space="preserve"><value>Back to Sign In</value></data>
-  <data name="RecoveryRequestAccepted" xml:space="preserve"><value>If the account exists, recovery instructions were sent to the registered email.</value></data>
+  <data name="RecoveryRequestAccepted" xml:space="preserve"><value>If the account exists, the link was sent.</value></data>
   <data name="RecoveryConnectionFailed" xml:space="preserve"><value>The server is currently unavailable. Please try again later.</value></data>
   <data name="ResetPasswordTitle" xml:space="preserve"><value>Reset</value></data>
   <data name="ResetPasswordAccent" xml:space="preserve"><value>password</value></data>
   <data name="NewPassword" xml:space="preserve"><value>New password</value></data>
   <data name="ConfirmNewPassword" xml:space="preserve"><value>Confirm new password</value></data>
   <data name="ResetPasswordAction" xml:space="preserve"><value>Reset Password</value></data>
-  <data name="ResetPasswordSuccess" xml:space="preserve"><value>Password reset. You can now sign in with the new password.</value></data>
+  <data name="ResetPasswordSuccess" xml:space="preserve"><value>Password reset.</value></data>
   <data name="ResetLinkInvalid" xml:space="preserve"><value>The reset link is invalid or expired.</value></data>
   <data name="RegisterTitle" xml:space="preserve"><value>Create account</value></data>
   <data name="CompanyEmail" xml:space="preserve"><value>Company email</value></data>
@@ -99,23 +99,23 @@
   <data name="ConfirmPasswordRequired" xml:space="preserve"><value>Please confirm your password.</value></data>
   <data name="NewPasswordRequired" xml:space="preserve"><value>Please enter a new password.</value></data>
   <data name="CurrentPasswordRequired" xml:space="preserve"><value>Please enter your current password.</value></data>
-  <data name="RegistrationAccepted" xml:space="preserve"><value>If the information is valid, the request was received and is awaiting administrator approval.</value></data>
+  <data name="RegistrationAccepted" xml:space="preserve"><value>Registration received and awaiting approval.</value></data>
   <data name="RegistrationFieldsRequired" xml:space="preserve"><value>Enter a username, email, and full name.</value></data>
   <data name="RegistrationInvalid" xml:space="preserve"><value>The registration information does not meet the account policy. Check it and try again.</value></data>
   <data name="ConfirmEmailTitle" xml:space="preserve"><value>Confirm</value></data>
   <data name="ConfirmEmailAccent" xml:space="preserve"><value>email</value></data>
-  <data name="CheckingConfirmationLink" xml:space="preserve"><value>Checking the confirmation link...</value></data>
+  <data name="CheckingConfirmationLink" xml:space="preserve"><value>Confirming...</value></data>
   <data name="GoToLogin" xml:space="preserve"><value>Go to Sign In</value></data>
   <data name="EmailConfirmed" xml:space="preserve"><value>Email confirmed.</value></data>
   <data name="ConfirmationLinkInvalid" xml:space="preserve"><value>The confirmation link is invalid or expired.</value></data>
-  <data name="ResendConfirmationTitle" xml:space="preserve"><value>Resend confirmation email</value></data>
-  <data name="ResendConfirmationDescription" xml:space="preserve"><value>Enter the email used to register the account.</value></data>
-  <data name="ResendConfirmationSafetyNote" xml:space="preserve"><value>For security, the system always returns the same response whether the account exists or not.</value></data>
-  <data name="ResendConfirmationAction" xml:space="preserve"><value>Resend email</value></data>
-  <data name="ResendConfirmationLink" xml:space="preserve"><value>Did not receive the confirmation email?</value></data>
-  <data name="ResendConfirmationAccepted" xml:space="preserve"><value>If the account is eligible and its email is not confirmed, the resend request was accepted.</value></data>
+  <data name="ResendConfirmationTitle" xml:space="preserve"><value>Resend confirmation</value></data>
+  <data name="ResendConfirmationDescription" xml:space="preserve"><value>Enter your registration email.</value></data>
+  <data name="ResendConfirmationSafetyNote" xml:space="preserve"><value>The response does not reveal whether the account exists.</value></data>
+  <data name="ResendConfirmationAction" xml:space="preserve"><value>Send email</value></data>
+  <data name="ResendConfirmationLink" xml:space="preserve"><value>Resend confirmation</value></data>
+  <data name="ResendConfirmationAccepted" xml:space="preserve"><value>Resend request received.</value></data>
   <data name="ChangePasswordTitle" xml:space="preserve"><value>Change password</value></data>
-  <data name="ChangePasswordRequired" xml:space="preserve"><value>You must change the temporary password before continuing.</value></data>
+  <data name="ChangePasswordRequired" xml:space="preserve"><value>Change the temporary password to continue.</value></data>
   <data name="CurrentPassword" xml:space="preserve"><value>Current password</value></data>
   <data name="SaveNewPassword" xml:space="preserve"><value>Change password</value></data>
   <data name="ChangePasswordSuccess" xml:space="preserve"><value>Password changed. The system will ask you to sign in again.</value></data>
@@ -124,7 +124,7 @@
   <data name="AccountUnavailable" xml:space="preserve"><value>The account is currently unavailable.</value></data>
   <data name="AccountNotFound" xml:space="preserve"><value>The account was not found.</value></data>
   <data name="AccountNotActive" xml:space="preserve"><value>Only an active account can perform this action.</value></data>
-  <data name="PasswordRequirementHint" xml:space="preserve"><value>At least 10 characters, including uppercase, lowercase, a number, and a symbol.</value></data>
+  <data name="PasswordRequirementHint" xml:space="preserve"><value>10+ characters with uppercase, lowercase, number, and symbol.</value></data>
   <data name="BackToApplication" xml:space="preserve"><value>Back to the Application</value></data>
   <data name="LoadLibraryDataFailed" xml:space="preserve"><value>Library data could not be loaded. Please try again.</value></data>
   <data name="CreateRecordFailed" xml:space="preserve"><value>The record could not be created. Check the data and try again.</value></data>
@@ -819,12 +819,12 @@
   <data name="HistoryKpiTotalLines" xml:space="preserve"><value>Items ordered</value></data>
   <data name="FullNameLong" xml:space="preserve"><value>Full name</value></data>
   <data name="ConfirmPassword" xml:space="preserve"><value>Confirm password</value></data>
-  <data name="LoginDescription" xml:space="preserve"><value>Enter your GTAS account details to continue</value></data>
-  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Enter your registered email. The system will send a link to reset your password.</value></data>
-  <data name="ResetPasswordDescription" xml:space="preserve"><value>Create a new password for your account.</value></data>
-  <data name="ChangePasswordDescription" xml:space="preserve"><value>Confirm your current password before creating a new one.</value></data>
-  <data name="RegisterDescription" xml:space="preserve"><value>Create an account, confirm its email, and wait for administrator approval before signing in.</value></data>
-  <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>For security reasons the system always returns the same message whether the email exists or not.</value></data>
+  <data name="LoginDescription" xml:space="preserve"><value>Enter your account to continue.</value></data>
+  <data name="ForgotPasswordDescription" xml:space="preserve"><value>Enter your email to receive a reset link.</value></data>
+  <data name="ResetPasswordDescription" xml:space="preserve"><value>Create a new password.</value></data>
+  <data name="ChangePasswordDescription" xml:space="preserve"><value>Enter your current and new passwords.</value></data>
+  <data name="RegisterDescription" xml:space="preserve"><value>Confirm your email and wait for approval.</value></data>
+  <data name="ForgotPasswordSafetyNote" xml:space="preserve"><value>The response does not reveal whether the email exists.</value></data>
   <data name="HistoryRequester" xml:space="preserve"><value>Requested by</value></data>
   <data name="DepartmentSearchPlaceholder" xml:space="preserve"><value>Search order code or full name</value></data>
   <data name="DepartmentPeriodMetaFormat" xml:space="preserve"><value>Period {0}</value></data>
