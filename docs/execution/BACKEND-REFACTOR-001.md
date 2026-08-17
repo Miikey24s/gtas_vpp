@@ -748,6 +748,10 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
   không phải tiêu chí tự động tách class.
 - C0 baseline/comment đã khóa ở `4032200e`; owner đã yêu cầu triển khai full plan. B3 đang chạy theo
   checkpoint nhỏ: tách orchestration import trước, sau đó mới mở rộng sang lifecycle/catalog và FR10A.
+- Checkpoint B3 hiện tại: `aa1090b0` tách mapping/batch/apply khỏi `PriceListImportService`, giữ nguyên
+  transaction và wire contract; `9b417152` tách preview/confirm ở dialog import. Service/frontend build
+  xanh; backend unit `564/564`, frontend unit `502/502`; LocalDB import characterization hiện skip khi
+  môi trường không có disposable SQL Server.
 
 - Checkpoint series hiện tại trên branch `Nam`: `d2fd8598` → `0c74f911` → `65a72d66` → `b14716b7`
   → `de0a20fb` → `e5589326`; mỗi lát giữ repository chạy được trước khi mở lát tiếp theo.

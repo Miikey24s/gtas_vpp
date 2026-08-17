@@ -566,7 +566,7 @@ dùng worktree riêng và không chạm cùng module.
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
 | FR8C | `COMPLETE — OWNER APPROVED 2026-08-04` | Golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 | FR9 | `COMPLETE — QA PASS 2026-08-13` | Stable Capability Surface đã retrofit shared contract, Admin, Requests, Operations và Analytics; frontend `434/434`, route-real `2/2 + 10/10 + 5/5`, visual representative routes đã review |
-| FR10 | `IN PROGRESS — FR10A CATALOG/PRICING` | Chỉ tách orchestration đã có characterization/build evidence; không đổi API/DTO/RBAC/motif hoặc mass-refactor UI mới |
+| FR10 | `IN PROGRESS — FR10A CATALOG/PRICING` | Đã tách preview/confirm của dialog import ở `9b417152`; tiếp tục grid/API orchestration sau khi characterization tương ứng đủ evidence; không đổi API/DTO/RBAC/motif |
 
 ### FR10 contract và thứ tự thực thi
 
