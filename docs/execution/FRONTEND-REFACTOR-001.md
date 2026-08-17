@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `FR0–FR9 COMPLETE; STABLE CAPABILITY SURFACE AUDIT PASS 2026-08-13`
+- Status: `FR0–FR9 COMPLETE; FR10 POST-FEATURE READABILITY PLANNED — AWAIT OWNER ACCEPTANCE`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -30,12 +30,12 @@
 | Quyết định thời điểm | Refactor được bắt đầu **trước** final visual acceptance; owner đã chấp thuận current runtime sau khi FR8C hoàn tất. Correction sau này vẫn tách riêng rồi refactor tiếp phần bị ảnh hưởng | [Timing contract](#plan-detail-timing) |
 | Phạm vi | Blazor/Radzen frontend, frontend tests và tài liệu đọc code; không đổi API/DTO/database/RBAC/nghiệp vụ, không khôi phục React | [Scope](#plan-detail-scope) |
 | Phương án | Giữ một project Blazor, giữ design system hiện có; tổ chức dần theo feature `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, cộng `Platform` dùng chung | [Target structure](#plan-detail-target-structure) |
-| Các bước chính | FR0 baseline tạm → FR1 cleanup dễ thấy → FR2 platform + Reports pilot → FR3 Account/System → FR4 Catalog/Pricing → FR5 Identity/Notifications → FR6 Requests read → FR7 Requests write/Settlement → FR8 shell/CSS/JS/tests/docs/final → FR9 retrofit Stable Capability Surface theo module | [Waves](#plan-detail-waves) |
-| Comment/naming | Identifier English dễ hiểu; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**; bỏ comment kể lại code, mã wave/ticket và lịch sử AI khi file được chạm | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Quota probe local tiếp tục trả `404`, nên execution phải đi theo checkpoint nhỏ và không được hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
-| Baseline hiện tại | Release build sạch; frontend unit/architecture `373/373`; 84 UI test được phát hiện. VPPRequest pages không còn generic transport/API endpoint; Requests/Settlement có owner rõ cho query, command, export, draft, editor, submission, approval và settlement mapping | [Evidence](#plan-detail-evidence) |
-| Rủi ro chính | Refactor chồng lên correction UI chưa commit; move/rename làm test path-based vỡ; feature client thành lớp wrapper vô nghĩa; CSS/JS global thay đổi visual âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Owner kiểm tra các chức năng frontend mới; phần độc lập tiếp tục theo plan hiện hành. Khi refactor chạm từng module, chạy FR9 để chuẩn hóa action disabled-vs-hidden và grid/list empty, không mass-rewrite trước lượt kiểm tra | [Continuation](#plan-detail-continuation) |
+| Các bước chính | FR0–FR9 đã xong → FR10 chỉ refactor các bề mặt mới sau acceptance: Catalog/Pricing → Period/Requests → Settlement; không mở lại global rewrite | [Waves](#plan-detail-waves) |
+| Comment/naming | Identifier English dễ hiểu; comment tiếng Việt why-only trong file được chạm; giải thích dài đặt ở Sổ tay đọc code, không comment từng component/dòng | [Readability contract](#plan-detail-readability) |
+| Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Probe live 18/08 timeout nên chỉ mở checkpoint độc lập, không hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
+| Baseline hiện tại | Baseline `b404d52f` đã full verify PASS, frontend unit/architecture `502/502`; import/cập nhật giá và suggestion NCC đã được tích hợp. FR10 vẫn cần characterization + route-real review riêng trước từng module | [Evidence](#plan-detail-evidence) |
+| Rủi ro chính | Tách orchestration làm lệch state/lifecycle; move/rename làm test path-based vỡ; feature client thành wrapper vô nghĩa; shared CSS/Radzen change làm visual hoặc popup behavior đổi âm thầm | [Risks](#plan-detail-risks) |
+| Việc làm ngay | Owner kiểm tra import/cập nhật bảng giá, kỳ/đơn và chốt kỳ. Sau khi từng nhóm đạt, FR10 refactor đúng module đó, giữ FR9 Stable Capability Surface và motif route hiện tại | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -263,6 +263,18 @@ Không dùng:
 - Mã wave/ticket, lịch sử thử-sai, “AI generated” và reference học thuật dài chuyển về execution
   record/Git/reading guide khi file được chạm.
 - Không mặc định gắn `§` luận văn trong source; mapping nằm ở `docs/CODE-READING-GUIDE.md`.
+
+#### Comment-guidance ratchet — 2026-08-18
+
+- Không thêm comment vào markup/C# chỉ để mô tả label, event hoặc API call đang hiển nhiên.
+- Chỉ comment luật nghiệp vụ, permission, cancellation/dispose, prerender/interactive lifecycle hoặc
+  workaround Radzen/DOM khó đoán.
+- Mỗi file được chạm phải xóa comment wave/ticket/AI/history trong đúng responsibility và kiểm tra comment
+  cũ còn đúng sau khi tách state/client/component.
+- Nếu giải thích dài hơn 2–3 câu, đặt luồng đầy đủ trong `docs/CODE-READING-GUIDE.md`; source chỉ giữ một
+  câu chỉ ra lý do hoặc ràng buộc.
+- Comment không thay thế tên rõ. Nếu phải comment “hàm này làm gì”, ưu tiên đổi tên internal member trong
+  cùng compatibility boundary.
 
 ### Component, class và method
 
@@ -501,6 +513,10 @@ giữ tên rõ và API nhỏ.
 
 ### Quota snapshot
 
+**Planning refresh — 2026-08-18:** probe live timeout sau 30 giây nên không dùng snapshot 13/08 để khẳng
+định capacity hiện tại. FR10 dùng `SLICE_ONLY`, reforecast trước từng checkpoint; `terra` high cho lát rõ
+contract, `sol` high/xhigh cho boundary và route-real review. Đây chỉ là khuyến nghị routing.
+
 - Local sanitized probe `Get-CLIProxyQuotaSnapshot.ps1` được chạy hai lần ngày 2026-08-02 và đều
   trả HTTP `404`; không có live coverage/capacity đáng tin cậy.
 - Không có consumption history tương ứng cho frontend refactor khoảng 40K authored LOC + browser QA.
@@ -528,6 +544,7 @@ giữ tên rõ và API nhỏ.
 | **FR7 — Requests write & Settlement** | Core thesis workflow tách theo use case nhưng behavior/mutation không đổi | Order editor session, draft store/autosave, submission coordinator, step components; supplement approval; settlement query/preview/confirm/correct/export; cancellation/dispose | `gpt-5.6-sol` xhigh, `terra` high implement | 15–38% | OrderCreate, OrderManagement, DS3, pending workspace, ExportDownload; API/DB observable outcome; idempotency/draft/recreate/correction parity |
 | **FR8 — Global hardening & final acceptance** | Xóa owner cạnh tranh còn lại, hoàn tất test/docs và owner duyệt UI cuối qua ba checkpoint tách biệt | FR8A shell/shared/CSS/JS → FR8B test-only cleanup → FR8C route/docs/final acceptance | `gpt-5.6-sol` xhigh | 10–25% | Mỗi checkpoint có commit/gate riêng; golden chỉ sau FR8C owner approval |
 | **FR9 — Stable Capability Surface retrofit** | Người dùng luôn thấy cùng cấu trúc chức năng và data surface; action chưa dùng được hiện mờ có lý do thay vì biến mất, empty không làm layout đổi hình | Audit action manifest + empty-state matrix; bổ sung typed disabled reason; retrofit theo thứ tự Admin → Requests → Operations → Analytics; không đổi API/RBAC/nghiệp vụ | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high checkpoint review | 15–40%; safety envelope 65% | Mỗi module: permission matrix + business-state matrix + base/filtered/error state; architecture + focused route + route-real responsive pass trước module kế |
+| **FR10 — Post-feature readability** (`PLANNED`) | Các UI mới dễ đọc và có owner rõ mà không đổi behavior hoặc motif | **FR10A:** Catalog/Pricing import/template/export/dialog; **FR10B:** Period/Requests page-state và action orchestration; **FR10C:** Settlement panel/preview/revision/supplier suggestion. Comment why-only và migrate-on-touch | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high/xhigh boundary review | Reforecast theo checkpoint | Characterization/focused tests; motif parity; route-real `390×844`, `768×1024`, `1366×768`, `1920×1080`; VI/EN, Light/Dark, keyboard/focus |
 
 Một implementer chính giữ context. Reviewer/subagent chỉ audit/verify độc lập; agent cùng sửa source phải
 dùng worktree riêng và không chạm cùng module.
@@ -551,6 +568,19 @@ dùng worktree riêng và không chạm cùng module.
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
 | FR8C | `COMPLETE — OWNER APPROVED 2026-08-04` | Golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 | FR9 | `COMPLETE — QA PASS 2026-08-13` | Stable Capability Surface đã retrofit shared contract, Admin, Requests, Operations và Analytics; frontend `434/434`, route-real `2/2 + 10/10 + 5/5`, visual representative routes đã review |
+| FR10 | `PLANNED — AWAIT MODULE ACCEPTANCE` | Chỉ mở FR10A/B/C khi checklist backend cùng module đạt; không mass-refactor UI mới trước khi owner kiểm tra behavior |
+
+### FR10 contract và thứ tự thực thi
+
+1. **FR10A — Catalog/Pricing:** tách orchestration của file template, analyze/preview/confirm và export khỏi
+   dialog/grid khi characterization đã khóa; giữ motif `COLLECTION`, `FILTER-TOOLBAR`, `DATA-FRAME`,
+   `DIALOG-EDITOR`, `CONTENT-STATE`.
+2. **FR10B — Period/Requests:** tách route/page state, query, mutation và action availability; giữ FR9 stable
+   capability surface, date/period selector và mọi route/query hiện tại.
+3. **FR10C — Settlement:** tách load/filter/aggregate/preview/confirm/correction/supplier suggestion theo use
+   case; giữ motif `OPERATION`, `SELECTOR-DECISION`, `DATA-FRAME`, `DIALOG-EDITOR`, `TRANSIENT`.
+4. Mỗi checkpoint chỉ comment responsibility đang chạm; không tạo universal component/client/state chỉ để
+   giảm số dòng.
 
 ### FR9 contract và thứ tự thực thi
 
@@ -768,6 +798,7 @@ file path hoặc sơ đồ kiến trúc cuối trước khi frontend/backend ref
 | FE-D6 | `APPROVED 2026-08-04` | Correction thành công bắt buộc `Xem trước lại`; preview mới tạo snapshot và idempotency key mới trước correction tiếp theo |
 | FE-D7 | `APPROVED 2026-08-04` | Chấp thuận current authenticated runtime + final board; raw English reason là localization backlog riêng; golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 | FE-D8 | `APPROVED 2026-08-13` | Áp dụng `Stable Capability Surface` toàn frontend theo FR9: cùng entity/cùng quyền giữ action group ổn định; unavailable do nghiệp vụ thì disabled, thiếu quyền thì hidden; grid/list empty giữ nguyên frame/toolbar/cột/footer và không có fake-row hover |
+| FE-D9 | `PLANNED — AWAIT OWNER REVIEW 2026-08-18` | FR10 refactor các bề mặt mới theo Catalog/Pricing → Period/Requests → Settlement; comment tiếng Việt why-only, giữ nguyên motif và behavior |
 
 FE-D2..D8 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
 
@@ -775,6 +806,11 @@ FE-D2..D8 là authority cho implementation hiện tại; thay đổi material c�
 
 ## 15. Continuation note
 
+- Planning baseline mới: branch `Nam` tại `b404d52f` ngày 2026-08-18. FR10 chỉ áp dụng cho code mới sau
+  FR9, đặc biệt import/cập nhật giá bằng Excel và suggestion tối đa hai NCC; FR0–FR9 không bị mở lại.
+- Hotspot frontend hiện tại gồm `PeriodSettlementPanel.razor.cs` 1145 dòng,
+  `Page_OrderCreate.razor.cs` 821 và `HistoryOrderWorkspaceTabBase.cs` 811. Số dòng chỉ giúp chọn nơi cần
+  characterization; việc tách phải dựa trên use case/lifecycle/test seam.
 - Current status: **FR0–FR9, core mutation E2E, correction UX A và owner final visual acceptance đã hoàn tất**. FR9 đã được audit bổ sung ngày 2026-08-13: typed state và canonical empty template được khóa bằng architecture test; Report, Create Order và lịch sử cấu hình kỳ giữ nguyên data-surface shell khi rỗng. Golden artifact chưa tạo và không block backend.
 - FR0 start point: `codex/ai-agent-foundation` @ `c6ca07bd`.
 - Pre-existing dirty files ngoài plan docs: AI-harness, LVTN DOCX, `vpp-polish.css`,

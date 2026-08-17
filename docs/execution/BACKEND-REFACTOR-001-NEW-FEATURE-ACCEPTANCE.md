@@ -32,7 +32,7 @@ Nếu có lỗi, ghi ngắn trang, kỳ/đơn/bảng giá đã dùng và ảnh c
 | ID | Thao tác kiểm tra | Kết quả mong đợi | Kết quả | Ghi chú |
 |---|---|---|---|---|
 | S01 | Mở trang **Chốt kỳ** và chọn kỳ | Dữ liệu tải đúng kỳ; tổng theo phòng ban/người đặt/mặt hàng khớp nhau |  |  |
-| S02 | Chọn nhà cung cấp và bảng giá | Đơn giá, tạm tính, VAT và tổng giá trị cập nhật nhất quán |  |  |
+| S02 | Chọn nhà cung cấp/bảng giá hoặc dùng gợi ý | Đơn giá, VAT và tổng giá trị nhất quán; gợi ý dùng tối đa 2 NCC, mỗi mặt hàng thuộc trọn một NCC, chỉ tính giá + VAT và không tự áp dụng |  |  |
 | S03 | Chốt kỳ sớm khi vẫn trong thời gian cho phép | Có cảnh báo dễ hiểu; kết quả chốt tạo bản đầu tiên và không làm sai hạn đơn bổ sung tính từ ngày đóng |  |  |
 | S04 | Xem bản đã chốt | Số liệu là ảnh chụp tại lúc chốt; đổi bảng giá hiện tại không làm đổi bản cũ |  |  |
 | S05 | Tạo yêu cầu hiệu chỉnh sau chốt | Bắt buộc có lý do; người tạo không thể tự xác nhận bước thứ hai |  |  |
@@ -44,12 +44,12 @@ Nếu có lỗi, ghi ngắn trang, kỳ/đơn/bảng giá đã dùng và ảnh c
 
 | ID | Thao tác kiểm tra | Kết quả mong đợi | Kết quả | Ghi chú |
 |---|---|---|---|---|
-| R01 | Tạo bảng giá mới | Bảng giá có hiệu lực ngay theo quy tắc hiện tại, không có bước nháp/công bố thừa |  |  |
-| R02 | Import file mẫu có cột rõ ràng | Preview nhận đúng cột/mặt hàng/đơn giá trước khi xác nhận |  |  |
-| R03 | Import file có tên cột khác mẫu | Có thể tự map thủ công; gợi ý AI chỉ hỗ trợ, không tự ghi dữ liệu sai |  |  |
-| R04 | Tắt/thiếu AI key hoặc AI trả lỗi | Import thủ công vẫn dùng được và có thông báo phù hợp |  |  |
-| R05 | File có mã hàng lạ, dòng trùng, giá sai hoặc thiếu | Dòng lỗi được chỉ rõ; không import nửa chừng ngoài lựa chọn đã xác nhận |  |  |
-| R06 | Xác nhận import hợp lệ | Số mặt hàng và giá đúng preview; có bằng chứng người nhập và nguồn file |  |  |
+| R01 | Tạo bảng giá mới | Bảng giá có hiệu lực ngay; phương thức mặc định là thủ công, không có bước nháp/công bố thừa |  |  |
+| R02 | Tải file mẫu từ một bảng giá | File có sẵn mã hệ thống, tên mặt hàng, đơn vị và giá hiện tại để chỉ cần sửa giá |  |  |
+| R03 | Cập nhật giá bằng Excel, để trống một vài ô giá | Preview hiển thị đúng thay đổi; ô trống giữ giá cũ, không biến thành 0 |  |  |
+| R04 | File có mã lạ, sai đơn vị, dòng trùng hoặc giá không hợp lệ | Dòng lỗi được chỉ rõ và bị chặn; hệ thống không tự tạo mặt hàng mới hoặc import nửa chừng |  |  |
+| R05 | File có tên cột khác mẫu | Có bước mapping/preview rõ; mapping thủ công vẫn dùng được, AI nếu bật chỉ hỗ trợ và không tự ghi dữ liệu |  |  |
+| R06 | Xác nhận file hợp lệ | Số mặt hàng và giá đúng preview; lịch sử ghi nguồn Excel, người thực hiện và thời điểm |  |  |
 | R07 | Đặt bảng giá mặc định, vô hiệu hóa và thử xóa | Action đúng trạng thái; dữ liệu đang được dùng không bị xóa sai |  |  |
 | R08 | Dùng bảng giá vừa import ở trang Chốt kỳ | Danh sách chọn và tổng tiền dùng đúng dữ liệu mới |  |  |
 

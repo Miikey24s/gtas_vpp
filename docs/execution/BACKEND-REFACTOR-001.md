@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: PRE-ACCEPTANCE LEGACY SLICES COMPLETE — NEW FEATURE ACCEPTANCE NEXT
+- Status: B0R–B2 COMPLETE — POST-FEATURE COMMENT/REFACTOR PLAN READY; B3–B5 AWAIT OWNER ACCEPTANCE
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -8,7 +8,7 @@
 - Branch: `Nam`
 - Base commit: `46560f6020824cbea9e02bcb8bb06131f1efd501`
 - Planned at: `2026-07-29T05:17:46+07:00`
-- Refreshed through: pre-acceptance checkpoint series ending at `e5589326` on `2026-08-13`
+- Refreshed through: post-feature baseline `b404d52f` on `2026-08-18`
 - Related authority: `AGENTS.md`, `src/Backend/AGENTS.md`,
   `docs/architecture/ARCH-001-MODULE-MAP.md`,
   [`BACKEND-REFACTOR-001-B0R-LEDGER.md`](./BACKEND-REFACTOR-001-B0R-LEDGER.md)
@@ -19,6 +19,9 @@
   2026-08-13 owner chọn hướng mới: refactor vùng cũ độc lập trước, giữ nguyên vùng chức năng mới để
   kiểm tra thực tế, sau đó mới refactor vùng mới. Execution sequencing mới trong record này đã được
   owner duyệt trước khi sửa production code.
+- Planning refresh 2026-08-18: bổ sung comment tiếng Việt theo kiểu hướng dẫn **vì sao**, cập nhật
+  baseline cho import/cập nhật bảng giá bằng Excel và gợi ý tối đa hai nhà cung cấp. Đây là plan; chưa
+  cho phép đổi behavior, API, DTO hoặc schema.
 
 <a id="plan-overview"></a>
 
@@ -29,12 +32,12 @@
 | Kết quả cần đạt | Backend vẫn chạy y như hiện tại nhưng người mới có thể lần từ API → use case → database nhanh, tên dễ hiểu, class có trách nhiệm rõ, không còn rác đã chứng minh | [Objective](#plan-detail-objective) |
 | Phạm vi | `src/Backend`, backend tests và tài liệu đọc code; không redesign UI, không đổi API/JSON/quyền/nghiệp vụ/schema | [Scope](#plan-detail-scope) |
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
-| Các bước chính | Đã xong B0R/B1 → khóa ranh giới cũ/mới/giao nhau → refactor **Reports cũ, chỉ đọc** → owner kiểm tra chức năng mới → sửa bug nghiệp vụ riêng → refactor Catalog/Pricing → Period/Requests → Settlement/Correction → Identity/Platform/Persistence | [Waves](#plan-detail-waves) |
-| Comment/naming | Identifier English, ưu tiên từ đầy đủ và từ vựng nghiệp vụ; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc**, không mặc định gắn số mục luận văn vào source | [Readability contract](#plan-detail-readability) |
-| Model/quota routing | Snapshot gần nhất 13/08 còn `1222%` weekly aggregate, 13/14 account khả dụng nhưng thiếu coverage 5 giờ. Dùng `gpt-5.6-terra` high cho lát refactor rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; checkpoint nhỏ và đo lại tại ranh giới wave | [Routing](#plan-detail-routing) |
+| Các bước chính | Đã xong B0R–B2 → C0 khóa baseline/comment → owner nghiệm thu từng nhóm → B3 Catalog/Pricing → B4 Period/Requests → B5 Settlement/Correction → B6 Identity → B7 Platform → B8 Persistence/final | [Waves](#plan-detail-waves) |
+| Comment/naming | Identifier English; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc** trong responsibility đang chạm. Không comment từng dòng, không biến source thành giáo trình; phần giải thích dài đặt ở Sổ tay đọc code | [Readability contract](#plan-detail-readability) |
+| Model/quota routing | Probe live 18/08 bị timeout nên capacity chưa được xác nhận. Khuyến nghị `gpt-5.6-terra` high cho lát rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; chỉ mở checkpoint độc lập và đo lại trước wave kế | [Routing](#plan-detail-routing) |
 | Kiểm tra | Mỗi checkpoint khóa route/permission/JSON trước, chạy focused test trong vòng lặp và full backend gate trước commit. Chức năng mới chỉ chuyển từ `FROZEN` sang `ACCEPTED` sau checklist thực tế của owner và regression test tương ứng | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Gọi code là “cũ” nhưng vẫn dùng chung period/settlement/pricing mới; refactor vô tình hợp thức hóa bug chưa nghiệm thu; `VPPContext`, Shared DTO, seed và `Program.cs` gây ảnh hưởng xuyên module | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Các lát cũ độc lập trước acceptance đã hoàn tất. Owner chạy checklist Period → Settlement/Correction → Price import/AI một lượt; nhóm nào `PASS` sẽ được mở refactor tiếp mà không phải chờ toàn hệ thống | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Ghi nhận baseline/comment bằng C0; owner kiểm tra Catalog/Pricing, Period/Requests và Settlement theo checklist. Nhóm nào `PASS` được mở refactor riêng; bug phải sửa ở change-set feature trước | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -188,6 +191,26 @@ Không mặc định ghi `§2.3...` trong source. Mapping tới luận văn nằ
 nếu thiếu tài liệu ngoài source. Không để comment kiểu “AI generated”, lịch sử thử-sai hoặc TODO không
 có owner/task.
 
+#### Comment-guidance ratchet — 2026-08-18
+
+Mục tiêu là giúp owner đọc được **quyết định khó đoán**, không phủ comment lên toàn bộ code:
+
+1. Chỉ thêm hoặc sửa comment trong responsibility đang được refactor; không chạy mass-comment toàn repo.
+2. Ưu tiên tối đa một comment ngắn ngay trước rule cần giải thích. Nếu cần nhiều hơn 2–3 câu, chuyển phần
+   giải thích sang `docs/CODE-READING-GUIDE.md` và để source tự nói bằng tên class/method.
+3. Bắt buộc xem xét comment tại năm nhóm: invariant nghiệp vụ; quyền/security; transaction/concurrency/
+   idempotency; compatibility/recovery/dữ liệu lịch sử; lifecycle/workaround framework khó đoán.
+4. Khi chạm code, xóa comment chỉ kể lại câu lệnh, số mục luận văn, mã wave/ticket hoặc lịch sử AI/thử-sai.
+5. Review theo changed-file ratchet: comment còn đúng với code, ngắn, dùng thuật ngữ nghiệp vụ thống nhất
+   và không che một tên method/class đang khó hiểu.
+
+Ví dụ dự kiến cho các wave mới:
+
+```csharp
+// Ô giá trống nghĩa là giữ giá hiện tại, không phải đặt giá về 0.
+// Gợi ý chỉ hỗ trợ lựa chọn; quản lý vẫn phải xác nhận phương án chốt.
+```
+
 ### Class/method
 
 - Một class có một nhóm trách nhiệm cohesive và một lý do thay đổi chính.
@@ -248,7 +271,7 @@ test chứng minh nó không ghi hoặc điều khiển lifecycle mới.
 | Nhóm | Trạng thái hiện tại | Phạm vi | Quy tắc trước owner acceptance |
 |---|---|---|---|
 | **Ổn định cũ** | `COMPLETE_PRE_ACCEPTANCE` | Reports query/export/insight; Notifications; primitive file/config/time/QA và API middleware/design-time factory | Đã refactor theo checkpoint nhỏ, giữ nguyên route, scope, DTO, bytes export, namespace và business behavior |
-| **Chức năng mới** | `FROZEN` | rolling order periods; sửa/gia hạn/đóng/mở kỳ; post-close adjustment window; settlement reopen guard; hiệu chỉnh đơn sau chốt; import bảng giá; AI gợi ý mapping cột | Chỉ sửa bug owner phát hiện hoặc test bảo vệ; không rename/move/split/generalize trước acceptance |
+| **Chức năng mới** | `FROZEN` | rolling order periods; sửa/gia hạn lịch; post-close adjustment window; hiệu chỉnh đơn sau chốt; import/cập nhật bảng giá bằng Excel; gợi ý tối đa hai nhà cung cấp khi chốt kỳ | Chỉ sửa bug owner phát hiện hoặc test bảo vệ; không rename/move/split/generalize trước acceptance |
 | **Vùng giao nhau** | `FROZEN` | `VPPRequestService`, `VPPRequestController`, `VppPeriodService`, `PeriodSettlementService`, `ReportService` phần đọc `Settlement`, `LibraryController`, `VPPContext`, `Program.cs`, Shared VPP/Library DTO và seed/demo | Không refactor trong wave cũ. Nếu B2 Reports cần chạm, giữ đoạn integration tại chỗ và coi đó là compatibility adapter |
 | **Nền tảng rủi ro cao** | `DEFERRED` | `PermissionController`, generic repository/controller, auth/bootstrap, hai DbContext, migration/model snapshot, database initialization | Làm sau các module nghiệp vụ; thay đổi DB phải chuyển sang task dùng skill DB safety |
 
@@ -262,10 +285,10 @@ Owner kiểm tra theo luồng thật; agent ghi lại từng kết quả `PASS`,
 
 1. **Kỳ đặt hàng:** tự mở nhiều kỳ, chọn kỳ đặt, sửa/gia hạn lịch, đóng/mở lại đúng quyền và đúng mốc thời gian.
 2. **Chốt kỳ:** chọn NCC/bảng giá, tổng tiền trước VAT/VAT/tổng giá trị, xem theo phòng ban/người đặt/mặt hàng,
-   chốt sớm và thời gian hiệu chỉnh sau đóng kỳ.
+   chốt sớm, thời gian hiệu chỉnh và gợi ý tối đa hai NCC không tự áp dụng.
 3. **Sau chốt:** xem bản đã lưu, tạo hiệu chỉnh, quy tắc hai quản lý, không cho sửa trực tiếp dữ liệu đã chốt.
-4. **Bảng giá/import:** tạo bảng giá có hiệu lực, preview file, mapping cột thủ công/AI, confirm import,
-   duplicate/error handling và lịch sử import.
+4. **Bảng giá/import:** tạo bảng giá có hiệu lực; file mẫu có sẵn mã/tên/đơn vị/giá hiện tại; ô giá trống
+   giữ giá cũ; mã lạ hoặc sai đơn vị bị chặn; mapping thủ công là mặc định, AI chỉ là hỗ trợ tùy chọn.
 5. **Regression:** đơn thường, đơn bổ sung, phân quyền và báo cáo/export vẫn hoạt động với kỳ đã chốt.
 
 Sau khi owner xác nhận, lỗi được sửa trong task feature riêng và focused tests xanh, module tương ứng mới
@@ -364,6 +387,15 @@ src/Backend/
 
 ## 7. Model, effort và quota routing
 
+### Refresh 2026-08-18
+
+- Probe local đã chạy nhưng timeout sau 30 giây, vì vậy không dùng snapshot 13/08 để tuyên bố capacity live.
+- Kết luận hiện tại là `SLICE_ONLY`: đủ để lập plan và chỉ mở từng checkpoint độc lập sau acceptance;
+  force-refresh và reforecast trước mỗi wave production.
+- Khuyến nghị routing: `gpt-5.6-sol` high/xhigh cho boundary, business ambiguity và final review;
+  `gpt-5.6-terra` high cho implementation đã có characterization test. Đây chỉ là khuyến nghị, không có
+  nghĩa model root đã tự đổi.
+
 ### Refresh 2026-08-13
 
 - Probe local force-refresh lúc `2026-08-13T00:17:00Z`: `14` account có weekly coverage, `13` khả dụng,
@@ -427,11 +459,12 @@ src/Backend/
 | **B1a-2b2 — COMPLETE 2026-08-04** | Xóa legacy code/config sau khi request service không còn consumer | Đã xóa BaseServices/factory/resolver/Jira chain; cập nhật Program/appsettings/helper/routing tests; giữ framework runtime dependencies | `gpt-5.6-terra` high, review `sol` xhigh | Actual aggregate checkpoint `21%` | Consumer search 0; focused `41/41`; backend `503/503`; full verify + review PASS |
 | **B1b-A — COMPLETE 2026-08-04** | Repo metadata không còn duplicate/ghost/stale command file | Đã xóa nested Git metadata, stale API readme và ghost csproj include | `gpt-5.6-terra` medium | Actual aggregate checkpoint `34%` | Ignore/attr/XML/API build; backend `503/503`; full verify PASS |
 | **B1b-B — COMPLETE 2026-08-04** | `.http` dùng route hiện hành, không credential/mutation | Health + authenticated read-only examples với bearer/order placeholders; không đụng local artifacts | `gpt-5.6-terra` medium | Actual aggregate checkpoint `4%` | GET-only/no-secret scan; manifest `1/1`; API build PASS |
-| **B2 — Reports cũ, chỉ đọc** (`COMPLETE 2026-08-13`) | Chốt pattern module ở vùng ít mutation nhất mà không thay đổi nghiệp vụ mới | B2F khóa validation/current revision/scope; B2A có `ReportQueryContext`, settlement reader và CSV builder; B2B có `Api/Features/Reports` + `AddReportsModule`; B2C đã handoff vào code-reading guide | `gpt-5.6-terra` high implement, review `gpt-5.6-sol` high | Chưa có đo aggregate riêng đáng tin cậy | Focused 51/51; backend 543/543; frontend client 6/6; disposable SQL 24/24; EF zero delta; formatter/analyzer scoped PASS. Full verify chỉ còn blocker encoding migration import ngoài B2 |
-| **UAT-N — Owner kiểm tra chức năng mới** | Xác nhận hành vi thật trước khi refactor module mới | Period, chốt kỳ, correction sau chốt, price-list import và AI mapping; phân loại `PASS/BUG/UI/BUSINESS DECISION` | Owner chạy luồng thật; agent dùng `gpt-5.6-sol` high khi phân tích bug khó | Không tính như production refactor | Checklist acceptance hoàn tất theo từng module; bug fix commit riêng và regression test xanh |
-| **B3 — Catalog & Pricing** (`FROZEN` đến khi pricing accepted) | Typed read/write/import paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, price resolver, import parser/workflow, AI mapping boundary; retire generic writes từng consumer | `gpt-5.6-sol` high design/review, `terra` high implement | Reforecast sau UAT | Consumer ledger 0; price/import/AI fallback tests; LocalDB parity; permission parity |
+| **B2 — Reports cũ, chỉ đọc** (`COMPLETE 2026-08-13`) | Chốt pattern module ở vùng ít mutation nhất mà không thay đổi nghiệp vụ mới | B2F khóa validation/current revision/scope; B2A có `ReportQueryContext`, settlement reader và CSV builder; B2B có `Api/Features/Reports` + `AddReportsModule`; B2C đã handoff vào code-reading guide | `gpt-5.6-terra` high implement, review `gpt-5.6-sol` high | Chưa có đo aggregate riêng đáng tin cậy | Focused 51/51; backend 543/543; frontend client 6/6; disposable SQL 24/24; EF zero delta; formatter/analyzer scoped PASS. Baseline `b404d52f` sau đó đã full verify PASS |
+| **C0 — Post-feature baseline & comment ledger** (`PLANNED`) | Khóa hành vi và điểm cần giải thích trước khi tách module mới | Docs/test-only: cập nhật hotspot, API/use-case owner, characterization gap và comment candidate theo năm nhóm why-only; không sửa production | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | Reforecast trước execution | No production diff; focused characterization mới xanh; comment ledger liên kết reading guide; full gate chỉ chạy nếu test/shared contract bị chạm |
+| **UAT-N — Owner kiểm tra chức năng mới** | Xác nhận hành vi thật trước khi refactor module mới | Period/Requests, Settlement/Correction + suggestion tối đa 2 NCC, price-list thủ công/Excel; phân loại `PASS/BUG/UI/BUSINESS DECISION` | Owner chạy luồng thật; agent dùng `gpt-5.6-sol` high khi phân tích bug khó | Không tính như production refactor | Checklist acceptance hoàn tất theo từng module; bug fix commit riêng và regression test xanh |
+| **B3 — Catalog & Pricing** (`FROZEN` đến khi pricing accepted) | Typed read/write/import paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, template/export, analyze-preview-confirm import; khóa rule ô giá trống giữ giá cũ, mã lạ/sai đơn vị bị chặn, thủ công mặc định; AI mapping chỉ là adapter tùy chọn | `gpt-5.6-sol` high design/review, `terra` high implement | Reforecast sau UAT | Consumer ledger 0; manual/Excel/import error tests; LocalDB parity; permission parity |
 | **B4 — Period & Requests** (`FROZEN` đến khi period/request accepted) | Tách lifecycle kỳ khỏi god request service mà giữ nguyên toàn bộ luồng đơn | Period query/schedule/lifecycle trước; sau đó request query/history, create-update-cancel, supplement workflow, demand và notification boundary | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | Reforecast sau UAT | Schedule/time boundary, idempotency/concurrency/revision/history, route/auth/JSON và focused LocalDB |
-| **B5 — Settlement & post-settlement correction** (`FROZEN` đến khi settlement accepted) | Preview/confirm/revision/correction rõ theo use case | `PeriodSettlementService`, snapshot pricing/evidence, correction hai quản lý, notification và revision query; không mở lại nghiệp vụ đã bị owner loại | `gpt-5.6-sol` xhigh, `terra` high implement | Reforecast sau UAT | Snapshot/hash/idempotency/four-eyes/VAT/revision tests; SQL Server integration; no schema delta |
+| **B5 — Settlement & post-settlement correction** (`FROZEN` đến khi settlement accepted) | Preview/confirm/revision/correction và gợi ý NCC rõ theo use case | `PeriodSettlementService`, snapshot pricing/evidence, suggestion tối đa hai NCC, correction hai quản lý, notification và revision query; không mở lại nghiệp vụ đã bị owner loại | `gpt-5.6-sol` xhigh, `terra` high implement | Reforecast sau UAT | Snapshot/hash/idempotency/four-eyes/VAT/revision; whole-item allocation, no-auto-apply; SQL Server integration; no schema delta |
 | **B6 — Identity & Access** | Security logic có ownership rõ, controller không query context | `PermissionController`, `AccountLifecycleService`, `MembershipAdministrationService`, `AuthBootstrapProvisioner`; giữ `Api/Authorization` là owner hiện hữu cho đến khi move thật sự cải thiện navigation, không mass-move để khớp cây mẫu | `gpt-5.6-sol` xhigh, `terra` high implement | 10–25% | Role/action/scope matrix; direct API 401/403; session invalidation; bootstrap/reconciliation; no secret/log regression |
 | **B7 — Platform, composition & operations** | `Program.cs`/hosting/logging dễ đọc mà không đổi deployment behavior | Mỗi B2–B6 đã sở hữu `Add<Module>()`; B7 chỉ compose, tách DB init runner, cấu hình log path với Development/migrator/production contract, worker/notification/platform cleanup | `gpt-5.6-sol` high/xhigh | 5–12% | Composition-root smoke; deployment/log-volume contract; worker tests; all module registrations resolve |
 | **B8 — Persistence mapping & final review** | Giảm mapping drift hoặc ghi nhận waiver có bằng chứng; hoàn tất guide/adapters | DB-safety checkpoint riêng cho shared `IEntityTypeConfiguration<T>` nếu zero-delta; xóa adapter hết consumer; namespace/folder cleanup; final code-reading review | `gpt-5.6-sol` xhigh | 5–12% | All current opt-in LocalDB tests pass, 0 skip/fail; fresh migrate/reseed/reset; EF no delta; full backend verify; route/wire/dependency manifest |
@@ -654,24 +687,22 @@ recovery chuyển sang DB execution record có backup/restore/forward-correction
 
 ## 12. Thứ tự thực thi hiện hành
 
-### Current sequencing — refreshed 2026-08-13
+### Current sequencing — refreshed 2026-08-18
 
-Đây là sequencing được khuyến nghị sau khi codebase đã có thêm rolling periods, correction sau chốt và
-price-list import/AI mapping:
+Đây là sequencing được khuyến nghị sau khi codebase đã có rolling periods, correction sau chốt,
+import/cập nhật bảng giá bằng Excel và gợi ý tối đa hai nhà cung cấp:
 
-1. **B2F Reports freeze/characterization:** test/docs-only, xác định chính xác đoạn Reports giao với
-   Settlement mới; không sửa production.
-2. **B2A–B2C Reports:** refactor vùng read-only độc lập, commit nhỏ; không đụng rule của kỳ, pricing,
-   request mutation hoặc settlement correction.
-3. **UAT-N owner acceptance:** owner kiểm tra lần lượt Period → Settlement/Correction → Price import/AI.
-   Có thể làm song song về thời gian với B2, nhưng mọi bug được sửa ở task/commit feature riêng.
-4. **B3 Catalog/Pricing:** chỉ mở khi checklist pricing/import đạt acceptance; refactor cả import và AI
-   mapping như boundary tùy chọn, không đưa AI vào core business rule.
-5. **B4 Period & Requests:** refactor period lifecycle trước, sau đó tách request query/command/supplement;
+1. **C0 — baseline/comment ledger:** docs/test-only; cập nhật hotspot, characterization gap và comment
+   candidate theo năm nhóm why-only. Không sửa production behavior.
+2. **UAT-N owner acceptance:** owner kiểm tra độc lập Catalog/Pricing, Period/Requests và
+   Settlement/Correction. Bug được sửa ở task/commit feature riêng.
+3. **B3 Catalog/Pricing:** chỉ mở khi checklist pricing/import đạt acceptance; refactor template/export,
+   analyze-preview-confirm và giữ AI mapping ngoài core business rule.
+4. **B4 Period & Requests:** refactor period lifecycle trước, sau đó tách request query/command/supplement;
    vì hai vùng đang phụ thuộc trực tiếp nên không tách request cũ trước period acceptance.
-6. **B5 Settlement/Correction:** làm sau B3+B4 để dùng boundary pricing/period ổn định; giữ immutable
-   settlement revision và four-eyes correction.
-7. **B6–B8:** Identity/Access → Platform/composition → Persistence/final review. Không đưa `Program.cs`,
+5. **B5 Settlement/Correction:** làm sau B3+B4 để dùng boundary pricing/period ổn định; giữ immutable
+   settlement revision, four-eyes correction và suggestion không tự áp dụng.
+6. **B6–B8:** Identity/Access → Platform/composition → Persistence/final review. Không đưa `Program.cs`,
    Shared DTO, generic repository/controller hoặc hai DbContext vào wave sớm.
 
 Phương án này là best practice phù hợp nhất với repository hiện tại, không phải quy tắc tuyệt đối cho mọi
@@ -693,6 +724,7 @@ tận dụng thời gian để xử lý module cũ thực sự độc lập.
 | B2-D1 | SUPERSEDED 2026-08-13 | Capacity gate cũ đã được refresh; sequencing mới dùng B2F/B2A và freeze vùng mới | Snapshot mới + owner đổi thứ tự |
 | BR-D4 | APPROVED/IN FORCE 2026-08-13 | Refactor vùng cũ độc lập trước; chức năng mới `FROZEN` đến khi owner acceptance; vùng giao nhau không refactor sớm | Owner: “làm full plan... phần nào làm trước được thì cứ làm trước” |
 | BR-D5 | APPROVED/IN FORCE 2026-08-13 | Bug fix và refactor là change-set riêng; module mới mở khóa từng phần, không cần chờ nghiệm thu toàn hệ thống | Owner yêu cầu chạy liên tục, không chờ từng turn |
+| BR-D6 | PLANNED — AWAIT OWNER REVIEW 2026-08-18 | Comment tiếng Việt theo why-only changed-file ratchet; refactor tiếp theo C0 → B3 → B4 → B5 → B6–B8 | Owner yêu cầu lên plan comment code và tiếp tục refactor |
 
 B0R/B1 giữ nguyên bằng chứng hoàn tất. BR-D4/BR-D5 đã được owner duyệt; agent tiếp tục checkpoint an toàn
 không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/database boundary thật sự.
@@ -701,12 +733,22 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
 
 ## 14. Continuation note
 
+- Baseline plan hiện tại là branch `Nam` tại `b404d52f` ngày 2026-08-18. Change-set này đã có import/cập
+  nhật giá từ file mẫu điền sẵn, giữ giá cũ khi ô giá trống, chặn mã lạ/sai đơn vị và gợi ý tối đa hai NCC
+  theo giá + VAT; suggestion không tự áp dụng.
+- Hotspot đo lại, bỏ qua generated migrations: `VPPRequestService` 2771 dòng, `DemoWorkbookSeeder` 1581,
+  `PeriodSettlementService` 1540, `VPPRequestController` 1226, `LibraryController` 1153,
+  `VppPeriodService` 1066, `AccountLifecycleService` 1028. LOC chỉ định hướng characterization và ownership,
+  không phải tiêu chí tự động tách class.
+- C0 là lát duy nhất có thể làm trước owner acceptance mà không đổi production: cập nhật ledger, bổ sung
+  characterization test còn thiếu và đánh dấu comment candidate. B3–B5 vẫn chờ checklist tương ứng.
+
 - Checkpoint series hiện tại trên branch `Nam`: `d2fd8598` → `0c74f911` → `65a72d66` → `b14716b7`
   → `de0a20fb` → `e5589326`; mỗi lát giữ repository chạy được trước khi mở lát tiếp theo.
 - B0R/B1 cleanup đã hoàn tất trước đó. Từ sau mốc 04/08, backend đã thêm standalone supplements,
-  rolling periods, settlement reopen/correction window, post-settlement correction, price-list import và AI
-  column mapping; vì vậy các execution card B3–B5 cũ không còn được chạy nguyên trạng.
-- Current hotspot snapshot: `VPPRequestService` khoảng 2570 dòng, `PeriodSettlementService` 1366,
+  rolling periods, correction sau chốt và price-list import; scope tiếp tục phát triển đến baseline
+  `b404d52f`, vì vậy các execution card B3–B5 cũ không còn được chạy nguyên trạng.
+- Historical hotspot snapshot 13/08: `VPPRequestService` khoảng 2570 dòng, `PeriodSettlementService` 1366,
   `VppPeriodService` 999, `LibraryController` 917, `PermissionController` 981 và `ReportService` 482.
   Số dòng chỉ dùng để định hướng, không phải tiêu chí tự động tách class.
 - Current execution: B2F characterization commit `d2fd8598`; B2A–B2C Reports hoàn tất. Evidence:
