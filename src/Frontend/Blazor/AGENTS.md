@@ -24,7 +24,9 @@
 - Ưu tiên `.razor.css` cho layout component/route. Không thêm inline `style`, hex color, pixel spacing hoặc `!important` mới nếu token/bridge giải quyết được.
 - Parameter variant dùng enum/record thay string tự do khi tập giá trị hữu hạn.
 - Tách component khi markup hoặc code-behind trộn nhiều responsibility; không áp một giới hạn dòng máy móc nhưng tránh file 500–800 dòng tiếp tục phình.
-- Chuỗi UI dùng `@Loc[]`; code identifier tiếng Anh, comment nghiệp vụ khó đoán viết tiếng Việt ngắn gọn.
+- Chuỗi UI dùng `@Loc[]`; code identifier tiếng Anh. Comment tiếng Việt theo kiểu `quick-scan`: ghi ngắn
+  trách nhiệm component/state, bước orchestration, kết quả/tác động và lifecycle/Radzen rule khó đoán;
+  không mô tả lại markup, event hoặc API call hiển nhiên.
 
 ## Workflow
 

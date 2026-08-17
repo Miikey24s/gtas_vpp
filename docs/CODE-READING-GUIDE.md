@@ -405,16 +405,28 @@ Các quy tắc trên được khóa bằng architecture test trong `tests/Fronte
 ## 6. Quy ước comment
 
 - Code, tên biến, tên hàm, tên file: **tiếng Anh 100%**.
-- Comment tiếng Việt **chỉ** ở chỗ cần giải thích lý do nghiệp vụ, security boundary, concurrency,
-  compatibility hoặc recovery mà tên code chưa thể hiện đủ:
+- Comment tiếng Việt dùng theo kiểu **quick-scan**: người đọc lướt riêng các comment vẫn nhận ra phần code
+  đang làm gì, đang ở bước nào, tạo kết quả/tác động gì và vì sao có rule đặc biệt.
+- Dùng bốn tầng, chỉ chọn tầng thật sự cần tại vị trí đang sửa:
+  1. **Vai trò:** một câu ở class/component/use-case phức tạp để nói phần này sở hữu việc gì.
+  2. **Luồng:** đánh dấu các bước nghiệp vụ lớn trong method có nhiều giai đoạn; không đánh số từng câu lệnh.
+  3. **Kết quả/tác động:** nói rõ đoạn này chỉ preview hay đã ghi database, gửi thông báo hoặc đổi trạng thái.
+  4. **Lý do/ràng buộc:** invariant nghiệp vụ, quyền, concurrency, compatibility, recovery hoặc lifecycle khó đoán.
+
+Ví dụ đọc nhanh:
 
 ```csharp
+// Bước 1: Chuẩn hóa file và tạo preview; chưa ghi dữ liệu.
+// Bước 2: Kiểm tra toàn bộ dòng để tránh cập nhật bảng giá một phần.
+
 // Không cho người tạo tự xác nhận hiệu chỉnh để giữ nguyên tắc bốn mắt.
 if (currentRevision.CreatedBy == actingUserId)
 ```
 
 - Không mặc định gắn số mục luận văn vào source. Mapping giữa code và luận văn được giữ trong sổ tay
   này để code production không mang dấu vết học thuật dễ stale hoặc quá lộ liễu.
-- Không comment những dòng tự hiển nhiên. Comment giải thích **vì sao**, không mô tả lại **cái gì**.
-- Giải thích dài đưa vào guide/ADR; XML documentation chỉ dùng cho public surface hoặc domain rule
-  thật sự khó hiểu, không tạo boilerplate cho mọi getter/setter.
+- Có thể mô tả **cái gì** ở cấp trách nhiệm hoặc bước nghiệp vụ, nhưng không kể lại câu lệnh như “lấy dữ
+  liệu”, “gán biến” hoặc “kiểm tra if”.
+- Mỗi comment ưu tiên một ý, tối đa 1–2 dòng. Giải thích dài đưa vào guide/ADR.
+- XML documentation dùng cho public/use-case boundary phức tạp để tóm tắt mục đích, đầu ra và side effect;
+  không tạo boilerplate cho mọi property/getter/setter.

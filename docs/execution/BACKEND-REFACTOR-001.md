@@ -19,7 +19,7 @@
   2026-08-13 owner chọn hướng mới: refactor vùng cũ độc lập trước, giữ nguyên vùng chức năng mới để
   kiểm tra thực tế, sau đó mới refactor vùng mới. Execution sequencing mới trong record này đã được
   owner duyệt trước khi sửa production code.
-- Planning refresh 2026-08-18: bổ sung comment tiếng Việt theo kiểu hướng dẫn **vì sao**, cập nhật
+- Planning refresh 2026-08-18: bổ sung comment tiếng Việt theo kiểu `quick-scan`, cập nhật
   baseline cho import/cập nhật bảng giá bằng Excel và gợi ý tối đa hai nhà cung cấp. Đây là plan; chưa
   cho phép đổi behavior, API, DTO hoặc schema.
 
@@ -33,7 +33,7 @@
 | Phạm vi | `src/Backend`, backend tests và tài liệu đọc code; không redesign UI, không đổi API/JSON/quyền/nghiệp vụ/schema | [Scope](#plan-detail-scope) |
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | Đã xong B0R–B2 → C0 khóa baseline/comment → owner nghiệm thu từng nhóm → B3 Catalog/Pricing → B4 Period/Requests → B5 Settlement/Correction → B6 Identity → B7 Platform → B8 Persistence/final | [Waves](#plan-detail-waves) |
-| Comment/naming | Identifier English; comment tiếng Việt ngắn chỉ giải thích **vì sao/ràng buộc** trong responsibility đang chạm. Không comment từng dòng, không biến source thành giáo trình; phần giải thích dài đặt ở Sổ tay đọc code | [Readability contract](#plan-detail-readability) |
+| Comment/naming | Identifier English; comment tiếng Việt `quick-scan` cho vai trò → bước chính → kết quả/tác động → lý do/ràng buộc. Chi tiết nhưng mỗi comment chỉ 1 ý, đọc lướt được; không comment từng câu lệnh | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Probe live 18/08 bị timeout nên capacity chưa được xác nhận. Khuyến nghị `gpt-5.6-terra` high cho lát rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; chỉ mở checkpoint độc lập và đo lại trước wave kế | [Routing](#plan-detail-routing) |
 | Kiểm tra | Mỗi checkpoint khóa route/permission/JSON trước, chạy focused test trong vòng lặp và full backend gate trước commit. Chức năng mới chỉ chuyển từ `FROZEN` sang `ACCEPTED` sau checklist thực tế của owner và regression test tương ứng | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Gọi code là “cũ” nhưng vẫn dùng chung period/settlement/pricing mới; refactor vô tình hợp thức hóa bug chưa nghiệm thu; `VPPContext`, Shared DTO, seed và `Program.cs` gây ảnh hưởng xuyên module | [Risks](#plan-detail-risks) |
@@ -55,7 +55,7 @@ Refactor backend để một sinh viên năm 4 có thể:
 2. lần một luồng nghiệp vụ từ route → controller → use case/service → persistence trong tối đa vài
    bước có tài liệu dẫn đường;
 3. đọc tên class/method/variable bằng English phổ thông, đúng thuật ngữ GTAS VPP;
-4. hiểu các invariant khó nhờ comment tiếng Việt ngắn và test tên rõ;
+4. đọc lướt được vai trò, các bước chính, kết quả/tác động và invariant nhờ comment tiếng Việt ngắn cùng test tên rõ;
 5. trình bày được kiến trúc, luồng request, phân quyền, transaction và database khi bảo vệ luận văn;
 6. tiếp tục vibe-coding mà AI khó đặt logic sai layer hoặc tạo đường ghi nghiệp vụ thứ hai.
 
@@ -163,27 +163,30 @@ Số dòng chỉ là **tín hiệu hotspot**, không phải tiêu chí tự đ�
 - Một tên phải trả lời được “đây là gì/đang làm gì”; tránh suffix chung chung như `Manager`, `Helper`,
   `Utils`, `Processor` nếu trách nhiệm cụ thể có thể được gọi tên.
 
-### Comment tiếng Việt, nhưng không “lộ liễu”
+### Comment tiếng Việt để đọc nhanh, không biến source thành bài giảng
 
-Comment chỉ dùng khi code không tự giải thích được **lý do**:
+Comment dùng bốn tầng; không bắt buộc đủ cả bốn nếu tên code đã rõ:
 
-- invariant nghiệp vụ;
-- security/authorization boundary;
-- concurrency/idempotency/transaction decision;
-- compatibility workaround bắt buộc;
-- recovery hoặc dữ liệu lịch sử không được xóa.
+1. **Vai trò:** tóm tắt class/use-case phức tạp sở hữu việc gì và không sở hữu việc gì.
+2. **Luồng:** đánh dấu các giai đoạn nghiệp vụ lớn để người đọc không phải lần toàn bộ method.
+3. **Kết quả/tác động:** nói rõ đang tạo preview hay đã ghi dữ liệu, đổi trạng thái, gửi thông báo.
+4. **Lý do/ràng buộc:** invariant, authorization, transaction/concurrency/idempotency, compatibility hoặc recovery.
 
 Ví dụ phù hợp:
 
 ```csharp
+// Bước 1: Phân tích file và tạo preview; database chưa thay đổi.
+// Bước 2: Kiểm tra toàn bộ dòng để tránh cập nhật bảng giá một phần.
+
 // Không cho người tạo tự xác nhận hiệu chỉnh để giữ nguyên tắc bốn mắt.
 ```
 
-Không dùng comment để kể lại code:
+Không dùng comment để kể lại câu lệnh:
 
 ```csharp
 // Lấy dữ liệu từ database.
-// Kiểm tra trạng thái pending.
+// Gán kết quả vào biến orders.
+// Kiểm tra câu lệnh if.
 ```
 
 Không mặc định ghi `§2.3...` trong source. Mapping tới luận văn nằm trong
@@ -191,24 +194,27 @@ Không mặc định ghi `§2.3...` trong source. Mapping tới luận văn nằ
 nếu thiếu tài liệu ngoài source. Không để comment kiểu “AI generated”, lịch sử thử-sai hoặc TODO không
 có owner/task.
 
-#### Comment-guidance ratchet — 2026-08-18
+#### Quick-scan comment ratchet — owner correction 2026-08-18
 
-Mục tiêu là giúp owner đọc được **quyết định khó đoán**, không phủ comment lên toàn bộ code:
+Mục tiêu là **chi tiết vừa đủ để vibe-code và đọc lướt**, không phủ comment lên toàn bộ code:
 
 1. Chỉ thêm hoặc sửa comment trong responsibility đang được refactor; không chạy mass-comment toàn repo.
-2. Ưu tiên tối đa một comment ngắn ngay trước rule cần giải thích. Nếu cần nhiều hơn 2–3 câu, chuyển phần
-   giải thích sang `docs/CODE-READING-GUIDE.md` và để source tự nói bằng tên class/method.
-3. Bắt buộc xem xét comment tại năm nhóm: invariant nghiệp vụ; quyền/security; transaction/concurrency/
-   idempotency; compatibility/recovery/dữ liệu lịch sử; lifecycle/workaround framework khó đoán.
-4. Khi chạm code, xóa comment chỉ kể lại câu lệnh, số mục luận văn, mã wave/ticket hoặc lịch sử AI/thử-sai.
-5. Review theo changed-file ratchet: comment còn đúng với code, ngắn, dùng thuật ngữ nghiệp vụ thống nhất
-   và không che một tên method/class đang khó hiểu.
+2. Với class/use-case phức tạp, thêm summary 1–2 dòng về vai trò, đầu ra và side effect chính.
+3. Với workflow nhiều giai đoạn, thêm comment trước từng bước nghiệp vụ lớn; không comment từng statement.
+4. Với rule khó đoán, ghi cả quyết định và lý do ngắn gọn.
+5. Mỗi comment một ý, ưu tiên 1 dòng và tối đa 2 dòng. Chi tiết dài chuyển sang
+   `docs/CODE-READING-GUIDE.md`.
+6. Khi chạm code, xóa comment kể lại cú pháp, số mục luận văn, mã wave/ticket hoặc lịch sử AI/thử-sai.
+7. Review bằng cách lướt riêng comment: phải hiểu được vai trò → luồng → tác động → ràng buộc mà không bị
+   sai khác với implementation hiện tại.
 
 Ví dụ dự kiến cho các wave mới:
 
 ```csharp
-// Ô giá trống nghĩa là giữ giá hiện tại, không phải đặt giá về 0.
-// Gợi ý chỉ hỗ trợ lựa chọn; quản lý vẫn phải xác nhận phương án chốt.
+// Bước 1: Tạo preview từ file; chưa ghi giá mới.
+// Ô giá trống giữ nguyên giá hiện tại, không đặt về 0.
+
+// Gợi ý chỉ chuẩn bị phương án; quản lý vẫn phải xác nhận trước khi chốt.
 ```
 
 ### Class/method
@@ -460,7 +466,7 @@ src/Backend/
 | **B1b-A — COMPLETE 2026-08-04** | Repo metadata không còn duplicate/ghost/stale command file | Đã xóa nested Git metadata, stale API readme và ghost csproj include | `gpt-5.6-terra` medium | Actual aggregate checkpoint `34%` | Ignore/attr/XML/API build; backend `503/503`; full verify PASS |
 | **B1b-B — COMPLETE 2026-08-04** | `.http` dùng route hiện hành, không credential/mutation | Health + authenticated read-only examples với bearer/order placeholders; không đụng local artifacts | `gpt-5.6-terra` medium | Actual aggregate checkpoint `4%` | GET-only/no-secret scan; manifest `1/1`; API build PASS |
 | **B2 — Reports cũ, chỉ đọc** (`COMPLETE 2026-08-13`) | Chốt pattern module ở vùng ít mutation nhất mà không thay đổi nghiệp vụ mới | B2F khóa validation/current revision/scope; B2A có `ReportQueryContext`, settlement reader và CSV builder; B2B có `Api/Features/Reports` + `AddReportsModule`; B2C đã handoff vào code-reading guide | `gpt-5.6-terra` high implement, review `gpt-5.6-sol` high | Chưa có đo aggregate riêng đáng tin cậy | Focused 51/51; backend 543/543; frontend client 6/6; disposable SQL 24/24; EF zero delta; formatter/analyzer scoped PASS. Baseline `b404d52f` sau đó đã full verify PASS |
-| **C0 — Post-feature baseline & comment ledger** (`PLANNED`) | Khóa hành vi và điểm cần giải thích trước khi tách module mới | Docs/test-only: cập nhật hotspot, API/use-case owner, characterization gap và comment candidate theo năm nhóm why-only; không sửa production | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | Reforecast trước execution | No production diff; focused characterization mới xanh; comment ledger liên kết reading guide; full gate chỉ chạy nếu test/shared contract bị chạm |
+| **C0 — Post-feature baseline & comment ledger** (`PLANNED`) | Khóa hành vi và bản đồ comment đọc nhanh trước khi tách module mới | Docs/test-only: cập nhật hotspot, API/use-case owner, characterization gap và comment candidate theo bốn tầng vai trò/luồng/tác động/ràng buộc; không sửa production | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | Reforecast trước execution | No production diff; focused characterization mới xanh; quick-scan ledger liên kết reading guide; full gate chỉ chạy nếu test/shared contract bị chạm |
 | **UAT-N — Owner kiểm tra chức năng mới** | Xác nhận hành vi thật trước khi refactor module mới | Period/Requests, Settlement/Correction + suggestion tối đa 2 NCC, price-list thủ công/Excel; phân loại `PASS/BUG/UI/BUSINESS DECISION` | Owner chạy luồng thật; agent dùng `gpt-5.6-sol` high khi phân tích bug khó | Không tính như production refactor | Checklist acceptance hoàn tất theo từng module; bug fix commit riêng và regression test xanh |
 | **B3 — Catalog & Pricing** (`FROZEN` đến khi pricing accepted) | Typed read/write/import paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, template/export, analyze-preview-confirm import; khóa rule ô giá trống giữ giá cũ, mã lạ/sai đơn vị bị chặn, thủ công mặc định; AI mapping chỉ là adapter tùy chọn | `gpt-5.6-sol` high design/review, `terra` high implement | Reforecast sau UAT | Consumer ledger 0; manual/Excel/import error tests; LocalDB parity; permission parity |
 | **B4 — Period & Requests** (`FROZEN` đến khi period/request accepted) | Tách lifecycle kỳ khỏi god request service mà giữ nguyên toàn bộ luồng đơn | Period query/schedule/lifecycle trước; sau đó request query/history, create-update-cancel, supplement workflow, demand và notification boundary | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | Reforecast sau UAT | Schedule/time boundary, idempotency/concurrency/revision/history, route/auth/JSON và focused LocalDB |
@@ -674,7 +680,7 @@ ngoài scope thì ghi exact signature, tách owner task và dừng wave thay vì
 | Route/authorization thay đổi vô ý khi split controller | High | Route+verb+policy manifest trước B2 | Revert controller slice; giữ tests |
 | Generic write có hidden consumer | High | Consumer search + frontend client ledger + deprecation/parity window | Giữ legacy adapter; không delete |
 | EF mapping drift giữa hai DbContext | High | No merge mặc định; pending-model + LocalDB parity | Revert mapping extraction; không migration |
-| Comment quá nhiều làm code “giống bài giảng” | Medium | Comment why-only; thesis mapping ở guide | Xóa comment noise trong same slice |
+| Comment quá nhiều làm code “giống bài giảng” hoặc nhanh stale | Medium | Quick-scan 4 tầng, mỗi comment 1 ý/1–2 dòng; thesis mapping ở guide | Xóa comment noise trong same slice |
 | Analyzer bật quá mạnh tạo noisy diff | Medium | Report → warning → error theo ratchet | Hạ severity/revert config commit |
 | Refactor lẫn bug/feature | High | “Two hats”: refactor và behavior change là task/commit riêng | Revert refactor; mở bug task riêng |
 | User-owned dirty files bị stage nhầm | High | Stage exact path; review staged diff; không `git add .` | Unstage scoped paths, không reset user work |
@@ -693,7 +699,7 @@ recovery chuyển sang DB execution record có backup/restore/forward-correction
 import/cập nhật bảng giá bằng Excel và gợi ý tối đa hai nhà cung cấp:
 
 1. **C0 — baseline/comment ledger:** docs/test-only; cập nhật hotspot, characterization gap và comment
-   candidate theo năm nhóm why-only. Không sửa production behavior.
+   candidate theo bốn tầng quick-scan. Không sửa production behavior.
 2. **UAT-N owner acceptance:** owner kiểm tra độc lập Catalog/Pricing, Period/Requests và
    Settlement/Correction. Bug được sửa ở task/commit feature riêng.
 3. **B3 Catalog/Pricing:** chỉ mở khi checklist pricing/import đạt acceptance; refactor template/export,
@@ -717,14 +723,14 @@ tận dụng thời gian để xử lý module cũ thực sự độc lập.
 | ID | Status | Decision | Authority |
 |---|---|---|---|
 | BR-D1 | APPROVED/REPO AUTHORITY | Giữ modular monolith/4 project; không rewrite Clean Architecture hoặc microservices | `src/Backend/AGENTS.md`, `ARCH-001` |
-| BR-D2 | APPROVED/REPO AUTHORITY | Identifier English; comment tiếng Việt why-only; mapping luận văn nằm trong reading guide | Root/backend `AGENTS.md` |
+| BR-D2 | SUPERSEDED 2026-08-18 | Quy tắc why-only cũ được thay bằng quick-scan comment chi tiết vừa đủ | Owner correction 2026-08-18 |
 | BR-D3 | SUPERSEDED 2026-08-02 | Dùng sequencing hiện hành ở mục 12 và `FRONTEND-REFACTOR-001` | Owner sequencing update |
 | B0R-D1 | APPROVED/IMPLEMENTED 2026-08-04 | Pending filter dùng `APPROVE OR REJECT` như pending grid | Owner phương án A + B0R ledger mục 5 |
 | B0R-D2 | APPROVED/IMPLEMENTED 2026-08-04 | History dùng authenticated + resource scope như detail/PDF/XLSX | Owner phương án A + B0R ledger mục 5 |
 | B2-D1 | SUPERSEDED 2026-08-13 | Capacity gate cũ đã được refresh; sequencing mới dùng B2F/B2A và freeze vùng mới | Snapshot mới + owner đổi thứ tự |
 | BR-D4 | APPROVED/IN FORCE 2026-08-13 | Refactor vùng cũ độc lập trước; chức năng mới `FROZEN` đến khi owner acceptance; vùng giao nhau không refactor sớm | Owner: “làm full plan... phần nào làm trước được thì cứ làm trước” |
 | BR-D5 | APPROVED/IN FORCE 2026-08-13 | Bug fix và refactor là change-set riêng; module mới mở khóa từng phần, không cần chờ nghiệm thu toàn hệ thống | Owner yêu cầu chạy liên tục, không chờ từng turn |
-| BR-D6 | PLANNED — AWAIT OWNER REVIEW 2026-08-18 | Comment tiếng Việt theo why-only changed-file ratchet; refactor tiếp theo C0 → B3 → B4 → B5 → B6–B8 | Owner yêu cầu lên plan comment code và tiếp tục refactor |
+| BR-D6 | APPROVED/IN FORCE 2026-08-18 | Comment tiếng Việt quick-scan theo bốn tầng vai trò/luồng/tác động/ràng buộc; refactor tiếp theo C0 → B3 → B4 → B5 → B6–B8 | Owner correction: chi tiết nhưng ngắn, đúng trọng tâm và đọc nhanh |
 
 B0R/B1 giữ nguyên bằng chứng hoàn tất. BR-D4/BR-D5 đã được owner duyệt; agent tiếp tục checkpoint an toàn
 không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/database boundary thật sự.

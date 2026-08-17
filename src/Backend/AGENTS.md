@@ -10,7 +10,9 @@
 - Không generic hóa mapping claim/DTO hoặc business workflow nếu làm mất tính đọc hiểu; ưu tiên mapping rõ ràng theo contract.
 - Soft delete dùng `IsDeleted`; hard delete hoặc migration destructive cần approval và rollback/backup phù hợp.
 - Stored procedure phải được đối chiếu trong SSMS trước hoặc song song với debug code.
-- Identifier giữ tiếng Anh; comment nghiệp vụ khó đoán viết tiếng Việt ngắn gọn và không lặp lại điều code đã thể hiện rõ.
+- Identifier giữ tiếng Anh; comment tiếng Việt theo kiểu `quick-scan`: ở boundary hoặc luồng phức tạp,
+  ghi ngắn vai trò, các bước nghiệp vụ, kết quả/tác động và lý do của rule khó đoán. Không comment từng
+  câu lệnh, getter/setter hoặc lặp lại tên method.
 - Không log token, password, connection string, personal data hoặc secret.
 
 Workflow tối thiểu:

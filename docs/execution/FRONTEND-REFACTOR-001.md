@@ -31,7 +31,7 @@
 | Phạm vi | Blazor/Radzen frontend, frontend tests và tài liệu đọc code; không đổi API/DTO/database/RBAC/nghiệp vụ, không khôi phục React | [Scope](#plan-detail-scope) |
 | Phương án | Giữ một project Blazor, giữ design system hiện có; tổ chức dần theo feature `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, cộng `Platform` dùng chung | [Target structure](#plan-detail-target-structure) |
 | Các bước chính | FR0–FR9 đã xong → FR10 chỉ refactor các bề mặt mới sau acceptance: Catalog/Pricing → Period/Requests → Settlement; không mở lại global rewrite | [Waves](#plan-detail-waves) |
-| Comment/naming | Identifier English dễ hiểu; comment tiếng Việt why-only trong file được chạm; giải thích dài đặt ở Sổ tay đọc code, không comment từng component/dòng | [Readability contract](#plan-detail-readability) |
+| Comment/naming | Identifier English; comment tiếng Việt `quick-scan` cho trách nhiệm → bước orchestration → kết quả/tác động → lý do/lifecycle. Mỗi comment 1 ý, đọc lướt được; không mô tả từng dòng markup/C# | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Probe live 18/08 timeout nên chỉ mở checkpoint độc lập, không hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Baseline `b404d52f` đã full verify PASS, frontend unit/architecture `502/502`; import/cập nhật giá và suggestion NCC đã được tích hợp. FR10 vẫn cần characterization + route-real review riêng trước từng module | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Tách orchestration làm lệch state/lifecycle; move/rename làm test path-based vỡ; feature client thành wrapper vô nghĩa; shared CSS/Radzen change làm visual hoặc popup behavior đổi âm thầm | [Risks](#plan-detail-risks) |
@@ -58,7 +58,7 @@ Refactor frontend để owner có thể:
 2. lần một luồng từ URL → route component → UI state → feature API client → DTO trong tối đa vài
    bước có tài liệu dẫn đường;
 3. đọc identifier English phổ thông, nhất quán với thuật ngữ GTAS VPP;
-4. hiểu các ràng buộc khó nhờ comment tiếng Việt ngắn và test name có nghĩa;
+4. đọc lướt được trách nhiệm, orchestration, tác động và ràng buộc khó nhờ comment tiếng Việt ngắn cùng test name có nghĩa;
 5. trình bày được kiến trúc Blazor/Radzen, data flow, state, permission và API integration khi bảo vệ;
 6. tiếp tục vibe-coding mà AI khó nhét endpoint, state hoặc CSS vào sai owner;
 7. sửa UI sau này mà không phải quay lại một component god-class hoặc stylesheet không rõ quyền sở hữu.
@@ -235,19 +235,20 @@ Số file/dòng/test là snapshot hiện tại, không phải invariant lâu dà
 - Prefix `Page_`, `Tab_`, `Component_`, `Dialog_` được migrate-on-touch sang tên có nghĩa như
   `OrderEditorSession`, `UserAdministration`, `PermissionBatchDialog`; không rename cả tree cùng lúc.
 
-### Comment tiếng Việt, không biến source thành bài giảng
+### Comment tiếng Việt để đọc nhanh, không biến source thành bài giảng
 
-Comment chỉ giải thích điều code không thể tự nói rõ:
+Comment có thể giải thích **cái gì** ở cấp trách nhiệm/bước lớn và **vì sao** ở rule khó đoán:
 
-- luật nghiệp vụ;
-- permission/security boundary;
-- prerender/interactive lifecycle hoặc Radzen workaround khó đoán;
-- concurrency/idempotency/cancellation/dispose;
-- compatibility/recovery bắt buộc.
+- **Vai trò:** component/state/client này sở hữu phần nào của màn hình hoặc workflow.
+- **Luồng:** bước load → chuẩn hóa → preview → mutation → refresh khi orchestration dài.
+- **Kết quả/tác động:** chỉ đổi UI state hay đã gọi mutation, tải file, đóng dialog, refresh dữ liệu.
+- **Lý do/ràng buộc:** permission, prerender/interactive lifecycle, Radzen/DOM workaround,
+  concurrency/idempotency/cancellation/dispose, compatibility/recovery.
 
 Ví dụ phù hợp:
 
 ```csharp
+// Bước 1: Nạp preview và giữ nguyên lựa chọn hiện tại.
 // Giữ dữ liệu cũ khi refresh lỗi để người dùng không mất ngữ cảnh đang xem.
 ```
 
@@ -258,23 +259,21 @@ Không dùng:
 // F6B / P1 / Atlas round 4.
 ```
 
-- Comment ngắn dùng `//` trên dòng riêng; XML documentation chỉ cho public/shared boundary thật sự cần
-  giải thích.
+- Comment ngắn dùng `//` trên dòng riêng; mỗi comment một ý, ưu tiên 1 dòng và tối đa 2 dòng.
+- XML documentation dùng cho public/use-case boundary phức tạp để nói mục đích, đầu ra và side effect;
+  không thêm boilerplate cho mọi parameter/property.
 - Mã wave/ticket, lịch sử thử-sai, “AI generated” và reference học thuật dài chuyển về execution
   record/Git/reading guide khi file được chạm.
 - Không mặc định gắn `§` luận văn trong source; mapping nằm ở `docs/CODE-READING-GUIDE.md`.
 
-#### Comment-guidance ratchet — 2026-08-18
+#### Quick-scan comment ratchet — owner correction 2026-08-18
 
-- Không thêm comment vào markup/C# chỉ để mô tả label, event hoặc API call đang hiển nhiên.
-- Chỉ comment luật nghiệp vụ, permission, cancellation/dispose, prerender/interactive lifecycle hoặc
-  workaround Radzen/DOM khó đoán.
-- Mỗi file được chạm phải xóa comment wave/ticket/AI/history trong đúng responsibility và kiểm tra comment
-  cũ còn đúng sau khi tách state/client/component.
-- Nếu giải thích dài hơn 2–3 câu, đặt luồng đầy đủ trong `docs/CODE-READING-GUIDE.md`; source chỉ giữ một
-  câu chỉ ra lý do hoặc ràng buộc.
-- Comment không thay thế tên rõ. Nếu phải comment “hàm này làm gì”, ưu tiên đổi tên internal member trong
-  cùng compatibility boundary.
+- Với component/state/use-case phức tạp, comment 1–2 dòng nêu trách nhiệm và output/side effect chính.
+- Với orchestration nhiều giai đoạn, comment trước từng bước lớn; không comment từng event/API statement.
+- Với rule khó đoán, ghi quyết định + lý do; với Radzen/DOM workaround, ghi lifecycle đang bảo vệ.
+- Mỗi file được chạm phải xóa comment wave/ticket/AI/history và kiểm tra comment cũ còn đúng sau khi tách.
+- Nếu giải thích dài hơn 2–3 câu, đặt luồng đầy đủ trong `docs/CODE-READING-GUIDE.md`.
+- Comment không thay thế tên rõ; reader lướt comment phải hiểu trách nhiệm → luồng → tác động → ràng buộc.
 
 ### Component, class và method
 
@@ -460,8 +459,7 @@ giữ tên rõ và API nhỏ.
   Preview mới tạo snapshot và idempotency key mới; không auto-replay correction trên snapshot cũ.
 - `PeriodSettlementState` expose `RequiresFreshPreviewForSubmission`; `PeriodSettlementPanel` ẩn
   correction action sau mutation, hiện notice + CTA `Xem trước lại`, rồi chỉ mở lại action khi preview
-  mới hoàn tất. Copy VI/EN dùng resource key riêng; comment source chỉ giải thích vì sao snapshot cũ
-  hết hiệu lực.
+  mới hoàn tất. Copy VI/EN dùng resource key riêng; comment source tóm tắt rule snapshot cũ hết hiệu lực.
 - Mutation E2E `1/1` đã kiểm confirm revision 1, four-eyes rejection, manager correction revision 2,
   notice sau correction, CTA preview lại và correction gate mở lại. Full frontend verify pass trên
   checkpoint trước board: agent setup `63/63`, Release build sạch, unit `373/373`, UI smoke `2/2`,
@@ -544,7 +542,7 @@ contract, `sol` high/xhigh cho boundary và route-real review. Đây chỉ là k
 | **FR7 — Requests write & Settlement** | Core thesis workflow tách theo use case nhưng behavior/mutation không đổi | Order editor session, draft store/autosave, submission coordinator, step components; supplement approval; settlement query/preview/confirm/correct/export; cancellation/dispose | `gpt-5.6-sol` xhigh, `terra` high implement | 15–38% | OrderCreate, OrderManagement, DS3, pending workspace, ExportDownload; API/DB observable outcome; idempotency/draft/recreate/correction parity |
 | **FR8 — Global hardening & final acceptance** | Xóa owner cạnh tranh còn lại, hoàn tất test/docs và owner duyệt UI cuối qua ba checkpoint tách biệt | FR8A shell/shared/CSS/JS → FR8B test-only cleanup → FR8C route/docs/final acceptance | `gpt-5.6-sol` xhigh | 10–25% | Mỗi checkpoint có commit/gate riêng; golden chỉ sau FR8C owner approval |
 | **FR9 — Stable Capability Surface retrofit** | Người dùng luôn thấy cùng cấu trúc chức năng và data surface; action chưa dùng được hiện mờ có lý do thay vì biến mất, empty không làm layout đổi hình | Audit action manifest + empty-state matrix; bổ sung typed disabled reason; retrofit theo thứ tự Admin → Requests → Operations → Analytics; không đổi API/RBAC/nghiệp vụ | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high checkpoint review | 15–40%; safety envelope 65% | Mỗi module: permission matrix + business-state matrix + base/filtered/error state; architecture + focused route + route-real responsive pass trước module kế |
-| **FR10 — Post-feature readability** (`PLANNED`) | Các UI mới dễ đọc và có owner rõ mà không đổi behavior hoặc motif | **FR10A:** Catalog/Pricing import/template/export/dialog; **FR10B:** Period/Requests page-state và action orchestration; **FR10C:** Settlement panel/preview/revision/supplier suggestion. Comment why-only và migrate-on-touch | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high/xhigh boundary review | Reforecast theo checkpoint | Characterization/focused tests; motif parity; route-real `390×844`, `768×1024`, `1366×768`, `1920×1080`; VI/EN, Light/Dark, keyboard/focus |
+| **FR10 — Post-feature readability** (`PLANNED`) | Các UI mới dễ đọc và có owner rõ mà không đổi behavior hoặc motif | **FR10A:** Catalog/Pricing import/template/export/dialog; **FR10B:** Period/Requests page-state và action orchestration; **FR10C:** Settlement panel/preview/revision/supplier suggestion. Comment quick-scan và migrate-on-touch | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high/xhigh boundary review | Reforecast theo checkpoint | Characterization/focused tests; motif parity; route-real `390×844`, `768×1024`, `1366×768`, `1920×1080`; VI/EN, Light/Dark, keyboard/focus |
 
 Một implementer chính giữ context. Reviewer/subagent chỉ audit/verify độc lập; agent cùng sửa source phải
 dùng worktree riêng và không chạm cùng module.
@@ -765,7 +763,7 @@ acceptance.
 | JS split tích lũy observer/listener | High | Explicit lifecycle + LongSessionStabilityTests | Revert module split, giữ bootstrap cũ |
 | Package/asset tưởng rác nhưng có runtime consumer | Medium | Publish/network/static manifest before delete | Re-add exact package/asset in isolated commit |
 | Test source/path assertion cản rename | Medium | Đổi test từ path detail sang stable contract khi phù hợp; giữ observable assertion | Revert rename; không sửa test để bỏ behavior |
-| Comment quá nhiều hoặc “lộ AI” | Medium | Why-only ratchet; history nằm docs/Git | Xóa comment noise trong same slice |
+| Comment quá nhiều, nhanh stale hoặc “lộ AI” | Medium | Quick-scan 4 tầng, mỗi comment 1 ý/1–2 dòng; history nằm docs/Git | Xóa comment noise trong same slice |
 | User-owned dirty file bị stage nhầm | High | `git add <exact-path>`, staged diff review; không `git add .` | Unstage exact path; không reset user work |
 
 Rollback mặc định là revert một vertical slice nhỏ. Không có database restore khi frontend change đã
@@ -793,14 +791,14 @@ file path hoặc sơ đồ kiến trúc cuối trước khi frontend/backend ref
 | FE-D1 | `APPROVED 2026-08-02` | Bắt đầu refactor trước final visual acceptance; chấp nhận refactor tiếp sau correction UI |
 | FE-D2 | `APPROVED 2026-08-03` | Giữ một Blazor project, feature-first theo module của `ARCH-001`; không rewrite framework/new project |
 | FE-D3 | `APPROVED 2026-08-03` | `CurrentUserState` canonical, tách `UiBusyState`, typed feature clients; migrate-on-touch, không big-bang |
-| FE-D4 | `APPROVED 2026-08-03` | English identifiers + Vietnamese why-only comments; bỏ ticket/wave/history khỏi source khi chạm |
+| FE-D4 | `SUPERSEDED 2026-08-18` | Quy tắc why-only cũ được thay bằng quick-scan comment chi tiết vừa đủ |
 | FE-D5 | `APPROVED 2026-08-03` | Final golden/slide screenshots chỉ sau owner final UI acceptance |
 | FE-D6 | `APPROVED 2026-08-04` | Correction thành công bắt buộc `Xem trước lại`; preview mới tạo snapshot và idempotency key mới trước correction tiếp theo |
 | FE-D7 | `APPROVED 2026-08-04` | Chấp thuận current authenticated runtime + final board; raw English reason là localization backlog riêng; golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 | FE-D8 | `APPROVED 2026-08-13` | Áp dụng `Stable Capability Surface` toàn frontend theo FR9: cùng entity/cùng quyền giữ action group ổn định; unavailable do nghiệp vụ thì disabled, thiếu quyền thì hidden; grid/list empty giữ nguyên frame/toolbar/cột/footer và không có fake-row hover |
-| FE-D9 | `PLANNED — AWAIT OWNER REVIEW 2026-08-18` | FR10 refactor các bề mặt mới theo Catalog/Pricing → Period/Requests → Settlement; comment tiếng Việt why-only, giữ nguyên motif và behavior |
+| FE-D9 | `APPROVED/IN FORCE 2026-08-18` | FR10 refactor Catalog/Pricing → Period/Requests → Settlement; comment tiếng Việt quick-scan theo trách nhiệm/luồng/tác động/ràng buộc, giữ nguyên motif và behavior |
 
-FE-D2..D8 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
+FE-D2..D3, FE-D5..D9 là authority cho implementation hiện tại; thay đổi material cần quay lại owner decision.
 
 <a id="plan-detail-continuation"></a>
 

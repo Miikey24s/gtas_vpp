@@ -20,7 +20,9 @@
 - Dependency Playwright dùng chung cho Atlas/LVTN nằm ở `scripts/browser/`; React POC chỉ còn trong tag `archive/react-poc-2026-07-27`.
 - Khi sửa backend, frontend, tests hoặc LVTN, đọc scoped `AGENTS.md` tương ứng.
 - Không sao chép DTO shared vào frontend và không sửa API/database/nghiệp vụ chỉ để khớp Atlas hoặc luận văn.
-- Identifier giữ tiếng Anh theo convention. Comment source mới hoặc được chạm trong scope viết tiếng Việt ngắn gọn, chỉ giải thích nghiệp vụ khó đoán.
+- Identifier giữ tiếng Anh theo convention. Comment source mới hoặc được chạm dùng tiếng Việt theo kiểu
+  `quick-scan`: mô tả ngắn vai trò, bước chính, đầu ra/tác động và lý do/ràng buộc khi cần để người đọc lướt
+  nhanh hiểu luồng; không comment từng câu lệnh hoặc lặp lại điều code đã thể hiện rõ.
 - Không hoàn tác, ghi đè, stage hoặc commit thay đổi ngoài scope của người dùng.
 
 ## Workflow thay đổi
