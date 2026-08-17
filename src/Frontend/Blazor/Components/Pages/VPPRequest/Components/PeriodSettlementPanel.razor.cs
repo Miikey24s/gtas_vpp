@@ -1,4 +1,3 @@
-// PAGE LOGIC: VPPRequest/Components/PeriodSettlementPanel.razor.cs
 using System.Globalization;
 using gtas_vpp_fe.Components.DesignSystem.Composites;
 using gtas_vpp_fe.Components.DesignSystem.Primitives;
@@ -18,9 +17,11 @@ using Radzen;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 
+// Điều phối workspace chốt kỳ: tải snapshot đơn, dựng preview tài chính và ghi bản chốt.
+// State dùng chung giữ lựa chọn NCC/bảng giá; mọi thay đổi lớn đều yêu cầu preview mới trước khi xác nhận.
 public partial class PeriodSettlementPanel : IDisposable
 {
-    // PERIOD STATE: Kỳ mục tiêu, chế độ xem và các bộ lọc hiện tại.
+    // Kỳ mục tiêu, chế độ tổng hợp và bộ lọc hiện tại.
     private const string CurrentPeriodScope = "current";
     private const string PreviousPeriodScope = "previous";
     private const string CustomPeriodScope = "custom";
@@ -28,7 +29,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private const string DepartmentsView = "departments";
     private const string RequestersView = "requesters";
 
-    // DEPENDENCIES: API chốt kỳ, catalog, dialog, toast và state dùng chung.
+    // API chốt kỳ, catalog, dialog, toast và state lựa chọn dùng chung.
     [Inject] private SettlementApiClient Settlement { get; set; } = default!;
     [Inject] private OrderPeriodApiClient Periods { get; set; } = default!;
     [Inject] private CatalogApiClient Catalog { get; set; } = default!;
@@ -45,7 +46,7 @@ public partial class PeriodSettlementPanel : IDisposable
     [Parameter] public EventCallback<PeriodTargetSelection> PeriodChanged { get; set; }
     [Parameter] public EventCallback SettlementChanged { get; set; }
 
-    // DATA STATE: Snapshot đơn hàng, trạng thái chốt, preview và cờ loading.
+    // Snapshot đơn hàng, trạng thái chốt, preview và cờ tải từng vùng.
     private CancellationTokenSource? searchDebounce;
     private List<VppRequestResDTO> periodOrdersSnapshot = [];
     private List<DepartmentResDTO> departmentDirectory = [];
@@ -86,7 +87,7 @@ public partial class PeriodSettlementPanel : IDisposable
     private int loadedYear;
     private int loadedMonth;
 
-    // VALIDATION: Điều kiện cho phép chốt hoặc xuất dữ liệu kỳ.
+    // Điều kiện cho phép mở preview, chốt hoặc xuất dữ liệu kỳ.
     private SettlementPreviewResDTO? Preview => State.Preview is { } preview
         && preview.Year == Year && preview.Month == Month ? preview : null;
 
@@ -337,24 +338,9 @@ public partial class PeriodSettlementPanel : IDisposable
     {
         isLoading = true;
         isGridLoading = true;
-        alertMessage = null;
-        periodOrdersSnapshot = [];
-        periodDemand = null;
-        hasLoadedPeriodOrders = false;
-        hasLoadedPeriodDemand = false;
-        filteredItemRows = [];
-        itemFinancials = [];
-        filteredDepartmentRows = [];
-        filteredRequesterRows = [];
-        itemTotals = SettlementItemTotals.Empty;
-        departmentTotals = SettlementGroupTotals.Empty;
-        requesterTotals = SettlementGroupTotals.Empty;
-        departmentStatusTotals = [];
-        requesterStatusTotals = [];
-        postSettlementCorrections = [];
-        pendingPostSettlementCorrections = [];
-        currentSettlementRevision = null;
+        ResetPeriodViewState();
 
+        // Header và grid tải song song; mỗi vùng tự kết thúc skeleton để trang có dữ liệu sớm nhất.
         var headerTask = Task.WhenAll(LoadStatusAsync(), LoadPreviewAsync());
         var gridTask = EnsureCurrentViewDataAsync();
 
@@ -390,6 +376,27 @@ public partial class PeriodSettlementPanel : IDisposable
         {
             await LoadDeferredSettlementAdministrationAsync();
         }
+    }
+
+    private void ResetPeriodViewState()
+    {
+        alertMessage = null;
+        periodOrdersSnapshot = [];
+        periodDemand = null;
+        hasLoadedPeriodOrders = false;
+        hasLoadedPeriodDemand = false;
+        filteredItemRows = [];
+        itemFinancials = [];
+        filteredDepartmentRows = [];
+        filteredRequesterRows = [];
+        itemTotals = SettlementItemTotals.Empty;
+        departmentTotals = SettlementGroupTotals.Empty;
+        requesterTotals = SettlementGroupTotals.Empty;
+        departmentStatusTotals = [];
+        requesterStatusTotals = [];
+        postSettlementCorrections = [];
+        pendingPostSettlementCorrections = [];
+        currentSettlementRevision = null;
     }
 
     private async Task LoadStatusAsync()
