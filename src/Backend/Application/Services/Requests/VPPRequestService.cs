@@ -84,6 +84,8 @@ namespace gtas_vpp_be.Service.Services
         Task RejectAdditionalOrderAsync(Guid id, int adminId, string? reason, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
     }
 
+    // Điều phối đọc/ghi đơn, lịch sử revision, đơn bổ sung và nhu cầu kỳ.
+    // Query dùng chung filter hiện hành; command riêng giữ transaction, deadline, permission và idempotency.
     public class VPPRequestService : IVPPRequestService
     {
         private readonly IUnitOfWork _scopedUow;
@@ -463,17 +465,7 @@ namespace gtas_vpp_be.Service.Services
 
         private async Task<List<VppRequestResDTO>> GetFilteredOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
         {
-            var yearFilter = years?.Distinct().ToArray();
-            var monthFilter = months?.Distinct().ToArray();
-            var statusFilter = statuses?.Distinct().ToArray();
-
-            var query = _scopedUow.VPPContext.Set<VppRequest>()
-                .AsNoTracking()
-                .Where(x => x.CreatedByUserId == userId && !x.IsDeleted && x.IsCurrentRevision);
-
-            if (yearFilter is { Length: > 0 }) query = query.Where(x => yearFilter.Contains(x.Year));
-            if (monthFilter is { Length: > 0 }) query = query.Where(x => monthFilter.Contains(x.Month));
-            if (statusFilter is { Length: > 0 }) query = query.Where(x => statusFilter.Contains(x.Status));
+            var query = BuildMyOrderQuery(userId, years, months, statuses);
 
             var result = await query
                 .OrderByDescending(x => x.Year)
@@ -490,17 +482,7 @@ namespace gtas_vpp_be.Service.Services
 
         private async Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetFilteredOrdersPagedAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses, int? skip, int? top)
         {
-            var yearFilter = years?.Distinct().ToArray();
-            var monthFilter = months?.Distinct().ToArray();
-            var statusFilter = statuses?.Distinct().ToArray();
-
-            var query = _scopedUow.VPPContext.Set<VppRequest>()
-                .AsNoTracking()
-                .Where(x => x.CreatedByUserId == userId && !x.IsDeleted && x.IsCurrentRevision);
-
-            if (yearFilter is { Length: > 0 }) query = query.Where(x => yearFilter.Contains(x.Year));
-            if (monthFilter is { Length: > 0 }) query = query.Where(x => monthFilter.Contains(x.Month));
-            if (statusFilter is { Length: > 0 }) query = query.Where(x => statusFilter.Contains(x.Status));
+            var query = BuildMyOrderQuery(userId, years, months, statuses);
 
             // Tổng hợp thống kê trong một DB query.
             var stats = await query.Select(x => new
@@ -535,6 +517,26 @@ namespace gtas_vpp_be.Service.Services
             await ApplyRequesterNamesAsync(result);
             await ApplyPeriodFlagsAsync(result);
             return (result, totalCount, totalLines, totalQty);
+        }
+
+        private IQueryable<VppRequest> BuildMyOrderQuery(
+            int userId,
+            IEnumerable<int>? years,
+            IEnumerable<int>? months,
+            IEnumerable<int>? statuses)
+        {
+            // Chuẩn hóa filter một lần để list và paged trả cùng tập dữ liệu hiện hành.
+            var yearFilter = years?.Distinct().ToArray();
+            var monthFilter = months?.Distinct().ToArray();
+            var statusFilter = statuses?.Distinct().ToArray();
+            var query = _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(x => x.CreatedByUserId == userId && !x.IsDeleted && x.IsCurrentRevision);
+
+            if (yearFilter is { Length: > 0 }) query = query.Where(x => yearFilter.Contains(x.Year));
+            if (monthFilter is { Length: > 0 }) query = query.Where(x => monthFilter.Contains(x.Month));
+            if (statusFilter is { Length: > 0 }) query = query.Where(x => statusFilter.Contains(x.Status));
+            return query;
         }
 
         public async Task<VppRequestResDTO?> GetOrderByIdAsync(Guid id)
