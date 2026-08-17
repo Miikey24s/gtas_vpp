@@ -11,7 +11,7 @@ public sealed class AdminFilterArchitectureTests
     [InlineData("Tab_DepartmentLibrary.razor", "AllParentDepartments", "LibraryAllStatuses")]
     [InlineData("Tab_ItemLibrary.razor", "AllCategories", "AllUnits", "AllSuppliers", "LibraryAllStatuses")]
     [InlineData("Tab_PriceListLibrary.razor", "AllSuppliers", "LibraryAllStatuses")]
-    [InlineData("Tab_PriceLibrary.razor", "AllCategories", "AllUnits", "AllPriceMappings")]
+    [InlineData("Tab_PriceLibrary.razor", "AllCategories", "AllUnits")]
     public void AdminCollectionFilters_FollowTheirVisibleColumnOrder(
         string fileName,
         params string[] orderedFilterKeys)

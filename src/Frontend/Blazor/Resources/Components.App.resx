@@ -484,6 +484,7 @@
   <data name="PriceListCopyNameSuffix" xml:space="preserve"><value>Bản sao</value></data>
   <data name="ImportPriceList" xml:space="preserve"><value>Import bảng giá</value></data>
   <data name="ImportFromFile" xml:space="preserve"><value>Nhập từ file</value></data>
+  <data name="UpdatePricesFromFile" xml:space="preserve"><value>Cập nhật giá từ file</value></data>
   <data name="PriceImport" xml:space="preserve"><value>Nhập bảng giá</value></data>
   <data name="DownloadTemplate" xml:space="preserve"><value>Tải file mẫu</value></data>
   <data name="PriceImportTarget" xml:space="preserve"><value>Bảng giá cần nhập</value></data>
@@ -954,7 +955,6 @@
   <data name="PeriodStageSettleHint" xml:space="preserve"><value>Xem trước lần cuối và lưu dữ liệu bất biến khi xác nhận; nguồn cung chọn ở bước 3.</value></data>
   <data name="SupplierShortName" xml:space="preserve"><value>Tên viết tắt</value></data>
   <data name="VatRate" xml:space="preserve"><value>Thuế</value></data>
-  <data name="SupplierSku" xml:space="preserve"><value>Mã hàng nhà cung cấp</value></data>
   <data name="MinimumOrderQuantity" xml:space="preserve"><value>Số lượng tối thiểu</value></data>
   <data name="LeadTimeDays" xml:space="preserve"><value>Ngày giao</value></data>
   <data name="Version" xml:space="preserve"><value>Phiên bản</value></data>
@@ -1452,4 +1452,11 @@
   <data name="PriceListIdentityRequired" xml:space="preserve"><value>Vui lòng nhập mã và tên bảng giá.</value></data>
   <data name="PriceListSupplierRequired" xml:space="preserve"><value>Vui lòng chọn nhà cung cấp áp dụng.</value></data>
   <data name="PriceListCloneTermsHint" xml:space="preserve"><value>Nhà cung cấp và giá mặt hàng sẽ được lấy từ bảng giá gốc.</value></data>
+  <data name="SettlementSupplierPlanAvailable" xml:space="preserve"><value>Có phương án dùng 2 nhà cung cấp</value></data>
+  <data name="SettlementSupplierPlanApplied" xml:space="preserve"><value>Đang dùng phương án 2 nhà cung cấp</value></data>
+  <data name="SettlementSupplierPlanCoverageDescription" xml:space="preserve"><value>Hai nhà cung cấp kết hợp mới đáp ứng đủ toàn bộ mặt hàng.</value></data>
+  <data name="SettlementSupplierPlanSavingDescription" xml:space="preserve"><value>Dự kiến giảm {0} đ ({1:N2}%) so với phương án một nhà cung cấp.</value></data>
+  <data name="SettlementSupplierPlanScopeHint" xml:space="preserve"><value>So sánh theo giá và VAT; chưa tính phí vận chuyển hoặc điều khoản hợp đồng.</value></data>
+  <data name="SettlementUseSupplierPlan" xml:space="preserve"><value>Dùng đề xuất</value></data>
+  <data name="SettlementKeepSingleSupplier" xml:space="preserve"><value>Giữ 1 nhà cung cấp</value></data>
 </root>

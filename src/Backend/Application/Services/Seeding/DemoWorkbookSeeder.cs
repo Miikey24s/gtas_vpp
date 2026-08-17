@@ -364,7 +364,6 @@ public static class DemoWorkbookSeeder
             mapping.VatRate = row.VatPercent;
             mapping.MinimumOrderQuantity = 1m;
             mapping.LeadTimeDays = 2;
-            mapping.SupplierSku = row.ItemCode;
             mapping.IsDefault = true;
             mapping.Description = null;
             mapping.UpdatedByUserId = actorUserId;

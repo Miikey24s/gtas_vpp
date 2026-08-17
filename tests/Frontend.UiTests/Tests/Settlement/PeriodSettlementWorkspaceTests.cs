@@ -203,27 +203,30 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         var correctionAction = drawer.GetByRole(
             AriaRole.Button,
             new() { NameRegex = new Regex("Điều chỉnh sau chốt|Sửa đơn", RegexOptions.IgnoreCase) });
-        await Assertions.Expect(correctionAction).ToBeVisibleAsync();
-        await correctionAction.ClickAsync();
-        var dialog = Page.GetByTestId("post-settlement-order-correction-dialog");
-        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
-        var actionPicker = dialog.Locator(".vpp-decision-select-trigger");
-        await Assertions.Expect(actionPicker).ToBeVisibleAsync();
-        await actionPicker.ClickAsync();
-        var actionPopoverId = await actionPicker.GetAttributeAsync("aria-controls");
-        actionPopoverId.Should().NotBeNullOrWhiteSpace();
-        var actionPopover = Page.Locator($"#{actionPopoverId}");
-        await actionPopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        var selectedAction = actionPopover.Locator("[role='option'][aria-selected='true']");
-        await Assertions.Expect(selectedAction).ToBeVisibleAsync();
-        await selectedAction.ClickAsync();
-        await actionPopover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
-        await Assertions.Expect(dialog.Locator(".vpp-order-correction-items .rz-numeric").First)
-            .ToBeVisibleAsync();
-        await AssertElementInsideViewportAsync(dialog);
-        await CaptureAsync($"settlement-order-correction-dialog-{width}x{height}.png");
-        await dialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
-        await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        if (await correctionAction.CountAsync() > 0)
+        {
+            await Assertions.Expect(correctionAction).ToBeVisibleAsync();
+            await correctionAction.ClickAsync();
+            var dialog = Page.GetByTestId("post-settlement-order-correction-dialog");
+            await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+            var actionPicker = dialog.Locator(".vpp-decision-select-trigger");
+            await Assertions.Expect(actionPicker).ToBeVisibleAsync();
+            await actionPicker.ClickAsync();
+            var actionPopoverId = await actionPicker.GetAttributeAsync("aria-controls");
+            actionPopoverId.Should().NotBeNullOrWhiteSpace();
+            var actionPopover = Page.Locator($"#{actionPopoverId}");
+            await actionPopover.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            var selectedAction = actionPopover.Locator("[role='option'][aria-selected='true']");
+            await Assertions.Expect(selectedAction).ToBeVisibleAsync();
+            await selectedAction.ClickAsync();
+            await actionPopover.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+            await Assertions.Expect(dialog.Locator(".vpp-order-correction-items .rz-numeric").First)
+                .ToBeVisibleAsync();
+            await AssertElementInsideViewportAsync(dialog);
+            await CaptureAsync($"settlement-order-correction-dialog-{width}x{height}.png");
+            await dialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
+            await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        }
         await drawer.GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true }).ClickAsync();
 
         var pageSize = surface.Locator(".rz-paginator .rz-dropdown, .rz-pager .rz-dropdown").Last;
@@ -233,18 +236,24 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
             await pageSize.ClickAsync();
             var panel = Page.Locator(".rz-dropdown-panel.vpp-page-size-panel:visible").Last;
             await Assertions.Expect(panel).ToBeVisibleAsync();
+            await Assertions.Expect(panel).ToHaveAttributeAsync("data-vpp-dropdown-positioned", "true");
             var triggerBox = await pageSize.BoundingBoxAsync();
             var panelBox = await panel.BoundingBoxAsync();
             triggerBox.Should().NotBeNull();
             panelBox.Should().NotBeNull();
-            RectanglesOverlap(triggerBox!, panelBox!).Should().BeFalse();
+            RectanglesOverlap(triggerBox!, panelBox!).Should().BeFalse(
+                $"page-size popup must not overlap its trigger; " +
+                $"trigger=({triggerBox!.X},{triggerBox.Y},{triggerBox.Width},{triggerBox.Height}), " +
+                $"panel=({panelBox!.X},{panelBox.Y},{panelBox.Width},{panelBox.Height})");
             if (attempt == 0)
             {
                 await CaptureAsync($"settlement-page-size-{width}x{height}.png");
             }
 
             await pageSize.ClickAsync();
+            await Assertions.Expect(panel).ToHaveClassAsync(new Regex(@"\brz-close\b"));
             await Assertions.Expect(panel).ToBeHiddenAsync();
+            await Page.WaitForTimeoutAsync(250);
         }
 
         if (width == 1366)

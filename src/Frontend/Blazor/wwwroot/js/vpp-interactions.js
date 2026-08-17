@@ -64,15 +64,38 @@
             && panel.getClientRects().length > 0;
         if (!trigger || !isOpen) {
             panel.classList.remove("vpp-transient-surface--above");
+            panel.style.removeProperty("--rz-page-size-shift-x");
+            panel.style.removeProperty("--rz-page-size-shift-y");
             delete panel.dataset.vppDropdownPositioned;
             return false;
         }
 
+        panel.style.removeProperty("--rz-page-size-shift-x");
+        panel.style.removeProperty("--rz-page-size-shift-y");
         var panelRect = panel.getBoundingClientRect();
         var triggerRect = trigger.getBoundingClientRect();
         var openAbove = panelRect.top < triggerRect.top;
 
         panel.classList.toggle("vpp-transient-surface--above", openAbove);
+        if (isPageSize) {
+            // Radzen đôi khi neo popup trùng một phần nút gốc. Tính phần dịch từ
+            // hình học thật để popup luôn cách nút một khoảng và giữ cùng tâm.
+            var gap = 4;
+            panel.style.setProperty("--rz-page-size-shift-x", "0px");
+            panel.style.setProperty("--rz-page-size-shift-y", "0px");
+            var neutralRect = panel.getBoundingClientRect();
+            var desiredLeft = triggerRect.left + ((triggerRect.width - neutralRect.width) / 2);
+            desiredLeft = Math.max(gap, Math.min(desiredLeft, window.innerWidth - neutralRect.width - gap));
+            var desiredTop = openAbove
+                ? triggerRect.top - neutralRect.height - gap
+                : triggerRect.bottom + gap;
+            panel.style.setProperty(
+                "--rz-page-size-shift-x",
+                (desiredLeft - neutralRect.left) + "px");
+            panel.style.setProperty(
+                "--rz-page-size-shift-y",
+                (desiredTop - neutralRect.top) + "px");
+        }
         panel.dataset.vppDropdownPositioned = "true";
         return true;
     }

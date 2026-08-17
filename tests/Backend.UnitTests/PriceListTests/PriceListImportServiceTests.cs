@@ -60,6 +60,22 @@ public sealed class PriceListImportServiceTests
     }
 
     [Fact]
+    public async Task Parser_AllowsPrefilledCatalogRowsWithoutPrice()
+    {
+        const string csv = "ItemCode,ItemName,UnitName,UnitPrice,VatRate\nA001,Bút A,Cây,,8";
+        var parser = new PriceListImportFileParser();
+
+        var parsed = await parser.ParseAsync(
+            new MemoryStream(Encoding.UTF8.GetBytes(csv)),
+            "mau-bang-gia.csv");
+
+        var row = Assert.Single(parsed.Rows);
+        Assert.Equal("Cây", row.UnitName);
+        Assert.Null(row.UnitPrice);
+        Assert.DoesNotContain(row.Issues, issue => issue.Code == "UNIT_PRICE_INVALID");
+    }
+
+    [Fact]
     public async Task Parser_AnalyzeAndManualMappingSupportSupplierSpecificHeaders()
     {
         const string csv = "Mã nội bộ;Giá bán;Thuế suất\nA001;12.500;8";
@@ -197,6 +213,45 @@ public sealed class PriceListImportServiceTests
     }
 
     [Fact]
+    public async Task Template_PrefillsCatalogIdentityUnitAndCurrentPrice()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context);
+        var service = CreateService(context);
+
+        var template = await service.BuildTemplateAsync(seed.PriceListId);
+        var parsed = await new PriceListImportFileParser().ParseAsync(
+            new MemoryStream(template.Content),
+            template.FileName);
+
+        Assert.Equal(3, parsed.Rows.Count);
+        Assert.All(parsed.Rows, row => Assert.Equal("Cây", row.UnitName));
+        Assert.Equal(100m, parsed.Rows.Single(row => row.ItemCode == "A001").UnitPrice);
+        Assert.Null(parsed.Rows.Single(row => row.ItemCode == "C001").UnitPrice);
+    }
+
+    [Fact]
+    public async Task Preview_KeepsBlankPriceAndBlocksChangedUnit()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context);
+        var service = CreateService(context);
+        const string csv = "ItemCode,ItemName,UnitName,UnitPrice\nA001,Bút A,Cây,\nB001,Bút B,Hộp,250";
+
+        var preview = await service.PreviewAsync(
+            seed.PriceListId,
+            "kiem-tra-don-vi.csv",
+            new MemoryStream(Encoding.UTF8.GetBytes(csv)),
+            null,
+            5615);
+
+        Assert.Equal(1, preview.UnchangedRows);
+        Assert.Equal(1, preview.ErrorRows);
+        Assert.Contains(preview.Rows.SelectMany(row => row.Issues), issue => issue.Code == "PRICE_NOT_ENTERED");
+        Assert.Contains(preview.Rows.SelectMany(row => row.Issues), issue => issue.Code == "UNIT_MISMATCH");
+    }
+
+    [Fact]
     public async Task Preview_StoresCustomColumnMappingInAuditBatch()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
@@ -331,6 +386,7 @@ public sealed class PriceListImportServiceTests
         var itemAId = Guid.NewGuid();
         var itemBId = Guid.NewGuid();
         var itemCId = Guid.NewGuid();
+        var unitId = Guid.NewGuid();
         context.Set<Supplier>().Add(new Supplier
         {
             Id = supplierId,
@@ -355,10 +411,20 @@ public sealed class PriceListImportServiceTests
             UpdatedByUserId = 1,
             UpdatedAtUtc = Now
         });
+        context.Set<LookupValue>().Add(new LookupValue
+        {
+            Id = unitId,
+            Code = "PIECE",
+            Value = "Cây",
+            CreatedByUserId = 1,
+            CreatedAtUtc = Now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = Now
+        });
         context.Set<VppItem>().AddRange(
-            Item(itemAId, "A001", "Bút A"),
-            Item(itemBId, "B001", "Bút B"),
-            Item(itemCId, "C001", "Giấy C"));
+            Item(itemAId, "A001", "Bút A", unitId),
+            Item(itemBId, "B001", "Bút B", unitId),
+            Item(itemCId, "C001", "Giấy C", unitId));
         context.Set<SupplierProductMapping>().AddRange(
             Mapping(priceListId, supplierId, itemAId, 100m, 8m),
             Mapping(priceListId, supplierId, itemBId, 200m, 8m));
@@ -366,12 +432,12 @@ public sealed class PriceListImportServiceTests
         return new Seed(priceListId, itemBId, itemCId);
     }
 
-    private static VppItem Item(Guid id, string code, string name) => new()
+    private static VppItem Item(Guid id, string code, string name, Guid? unitId = null) => new()
     {
         Id = id,
         VppCode = code,
         VppName = name,
-        UomId = Guid.NewGuid(),
+        UomId = unitId ?? Guid.NewGuid(),
         VppCategoryId = Guid.NewGuid(),
         CreatedByUserId = 1,
         CreatedAtUtc = Now,

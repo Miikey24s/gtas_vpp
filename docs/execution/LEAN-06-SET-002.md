@@ -9,7 +9,7 @@ Status: DONE for the retained settlement slice.
 - Added `POST /api/PeriodSettlement/confirm` with preview hash verification,
   short transaction scope, idempotency-key replay/conflict handling and one
   current revision per company/period.
-- Confirmation snapshots net unit price, VAT rate, supplier SKU, MOQ, lead
+- Confirmation snapshots mã mặt hàng hệ thống, net unit price, VAT rate, MOQ và lead time
   time, commercial charges and allocation back to request detail, requester
   and department. VND money is rounded to whole units through calculation
   version `price-vat-v2-vnd-whole`; residual rounding is allocated to the

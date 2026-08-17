@@ -21,8 +21,8 @@ public sealed class PriceListImportParsedRow
 {
     public int RowNumber { get; init; }
     public string? ItemCode { get; init; }
-    public string? SupplierSku { get; init; }
     public string? ItemName { get; init; }
+    public string? UnitName { get; init; }
     public decimal? UnitPrice { get; init; }
     public decimal? VatRate { get; init; }
     public decimal? MinimumOrderQuantity { get; init; }
@@ -42,8 +42,8 @@ public sealed class PriceListImportFileParser
     private static readonly HashSet<string> SupportedFields = new(StringComparer.OrdinalIgnoreCase)
     {
         "ItemCode",
-        "SupplierSku",
         "ItemName",
+        "UnitName",
         "UnitPrice",
         "VatRate",
         "MinimumOrderQuantity",
@@ -59,12 +59,12 @@ public sealed class PriceListImportFileParser
             ["mavattu"] = "ItemCode",
             ["mamathang"] = "ItemCode",
             ["mahang"] = "ItemCode",
-            ["suppliersku"] = "SupplierSku",
-            ["mancc"] = "SupplierSku",
-            ["mahangncc"] = "SupplierSku",
             ["itemname"] = "ItemName",
             ["tenmathang"] = "ItemName",
             ["tenhang"] = "ItemName",
+            ["unitname"] = "UnitName",
+            ["donvi"] = "UnitName",
+            ["dvt"] = "UnitName",
             ["unitprice"] = "UnitPrice",
             ["dongia"] = "UnitPrice",
             ["gia"] = "UnitPrice",
@@ -347,11 +347,11 @@ public sealed class PriceListImportFileParser
 
         var priceText = Cell(source, mappedColumns, "UnitPrice");
         var unitPrice = ParseDecimal(priceText, preferThousands: true);
-        if (!unitPrice.HasValue)
+        if (!string.IsNullOrWhiteSpace(priceText) && !unitPrice.HasValue)
         {
             issues.Add(Issue(source.RowNumber, "Error", "UNIT_PRICE_INVALID", "Đơn giá không hợp lệ.", "UnitPrice"));
         }
-        else if (unitPrice.Value < 0)
+        else if (unitPrice.HasValue && unitPrice.Value < 0)
         {
             issues.Add(Issue(source.RowNumber, "Error", "UNIT_PRICE_NEGATIVE", "Đơn giá phải lớn hơn hoặc bằng 0.", "UnitPrice"));
         }
@@ -365,8 +365,8 @@ public sealed class PriceListImportFileParser
         {
             RowNumber = source.RowNumber,
             ItemCode = NormalizeOptional(itemCode),
-            SupplierSku = NormalizeOptional(Cell(source, mappedColumns, "SupplierSku")),
             ItemName = NormalizeOptional(Cell(source, mappedColumns, "ItemName")),
+            UnitName = NormalizeOptional(Cell(source, mappedColumns, "UnitName")),
             UnitPrice = unitPrice,
             VatRate = vatRate,
             MinimumOrderQuantity = moq,
@@ -518,8 +518,8 @@ public sealed class PriceListImportFileParser
     private static string FieldLabel(string field) => field switch
     {
         "ItemCode" => "Mã mặt hàng",
-        "SupplierSku" => "Mã hàng nhà cung cấp",
         "ItemName" => "Tên mặt hàng",
+        "UnitName" => "Đơn vị",
         "UnitPrice" => "Đơn giá",
         "VatRate" => "Thuế VAT",
         "MinimumOrderQuantity" => "Số lượng tối thiểu",

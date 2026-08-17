@@ -15,39 +15,62 @@
         <VppCollectionHeader Title="@Loc["Prices"]"
                              Summary="@Loc["RecordsCount", priceCount]">
             <Actions>
+                <VppFileExportActions Formats="@PriceExportFormats"
+                                      BusyFormat="@exportingPriceListFormat"
+                                      Disabled="@(!CanExportPrices || isFileActionBusy)"
+                                      ExportRequested="@ExportPricesAsync"
+                                      AriaContext="@SelectedPriceListDisplayName" />
                 @if (CanModify)
                 {
-                    <RadzenButton Text="@Loc["ImportPriceList"]"
+                    <RadzenButton Text="@Loc["UpdatePricesFromFile"]"
                                   Icon="upload_file"
                                   Size="ButtonSize.Small"
-                                  ButtonStyle="ButtonStyle.Primary"
-                                  Disabled="@(!CanImportPrices)"
-                                  title="@(CanImportPrices ? Loc["ImportPriceList"] : Loc["RequestActionUnavailable"])"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Variant="Variant.Outlined"
+                                  Disabled="@(!CanImportPrices || isFileActionBusy)"
+                                  title="@(CanImportPrices ? Loc["UpdatePricesFromFile"] : Loc["RequestActionUnavailable"])"
                                   Click="@ImportPricesAsync" />
                 }
             </Actions>
         </VppCollectionHeader>
         <section class="vpp-price-context" aria-label="@Loc["PriceContext"]" data-testid="price-context">
-            <label class="vpp-price-context-selector">
-                <span>@Loc["PriceList"]</span>
-                <VppFilterSelect TValue="Guid?"
-                                 Value="@selectedPriceListId"
-                                 Options="@PriceListFilterOptions"
-                                 ValueChanged="@OnPriceListChangedAsync"
-                                 Placeholder="@Loc["SelectPriceList"]"
-                                 AriaLabel="@Loc["PriceList"]"
-                                 Disabled="@(!HasPriceLists)" />
-            </label>
-            <dl class="vpp-price-context-facts">
-                <div>
-                    <dt>@Loc["Supplier"]</dt>
-                    <dd>@SelectedSupplierName</dd>
+            <VppDecisionCardGroup Class="vpp-price-decision-cards">
+                <VppDecisionSelect TValue="Guid?"
+                                   Value="@selectedSupplierId"
+                                   Options="@SupplierDecisionOptions"
+                                   ValueChanged="@OnSupplierChangedAsync"
+                                   Placeholder="@Loc["SettlementSelectSupplier"]"
+                                   AriaLabel="@Loc["SettlementSelectSupplier"]"
+                                   Eyebrow="@Loc["SettlementSelectSupplier"]"
+                                   Class="vpp-decision-card vpp-price-supplier-decision-card"
+                                   TriggerClass="vpp-decision-card-trigger"
+                                   Disabled="@(SupplierDecisionOptions.Count == 0 || isFileActionBusy)" />
+
+                <VppDecisionSelect TValue="Guid?"
+                                   Value="@selectedPriceListId"
+                                   Options="@PriceListDecisionOptions"
+                                   ValueChanged="@OnPriceListChangedAsync"
+                                   Placeholder="@Loc["SettlementSelectPriceList"]"
+                                   AriaLabel="@Loc["SettlementSelectPriceList"]"
+                                   Eyebrow="@Loc["SettlementSelectPriceList"]"
+                                   Class="vpp-decision-card vpp-price-list-decision-card"
+                                   TriggerClass="vpp-decision-card-trigger"
+                                   Disabled="@(!selectedSupplierId.HasValue || PriceListDecisionOptions.Count == 0 || isFileActionBusy)" />
+
+                <div class="vpp-decision-card-context vpp-price-status-card" aria-label="@Loc["Status"]">
+                    <small>@Loc["Status"]</small>
+                    <div class="vpp-decision-card-context-body">
+                        <VppStatusBadge Text="@SelectedPriceListStatusLabel" Tone="@SelectedPriceListStatusTone" />
+                    </div>
                 </div>
-                <div>
-                    <dt>@Loc["Status"]</dt>
-                    <dd><VppStatusBadge Text="@SelectedPriceListStatusLabel" Tone="@SelectedPriceListStatusTone" /></dd>
+
+                <div class="vpp-decision-card-context vpp-price-item-count-card" aria-label="@Loc["ItemCount"]">
+                    <small>@Loc["ItemCount"]</small>
+                    <div class="vpp-decision-card-context-body">
+                        <strong>@(SelectedPriceList?.ItemCount ?? 0)</strong>
+                    </div>
                 </div>
-            </dl>
+            </VppDecisionCardGroup>
         </section>
     </Header>
     <Toolbar>
@@ -55,7 +78,6 @@
         <VppFilterSearch Value="@searchText" Input="@OnSearchInputAsync" Placeholder="@Loc["LibrarySearchPrices"]" AriaLabel="@Loc["LibrarySearchPrices"]" />
         <VppFilterSelect TValue="string" Value="@selectedCategory" Options="@CategoryFilterOptions" ValueChanged="@OnCategoryChangedAsync" Placeholder="@Loc["AllCategories"]" AriaLabel="@Loc["AllCategories"]" Disabled="@(!HasPriceListSelected)" />
         <VppFilterSelect TValue="string" Value="@selectedUom" Options="@UomFilterOptions" ValueChanged="@OnUomChangedAsync" Placeholder="@Loc["AllUnits"]" AriaLabel="@Loc["AllUnits"]" Disabled="@(!HasPriceListSelected)" />
-        <VppFilterSelect TValue="string" Value="@selectedMappingStatus" Options="@MappingStatusOptions" ValueChanged="@OnMappingStatusChangedAsync" Placeholder="@Loc["AllPriceMappings"]" AriaLabel="@Loc["AllPriceMappings"]" Disabled="@(!HasPriceListSelected)" />
         <VppClearFiltersButton Text="@Loc["ClearFilters"]" IsActive="@HasPriceFilters" Clicked="@ClearFiltersAsync" />
         <VppColumnPicker TItem="VppItemPriceResDTO" GridAccessor="@(() => grid)" />
     </VppDataToolbar>
@@ -125,10 +147,6 @@
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="PriceMappingId" Title="@Loc["SystemId"]" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="CategoryName" Title="@Loc["Category"]" Width="140px" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="UomName" Title="@Loc["UOM"]" Width="100px" MinWidth="90px" TextAlign="TextAlign.Center" Filterable="false" />
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDeleted" Title="@Loc["PriceStatus"]" Width="125px" MinWidth="115px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false">
-                <Template Context="row"><VppStatusBadge Text="@GetPriceStatusLabel(row)" Tone="@GetPriceStatusTone(row)" /></Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="SupplierSku" Title="@Loc["SupplierSku"]" Width="170px" MinWidth="150px" />
             <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="Price" Title="@Loc["Price"]" Width="105px" TextAlign="TextAlign.Right" FormatString="{0:N0}" Filterable="false">
                 <Template Context="row">
                     @if (row.Price.HasValue)
@@ -151,20 +169,6 @@
                     else
                     {
                         <span class="text-muted vpp-admin-empty-value">--</span>
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="MinimumOrderQuantity" Title="@Loc["MinimumOrderShort"]" Width="125px" MinWidth="115px" TextAlign="TextAlign.Right" FormatString="{0:0.##}" Filterable="false" />
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="LeadTimeDays" Title="@Loc["LeadTimeDays"]" Width="110px" MinWidth="100px" TextAlign="TextAlign.Center" Filterable="false" />
-            <RadzenDataGridColumn TItem="VppItemPriceResDTO" Property="IsDefault" Title="@Loc["DefaultPrice"]" Width="120px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false">
-                <Template Context="row">
-                    @if (row.IsDefault)
-                    {
-                        <VppStatusBadge Text="@Loc["Default"]" Tone="VppStatusTone.Neutral" />
-                    }
-                    else
-                    {
-                        <span aria-label="@Loc["No"]">–</span>
                     }
                 </Template>
             </RadzenDataGridColumn>

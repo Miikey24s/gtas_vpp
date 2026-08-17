@@ -45,7 +45,8 @@ public sealed class PriceListImportRowResDTO
     public string? ItemCode { get; set; }
     public string? ItemName { get; set; }
     public string? MatchedItemName { get; set; }
-    public string? SupplierSku { get; set; }
+    public string? UnitName { get; set; }
+    public string? MatchedUnitName { get; set; }
     public decimal? UnitPrice { get; set; }
     public decimal? VatRate { get; set; }
     public decimal? MinimumOrderQuantity { get; set; }

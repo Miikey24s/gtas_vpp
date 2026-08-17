@@ -484,6 +484,7 @@
   <data name="PriceListCopyNameSuffix" xml:space="preserve"><value>Copy</value></data>
   <data name="ImportPriceList" xml:space="preserve"><value>Import price list</value></data>
   <data name="ImportFromFile" xml:space="preserve"><value>Import from file</value></data>
+  <data name="UpdatePricesFromFile" xml:space="preserve"><value>Update prices from file</value></data>
   <data name="PriceImport" xml:space="preserve"><value>Import price list</value></data>
   <data name="DownloadTemplate" xml:space="preserve"><value>Download template</value></data>
   <data name="PriceImportTarget" xml:space="preserve"><value>Target price list</value></data>
@@ -954,7 +955,6 @@
   <data name="PeriodStageSettleHint" xml:space="preserve"><value>Final preview and immutable storage on confirmation; supply is chosen in step 3.</value></data>
   <data name="SupplierShortName" xml:space="preserve"><value>Short name</value></data>
   <data name="VatRate" xml:space="preserve"><value>VAT</value></data>
-  <data name="SupplierSku" xml:space="preserve"><value>Supplier SKU</value></data>
   <data name="MinimumOrderQuantity" xml:space="preserve"><value>Minimum quantity</value></data>
   <data name="LeadTimeDays" xml:space="preserve"><value>Lead days</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
@@ -1452,4 +1452,11 @@
   <data name="PriceListIdentityRequired" xml:space="preserve"><value>Enter a price-list code and name.</value></data>
   <data name="PriceListSupplierRequired" xml:space="preserve"><value>Select the applicable supplier.</value></data>
   <data name="PriceListCloneTermsHint" xml:space="preserve"><value>The supplier and item prices are taken from the source price list.</value></data>
+  <data name="SettlementSupplierPlanAvailable" xml:space="preserve"><value>A two-supplier option is available</value></data>
+  <data name="SettlementSupplierPlanApplied" xml:space="preserve"><value>The two-supplier option is applied</value></data>
+  <data name="SettlementSupplierPlanCoverageDescription" xml:space="preserve"><value>Combining two suppliers is required to cover every item.</value></data>
+  <data name="SettlementSupplierPlanSavingDescription" xml:space="preserve"><value>Estimated saving: {0} VND ({1:N2}%) compared with one supplier.</value></data>
+  <data name="SettlementSupplierPlanScopeHint" xml:space="preserve"><value>Compares price and VAT only; shipping and contract terms are not included.</value></data>
+  <data name="SettlementUseSupplierPlan" xml:space="preserve"><value>Use suggestion</value></data>
+  <data name="SettlementKeepSingleSupplier" xml:space="preserve"><value>Keep one supplier</value></data>
 </root>

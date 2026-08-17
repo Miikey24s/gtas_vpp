@@ -43,6 +43,27 @@
             <article class="is-total"><span>@Loc["TotalValue"]</span><strong>@Money(GrandTotal)</strong></article>
         </div>
 
+        @if (WorkingPreview.Exceptions.Any(exception => exception.IsValid)
+            && WorkingPreview.SupplierRecommendation is { Suppliers.Count: > 1 } supplierPlan)
+        {
+            <section class="vpp-settlement-preview-suppliers" aria-label="@Loc["SettlementSupplierPlanApplied"]">
+                <div>
+                    <VppIcon Name="@VppIcons.Check" />
+                    <div>
+                        <strong>@Loc["SettlementSupplierPlanApplied"]</strong>
+                        <span>@Loc["SettlementSupplierPlanScopeHint"]</span>
+                    </div>
+                </div>
+                <div class="vpp-settlement-preview-supplier-chips">
+                    @foreach (var supplier in supplierPlan.Suppliers)
+                    {
+                        <VppCategoryChip Text="@($"{supplier.SupplierName}: {string.Format(Loc["ItemsCount"], supplier.ItemCount)}")"
+                                         Tone="@(supplier.IsPrimary ? VppCategoryTone.Accent : VppCategoryTone.Neutral)" />
+                    }
+                </div>
+            </section>
+        }
+
         @if (IsResettlement)
         {
             <section class="vpp-settlement-preview-changes" aria-label="@Loc["SettlementChangesSinceLastVersion"]">

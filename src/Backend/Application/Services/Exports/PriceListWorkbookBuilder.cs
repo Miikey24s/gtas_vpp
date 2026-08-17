@@ -2,13 +2,10 @@ namespace gtas_vpp_be.Service.Services;
 
 public sealed record PriceListWorkbookRow(
     string? ItemCode,
-    string? SupplierSku,
     string? ItemName,
-    decimal UnitPrice,
-    decimal VatRate,
-    decimal MinimumOrderQuantity,
-    int LeadTimeDays,
-    bool IsDefault,
+    string? UnitName,
+    decimal? UnitPrice,
+    decimal? VatRate,
     string? Note);
 
 /// <summary>
@@ -19,24 +16,21 @@ public static class PriceListWorkbookBuilder
     private static readonly IReadOnlyList<SimpleWorkbookColumn> Columns =
     [
         new("ItemCode", 22),
-        new("SupplierSku", 22),
         new("ItemName", 34),
+        new("UnitName", 18),
         new("UnitPrice", 18, SimpleWorkbookCellFormat.Decimal),
         new("VatRate", 14, SimpleWorkbookCellFormat.Decimal),
-        new("MinimumOrderQuantity", 24, SimpleWorkbookCellFormat.Decimal),
-        new("LeadTimeDays", 18, SimpleWorkbookCellFormat.Integer),
-        new("IsDefault", 14),
         new("Note", 32)
     ];
 
     private static readonly IReadOnlyList<IReadOnlyList<object?>> GuideRows =
     [
-        ["ItemCode", "Bắt buộc. Nhập đúng mã mặt hàng trong hệ thống."],
-        ["UnitPrice", "Bắt buộc. Đơn giá VND, lớn hơn hoặc bằng 0."],
-        ["VatRate", "Không bắt buộc. Từ 0 đến 100; để trống sẽ giữ giá trị cũ hoặc dùng 0 khi thêm mới."],
-        ["MinimumOrderQuantity", "Không bắt buộc. Số lượng đặt tối thiểu."],
-        ["LeadTimeDays", "Không bắt buộc. Số ngày giao hàng."],
-        ["IsDefault", "Không bắt buộc. Có/Không, Yes/No, True/False hoặc 1/0."],
+        ["ItemCode", "Bắt buộc. Giữ nguyên mã mặt hàng do hệ thống cung cấp."],
+        ["ItemName", "Tên mặt hàng được điền sẵn để đối chiếu; hệ thống vẫn nhận diện theo mã mặt hàng."],
+        ["UnitName", "Đơn vị được điền sẵn. Không đổi đơn vị trong file bảng giá."],
+        ["UnitPrice", "Bắt buộc với dòng cần cập nhật. Đơn giá VND, lớn hơn hoặc bằng 0."],
+        ["VatRate", "Không bắt buộc. Từ 0 đến 100; để trống sẽ giữ VAT hiện tại hoặc dùng 0 khi thêm mới."],
+        ["Dòng chưa nhập giá", "Hệ thống bỏ qua và giữ nguyên dữ liệu hiện tại."],
         ["Tên cột khác mẫu", "Hệ thống sẽ yêu cầu ghép cột trước khi kiểm tra dữ liệu."],
         ["Lưu ý", "Không thêm mặt hàng mới vào danh mục bằng file bảng giá."]
     ];
@@ -49,13 +43,10 @@ public static class PriceListWorkbookBuilder
             .Select(row => (IReadOnlyList<object?>)
             [
                 row.ItemCode,
-                row.SupplierSku,
                 row.ItemName,
+                row.UnitName,
                 row.UnitPrice,
                 row.VatRate,
-                row.MinimumOrderQuantity,
-                row.LeadTimeDays,
-                row.IsDefault ? "Có" : "Không",
                 row.Note
             ])
             .ToArray();

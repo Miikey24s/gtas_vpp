@@ -215,38 +215,6 @@ public class VPPPriceServiceTests
     }
 
     [Fact]
-    public async Task QueryItemPrices_SearchesBySupplierSku()
-    {
-        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
-        var now = new DateTime(2026, 8, 15, 9, 0, 0);
-        var vppId = Guid.NewGuid();
-        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
-        var vpp = await context.Set<VppItem>().SingleAsync(item => item.Id == vppId);
-        context.Set<LookupValue>().Add(new LookupValue
-        {
-            Id = vpp.UomId,
-            Code = "EA",
-            Value = "Cái",
-            Sort = 1,
-            CreatedAtUtc = now,
-            UpdatedAtUtc = now,
-            IsDeleted = false
-        });
-        var priceListId = await ServiceTestHelpers.SeedDefaultPriceListAsync(context);
-        var supplierId = await SeedSupplierAsync(context, "Supplier", now);
-        var mapping = PriceRow(vppId, supplierId, priceListId, 1000, isDefault: true, now);
-        mapping.SupplierSku = "NCC-SKU-2026";
-        context.Set<SupplierProductMapping>().Add(mapping);
-        await context.SaveChangesAsync();
-
-        var result = await CreatePriceService(context, now)
-            .QueryItemPricesAsync(supplierId, priceListId, search: "SKU-2026");
-
-        Assert.Equal(1, result.TotalCount);
-        Assert.Equal("NCC-SKU-2026", Assert.Single(result.Data).SupplierSku);
-    }
-
-    [Fact]
     public async Task GetCurrentSinglePrice_WithDefault_PrefersDefault()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

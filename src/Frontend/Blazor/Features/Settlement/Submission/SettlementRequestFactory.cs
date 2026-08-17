@@ -73,6 +73,7 @@ public static class SettlementRequestFactory
         {
             VppId = source.VppId,
             SupplierId = source.SupplierId,
+            PriceListId = source.PriceListId,
             Reason = source.Reason?.Trim()
         }).ToList();
 }

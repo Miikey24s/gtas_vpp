@@ -107,7 +107,6 @@ namespace gtas_vpp_be.Service.Services
                     VatRate = mapping == null ? 0m : mapping.VatRate,
                     MinimumOrderQuantity = mapping == null ? 0m : mapping.MinimumOrderQuantity,
                     LeadTimeDays = mapping == null ? 0 : mapping.LeadTimeDays,
-                    SupplierSku = mapping == null ? null : mapping.SupplierSku,
                     IsDefault = mapping != null && mapping.IsDefault,
                     IsDeleted = mapping != null && mapping.IsDeleted,
                     Description = mapping == null ? null : mapping.Description,
@@ -121,8 +120,7 @@ namespace gtas_vpp_be.Service.Services
                     (x.VppCode != null && x.VppCode.Contains(searchText))
                     || (x.VppName != null && x.VppName.Contains(searchText))
                     || (x.CategoryName != null && x.CategoryName.Contains(searchText))
-                    || (x.UomName != null && x.UomName.Contains(searchText))
-                    || (x.SupplierSku != null && x.SupplierSku.Contains(searchText)));
+                    || (x.UomName != null && x.UomName.Contains(searchText)));
             }
 
             if (!string.IsNullOrWhiteSpace(filter))
@@ -220,7 +218,6 @@ namespace gtas_vpp_be.Service.Services
                     VatRate = req.VatRate,
                     MinimumOrderQuantity = req.MinimumOrderQuantity,
                     LeadTimeDays = req.LeadTimeDays,
-                    SupplierSku = NormalizeOptional(req.SupplierSku),
                     IsDefault = req.IsDefault,
                     Description = req.Description,
                     CreatedByUserId = userId,
@@ -279,7 +276,6 @@ namespace gtas_vpp_be.Service.Services
                 entity.VatRate = req.VatRate;
                 entity.MinimumOrderQuantity = req.MinimumOrderQuantity;
                 entity.LeadTimeDays = req.LeadTimeDays;
-                entity.SupplierSku = NormalizeOptional(req.SupplierSku);
                 entity.IsDefault = req.IsDefault;
                 entity.Description = req.Description;
                 entity.UpdatedByUserId = userId;
@@ -431,7 +427,6 @@ namespace gtas_vpp_be.Service.Services
                     VatRate = x.VatRate,
                     MinimumOrderQuantity = x.MinimumOrderQuantity,
                     LeadTimeDays = x.LeadTimeDays,
-                    SupplierSku = x.SupplierSku,
                     RowVersion = x.RowVersion,
                     IsDefault = x.IsDefault,
                     VppItemId = x.VppItemId,
@@ -542,9 +537,6 @@ namespace gtas_vpp_be.Service.Services
 
             EnsureEditable(priceBook);
         }
-
-        private static string? NormalizeOptional(string? value)
-            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
         private static bool IsUniqueViolation(DbUpdateException exception)
             => exception.InnerException is SqlException sqlException

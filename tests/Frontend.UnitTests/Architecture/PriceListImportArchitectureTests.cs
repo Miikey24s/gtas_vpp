@@ -11,7 +11,7 @@ public sealed class PriceListImportArchitectureTests
         var dialog = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_PriceListImport.razor");
         var code = ReadFrontendSource("Components/Pages/Lib/Tabs/Dialog/Dialog_PriceListImport.razor.cs");
 
-        Assert.Contains("ImportPriceList", page, StringComparison.Ordinal);
+        Assert.Contains("UpdatePricesFromFile", page, StringComparison.Ordinal);
         Assert.Contains("<VppAdaptiveDialogShell", dialog, StringComparison.Ordinal);
         Assert.Contains("<VppInlineNotice", dialog, StringComparison.Ordinal);
         Assert.Contains("PriceImportDetectedColumns", dialog, StringComparison.Ordinal);

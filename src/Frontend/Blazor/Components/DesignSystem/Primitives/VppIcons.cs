@@ -53,6 +53,7 @@ public static class VppIcons
     public const string Permissions = "admin_panel_settings";
     public const string Reports = "analytics";
     public const string Rejected = "cancel";
+    public const string Recommendation = "auto_awesome";
     public const string Review = "fact_check";
     public const string Rule = "rule";
     public const string Schema = "schema";

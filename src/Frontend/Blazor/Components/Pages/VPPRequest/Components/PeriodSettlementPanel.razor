@@ -45,7 +45,7 @@
 
     @* DECISION: Hai card lựa chọn và hai card xuất bản chốt dùng cùng một nhịp. *@
     <section class="vpp-settlement-decision-area" aria-label="@Loc["SettlementSupplierDecision"]">
-        <div class="vpp-settlement-decision-cards">
+        <VppDecisionCardGroup Class="vpp-settlement-decision-cards">
                 <VppDecisionSelect TValue="Guid?"
                                    Value="@SelectedSupplierId"
                                    Options="@SupplierOptions"
@@ -53,8 +53,8 @@
                                    Placeholder="@Loc["SettlementSelectSupplier"]"
                                    AriaLabel="@Loc["SettlementSelectSupplier"]"
                                    Eyebrow="@Loc["SettlementSelectSupplier"]"
-                                   Class="vpp-settlement-decision-card"
-                                   TriggerClass="vpp-settlement-decision-trigger"
+                                   Class="vpp-decision-card vpp-settlement-decision-card"
+                                   TriggerClass="vpp-decision-card-trigger vpp-settlement-decision-trigger"
                                    Disabled="@(isPreviewLoading || SupplierOptions.Count == 0)" />
                 <VppDecisionSelect TValue="Guid?"
                                    Value="@SelectedPriceListId"
@@ -63,11 +63,11 @@
                                    Placeholder="@Loc["SettlementSelectPriceList"]"
                                    AriaLabel="@Loc["SettlementSelectPriceList"]"
                                    Eyebrow="@Loc["SettlementSelectPriceList"]"
-                                   Class="vpp-settlement-decision-card"
-                                   TriggerClass="vpp-settlement-decision-trigger"
+                                   Class="vpp-decision-card vpp-settlement-decision-card"
+                                   TriggerClass="vpp-decision-card-trigger vpp-settlement-decision-trigger"
                                    Disabled="@(isPreviewLoading || PriceListOptions.Count == 0)" />
                 <button type="button"
-                        class="vpp-settlement-export-card"
+                        class="vpp-decision-card-action vpp-settlement-export-card"
                         disabled="@(!CanExportSettlement || exportingSettlementFormat.HasValue)"
                         aria-label="PDF"
                         title="@(CanExportSettlement ? "PDF" : Loc["RequestActionUnavailable"])"
@@ -76,7 +76,7 @@
                     <strong>PDF</strong>
                 </button>
                 <button type="button"
-                        class="vpp-settlement-export-card"
+                        class="vpp-decision-card-action vpp-settlement-export-card"
                         disabled="@(!CanExportSettlement || exportingSettlementFormat.HasValue)"
                         aria-label="Excel"
                         title="@(CanExportSettlement ? "Excel" : Loc["RequestActionUnavailable"])"
@@ -84,8 +84,57 @@
                     <VppIcon Name="@VppIcons.Spreadsheet" />
                     <strong>Excel</strong>
                 </button>
-        </div>
+        </VppDecisionCardGroup>
     </section>
+
+    @if (SupplierRecommendation is { IsRecommended: true } recommendation)
+    {
+        <div class="vpp-settlement-supplier-recommendation @(IsSupplierRecommendationApplied ? "is-applied" : null)"
+             role="status"
+             aria-live="polite"
+             data-testid="settlement-supplier-recommendation">
+            <div class="vpp-settlement-supplier-recommendation-copy">
+                <VppIcon Name="@(IsSupplierRecommendationApplied ? VppIcons.Check : VppIcons.Recommendation)" />
+                <div>
+                    <strong>@(IsSupplierRecommendationApplied ? Loc["SettlementSupplierPlanApplied"] : Loc["SettlementSupplierPlanAvailable"])</strong>
+                    <span>
+                        @(recommendation.ReasonCode == "FULL_COVERAGE"
+                            ? Loc["SettlementSupplierPlanCoverageDescription"]
+                            : string.Format(
+                                Loc["SettlementSupplierPlanSavingDescription"],
+                                FormatMoney(recommendation.SavingsAmount),
+                                recommendation.SavingsPercent))
+                    </span>
+                    <small>@Loc["SettlementSupplierPlanScopeHint"]</small>
+                </div>
+            </div>
+            <div class="vpp-settlement-supplier-recommendation-actions">
+                @foreach (var supplier in recommendation.Suppliers)
+                {
+                    <VppCategoryChip Text="@($"{supplier.SupplierName}: {string.Format(Loc["ItemsCount"], supplier.ItemCount)}")"
+                                     Tone="@(supplier.IsPrimary ? VppCategoryTone.Accent : VppCategoryTone.Neutral)" />
+                }
+                @if (!IsSupplierRecommendationApplied)
+                {
+                    <RadzenButton Text="@Loc["SettlementUseSupplierPlan"]"
+                                  Icon="check"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Disabled="@isPreviewLoading"
+                                  Click="@ApplySupplierRecommendationAsync" />
+                }
+                else if (HasEligibleSingleSupplier)
+                {
+                    <RadzenButton Text="@Loc["SettlementKeepSingleSupplier"]"
+                                  Size="ButtonSize.Small"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Variant="Variant.Outlined"
+                                  Disabled="@isPreviewLoading"
+                                  Click="@KeepSingleSupplierAsync" />
+                }
+            </div>
+        </div>
+    }
 
     @* PREVIEW: Cảnh báo và thao tác tải lại bản xem trước trước khi submit. *@
     @if (RequiresFreshPreview)

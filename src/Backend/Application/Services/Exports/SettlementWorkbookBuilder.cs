@@ -5,11 +5,17 @@ namespace gtas_vpp_be.Service.Services;
 
 public static class SettlementWorkbookBuilder
 {
-    public static byte[] Build(Settlement settlement)
+    public static byte[] Build(
+        Settlement settlement,
+        IReadOnlyDictionary<Guid, string>? supplierNames = null,
+        IReadOnlyDictionary<Guid, string>? priceListNames = null)
     {
         ArgumentNullException.ThrowIfNull(settlement);
+        supplierNames ??= new Dictionary<Guid, string>();
+        priceListNames ??= new Dictionary<Guid, string>();
 
         var culture = CultureInfo.GetCultureInfo("vi-VN");
+        var supplierCount = settlement.Items.Select(item => item.SupplierId).Distinct().Count();
         var summaryRows = new List<IReadOnlyList<object?>>
         {
             new object?[] { "GTAS VPP — Biên bản chốt kỳ văn phòng phẩm", null },
@@ -19,6 +25,7 @@ public static class SettlementWorkbookBuilder
             new object?[] { "Bản điều chỉnh", settlement.IsCorrection ? "Có" : "Không" },
             new object?[] { "Lý do hiệu chỉnh", settlement.CorrectionReason ?? "-" },
             new object?[] { "Nhà cung cấp chính", settlement.PrimarySupplierName },
+            new object?[] { "Số nhà cung cấp", supplierCount },
             new object?[] { "Bảng giá", settlement.PriceListName },
             new object?[] { "Giá áp dụng lúc", settlement.PriceAsOfUtc.ToString("HH:mm dd/MM/yyyy", culture) },
             new object?[] { "Tiền tệ", settlement.CurrencyCode },
@@ -43,13 +50,14 @@ public static class SettlementWorkbookBuilder
                 item.VppCode,
                 item.VppName,
                 item.UomName,
+                supplierNames.GetValueOrDefault(item.SupplierId, item.SupplierId.ToString()),
+                priceListNames.GetValueOrDefault(item.PriceListId, item.PriceListId.ToString()),
                 item.Quantity,
                 item.NetUnitPrice,
                 item.VatRate,
                 item.NetAmount,
                 item.VatAmount,
                 item.GrossAmount,
-                item.SupplierSku,
                 item.IsSupplierException ? "Có" : "Không",
                 item.SupplierExceptionReason ?? "-"
             })
@@ -85,13 +93,14 @@ public static class SettlementWorkbookBuilder
                 [
                     new("#", 8, SimpleWorkbookCellFormat.Integer),
                     new("Mã mặt hàng", 24), new("Tên mặt hàng", 36), new("Đơn vị", 14),
+                    new("Nhà cung cấp", 28), new("Bảng giá", 24),
                     new("Số lượng", 14, SimpleWorkbookCellFormat.Decimal),
                     new("Đơn giá trước thuế", 20, SimpleWorkbookCellFormat.Decimal),
                     new("Thuế VAT (%)", 14, SimpleWorkbookCellFormat.Decimal),
                     new("Tiền trước thuế", 20, SimpleWorkbookCellFormat.Decimal),
                     new("Tiền thuế", 18, SimpleWorkbookCellFormat.Decimal),
                     new("Thành tiền", 20, SimpleWorkbookCellFormat.Decimal),
-                    new("Mã NCC", 22), new("Ngoại lệ NCC", 16), new("Lý do ngoại lệ", 36)
+                    new("Ngoại lệ NCC", 16), new("Lý do ngoại lệ", 36)
                 ],
                 itemRows),
             new SimpleWorkbookSheet(

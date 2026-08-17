@@ -1,7 +1,7 @@
 # GTAS VPP — Architecture Decision Record index
 
 - Baseline date: 2026-07-15 (Asia/Ho_Chi_Minh)
-- Status: decisions `D-001..D-014` are recorded for the thesis release; D-005 is superseded in part by D-014.
+- Status: decisions `D-001..D-015` are recorded; D-005 is superseded in part by D-014 and D-006 is refined by D-015.
 - Decision register: [`03-DECISIONS-REQUIRED.md`](../planning/03-DECISIONS-REQUIRED.md)
 - Execution plan: [`04-MASTER-IMPLEMENTATION-PLAN.md`](../planning/04-MASTER-IMPLEMENTATION-PLAN.md)
 
@@ -22,5 +22,6 @@ The ADR is the normative decision. The master plan owns execution order and task
 | D-011 | [ADR-011](ADR-011-production-demo-seed-secret-response.md) | SEC-001, DEP-002 | REL-001; SEC-002/DEP-001 remain local-capable |
 | D-012 | [ADR-012](ADR-012-a-plus-release-cutline-2026-08-15.md) | DOC-002, REL-001 | A+ mandatory cutline and checkpoint gates |
 | D-014 | [ADR-014](ADR-014-standalone-supplement-policy.md) | SUP-001 amendment, UI-005 amendment, DOC-002, REL-001 | Request, settlement, thesis and deployment consumers |
+| D-015 | [ADR-015](ADR-015-controlled-two-supplier-settlement.md) | PRICE-IMPORT-001, SET-002, UI-SYSTEM-001 | Pricing, settlement preview, snapshot and export consumers |
 
 No ADR authorizes access to DigitalOcean, a real database, credentials, or production. External execution still requires the authority stated by the relevant task card.

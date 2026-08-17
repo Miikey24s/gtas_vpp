@@ -12,14 +12,19 @@ public sealed class SettlementExportBuilderTests
     public void Workbook_ContainsSnapshotItemsAndAllocations()
     {
         var settlement = SampleSettlement();
+        var supplierNames = settlement.Items.ToDictionary(item => item.SupplierId, _ => "VPP Gia Định");
+        var priceListNames = settlement.Items.ToDictionary(item => item.PriceListId, _ => "Bảng giá miền Nam");
 
-        var bytes = SettlementWorkbookBuilder.Build(settlement);
+        var bytes = SettlementWorkbookBuilder.Build(settlement, supplierNames, priceListNames);
 
         using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
         Assert.Equal(3, archive.Entries.Count(entry =>
             entry.FullName.StartsWith("xl/worksheets/", StringComparison.Ordinal)));
         Assert.Contains("VPP Gia Định", ReadEntry(archive, "xl/worksheets/sheet1.xml"));
-        Assert.Contains("Bút bi Thiên Long TL-027", ReadEntry(archive, "xl/worksheets/sheet2.xml"));
+        var itemSheet = ReadEntry(archive, "xl/worksheets/sheet2.xml");
+        Assert.Contains("Bút bi Thiên Long TL-027", itemSheet);
+        Assert.Contains("VPP Gia Định", itemSheet);
+        Assert.Contains("Bảng giá miền Nam", itemSheet);
         Assert.Contains("IT", ReadEntry(archive, "xl/worksheets/sheet3.xml"));
         Assert.Contains("state=\"frozen\"", ReadEntry(archive, "xl/worksheets/sheet2.xml"));
         Assert.Contains("autoFilter", ReadEntry(archive, "xl/worksheets/sheet3.xml"));
@@ -28,7 +33,9 @@ public sealed class SettlementExportBuilderTests
     [Fact]
     public void Pdf_ProducesValidSettlementDocument()
     {
-        var bytes = SettlementPdfBuilder.Build(SampleSettlement());
+        var settlement = SampleSettlement();
+        var supplierNames = settlement.Items.ToDictionary(item => item.SupplierId, _ => "VPP Gia Định");
+        var bytes = SettlementPdfBuilder.Build(settlement, supplierNames);
 
         Assert.True(bytes.Length > 1000);
         Assert.Equal("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));
@@ -50,7 +57,6 @@ public sealed class SettlementExportBuilderTests
             SupplierId = Guid.NewGuid(),
             PriceListId = Guid.NewGuid(),
             PriceBookItemId = Guid.NewGuid(),
-            SupplierSku = "TL-027-BLUE",
             Quantity = 8,
             NetUnitPrice = 8000,
             VatRate = 8,

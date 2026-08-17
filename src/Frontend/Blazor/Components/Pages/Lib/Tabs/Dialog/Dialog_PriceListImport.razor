@@ -246,6 +246,7 @@
                             <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="RowNumber" Title="@Loc["Row"]" Width="68px" TextAlign="TextAlign.Center" />
                             <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="ItemCode" Title="@Loc["ProductCode"]" Width="130px" />
                             <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="MatchedItemName" Title="@Loc["ItemName"]" MinWidth="190px" />
+                            <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="MatchedUnitName" Title="@Loc["UOM"]" Width="100px" TextAlign="TextAlign.Center" />
                             <RadzenDataGridColumn TItem="PriceListImportRowResDTO" Property="UnitPrice" Title="@Loc["Price"]" Width="120px" TextAlign="TextAlign.Right">
                                 <Template Context="row">@(row.UnitPrice?.ToString("N0") ?? "–")</Template>
                             </RadzenDataGridColumn>

@@ -105,7 +105,7 @@ Mô hình khuyến nghị:
 
 - `Supplier`: code, name, active, contact metadata tối thiểu.
 - `PriceBook`: một supplier, contract/reference, version, effective from/to, status Draft/Published/Expired/Withdrawn, currency VND, VAT policy.
-- `PriceBookItem`: internal item, supplier SKU, net unit price, VAT rate, gross value dẫn xuất, MOQ/order-multiple/lead time tùy chọn, rowversion. A+ chỉ nhận cùng UOM và không tự quy đổi pack/MOQ; mismatch là blocker có giải thích.
+- `PriceBookItem`: internal item được nhận diện bằng mã mặt hàng thống nhất của hệ thống, net unit price, VAT rate, gross value dẫn xuất, MOQ/order-multiple/lead time tùy chọn, rowversion. A+ chỉ nhận cùng UOM và không tự quy đổi pack/MOQ; mismatch là blocker có giải thích.
 - Không có hai published price book/item cùng priority và hiệu lực mơ hồ; ambiguity là blocker. Resolver dùng `PriceAsOfUtc` do server cấp (hiển thị theo `Asia/Ho_Chi_Minh`), với `EffectiveFrom <= as-of < EffectiveTo`.
 - Price priority: manual locked selection có reason → active contract/published price book → configured default; không có fallback “first row”. Nếu giá hết hiệu lực hoặc version đổi giữa preview và confirm, phải báo stale và re-preview.
 
@@ -125,7 +125,7 @@ Mục tiêu đã chốt là **một NCC chính cho whole-company basket của m�
 ### 4.8 Settlement và phân bổ
 
 - `Settlement`: period/company/revision/status/idempotency/input hash/calculation version/rounding mode, `PrimarySupplierId`, quote/reference, `PriceAsOfUtc`, actor/time và totals snapshot. Mỗi revision có đúng một primary supplier; correction có thể đổi supplier nhưng phải có reason/actor, revision cũ bất biến và chỉ latest effective revision được vận hành.
-- `SettlementItem`: item/UOM/SKU, requested quantity, quoted/order quantity, conversion factor (A+ = 1), supplier/price-book/version, quoted net unit, line discount, taxable net, VAT rate/amount, gross, selection source/reason.
+- `SettlementItem`: item/UOM/mã mặt hàng hệ thống, requested quantity, quoted/order quantity, conversion factor (A+ = 1), supplier/price-book/version, quoted net unit, line discount, taxable net, VAT rate/amount, gross, selection source/reason.
 - `SettlementAllocation`: request line + department code/name snapshot, quantity, allocated net/discount/fee/VAT/gross và rounding adjustment; tổng allocation phải reconcile đúng item/header.
 - `SettlementCharge`: order-level discount/rebate/shipping/fee có type, amount/rate, taxable flag, source/reference, allocation policy và actor/reason. Không cho implicit/unallocated bucket.
 - Default allocation: discount/fee theo tỷ trọng pre-discount net; shipping có thể `ByQty`; rounding VND một mode cố định, residual gán deterministically và được snapshot.

@@ -69,6 +69,7 @@ Quy tắc vị trí lọc trong data grid:
 - Thứ tự canonical là `Tìm kiếm → filter theo thứ tự cột từ trái sang phải → Áp dụng (nếu route cần submit) → Xóa bộ lọc → Cột`. Search là truy vấn toàn dòng nên luôn đứng đầu; selector phạm vi/decision như kỳ, tab hoặc mode nằm ở context riêng và không chen vào thứ tự filter dữ liệu.
 - Filter chỉ map tới cột nào thì phải đứng cùng thứ tự tương đối với cột đó. Nếu filter áp cho dữ liệu không có cột riêng, đặt sau các filter đã map cột nhưng trước `Xóa bộ lọc`; ghi ngoại lệ trong consumer ledger.
 - Header cột mặc định chỉ sở hữu sort; admin grid không bật Radzen `FilterMode.CheckBoxList` theo mặc định.
+- Header cột mặc định chỉ có một dòng và giữ cùng chiều cao. Ưu tiên nhãn nghiệp vụ ngắn, `Width/MinWidth` đủ đọc, ẩn cột phụ trong column picker và dùng cuộn ngang khi viewport hẹp. Ellipsis chỉ là fallback an toàn; route không được dựa vào ellipsis để che nhãn dài. Cell dữ liệu vẫn được phép ellipsis và dùng popover/tooltip khi giá trị dài.
 - Điều kiện hiếm hoặc nhiều trường dùng `FILTER-ADVANCED` từ toolbar, không rải popup nhỏ ở từng header.
 - `VppColumnPicker` chỉ điều chỉnh hiển thị cột, không thay thế bộ lọc.
 - Filter luôn áp trên toàn bộ tập dữ liệu được cấp quyền trước `paging`/`virtualization`, sau đó mới tính tổng và phân trang.
@@ -105,7 +106,7 @@ Quy tắc tên cột:
 
 - Dùng cùng một nhãn cho cùng một khái niệm: `Mặt hàng`, `Danh mục`, `Đơn vị`, `Nhà cung cấp`, `Phòng ban`, `Trạng thái`, `Số lượng`, `Đơn giá`, `Thành tiền`, `VAT`, `Tổng cộng`, `Thao tác`.
 - Header ưu tiên 1–3 từ và bỏ từ đã rõ từ context: `Hạn duyệt bổ sung` thay cho `Hạn duyệt đơn bổ sung`; `Cập nhật` thay cho `Thay đổi gần nhất`. Không viết acronym kỹ thuật như `NCC`, `MĐ`, `SL` hoặc nhãn tiếng Anh nội bộ trong UI tiếng Việt.
-- Không đổi nghĩa chỉ để tránh ellipsis. Nếu tên ngắn hợp lệ vẫn bị cắt ở desktop, chỉnh track/min-width/priority cột; chỉ cột phụ mới ẩn vào `VppColumnPicker` trên viewport hẹp.
+- Không đổi nghĩa chỉ để tránh ellipsis. Header giữ một dòng; nếu tên ngắn hợp lệ vẫn quá chật ở desktop, chỉnh track/min-width/priority cột hoặc chuyển cột phụ vào `VppColumnPicker`. Ellipsis chỉ là fallback khi không còn phương án bố cục phù hợp; cell dữ liệu dài tiếp tục dùng ellipsis + popover/tooltip canonical.
 - Cột ẩn/pickable và danh sách `Cột` giữ đúng thứ tự khai báo của grid; metadata registry dùng tên người dùng hiểu, không dùng `Class Code`, `VPP Category`, `Create User` hoặc identifier kỹ thuật tương tự.
 - Màn quản trị được phép có đúng một cột `ID` của chính bản ghi để tra cứu/hỗ trợ; cột này luôn `Visible="false" Pickable="true"`. Không áp dụng ngoại lệ này cho foreign-key ID, numeric `UserId`, `RowVersion` hoặc concurrency token.
 - Nhãn audit thời gian trong màn quản trị dùng `Ngày tạo` và `Ngày cập nhật`, không dùng `Tạo lúc` hoặc `Cập nhật lúc` như tên cột.

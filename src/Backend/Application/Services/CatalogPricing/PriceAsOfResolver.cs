@@ -125,7 +125,6 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
                 x.VatRate,
                 x.MinimumOrderQuantity,
                 x.LeadTimeDays,
-                x.SupplierSku,
                 0))
             .ToListAsync(cancellationToken);
 
@@ -171,7 +170,6 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
                    item.VatRate,
                    item.MinimumOrderQuantity,
                    item.LeadTimeDays,
-                   item.SupplierSku,
                    book.ContractCode != null && book.ContractCode != string.Empty ? 1 : book.IsDefault ? 3 : 2);
     }
 
@@ -252,7 +250,6 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         result.GrossAmount = calculation.GrossAmount;
         result.MinimumOrderQuantity = candidate.MinimumOrderQuantity;
         result.LeadTimeDays = candidate.LeadTimeDays;
-        result.SupplierSku = candidate.SupplierSku;
         return result;
     }
 
@@ -298,6 +295,5 @@ public sealed class PriceAsOfResolver : IPriceAsOfResolver
         decimal VatRate,
         decimal MinimumOrderQuantity,
         int LeadTimeDays,
-        string? SupplierSku,
         int Priority);
 }

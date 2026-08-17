@@ -21,10 +21,11 @@
 | Bảng giá | Bỏ cột/trường nhập `Phiên bản` khỏi UI; giữ field database làm compatibility contract sau consumer/schema audit | [Phân loại phiên bản](#version-classification) |
 | Import chuẩn | Đã có Excel/CSV, template, preview, validation, audit và xác nhận transaction | [Luồng import](#price-import-flow) |
 | Import linh hoạt | File cột lạ có màn ghép cột thủ công; Gemini tự gợi ý khi có `GEMINI_API_KEY`, nhưng người dùng vẫn phải kiểm tra trước preview | [AI boundary](#ai-boundary) |
+| Mã mặt hàng | Catalog, bảng giá, file nhập/xuất và bản chốt dùng chung `ItemCode`; không còn mã mặt hàng riêng theo nhà cung cấp trong UI, API hoặc database mới nhất | [Acceptance](#plan-detail-verification) |
 | Lịch sử | Mỗi lần import là một `Lần nhập`, không phải một phiên bản bảng giá | [Audit](#import-audit) |
 | Phiên bản cần giữ | Bản chốt kỳ giữ user-visible; revision đơn và cấu hình kỳ giữ backend nhưng đổi UI thành lịch sử thay đổi/lịch sử áp dụng | [Phân loại phiên bản](#version-classification) |
 | Phiên bản kỹ thuật | `RowVersion`, `CalculationVersion` và model/prompt version không hiển thị cho người dùng | [Phân loại phiên bản](#version-classification) |
-| Không thuộc scope | PO, hợp đồng, tự động lấy phí vận chuyển và tối ưu nhiều NCC vẫn là hướng phát triển riêng | [Non-goals](#plan-detail-objective) |
+| Liên kết chốt kỳ | Tối ưu có kiểm soát tối đa hai NCC đã chuyển sang `MULTI-SUPPLIER-SETTLEMENT-001`; PO, hợp đồng và phí vận chuyển vẫn chưa thuộc scope | [Non-goals](#plan-detail-objective) |
 | Bước tiếp theo | Hoàn tất live check Gemini bằng key owner cấp; không drop `PriceList.Version` trong scope hiện tại | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `revision` = bản dữ liệu bất biến thay thế bản cũ; `RowVersion` = token kỹ thuật chống ghi đè đồng thời; `import batch` = một lần nhập file có kết quả và audit riêng.
@@ -51,7 +52,7 @@
 
 - Không triển khai phát hành PO hoặc quản lý hợp đồng.
 - Không tự động đọc điều khoản vận chuyển từ hợp đồng NCC.
-- Không tối ưu chia nhu cầu cho nhiều NCC.
+- Không dùng AI để tự quyết NCC, không chia số lượng một mặt hàng và không tối ưu quá hai NCC; phần đề xuất hai NCC deterministic thuộc execution record riêng.
 - Không để AI tự tạo mặt hàng, tự quyết giá hoặc ghi database mà không có preview/xác nhận.
 - Không drop ngay cột/schema hiện có trong cùng wave UI/import.
 
@@ -96,14 +97,13 @@
 | Cột | Bắt buộc | Xử lý |
 |---|---|---|
 | `ItemCode` | Có | Match chính xác với mã mặt hàng hệ thống |
-| `SupplierSku` | Không | Mã hàng của NCC; dùng hỗ trợ tra cứu |
 | `ItemName` | Không | Chỉ đối chiếu/hiển thị; không match tự động nếu mã sai |
-| `UnitPrice` | Có | Decimal không âm, tiền tệ VND theo scope hiện tại |
+| `UnitName` | Có sẵn trong file mẫu | Đối chiếu với đơn vị hiện tại; sai đơn vị bị chặn |
+| `UnitPrice` | Không bắt buộc từng dòng | Để trống nghĩa là giữ nguyên giá hiện tại; nhập số không âm để thêm/cập nhật |
 | `VatRate` | Không | Dùng giá trị dòng hoặc policy mặc định của bảng giá |
-| `MinimumOrderQuantity` | Không | Số dương hoặc rỗng |
-| `LeadTimeDays` | Không | Số ngày không âm |
-| `IsDefault` | Không | Chỉ một dòng mặc định cho một mặt hàng trong bảng giá |
 | `Note` | Không | Ghi chú import, không thay metadata danh mục |
+
+File mẫu được sinh từ toàn bộ danh mục đang hoạt động và điền sẵn `ItemCode`, `ItemName`, `UnitName`, giá/VAT hiện tại nếu bảng giá đã có. Vì vậy cùng một file dùng được cho tạo giá hàng loạt, sửa giá bằng Excel và nhập lại; thao tác thủ công vẫn là mặc định.
 
 ### Các bước UI
 
@@ -119,7 +119,6 @@
 ### Matching và mutation
 
 - Match mặc định bằng `ItemCode` trong phạm vi bảng giá đang chọn.
-- `SupplierSku` có thể hỗ trợ nhưng không được ghi đè một match `ItemCode` khác.
 - Match gần đúng theo tên chỉ là gợi ý; bắt buộc người dùng xác nhận mapping.
 - Không tự tạo mặt hàng mới từ file bảng giá.
 - Mode đầu tiên chỉ cần `Thêm mới và cập nhật`; chưa làm `Thay thế toàn bộ` để tránh vô hiệu hóa nhầm dòng không có trong file.
@@ -156,7 +155,7 @@ Chi tiết lỗi có thể lưu ở `PriceListImportIssue` hoặc payload audit 
 ### Có thể dùng AI ở wave sau
 
 - Đề xuất ánh xạ tên cột lạ từ file NCC sang schema chuẩn.
-- Nhận biết cột giá trước/sau VAT, đơn vị, SKU và ghi chú.
+- Nhận biết cột giá trước/sau VAT, đơn vị và ghi chú.
 - Gợi ý mặt hàng gần giống khi file thiếu mã chuẩn.
 - Giải thích cảnh báo bằng ngôn ngữ thân thiện.
 
@@ -193,7 +192,7 @@ Chi tiết lỗi có thể lưu ở `PriceListImportIssue` hoặc payload audit 
 ### Documentation/thesis
 
 - Cập nhật luận văn sau khi feature thật đã pass, không mô tả import/AI như chức năng hiện có trước đó.
-- PO/hợp đồng/multi-NCC optimizer tiếp tục nằm ở hướng phát triển.
+- PO, hợp đồng và phí vận chuyển tiếp tục nằm ở hướng phát triển. Tối ưu tối đa hai NCC theo giá + VAT đã được tách sang `MULTI-SUPPLIER-SETTLEMENT-001`.
 
 <a id="plan-detail-implementation"></a>
 
@@ -218,6 +217,7 @@ Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riê
 ### Import
 
 - Import 1, 100, 1.000+ dòng không yêu cầu nhập tay lại.
+- File nhập/xuất chỉ nhận diện mặt hàng bằng `ItemCode`; không còn cột mã mặt hàng riêng theo nhà cung cấp.
 - Duplicate item trong cùng file bị chặn rõ dòng.
 - Mã không tồn tại, giá âm, VAT sai, MOQ/lead time sai và default conflict được báo trước confirm.
 - Preview counts khớp mutation thực tế.
@@ -270,6 +270,7 @@ Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riê
 - W4a phân tích header không tạo audit batch, hiển thị sample values, cho ghép từng cột bằng decision select rồi mới preview; mapping đã dùng được lưu trong audit batch.
 - W4b dùng Gemini structured output cho các cột chưa nhận diện, chỉ nhận gợi ý confidence từ 0,75, chặn target trùng/sai contract và tự fallback về ghép thủ công khi thiếu key, timeout, quota hoặc JSON lỗi. Key đọc từ `GEMINI_API_KEY`/`GOOGLE_API_KEY`, không nằm trong source hoặc appsettings.
 - W5 dừng sau audit: `PriceList.Version` vẫn là compatibility contract của snapshot, price resolution và unique key; giữ nội bộ là quyết định an toàn, không còn kế hoạch drop trong scope này.
+- Cleanup mã mặt hàng riêng theo nhà cung cấp hoàn tất bằng migration `20260817181622_RemoveSupplierSku`: active model/API/import/export/settlement chỉ còn `ItemCode`; LocalDB disposable đã verify fresh latest, rollback về migration trước và re-apply mà không đổi số dòng hai bảng. `Down()` chỉ tái tạo cột nullable, không khôi phục giá trị cũ đã bị drop.
 - Verification checkpoint: backend/API + frontend build sạch; focused unit/architecture pass; SQL LocalDB migrate down/up + preview/confirm pass; Playwright import chuẩn và file cột lạ tại `390×844`, `768×1024`, `1366×768`, `1920×1080` pass.
 - Next exact action: owner copy riêng key vào clipboard để chạy live check không lưu key; sau đó chốt W4b và commit riêng.
 

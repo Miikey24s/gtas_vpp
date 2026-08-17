@@ -14,5 +14,6 @@ public sealed class SettlementExceptionReqDTO
 {
     public Guid VppId { get; set; }
     public Guid SupplierId { get; set; }
+    public Guid? PriceListId { get; set; }
     public string? Reason { get; set; }
 }

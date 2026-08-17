@@ -275,8 +275,8 @@ public partial class Dialog_PriceListImport
     [
         new(string.Empty, Loc["PriceImportIgnoreColumn"]),
         new("ItemCode", FieldLabel("ItemCode")),
-        new("SupplierSku", FieldLabel("SupplierSku")),
         new("ItemName", FieldLabel("ItemName")),
+        new("UnitName", FieldLabel("UnitName")),
         new("UnitPrice", FieldLabel("UnitPrice")),
         new("VatRate", FieldLabel("VatRate")),
         new("MinimumOrderQuantity", FieldLabel("MinimumOrderQuantity")),
@@ -342,8 +342,8 @@ public partial class Dialog_PriceListImport
     private string FieldLabel(string field) => field switch
     {
         "ItemCode" => Loc["ProductCode"],
-        "SupplierSku" => Loc["SupplierSku"],
         "ItemName" => Loc["ProductName"],
+        "UnitName" => Loc["UOM"],
         "UnitPrice" => Loc["Price"],
         "VatRate" => Loc["VatRate"],
         "MinimumOrderQuantity" => Loc["MinimumOrderQuantity"],

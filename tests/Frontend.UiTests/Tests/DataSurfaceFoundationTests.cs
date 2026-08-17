@@ -407,7 +407,7 @@ public sealed class DataSurfaceFoundationTests : TestBase, IAuthenticatedUiTest
             (Path: "library?tab=3", TestId: "supplier-admin-data-surface", Filters: new[] { "Tất cả trạng thái" }),
             (Path: "library?tab=5", TestId: "department-admin-data-surface", Filters: new[] { "Tất cả phòng ban cha", "Tất cả trạng thái" }),
             (Path: "library?tab=6&pricingTab=price-lists", TestId: "price-lists-data-surface", Filters: new[] { "Tất cả nhà cung cấp", "Tất cả trạng thái" }),
-            (Path: "library?tab=6&pricingTab=prices", TestId: "prices-data-surface", Filters: new[] { "Tất cả danh mục", "Tất cả đơn vị", "Tất cả trạng thái giá" })
+            (Path: "library?tab=6&pricingTab=prices", TestId: "prices-data-surface", Filters: new[] { "Tất cả danh mục", "Tất cả đơn vị" })
         };
 
         foreach (var route in routes)

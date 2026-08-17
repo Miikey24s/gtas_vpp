@@ -345,7 +345,6 @@ public sealed class SettlementConfirmationTests
                 NetPrice = netPrice + index,
                 VatRate = vatRate,
                 LeadTimeDays = index + 1,
-                SupplierSku = $"{code}-{index + 1}",
                 CreatedByUserId = 1,
                 CreatedAtUtc = Now,
                 UpdatedByUserId = 1,

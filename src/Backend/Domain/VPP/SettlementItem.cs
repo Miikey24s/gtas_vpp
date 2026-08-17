@@ -29,9 +29,6 @@ public sealed class SettlementItem : BaseModel
     public Guid PriceListId { get; set; }
     public Guid PriceBookItemId { get; set; }
 
-    [StringLength(128)]
-    public string? SupplierSku { get; set; }
-
     [Column(TypeName = "decimal(19,4)")]
     public decimal Quantity { get; set; }
 

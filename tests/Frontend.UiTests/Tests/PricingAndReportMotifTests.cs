@@ -157,7 +157,7 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             """
             () => {
                 const context = document.querySelector('[data-testid="price-context"]');
-                const trigger = context?.querySelector('.vpp-filter-select-trigger');
+                const triggers = [...(context?.querySelectorAll('.vpp-decision-select-trigger') || [])];
                 const grid = document.querySelector('[data-testid="prices-data-surface"] .vpp-price-grid');
                 const loadingDone = [...document.querySelectorAll('.rz-datatable-loading')].every(element => {
                     const style = getComputedStyle(element);
@@ -168,9 +168,10 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
                         || rect.width === 0
                         || rect.height === 0;
                 });
-                return !!trigger
-                    && !trigger.hasAttribute('disabled')
-                    && !/chọn bảng giá|select price list/i.test(trigger.textContent || '')
+                return triggers.length === 2
+                    && triggers.every(trigger => !trigger.hasAttribute('disabled'))
+                    && triggers.every(trigger => !/chọn nhà cung cấp|select supplier|chọn bảng giá|select price list/i.test(
+                        trigger.querySelector('.vpp-decision-select-label')?.textContent || ''))
                     && loadingDone
                     && (grid?.querySelectorAll('tbody > tr > td').length || 0) > 1;
             }
@@ -178,6 +179,53 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
             null,
             new() { Timeout = 15_000 });
         stopwatch.Stop();
+
+        var decisionCards = context.Locator(".vpp-decision-card-group > *");
+        await Assertions.Expect(decisionCards).ToHaveCountAsync(4);
+        (await decisionCards.Nth(0).InnerTextAsync()).Should().Contain("Chọn nhà cung cấp");
+        (await decisionCards.Nth(1).InnerTextAsync()).Should().Contain("Chọn bảng giá");
+        var cardWidths = await decisionCards.EvaluateAllAsync<double[]>(
+            "elements => elements.map(element => element.getBoundingClientRect().width)");
+        (cardWidths.Max() - cardWidths.Min()).Should().BeLessThanOrEqualTo(1.5,
+            "the four pricing context cards should share one desktop column rhythm");
+
+        var headerContract = await prices.Locator(".vpp-price-grid").EvaluateAsync<string>(
+            """
+            grid => {
+                const cells = [...grid.querySelectorAll('thead th')]
+                    .filter(cell => cell.getBoundingClientRect().width > 0);
+                const titles = cells
+                    .map(cell => cell.querySelector('.rz-column-title-content'))
+                    .filter(Boolean);
+                const heights = cells.map(cell => cell.getBoundingClientRect().height);
+                const oneLine = titles.every(title => getComputedStyle(title).whiteSpace === 'nowrap'
+                    && title.scrollHeight <= title.clientHeight + 1);
+                const fullyReadable = titles.every(title => title.scrollWidth <= title.clientWidth + 1);
+                const stableHeight = heights.length > 0 && Math.max(...heights) - Math.min(...heights) <= 1;
+                return `${oneLine && fullyReadable && stableHeight}`
+                    + `|heights=${heights.join(',')}`
+                    + `|titles=${titles.map(title => `${title.textContent?.trim()}:${title.clientWidth}/${title.scrollWidth}`).join(';')}`;
+            }
+            """);
+        headerContract.Should().StartWith("true",
+            "desktop price headers must stay one line, share one height and remain fully readable");
+        await CaptureAsync("pricing-price-context-1366x768.png");
+
+        await Page.SetViewportSizeAsync(390, 844);
+        await Page.GotoAsync($"{BaseUrl}library?tab=6&pricingTab=prices", new()
+        {
+            WaitUntil = WaitUntilState.Load
+        });
+        await WaitForSurfaceAsync(Page.GetByTestId("prices-data-surface"));
+        await Page.WaitForFunctionAsync(
+            """
+            () => (document.querySelectorAll('[data-testid="prices-data-surface"] .vpp-price-grid tbody > tr > td').length || 0) > 1
+            """,
+            null,
+            new() { Timeout = 60_000 });
+        await WaitForRenderSettleAsync();
+        await AssertNoDocumentOverflowAsync(390, "item-price context");
+        await CaptureAsync("pricing-price-context-390x844.png");
 
         output.WriteLine("Item prices initial data ready in {0} ms.", stopwatch.ElapsedMilliseconds);
         stopwatch.Elapsed.Should().BeLessThan(
@@ -229,10 +277,11 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
                 """
                 () => {
                     const context = document.querySelector('[data-testid="price-context"]');
-                    const trigger = context?.querySelector('.vpp-filter-select-trigger');
-                    return !!trigger
-                        && !trigger.hasAttribute('disabled')
-                        && !/chọn bảng giá|select price list/i.test(trigger.textContent || '');
+                    const triggers = [...(context?.querySelectorAll('.vpp-decision-select-trigger') || [])];
+                    return triggers.length === 2
+                        && triggers.every(trigger => !trigger.hasAttribute('disabled'))
+                        && triggers.every(trigger => !/chọn nhà cung cấp|select supplier|chọn bảng giá|select price list/i.test(
+                            trigger.querySelector('.vpp-decision-select-label')?.textContent || ''));
                 }
                 """,
                 null,
@@ -256,11 +305,11 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
                 null,
                 new() { Timeout = 60_000 });
             await WaitForRenderSettleAsync();
-            (await context.Locator(".vpp-filter-select").CountAsync()).Should().Be(1,
-                "bảng giá là context selector duy nhất; nhà cung cấp được suy ra từ bảng giá");
-            (await prices.Locator(".vpp-data-toolbar .vpp-filter-select").CountAsync()).Should().Be(3,
-                "toolbar chứa danh mục, đơn vị và trạng thái giá theo đúng thứ tự cột");
-            (await context.Locator("dd").CountAsync()).Should().Be(2);
+            (await context.Locator(".vpp-decision-select").CountAsync()).Should().Be(2,
+                "nhà cung cấp và bảng giá là hai lựa chọn nghiệp vụ theo đúng thứ tự");
+            (await prices.Locator(".vpp-data-toolbar .vpp-filter-select").CountAsync()).Should().Be(2,
+                "toolbar chỉ giữ bộ lọc danh mục và đơn vị");
+            (await context.Locator(".vpp-decision-card-group > *").CountAsync()).Should().Be(4);
             (await prices.GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
             await AssertNoDocumentOverflowAsync(viewport.Width, "item prices");
             await CaptureAsync($"pricing-prices-{viewport.Width}x{viewport.Height}.png");

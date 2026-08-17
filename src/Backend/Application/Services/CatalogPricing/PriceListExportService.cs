@@ -22,25 +22,45 @@ public sealed class PriceListExportService(IUnitOfWork unitOfWork) : IPriceListE
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new BusinessException("Không tìm thấy bảng giá.");
 
-        var rows = await unitOfWork.VPPContext.Set<SupplierProductMapping>()
+        var mappings = await unitOfWork.VPPContext.Set<SupplierProductMapping>()
             .AsNoTracking()
             .Where(mapping => mapping.PriceListId == priceListId
-                && !mapping.IsDeleted
-                && mapping.VppItem != null
-                && !mapping.VppItem.IsDeleted)
-            .OrderBy(mapping => mapping.VppItem!.VppCode)
-            .ThenBy(mapping => mapping.VppItem!.VppName)
-            .Select(mapping => new PriceListWorkbookRow(
-                mapping.VppItem!.VppCode,
-                mapping.SupplierSku,
-                mapping.VppItem.VppName,
-                mapping.Price,
-                mapping.VatRate,
-                mapping.MinimumOrderQuantity,
-                mapping.LeadTimeDays,
-                mapping.IsDefault,
-                mapping.Description))
+                && !mapping.IsDeleted)
             .ToListAsync(cancellationToken);
+        if (mappings.GroupBy(mapping => mapping.VppItemId).Any(group => group.Count() > 1))
+        {
+            throw new BusinessException("Bảng giá có mặt hàng bị lặp. Vui lòng xử lý dữ liệu trước khi xuất file.");
+        }
+
+        var mappingByItem = mappings.ToDictionary(mapping => mapping.VppItemId);
+        var units = await unitOfWork.VPPContext.Set<LookupValue>()
+            .AsNoTracking()
+            .Where(unit => !unit.IsDeleted)
+            .ToDictionaryAsync(unit => unit.Id, unit => unit.Value, cancellationToken);
+        var catalog = await unitOfWork.VPPContext.Set<VppItem>()
+            .AsNoTracking()
+            .Where(item => !item.IsDeleted)
+            .OrderBy(item => item.VppCode)
+            .ThenBy(item => item.VppName)
+            .Select(item => new
+            {
+                item.Id,
+                item.VppCode,
+                item.VppName,
+                item.UomId
+            })
+            .ToListAsync(cancellationToken);
+        var rows = catalog.Select(item =>
+        {
+            mappingByItem.TryGetValue(item.Id, out var mapping);
+            return new PriceListWorkbookRow(
+                item.VppCode,
+                item.VppName,
+                units.GetValueOrDefault(item.UomId),
+                mapping?.Price,
+                mapping?.VatRate,
+                mapping?.Description);
+        }).ToArray();
 
         return new PriceListExportResult(
             PriceListWorkbookBuilder.Build(rows),

@@ -15,6 +15,7 @@ public sealed class PriceListExportServiceTests
         var supplierId = Guid.NewGuid();
         var priceListId = Guid.NewGuid();
         var itemId = Guid.NewGuid();
+        var unitId = Guid.NewGuid();
         var now = new DateTime(2026, 8, 15, 10, 0, 0);
         context.Set<Supplier>().Add(new Supplier
         {
@@ -40,12 +41,22 @@ public sealed class PriceListExportServiceTests
             UpdatedByUserId = 1,
             UpdatedAtUtc = now
         });
+        context.Set<LookupValue>().Add(new LookupValue
+        {
+            Id = unitId,
+            Code = "REAM",
+            Value = "Ram",
+            CreatedByUserId = 1,
+            CreatedAtUtc = now,
+            UpdatedByUserId = 1,
+            UpdatedAtUtc = now
+        });
         context.Set<VppItem>().Add(new VppItem
         {
             Id = itemId,
             VppCode = "A001",
             VppName = "Giấy A4",
-            UomId = Guid.NewGuid(),
+            UomId = unitId,
             VppCategoryId = Guid.NewGuid(),
             CreatedByUserId = 1,
             CreatedAtUtc = now,
@@ -58,7 +69,6 @@ public sealed class PriceListExportServiceTests
             PriceListId = priceListId,
             SupplierId = supplierId,
             VppItemId = itemId,
-            SupplierSku = "NCC-A001",
             Price = 125_000m,
             NetPrice = 125_000m,
             VatRate = 8m,
@@ -84,12 +94,10 @@ public sealed class PriceListExportServiceTests
         Assert.Equal("GTAS-VPP-Bang-gia-BG-2026-08.xlsx", export.FileName);
         var row = Assert.Single(parsed.Rows);
         Assert.Equal("A001", row.ItemCode);
-        Assert.Equal("NCC-A001", row.SupplierSku);
+        Assert.Equal("Giấy A4", row.ItemName);
+        Assert.Equal("Ram", row.UnitName);
         Assert.Equal(125_000m, row.UnitPrice);
         Assert.Equal(8m, row.VatRate);
-        Assert.Equal(2m, row.MinimumOrderQuantity);
-        Assert.Equal(3, row.LeadTimeDays);
-        Assert.True(row.IsDefault);
         Assert.Equal("Giá hợp đồng", row.Note);
         Assert.Empty(row.Issues);
     }

@@ -115,10 +115,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("<value>Nhân bản bảng giá</value>", viResources, StringComparison.Ordinal);
         Assert.DoesNotContain("<value>Sao chép thành bảng giá mới</value>", viResources, StringComparison.Ordinal);
         Assert.Contains("Loc[\"UOM\"]", pricePage, StringComparison.Ordinal);
-        Assert.Contains("Loc[\"SupplierSku\"]", pricePage, StringComparison.Ordinal);
-        Assert.Contains("Loc[\"MinimumOrderShort\"]", pricePage, StringComparison.Ordinal);
-        Assert.Contains("Loc[\"LeadTimeDays\"]", pricePage, StringComparison.Ordinal);
-        Assert.Contains("VppStatusTone.Neutral", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"MinimumOrderShort\"]", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"LeadTimeDays\"]", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceStatus\"]", pricePage, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"DefaultPrice\"]", pricePage, StringComparison.Ordinal);
         Assert.DoesNotContain("UomCompact", pricePage, StringComparison.Ordinal);
         Assert.DoesNotContain("MinimumOrderQuantityCompact", pricePage, StringComparison.Ordinal);
         Assert.DoesNotContain("LeadTimeCompact", pricePage, StringComparison.Ordinal);
@@ -218,6 +218,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("HasPeriodBlockers", settlement, StringComparison.Ordinal);
         Assert.Contains("Preview?.Blockers", settlementCode, StringComparison.Ordinal);
         Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("data-testid=\"settlement-supplier-recommendation\"", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementSupplierPlanAvailable", settlement, StringComparison.Ordinal);
+        Assert.Contains("ApplySupplierRecommendationAsync", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("PriceListId = suggestion.PriceListId", settlementCode, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildConfirm", settlementCode, StringComparison.Ordinal);
         Assert.Contains("InputHash = preview.InputHash", settlementRequestFactory, StringComparison.Ordinal);
         Assert.Contains("SettlementApiClient", settlementCode, StringComparison.Ordinal);

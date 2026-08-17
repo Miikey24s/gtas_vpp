@@ -462,7 +462,6 @@ namespace gtas_vpp_be.Service.Services
                     VatRate = row.VatRate,
                     MinimumOrderQuantity = row.MinimumOrderQuantity,
                     LeadTimeDays = row.LeadTimeDays,
-                    SupplierSku = row.SupplierSku,
                     IsDefault = row.IsDefault,
                     Description = row.Description,
                     CreatedByUserId = userId,

@@ -18,8 +18,8 @@ public sealed class PriceListImportService(
     private static readonly HashSet<string> SupportedMappingFields = new(StringComparer.OrdinalIgnoreCase)
     {
         "ItemCode",
-        "SupplierSku",
         "ItemName",
+        "UnitName",
         "UnitPrice",
         "VatRate",
         "MinimumOrderQuantity",
@@ -210,7 +210,6 @@ public sealed class PriceListImportService(
                         VatRate = row.VatRate,
                         MinimumOrderQuantity = row.MinimumOrderQuantity,
                         LeadTimeDays = row.LeadTimeDays,
-                        SupplierSku = row.SupplierSku,
                         IsDefault = row.IsDefault,
                         Description = row.Note,
                         CreatedByUserId = userId,
@@ -228,7 +227,6 @@ public sealed class PriceListImportService(
                 mapping.VatRate = row.VatRate;
                 mapping.MinimumOrderQuantity = row.MinimumOrderQuantity;
                 mapping.LeadTimeDays = row.LeadTimeDays;
-                mapping.SupplierSku = row.SupplierSku;
                 mapping.IsDefault = row.IsDefault;
                 mapping.Description = row.Note;
                 mapping.UpdatedByUserId = userId;
@@ -295,9 +293,49 @@ public sealed class PriceListImportService(
         var priceList = priceListId.HasValue
             ? await EnsurePriceListExistsAsync(priceListId.Value, cancellationToken)
             : null;
+        List<SupplierProductMapping> mappings = priceList is null
+            ? []
+            : await unitOfWork.VPPContext.Set<SupplierProductMapping>()
+                .AsNoTracking()
+                .Where(mapping => mapping.PriceListId == priceList.Id && !mapping.IsDeleted)
+                .ToListAsync(cancellationToken);
+        if (mappings.GroupBy(mapping => mapping.VppItemId).Any(group => group.Count() > 1))
+        {
+            throw new BusinessException("Bảng giá có mặt hàng bị lặp. Vui lòng xử lý dữ liệu trước khi tải file.");
+        }
+
+        var mappingByItem = mappings.ToDictionary(mapping => mapping.VppItemId);
+        var units = await unitOfWork.VPPContext.Set<LookupValue>()
+            .AsNoTracking()
+            .Where(unit => !unit.IsDeleted)
+            .ToDictionaryAsync(unit => unit.Id, unit => unit.Value, cancellationToken);
+        var catalog = await unitOfWork.VPPContext.Set<VppItem>()
+            .AsNoTracking()
+            .Where(item => !item.IsDeleted)
+            .OrderBy(item => item.VppCode)
+            .ThenBy(item => item.VppName)
+            .Select(item => new
+            {
+                item.Id,
+                item.VppCode,
+                item.VppName,
+                item.UomId
+            })
+            .ToListAsync(cancellationToken);
+        var rows = catalog.Select(item =>
+        {
+            mappingByItem.TryGetValue(item.Id, out var mapping);
+            return new PriceListWorkbookRow(
+                item.VppCode,
+                item.VppName,
+                units.GetValueOrDefault(item.UomId),
+                mapping?.Price,
+                mapping?.VatRate,
+                mapping?.Description);
+        }).ToArray();
         var code = SanitizeFileName(priceList?.PriceListCode ?? "bang-gia");
         return new PriceListImportTemplateResult(
-            PriceListWorkbookBuilder.BuildTemplate(),
+            PriceListWorkbookBuilder.Build(rows),
             $"GTAS-VPP-Mau-nhap-bang-gia-{code}.xlsx",
             ExportFileContract.ExcelContentType);
     }
@@ -308,10 +346,20 @@ public sealed class PriceListImportService(
         IReadOnlyList<PriceListImportIssueResDTO> globalIssues,
         CancellationToken cancellationToken)
     {
+        var units = await unitOfWork.VPPContext.Set<LookupValue>()
+            .AsNoTracking()
+            .Where(unit => !unit.IsDeleted)
+            .ToDictionaryAsync(unit => unit.Id, unit => unit.Value, cancellationToken);
         var items = await unitOfWork.VPPContext.Set<VppItem>()
             .AsNoTracking()
             .Where(item => !item.IsDeleted)
-            .Select(item => new { item.Id, item.VppCode, item.VppName })
+            .Select(item => new
+            {
+                item.Id,
+                item.VppCode,
+                item.VppName,
+                item.UomId
+            })
             .ToListAsync(cancellationToken);
         var itemByCode = items
             .Where(item => !string.IsNullOrWhiteSpace(item.VppCode))
@@ -366,10 +414,31 @@ public sealed class PriceListImportService(
             {
                 issues.Add(Issue(parsed.RowNumber, "Warning", "ITEM_NAME_MISMATCH", "Tên mặt hàng trong file khác tên hệ thống; hệ thống vẫn dùng mã mặt hàng để đối chiếu.", "ItemName"));
             }
+            if (!string.IsNullOrWhiteSpace(parsed.UnitName)
+                && !string.Equals(parsed.UnitName.Trim(), units.GetValueOrDefault(item.UomId)?.Trim(), StringComparison.CurrentCultureIgnoreCase))
+            {
+                issues.Add(Issue(parsed.RowNumber, "Error", "UNIT_MISMATCH", "Đơn vị trong file không khớp với danh mục hệ thống.", "UnitName"));
+            }
 
             if (!parsed.UnitPrice.HasValue)
             {
-                evaluatedRows.Add(EvaluatedRow.Error(parsed, issues, item.Id, item.VppName));
+                issues.Add(Issue(parsed.RowNumber, "Warning", "PRICE_NOT_ENTERED", "Chưa nhập đơn giá; hệ thống sẽ giữ nguyên dòng này.", "UnitPrice"));
+                evaluatedRows.Add(new EvaluatedRow(
+                    parsed,
+                    item.Id,
+                    item.VppName,
+                    units.GetValueOrDefault(item.UomId),
+                    existing?.Id,
+                    existing?.Price ?? 0m,
+                    existing?.VatRate ?? 0m,
+                    existing?.MinimumOrderQuantity ?? 0m,
+                    existing?.LeadTimeDays ?? 0,
+                    existing?.IsDefault ?? false,
+                    existing?.Description,
+                    issues.Any(issue => issue.Severity == "Error")
+                        ? PriceListImportAction.Error
+                        : PriceListImportAction.Unchanged,
+                    issues));
                 continue;
             }
 
@@ -377,12 +446,11 @@ public sealed class PriceListImportService(
             var vatRate = parsed.VatRate ?? existing?.VatRate ?? 0m;
             var minimumOrderQuantity = parsed.MinimumOrderQuantity ?? existing?.MinimumOrderQuantity ?? 0m;
             var leadTimeDays = parsed.LeadTimeDays ?? existing?.LeadTimeDays ?? 0;
-            var supplierSku = parsed.SupplierSku ?? existing?.SupplierSku;
             var isDefault = parsed.IsDefault ?? existing?.IsDefault ?? false;
             var note = parsed.Note ?? existing?.Description;
             var action = existing is null
                 ? PriceListImportAction.Add
-                : IsChanged(existing, unitPrice, vatRate, minimumOrderQuantity, leadTimeDays, supplierSku, isDefault, note)
+                : IsChanged(existing, unitPrice, vatRate, minimumOrderQuantity, leadTimeDays, isDefault, note)
                     ? PriceListImportAction.Update
                     : PriceListImportAction.Unchanged;
             if (issues.Any(issue => issue.Severity == "Error"))
@@ -394,12 +462,12 @@ public sealed class PriceListImportService(
                 parsed,
                 item.Id,
                 item.VppName,
+                units.GetValueOrDefault(item.UomId),
                 existing?.Id,
                 unitPrice,
                 vatRate,
                 minimumOrderQuantity,
                 leadTimeDays,
-                supplierSku,
                 isDefault,
                 note,
                 action,
@@ -517,7 +585,8 @@ public sealed class PriceListImportService(
             ItemCode = row.Source.ItemCode,
             ItemName = row.Source.ItemName,
             MatchedItemName = row.MatchedItemName,
-            SupplierSku = row.SupplierSku,
+            UnitName = row.Source.UnitName,
+            MatchedUnitName = row.MatchedUnitName,
             UnitPrice = row.Source.UnitPrice,
             VatRate = row.Source.VatRate,
             MinimumOrderQuantity = row.Source.MinimumOrderQuantity,
@@ -534,7 +603,6 @@ public sealed class PriceListImportService(
         decimal vatRate,
         decimal minimumOrderQuantity,
         int leadTimeDays,
-        string? supplierSku,
         bool isDefault,
         string? note)
         => existing.Price != unitPrice
@@ -542,7 +610,6 @@ public sealed class PriceListImportService(
            || existing.VatRate != vatRate
            || existing.MinimumOrderQuantity != minimumOrderQuantity
            || existing.LeadTimeDays != leadTimeDays
-           || !string.Equals(existing.SupplierSku, supplierSku, StringComparison.Ordinal)
            || existing.IsDefault != isDefault
            || !string.Equals(existing.Description, note, StringComparison.Ordinal);
 
@@ -581,12 +648,12 @@ public sealed class PriceListImportService(
         PriceListImportParsedRow Source,
         Guid? VppItemId,
         string? MatchedItemName,
+        string? MatchedUnitName,
         Guid? ExistingMappingId,
         decimal UnitPrice,
         decimal VatRate,
         decimal MinimumOrderQuantity,
         int LeadTimeDays,
-        string? SupplierSku,
         bool IsDefault,
         string? Note,
         PriceListImportAction Action,
@@ -596,8 +663,9 @@ public sealed class PriceListImportService(
             PriceListImportParsedRow source,
             List<PriceListImportIssueResDTO> issues,
             Guid? itemId = null,
-            string? matchedItemName = null)
-            => new(source, itemId, matchedItemName, null, 0, 0, 0, 0, source.SupplierSku, source.IsDefault ?? false, source.Note, PriceListImportAction.Error, issues);
+            string? matchedItemName = null,
+            string? matchedUnitName = null)
+            => new(source, itemId, matchedItemName, matchedUnitName, null, 0, 0, 0, 0, source.IsDefault ?? false, source.Note, PriceListImportAction.Error, issues);
     }
 
     private sealed record EvaluationResult(

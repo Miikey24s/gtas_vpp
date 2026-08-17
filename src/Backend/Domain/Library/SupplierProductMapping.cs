@@ -21,8 +21,6 @@ namespace gtas_vpp_be.Model.Library
         [Column(TypeName = "decimal(19,4)")]
         public decimal MinimumOrderQuantity { get; set; }
         public int LeadTimeDays { get; set; }
-        [StringLength(128)]
-        public string? SupplierSku { get; set; }
         public bool IsDefault { get; set; }
         public Guid VppItemId { get; set; }
         public VppItem? VppItem { get; set; }

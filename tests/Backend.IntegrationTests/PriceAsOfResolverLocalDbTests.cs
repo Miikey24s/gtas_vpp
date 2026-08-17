@@ -64,7 +64,6 @@ public sealed class PriceAsOfResolverLocalDbTests
             VatRate = 8m,
             MinimumOrderQuantity = 2m,
             LeadTimeDays = 4,
-            SupplierSku = "SQL-SKU",
             IsDefault = true,
             CreatedByUserId = 1,
             CreatedAtUtc = asOfUtc,

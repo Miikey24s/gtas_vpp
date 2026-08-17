@@ -124,7 +124,6 @@ namespace gtas_vpp_be.Service.Helpers.Context
                 en.Property(x => x.NetPrice).HasColumnType("decimal(19,4)");
                 en.Property(x => x.VatRate).HasColumnType("decimal(5,2)");
                 en.Property(x => x.MinimumOrderQuantity).HasColumnType("decimal(19,4)");
-                en.Property(x => x.SupplierSku).HasMaxLength(128);
                 en.Property(x => x.RowVersion).IsRowVersion();
                 en.HasOne(x => x.VppItem).WithMany(x => x.SupplierProductMappings).OnDelete(DeleteBehavior.Restrict);
                 en.HasOne(x => x.Supplier).WithMany(x => x.SupplierProductMappings).OnDelete(DeleteBehavior.Restrict);

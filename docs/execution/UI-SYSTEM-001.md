@@ -421,7 +421,8 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
 - Selector ngang trong content dùng `VppSegmentedSelector<TValue>` typed; header-tab toàn cục là ngoại lệ navigation. Các adapter Radzen secondary-tab đã hết consumer được retire thay vì giữ hai implementation cùng visual.
 - Sidebar đổi nhãn `Vận hành kỳ` thành `Quản lý kỳ`, chỉ còn `Chốt kỳ` và `Duyệt đơn bổ sung`. Workspace Chốt kỳ tương lai tích hợp rà soát, gom nhu cầu, chọn nhà cung cấp và chốt; không nhân page theo từng bước.
 - Duyệt đơn bổ sung chuyển sang split list-detail có thao tác. Paging profile được đưa vào shared contract; Create Order dùng page `100` trên full authorized snapshot để tránh flicker virtualization nhưng vẫn giới hạn DOM.
-- Chốt kỳ đã được owner duyệt concept và triển khai thành workspace hợp nhất: không còn workflow bốn bước, KPI/readiness card hoặc tiêu đề `Phương án chốt`; dùng hai selector ngang, decision strip nhà cung cấp, bảng Theo đơn/Theo phòng ban, supplier dialog và detail drawer overlay.
+- Chốt kỳ đã được owner duyệt concept và triển khai thành workspace hợp nhất: không còn workflow bốn bước, KPI/readiness card hoặc tiêu đề `Phương án chốt`; dùng bốn decision card đồng hạng cho nhà cung cấp, bảng giá, PDF và Excel, bảng tổng hợp theo nhóm và detail overlay.
+- Đề xuất hai nhà cung cấp dùng `Stable Capability Surface`: notice luôn có cấu trúc ổn định, chỉ chuyển giữa trạng thái có đề xuất/đã áp dụng; không tự áp dụng. CTA theo thứ tự `Dùng đề xuất` rồi hành động quay về `Giữ 1 nhà cung cấp`. Dialog chốt kỳ lặp lại phân bổ NCC trước xác nhận.
 - Verification: frontend `201/201`, Release build sạch và 7 focused isolated browser tests pass; visual evidence selector/Create Order/pending split đã được kiểm bằng mắt, không điều khiển host `dotnet watch` của owner.
 - Correction 2026-07-30: `PendingApprovalWorkspace` bật `FillAvailableSpace` theo contract `OPERATION`, để split list-detail và workflow footer lấp đầy main content thay vì co theo số dòng hiện có. Geometry test khóa cả mép trên/dưới và visual populated route đã được kiểm bằng mắt.
 
@@ -611,6 +612,15 @@ F0 chỉ được commit khi code gates pass và browser diff được giải th
   hàng ready `1.894 s`; burst `250` scroll event chỉ tạo `5` RAF; 8 vòng enhanced navigation giữ `3` document,
   `712` node, `60→61` listener, trung bình `417/456 ms`; unrelated DOM churn `58.7 ms`. Hai assertion E2E nền
   ngoài diff còn lệch (`RBAC action 18→19`, focus CSS), được giữ nguyên để xử lý đúng scope thay vì sửa test ép pass.
+
+### 7.17 — Context 4 card cho Giá mặt hàng — 2026-08-16
+
+- `SELECTOR-DECISION` của Giá mặt hàng dùng cùng `VppDecisionCardGroup` với Chốt kỳ, giữ thứ tự nghiệp vụ
+  `Nhà cung cấp → Bảng giá → Trạng thái → Số mặt hàng`; chọn nhà cung cấp sẽ giới hạn danh sách bảng giá tương ứng.
+- Hai ô sau là thông tin của bảng giá đang chọn, không lặp PDF/Excel. PDF chỉ dành cho bản chốt/báo cáo cần đọc hoặc
+  in; màn quản trị giá giữ `Cập nhật giá từ file` và `Xuất Excel` ở `COLLECTION-HEADER` đúng cấp hành động.
+- `Cập nhật giá từ file` chỉ cập nhật hàng loạt các dòng giá trong bảng giá đã chọn qua luồng preview/confirm hiện có,
+  không tạo thêm bảng giá. Bốn card dùng chung geometry, hover và responsive `4 → 2 → 1` cột.
 
 ---
 

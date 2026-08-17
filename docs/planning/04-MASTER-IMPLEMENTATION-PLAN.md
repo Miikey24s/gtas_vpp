@@ -506,7 +506,7 @@ original scope so reduced/folded alternatives remain auditable.
 | Phạm vi / file dự kiến | Catalog typed services/controllers/DTO/model config/index migration; `Component_ShareGrid` typed definitions; order search API/UI. |
 | Frontend | Search code/name/category/UOM, explicit detail, validators, mobile card/internal scroll, soft delete/restore. |
 | Backend | Query projection/paging allowlist; typed create/update/status; safe ProblemDetails. |
-| Database | Index/preflight; active state; supplier SKU mapping later in PRICE; collation/search approach measured. |
+| Database | Index/preflight; active state; dùng một mã mặt hàng thống nhất trong catalog và bảng giá; collation/search approach measured. |
 | Business rule | Inactive item không thêm mới nhưng history giữ; UOM change không rewrite snapshots. |
 | Tests | 1.000/10.000 synthetic paging/filter/sort; accented/unaccented cases; duplicate code; authorization/direct API. |
 | Verification | SQL execution plan/IO/time, payload size, browser rapid filter/cancellation. |
@@ -528,7 +528,7 @@ original scope so reduced/folded alternatives remain auditable.
 | Phạm vi / file dự kiến | L05/L06/L07 models/config/migrations, typed pricing services/DTO, seed/backfill/preflight, tests; chưa làm settlement UI. |
 | Frontend | Chỉ contract/API adaptation tối thiểu; management UI ở PRICE-002. |
 | Backend | Price resolver deterministic tại server `PriceAsOfUtc`: locked manual → active contract/published → default; `EffectiveFrom <= as-of < EffectiveTo`, missing/ambiguous là typed blocker; stale preview phải revalidate. |
-| Database | Supplier-linked PriceBook, Version, EffectiveFrom/To, Status, Currency, VATPolicy; PriceBookItem supplier SKU/net/VAT/MOQ/lead; indexes/rowversion; settlement snapshot `PriceAsOfUtc`. |
+| Database | Supplier-linked PriceBook, Version, EffectiveFrom/To, Status, Currency, VATPolicy; PriceBookItem tham chiếu mã mặt hàng hệ thống cùng net/VAT/MOQ/lead; indexes/rowversion; settlement snapshot `PriceAsOfUtc`. |
 | Business rule | Một price book thuộc đúng một supplier; published version immutable hoặc thay bằng version mới; no arbitrary first-row fallback. |
 | Tests | Overlap/duplicate/effective boundary/timezone/VAT/missing/ambiguous; resolver deterministic/tie-break; stale preview/revalidation; legacy backfill. |
 | Verification | Preflight data report, migration fresh+clone, SSMS constraints/queries, full tests. |

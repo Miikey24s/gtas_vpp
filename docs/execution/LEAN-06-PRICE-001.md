@@ -5,7 +5,7 @@ Status: DONE for the schema/backfill/resolver slice. PRICE-002 remains next for 
 ## Delivered
 
 - Extended the existing L07 price-list/L06 supplier mapping model additively with supplier ownership, version, UTC effectivity, status, currency, VAT policy, rowversion and legacy backfill status.
-- Added decimal net-price storage and explicit VAT rate, MOQ, lead time and supplier SKU fields. Legacy `Price` remains as a compatibility alias and is backfilled into `NetPrice`.
+- Added decimal net-price storage and explicit VAT rate, MOQ and lead time fields. Price rows use the shared system item code; no supplier-specific item code is stored. Legacy `Price` remains as a compatibility alias and is backfilled into `NetPrice`.
 - Added `PriceAsOfResolver` with half-open `[EffectiveFromUtc, EffectiveToUtc)` windows, locked-book precedence, contract/published/default precedence, supplier matching, duplicate/missing/expired/legacy blockers, MOQ validation and deterministic net/VAT/gross calculation version `price-vat-v1`.
 - Published price books and mappings are immutable through the existing mutation services; callers must create a new draft version for corrections. Legacy unscoped lists remain readable but resolve as a typed backfill blocker instead of silently choosing a supplier.
 - Added migration `20260716161156_Lean06PriceEffectivity` with negative-price preflight, deterministic supplier/version backfill, explicit `legacy-zero` VAT marker, decimal conversion, effectivity/status backfill, constraints and covering indexes. `Down` is intentionally forward-only because reverting would discard decimal/VAT/version data.

@@ -10,7 +10,6 @@ namespace gtas_vpp_shared.DTOs.Req.Library
         public decimal VatRate { get; set; }
         public decimal MinimumOrderQuantity { get; set; }
         public int LeadTimeDays { get; set; }
-        public string? SupplierSku { get; set; }
         public bool IsDefault { get; set; }
         public string? Description { get; set; }
     }

@@ -119,6 +119,7 @@ namespace gtas_vpp_be.Service.Services
                 {
                     VppId = exception.VppId,
                     SupplierId = exception.SupplierId,
+                    PriceListId = exception.PriceListId,
                     Reason = exception.Reason?.Trim(),
                     IsValid = valid
                 });
@@ -140,6 +141,9 @@ namespace gtas_vpp_be.Service.Services
                     }).ToList()
                 }, cancellationToken);
                 response.Quotes = comparison.Quotes;
+                response.SupplierRecommendation = SettlementSupplierOptimizer.Build(
+                    comparison.Quotes,
+                    totals.Count);
 
                 var candidates = response.Quotes.AsEnumerable();
                 if (req.PriceListId.HasValue)
@@ -246,10 +250,13 @@ namespace gtas_vpp_be.Service.Services
             CancellationToken cancellationToken = default)
         {
             var settlement = await FindExportSettlementAsync(settlementId, cancellationToken);
+            var lookups = settlement is null
+                ? null
+                : await LoadExportLookupsAsync(settlement, cancellationToken);
             return settlement is null
                 ? null
                 : new SettlementExportResult(
-                    SettlementPdfBuilder.Build(settlement),
+                    SettlementPdfBuilder.Build(settlement, lookups!.SupplierNames),
                     ExportFileContract.Settlement(
                         settlement.Year, settlement.Month, settlement.RevisionNumber, "pdf"),
                     ExportFileContract.PdfContentType);
@@ -260,10 +267,16 @@ namespace gtas_vpp_be.Service.Services
             CancellationToken cancellationToken = default)
         {
             var settlement = await FindExportSettlementAsync(settlementId, cancellationToken);
+            var lookups = settlement is null
+                ? null
+                : await LoadExportLookupsAsync(settlement, cancellationToken);
             return settlement is null
                 ? null
                 : new SettlementExportResult(
-                    SettlementWorkbookBuilder.Build(settlement),
+                    SettlementWorkbookBuilder.Build(
+                        settlement,
+                        lookups!.SupplierNames,
+                        lookups.PriceListNames),
                     ExportFileContract.Settlement(
                         settlement.Year, settlement.Month, settlement.RevisionNumber, "xlsx"),
                     ExportFileContract.ExcelContentType);
@@ -514,7 +527,6 @@ namespace gtas_vpp_be.Service.Services
                         SupplierId = evidence.SupplierId,
                         PriceListId = evidence.PriceListId,
                         PriceBookItemId = evidence.PriceBookItemId,
-                        SupplierSku = evidence.SupplierSku,
                         Quantity = quantity,
                         NetUnitPrice = evidence.NetUnitPrice,
                         VatRate = evidence.VatRate,
@@ -925,6 +937,29 @@ namespace gtas_vpp_be.Service.Services
                     cancellationToken);
         }
 
+        private async Task<SettlementExportLookups> LoadExportLookupsAsync(
+            Settlement settlement,
+            CancellationToken cancellationToken)
+        {
+            var supplierIds = settlement.Items.Select(item => item.SupplierId).Distinct().ToArray();
+            var priceListIds = settlement.Items.Select(item => item.PriceListId).Distinct().ToArray();
+            var suppliers = await _scopedUow.VPPContext.Set<Supplier>()
+                .AsNoTracking()
+                .Where(supplier => supplierIds.Contains(supplier.Id))
+                .ToDictionaryAsync(
+                    supplier => supplier.Id,
+                    supplier => supplier.SupplierName ?? supplier.SupplierShortName ?? supplier.Id.ToString(),
+                    cancellationToken);
+            var priceLists = await _scopedUow.VPPContext.Set<PriceList>()
+                .AsNoTracking()
+                .Where(priceList => priceListIds.Contains(priceList.Id))
+                .ToDictionaryAsync(
+                    priceList => priceList.Id,
+                    priceList => priceList.PriceListName ?? priceList.PriceListCode ?? priceList.Id.ToString(),
+                    cancellationToken);
+            return new SettlementExportLookups(suppliers, priceLists);
+        }
+
         private async Task<Settlement?> FindIdempotentAsync(
             string company,
             string idempotencyKey,
@@ -964,13 +999,6 @@ namespace gtas_vpp_be.Service.Services
                     response.Blockers.Add($"EXCEPTION_MUST_USE_ANOTHER_SUPPLIER:{supplierException.VppId}");
                     continue;
                 }
-                if (!quote.MissingVppIds.Contains(supplierException.VppId))
-                {
-                    supplierException.IsValid = false;
-                    supplierException.Blocker = "EXCEPTION_NOT_REQUIRED";
-                    response.Blockers.Add($"EXCEPTION_NOT_REQUIRED:{supplierException.VppId}");
-                    continue;
-                }
                 if (_priceAsOfResolver is null)
                 {
                     supplierException.IsValid = false;
@@ -983,6 +1011,7 @@ namespace gtas_vpp_be.Service.Services
                 {
                     VppId = supplierException.VppId,
                     SupplierId = supplierException.SupplierId,
+                    LockedPriceListId = supplierException.PriceListId,
                     PriceAsOfUtc = asOfUtc,
                     Quantity = totals[supplierException.VppId]
                 }, cancellationToken);
@@ -1005,7 +1034,13 @@ namespace gtas_vpp_be.Service.Services
                 supplierException.NetAmount = resolved.NetAmount;
                 supplierException.VatAmount = resolved.VatAmount;
                 supplierException.GrossAmount = resolved.GrossAmount;
-                quote.Lines.RemoveAll(line => line.VppId == supplierException.VppId);
+                var existingLine = quote.Lines.SingleOrDefault(line => line.VppId == supplierException.VppId);
+                if (existingLine is not null)
+                {
+                    quote.Subtotal -= existingLine.NetAmount;
+                    quote.VatAmount -= existingLine.VatAmount;
+                    quote.Lines.Remove(existingLine);
+                }
                 quote.Lines.Add(new PriceBookQuoteLineResDTO
                 {
                     VppId = supplierException.VppId,
@@ -1016,8 +1051,10 @@ namespace gtas_vpp_be.Service.Services
                     VatAmount = resolved.VatAmount,
                     GrossAmount = resolved.GrossAmount
                 });
-                quote.MissingVppIds.Remove(supplierException.VppId);
-                quote.CoveredItemCount++;
+                if (quote.MissingVppIds.Remove(supplierException.VppId))
+                {
+                    quote.CoveredItemCount++;
+                }
                 quote.Subtotal += resolved.NetAmount;
                 quote.VatAmount += resolved.VatAmount;
                 quote.MaximumLeadTimeDays = Math.Max(quote.MaximumLeadTimeDays, resolved.LeadTimeDays);
@@ -1144,8 +1181,7 @@ namespace gtas_vpp_be.Service.Services
                 row.NetPrice == 0m && row.Price != 0m ? row.Price : row.NetPrice,
                 row.VatRate,
                 row.MinimumOrderQuantity,
-                row.LeadTimeDays,
-                row.SupplierSku);
+                row.LeadTimeDays);
         }
 
         private async Task<SnapshotPriceEvidence> ResolveExceptionEvidenceAsync(
@@ -1163,6 +1199,7 @@ namespace gtas_vpp_be.Service.Services
             {
                 VppId = vppId,
                 SupplierId = supplierException.SupplierId,
+                LockedPriceListId = supplierException.PriceListId,
                 PriceAsOfUtc = asOfUtc,
                 Quantity = quantity
             }, cancellationToken);
@@ -1177,8 +1214,7 @@ namespace gtas_vpp_be.Service.Services
                 resolved.NetUnitPrice,
                 resolved.VatRate,
                 resolved.MinimumOrderQuantity,
-                resolved.LeadTimeDays,
-                resolved.SupplierSku);
+                resolved.LeadTimeDays);
         }
 
         private static decimal[] AllocateAmount(decimal total, IReadOnlyList<decimal> weights)
@@ -1383,7 +1419,7 @@ namespace gtas_vpp_be.Service.Services
                 req.PrimarySupplierId,
                 req.PriceListId,
                 Exceptions = (req.Exceptions ?? []).OrderBy(x => x.VppId).ThenBy(x => x.SupplierId)
-                    .Select(x => new { x.VppId, x.SupplierId, Reason = x.Reason?.Trim() })
+                    .Select(x => new { x.VppId, x.SupplierId, x.PriceListId, Reason = x.Reason?.Trim() })
             });
             return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
                 System.Text.Encoding.UTF8.GetBytes(canonical)));
@@ -1396,8 +1432,11 @@ namespace gtas_vpp_be.Service.Services
             decimal NetUnitPrice,
             decimal VatRate,
             decimal MinimumOrderQuantity,
-            int LeadTimeDays,
-            string? SupplierSku);
+            int LeadTimeDays);
+
+        private sealed record SettlementExportLookups(
+            IReadOnlyDictionary<Guid, string> SupplierNames,
+            IReadOnlyDictionary<Guid, string> PriceListNames);
 
         private async Task<PriceList?> ResolvePriceListAsync(Guid? priceListId)
         {
@@ -1484,7 +1523,7 @@ namespace gtas_vpp_be.Service.Services
                 PrimarySupplierId = effectiveSupplierId ?? req.PrimarySupplierId,
                 Items = totals.OrderBy(x => x.Key).Select(x => new { VppId = x.Key, Quantity = x.Value }),
                 Exceptions = (req.Exceptions ?? []).OrderBy(x => x.VppId).ThenBy(x => x.SupplierId)
-                    .Select(x => new { x.VppId, x.SupplierId, Reason = x.Reason?.Trim() })
+                    .Select(x => new { x.VppId, x.SupplierId, x.PriceListId, Reason = x.Reason?.Trim() })
             });
             return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
                 System.Text.Encoding.UTF8.GetBytes(canonical)));

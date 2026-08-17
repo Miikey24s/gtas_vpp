@@ -257,7 +257,7 @@ Report giữ scope `own | department | all`, year, month và generated time.
 | Products | Code, name, category, UOM, description, active/deleted | Server table + inspector/form drawer |
 | Suppliers | Code/name/contact/active/audit | Server table + inspector |
 | Price Lists | Code/name/supplier/version/status/effective dates/currency/default/items | Table + lifecycle badge + detail drawer |
-| Prices | Product/supplier/list/version/net price/VAT/MOQ/lead/SKU/default | Filtered server table; edit dialog |
+| Prices | Product/system item code/supplier/list/version/net price/VAT/MOQ/lead/default | Filtered server table; edit dialog |
 | Price comparison | Whole-basket quote fields | Ranked comparison table, not generic cards |
 | Departments | Code/name/member company/active/audit | Table + membership impact warning |
 

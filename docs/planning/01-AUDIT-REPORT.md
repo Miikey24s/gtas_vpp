@@ -237,7 +237,7 @@ Identity hỗ trợ user lifecycle, confirmation/reset và lockout ([Identity](h
 
 **Tác động.** Không xác định giá nào hợp lệ tại thời điểm settlement; admin không có bằng chứng lựa chọn.
 
-**Đề xuất.** PriceBook thuộc một supplier/contract/version, có effective interval/status/currency/VAT policy; PriceBookItem có supplier SKU, unit price, VAT, MOQ/lead time. Preflight duplicate/orphan trước constraint.
+**Đề xuất.** PriceBook thuộc một supplier/contract/version, có effective interval/status/currency/VAT policy; PriceBookItem dùng mã mặt hàng thống nhất của hệ thống cùng unit price, VAT, MOQ/lead time. Preflight duplicate/orphan trước constraint.
 
 ### DATA-03 — Concurrency chưa được bảo vệ ở invariant quan trọng
 

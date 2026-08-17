@@ -654,13 +654,17 @@
         var(--vpp-transient-motion-duration)
         var(--vpp-transient-motion-easing)
         both !important;
-    translate: 0 var(--vpp-space-1);
+    translate:
+        var(--rz-page-size-shift-x, 0)
+        var(--rz-page-size-shift-y, var(--vpp-space-1));
     will-change: opacity, clip-path;
 }
 
 .rz-dropdown-panel.vpp-page-size-panel.rz-open.vpp-transient-surface--above {
     animation-name: vpp-transient-enter-up !important;
-    translate: 0 calc(var(--vpp-space-1) * -1);
+    translate:
+        var(--rz-page-size-shift-x, 0)
+        var(--rz-page-size-shift-y, calc(var(--vpp-space-1) * -1));
 }
 
 .rz-dropdown-panel.vpp-page-size-panel :is(.rz-dropdown-item, .rz-dropdown-items > li) {
@@ -855,8 +859,9 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
     min-width: 0;
     min-height: 0;
     overflow: auto;
-    /* Chá»«a sáºµn ráº¡nh scrollbar native á»Ÿ cáº¡nh cuá»‘i Ä‘á»ƒ schema cá»™t khÃ´ng nháº£y
-       khi data vá»«a Ä‘á»§/khÃ´ng Ä‘á»§ táº¡o vertical overflow. KhÃ´ng dÃ¹ng both-edges vÃ¬ sáº½ táº¡o gutter giáº£ hai bÃªn. */
+    /* Chừa sẵn rãnh scrollbar native ở cạnh cuối để schema cột không nhảy
+       khi dữ liệu vừa đủ hoặc không đủ tạo vertical overflow. Không dùng both-edges
+       vì sẽ tạo gutter giả ở cả hai bên. */
     scrollbar-gutter: stable;
     border-radius: 0;
     box-shadow: none;
@@ -898,6 +903,7 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
 
 .vpp-data-grid .rz-grid-table thead > tr > th {
     height: var(--vpp-data-header-height);
+    min-height: var(--vpp-data-header-height);
     max-height: var(--vpp-data-header-height);
     background: var(--vpp-surface-grid-header);
     color: var(--vpp-text-secondary);
@@ -924,4 +930,27 @@ html.vpp-admin-action-menu-opening .rz-context-menu {
     border-top: var(--vpp-border-width) solid var(--vpp-border-default);
     background: var(--vpp-bg-elevated);
     box-shadow: none;
+}
+
+/* DATA-COLUMN authority: header giữ một dòng và một nhịp cao ổn định.
+   Route phải ưu tiên nhãn ngắn, width/min-width hợp lý, column picker và cuộn ngang. */
+:is(.rz-data-grid, .rz-datatable) .rz-grid-table thead > tr > th {
+    height: var(--vpp-data-header-height) !important;
+    min-height: var(--vpp-data-header-height);
+    max-height: var(--vpp-data-header-height) !important;
+}
+
+:is(.rz-data-grid, .rz-datatable) .rz-grid-table thead > tr > th > div:not(.rz-cell-filter) {
+    min-width: 0;
+    overflow: hidden !important;
+}
+
+:is(.rz-data-grid, .rz-datatable) .rz-grid-table thead .rz-column-title,
+:is(.rz-data-grid, .rz-datatable) .rz-grid-table thead .rz-column-title-content {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    line-height: var(--vpp-leading-tight);
 }

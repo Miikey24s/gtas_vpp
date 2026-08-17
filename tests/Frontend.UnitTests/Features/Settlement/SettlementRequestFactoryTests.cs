@@ -31,6 +31,7 @@ public sealed class SettlementRequestFactoryTests
         Assert.Equal(DateTimeKind.Utc, request.PriceAsOfUtc!.Value.Kind);
         Assert.NotSame(exceptions, request.Exceptions);
         Assert.Equal(["ngoại lệ 1", null], request.Exceptions.Select(item => item.Reason));
+        Assert.Equal(exceptions.Select(item => item.PriceListId), request.Exceptions.Select(item => item.PriceListId));
     }
 
     [Fact]
@@ -56,6 +57,7 @@ public sealed class SettlementRequestFactoryTests
         Assert.NotSame(exceptions, request.Exceptions);
         Assert.Equal(exceptions.Select(item => item.VppId), request.Exceptions.Select(item => item.VppId));
         Assert.Equal(exceptions.Select(item => item.SupplierId), request.Exceptions.Select(item => item.SupplierId));
+        Assert.Equal(exceptions.Select(item => item.PriceListId), request.Exceptions.Select(item => item.PriceListId));
         Assert.NotSame(exceptions[0], request.Exceptions[0]);
         Assert.NotSame(exceptions[1], request.Exceptions[1]);
         Assert.Equal("ngoại lệ 1", request.Exceptions[0].Reason);
@@ -118,12 +120,14 @@ public sealed class SettlementRequestFactoryTests
         {
             VppId = Guid.Parse("33333333-3333-3333-3333-333333333333"),
             SupplierId = Guid.Parse("44444444-4444-4444-4444-444444444444"),
+            PriceListId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
             Reason = "  ngoại lệ 1  "
         },
         new()
         {
             VppId = Guid.Parse("55555555-5555-5555-5555-555555555555"),
             SupplierId = Guid.Parse("66666666-6666-6666-6666-666666666666"),
+            PriceListId = Guid.Parse("88888888-8888-8888-8888-888888888888"),
             Reason = null
         }
     ];

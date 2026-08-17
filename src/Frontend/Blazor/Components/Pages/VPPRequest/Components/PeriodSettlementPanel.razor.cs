@@ -213,6 +213,19 @@ public partial class PeriodSettlementPanel : IDisposable
     private Guid? SelectedSupplierId => Preview?.PrimarySupplierId;
     private Guid? SelectedPriceListId => Preview?.PrimaryPriceListId;
     private PriceBookQuoteResDTO? SelectedQuote => Preview?.PrimaryQuote;
+    private SettlementSupplierRecommendationResDTO? SupplierRecommendation => Preview?.SupplierRecommendation;
+    private bool HasEligibleSingleSupplier => SupplierRecommendation is
+    {
+        BaselineSupplierId: not null,
+        BaselinePriceListId: not null
+    };
+    private bool IsSupplierRecommendationApplied => SupplierRecommendation is { IsRecommended: true } recommendation
+        && recommendation.SuggestedExceptions.Count > 0
+        && State.Exceptions.Count == recommendation.SuggestedExceptions.Count
+        && recommendation.SuggestedExceptions.All(suggestion => State.Exceptions.Any(current =>
+            current.VppId == suggestion.VppId
+            && current.SupplierId == suggestion.SupplierId
+            && current.PriceListId == suggestion.PriceListId));
     private bool HasSettlementSnapshot => status?.IsSettled == true && currentSettlementRevision is not null;
     private string SelectedSupplierName => HasSettlementSnapshot
         ? currentSettlementRevision!.PrimarySupplierName
@@ -996,6 +1009,38 @@ public partial class PeriodSettlementPanel : IDisposable
         {
             isSettling = false;
         }
+    }
+
+    private async Task ApplySupplierRecommendationAsync()
+    {
+        if (SupplierRecommendation is not { IsRecommended: true } recommendation || isPreviewLoading)
+        {
+            return;
+        }
+
+        State.Exceptions.Clear();
+        State.Exceptions.AddRange(recommendation.SuggestedExceptions.Select(suggestion => new SettlementExceptionReqDTO
+        {
+            VppId = suggestion.VppId,
+            SupplierId = suggestion.SupplierId,
+            PriceListId = suggestion.PriceListId,
+            Reason = suggestion.Reason
+        }));
+        await LoadPreviewAsync(recommendation.PrimarySupplierId, recommendation.PrimaryPriceListId);
+    }
+
+    private async Task KeepSingleSupplierAsync()
+    {
+        if (isPreviewLoading || !HasEligibleSingleSupplier)
+        {
+            return;
+        }
+
+        State.Exceptions.Clear();
+        var recommendation = SupplierRecommendation!;
+        await LoadPreviewAsync(
+            recommendation.BaselineSupplierId!.Value,
+            recommendation.BaselinePriceListId!.Value);
     }
 
     private string BuildResettlementReason()

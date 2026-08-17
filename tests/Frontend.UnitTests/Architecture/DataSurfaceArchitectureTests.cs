@@ -415,7 +415,7 @@ public sealed class DataSurfaceArchitectureTests
             Slice(price, "<Toolbar>", "</Toolbar>"),
             "<VppFilterSearch",
             "Value=\"@selectedCategory\"",
-            "Value=\"@selectedMappingStatus\"",
+            "Value=\"@selectedUom\"",
             "<VppClearFiltersButton",
             "<VppColumnPicker");
         AssertAppearsInOrder(
@@ -424,13 +424,8 @@ public sealed class DataSurfaceArchitectureTests
             "Property=\"VppCode\"",
             "Property=\"CategoryName\"",
             "Property=\"UomName\"",
-            "Property=\"IsDeleted\"",
-            "Property=\"SupplierSku\"",
             "Property=\"Price\"",
-            "Property=\"VatRate\"",
-            "Property=\"MinimumOrderQuantity\"",
-            "Property=\"LeadTimeDays\"",
-            "Property=\"IsDefault\"");
+            "Property=\"VatRate\"");
 
         var secondLookupColumns = Slice(lookup, "<Columns>", "</Columns>", occurrence: 2);
         AssertAppearsInOrder(

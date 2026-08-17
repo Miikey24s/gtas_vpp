@@ -143,10 +143,13 @@ public sealed class UiConsolidationArchitectureTests
         var priceListCode = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceListLibrary.razor.cs");
         var prices = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor");
         var pricesCode = Read(root, "Components", "Pages", "Lib", "Tabs", "Tab_PriceLibrary.razor.cs");
+        var priceEditor = Read(root, "Components", "Pages", "Lib", "Tabs", "Dialog", "Dialog_PriceEditor.razor");
         var pricingClient = Read(root, "Features", "CatalogPricing", "Api", "PricingApiClient.cs");
         var report = Read(root, "Components", "Pages", "Report.razor");
         var reportCode = Read(root, "Components", "Pages", "Report.razor.cs");
         var adminCss = Read(root, "wwwroot", "css", "vpp-admin.css");
+        var dataGridCss = Read(root, "wwwroot", "css", "vpp-datagrid.css");
+        var radzenCss = Read(root, "wwwroot", "css", "vpp-radzen-theme.css");
         var layoutCss = Read(root, "wwwroot", "css", "vpp-layout.css");
 
         Assert.Contains("<VppAdminActionMenu", priceList, StringComparison.Ordinal);
@@ -158,7 +161,17 @@ public sealed class UiConsolidationArchitectureTests
         Assert.DoesNotContain("rz-col-actions-xwide", adminCss, StringComparison.Ordinal);
 
         Assert.Contains("data-testid=\"price-context\"", prices, StringComparison.Ordinal);
-        Assert.DoesNotContain("OnSupplierChangedAsync", prices, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionCardGroup", prices, StringComparison.Ordinal);
+        Assert.Contains("vpp-price-supplier-decision-card", prices, StringComparison.Ordinal);
+        Assert.Contains("vpp-price-list-decision-card", prices, StringComparison.Ordinal);
+        Assert.Contains("OnSupplierChangedAsync", prices, StringComparison.Ordinal);
+        Assert.Contains("SupplierDecisionOptions", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("PriceListDecisionOptions", pricesCode, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"Status\"]", prices, StringComparison.Ordinal);
+        Assert.Contains("SelectedPriceList?.ItemCount", prices, StringComparison.Ordinal);
+        Assert.Contains("Loc[\"UpdatePricesFromFile\"]", prices, StringComparison.Ordinal);
+        Assert.Contains("ExportPricesAsync", pricesCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppFileExportFormat.Pdf", prices, StringComparison.Ordinal);
         Assert.Contains("PricingApi.GetItemPriceCategoriesAsync", pricesCode, StringComparison.Ordinal);
         Assert.Contains("PricingApi.GetItemPriceUnitsAsync", pricesCode, StringComparison.Ordinal);
         Assert.Contains("PricingApi.GetItemPricesAsync", pricesCode, StringComparison.Ordinal);
@@ -166,6 +179,19 @@ public sealed class UiConsolidationArchitectureTests
         Assert.Contains("\"CategoryName\"", pricingClient, StringComparison.Ordinal);
         Assert.Contains("\"UomName\"", pricingClient, StringComparison.Ordinal);
         Assert.Contains("MappingStatus switch", pricingClient, StringComparison.Ordinal);
+        Assert.DoesNotContain("selectedMappingStatus", pricesCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loc[\"PriceStatus\"]", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("Property=\"MinimumOrderQuantity\"", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("Property=\"LeadTimeDays\"", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("Property=\"IsDefault\"", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("Model.MinimumOrderQuantity", priceEditor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Model.LeadTimeDays", priceEditor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Model.IsDefault", priceEditor, StringComparison.Ordinal);
+        Assert.Contains("Visible=\"false\" Pickable=\"true\"", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("white-space: normal;", adminCss, StringComparison.Ordinal);
+        Assert.DoesNotContain("white-space: normal;", dataGridCss, StringComparison.Ordinal);
+        Assert.Contains("white-space: nowrap !important;", radzenCss, StringComparison.Ordinal);
+        Assert.Contains("height: var(--vpp-data-header-height) !important;", radzenCss, StringComparison.Ordinal);
         Assert.Contains("<VppAdminActionMenu", prices, StringComparison.Ordinal);
         Assert.Contains("PriceRowSecondaryActions", pricesCode, StringComparison.Ordinal);
         Assert.Contains("!row.IsDeleted || !IsSelectedPriceListEditable", pricesCode, StringComparison.Ordinal);
@@ -218,6 +244,8 @@ public sealed class UiConsolidationArchitectureTests
         Assert.Contains("<VppStatusBadge", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementStatusText", settlement, StringComparison.Ordinal);
         Assert.DoesNotContain("VppFileExportActions", settlement, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionCardGroup", settlement, StringComparison.Ordinal);
+        Assert.Contains("vpp-decision-card-action vpp-settlement-export-card", settlement, StringComparison.Ordinal);
         Assert.Contains("vpp-settlement-export-card", settlement, StringComparison.Ordinal);
         Assert.Contains("VppFileExportFormat.Pdf", settlement, StringComparison.Ordinal);
         Assert.Contains("VppFileExportFormat.Excel", settlement, StringComparison.Ordinal);

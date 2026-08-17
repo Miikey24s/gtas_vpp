@@ -46,73 +46,60 @@
     min-width: 0;
 }
 
-.vpp-settlement-decision-cards {
-    display: grid;
+.vpp-settlement-supplier-recommendation {
+    display: flex;
     min-width: 0;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border: var(--vpp-border-width) solid color-mix(in srgb, var(--vpp-accent) 30%, var(--vpp-border-default));
+    border-radius: var(--vpp-radius-md);
+    background: color-mix(in srgb, var(--vpp-accent) 6%, var(--vpp-bg-elevated));
+}
+
+.vpp-settlement-supplier-recommendation.is-applied {
+    border-color: color-mix(in srgb, var(--vpp-success) 35%, var(--vpp-border-default));
+    background: color-mix(in srgb, var(--vpp-success) 7%, var(--vpp-bg-elevated));
+}
+
+.vpp-settlement-supplier-recommendation-copy,
+.vpp-settlement-supplier-recommendation-actions {
+    display: flex;
+    min-width: 0;
+    align-items: center;
     gap: var(--vpp-space-2);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.vpp-settlement-export-card {
+.vpp-settlement-supplier-recommendation-copy > div {
     display: grid;
     min-width: 0;
-    min-height: 72px;
-    align-content: center;
-    gap: var(--vpp-space-1);
-    padding: var(--vpp-space-2) var(--vpp-space-3);
-    border: var(--vpp-border-width) solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-bg-elevated);
+    gap: 1px;
+}
+
+.vpp-settlement-supplier-recommendation-copy strong {
     color: var(--vpp-text-primary);
+    font-size: var(--vpp-text-sm);
 }
 
-::deep .vpp-settlement-decision-card {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
+.vpp-settlement-supplier-recommendation-copy span,
+.vpp-settlement-supplier-recommendation-copy small {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
 }
 
-::deep .vpp-settlement-decision-card > .vpp-settlement-decision-trigger {
-    min-height: 72px;
-    padding: var(--vpp-space-2) var(--vpp-space-3);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-bg-elevated);
-    box-shadow: inset 0 0 0 var(--vpp-border-width) var(--vpp-border-default) !important;
-    font-size: var(--vpp-text-md);
-    font-weight: var(--vpp-font-weight-semibold);
+.vpp-settlement-supplier-recommendation-copy ::deep .vpp-icon {
+    flex: 0 0 auto;
+    color: var(--vpp-accent);
 }
 
-::deep .vpp-settlement-decision-card > .vpp-settlement-decision-trigger:hover,
-::deep .vpp-settlement-decision-card > .vpp-settlement-decision-trigger:focus-visible {
-    background: color-mix(in srgb, var(--vpp-primary-500) 4%, var(--vpp-bg-elevated));
-    box-shadow: inset 0 0 0 var(--vpp-border-width) var(--vpp-border-strong) !important;
+.vpp-settlement-supplier-recommendation.is-applied .vpp-settlement-supplier-recommendation-copy ::deep .vpp-icon {
+    color: var(--vpp-success);
 }
 
-.vpp-settlement-export-card {
-    place-items: center;
-    border-color: var(--vpp-border-default);
-    font: inherit;
-    cursor: pointer;
-    transition: border-color var(--vpp-transition-fast),
-                background-color var(--vpp-transition-fast),
-                color var(--vpp-transition-fast);
-}
-
-.vpp-settlement-export-card:hover:not(:disabled),
-.vpp-settlement-export-card:focus-visible:not(:disabled) {
-    outline: 0;
-    border-color: var(--vpp-border-strong);
-    background: color-mix(in srgb, var(--vpp-primary-500) 5%, var(--vpp-bg-elevated));
-}
-
-.vpp-settlement-export-card:disabled {
-    cursor: default;
-    opacity: .52;
-}
-
-.vpp-settlement-export-card ::deep .vpp-icon {
-    color: var(--vpp-text-tertiary);
-    font-size: var(--vpp-text-lg);
+.vpp-settlement-supplier-recommendation-actions {
+    flex: 0 0 auto;
 }
 
 .vpp-settlement-blocker-bar {
@@ -333,7 +320,7 @@
 }
 
 ::deep .vpp-settlement-order-grid :is(th, td).vpp-settlement-order-count-cell {
-    /* Giá»¯ cá»™t badge theo Ä‘Ãºng khá»‘i ná»™i dung; pháº§n ngang dÆ° Ä‘á»ƒ cá»™t tÃªn háº¥p thá»¥. */
+    /* Giữ cột badge theo đúng khối nội dung; phần ngang dư để cột tên hấp thụ. */
     width: 200px !important;
     min-width: 200px !important;
     max-width: 200px !important;
@@ -394,13 +381,19 @@
 }
 
 @media (max-width: 1100px) {
-    .vpp-settlement-selector-row {
-        align-items: stretch;
+    .vpp-settlement-supplier-recommendation {
+        align-items: flex-start;
         flex-direction: column;
     }
 
-    .vpp-settlement-decision-cards {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .vpp-settlement-supplier-recommendation-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .vpp-settlement-selector-row {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .vpp-settlement-selector-groups {
@@ -426,16 +419,16 @@
         flex-direction: column;
     }
 
-    .vpp-settlement-decision-cards {
-        grid-template-columns: 1fr;
-    }
-
     .vpp-settlement-preview-refresh {
         align-items: stretch;
         flex-direction: column;
     }
 
     .vpp-settlement-preview-refresh ::deep .rz-button {
+        width: 100%;
+    }
+
+    .vpp-settlement-supplier-recommendation-actions ::deep .rz-button {
         width: 100%;
     }
 

@@ -8,9 +8,12 @@ namespace gtas_vpp_be.Service.Services;
 
 public static class SettlementPdfBuilder
 {
-    public static byte[] Build(Settlement settlement)
+    public static byte[] Build(
+        Settlement settlement,
+        IReadOnlyDictionary<Guid, string>? supplierNames = null)
     {
         ArgumentNullException.ThrowIfNull(settlement);
+        supplierNames ??= new Dictionary<Guid, string>();
         VppPdfFontRegistry.EnsureInitialized();
 
         var culture = CultureInfo.GetCultureInfo("vi-VN");
@@ -50,7 +53,10 @@ public static class SettlementPdfBuilder
                                     .FontSize(9).SemiBold();
                             });
 
-                        Field(fields, "Nhà cung cấp", settlement.PrimarySupplierName);
+                        var supplierCount = settlement.Items.Select(item => item.SupplierId).Distinct().Count();
+                        Field(fields, "Nhà cung cấp", supplierCount > 1
+                            ? $"{supplierCount} nhà cung cấp"
+                            : settlement.PrimarySupplierName);
                         Field(fields, "Bảng giá", settlement.PriceListName);
                         Field(fields, "Ngày chốt", settlement.ConfirmedAtUtc.ToString("HH:mm dd/MM/yyyy", culture));
                     });
@@ -100,6 +106,8 @@ public static class SettlementPdfBuilder
                             {
                                 cell.Item().Text(item.VppName).SemiBold();
                                 cell.Item().Text(item.VppCode).FontSize(6.5f).FontColor(Colors.Grey.Darken1);
+                                cell.Item().Text(supplierNames.GetValueOrDefault(item.SupplierId, "–"))
+                                    .FontSize(6.5f).FontColor(Colors.Grey.Darken1);
                             });
                             table.Cell().Element(VppPdfTheme.TableBodyCell).Text(item.UomName);
                             table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.Quantity.ToString("N0", culture));

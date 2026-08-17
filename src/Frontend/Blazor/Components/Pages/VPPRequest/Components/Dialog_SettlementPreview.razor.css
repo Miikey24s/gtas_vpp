@@ -59,6 +59,40 @@
     background: color-mix(in srgb, var(--vpp-primary-500) 6%, var(--vpp-bg-elevated));
 }
 
+.vpp-settlement-preview-suppliers {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vpp-space-3);
+    margin-top: var(--vpp-space-3);
+    padding: var(--vpp-space-2) var(--vpp-space-3);
+    border: var(--vpp-border-width) solid color-mix(in srgb, var(--vpp-success) 35%, var(--vpp-border-default));
+    border-radius: var(--vpp-radius-lg);
+    background: color-mix(in srgb, var(--vpp-success) 7%, var(--vpp-bg-elevated));
+}
+
+.vpp-settlement-preview-suppliers > div,
+.vpp-settlement-preview-supplier-chips {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-settlement-preview-suppliers > div > div {
+    display: grid;
+    gap: 1px;
+}
+
+.vpp-settlement-preview-suppliers span {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+}
+
+.vpp-settlement-preview-suppliers ::deep .vpp-icon {
+    color: var(--vpp-success);
+}
+
 .vpp-settlement-preview-changes,
 .vpp-settlement-preview-orders {
     margin-top: var(--vpp-space-3);
@@ -194,5 +228,10 @@
     .vpp-settlement-preview-change-list article,
     .vpp-settlement-preview-order-list article {
         grid-template-columns: 1fr;
+    }
+
+    .vpp-settlement-preview-suppliers {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
