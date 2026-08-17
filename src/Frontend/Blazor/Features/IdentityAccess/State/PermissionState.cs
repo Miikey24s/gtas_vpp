@@ -5,6 +5,8 @@ using System.Security.Claims;
 
 namespace gtas_vpp_fe.Features.IdentityAccess.State;
 
+// Giữ snapshot quyền hiện tại cho navigation và component; chỉ phát Changed sau khi snapshot hoàn chỉnh.
+// Mọi lần reload được tuần tự hóa để 403 đồng thời không ghi đè state bằng phản hồi cũ.
 public sealed class PermissionState : IDisposable
 {
     private sealed record RouteTarget(string PageCode, string? PermissionCode, string Path);
@@ -101,13 +103,7 @@ public sealed class PermissionState : IDisposable
         var (isAuthenticated, claims) = await _authHelper.EnsureAuthenticatedAsync();
         if (!isAuthenticated)
         {
-            SetState(
-                Array.Empty<Claim>(),
-                new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
-                new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                Guid.Empty,
-                0,
-                false);
+            ClearPermissions(Array.Empty<Claim>());
             return;
         }
 
@@ -115,13 +111,7 @@ public sealed class PermissionState : IDisposable
         var userId = currentClaims.GetInt(ClaimKeys.UserID);
         if (userId <= 0)
         {
-            SetState(
-                currentClaims,
-                new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
-                new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-                Guid.Empty,
-                0,
-                false);
+            ClearPermissions(currentClaims);
             return;
         }
 
@@ -148,6 +138,18 @@ public sealed class PermissionState : IDisposable
             snapshot.GroupId,
             snapshot.Version,
             true);
+    }
+
+    private void ClearPermissions(IEnumerable<Claim> claims)
+    {
+        // Giữ claims nếu đã đăng nhập nhưng payload thiếu user id; quyền vẫn phải về rỗng và chưa loaded.
+        SetState(
+            claims,
+            new Dictionary<string, PagePermissionResDTO>(StringComparer.OrdinalIgnoreCase),
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            Guid.Empty,
+            0,
+            false);
     }
 
     public PagePermissionResDTO GetPagePermission(string pageCode)
