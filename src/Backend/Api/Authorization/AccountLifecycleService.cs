@@ -142,44 +142,19 @@ public sealed class AccountLifecycleService(
         var email = request.Email.Trim();
         var fullName = request.FullName.Trim();
         var employeeCode = NormalizeOptional(request.EmployeeCode);
-
-        if (!string.Equals(request.Password, request.ConfirmPassword, StringComparison.Ordinal))
+        var validationError = await ValidateRegistrationAsync(request, username, email, fullName);
+        if (validationError is not null)
         {
-            return AccountLifecycleResult.BadRequest(
-                "PASSWORD_CONFIRMATION_MISMATCH",
-                "The password confirmation does not match.");
-        }
-
-        if (string.IsNullOrWhiteSpace(username)
-            || string.IsNullOrWhiteSpace(email)
-            || string.IsNullOrWhiteSpace(fullName))
-        {
-            return AccountLifecycleResult.BadRequest(
-                "REGISTRATION_FIELDS_REQUIRED",
-                "Username, email and full name are required.");
-        }
-
-        var validationAccount = new AppUser
-        {
-            UserName = username,
-            Email = email,
-            FullName = fullName
-        };
-        if (!await IsPasswordValidAsync(validationAccount, request.Password))
-        {
-            return AccountLifecycleResult.BadRequest(
-                "REGISTRATION_INVALID",
-                "The registration data does not satisfy the account policy.");
+            return validationError;
         }
 
         var normalizedUsername = _userManager.NormalizeName(username);
         var normalizedEmail = _userManager.NormalizeEmail(email);
-        var duplicate = await _context.Users.AsNoTracking().AnyAsync(
-            account => (normalizedUsername != null && account.NormalizedUserName == normalizedUsername)
-                || (normalizedEmail != null && account.NormalizedEmail == normalizedEmail)
-                || (employeeCode != null && account.EmployeeCode == employeeCode),
-            cancellationToken);
-        if (duplicate)
+        if (await HasRegistrationDuplicateAsync(
+                normalizedUsername,
+                normalizedEmail,
+                employeeCode,
+                cancellationToken))
         {
             await RecordAuditAsync(
                 actorUserId: null,
@@ -270,6 +245,53 @@ public sealed class AccountLifecycleService(
 
         return AccountLifecycleResult.Accepted(GenericRegistrationMessage);
     }
+
+    private async Task<AccountLifecycleResult?> ValidateRegistrationAsync(
+        AccountRegistrationReqDTO request,
+        string username,
+        string email,
+        string fullName)
+    {
+        // Lỗi cấu trúc được trả rõ; trùng danh tính được xử lý kín ở bước sau để chống dò tài khoản.
+        if (!string.Equals(request.Password, request.ConfirmPassword, StringComparison.Ordinal))
+        {
+            return AccountLifecycleResult.BadRequest(
+                "PASSWORD_CONFIRMATION_MISMATCH",
+                "The password confirmation does not match.");
+        }
+
+        if (string.IsNullOrWhiteSpace(username)
+            || string.IsNullOrWhiteSpace(email)
+            || string.IsNullOrWhiteSpace(fullName))
+        {
+            return AccountLifecycleResult.BadRequest(
+                "REGISTRATION_FIELDS_REQUIRED",
+                "Username, email and full name are required.");
+        }
+
+        var validationAccount = new AppUser
+        {
+            UserName = username,
+            Email = email,
+            FullName = fullName
+        };
+        return await IsPasswordValidAsync(validationAccount, request.Password)
+            ? null
+            : AccountLifecycleResult.BadRequest(
+                "REGISTRATION_INVALID",
+                "The registration data does not satisfy the account policy.");
+    }
+
+    private Task<bool> HasRegistrationDuplicateAsync(
+        string? normalizedUsername,
+        string? normalizedEmail,
+        string? employeeCode,
+        CancellationToken cancellationToken)
+        => _context.Users.AsNoTracking().AnyAsync(
+            account => (normalizedUsername != null && account.NormalizedUserName == normalizedUsername)
+                || (normalizedEmail != null && account.NormalizedEmail == normalizedEmail)
+                || (employeeCode != null && account.EmployeeCode == employeeCode),
+            cancellationToken);
 
     public async Task<AccountLifecycleResult> ConfirmEmailAsync(
         EmailConfirmationReqDTO request,
