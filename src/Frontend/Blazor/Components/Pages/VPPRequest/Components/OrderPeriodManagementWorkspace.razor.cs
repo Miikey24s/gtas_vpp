@@ -10,6 +10,8 @@ using Radzen;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 
+// Điều phối danh sách kỳ đặt hàng dành cho quản lý: tải dữ liệu, lọc và mở đúng thao tác kỳ.
+// UI giữ đủ hành động theo Stable Capability Surface; quyền khả dụng lấy trực tiếp từ DTO backend.
 public partial class OrderPeriodManagementWorkspace
 {
     [Inject] private OrderPeriodApiClient PeriodsApi { get; set; } = default!;
@@ -21,20 +23,17 @@ public partial class OrderPeriodManagementWorkspace
     private bool IsBusy { get; set; }
     private bool HasLoadError { get; set; }
     private List<VppManagedPeriodResDTO> Periods { get; set; } = [];
+    private List<VppManagedPeriodResDTO> FilteredPeriods { get; set; } = [];
     private string periodSearchText = string.Empty;
     private string selectedPeriodState = string.Empty;
     private int? selectedPeriodYear;
 
-    private IReadOnlyList<VppManagedPeriodResDTO> OpenPeriods => Periods
-        .Where(x => x.State == "Open")
-        .OrderByDescending(x => x.Year)
-        .ThenByDescending(x => x.Month)
-        .ToArray();
+    private int OpenPeriodCount => Periods.Count(x => x.State == "Open");
 
     private string PeriodCollectionSummary =>
         HasPeriodFilters
-            ? $"{FilteredPeriods.Count}/{Periods.Count} kỳ · {OpenPeriods.Count} kỳ đang mở"
-            : $"{Periods.Count} kỳ · {OpenPeriods.Count} kỳ đang mở";
+            ? $"{FilteredPeriods.Count}/{Periods.Count} kỳ · {OpenPeriodCount} kỳ đang mở"
+            : $"{Periods.Count} kỳ · {OpenPeriodCount} kỳ đang mở";
 
     private bool HasPeriodFilters => !string.IsNullOrWhiteSpace(periodSearchText)
         || !string.IsNullOrWhiteSpace(selectedPeriodState)
@@ -44,15 +43,6 @@ public partial class OrderPeriodManagementWorkspace
         : HasPeriodFilters
             ? VppDataSurfaceState.FilteredEmpty
             : VppDataSurfaceState.Empty;
-
-    private List<VppManagedPeriodResDTO> FilteredPeriods => Periods
-        .Where(period => string.IsNullOrWhiteSpace(periodSearchText)
-            || PeriodLabel(period).Contains(periodSearchText.Trim(), StringComparison.OrdinalIgnoreCase)
-            || (period.LastTransitionReason?.Contains(periodSearchText.Trim(), StringComparison.OrdinalIgnoreCase) ?? false))
-        .Where(period => string.IsNullOrWhiteSpace(selectedPeriodState)
-            || string.Equals(period.State, selectedPeriodState, StringComparison.OrdinalIgnoreCase))
-        .Where(period => !selectedPeriodYear.HasValue || period.Year == selectedPeriodYear.Value)
-        .ToList();
 
     private IReadOnlyList<VppFilterOption<string>> PeriodStateOptions =>
     [
@@ -151,18 +141,21 @@ public partial class OrderPeriodManagementWorkspace
     private Task OnPeriodSearchInput(ChangeEventArgs args)
     {
         periodSearchText = args.Value?.ToString() ?? string.Empty;
+        RefreshPeriodView();
         return Task.CompletedTask;
     }
 
     private Task OnPeriodStateChanged(string state)
     {
         selectedPeriodState = state;
+        RefreshPeriodView();
         return Task.CompletedTask;
     }
 
     private Task OnPeriodYearChanged(int? year)
     {
         selectedPeriodYear = year;
+        RefreshPeriodView();
         return Task.CompletedTask;
     }
 
@@ -171,6 +164,7 @@ public partial class OrderPeriodManagementWorkspace
         periodSearchText = string.Empty;
         selectedPeriodState = string.Empty;
         selectedPeriodYear = null;
+        RefreshPeriodView();
         return Task.CompletedTask;
     }
 
@@ -179,6 +173,21 @@ public partial class OrderPeriodManagementWorkspace
         Periods = (await PeriodsApi.ListAsync())
             .OrderByDescending(period => period.Year)
             .ThenByDescending(period => period.Month)
+            .ToList();
+        RefreshPeriodView();
+    }
+
+    private void RefreshPeriodView()
+    {
+        // Tính một lần sau mỗi thay đổi thay vì materialize lại cùng danh sách nhiều lần trong một render.
+        var normalizedSearch = periodSearchText.Trim();
+        FilteredPeriods = Periods
+            .Where(period => string.IsNullOrWhiteSpace(normalizedSearch)
+                || PeriodLabel(period).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase)
+                || (period.LastTransitionReason?.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(period => string.IsNullOrWhiteSpace(selectedPeriodState)
+                || string.Equals(period.State, selectedPeriodState, StringComparison.OrdinalIgnoreCase))
+            .Where(period => !selectedPeriodYear.HasValue || period.Year == selectedPeriodYear.Value)
             .ToList();
     }
 
