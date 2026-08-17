@@ -188,24 +188,7 @@ public partial class Dialog_PriceListImport
 
         if (Preview is null)
         {
-            if (Analysis is null || !MappingReady || IsBusy)
-            {
-                return;
-            }
-
-            IsBusy = true;
-            try
-            {
-                await LoadPreviewAsync();
-            }
-            catch (Exception ex)
-            {
-                Toast.Error(Loc["PriceImport"], UiErrorMapper.GetMessage(ex, Loc, "PriceImportPreviewFailed"));
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            await TryLoadPreviewFromPrimaryAsync();
             return;
         }
 
@@ -214,10 +197,39 @@ public partial class Dialog_PriceListImport
             return;
         }
 
+        await TryConfirmImportAsync();
+    }
+
+    private async Task TryLoadPreviewFromPrimaryAsync()
+    {
+        if (Analysis is null || !MappingReady || IsBusy)
+        {
+            return;
+        }
+
         IsBusy = true;
         try
         {
-            Completed = await ImportApi.ConfirmAsync(PriceListId, Preview.Id, Preview.RowVersion);
+            // Preview chỉ đọc/kiểm tra file; chưa ghi dòng giá vào database.
+            await LoadPreviewAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["PriceImport"], UiErrorMapper.GetMessage(ex, Loc, "PriceImportPreviewFailed"));
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task TryConfirmImportAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            // Confirm gửi RowVersion của batch preview để ngăn xác nhận snapshot đã cũ.
+            Completed = await ImportApi.ConfirmAsync(PriceListId, Preview!.Id, Preview.RowVersion);
             if (Completed is null)
             {
                 throw new InvalidOperationException(Loc["PriceImportConfirmFailed"]);
