@@ -268,29 +268,12 @@ namespace gtas_vpp_be.Service.Services
             int? skip,
             int? top)
         {
-            var query = BuildMyOrderHistoryQuery(userId, fromPeriod, toPeriod);
-            if (exactPeriod.HasValue)
-            {
-                query = query.Where(order => ((order.Year * 100) + order.Month) == exactPeriod.Value);
-            }
-
-            var normalizedSearch = search?.Trim();
-            if (!string.IsNullOrWhiteSpace(normalizedSearch))
-            {
-                query = query.Where(order =>
-                    (order.VppCode != null && order.VppCode.Contains(normalizedSearch))
-                    || (order.Description != null && order.Description.Contains(normalizedSearch)));
-            }
-
-            if (status.HasValue)
-            {
-                query = query.Where(order => order.Status == status.Value);
-            }
-
-            if (isAdditionalOrder.HasValue)
-            {
-                query = query.Where(order => order.IsAdditionalOrder == isAdditionalOrder.Value);
-            }
+            var query = ApplyHistoryFilters(
+                BuildMyOrderHistoryQuery(userId, fromPeriod, toPeriod),
+                exactPeriod,
+                search,
+                status,
+                isAdditionalOrder);
 
             var totalCount = await query.CountAsync();
             var pageSkip = Math.Max(skip ?? 0, 0);
@@ -344,33 +327,16 @@ namespace gtas_vpp_be.Service.Services
             int? skip,
             int? top)
         {
-            var query = BuildDepartmentOrderHistoryQuery(
-                departmentCode,
-                memberCompanyCode,
-                fromPeriod,
-                toPeriod);
-            if (exactPeriod.HasValue)
-            {
-                query = query.Where(order => ((order.Year * 100) + order.Month) == exactPeriod.Value);
-            }
-
-            var normalizedSearch = search?.Trim();
-            if (!string.IsNullOrWhiteSpace(normalizedSearch))
-            {
-                query = query.Where(order =>
-                    (order.VppCode != null && order.VppCode.Contains(normalizedSearch))
-                    || (order.Description != null && order.Description.Contains(normalizedSearch)));
-            }
-
-            if (status.HasValue)
-            {
-                query = query.Where(order => order.Status == status.Value);
-            }
-
-            if (isAdditionalOrder.HasValue)
-            {
-                query = query.Where(order => order.IsAdditionalOrder == isAdditionalOrder.Value);
-            }
+            var query = ApplyHistoryFilters(
+                BuildDepartmentOrderHistoryQuery(
+                    departmentCode,
+                    memberCompanyCode,
+                    fromPeriod,
+                    toPeriod),
+                exactPeriod,
+                search,
+                status,
+                isAdditionalOrder);
 
             var totalCount = await query.CountAsync();
             var pageSkip = Math.Max(skip ?? 0, 0);
@@ -410,6 +376,40 @@ namespace gtas_vpp_be.Service.Services
             await ApplyRequesterNamesAsync(result);
             await ApplyPeriodFlagsAsync(result);
             return (result, totalCount);
+        }
+
+        private static IQueryable<VppRequest> ApplyHistoryFilters(
+            IQueryable<VppRequest> query,
+            int? exactPeriod,
+            string? search,
+            int? status,
+            bool? isAdditionalOrder)
+        {
+            // Dùng chung bộ lọc cho lịch sử cá nhân và phòng ban để hai màn hình không lệch hành vi.
+            if (exactPeriod.HasValue)
+            {
+                query = query.Where(order => ((order.Year * 100) + order.Month) == exactPeriod.Value);
+            }
+
+            var normalizedSearch = search?.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            {
+                query = query.Where(order =>
+                    (order.VppCode != null && order.VppCode.Contains(normalizedSearch))
+                    || (order.Description != null && order.Description.Contains(normalizedSearch)));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(order => order.Status == status.Value);
+            }
+
+            if (isAdditionalOrder.HasValue)
+            {
+                query = query.Where(order => order.IsAdditionalOrder == isAdditionalOrder.Value);
+            }
+
+            return query;
         }
 
         private IQueryable<VppRequest> BuildMyOrderHistoryQuery(
