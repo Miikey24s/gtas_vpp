@@ -22,7 +22,7 @@ Không tạo `UniversalPage<T>`, `UniversalGrid<T>`, selector cấu hình bằng
 |---|---|---|---|---|---|
 | `SHELL-NAV` | Shell, sidebar, header-tab, seam, page inset | Mọi authenticated page | `MainLayout`, `LeftSidebar`, `vpp-layout.css`, `vpp-sidebar.css`, `vpp-tabs.css`, page-inset tokens | expanded/collapsed, desktop/tablet/mobile | seam, active indicator, hover rhythm, outer inset |
 | `HEADER-TAB-GROUP` | Điều hướng cha–con cùng primary header | Nhóm route Điều hành kỳ, Bảng giá | `VppHeaderTabGroup`, `VppHeaderSubTab`, `LeftSidebar`, shared tab indicator | expanded desktop, local mobile fallback, permission-aware default | dùng selector decision/filter thay navigation; active line ở cả cha và con |
-| `ACCOUNT` | Account/auth form shell | Login, register, password, email flow | `VppAccountWorkspace` | artwork, compact, scrollable | brand/language/header layout |
+| `ACCOUNT` | Account/auth form shell | Login, register, password, email flow | `VppAccountWorkspace` + `VppAccountTextField` + `VppPasswordField` + `vpp-login.css` | artwork, compact, scrollable | brand/language/header layout; field, password eye, alert, action và responsive rhythm |
 | `COLLECTION` | Danh sách một tập dữ liệu | Library, users, audit, catalog, kỳ đặt hàng | `VppCollectionWorkspace` + `VppDataSurfaceFrame` | compact/rich, paged/static | frame, toolbar, footer geometry |
 | `LIST-DETAIL` | Danh sách + inspector/detail | History, permission, lookup | `VppListDetailWorkspace` | ratio + overlay detail | split seam, pane height, detail placement |
 | `SPLIT-EDITOR` | Hai vùng chọn/chỉnh sửa | Lookup, Create Order | `VppSplitEditorWorkspace` | resizable/fixed, stacked tablet | pane scroll ownership, seam |
@@ -74,6 +74,18 @@ Quy tắc vị trí lọc trong data grid:
 - Filter luôn áp trên toàn bộ tập dữ liệu được cấp quyền trước `paging`/`virtualization`, sau đó mới tính tổng và phân trang.
 
 Không gộp chúng thành một component string-configured. Dùng typed component/contract riêng, cùng token và popup bridge.
+
+## 3.0. `ACCOUNT` form contract
+
+- Mọi route tài khoản dùng cùng `VppAccountWorkspace`; text/password field không dựng lại label, validation slot
+  hoặc password eye tại page. Field cao `40px`, button chính cao `32px`, icon trong field `16px`.
+- Card dùng surface, border, radius, elevation và typography token; không hard-code palette sáng, không shadow hay
+  translate riêng khi hover. Nút chính vẫn phải đổi surface rõ khi hover/focus theo Radzen token bridge.
+- Login, đăng ký, khôi phục/đặt lại mật khẩu, xác nhận/gửi lại email và trạng thái đăng nhập/đăng xuất giữ cùng
+  topbar, header, khoảng cách intro → field → action → link. Trang nhiều field dùng variant `compact` để vừa
+  viewport desktop thấp; mobile được phép dài và cuộn ở page shell, không tạo scroll bên trong card.
+- Validation có vùng dự trữ ổn định để không làm form nhảy. Alert lỗi/thành công/info dùng cùng semantic token;
+  không đặt validator bằng inline style hoặc để icon mắt chồng lên border/input text.
 
 ## 3.1. `DATA-SURFACE-ORDER`
 

@@ -11,60 +11,38 @@
                  Description="@Loc["LoginDescription"]"
                  Compact="true">
     <RadzenTemplateForm TItem="LoginFormModel" Data="loginForm" Submit="LoginSubmit" class="vpp-login-form">
-                    <AntiforgeryToken></AntiforgeryToken>
+        <AntiforgeryToken />
 
-                    <div class="@(HasUsernameValidation ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
-                        <RadzenLabel class="vpp-login-label" Text="@Loc["Username"]" Component="Username" />
-                        <RadzenTextBox class="vpp-login-control"
-                                       Name="Username"
-                                       Disabled="@isLoading"
-                                       @bind-Value=@loginForm.Username
-                                       @oninput="HandleUsernameInput"
-                                       @onblur="HandleUsernameBlur" />
+        <VppAccountTextField Name="Username"
+                             Label="@Loc["Username"]"
+                             @bind-Value="loginForm.Username"
+                             Disabled="@isLoading"
+                             Invalid="@HasUsernameValidation"
+                             AutoComplete="username"
+                             OnInput="@HandleUsernameInput"
+                             OnBlur="@HandleUsernameBlur">
+            <ValidationContent>
+                <span class="vpp-login-validation" role="alert">@UsernameValidationMessage</span>
+            </ValidationContent>
+        </VppAccountTextField>
 
-                        <div class="vpp-validation-slot">
-                            <span class="vpp-login-validation" role="alert">@UsernameValidationMessage</span>
-                        </div>
-                    </div>
+        <VppPasswordField Name="Password"
+                          Label="@Loc["Password"]"
+                          @bind-Value="loginForm.Password"
+                          Disabled="@isLoading"
+                          Invalid="@HasPasswordFeedback"
+                          AutoComplete="current-password"
+                          OnInput="@HandlePasswordInput"
+                          OnBlur="@HandlePasswordBlur">
+            <ValidationContent>
+                <span class="vpp-login-validation" role="alert">@PasswordFeedbackMessage</span>
+            </ValidationContent>
+        </VppPasswordField>
 
-                    <div class="@(HasPasswordFeedback ? "vpp-login-field vpp-login-field--invalid" : "vpp-login-field")">
-                        <RadzenLabel class="vpp-login-label"
-                                     Text="@Loc["Password"]"
-                                     Component="@(isShowPass ? "Password" : "PasswordText")" />
-                        <div class="vpp-login-password-wrapper">
-                            <RadzenTextBox Visible="@(!isShowPass)"
-                                           class="vpp-login-control"
-                                           Name="PasswordText"
-                                           Disabled="@isLoading"
-                                           @bind-Value=@loginForm.Password
-                                           @oninput="HandlePasswordInput"
-                                           @onblur="HandlePasswordBlur" />
-                            <RadzenPassword Visible="@isShowPass"
-                                            class="vpp-login-control"
-                                            Name="Password"
-                                            Disabled="@isLoading"
-                                            @bind-Value=@loginForm.Password
-                                            @oninput="HandlePasswordInput"
-                                            @onblur="HandlePasswordBlur" />
-                            <button type="button"
-                                    class="vpp-password-toggle-btn"
-                                    title="@(isShowPass ? Loc["HidePassword"] : Loc["ShowPassword"])"
-                                    aria-label="@(isShowPass ? Loc["HidePassword"] : Loc["ShowPassword"])"
-                                    aria-pressed="@isShowPass"
-                                    @onclick="TogglePasswordVisibility">
-                                <VppIcon Name="@(isShowPass ? VppIcons.VisibilityOff : VppIcons.Visibility)" />
-                            </button>
-                        </div>
-
-                        <div class="vpp-validation-slot" aria-live="polite">
-                            <span class="vpp-login-validation" role="alert">@PasswordFeedbackMessage</span>
-                        </div>
-                    </div>
-
-                    <RadzenButton Text="@Loc["Login"]"
-                                  ButtonType="ButtonType.Submit"
-                                  IsBusy="@isLoading"
-                                  class="vpp-login-btn" />
+        <RadzenButton Text="@Loc["Login"]"
+                      ButtonType="ButtonType.Submit"
+                      IsBusy="@isLoading"
+                      class="vpp-login-btn" />
     </RadzenTemplateForm>
 
     <div class="vpp-login-links" role="navigation" aria-label="@Loc["AccountAccessNavigation"]">

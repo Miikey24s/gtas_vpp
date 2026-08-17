@@ -376,7 +376,7 @@ public sealed class AccountShellSmokeTests : TestBase
             {
                 rhythm[0].Should().BeLessThan(1, $"brand and language controls must share one centerline on {route} at {viewport.Width}px");
                 rhythm[5].Should().BeApproximately(rhythm[6], 1, $"topbar controls must share one height on {route} at {viewport.Width}px");
-                rhythm[7].Should().BeApproximately(48, 1, $"primary actions must share one height on {route} at {viewport.Width}px");
+                rhythm[7].Should().BeApproximately(32, 1, $"primary actions must use the shared compact button height on {route} at {viewport.Width}px");
             }
 
             var reference = measurements["Account/Login"];

@@ -1,72 +1,40 @@
-/* ═══════════════════════════════════════════════════════════════════════════
-    VPP LOGIN PAGE
-    Artwork toàn màn hình với account panel tối giản theo UI system.
-    ═══════════════════════════════════════════════════════════════════════════ */
-
+/* ACCOUNT motif: shell tài khoản tối giản, dùng chung token và nhịp control của UI system. */
 .vpp-login-page {
-    --vpp-login-bg: #d9cfbe;
-    --vpp-login-art-bg: #e8dcc8;
-    --vpp-login-card-bg: rgba(255, 255, 255, 0.96);
-    --vpp-login-field-min-height: 4.25rem;
-    --vpp-login-field-label-size: 1.0625rem;
-    --vpp-login-field-value-size: 1.125rem;
-    --vpp-login-field-text-padding: 0.875rem;
-    
-    /* Cố định biến light mode riêng cho page đăng nhập. */
-    --vpp-text-primary: #172B4D !important;
-    --vpp-text-secondary: #44526C !important;
-    --vpp-text-tertiary: #6B778C !important;
-    --vpp-text-inverse: #FAFAFA !important;
-    --vpp-text-on-surface: #FFFFFF !important;
-    --vpp-border-default: rgba(9, 30, 66, 0.08) !important;
-    --vpp-border-strong: rgba(9, 30, 66, 0.14) !important;
-    --vpp-primary-500: #0284C7 !important;
-    --vpp-primary-600: #0369A1 !important;
-    
+    --vpp-account-card-width: 520px;
+    --vpp-account-control-height: 40px;
+    --vpp-account-validation-height: 18px;
     min-height: 100vh;
     min-height: 100dvh;
-    display: flex;
-    align-items: stretch;
-    justify-content: flex-start;
-    position: relative;
-    overflow: hidden;
-    padding: 0;
-    background: var(--vpp-login-bg);
+    overflow: auto;
+    color: var(--vpp-text-primary);
+    background: var(--vpp-surface-canvas);
 }
 
 .vpp-login-shell {
-    --vpp-login-panel-width: clamp(480px, 39vw, 580px);
     position: relative;
     isolation: isolate;
+    display: flex;
     width: 100%;
     min-height: 100vh;
     min-height: 100dvh;
-    display: flex;
-    align-items: stretch;
-    justify-content: flex-end;
-    padding: 0;
-    background: var(--vpp-login-bg);
-    overflow: hidden;
-}
-
-.vpp-login-shell::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: color-mix(in srgb, var(--vpp-login-bg) 10%, transparent);
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 4vw, 40px);
 }
 
 .vpp-login-art {
     position: absolute;
     inset: 0;
-    z-index: -2;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    z-index: -1;
     overflow: hidden;
-    background: var(--vpp-login-art-bg);
+    background: var(--vpp-surface-canvas);
+}
+
+.vpp-login-art::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: color-mix(in srgb, var(--vpp-surface-canvas) 36%, transparent);
 }
 
 .vpp-login-art-image {
@@ -77,717 +45,285 @@
     object-position: left center;
 }
 
+.vpp-login-shell:has(.vpp-login-art) {
+    justify-content: flex-end;
+}
+
 .vpp-login-card {
     position: relative;
     z-index: 1;
-    flex: none;
-    width: var(--vpp-login-panel-width);
-    max-width: 100%;
-    min-width: 0;
-    min-height: 100%;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 76px clamp(42px, 4vw, 68px);
-    border: none;
-    border-left: 1px solid rgba(148, 163, 184, 0.18);
-    border-radius: 0;
-    background: var(--vpp-login-card-bg);
-    box-shadow: -18px 0 48px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    width: min(100%, var(--vpp-account-card-width));
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: clamp(22px, 3vw, 30px);
+    border: var(--vpp-border-width) solid var(--vpp-border-strong);
+    border-radius: var(--vpp-radius-xl);
+    background: var(--vpp-surface-raised);
+    box-shadow: var(--vpp-elevation-panel);
+}
+
+.vpp-login-shell:has(.vpp-login-art) .vpp-login-card {
+    margin-inline-end: clamp(16px, 4vw, 56px);
 }
 
 .vpp-login-card-inner {
-    width: min(100%, 430px);
-    margin: 0 auto;
-}
-
-.vpp-login-header {
-    margin-bottom: 60px;
-}
-
-.vpp-login-title {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-family: var(--vpp-font-display);
-    font-size: clamp(2.95rem, 3.35vw, 3.75rem);
-    font-weight: 700;
-    line-height: 1.05;
-    color: var(--vpp-text-primary);
-}
-
-.vpp-login-title-accent {
-    font-family: var(--vpp-font-body);
-    font-size: 1.16rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    text-transform: none;
-    color: var(--vpp-text-tertiary);
-}
-.vpp-login-validation {
-    font-family: var(--vpp-font-body);
-    font-size: var(--vpp-text-sm);
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--vpp-danger);
-}
-
-.vpp-login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 36px;
-}
-
-.vpp-login-field {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.vpp-login-label {
-    font-family: var(--vpp-font-body);
-    font-size: var(--vpp-login-field-label-size);
-    font-weight: 600;
-    line-height: 1.35;
-    color: var(--vpp-text-tertiary);
-}
-
-.vpp-login-validation {
-    margin-top: -0.25rem;
-}
-
-.vpp-login-field .rz-textbox,
-.vpp-login-field .rz-password,
-.vpp-login-field .rz-dropdown,
-.vpp-login-field .rz-inputtext,
-.vpp-login-field .vpp-login-control,
-.vpp-login-field input {
-    width: 100% !important;
-    min-height: var(--vpp-login-field-min-height) !important;
-    border: none !important;
-    border-bottom: 1px solid rgba(9, 30, 66, 0.16) !important;
-    border-radius: 0 !important;
-    background-color: transparent !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-    outline-width: 0 !important;
-    padding: 4px 0 !important;
-    transition: border-color var(--vpp-transition-fast) !important;
-}
-
-.vpp-login-field .rz-textbox,
-.vpp-login-field .rz-password input,
-.vpp-login-field .rz-inputtext,
-.vpp-login-field .rz-dropdown .rz-dropdown-label,
-.vpp-login-field .rz-dropdown .rz-dropdown-trigger {
-    font-family: var(--vpp-font-body) !important;
-    font-size: var(--vpp-login-field-value-size) !important;
-    font-weight: 500 !important;
-    line-height: 1.4 !important;
-    color: var(--vpp-text-primary) !important;
-}
-
-.vpp-login-field .rz-textbox,
-.vpp-login-field .rz-password input,
-.vpp-login-field .rz-inputtext {
-    padding: 0 0 var(--vpp-login-field-text-padding) !important;
-    border-bottom: none !important; /* Container sở hữu border; input bên trong không có border. */
-}
-
-/* Bảo đảm wrapper container có border dưới. */
-.vpp-login-field .vpp-login-control.rz-textbox,
-.vpp-login-field .vpp-login-control.rz-password,
-.vpp-login-field .vpp-login-control.rz-dropdown {
-    border-bottom: 1px solid rgba(9, 30, 66, 0.16) !important;
-}
-
-.vpp-login-field .rz-password {
-    display: flex !important;
-    align-items: flex-end !important;
-    padding: 0 !important;
-}
-
-.vpp-login-field .rz-password input {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-.vpp-login-field .rz-dropdown {
-    padding: 0 !important;
-    display: flex !important;
-    align-items: flex-end !important;
-}
-
-.vpp-login-field .rz-dropdown .rz-dropdown-label,
-.vpp-login-field .rz-dropdown-label,
-.vpp-login-field .rz-dropdown-label * {
-    padding: 0 0 var(--vpp-login-field-text-padding) !important;
-    color: var(--vpp-text-primary) !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    display: flex !important;
-    align-items: flex-end !important;
-    border: none !important;
-    width: 100% !important;
-}
-
-.vpp-login-field .rz-dropdown .rz-dropdown-trigger {
-    width: 2rem !important;
-    color: var(--vpp-text-secondary) !important;
-    display: inline-flex !important;
-    align-items: flex-end !important;
-    justify-content: flex-end !important;
-    padding: 0 0 var(--vpp-login-field-text-padding) !important;
-}
-
-.vpp-login-field .rz-textbox:focus,
-.vpp-login-field .rz-password:focus-within,
-.vpp-login-field .rz-dropdown.rz-state-focus,
-.vpp-login-field .rz-dropdown:hover,
-.vpp-login-field .rz-textbox:hover,
-.vpp-login-field .rz-password:hover,
-.vpp-login-field .vpp-login-control:focus-within,
-.vpp-login-field .vpp-login-control:hover {
-    border-bottom-color: var(--vpp-primary-500) !important;
-}
-
-.vpp-login-field .rz-textbox:focus,
-.vpp-login-field .rz-password input:focus,
-.vpp-login-field .rz-dropdown .rz-dropdown-label:focus {
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-.vpp-login-field--invalid .rz-textbox,
-.vpp-login-field--invalid .rz-password,
-.vpp-login-field--invalid .rz-dropdown,
-.vpp-login-field--invalid .vpp-login-control,
-.vpp-login-field--invalid input {
-    border-color: var(--vpp-danger) !important;
-}
-
-/* Override style Autofill của Chrome/Safari. */
-.vpp-login-field input:-webkit-autofill,
-.vpp-login-field input:-webkit-autofill:hover,
-.vpp-login-field input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--vpp-text-primary) !important;
-    -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.96) inset !important;
-    transition: background-color 5000s ease-in-out 0s !important;
-}
-
-.vpp-login-btn {
-    --rz-button-border-radius: var(--vpp-radius-button);
     width: 100%;
-    height: 48px !important;
-    margin-top: 12px;
-    border: none;
-    border-radius: var(--vpp-radius-button) !important;
-    background: var(--vpp-action-primary) !important;
-    color: var(--vpp-text-on-surface) !important;
-    font-family: var(--vpp-font-display);
-    font-size: 1.22rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    box-shadow: 0 10px 20px rgba(var(--vpp-primary-rgb), 0.18) !important;
-    overflow: hidden;
-    transition: transform var(--vpp-transition-fast),
-                box-shadow var(--vpp-transition-fast),
-                background-color var(--vpp-transition-fast);
-}
-
-.vpp-login-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 14px 24px rgba(var(--vpp-primary-rgb), 0.24) !important;
-    background: var(--vpp-action-primary-hover) !important;
-}
-
-.vpp-login-btn:active {
-    transform: translateY(0);
-}
-
-.vpp-login-btn:disabled {
-    opacity: 0.72;
-    box-shadow: none;
-    transform: none;
-}
-
-.vpp-login-btn .rz-button-text {
-    font-family: inherit;
-}
-
-@media (max-width: 1199px) {
-    .vpp-login-shell {
-        justify-content: flex-end;
-    }
-
-    .vpp-login-art-image {
-        object-position: left top;
-    }
-
-    .vpp-login-card {
-        width: clamp(430px, 46vw, 500px);
-        padding: 60px 38px;
-    }
-
-    .vpp-login-card-inner {
-        width: min(100%, 400px);
-    }
-
-    .vpp-login-title {
-        font-size: clamp(2.6rem, 3.6vw, 3.2rem);
-    }
-}
-
-@media (min-width: 768px) and (min-aspect-ratio: 16 / 9) {
-    .vpp-login-art {
-        isolation: isolate;
-        background: #f5efe6;
-    }
-
-    .vpp-login-art::before {
-        content: "";
-        position: absolute;
-        inset: -24px;
-        z-index: 0;
-        background: url("../images/login-bg-optimized.jpeg") left center / cover no-repeat;
-        filter: blur(18px);
-        opacity: 0.28;
-        transform: scale(1.04);
-    }
-
-    .vpp-login-art-image {
-        position: relative;
-        z-index: 1;
-        object-fit: contain;
-        object-position: left center;
-    }
-}
-
-@media (max-width: 767px) {
-    .vpp-login-page {
-        --vpp-login-field-min-height: 4rem;
-        --vpp-login-field-label-size: 1rem;
-        --vpp-login-field-value-size: 1.0625rem;
-        --vpp-login-field-text-padding: 0.75rem;
-        background: var(--vpp-login-bg);
-    }
-
-    .vpp-login-shell {
-        align-items: flex-end;
-        justify-content: center;
-        padding: 0;
-    }
-
-    .vpp-login-shell::before {
-        background: color-mix(in srgb, var(--vpp-login-bg) 20%, transparent);
-    }
-
-    .vpp-login-art-image {
-        height: 85%;
-        object-position: 0% top;
-    }
-
-    .vpp-login-card {
-        width: 100%;
-        max-width: none;
-        border-radius: var(--vpp-radius-2xl) var(--vpp-radius-2xl) 0 0;
-        min-height: auto;
-        padding: 32px 24px 36px;
-        background: var(--vpp-login-card-bg);
-        border-right: none;
-        border-bottom: none;
-        border-left: none;
-        box-shadow: 0 -18px 40px rgba(15, 23, 42, 0.14);
-    }
-
-    .vpp-login-card-inner {
-        width: min(100%, 320px);
-    }
-
-    .vpp-login-header {
-        margin-bottom: 28px;
-    }
-}
-
-/* ── Style nút hiện/ẩn mật khẩu ──────────────────────────────── */
-.vpp-login-password-wrapper {
-    position: relative;
-    width: 100%;
-    min-height: var(--vpp-login-field-min-height);
-    border-bottom: 1px solid rgba(9, 30, 66, 0.16);
-    transition: border-color var(--vpp-transition-fast);
-}
-
-.vpp-login-password-wrapper .rz-password,
-.vpp-login-password-wrapper .rz-textbox,
-.vpp-login-password-wrapper .rz-inputtext,
-.vpp-login-password-wrapper .vpp-login-control {
-    width: 100% !important;
-    min-height: var(--vpp-login-field-min-height) !important;
-    border: 0 !important;
-    padding: 0 !important;
-}
-
-.vpp-login-field .vpp-login-password-wrapper .vpp-login-control {
-    border: 0 !important;
-}
-
-.vpp-login-password-wrapper:hover,
-.vpp-login-password-wrapper:focus-within {
-    border-bottom-color: var(--vpp-primary-500);
-}
-
-.vpp-login-field--invalid .vpp-login-password-wrapper {
-    border-bottom-color: var(--vpp-danger);
-}
-
-.vpp-login-field .rz-password input,
-.vpp-login-field .rz-textbox[name="PasswordText"] {
-    min-height: var(--vpp-login-field-min-height) !important;
-    border: 0 !important;
-    padding-right: 36px !important;
-}
-
-.vpp-password-toggle-btn {
-    position: absolute;
-    top: auto;
-    right: 0;
-    bottom: 6px;
-    width: var(--vpp-button-height-compact);
-    height: var(--vpp-button-height-compact);
-    transform: none;
-    background: transparent !important;
-    border: none !important;
-    cursor: pointer;
-    color: var(--vpp-text-secondary) !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    outline: none !important;
-    box-shadow: none !important;
-    transition: color var(--vpp-transition-fast) !important;
-    z-index: 10;
-}
-
-.vpp-password-toggle-btn:hover {
-    color: var(--vpp-primary-500) !important;
-}
-
-.vpp-password-toggle-btn .vpp-icon {
-    font-size: var(--vpp-button-icon-size) !important;
-    line-height: 1 !important;
-}
-
-/* ── Luồng tài khoản dùng chung ───────────────────────────────── */
-.vpp-account-page-compact {
-    --vpp-account-topbar-height: 36px;
-    --vpp-account-topbar-title-gap: 16px;
-    --vpp-account-title-form-gap: 20px;
-    --vpp-account-field-gap: 6px;
-    --vpp-account-field-inner-gap: 4px;
-    --vpp-account-form-action-gap: 8px;
-    --vpp-account-action-link-gap: 14px;
-    background: var(--vpp-bg-base);
-}
-
-.vpp-account-page-compact .vpp-login-shell {
-    align-items: center;
-    justify-content: center;
-    /* Chừa đúng khoảng đệm tối thiểu để Register không tạo scroll trang ở 1366x768. */
-    padding: 10px clamp(20px, 4vw, 48px);
-    overflow-y: auto;
-    background: transparent;
-}
-
-.vpp-account-page-compact .vpp-login-shell::before {
-    background: transparent;
-}
-
-.vpp-account-page-compact .vpp-login-card {
-    width: min(100%, 560px);
-    min-height: auto;
-    max-height: none;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 20px clamp(28px, 4vw, 40px);
-    overflow: visible;
-    border: 1px solid var(--vpp-border-strong);
-    border-radius: var(--vpp-radius-lg);
-    box-shadow: 0 22px 60px rgba(23, 43, 77, 0.12);
-}
-
-.vpp-account-page-compact .vpp-login-card-inner {
-    width: 100%;
-}
-
-.vpp-account-page-compact .vpp-login-header {
-    margin-bottom: var(--vpp-account-title-form-gap);
-}
-
-.vpp-account-page-compact .vpp-login-title {
-    font-size: clamp(2.15rem, 4.5vw, 2.75rem);
-}
-
-.vpp-account-page-compact .vpp-login-form {
-    gap: var(--vpp-account-field-gap);
-}
-
-/* Khối intro cuối cùng trước form (vd. safety note của ForgotPassword) phải dùng
-   đúng token nhịp intro→field như header của Login/Register, thay vì margin
-   rem-bậc thang (--vpp-space-5) lệch theo root font-size. E2E:
-   AccountShellSmokeTests.LoginRegisterAndRecovery_ShareOneVerticalRhythm. */
-.vpp-account-page-compact .vpp-inline-alert:has(+ .vpp-login-form) {
-    margin-bottom: var(--vpp-account-title-form-gap);
-}
-
-.vpp-account-page-compact .vpp-login-field {
-    gap: var(--vpp-account-field-inner-gap);
-}
-
-.vpp-account-page-compact,
-.vpp-account-page-scrollable {
-    --vpp-login-field-min-height: 2.5rem;
-    --vpp-login-field-label-size: 0.9375rem;
-    --vpp-login-field-value-size: 1rem;
-    --vpp-login-field-text-padding: 0.625rem;
-}
-
-.vpp-account-page-scrollable .vpp-login-card {
-    align-items: flex-start;
-    justify-content: flex-start;
-    height: 100dvh;
-    overflow-y: auto;
-    padding-block: 48px;
-}
-
-.vpp-account-page-scrollable .vpp-login-card-inner {
-    width: min(100%, 450px);
-}
-
-.vpp-account-page-scrollable .vpp-login-header {
-    margin-bottom: 30px;
-}
-
-.vpp-account-page-scrollable .vpp-login-form {
-    gap: 20px;
-}
-
-.vpp-account-page-scrollable .vpp-login-field {
-    gap: 9px;
+    min-width: 0;
 }
 
 .vpp-account-topbar {
     display: flex;
+    min-height: var(--vpp-button-height);
     align-items: center;
     justify-content: space-between;
     gap: var(--vpp-space-4);
-    height: var(--vpp-account-topbar-height, 40px);
-    min-height: var(--vpp-account-topbar-height, 40px);
-    margin-bottom: var(--vpp-account-topbar-title-gap, 16px);
+    margin-bottom: var(--vpp-space-5);
 }
 
 .vpp-account-brand {
     display: inline-flex;
+    height: var(--vpp-button-height);
+    min-height: var(--vpp-button-height);
     align-items: center;
     gap: var(--vpp-space-3);
-    height: var(--vpp-account-topbar-height, 40px);
-    min-height: var(--vpp-account-topbar-height, 40px);
     color: var(--vpp-text-primary);
     text-decoration: none;
 }
 
-.vpp-account-brand:hover {
+.vpp-account-brand:hover,
+.vpp-account-brand:focus-visible {
     color: var(--vpp-text-primary);
     text-decoration: none;
 }
 
 .vpp-account-brand strong {
-    display: inline-flex;
-    align-items: center;
-    height: 100%;
     font-family: var(--vpp-font-display);
-    font-size: 1rem;
+    font-size: var(--vpp-text-md);
+    font-weight: var(--vpp-font-weight-semibold);
     line-height: 1;
     letter-spacing: -0.01em;
 }
 
 .vpp-account-language-switch {
     flex: 0 0 auto;
-    height: var(--vpp-account-topbar-height, 36px);
+    height: var(--vpp-button-height);
+    min-height: var(--vpp-button-height);
+}
+
+.vpp-account-language-switch.vpp-segmented-selector button {
+    min-height: calc(var(--vpp-button-height) - 6px);
+}
+
+.vpp-login-header {
+    margin-bottom: var(--vpp-space-5);
 }
 
 .vpp-account-eyebrow {
     margin-bottom: var(--vpp-space-2);
-    color: var(--vpp-primary-600);
+    color: var(--vpp-text-link);
     font-size: var(--vpp-text-xs);
     font-weight: var(--vpp-font-weight-semibold);
-    letter-spacing: normal;
-    text-transform: none;
+}
+
+.vpp-login-title {
+    display: flex;
+    margin: 0;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--vpp-space-2);
+    color: var(--vpp-text-primary);
+    font-family: var(--vpp-font-display);
+    font-size: clamp(1.75rem, 4vw, 2.125rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+}
+
+.vpp-login-title-accent {
+    font: inherit;
+    color: inherit;
 }
 
 .vpp-account-description {
     max-width: 52ch;
-    margin: 10px 0 0;
+    margin: var(--vpp-space-2) 0 0;
     color: var(--vpp-text-secondary);
-    font-size: 0.9375rem;
-    line-height: 1.55;
+    font-size: var(--vpp-text-base);
+    line-height: 1.5;
 }
 
-.vpp-inline-alert {
+.vpp-login-form {
     display: flex;
-    align-items: flex-start;
-    gap: var(--vpp-space-3);
-    margin: 0 0 var(--vpp-space-5);
-    padding: 12px 14px;
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-md);
+    flex-direction: column;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-login-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--vpp-space-1);
+}
+
+.vpp-login-label {
     color: var(--vpp-text-secondary);
-    background: rgba(9, 30, 66, 0.035);
+    font-family: var(--vpp-font-body);
     font-size: var(--vpp-text-sm);
-    line-height: 1.45;
+    font-weight: var(--vpp-font-weight-medium);
+    line-height: 1.35;
 }
 
-.vpp-inline-alert-icon {
-    margin-top: 1px;
-    font-size: 1.2rem;
-}
-
-.vpp-inline-alert-info {
-    border-color: color-mix(in srgb, var(--vpp-info) 28%, var(--vpp-border-default));
-    color: color-mix(in srgb, var(--vpp-info) 72%, var(--vpp-text-primary));
-    background: color-mix(in srgb, var(--vpp-info) 8%, white);
-}
-
-.vpp-inline-alert-success {
-    border-color: color-mix(in srgb, var(--vpp-success) 30%, var(--vpp-border-default));
-    color: color-mix(in srgb, var(--vpp-success) 72%, var(--vpp-text-primary));
-    background: color-mix(in srgb, var(--vpp-success) 8%, white);
-}
-
-.vpp-inline-alert-warning {
-    border-color: color-mix(in srgb, var(--vpp-warning) 32%, var(--vpp-border-default));
-    color: color-mix(in srgb, var(--vpp-warning) 72%, var(--vpp-text-primary));
-    background: color-mix(in srgb, var(--vpp-warning) 9%, white);
-}
-
-.vpp-inline-alert-error {
-    border-color: color-mix(in srgb, var(--vpp-danger) 30%, var(--vpp-border-default));
-    color: color-mix(in srgb, var(--vpp-danger) 78%, var(--vpp-text-primary));
-    background: color-mix(in srgb, var(--vpp-danger) 8%, white);
-}
-
-.vpp-login-links {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: center;
-    width: min(100%, 320px);
-    gap: 0;
-    margin: 14px auto 0;
-    color: var(--vpp-text-tertiary);
-    font-size: 0.875rem;
-    font-weight: var(--vpp-font-weight-semibold);
-}
-
-.vpp-login-links a {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.vpp-login-field .vpp-login-control.rz-textbox,
+.vpp-login-field .vpp-login-control.rz-password,
+.vpp-login-password-wrapper {
     width: 100%;
-    min-height: 40px;
-    padding: 8px 12px;
-    border-radius: var(--vpp-radius-md);
-    color: var(--vpp-primary-600);
-    text-decoration: none;
-    transition: color var(--vpp-transition-fast),
-                background-color var(--vpp-transition-fast);
+    min-height: var(--vpp-account-control-height);
+    border: var(--vpp-border-width) solid var(--vpp-border-strong);
+    border-radius: var(--vpp-radius-input);
+    color: var(--vpp-text-primary);
+    background: var(--vpp-surface-control);
+    box-shadow: none;
+    transition: border-color var(--vpp-transition-fast), box-shadow var(--vpp-transition-fast), background-color var(--vpp-transition-fast);
 }
 
-.vpp-login-links a:hover,
-.vpp-login-links a:focus-visible {
-    color: var(--vpp-primary-700);
-    background: rgba(var(--vpp-primary-rgb), 0.07);
-    text-decoration: none;
+.vpp-login-field .vpp-login-control.rz-textbox {
+    padding: 0 var(--vpp-space-3);
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-regular);
 }
 
-.vpp-login-links:not(.vpp-login-links-single) > a + a::before {
+.vpp-login-field .vpp-login-control.rz-textbox:hover,
+.vpp-login-password-wrapper:hover {
+    border-color: color-mix(in srgb, var(--vpp-border-focus) 54%, var(--vpp-border-strong));
+}
+
+.vpp-login-field .vpp-login-control.rz-textbox:focus,
+.vpp-login-field .vpp-login-control.rz-textbox:focus-visible,
+.vpp-login-password-wrapper:focus-within {
+    border-color: var(--vpp-border-focus);
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--vpp-border-focus) 18%, transparent);
+}
+
+.vpp-login-field--invalid .vpp-login-control.rz-textbox,
+.vpp-login-field--invalid .vpp-login-password-wrapper {
+    border-color: var(--vpp-danger);
+}
+
+.vpp-login-field--invalid .vpp-login-control.rz-textbox:focus,
+.vpp-login-field--invalid .vpp-login-password-wrapper:focus-within {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--vpp-danger) 16%, transparent);
+}
+
+.vpp-login-field .vpp-login-control:disabled,
+.vpp-login-password-wrapper:has(.vpp-login-control:disabled) {
+    cursor: not-allowed;
+    color: var(--vpp-text-tertiary);
+    background: color-mix(in srgb, var(--vpp-surface-control) 76%, var(--vpp-surface-canvas));
+    opacity: 0.72;
+}
+
+.vpp-login-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.vpp-login-password-wrapper .vpp-login-control.rz-password,
+.vpp-login-password-wrapper .vpp-login-control.rz-textbox,
+.vpp-login-password-wrapper .rz-inputtext {
+    width: 100%;
+    min-height: calc(var(--vpp-account-control-height) - 2px);
+    margin: 0;
+    padding: 0 42px 0 var(--vpp-space-3);
+    border: 0;
+    border-radius: inherit;
+    outline: 0;
+    color: var(--vpp-text-primary);
+    background: transparent;
+    box-shadow: none;
+    font-family: var(--vpp-font-body);
+    font-size: var(--vpp-text-base);
+    font-weight: var(--vpp-font-weight-regular);
+}
+
+.vpp-password-toggle-btn {
     position: absolute;
     top: 50%;
-    left: 0;
-    width: 1px;
-    height: 18px;
-    background: var(--vpp-border-default);
-    content: "";
-    transform: translateY(-50%);
-}
-
-.vpp-login-links-single {
-    display: flex;
-    width: 100%;
-    justify-content: flex-start;
-    margin: var(--vpp-account-action-link-gap, 14px) 0 0;
-}
-
-.vpp-login-links-single a {
-    justify-content: flex-start;
-    width: auto;
-}
-
-.vpp-account-back-link {
+    right: var(--vpp-space-2);
     display: inline-flex;
+    width: var(--vpp-button-height-compact);
+    height: var(--vpp-button-height-compact);
     align-items: center;
-    gap: var(--vpp-space-2);
-    min-height: 40px;
-    padding: 8px 10px;
-    border-radius: var(--vpp-radius-md);
-    text-decoration: none;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--vpp-radius-button);
+    color: var(--vpp-text-secondary);
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: color var(--vpp-transition-fast), background-color var(--vpp-transition-fast);
 }
 
-.vpp-account-back-link:hover {
-    background: rgba(var(--vpp-primary-rgb), 0.08);
-    text-decoration: none;
+.vpp-password-toggle-btn:hover {
+    color: var(--vpp-text-primary);
+    background: var(--vpp-navigation-item-hover-bg);
 }
 
-.vpp-account-back-link .vpp-icon {
-    font-size: 1.1rem;
+.vpp-password-toggle-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.vpp-password-toggle-btn .vpp-icon {
+    width: var(--vpp-button-icon-size);
+    height: var(--vpp-button-icon-size);
+    font-size: var(--vpp-button-icon-size);
+    line-height: var(--vpp-button-icon-size);
+}
+
+.vpp-login-field input:-webkit-autofill,
+.vpp-login-field input:-webkit-autofill:hover,
+.vpp-login-field input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--vpp-text-primary);
+    -webkit-box-shadow: 0 0 0 1000px var(--vpp-surface-control) inset;
 }
 
 .vpp-validation-slot {
     position: relative;
-    min-height: 18px;
+    min-height: var(--vpp-account-validation-height);
     overflow: hidden;
+    color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-xs);
     line-height: 1.35;
 }
 
 .vpp-validation-slot .vpp-field-validator {
+    position: absolute;
     inset: 0 auto auto 0;
+    z-index: 1;
     width: 100%;
     margin: 0;
-    color: var(--vpp-danger) !important;
-    background: var(--vpp-bg-surface);
-    font-size: var(--vpp-text-xs) !important;
-    line-height: 1.35 !important;
-}
-
-.vpp-validation-slot.has-hint .vpp-field-validator {
-    z-index: 1;
+    color: var(--vpp-danger);
+    background: var(--vpp-surface-raised);
+    font-size: var(--vpp-text-xs);
+    line-height: 1.35;
 }
 
 .vpp-account-field-hint,
 .vpp-login-field .validation-message {
     color: var(--vpp-text-tertiary);
     font-size: var(--vpp-text-xs);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
-.vpp-login-field .validation-message {
+.vpp-login-field .validation-message,
+.vpp-login-validation {
     color: var(--vpp-danger);
 }
 
@@ -795,8 +331,115 @@
     visibility: hidden;
 }
 
-.vpp-account-page-compact .vpp-login-btn {
-    margin-top: calc(var(--vpp-account-form-action-gap) - var(--vpp-account-field-gap));
+.vpp-login-btn.rz-button {
+    width: 100%;
+    margin-top: var(--vpp-space-1);
+}
+
+.vpp-login-btn.rz-button.rz-primary:hover:not(:disabled) {
+    background: var(--vpp-action-primary-hover) !important;
+}
+
+.vpp-login-btn.rz-button.rz-primary:active:not(:disabled) {
+    background: var(--vpp-action-primary-active) !important;
+}
+
+.vpp-inline-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--vpp-space-3);
+    margin: 0 0 var(--vpp-space-4);
+    padding: 10px 12px;
+    border: var(--vpp-border-width) solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    color: var(--vpp-text-secondary);
+    background: var(--vpp-surface-control);
+    font-size: var(--vpp-text-sm);
+    line-height: 1.45;
+}
+
+.vpp-inline-alert-icon {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    font-size: var(--vpp-text-lg);
+}
+
+.vpp-inline-alert-info {
+    border-color: color-mix(in srgb, var(--vpp-info) 28%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-info) 68%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-info) 8%, var(--vpp-surface-raised));
+}
+
+.vpp-inline-alert-success {
+    border-color: color-mix(in srgb, var(--vpp-success) 30%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-success) 68%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-success) 8%, var(--vpp-surface-raised));
+}
+
+.vpp-inline-alert-warning {
+    border-color: color-mix(in srgb, var(--vpp-warning) 32%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-warning) 68%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-warning) 9%, var(--vpp-surface-raised));
+}
+
+.vpp-inline-alert-error {
+    border-color: color-mix(in srgb, var(--vpp-danger) 30%, var(--vpp-border-default));
+    color: color-mix(in srgb, var(--vpp-danger) 72%, var(--vpp-text-primary));
+    background: color-mix(in srgb, var(--vpp-danger) 8%, var(--vpp-surface-raised));
+}
+
+.vpp-inline-alert:has(+ .vpp-login-form) {
+    margin-bottom: var(--vpp-space-5);
+}
+
+.vpp-login-links {
+    display: grid;
+    width: min(100%, 320px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--vpp-space-1);
+    margin: var(--vpp-space-3) auto 0;
+    font-size: var(--vpp-text-sm);
+    font-weight: var(--vpp-font-weight-medium);
+}
+
+.vpp-login-links a,
+.vpp-account-back-link {
+    display: inline-flex;
+    min-height: var(--vpp-button-height);
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-2);
+    padding: 0 var(--vpp-button-padding-inline);
+    border-radius: var(--vpp-radius-button);
+    color: var(--vpp-text-link);
+    text-decoration: none;
+    transition: color var(--vpp-transition-fast), background-color var(--vpp-transition-fast);
+}
+
+.vpp-login-links a:hover,
+.vpp-login-links a:focus-visible,
+.vpp-account-back-link:hover,
+.vpp-account-back-link:focus-visible {
+    color: var(--vpp-text-link-hover);
+    background: var(--vpp-navigation-item-hover-bg);
+    text-decoration: none;
+}
+
+.vpp-login-links-single {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: var(--vpp-space-3);
+}
+
+.vpp-login-links-single a,
+.vpp-login-links-single .vpp-account-back-link {
+    justify-content: flex-start;
+}
+
+.vpp-account-back-link .vpp-icon {
+    font-size: var(--vpp-button-icon-size);
 }
 
 .vpp-account-progress {
@@ -804,44 +447,98 @@
     align-items: center;
     gap: var(--vpp-space-3);
     color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-base);
     line-height: 1.5;
 }
 
-.vpp-password-toggle-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
+.vpp-account-page-scrollable .vpp-login-shell {
+    align-items: flex-start;
+}
+
+.vpp-account-page-scrollable .vpp-login-card {
+    margin-block: auto;
 }
 
 @media (max-width: 767px) {
+    .vpp-login-page {
+        --vpp-account-card-width: 100%;
+    }
+
+    .vpp-login-shell {
+        padding: 12px;
+    }
+
+    .vpp-login-card {
+        padding: 20px;
+        border-radius: var(--vpp-radius-lg);
+    }
+
+    .vpp-login-shell:has(.vpp-login-art) {
+        align-items: flex-end;
+    }
+
+    .vpp-login-shell:has(.vpp-login-art) .vpp-login-card {
+        margin: 0;
+    }
+
+    .vpp-login-title {
+        font-size: 1.75rem;
+    }
+
+    .vpp-account-topbar,
+    .vpp-login-header {
+        margin-bottom: var(--vpp-space-4);
+    }
+
+    .vpp-inline-alert:has(+ .vpp-login-form) {
+        margin-bottom: var(--vpp-space-4);
+    }
+}
+
+@media (min-width: 768px) and (max-height: 820px) {
     .vpp-account-page-compact .vpp-login-shell {
-        align-items: center;
-        padding: 16px;
+        padding: 12px;
     }
 
     .vpp-account-page-compact .vpp-login-card {
-        max-height: none;
-        padding: 22px;
-        border-radius: var(--vpp-radius-lg);
-        box-shadow: 0 16px 40px rgba(23, 43, 77, 0.12);
+        padding: 18px 22px;
     }
 
-    .vpp-account-page-scrollable {
-        overflow-y: auto;
+    .vpp-account-page-compact .vpp-account-topbar,
+    .vpp-account-page-compact .vpp-login-header {
+        margin-bottom: var(--vpp-space-3);
     }
 
-    .vpp-account-page-scrollable .vpp-login-shell {
-        align-items: flex-end;
-        overflow: visible;
+    .vpp-account-page-compact .vpp-inline-alert:has(+ .vpp-login-form) {
+        margin-bottom: var(--vpp-space-3);
     }
 
-    .vpp-account-page-scrollable .vpp-login-card {
-        height: auto;
-        max-height: none;
-        overflow: visible;
-        padding-block: 32px 40px;
+    .vpp-account-page-compact .vpp-login-form {
+        gap: var(--vpp-space-1);
     }
 
-    .vpp-account-topbar {
-        margin-bottom: 14px;
+    .vpp-account-page-compact .vpp-validation-slot {
+        min-height: 15px;
+    }
+
+    .vpp-account-page-compact .vpp-account-description {
+        margin-top: var(--vpp-space-1);
+        font-size: var(--vpp-text-sm);
+        line-height: 1.4;
+    }
+
+    .vpp-account-page-compact .vpp-login-links {
+        margin-top: var(--vpp-space-2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vpp-login-page *,
+    .vpp-login-page *::before,
+    .vpp-login-page *::after {
+        scroll-behavior: auto;
+        transition-duration: 0.01ms;
+        animation-duration: 0.01ms;
+        animation-iteration-count: 1;
     }
 }

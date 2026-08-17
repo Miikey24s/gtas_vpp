@@ -68,7 +68,8 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("manage_accounts", page, StringComparison.Ordinal);
         Assert.DoesNotContain("Icon=\"person_off\"", page, StringComparison.Ordinal);
         var radzenBridge = ReadFrontendSource("wwwroot/css/vpp-radzen-theme.css");
-        Assert.Contains(".rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button),", radzenBridge, StringComparison.Ordinal);
+        Assert.Contains(".rz-button:not(.rz-datepicker-field-button),", radzenBridge, StringComparison.Ordinal);
+        Assert.DoesNotContain("not(.vpp-login-btn)", radzenBridge, StringComparison.Ordinal);
         Assert.Contains(".rz-datepicker .rz-datepicker-field-button.rz-button:is(:hover, :active, :focus, :focus-visible)", radzenBridge, StringComparison.Ordinal);
         Assert.DoesNotContain("\nbutton,", radzenBridge, StringComparison.Ordinal);
         Assert.Contains("box-shadow: none !important", radzenBridge, StringComparison.Ordinal);

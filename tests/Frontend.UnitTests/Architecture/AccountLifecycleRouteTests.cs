@@ -105,6 +105,7 @@ public sealed class AccountLifecycleRouteTests
     }
 
     [Theory]
+    [InlineData("VppAccountTextField.razor")]
     [InlineData("VppLanguageSwitch.razor")]
     [InlineData("VppPasswordField.razor")]
     public void AccountOnlyComponents_AreOwnedByIdentityAccess(string fileName)
@@ -133,6 +134,32 @@ public sealed class AccountLifecycleRouteTests
         Assert.False(File.Exists(Path.Combine(frontendRoot, "Components", "_Imports.razor")));
         Assert.Contains("gtas_vpp_fe.Features.IdentityAccess.Components", imports, StringComparison.Ordinal);
         Assert.DoesNotContain("gtas_vpp_fe.Components.Shared", imports, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("Register.razor")]
+    [InlineData("ForgotPassword.razor")]
+    [InlineData("ResendConfirmation.razor")]
+    [InlineData("LoginPage.razor")]
+    public void AccountTextForms_UseSharedIdentityField(string fileName)
+    {
+        var source = ReadSource("Components", "Pages", "Authen", fileName);
+
+        Assert.Contains("<VppAccountTextField", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("Style=\"position: absolute\"", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AccountMotif_UsesSharedSurfaceAndControlTokens()
+    {
+        var css = ReadSource("wwwroot", "css", "vpp-login.css");
+
+        Assert.Contains("background: var(--vpp-surface-canvas);", css, StringComparison.Ordinal);
+        Assert.Contains("background: var(--vpp-surface-raised);", css, StringComparison.Ordinal);
+        Assert.Contains("min-height: var(--vpp-button-height);", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("--vpp-text-primary: #", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("transform: translateY(-1px)", css, StringComparison.Ordinal);
+        Assert.DoesNotContain("height: 48px", css, StringComparison.Ordinal);
     }
 
     private static string ReadSource(params string[] relativeSegments)

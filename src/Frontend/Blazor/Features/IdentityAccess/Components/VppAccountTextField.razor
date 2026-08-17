@@ -1,0 +1,59 @@
+@using System.Linq.Expressions
+
+<div class="vpp-login-field @(Invalid ? "vpp-login-field--invalid" : string.Empty)">
+    <RadzenLabel Text="@Label" Component="@Name" class="vpp-login-label" />
+    <RadzenTextBox Name="@Name"
+                   Value="@Value"
+                   ValueChanged="@ValueChanged"
+                   ValueExpression="@ValueExpression"
+                   Disabled="@Disabled"
+                   autocomplete="@AutoComplete"
+                   class="vpp-login-control"
+                   @oninput="OnInput"
+                   @onblur="OnBlur" />
+    <div class="vpp-validation-slot" aria-live="polite">
+        @if (ValidationContent is not null)
+        {
+            @ValidationContent
+        }
+        else if (ValueExpression is not null)
+        {
+            <ValidationMessage For="@ValueExpression" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<string>>? ValueExpression { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool Invalid { get; set; }
+
+    [Parameter]
+    public string AutoComplete { get; set; } = "off";
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnInput { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnBlur { get; set; }
+
+    [Parameter]
+    public RenderFragment? ValidationContent { get; set; }
+}

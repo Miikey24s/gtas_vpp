@@ -125,20 +125,19 @@
 }
 
 /* Radzen action button dùng surface phẳng. Native button tự sở hữu geometry vì
-   một số control (password eye, switch...) dùng transform để căn vị trí. Login
-   CTA là surface ngoại lệ có motion riêng của ACCOUNT motif. */
-.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button),
-.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):hover:not(:disabled),
-.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):active:not(:disabled),
-.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):focus,
-.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):focus-visible {
+   một số control nội tại (password eye, switch...) dùng transform để căn vị trí. */
+.rz-button:not(.rz-datepicker-field-button),
+.rz-button:not(.rz-datepicker-field-button):hover:not(:disabled),
+.rz-button:not(.rz-datepicker-field-button):active:not(:disabled),
+.rz-button:not(.rz-datepicker-field-button):focus,
+.rz-button:not(.rz-datepicker-field-button):focus-visible {
     box-shadow: none !important;
     transform: none !important;
 }
 
 /* Material base tạo ripple radial kéo dài 0.8s trên mọi RadzenButton. Action
    của GTAS dùng pressed surface tức thời, nên bridge sở hữu và tắt pseudo này. */
-.rz-button:not(.vpp-login-btn)::before,
+.rz-button:not(.rz-datepicker-field-button)::before,
 .rz-paginator .rz-dropdown .rz-ripple::before,
 .rz-pager .rz-dropdown .rz-ripple::before,
 .rz-context-menu.vpp-admin-action-menu-surface .rz-navigation-item-link::before {
@@ -149,7 +148,7 @@
 
 /* Density button gọn theo visual contract OpenAI/Codex: chiều cao thấp hơn input,
    icon 16px và padding ngang vừa đủ; không thu nhỏ typography nội dung. */
-.rz-button.rz-button-md:not(.vpp-login-btn) {
+.rz-button.rz-button-md {
     min-height: var(--vpp-button-height) !important;
     min-width: var(--vpp-button-height) !important;
     padding-block: 0 !important;
@@ -159,8 +158,8 @@
     letter-spacing: normal;
 }
 
-.rz-button.rz-button-sm:not(.vpp-login-btn),
-.rz-button:not(.vpp-login-btn):not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) {
+.rz-button.rz-button-sm,
+.rz-button:not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) {
     min-height: var(--vpp-button-height-compact) !important;
     min-width: var(--vpp-button-height-compact) !important;
     padding-block: 0 !important;
@@ -170,26 +169,26 @@
     letter-spacing: normal;
 }
 
-.rz-button:is(.rz-button-md, .rz-button-sm):not(.vpp-login-btn) .rz-button-box {
+.rz-button:is(.rz-button-md, .rz-button-sm) .rz-button-box {
     gap: var(--vpp-space-1);
     line-height: 1;
 }
 
-.rz-button:is(.rz-button-md, .rz-button-sm):not(.vpp-login-btn) :is(.rzi, .rz-button-icon-left, .rz-button-icon-right),
-.rz-button:not(.vpp-login-btn):not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) :is(.rzi, .rz-button-icon-left, .rz-button-icon-right) {
+.rz-button:is(.rz-button-md, .rz-button-sm) :is(.rzi, .rz-button-icon-left, .rz-button-icon-right),
+.rz-button:not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) :is(.rzi, .rz-button-icon-left, .rz-button-icon-right) {
     width: var(--vpp-button-icon-size) !important;
     height: var(--vpp-button-icon-size) !important;
     font-size: var(--vpp-button-icon-size) !important;
     line-height: var(--vpp-button-icon-size) !important;
 }
 
-.rz-button.rz-button-md.rz-button-icon-only:not(.vpp-login-btn) {
+.rz-button.rz-button-md.rz-button-icon-only {
     width: var(--vpp-button-height) !important;
     padding: 0 !important;
 }
 
-.rz-button.rz-button-sm.rz-button-icon-only:not(.vpp-login-btn),
-.rz-button.rz-button-icon-only:not(.vpp-login-btn):not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) {
+.rz-button.rz-button-sm.rz-button-icon-only,
+.rz-button.rz-button-icon-only:not(.rz-button-md):not(.rz-button-lg):not(.rz-button-xs) {
     width: var(--vpp-button-height-compact) !important;
     padding: 0 !important;
 }
@@ -301,7 +300,7 @@
     }
 }
 
-.rz-button:not(.vpp-login-btn):not(.rz-datepicker-field-button):focus-visible {
+.rz-button:not(.rz-datepicker-field-button):focus-visible {
     outline: none;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vpp-primary-500) 62%, transparent) !important;
 }

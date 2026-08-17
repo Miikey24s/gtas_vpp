@@ -23,7 +23,6 @@ namespace gtas_vpp_fe.Components.Pages.Authen
 
         public LoginFormModel loginForm { get; set; } = new LoginFormModel();
         bool isLoading = false;
-        bool isShowPass = true;
         private bool hasSubmittedValidation;
         private bool usernameTouched;
         private bool passwordTouched;
@@ -49,11 +48,6 @@ namespace gtas_vpp_fe.Components.Pages.Authen
             }
 
             StateHasChanged();
-        }
-
-        private void TogglePasswordVisibility()
-        {
-            isShowPass = !isShowPass;
         }
 
         private void HandleUsernameInput(ChangeEventArgs _)

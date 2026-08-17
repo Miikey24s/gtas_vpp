@@ -268,26 +268,3 @@
     .vpp-show-tablet { display: none; }
     .vpp-show-desktop { display: block; }
 }
-
-/* ── Đăng nhập thích ứng màn hình ────────────────────────────── */
-@media (max-width: 480px) {
-    .vpp-login-card {
-        padding: 28px 20px 32px;
-    }
-
-    .vpp-login-art {
-        align-items: stretch;
-    }
-
-    .vpp-login-art-image {
-        object-position: 0% top;
-    }
-
-    .vpp-login-title {
-        font-size: 1.85rem;
-    }
-
-    .vpp-login-title-accent {
-        font-size: 0.76rem;
-    }
-}

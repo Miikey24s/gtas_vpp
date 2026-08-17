@@ -50,7 +50,7 @@ namespace gtas_vpp_fe.UITests.Tests.Auth
         [Theory]
         [InlineData(390, 844)]
         [InlineData(1366, 768)]
-        public async Task LoginVisual_PasswordEyeClearsUnderlineAndPrimaryHoverRemainsActive(
+        public async Task LoginVisual_UsesSharedPasswordFieldAndFlatPrimaryAction(
             int width,
             int height)
         {
@@ -85,25 +85,26 @@ namespace gtas_vpp_fe.UITests.Tests.Auth
                 """);
             geometry.Should().StartWith(
                 "true",
-                "the password eye must remain compact and visibly clear of the underline");
+                "the password eye must remain compact and centered inside the shared field");
 
+            var idleBackground = await primaryAction.EvaluateAsync<string>(
+                "button => getComputedStyle(button).backgroundColor");
             await primaryAction.HoverAsync();
-            await Page.WaitForFunctionAsync("""
-                () => {
-                    const button = document.querySelector('.vpp-login-btn');
-                    return button && getComputedStyle(button).transform !== 'none';
-                }
-                """);
+            await Page.WaitForTimeoutAsync(180);
             var hoverChrome = await primaryAction.EvaluateAsync<string>("""
                 button => {
                     const style = getComputedStyle(button);
-                    return `${style.transform !== 'none' && style.boxShadow !== 'none'}`
+                    return `${style.transform === 'none' && style.boxShadow === 'none'}`
+                        + `|background=${style.backgroundColor}`
                         + `|transform=${style.transform}|shadow=${style.boxShadow}`;
                 }
                 """);
             hoverChrome.Should().StartWith(
                 "true",
-                "the account CTA has an intentional hover response outside the flat action-button bridge");
+                "the account CTA must use the same flat button bridge as the rest of the design system");
+            hoverChrome.Should().NotContain(
+                $"background={idleBackground}",
+                "the flat CTA still needs a clear hover color response");
 
             var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
             if (!string.IsNullOrWhiteSpace(evidenceDirectory))
