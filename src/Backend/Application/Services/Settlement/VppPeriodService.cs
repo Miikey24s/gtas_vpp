@@ -37,6 +37,8 @@ public sealed class VppPeriodService : IVppPeriodService
         string memberCompanyCode,
         CancellationToken cancellationToken = default)
     {
+        // Bước 1: cập nhật kỳ đã đến hạn; bước 2: bù đủ rolling horizon; bước 3: lấy kỳ neo hiện tại.
+        // Kỳ đã tồn tại giữ nguyên timestamp, nên settings mới chỉ áp dụng cho kỳ tạo sau đó.
         var company = NormalizeCompanyCode(memberCompanyCode);
         await AdvanceDuePeriodsAsync(company, cancellationToken);
         await TopUpOpenHorizonAsync(company, cancellationToken: cancellationToken);
@@ -71,14 +73,7 @@ public sealed class VppPeriodService : IVppPeriodService
             new DateTime(period.Year, period.Month, 1, 0, 0, 0, DateTimeKind.Utc),
             cancellationToken);
         var schedule = _scheduleCalculator.Build(period, period, settings);
-        var nowUtc = CurrentUtc();
-        var state = nowUtc < schedule.StartAtUtc
-            ? VppPeriodState.Scheduled
-            : nowUtc >= schedule.SupplementApprovalDeadlineUtc
-                ? VppPeriodState.Pricing
-                : nowUtc >= schedule.SubmissionDeadlineUtc
-                    ? VppPeriodState.SubmissionClosed
-                    : VppPeriodState.Open;
+        var state = ResolveInitialState(schedule, CurrentUtc());
         return await CreatePersistedAsync(
             company,
             period,
@@ -1000,6 +995,18 @@ public sealed class VppPeriodService : IVppPeriodService
 
     private DateTime CurrentUtc()
         => PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
+
+    private static VppPeriodState ResolveInitialState(
+        PeriodSchedule schedule,
+        DateTime nowUtc)
+        // Trạng thái ban đầu chỉ dựa trên mốc lịch; chuyển trạng thái sau đó do advance aggregate xử lý.
+        => nowUtc < schedule.StartAtUtc
+            ? VppPeriodState.Scheduled
+            : nowUtc >= schedule.SupplementApprovalDeadlineUtc
+                ? VppPeriodState.Pricing
+                : nowUtc >= schedule.SubmissionDeadlineUtc
+                    ? VppPeriodState.SubmissionClosed
+                    : VppPeriodState.Open;
 
     private DateTime CurrentLocal(VppOrderPeriodSettingsVersion settings)
         => ToBusinessLocal(CurrentUtc(), settings.TimeZoneId);
