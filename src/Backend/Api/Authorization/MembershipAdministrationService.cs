@@ -95,24 +95,10 @@ public sealed class MembershipAdministrationService(
         bool allowPendingActivation,
         CancellationToken cancellationToken = default)
     {
-        var basicValidation = ValidateCommand(actorAccountId, command.AccountId, command.Reason);
-        if (basicValidation is not null)
+        var commandValidation = ValidateUpsertCommand(actorAccountId, command);
+        if (commandValidation is not null)
         {
-            return basicValidation;
-        }
-
-        if (command.GroupId == Guid.Empty)
-        {
-            return MembershipAdministrationResult.BadRequest(
-                "GROUP_REQUIRED",
-                "A canonical permission group is required.");
-        }
-
-        if (command.PrimaryDepartmentId == Guid.Empty)
-        {
-            return MembershipAdministrationResult.BadRequest(
-                "PRIMARY_DEPARTMENT_REQUIRED",
-                "A primary department is required.");
+            return commandValidation;
         }
 
         IDbContextTransaction? transaction = null;
@@ -311,6 +297,31 @@ public sealed class MembershipAdministrationService(
                 await transaction.DisposeAsync();
             }
         }
+    }
+
+    private static MembershipAdministrationResult? ValidateUpsertCommand(
+        int actorAccountId,
+        MembershipUpsertReqDTO command)
+    {
+        // Khóa lỗi đầu vào trước transaction; kiểm tra account/group/phòng ban thực tế diễn ra sau khi có lock.
+        var basicValidation = ValidateCommand(actorAccountId, command.AccountId, command.Reason);
+        if (basicValidation is not null)
+        {
+            return basicValidation;
+        }
+
+        if (command.GroupId == Guid.Empty)
+        {
+            return MembershipAdministrationResult.BadRequest(
+                "GROUP_REQUIRED",
+                "A canonical permission group is required.");
+        }
+
+        return command.PrimaryDepartmentId == Guid.Empty
+            ? MembershipAdministrationResult.BadRequest(
+                "PRIMARY_DEPARTMENT_REQUIRED",
+                "A primary department is required.")
+            : null;
     }
 
     public async Task<MembershipAdministrationResult> DeactivateAsync(
