@@ -107,13 +107,11 @@
 }
 
 .vpp-account-language-switch {
+    --vpp-segmented-item-height: calc(var(--vpp-button-height) - 6px);
     flex: 0 0 auto;
     height: var(--vpp-button-height);
     min-height: var(--vpp-button-height);
-}
-
-.vpp-account-language-switch.vpp-segmented-selector button {
-    min-height: calc(var(--vpp-button-height) - 6px);
+    overflow-y: hidden;
 }
 
 .vpp-login-header {
@@ -204,8 +202,19 @@
 .vpp-login-field .vpp-login-control.rz-textbox:focus-visible,
 .vpp-login-password-wrapper:focus-within {
     border-color: var(--vpp-border-focus);
-    outline: none;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--vpp-border-focus) 18%, transparent);
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Account field tự sở hữu một đường viền trạng thái. Không để validation và
+   focus bridge toàn cục vẽ thêm outline quanh input con. */
+.vpp-login-field .vpp-login-control:is(.valid.modified, .invalid),
+.vpp-login-password-wrapper .vpp-login-control:is(.valid.modified, .invalid),
+.vpp-login-password-wrapper input:is(.valid.modified, .invalid) {
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
 }
 
 .vpp-login-field--invalid .vpp-login-control.rz-textbox,
@@ -214,8 +223,11 @@
 }
 
 .vpp-login-field--invalid .vpp-login-control.rz-textbox:focus,
+.vpp-login-field--invalid .vpp-login-control.rz-textbox:focus-visible,
 .vpp-login-field--invalid .vpp-login-password-wrapper:focus-within {
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--vpp-danger) 16%, transparent);
+    border-color: var(--vpp-danger) !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .vpp-login-field .vpp-login-control:disabled,

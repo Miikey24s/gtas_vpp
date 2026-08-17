@@ -146,7 +146,11 @@ public sealed class UiSystemF1TokenArchitectureTests
         Assert.Contains("--rz-button-size-sm: var(--vpp-button-height-compact);", bridge, StringComparison.Ordinal);
         Assert.Contains("box-shadow: none !important;", bridge, StringComparison.Ordinal);
         Assert.Contains("transform: none !important;", bridge, StringComparison.Ordinal);
-        Assert.Contains("min-height: var(--vpp-button-height-compact);", segmented, StringComparison.Ordinal);
+        Assert.Contains(
+            "min-height: var(--vpp-segmented-item-height, var(--vpp-button-height-compact));",
+            segmented,
+            StringComparison.Ordinal);
+        Assert.Contains("overflow-y: hidden;", segmented, StringComparison.Ordinal);
         Assert.Contains("box-shadow: none;", segmented, StringComparison.Ordinal);
 
         Assert.DoesNotContain("translateY(0) scale(0.97)", layout, StringComparison.Ordinal);

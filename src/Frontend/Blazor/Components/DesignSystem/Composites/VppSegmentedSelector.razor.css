@@ -12,6 +12,7 @@
     gap: 2px;
     padding: 2px;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-padding-inline: var(--vpp-space-1);
     border: var(--vpp-border-width) solid color-mix(in srgb, var(--vpp-border-default) 72%, transparent);
     border-radius: var(--vpp-radius-lg);
@@ -43,7 +44,7 @@
     position: relative;
     z-index: 1;
     display: inline-flex;
-    min-height: var(--vpp-button-height-compact);
+    min-height: var(--vpp-segmented-item-height, var(--vpp-button-height-compact));
     width: 100%;
     align-items: center;
     justify-content: center;

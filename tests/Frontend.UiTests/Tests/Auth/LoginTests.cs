@@ -60,8 +60,38 @@ namespace gtas_vpp_fe.UITests.Tests.Auth
 
             var toggle = Page.Locator(".vpp-password-toggle-btn");
             var primaryAction = Page.Locator(".vpp-login-btn");
+            var username = Page.Locator("input[name='Username']");
+            var languageSwitch = Page.Locator(".vpp-account-language-switch");
             await toggle.WaitForAsync();
             await primaryAction.WaitForAsync();
+
+            await username.FocusAsync();
+            var focusChrome = await username.EvaluateAsync<string>("""
+                input => {
+                    const style = getComputedStyle(input);
+                    return `${style.outlineStyle}|${style.boxShadow}|${style.borderTopWidth}|${style.borderTopColor}`;
+                }
+                """);
+            focusChrome.Should().StartWith(
+                "none|none|1px|",
+                "an account field must expose one border-owned focus indicator without a stacked outline or halo");
+
+            var languageOverflow = await languageSwitch.EvaluateAsync<string>("""
+                element => {
+                    const style = getComputedStyle(element);
+                    const button = element.querySelector('button');
+                    const buttonStyle = button ? getComputedStyle(button) : null;
+                    const buttonRect = button?.getBoundingClientRect();
+                    return `${style.overflowY}|${element.scrollHeight}|${element.clientHeight}`
+                        + `|buttonHeight=${buttonRect?.height}|buttonMinHeight=${buttonStyle?.minHeight}`
+                        + `|padding=${style.paddingTop},${style.paddingBottom}`;
+                }
+                """);
+            var languageMetrics = languageOverflow.Split('|');
+            languageMetrics[0].Should().Be("hidden", "the VI/EN segmented selector must never own vertical scrolling");
+            int.Parse(languageMetrics[1]).Should().BeLessThanOrEqualTo(
+                int.Parse(languageMetrics[2]) + 1,
+                $"the VI/EN selector content must fit its compact height; metrics={languageOverflow}");
 
             var geometry = await Page.EvaluateAsync<string>("""
                 () => {
@@ -114,6 +144,40 @@ namespace gtas_vpp_fe.UITests.Tests.Auth
                 await Page.ScreenshotAsync(new PageScreenshotOptions
                 {
                     Path = Path.Combine(evidenceDirectory, $"login-password-eye-{width}x{height}.png"),
+                    FullPage = false,
+                    Animations = ScreenshotAnimations.Disabled,
+                    Caret = ScreenshotCaret.Hide,
+                    Scale = ScreenshotScale.Css
+                });
+            }
+
+            await primaryAction.ClickAsync();
+            await Page.GetByText("Vui lòng nhập tên đăng nhập.", new() { Exact = true }).WaitForAsync();
+            await username.FocusAsync();
+            var invalidFocusChrome = await Page.EvaluateAsync<string>("""
+                () => {
+                    const username = document.querySelector("input[name='Username']");
+                    const password = document.querySelector('.vpp-login-password-wrapper');
+                    if (!username || !password) return 'missing';
+                    const usernameStyle = getComputedStyle(username);
+                    const passwordStyle = getComputedStyle(password);
+                    return `${usernameStyle.outlineStyle}|${usernameStyle.boxShadow}`
+                        + `|${usernameStyle.borderTopWidth}|${usernameStyle.borderTopColor}`
+                        + `|${passwordStyle.borderTopColor}`;
+                }
+                """);
+            var invalidFocusMetrics = invalidFocusChrome.Split('|');
+            invalidFocusMetrics[0].Should().Be("none");
+            invalidFocusMetrics[1].Should().Be("none");
+            invalidFocusMetrics[2].Should().Be(
+                "1px",
+                $"validation and focus must still resolve to one owned border; chrome={invalidFocusChrome}");
+
+            if (!string.IsNullOrWhiteSpace(evidenceDirectory))
+            {
+                await Page.ScreenshotAsync(new PageScreenshotOptions
+                {
+                    Path = Path.Combine(evidenceDirectory, $"login-validation-focus-{width}x{height}.png"),
                     FullPage = false,
                     Animations = ScreenshotAnimations.Disabled,
                     Caret = ScreenshotCaret.Hide,

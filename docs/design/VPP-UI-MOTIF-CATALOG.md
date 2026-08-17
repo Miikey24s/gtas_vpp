@@ -86,6 +86,8 @@ Không gộp chúng thành một component string-configured. Dùng typed compon
   viewport desktop thấp; mobile được phép dài và cuộn ở page shell, không tạo scroll bên trong card.
 - Validation có vùng dự trữ ổn định để không làm form nhảy. Alert lỗi/thành công/info dùng cùng semantic token;
   không đặt validator bằng inline style hoặc để icon mắt chồng lên border/input text.
+- Text/password field chỉ có một viền trạng thái do account field sở hữu; không chồng thêm outline hoặc halo từ
+  focus/validation bridge toàn cục. Bộ chọn ngôn ngữ dùng segmented selector nhưng không bao giờ cuộn theo trục dọc.
 
 ## 3.1. `DATA-SURFACE-ORDER`
 
