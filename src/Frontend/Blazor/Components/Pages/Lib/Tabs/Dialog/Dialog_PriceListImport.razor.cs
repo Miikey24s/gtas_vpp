@@ -11,6 +11,8 @@ using Radzen;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs.Dialog;
 
+// Giữ luồng import theo 3 trạng thái: chọn file, preview có lỗi/cảnh báo, xác nhận ghi dữ liệu.
+// Đổi bảng giá hoặc chọn file mới phải reset snapshot để không xác nhận nhầm batch cũ.
 public partial class Dialog_PriceListImport
 {
     private const long MaximumFileSize = 5 * 1024 * 1024;
@@ -100,6 +102,7 @@ public partial class Dialog_PriceListImport
 
     private async Task OnFileSelectedAsync(InputFileChangeEventArgs args)
     {
+        // Phân tích ngay sau khi chọn file để người dùng thấy lỗi trước khi có thao tác ghi.
         if (IsBusy)
         {
             return;

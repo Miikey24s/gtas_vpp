@@ -7,6 +7,8 @@ using System.Text.Json;
 
 namespace gtas_vpp_be.Service.Services;
 
+// Điều phối toàn bộ luồng nhập bảng giá: phân tích file, xem trước, xác nhận và ghi nhận lịch sử.
+// Preview chỉ tạo lần nhập chờ xác nhận; Confirm mới cập nhật SupplierProductMapping trong transaction.
 public sealed class PriceListImportService(
     IUnitOfWork unitOfWork,
     IDateTimeProvider dateTimeProvider,
@@ -34,6 +36,7 @@ public sealed class PriceListImportService(
         Stream content,
         CancellationToken cancellationToken = default)
     {
+        // Kiểm tra bảng giá trước để không phân tích file cho đích đã bị vô hiệu hóa.
         await GetEditablePriceListAsync(priceListId, cancellationToken);
         var analysis = await parser.AnalyzeAsync(content, fileName, cancellationToken);
         analysis.AiSuggestionsAvailable = mappingSuggester.IsAvailable;
@@ -42,38 +45,10 @@ public sealed class PriceListImportService(
             return analysis;
         }
 
+        // Chỉ tự điền cột còn trống; mapping trùng hoặc không được hỗ trợ vẫn để người dùng xử lý.
         var suggestions = await mappingSuggester.SuggestAsync(analysis.Columns, cancellationToken);
-        var usedTargets = analysis.Columns
-            .Where(column => !string.IsNullOrWhiteSpace(column.SuggestedTargetField))
-            .Select(column => column.SuggestedTargetField!)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var suggestion in suggestions)
-        {
-            var column = analysis.Columns.FirstOrDefault(item => item.ColumnIndex == suggestion.ColumnIndex);
-            if (column is null
-                || !string.IsNullOrWhiteSpace(column.SuggestedTargetField)
-                || !SupportedMappingFields.Contains(suggestion.TargetField)
-                || !usedTargets.Add(suggestion.TargetField))
-            {
-                continue;
-            }
-
-            column.SuggestedTargetField = SupportedMappingFields.First(field => string.Equals(
-                field,
-                suggestion.TargetField,
-                StringComparison.OrdinalIgnoreCase));
-            column.IsAiSuggested = true;
-        }
-
-        analysis.CanPreviewAutomatically = new[] { "ItemCode", "UnitPrice" }
-            .All(required => analysis.Columns.Any(column => string.Equals(
-                column.SuggestedTargetField,
-                required,
-                StringComparison.OrdinalIgnoreCase)));
-        if (analysis.CanPreviewAutomatically)
-        {
-            analysis.Issues.RemoveAll(issue => issue.Code == "MAPPING_REQUIRED");
-        }
+        ApplyMappingSuggestions(analysis, suggestions);
+        UpdateAutomaticPreviewState(analysis);
         return analysis;
     }
 
@@ -96,39 +71,8 @@ public sealed class PriceListImportService(
                                && batch.Status == PriceListImportBatchStatus.Completed,
                 cancellationToken);
 
-        var batch = new PriceListImportBatch
-        {
-            Id = Guid.NewGuid(),
-            PriceListId = priceList.Id,
-            SupplierId = priceList.SupplierId!.Value,
-            OriginalFileName = SanitizeFileName(fileName),
-            FileHash = parsed.FileHash,
-            FileFormat = parsed.FileFormat,
-            SchemaVersion = SchemaVersion,
-            Status = evaluation.ErrorRows == 0
-                ? PriceListImportBatchStatus.Ready
-                : PriceListImportBatchStatus.Failed,
-            TotalRows = evaluation.Rows.Count,
-            AddedRows = evaluation.AddedRows,
-            UpdatedRows = evaluation.UpdatedRows,
-            UnchangedRows = evaluation.UnchangedRows,
-            WarningRows = evaluation.WarningRows,
-            ErrorRows = evaluation.ErrorRows,
-            ResultMessage = evaluation.ErrorRows == 0
-                ? "File đã sẵn sàng để nhập."
-                : "Vui lòng xử lý các dòng lỗi trước khi nhập.",
-            ColumnMappingsJson = JsonSerializer.Serialize(parsed.ColumnMappings, JsonOptions),
-            UsedCustomMapping = parsed.ColumnMappings.Any(mapping => mapping.IsCustom),
-            NormalizedRowsJson = JsonSerializer.Serialize(parsed.Rows, JsonOptions),
-            IssuesJson = JsonSerializer.Serialize(
-                evaluation.GlobalIssues.Concat(evaluation.Rows.SelectMany(row => row.Issues)),
-                JsonOptions),
-            CreatedByUserId = userId,
-            CreatedAtUtc = now,
-            UpdatedByUserId = userId,
-            UpdatedAtUtc = now,
-            IsDeleted = false
-        };
+        // Preview lưu snapshot để Confirm có thể kiểm tra lại concurrency và dữ liệu đã thay đổi.
+        var batch = CreateImportBatch(priceList, fileName, parsed, evaluation, userId, now);
 
         unitOfWork.VPPContext.Set<PriceListImportBatch>().Add(batch);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -190,48 +134,8 @@ public sealed class PriceListImportService(
                 .ToDictionaryAsync(mapping => mapping.Id, cancellationToken);
             var now = dateTimeProvider.Now;
 
-            foreach (var row in evaluation.Rows)
-            {
-                if (row.Action == PriceListImportAction.Unchanged || row.Action == PriceListImportAction.Error)
-                {
-                    continue;
-                }
-
-                if (row.Action == PriceListImportAction.Add)
-                {
-                    unitOfWork.VPPContext.Set<SupplierProductMapping>().Add(new SupplierProductMapping
-                    {
-                        Id = Guid.NewGuid(),
-                        PriceListId = priceList.Id,
-                        SupplierId = priceList.SupplierId!.Value,
-                        VppItemId = row.VppItemId!.Value,
-                        Price = row.UnitPrice,
-                        NetPrice = row.UnitPrice,
-                        VatRate = row.VatRate,
-                        MinimumOrderQuantity = row.MinimumOrderQuantity,
-                        LeadTimeDays = row.LeadTimeDays,
-                        IsDefault = row.IsDefault,
-                        Description = row.Note,
-                        CreatedByUserId = userId,
-                        CreatedAtUtc = now,
-                        UpdatedByUserId = userId,
-                        UpdatedAtUtc = now,
-                        IsDeleted = false
-                    });
-                    continue;
-                }
-
-                var mapping = existingMappings[row.ExistingMappingId!.Value];
-                mapping.Price = row.UnitPrice;
-                mapping.NetPrice = row.UnitPrice;
-                mapping.VatRate = row.VatRate;
-                mapping.MinimumOrderQuantity = row.MinimumOrderQuantity;
-                mapping.LeadTimeDays = row.LeadTimeDays;
-                mapping.IsDefault = row.IsDefault;
-                mapping.Description = row.Note;
-                mapping.UpdatedByUserId = userId;
-                mapping.UpdatedAtUtc = now;
-            }
+            // Chỉ Add/Update tạo thay đổi; Unchanged/Error không chạm dữ liệu hiện có.
+            ApplyEvaluatedRows(priceList, evaluation.Rows, existingMappings, userId, now);
 
             batch.Status = PriceListImportBatchStatus.Completed;
             batch.AddedRows = evaluation.AddedRows;
@@ -266,6 +170,7 @@ public sealed class PriceListImportService(
         int top = 20,
         CancellationToken cancellationToken = default)
     {
+        // Danh sách lịch sử chỉ đọc; giới hạn top để dialog không tải quá nhiều batch cũ.
         await EnsurePriceListExistsAsync(priceListId, cancellationToken);
         var batches = await unitOfWork.VPPContext.Set<PriceListImportBatch>()
             .AsNoTracking()
@@ -290,6 +195,7 @@ public sealed class PriceListImportService(
         Guid? priceListId = null,
         CancellationToken cancellationToken = default)
     {
+        // Template luôn dùng mã/tên/đơn vị của danh mục hệ thống; giá hiện tại chỉ để tham khảo.
         var priceList = priceListId.HasValue
             ? await EnsurePriceListExistsAsync(priceListId.Value, cancellationToken)
             : null;
@@ -346,6 +252,7 @@ public sealed class PriceListImportService(
         IReadOnlyList<PriceListImportIssueResDTO> globalIssues,
         CancellationToken cancellationToken)
     {
+        // Chuẩn hóa một lần các danh mục và dòng giá hiện tại để mỗi dòng file chỉ tra cứu trong bộ nhớ.
         var units = await unitOfWork.VPPContext.Set<LookupValue>()
             .AsNoTracking()
             .Where(unit => !unit.IsDeleted)
@@ -489,6 +396,139 @@ public sealed class PriceListImportService(
             throw new BusinessException("Bảng giá chưa có nhà cung cấp.");
         }
         return priceList;
+    }
+
+    private static void ApplyMappingSuggestions(
+        PriceListImportAnalysisResDTO analysis,
+        IReadOnlyList<PriceListColumnMappingSuggestion> suggestions)
+    {
+        var usedTargets = analysis.Columns
+            .Where(column => !string.IsNullOrWhiteSpace(column.SuggestedTargetField))
+            .Select(column => column.SuggestedTargetField!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var suggestion in suggestions)
+        {
+            var column = analysis.Columns.FirstOrDefault(item => item.ColumnIndex == suggestion.ColumnIndex);
+            if (column is null
+                || !string.IsNullOrWhiteSpace(column.SuggestedTargetField)
+                || !SupportedMappingFields.Contains(suggestion.TargetField)
+                || !usedTargets.Add(suggestion.TargetField))
+            {
+                continue;
+            }
+
+            column.SuggestedTargetField = SupportedMappingFields.First(field => string.Equals(
+                field,
+                suggestion.TargetField,
+                StringComparison.OrdinalIgnoreCase));
+            column.IsAiSuggested = true;
+        }
+    }
+
+    private static void UpdateAutomaticPreviewState(PriceListImportAnalysisResDTO analysis)
+    {
+        analysis.CanPreviewAutomatically = new[] { "ItemCode", "UnitPrice" }
+            .All(required => analysis.Columns.Any(column => string.Equals(
+                column.SuggestedTargetField,
+                required,
+                StringComparison.OrdinalIgnoreCase)));
+        if (analysis.CanPreviewAutomatically)
+        {
+            analysis.Issues.RemoveAll(issue => issue.Code == "MAPPING_REQUIRED");
+        }
+    }
+
+    private static PriceListImportBatch CreateImportBatch(
+        PriceList priceList,
+        string fileName,
+        PriceListImportParsedFile parsed,
+        EvaluationResult evaluation,
+        int userId,
+        DateTime now)
+        => new()
+        {
+            Id = Guid.NewGuid(),
+            PriceListId = priceList.Id,
+            SupplierId = priceList.SupplierId!.Value,
+            OriginalFileName = SanitizeFileName(fileName),
+            FileHash = parsed.FileHash,
+            FileFormat = parsed.FileFormat,
+            SchemaVersion = SchemaVersion,
+            Status = evaluation.ErrorRows == 0
+                ? PriceListImportBatchStatus.Ready
+                : PriceListImportBatchStatus.Failed,
+            TotalRows = evaluation.Rows.Count,
+            AddedRows = evaluation.AddedRows,
+            UpdatedRows = evaluation.UpdatedRows,
+            UnchangedRows = evaluation.UnchangedRows,
+            WarningRows = evaluation.WarningRows,
+            ErrorRows = evaluation.ErrorRows,
+            ResultMessage = evaluation.ErrorRows == 0
+                ? "File đã sẵn sàng để nhập."
+                : "Vui lòng xử lý các dòng lỗi trước khi nhập.",
+            ColumnMappingsJson = JsonSerializer.Serialize(parsed.ColumnMappings, JsonOptions),
+            UsedCustomMapping = parsed.ColumnMappings.Any(mapping => mapping.IsCustom),
+            NormalizedRowsJson = JsonSerializer.Serialize(parsed.Rows, JsonOptions),
+            IssuesJson = JsonSerializer.Serialize(
+                evaluation.GlobalIssues.Concat(evaluation.Rows.SelectMany(row => row.Issues)),
+                JsonOptions),
+            CreatedByUserId = userId,
+            CreatedAtUtc = now,
+            UpdatedByUserId = userId,
+            UpdatedAtUtc = now,
+            IsDeleted = false
+        };
+
+    private void ApplyEvaluatedRows(
+        PriceList priceList,
+        IReadOnlyList<EvaluatedRow> rows,
+        IReadOnlyDictionary<Guid, SupplierProductMapping> existingMappings,
+        int userId,
+        DateTime now)
+    {
+        foreach (var row in rows)
+        {
+            if (row.Action is PriceListImportAction.Unchanged or PriceListImportAction.Error)
+            {
+                continue;
+            }
+
+            if (row.Action == PriceListImportAction.Add)
+            {
+                unitOfWork.VPPContext.Set<SupplierProductMapping>().Add(new SupplierProductMapping
+                {
+                    Id = Guid.NewGuid(),
+                    PriceListId = priceList.Id,
+                    SupplierId = priceList.SupplierId!.Value,
+                    VppItemId = row.VppItemId!.Value,
+                    Price = row.UnitPrice,
+                    NetPrice = row.UnitPrice,
+                    VatRate = row.VatRate,
+                    MinimumOrderQuantity = row.MinimumOrderQuantity,
+                    LeadTimeDays = row.LeadTimeDays,
+                    IsDefault = row.IsDefault,
+                    Description = row.Note,
+                    CreatedByUserId = userId,
+                    CreatedAtUtc = now,
+                    UpdatedByUserId = userId,
+                    UpdatedAtUtc = now,
+                    IsDeleted = false
+                });
+                continue;
+            }
+
+            var mapping = existingMappings[row.ExistingMappingId!.Value];
+            mapping.Price = row.UnitPrice;
+            mapping.NetPrice = row.UnitPrice;
+            mapping.VatRate = row.VatRate;
+            mapping.MinimumOrderQuantity = row.MinimumOrderQuantity;
+            mapping.LeadTimeDays = row.LeadTimeDays;
+            mapping.IsDefault = row.IsDefault;
+            mapping.Description = row.Note;
+            mapping.UpdatedByUserId = userId;
+            mapping.UpdatedAtUtc = now;
+        }
     }
 
     private async Task<PriceList> EnsurePriceListExistsAsync(Guid id, CancellationToken cancellationToken)

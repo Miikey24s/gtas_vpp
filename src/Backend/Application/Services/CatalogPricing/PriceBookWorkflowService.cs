@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Service.Services;
 
+// Quản lý vòng đời bảng giá và so sánh báo giá theo cùng một mốc thời gian.
+// Publish/Expire ghi trạng thái trong transaction; Compare chỉ đọc và xếp hạng các lựa chọn hợp lệ.
 public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -30,6 +32,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         int userId,
         CancellationToken cancellationToken = default)
     {
+        // Publish chỉ nhận bảng giá nháp đã đủ nhà cung cấp, dòng giá và điều kiện thương mại.
         var reason = ValidateReason(request.Reason);
         await _unitOfWork.BeginTransactionAsync();
         try
@@ -73,6 +76,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         int userId,
         CancellationToken cancellationToken = default)
     {
+        // Expire đóng hiệu lực tại một mốc cụ thể; không xóa dữ liệu để lịch sử chốt vẫn tra cứu được.
         var reason = ValidateReason(request.Reason);
         await _unitOfWork.BeginTransactionAsync();
         try
@@ -116,6 +120,7 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         PriceBookComparisonReqDTO request,
         CancellationToken cancellationToken = default)
     {
+        // Compare lọc bảng giá đang hiệu lực, tính từng dòng rồi xếp hạng; không tự chọn hay ghi NCC.
         var items = NormalizeItems(request.Items);
         var asOfUtc = NormalizeUtc(request.PriceAsOfUtc);
         var itemIds = items.Keys.ToArray();

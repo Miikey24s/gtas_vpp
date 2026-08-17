@@ -32,6 +32,8 @@ public sealed class PriceListImportParsedRow
     public List<PriceListImportIssueResDTO> Issues { get; init; } = [];
 }
 
+// Đọc CSV/XLSX và đưa về cùng một cấu trúc trung gian trước khi service kiểm tra nghiệp vụ.
+// Parser không truy cập database; mọi lỗi định dạng/mapping được trả về để preview hiển thị.
 public sealed class PriceListImportFileParser
 {
     public const long MaximumFileSizeBytes = 5 * 1024 * 1024;
@@ -95,6 +97,7 @@ public sealed class PriceListImportFileParser
         IReadOnlyDictionary<int, string>? columnMappings,
         CancellationToken cancellationToken = default)
     {
+        // Parse dùng lại bước đọc file để hash, giới hạn kích thước và nhận diện CSV/XLSX thống nhất.
         var sourceFile = await ReadSourceAsync(source, fileName, cancellationToken);
         return BuildParsedFile(
             sourceFile.Rows,
@@ -108,6 +111,7 @@ public sealed class PriceListImportFileParser
         string fileName,
         CancellationToken cancellationToken = default)
     {
+        // Analyze chỉ nhận diện cột và dữ liệu mẫu; chưa tạo batch hay thay đổi database.
         var sourceFile = await ReadSourceAsync(source, fileName, cancellationToken);
         var table = ResolveTable(sourceFile.Rows);
         var columns = new List<PriceListImportSourceColumnResDTO>();

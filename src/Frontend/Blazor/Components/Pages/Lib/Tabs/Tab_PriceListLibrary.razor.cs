@@ -16,6 +16,8 @@ using Radzen.Blazor;
 
 namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 {
+    // Trang quản trị bảng giá: filter/search server-side, thao tác lifecycle và import/export theo quyền.
+    // Grid chỉ cập nhật sau command thành công để tránh hiển thị trạng thái tạm không khớp database.
     public partial class Tab_PriceListLibrary : VppServerGridComponentBase<PriceListResDTO>, IDisposable
     {
         [Parameter] public PagePermissionResDTO PagePermissionResDTO { get; set; } = new();
@@ -82,6 +84,7 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
 
         private async Task LoadDataAsync(LoadDataArgs args)
         {
+            // Chỉ tải đúng trang và filter hiện tại; debounce search nằm ở event input để giảm request lặp.
             isLoading = true;
             currentSkip = args.Skip ?? 0;
             try

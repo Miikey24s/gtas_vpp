@@ -1,6 +1,6 @@
 # FRONTEND-REFACTOR-001 — Frontend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: `FR0–FR9 COMPLETE; FR10 POST-FEATURE READABILITY PLANNED — AWAIT OWNER ACCEPTANCE`
+- Status: `FR0–FR9 COMPLETE; FR10A CATALOG/PRICING IN PROGRESS; FR10B–FR10C QUEUED`
 - Priority: P1
 - Path: `STANDARD — behavior-preserving feature-first refactor`
 - Owner: Nguyễn An Nam
@@ -566,7 +566,7 @@ dùng worktree riêng và không chạm cùng module.
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
 | FR8C | `COMPLETE — OWNER APPROVED 2026-08-04` | Golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 | FR9 | `COMPLETE — QA PASS 2026-08-13` | Stable Capability Surface đã retrofit shared contract, Admin, Requests, Operations và Analytics; frontend `434/434`, route-real `2/2 + 10/10 + 5/5`, visual representative routes đã review |
-| FR10 | `PLANNED — AWAIT MODULE ACCEPTANCE` | Chỉ mở FR10A/B/C khi checklist backend cùng module đạt; không mass-refactor UI mới trước khi owner kiểm tra behavior |
+| FR10 | `IN PROGRESS — FR10A CATALOG/PRICING` | Chỉ tách orchestration đã có characterization/build evidence; không đổi API/DTO/RBAC/motif hoặc mass-refactor UI mới |
 
 ### FR10 contract và thứ tự thực thi
 
