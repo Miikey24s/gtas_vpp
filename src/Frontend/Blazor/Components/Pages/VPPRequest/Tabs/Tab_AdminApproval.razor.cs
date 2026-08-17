@@ -1,4 +1,3 @@
-// PAGE LOGIC: VPPRequest/Tabs/Tab_AdminApproval.razor.cs
 using gtas_vpp_fe.Features.IdentityAccess.State;
 using gtas_vpp_fe.Helpers;
 using gtas_vpp_fe.Services;
@@ -14,6 +13,8 @@ using Radzen;
 
 namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 {
+    // Điều phối ba workspace quản lý kỳ và hàng chờ đơn bổ sung theo quyền hiện tại.
+    // URL quyết định tab/kỳ cần mở; quyết định duyệt luôn khóa từng đơn để tránh gửi lặp.
     public partial class Tab_AdminApproval : BaseOrderTab
     {
         private const string PeriodTabQueryName = "periodTab";
@@ -230,24 +231,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             if (confirm != true) return;
 
-            if (!_processingOrderIds.Add(order.Id)) return;
-            StateHasChanged();
-            try
-            {
-                var request = _decisionRequests.BuildApprove(order.Id, order.RowVersion);
-                await Commands.ApproveAdditionalAsync(order.Id, request);
-                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderApprovedSuccess"]);
-                await ReloadPendingWorkspaceAsync();
-            }
-            catch (Exception ex)
-            {
-                Toast.Notify(NotificationSeverity.Error, Loc["Error"], UiErrorMapper.GetMessage(ex, Loc, "ApproveOrderFailed"));
-            }
-            finally
-            {
-                _processingOrderIds.Remove(order.Id);
-                StateHasChanged();
-            }
+            var request = _decisionRequests.BuildApprove(order.Id, order.RowVersion);
+            await ExecutePendingDecisionAsync(
+                order,
+                () => Commands.ApproveAdditionalAsync(order.Id, request),
+                "OrderApprovedSuccess",
+                "ApproveOrderFailed");
         }
 
         private async Task HandleRejectClick(VppRequestResDTO order)
@@ -260,21 +249,42 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             if (reason is not string rejectionReason || string.IsNullOrWhiteSpace(rejectionReason)) return;
 
-            if (!_processingOrderIds.Add(order.Id)) return;
+            var request = _decisionRequests.BuildReject(
+                order.Id,
+                order.RowVersion,
+                rejectionReason);
+            await ExecutePendingDecisionAsync(
+                order,
+                () => Commands.RejectAdditionalAsync(order.Id, request),
+                "OrderRejectedSuccess",
+                "RejectOrderFailed");
+        }
+
+        private async Task ExecutePendingDecisionAsync(
+            VppRequestResDTO order,
+            Func<Task> command,
+            string successMessageKey,
+            string failureMessageKey)
+        {
+            if (!_processingOrderIds.Add(order.Id))
+            {
+                return;
+            }
+
+            // Giữ cùng lifecycle cho duyệt/từ chối: khóa dòng, gửi lệnh, tải lại và luôn mở khóa khi lỗi.
             StateHasChanged();
             try
             {
-                var request = _decisionRequests.BuildReject(
-                    order.Id,
-                    order.RowVersion,
-                    rejectionReason);
-                await Commands.RejectAdditionalAsync(order.Id, request);
-                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc["OrderRejectedSuccess"]);
+                await command();
+                Toast.Notify(NotificationSeverity.Success, Loc["Success"], Loc[successMessageKey]);
                 await ReloadPendingWorkspaceAsync();
             }
             catch (Exception ex)
             {
-                Toast.Notify(NotificationSeverity.Error, Loc["Error"], UiErrorMapper.GetMessage(ex, Loc, "RejectOrderFailed"));
+                Toast.Notify(
+                    NotificationSeverity.Error,
+                    Loc["Error"],
+                    UiErrorMapper.GetMessage(ex, Loc, failureMessageKey));
             }
             finally
             {
