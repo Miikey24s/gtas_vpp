@@ -12,6 +12,8 @@ using System.Linq.Dynamic.Core;
 
 namespace gtas_vpp_be.Service.Services
 {
+    // Quản lý CRUD, soft-delete, mặc định và bản sao của bảng giá.
+    // Lifecycle publish/expire và so sánh báo giá nằm ở PriceBookWorkflowService để không trộn trách nhiệm.
     public class PriceListService : IPriceListService
     {
         private const string DefaultConflictMessage = "Another price list is already default.";
@@ -161,22 +163,9 @@ namespace gtas_vpp_be.Service.Services
                 var entity = new PriceList
                 {
                     Id = Guid.NewGuid(),
-                    PriceListCode = req.Code,
-                    PriceListName = req.Name,
-                    Description = req.Description,
-                    IsDefault = req.IsDefault,
-                    SupplierId = req.SupplierId,
-                    Version = req.Version,
                     EffectiveFromUtc = nowUtc,
                     EffectiveToUtc = null,
                     Status = PriceListStatus.Published,
-                    CurrencyCode = NormalizeCurrency(req.CurrencyCode),
-                    VatPolicy = NormalizeVatPolicy(req.VatPolicy),
-                    ContractCode = NormalizeOptional(req.ContractCode),
-                    DiscountRate = req.DiscountRate,
-                    RebateAmount = req.RebateAmount,
-                    FeeAmount = req.FeeAmount,
-                    ShippingAmount = req.ShippingAmount,
                     PublishedAtUtc = now,
                     PublishedByUserId = userId,
                     CreatedByUserId = userId,
@@ -185,6 +174,9 @@ namespace gtas_vpp_be.Service.Services
                     UpdatedAtUtc = now,
                     IsDeleted = false
                 };
+                ApplyIdentityFields(entity, req.Code, req.Name, req.Description, req.IsDefault, req.SupplierId, req.Version);
+                ApplyCommercialFields(entity, req.CurrencyCode, req.VatPolicy, req.ContractCode,
+                    req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
 
                 _scopedUow.VPPContext.Set<PriceList>().Add(entity);
                 await _scopedUow.CommitAsync();
@@ -236,12 +228,7 @@ namespace gtas_vpp_be.Service.Services
                     await DemoteDefaultsAsync(userId, now);
                 }
 
-                entity.PriceListCode = req.Code;
-                entity.PriceListName = req.Name;
-                entity.Description = req.Description;
-                entity.IsDefault = req.IsDefault;
-                entity.SupplierId = req.SupplierId;
-                entity.Version = req.Version;
+                ApplyIdentityFields(entity, req.Code, req.Name, req.Description, req.IsDefault, req.SupplierId, req.Version);
                 entity.EffectiveFromUtc = NormalizeUtc(effectiveFromUtc);
                 entity.EffectiveToUtc = null;
                 if (entity.Status != PriceListStatus.Published)
@@ -252,13 +239,8 @@ namespace gtas_vpp_be.Service.Services
                     entity.ExpiredAtUtc = null;
                     entity.ExpiredByUserId = null;
                 }
-                entity.CurrencyCode = NormalizeCurrency(req.CurrencyCode);
-                entity.VatPolicy = NormalizeVatPolicy(req.VatPolicy);
-                entity.ContractCode = NormalizeOptional(req.ContractCode);
-                entity.DiscountRate = req.DiscountRate;
-                entity.RebateAmount = req.RebateAmount;
-                entity.FeeAmount = req.FeeAmount;
-                entity.ShippingAmount = req.ShippingAmount;
+                ApplyCommercialFields(entity, req.CurrencyCode, req.VatPolicy, req.ContractCode,
+                    req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
                 entity.UpdatedByUserId = userId;
                 entity.UpdatedAtUtc = now;
 
@@ -610,6 +592,44 @@ namespace gtas_vpp_be.Service.Services
             {
                 throw new BusinessException("CurrencyCode must contain exactly three letters.");
             }
+        }
+
+        private static void ApplyIdentityFields(
+            PriceList entity,
+            string? code,
+            string? name,
+            string? description,
+            bool isDefault,
+            Guid? supplierId,
+            int version)
+        {
+            // Nhóm trường nhận diện dùng chung cho Create/Update; validation vẫn nằm ở public command.
+            entity.PriceListCode = code;
+            entity.PriceListName = name;
+            entity.Description = description;
+            entity.IsDefault = isDefault;
+            entity.SupplierId = supplierId;
+            entity.Version = version;
+        }
+
+        private static void ApplyCommercialFields(
+            PriceList entity,
+            string currencyCode,
+            string? vatPolicy,
+            string? contractCode,
+            decimal discountRate,
+            decimal rebateAmount,
+            decimal feeAmount,
+            decimal shippingAmount)
+        {
+            // Chuẩn hóa tiền tệ/chính sách tại một chỗ để Create và Update không lệch nhau.
+            entity.CurrencyCode = NormalizeCurrency(currencyCode);
+            entity.VatPolicy = NormalizeVatPolicy(vatPolicy);
+            entity.ContractCode = NormalizeOptional(contractCode);
+            entity.DiscountRate = discountRate;
+            entity.RebateAmount = rebateAmount;
+            entity.FeeAmount = feeAmount;
+            entity.ShippingAmount = shippingAmount;
         }
 
         private static string NormalizeCurrency(string value)
