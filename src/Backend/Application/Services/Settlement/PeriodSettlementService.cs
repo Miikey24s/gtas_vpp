@@ -86,32 +86,7 @@ namespace gtas_vpp_be.Service.Services
                 response.Blockers.Add("NO_SUBMITTED_ITEMS");
             }
 
-            var duplicateExceptionItems = (req.Exceptions ?? [])
-                .GroupBy(x => x.VppId)
-                .Where(x => x.Count() > 1)
-                .Select(x => x.Key)
-                .ToHashSet();
-            foreach (var exception in req.Exceptions ?? [])
-            {
-                var valid = exception.VppId != Guid.Empty
-                             && exception.SupplierId != Guid.Empty
-                             && totals.ContainsKey(exception.VppId)
-                             && !duplicateExceptionItems.Contains(exception.VppId)
-                             && !string.IsNullOrWhiteSpace(exception.Reason)
-                             && exception.Reason.Trim().Length is >= 5 and <= 500;
-                response.Exceptions.Add(new SettlementExceptionResDTO
-                {
-                    VppId = exception.VppId,
-                    SupplierId = exception.SupplierId,
-                    PriceListId = exception.PriceListId,
-                    Reason = exception.Reason?.Trim(),
-                    IsValid = valid
-                });
-                if (!valid)
-                {
-                    response.Blockers.Add($"INVALID_SUPPLIER_EXCEPTION:{exception.VppId}");
-                }
-            }
+            ApplyRequestedExceptions(response, req.Exceptions ?? [], totals);
 
             if (totals.Count > 0)
             {
@@ -129,20 +104,7 @@ namespace gtas_vpp_be.Service.Services
                     comparison.Quotes,
                     totals.Count);
 
-                var candidates = response.Quotes.AsEnumerable();
-                if (req.PriceListId.HasValue)
-                {
-                    candidates = candidates.Where(x => x.PriceListId == req.PriceListId.Value);
-                }
-                if (req.PrimarySupplierId.HasValue)
-                {
-                    candidates = candidates.Where(x => x.SupplierId == req.PrimarySupplierId.Value);
-                }
-
-                response.PrimaryQuote = (req.Exceptions?.Count > 0
-                        ? candidates
-                        : candidates.Where(x => x.IsEligible))
-                    .FirstOrDefault();
+                response.PrimaryQuote = SelectPrimaryQuote(response.Quotes, req);
                 if (response.PrimaryQuote is not null && response.Exceptions.Count > 0)
                 {
                     await ApplySupplierExceptionsAsync(response, totals, asOfUtc, cancellationToken);
@@ -174,6 +136,63 @@ namespace gtas_vpp_be.Service.Services
                 response.PrimarySupplierId,
                 response.PrimaryPriceListId);
             return response;
+        }
+
+        private static void ApplyRequestedExceptions(
+            SettlementPreviewResDTO response,
+            IReadOnlyList<SettlementExceptionReqDTO> requestedExceptions,
+            IReadOnlyDictionary<Guid, decimal> totals)
+        {
+            // Một mặt hàng chỉ được gán một ngoại lệ NCC; ngoại lệ sai vẫn trả về để UI chỉ đúng dòng cần sửa.
+            var duplicateItems = requestedExceptions
+                .GroupBy(item => item.VppId)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet();
+
+            foreach (var requested in requestedExceptions)
+            {
+                var reason = requested.Reason?.Trim();
+                var isValid = requested.VppId != Guid.Empty
+                    && requested.SupplierId != Guid.Empty
+                    && totals.ContainsKey(requested.VppId)
+                    && !duplicateItems.Contains(requested.VppId)
+                    && !string.IsNullOrWhiteSpace(reason)
+                    && reason.Length is >= 5 and <= 500;
+                response.Exceptions.Add(new SettlementExceptionResDTO
+                {
+                    VppId = requested.VppId,
+                    SupplierId = requested.SupplierId,
+                    PriceListId = requested.PriceListId,
+                    Reason = reason,
+                    IsValid = isValid
+                });
+                if (!isValid)
+                {
+                    response.Blockers.Add($"INVALID_SUPPLIER_EXCEPTION:{requested.VppId}");
+                }
+            }
+        }
+
+        private static PriceBookQuoteResDTO? SelectPrimaryQuote(
+            IReadOnlyList<PriceBookQuoteResDTO> quotes,
+            SettlementPreviewReqDTO request)
+        {
+            var candidates = quotes.AsEnumerable();
+            if (request.PriceListId.HasValue)
+            {
+                candidates = candidates.Where(quote => quote.PriceListId == request.PriceListId.Value);
+            }
+            if (request.PrimarySupplierId.HasValue)
+            {
+                candidates = candidates.Where(quote => quote.SupplierId == request.PrimarySupplierId.Value);
+            }
+
+            // Có ngoại lệ hợp lệ thì quote gốc có thể thiếu vài dòng; các dòng đó sẽ được định giá ở bước kế tiếp.
+            return ((request.Exceptions?.Count ?? 0) > 0
+                    ? candidates
+                    : candidates.Where(quote => quote.IsEligible))
+                .FirstOrDefault();
         }
 
         public Task<SettlementRevisionResDTO> ConfirmAsync(
