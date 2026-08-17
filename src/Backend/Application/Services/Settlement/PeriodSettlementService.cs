@@ -14,6 +14,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Service.Services
 {
+    // Điều phối preview/chốt/điều chỉnh kỳ và xuất báo cáo từ cùng một snapshot dữ liệu.
+    // Preview chỉ đọc + tính toán; SaveRevisionAsync mới tạo bản chốt bất biến trong transaction.
     public class PeriodSettlementService : IPeriodSettlementService
     {
         private readonly IUnitOfWork _scopedUow;
@@ -50,35 +52,17 @@ namespace gtas_vpp_be.Service.Services
             SettlementPreviewReqDTO req,
             CancellationToken cancellationToken = default)
         {
+            // Bước 1: lấy đúng tập đơn hợp lệ hiện hành; bước 2: so sánh giá/NCC; bước 3: dựng blocker và phân bổ.
             ValidatePeriod(req.Year, req.Month);
             if (_priceBookWorkflowService is null)
             {
                 throw new BusinessException("Settlement preview is unavailable.");
             }
 
-            var headers = await _scopedUow.VPPContext.Set<VppRequest>()
-                .AsNoTracking()
-                .Where(x => x.Year == req.Year && x.Month == req.Month && !x.IsDeleted
-                         && ((x.IsAdditionalOrder
-                              && x.IsCurrentRevision
-                              && x.Status == (int)VPPStatus.Approved)
-                             || (!x.IsAdditionalOrder
-                                 && x.IsCurrentRevision
-                                 && (x.Status == (int)VPPStatus.Submitted
-                                     || x.Status == (int)VPPStatus.Approved))))
-                .Include(x => x.RequestDetails.Where(detail => !detail.IsDeleted))
-                .ToListAsync(cancellationToken);
-
-            var pendingAdditionalCount = await _scopedUow.VPPContext.Set<VppRequest>()
-                .AsNoTracking()
-                .CountAsync(x => x.Year == req.Year && x.Month == req.Month && !x.IsDeleted
-                              && x.IsAdditionalOrder
-                              && x.Status == (int)VPPStatus.Pending, cancellationToken);
-
-            var totals = headers
-                .SelectMany(x => x.RequestDetails)
-                .GroupBy(x => x.VppId)
-                .ToDictionary(group => group.Key, group => group.Sum(detail => (decimal)detail.Qty));
+            var demand = await LoadPreviewDemandAsync(req.Year, req.Month, cancellationToken);
+            var headers = demand.Headers;
+            var pendingAdditionalCount = demand.PendingAdditionalCount;
+            var totals = demand.Totals;
 
             var asOfUtc = req.PriceAsOfUtc.HasValue
                 ? NormalizeUtc(req.PriceAsOfUtc.Value)
@@ -282,6 +266,39 @@ namespace gtas_vpp_be.Service.Services
                     ExportFileContract.ExcelContentType);
         }
 
+        private async Task<SettlementDemandSnapshot> LoadPreviewDemandAsync(
+            int year,
+            int month,
+            CancellationToken cancellationToken)
+        {
+            var headers = await _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(x => x.Year == year && x.Month == month && !x.IsDeleted
+                         && ((x.IsAdditionalOrder
+                              && x.IsCurrentRevision
+                              && x.Status == (int)VPPStatus.Approved)
+                             || (!x.IsAdditionalOrder
+                                 && x.IsCurrentRevision
+                                 && (x.Status == (int)VPPStatus.Submitted
+                                     || x.Status == (int)VPPStatus.Approved))))
+                .Include(x => x.RequestDetails.Where(detail => !detail.IsDeleted))
+                .ToListAsync(cancellationToken);
+
+            var pendingAdditionalCount = await _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .CountAsync(x => x.Year == year && x.Month == month && !x.IsDeleted
+                              && x.IsAdditionalOrder
+                              && x.Status == (int)VPPStatus.Pending, cancellationToken);
+
+            var totals = headers
+                .SelectMany(x => x.RequestDetails)
+                .GroupBy(x => x.VppId)
+                .ToDictionary(group => group.Key, group => group.Sum(detail => (decimal)detail.Qty));
+
+            // Snapshot này chỉ gom nhu cầu; giá, NCC và blocker được xử lý ở bước preview kế tiếp.
+            return new SettlementDemandSnapshot(headers, pendingAdditionalCount, totals);
+        }
+
         private async Task<SettlementRevisionResDTO> SaveRevisionAsync(
             SettlementConfirmReqDTO req,
             Guid? correctionSettlementId,
@@ -289,6 +306,7 @@ namespace gtas_vpp_be.Service.Services
             int userId,
             CancellationToken cancellationToken)
         {
+            // Mỗi lần chốt/điều chỉnh tạo một revision mới; idempotency và RowVersion chặn ghi trùng hoặc ghi đè.
             ValidateConfirmRequest(req);
             var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
                 System.Globalization.CultureInfo.InvariantCulture);
@@ -1424,6 +1442,11 @@ namespace gtas_vpp_be.Service.Services
             return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
                 System.Text.Encoding.UTF8.GetBytes(canonical)));
         }
+
+        private sealed record SettlementDemandSnapshot(
+            List<VppRequest> Headers,
+            int PendingAdditionalCount,
+            Dictionary<Guid, decimal> Totals);
 
         private sealed record SnapshotPriceEvidence(
             Guid SupplierId,
