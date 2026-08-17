@@ -10,8 +10,8 @@ using Microsoft.Extensions.Logging;
 namespace gtas_vpp_be.Service.Services;
 
 /// <summary>
-/// Quản lý period instances và tự bổ sung rolling horizon. Settings chỉ được đọc
-/// khi tạo period mới; mọi period đã tồn tại giữ nguyên exact timestamps.
+/// Quản lý vòng đời kỳ đặt hàng và tự bù đủ số kỳ đang mở theo cấu hình.
+/// Cấu hình chỉ áp dụng khi tạo kỳ mới; kỳ đã tồn tại luôn giữ nguyên lịch riêng.
 /// </summary>
 public sealed class VppPeriodService : IVppPeriodService
 {
@@ -598,12 +598,7 @@ public sealed class VppPeriodService : IVppPeriodService
 
             foreach (var candidate in candidates)
             {
-                var target = candidate.State switch
-                {
-                    VppPeriodState.Scheduled => VppPeriodState.Open,
-                    VppPeriodState.Open => VppPeriodState.SubmissionClosed,
-                    _ => VppPeriodState.Pricing
-                };
+                var target = ResolveAutomaticTargetState(candidate.State);
                 try
                 {
                     transitioned.Add(await TransitionWithResultAsync(
@@ -646,12 +641,7 @@ public sealed class VppPeriodService : IVppPeriodService
         }
 
         var nowUtc = CurrentUtc();
-        if (enforceDueBoundary
-            && ((targetState == VppPeriodState.Open && nowUtc < period.StartAtUtc)
-                || (targetState == VppPeriodState.SubmissionClosed
-                    && nowUtc < period.SubmissionDeadlineUtc)
-                || (targetState == VppPeriodState.Pricing
-                    && nowUtc < period.SupplementApprovalDeadlineUtc)))
+        if (enforceDueBoundary && !HasReachedTransitionBoundary(period, targetState, nowUtc))
         {
             throw new ConflictException("Kỳ chưa đến mốc chuyển trạng thái.");
         }
@@ -660,6 +650,30 @@ public sealed class VppPeriodService : IVppPeriodService
         ApplyTransitionAudit(period, actorUserId, reason);
         await SavePeriodAsync(period, cancellationToken);
         return period;
+    }
+
+    private static VppPeriodState ResolveAutomaticTargetState(VppPeriodState currentState)
+        => currentState switch
+        {
+            VppPeriodState.Scheduled => VppPeriodState.Open,
+            VppPeriodState.Open => VppPeriodState.SubmissionClosed,
+            VppPeriodState.SubmissionClosed => VppPeriodState.Pricing,
+            _ => throw new ConflictException("Trạng thái kỳ không hỗ trợ chuyển tự động.")
+        };
+
+    private static bool HasReachedTransitionBoundary(
+        VppPeriod period,
+        VppPeriodState targetState,
+        DateTime nowUtc)
+    {
+        // Mỗi đích có một mốc riêng; chuyển thủ công vẫn dùng cùng luật để không đi trước lịch kỳ.
+        return targetState switch
+        {
+            VppPeriodState.Open => nowUtc >= period.StartAtUtc,
+            VppPeriodState.SubmissionClosed => nowUtc >= period.SubmissionDeadlineUtc,
+            VppPeriodState.Pricing => nowUtc >= period.SupplementApprovalDeadlineUtc,
+            _ => true
+        };
     }
 
     private List<(Period period, PeriodSchedule schedule)> BuildProposedPeriods(
