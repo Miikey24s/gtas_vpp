@@ -1010,10 +1010,10 @@ public sealed class VppPeriodService : IVppPeriodService
     private DateTime CurrentUtc()
         => PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
 
+    // Trạng thái ban đầu chỉ dựa trên mốc lịch; chuyển trạng thái sau đó do advance aggregate xử lý.
     private static VppPeriodState ResolveInitialState(
         PeriodSchedule schedule,
         DateTime nowUtc)
-        // Trạng thái ban đầu chỉ dựa trên mốc lịch; chuyển trạng thái sau đó do advance aggregate xử lý.
         => nowUtc < schedule.StartAtUtc
             ? VppPeriodState.Scheduled
             : nowUtc >= schedule.SupplementApprovalDeadlineUtc
