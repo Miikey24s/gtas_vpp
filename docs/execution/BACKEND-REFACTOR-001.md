@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: B0R–B2 COMPLETE — B3 CATALOG/PRICING IN PROGRESS; B4–B5 QUEUED
+- Status: B0R–B2 COMPLETE — B3–B8 CHECKPOINT SLICES COMPLETE; FINAL INTEGRATION/OWNERSHIP REVIEW IN PROGRESS
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -32,12 +32,12 @@
 | Kết quả cần đạt | Backend vẫn chạy y như hiện tại nhưng người mới có thể lần từ API → use case → database nhanh, tên dễ hiểu, class có trách nhiệm rõ, không còn rác đã chứng minh | [Objective](#plan-detail-objective) |
 | Phạm vi | `src/Backend`, backend tests và tài liệu đọc code; không redesign UI, không đổi API/JSON/quyền/nghiệp vụ/schema | [Scope](#plan-detail-scope) |
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
-| Các bước chính | Đã xong B0R–B2 → C0 khóa baseline/comment → owner nghiệm thu từng nhóm → B3 Catalog/Pricing → B4 Period/Requests → B5 Settlement/Correction → B6 Identity → B7 Platform → B8 Persistence/final | [Waves](#plan-detail-waves) |
+| Các bước chính | Đã xong B0R–B2 và C0; các checkpoint B3 Catalog/Pricing → B4 Period/Requests → B5 Settlement/Correction → B6 Identity → B7 Platform → B8 Persistence đã được triển khai theo lát nhỏ. Còn final integration, route-real và residual ownership review trước khi đóng plan | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English; comment tiếng Việt `quick-scan` cho vai trò → bước chính → kết quả/tác động → lý do/ràng buộc. Chi tiết nhưng mỗi comment chỉ 1 ý, đọc lướt được; không comment từng câu lệnh | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Probe live 18/08 bị timeout nên capacity chưa được xác nhận. Khuyến nghị `gpt-5.6-terra` high cho lát rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; chỉ mở checkpoint độc lập và đo lại trước wave kế | [Routing](#plan-detail-routing) |
 | Kiểm tra | Mỗi checkpoint khóa route/permission/JSON trước, chạy focused test trong vòng lặp và full backend gate trước commit. Chức năng mới chỉ chuyển từ `FROZEN` sang `ACCEPTED` sau checklist thực tế của owner và regression test tương ứng | [Verification](#plan-detail-verification) |
 | Rủi ro chính | Gọi code là “cũ” nhưng vẫn dùng chung period/settlement/pricing mới; refactor vô tình hợp thức hóa bug chưa nghiệm thu; `VPPContext`, Shared DTO, seed và `Program.cs` gây ảnh hưởng xuyên module | [Risks](#plan-detail-risks) |
-| Bước tiếp theo | Hoàn tất B3/FR10A theo từng checkpoint, sau đó chuyển lần lượt sang B4/FR10B và B5/FR10C; bug nghiệp vụ vẫn tách khỏi refactor | [Continuation](#plan-detail-continuation) |
+| Bước tiếp theo | Cập nhật evidence, chạy full backend/frontend gate, isolated route-real QA và rà các hotspot còn giữ ownership rộng; bug nghiệp vụ vẫn tách khỏi refactor | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:** `behavior-preserving` = đổi cấu trúc bên trong nhưng hành vi quan sát được không đổi;
 `characterization test` = test khóa hành vi hiện có trước khi refactor; `migration-on-touch` = chỉ di
@@ -466,14 +466,14 @@ src/Backend/
 | **B1b-A — COMPLETE 2026-08-04** | Repo metadata không còn duplicate/ghost/stale command file | Đã xóa nested Git metadata, stale API readme và ghost csproj include | `gpt-5.6-terra` medium | Actual aggregate checkpoint `34%` | Ignore/attr/XML/API build; backend `503/503`; full verify PASS |
 | **B1b-B — COMPLETE 2026-08-04** | `.http` dùng route hiện hành, không credential/mutation | Health + authenticated read-only examples với bearer/order placeholders; không đụng local artifacts | `gpt-5.6-terra` medium | Actual aggregate checkpoint `4%` | GET-only/no-secret scan; manifest `1/1`; API build PASS |
 | **B2 — Reports cũ, chỉ đọc** (`COMPLETE 2026-08-13`) | Chốt pattern module ở vùng ít mutation nhất mà không thay đổi nghiệp vụ mới | B2F khóa validation/current revision/scope; B2A có `ReportQueryContext`, settlement reader và CSV builder; B2B có `Api/Features/Reports` + `AddReportsModule`; B2C đã handoff vào code-reading guide | `gpt-5.6-terra` high implement, review `gpt-5.6-sol` high | Chưa có đo aggregate riêng đáng tin cậy | Focused 51/51; backend 543/543; frontend client 6/6; disposable SQL 24/24; EF zero delta; formatter/analyzer scoped PASS. Baseline `b404d52f` sau đó đã full verify PASS |
-| **C0 — Post-feature baseline & comment ledger** (`PLANNED`) | Khóa hành vi và bản đồ comment đọc nhanh trước khi tách module mới | Docs/test-only: cập nhật hotspot, API/use-case owner, characterization gap và comment candidate theo bốn tầng vai trò/luồng/tác động/ràng buộc; không sửa production | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | Reforecast trước execution | No production diff; focused characterization mới xanh; quick-scan ledger liên kết reading guide; full gate chỉ chạy nếu test/shared contract bị chạm |
+| **C0 — Post-feature baseline & comment ledger** (`COMPLETE`) | Khóa hành vi và bản đồ comment đọc nhanh trước khi tách module mới | Policy quick-scan đã được ghi vào authority và execution record; comment chỉ bổ sung ở boundary/lifecycle khó đoán | `gpt-5.6-terra` high, review `gpt-5.6-sol` high | Không có đo aggregate đáng tin cậy | Commit `4032200e`; không đổi production behavior |
 | **UAT-N — Owner kiểm tra chức năng mới** | Xác nhận hành vi thật trước khi refactor module mới | Period/Requests, Settlement/Correction + suggestion tối đa 2 NCC, price-list thủ công/Excel; phân loại `PASS/BUG/UI/BUSINESS DECISION` | Owner chạy luồng thật; agent dùng `gpt-5.6-sol` high khi phân tích bug khó | Không tính như production refactor | Checklist acceptance hoàn tất theo từng module; bug fix commit riêng và regression test xanh |
-| **B3 — Catalog & Pricing** (`IN PROGRESS`) | Typed read/write/import paths rõ, thu nhỏ `LibraryController` | Catalog query, price-list lifecycle, template/export, analyze-preview-confirm import; khóa rule ô giá trống giữ giá cũ, mã lạ/sai đơn vị bị chặn, thủ công mặc định; AI mapping chỉ là adapter tùy chọn | `gpt-5.6-sol` high design/review, `terra` high implement | Reforecast sau checkpoint | Import orchestration đã tách bước mapping/batch/apply; service/frontend build xanh; backend unit `564/564`, frontend unit `502/502`; LocalDB import tests hiện skip khi không có disposable SQL |
-| **B4 — Period & Requests** (`FROZEN` đến khi period/request accepted) | Tách lifecycle kỳ khỏi god request service mà giữ nguyên toàn bộ luồng đơn | Period query/schedule/lifecycle trước; sau đó request query/history, create-update-cancel, supplement workflow, demand và notification boundary | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | Reforecast sau UAT | Schedule/time boundary, idempotency/concurrency/revision/history, route/auth/JSON và focused LocalDB |
-| **B5 — Settlement & post-settlement correction** (`FROZEN` đến khi settlement accepted) | Preview/confirm/revision/correction và gợi ý NCC rõ theo use case | `PeriodSettlementService`, snapshot pricing/evidence, suggestion tối đa hai NCC, correction hai quản lý, notification và revision query; không mở lại nghiệp vụ đã bị owner loại | `gpt-5.6-sol` xhigh, `terra` high implement | Reforecast sau UAT | Snapshot/hash/idempotency/four-eyes/VAT/revision; whole-item allocation, no-auto-apply; SQL Server integration; no schema delta |
-| **B6 — Identity & Access** | Security logic có ownership rõ, controller không query context | `PermissionController`, `AccountLifecycleService`, `MembershipAdministrationService`, `AuthBootstrapProvisioner`; giữ `Api/Authorization` là owner hiện hữu cho đến khi move thật sự cải thiện navigation, không mass-move để khớp cây mẫu | `gpt-5.6-sol` xhigh, `terra` high implement | 10–25% | Role/action/scope matrix; direct API 401/403; session invalidation; bootstrap/reconciliation; no secret/log regression |
-| **B7 — Platform, composition & operations** | `Program.cs`/hosting/logging dễ đọc mà không đổi deployment behavior | Mỗi B2–B6 đã sở hữu `Add<Module>()`; B7 chỉ compose, tách DB init runner, cấu hình log path với Development/migrator/production contract, worker/notification/platform cleanup | `gpt-5.6-sol` high/xhigh | 5–12% | Composition-root smoke; deployment/log-volume contract; worker tests; all module registrations resolve |
-| **B8 — Persistence mapping & final review** | Giảm mapping drift hoặc ghi nhận waiver có bằng chứng; hoàn tất guide/adapters | DB-safety checkpoint riêng cho shared `IEntityTypeConfiguration<T>` nếu zero-delta; xóa adapter hết consumer; namespace/folder cleanup; final code-reading review | `gpt-5.6-sol` xhigh | 5–12% | All current opt-in LocalDB tests pass, 0 skip/fail; fresh migrate/reseed/reset; EF no delta; full backend verify; route/wire/dependency manifest |
+| **B3 — Catalog & Pricing** (`CHECKPOINT COMPLETE`) | Typed import/read paths rõ hơn mà không đổi contract | Tách mapping/batch/apply, preview/confirm và dùng chung price-list field mapping; không thay rule import hoặc wire contract | `gpt-5.6-sol` high design/review, `terra` high implement | Không có đo aggregate đáng tin cậy | `aa1090b0`, `9b417152`, `5782c969`; backend `564/564`, frontend `502/502`, build sạch |
+| **B4 — Period & Requests** (`CHECKPOINT COMPLETE`) | Giảm lặp ở query/filter và làm rõ lifecycle kỳ | Dùng chung order/history filters, tách initial state và comment transition tự động; chưa tuyên bố đã thu nhỏ toàn bộ `VPPRequestService` | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | Không có đo aggregate đáng tin cậy | `01fb8739`, `4fcdf0b3`, `3ed690fc`, `2bb15990`; full unit/build xanh |
+| **B5 — Settlement & post-settlement correction** (`CHECKPOINT COMPLETE`) | Preview/exception selection có boundary rõ hơn | Tách demand snapshot và exception selection; giữ snapshot, VAT, correction và revision contract hiện tại | `gpt-5.6-sol` xhigh, `terra` high implement | Không có đo aggregate đáng tin cậy | `7aa70030`, `9747548e`; full unit/build xanh |
+| **B6 — Identity & Access** (`CHECKPOINT COMPLETE`) | Validation command có owner rõ hơn | Tách registration và membership validation; chưa xóa toàn bộ direct-context debt trong `PermissionController` | `gpt-5.6-sol` xhigh, `terra` high implement | Không có đo aggregate đáng tin cậy | `b2f8eeb2`, `9f76697c`; focused identity/bootstrap `63/63` |
+| **B7 — Platform, composition & operations** (`CHECKPOINT COMPLETE`) | Composition và database initialization dễ lần hơn | Chuyển deployment database contract và tách `DatabaseInitializationRunner`; giữ retry, deterministic failure và SQL application lock | `gpt-5.6-sol` high/xhigh | Không có đo aggregate đáng tin cậy | `e7c3ec79`, `afed582b`; API build sạch, focused platform/database `48/48` |
+| **B8 — Persistence mapping & final review** (`CHECKPOINT COMPLETE`) | Giảm mapping drift có kiểm chứng zero-delta | Dùng chung trusted-access mapping cho runtime/migration context; chưa mass-share mapping khác vì hai context có view và constraint ownership khác nhau | `gpt-5.6-sol` xhigh | Không có đo aggregate đáng tin cậy | `058f2fa0`; EF pending-model check không có thay đổi, focused identity/bootstrap `63/63` |
 
 Chỉ đổi model ở ranh giới wave/checkpoint; một implementer chính giữ context, reviewer/subagent chỉ
 audit hoặc verify độc lập.
@@ -746,12 +746,17 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
   `PeriodSettlementService` 1540, `VPPRequestController` 1226, `LibraryController` 1153,
   `VppPeriodService` 1066, `AccountLifecycleService` 1028. LOC chỉ định hướng characterization và ownership,
   không phải tiêu chí tự động tách class.
-- C0 baseline/comment đã khóa ở `4032200e`; owner đã yêu cầu triển khai full plan. B3 đang chạy theo
-  checkpoint nhỏ: tách orchestration import trước, sau đó mới mở rộng sang lifecycle/catalog và FR10A.
-- Checkpoint B3 hiện tại: `aa1090b0` tách mapping/batch/apply khỏi `PriceListImportService`, giữ nguyên
-  transaction và wire contract; `9b417152` tách preview/confirm ở dialog import. Service/frontend build
-  xanh; backend unit `564/564`, frontend unit `502/502`; LocalDB import characterization hiện skip khi
-  môi trường không có disposable SQL Server.
+- C0 baseline/comment đã khóa ở `4032200e`; owner đã yêu cầu triển khai full plan. Chuỗi checkpoint B3–B8
+  đã được thực hiện theo lát behavior-preserving, mỗi lát có build/test trước khi chuyển boundary kế tiếp.
+- Catalog/Pricing: `aa1090b0`, `9b417152`, `5782c969`. Period/Requests: `01fb8739`, `4fcdf0b3`,
+  `3ed690fc`, `2bb15990`. Settlement: `7aa70030`, `9747548e`. Identity: `b2f8eeb2`, `9f76697c`.
+  Platform/Persistence: `e7c3ec79`, `058f2fa0`, `afed582b`.
+- Evidence gần nhất: backend unit `564/564`, frontend unit `502/502`; API và Blazor build sạch. Shared
+  trusted-access mapping đạt EF zero-delta; focused identity/bootstrap `63/63`, platform/database `48/48`.
+  LocalDB/import integration vẫn phải báo đúng skip nếu môi trường không có disposable SQL Server.
+- Đây là **checkpoint completion**, chưa phải tuyên bố mọi hotspot đã được chia xong. `VPPRequestService`,
+  `LibraryController`, `PermissionController` và một số orchestration lớn còn residual ownership debt; chỉ
+  xử lý tiếp khi characterization chứng minh lát tách mới tạo navigation/test seam rõ, không refactor theo LOC.
 
 - Checkpoint series hiện tại trên branch `Nam`: `d2fd8598` → `0c74f911` → `65a72d66` → `b14716b7`
   → `de0a20fb` → `e5589326`; mỗi lát giữ repository chạy được trước khi mở lát tiếp theo.
