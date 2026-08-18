@@ -49,11 +49,12 @@ public sealed class GridColumnMetadataRegistryTests
                 Define(nameof(VppItemResDTO.UomId), "Unit", order: 1, isDropdownList: true),
                 Define(nameof(VppItemResDTO.Uom), ignore: true, order: 2),
                 Define(nameof(VppItemResDTO.VppCategoryId), "Category", order: 3, isDropdownList: true),
-                Define(nameof(VppItemResDTO.DefaultSupplierName), "Supplier", "180px", order: 4, isReadOnly: true),
-                Define(nameof(VppItemResDTO.DefaultPrice), "Price", "140px", order: 5, isReadOnly: true),
-                Define(nameof(VppItemResDTO.DefaultVatRate), ignore: true, order: 6),
-                Define(nameof(VppItemResDTO.VppCategory), ignore: true, order: 7),
-                Define(nameof(VppItemResDTO.SupplierProductMappings), ignore: true, order: 8)
+                Define(nameof(VppItemResDTO.MaxQuantityPerOrder), "MaxQuantityPerOrder", "140px", order: 4),
+                Define(nameof(VppItemResDTO.DefaultSupplierName), "Supplier", "180px", order: 5, isReadOnly: true),
+                Define(nameof(VppItemResDTO.DefaultPrice), "Price", "140px", order: 6, isReadOnly: true),
+                Define(nameof(VppItemResDTO.DefaultVatRate), ignore: true, order: 7),
+                Define(nameof(VppItemResDTO.VppCategory), ignore: true, order: 8),
+                Define(nameof(VppItemResDTO.SupplierProductMappings), ignore: true, order: 9)
             },
             GridColumnMetadataRegistry.GetAll(typeof(VppItemResDTO)).ToArray());
     }
@@ -72,7 +73,7 @@ public sealed class GridColumnMetadataRegistryTests
             .SelectMany(type => GridColumnMetadataRegistry.GetAll(type))
             .ToArray();
 
-        Assert.Equal(22, definitions.Length);
+        Assert.Equal(23, definitions.Length);
         Assert.All(
             rowTypes,
             rowType => Assert.All(

@@ -94,6 +94,7 @@ namespace gtas_vpp_be.Service.Services
         private readonly int _deadlineDay;
         private readonly VppRequestPolicy _policy;
         private readonly IVppPeriodService? _periodService;
+        private readonly IOrderQuantityLimitService _orderQuantityLimitService;
 
         public VPPRequestService(
             IUnitOfWork scopedUow,
@@ -101,7 +102,8 @@ namespace gtas_vpp_be.Service.Services
             IConfiguration config,
             PeriodCalculator? periodCalculator = null,
             VppRequestPolicy? policy = null,
-            IVppPeriodService? periodService = null)
+            IVppPeriodService? periodService = null,
+            IOrderQuantityLimitService? orderQuantityLimitService = null)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
@@ -109,6 +111,7 @@ namespace gtas_vpp_be.Service.Services
             _periodCalculator = periodCalculator ?? new PeriodCalculator(_deadlineDay);
             _policy = policy ?? VppRequestPolicy.FromConfiguration(config);
             _periodService = periodService;
+            _orderQuantityLimitService = orderQuantityLimitService ?? new OrderQuantityLimitService(scopedUow);
         }
 
         public async Task<List<VppRequestResDTO>> GetMyOrdersAsync(int userId, IEnumerable<int>? years, IEnumerable<int>? months, IEnumerable<int>? statuses)
@@ -702,7 +705,7 @@ namespace gtas_vpp_be.Service.Services
                     SubmittedDate = now
                 };
 
-                await ValidateActiveProductsAsync(req.Items);
+                await _orderQuantityLimitService.ValidateAsync(req.Items);
                 header.RequestDetails = await BuildRequestDetailsAsync(req.Items, createdByUserId, header.Id, now);
 
                 requestSet.Add(header);
@@ -837,7 +840,7 @@ namespace gtas_vpp_be.Service.Services
                     throw new ConflictException("Đơn này chưa sẵn sàng để điều chỉnh trong bước chốt kỳ.");
 
                 if (!isCancel)
-                    await ValidateActiveProductsAsync(normalizedItems);
+                    await _orderQuantityLimitService.ValidateAsync(normalizedItems);
 
                 var replacement = new VppRequest
                 {
@@ -1035,7 +1038,7 @@ namespace gtas_vpp_be.Service.Services
                 header.UpdatedByUserId = req.UpdatedByUserId;
                 header.UpdatedAtUtc = now;
 
-                await ValidateActiveProductsAsync(req.Items);
+                await _orderQuantityLimitService.ValidateAsync(req.Items);
                 replacement.RequestDetails = await BuildRequestDetailsAsync(
                     req.Items, req.UpdatedByUserId, replacement.Id, now);
                 requestSet.Add(replacement);
@@ -1316,7 +1319,7 @@ namespace gtas_vpp_be.Service.Services
                         })
                         .ToList();
                     ValidateItems(restoredItems);
-                    await ValidateActiveProductsAsync(restoredItems);
+                    await _orderQuantityLimitService.ValidateAsync(restoredItems);
                     recovery.RequestDetails = CloneDetails(
                         header.RequestDetails,
                         recovery.Id,
@@ -1326,7 +1329,7 @@ namespace gtas_vpp_be.Service.Services
                 else
                 {
                     var recreatedItems = items ?? Array.Empty<VppRequestDetailItemReqDTO>();
-                    await ValidateActiveProductsAsync(recreatedItems);
+                    await _orderQuantityLimitService.ValidateAsync(recreatedItems);
                     recovery.RequestDetails = await BuildRequestDetailsAsync(
                         recreatedItems,
                         userId,
@@ -2442,43 +2445,6 @@ namespace gtas_vpp_be.Service.Services
             if (req.Month < 1 || req.Month > 12)
                 throw new BusinessException($"Invalid month {req.Month}.");
 
-        }
-
-        /// <summary>
-        /// Kiểm tra mọi product ID được yêu cầu vẫn hoạt động, chưa soft-delete, và
-        /// category tương ứng cũng hoạt động. Ngăn tạo đơn với sản phẩm đã xóa.
-        /// </summary>
-        private async Task ValidateActiveProductsAsync(IEnumerable<VppRequestDetailItemReqDTO> items)
-        {
-            var requestedIds = items.Select(x => x.VppId).Distinct().ToArray();
-            if (requestedIds.Length == 0) return;
-
-            var activeProducts = await _scopedUow.VPPContext.Set<VppItem>()
-                .AsNoTracking()
-                .Where(x => requestedIds.Contains(x.Id) && !x.IsDeleted)
-                .Select(x => new
-                {
-                    x.Id,
-                    x.VppName,
-                    CategoryDeleted = x.VppCategory != null && x.VppCategory.IsDeleted
-                })
-                .ToListAsync();
-
-            // Kiểm tra sản phẩm thiếu hoặc đã xóa.
-            var activeIds = activeProducts.Select(x => x.Id).ToHashSet();
-            var missingIds = requestedIds.Where(id => !activeIds.Contains(id)).ToArray();
-            if (missingIds.Length > 0)
-                throw new BusinessException(
-                    $"The following products have been disabled and cannot be added to the order. Please remove them and try again.");
-
-            // Kiểm tra sản phẩm có category đã bị xóa.
-            var categoryDeletedItems = activeProducts.Where(x => x.CategoryDeleted).ToArray();
-            if (categoryDeletedItems.Length > 0)
-            {
-                var names = string.Join(", ", categoryDeletedItems.Select(x => x.VppName));
-                throw new BusinessException(
-                    $"The category for the following products has been disabled: {names}. Please remove them and try again.");
-            }
         }
 
         private async Task<List<VppRequestDetail>> BuildRequestDetailsAsync(IEnumerable<VppRequestDetailItemReqDTO> items, int userId, Guid headerId, DateTime now)

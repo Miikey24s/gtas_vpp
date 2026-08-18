@@ -1,6 +1,8 @@
 # ORDER-QUANTITY-LIMITS-001 — Giới hạn số lượng đặt hàng linh hoạt
 
-**Trạng thái:** `PLAN — CHỜ OWNER DUYỆT — CHƯA CODE/MIGRATION`
+**Trạng thái:** `IMPLEMENTED — CHỜ OWNER KIỂM TRA UI THỰC TẾ`
+
+**Ngày triển khai:** `2026-08-18`
 
 ## 1. Bản một ánh nhìn
 
@@ -23,9 +25,9 @@ Thay giới hạn kỹ thuật `1–9999` bằng trần an toàn theo từng m�
 
 Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. Một trần chung cho tổng số lượng của toàn đơn sẽ khó giải thích và dễ chặn sai nhu cầu. Giới hạn riêng cho từng mặt hàng trong từng đơn phản ánh đúng mục đích kiểm soát hơn.
 
-### Các bước dự kiến
+### Các bước đã thực hiện
 
-1. [Chốt quy tắc nghiệp vụ](#3-các-quyết-định-cần-owner-duyệt).
+1. [Chốt quy tắc nghiệp vụ](#3-các-quyết-định-đã-duyệt).
 2. [Thêm cột giới hạn vào danh mục mặt hàng](#4-thiết-kế-dữ-liệu-đề-xuất).
 3. [Kiểm tra ở mọi đường tạo/sửa đơn](#5-quy-tắc-tính-và-kiểm-tra).
 4. [Hiển thị giới hạn thân thiện trên UI](#6-ui-theo-design-system).
@@ -36,7 +38,7 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 - Đơn bổ sung, sửa đơn, khôi phục đơn và điều chỉnh sau đóng kỳ đều phải dùng chung một service kiểm tra.
 - Hạ giới hạn có thể làm draft hoặc đơn đang chỉnh sửa không còn hợp lệ; UI phải báo rõ và backend phải kiểm tra lại khi gửi.
 
-## 2. Hiện trạng đã kiểm tra
+## 2. Hiện trạng trước khi triển khai
 
 - Frontend `OrderCreateStep2.razor` đang đặt `max="9999"`.
 - `OrderEditorSession` đang `Math.Clamp(..., 1, 9999)`.
@@ -46,7 +48,7 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 - `MinimumOrderQuantity` hiện có thuộc báo giá/NCC và là **số lượng tối thiểu khi mua từ NCC**, không phải giới hạn tối đa nhân viên được đặt.
 - `SupplierProductMapping` chỉ được biết sau khi chọn NCC/bảng giá ở bước chốt kỳ. Vì vậy `Tối đa mỗi đơn` không được đặt trong bảng giá NCC; nếu làm vậy, cùng một đơn của nhân viên có thể hợp lệ hoặc không hợp lệ chỉ vì quản lý đổi NCC khi chốt kỳ.
 
-## 3. Các quyết định cần owner duyệt
+## 3. Các quyết định đã duyệt
 
 | Mã | Đề xuất | Khuyến nghị |
 |---|---|---|
@@ -143,19 +145,19 @@ Không hiển thị tên class, mã kỹ thuật hoặc lỗi SQL cho người d
 - Grid quản trị thêm cột pickable `Tối đa/đơn`, đọc trực tiếp từ mặt hàng; không thêm vào bảng giá NCC.
 - Khi sửa, helper text giải thích ngắn: `Giới hạn cho một mặt hàng trong mỗi đơn`.
 - Nếu đang có draft vượt mức mới, hệ thống không tự sửa draft; nhân viên sẽ được báo khi mở hoặc gửi lại.
-- Quyền mới đề xuất `ORDER_QUANTITY_LIMIT_MANAGE`, mặc định chỉ cấp Quản trị hệ thống.
+- Tái sử dụng quyền quản trị danh mục mặt hàng hiện có; không thêm permission riêng chỉ cho một trường dữ liệu.
 
 ## 7. API và module ownership
 
 - Shared: DTO mặt hàng bổ sung `MaxQuantityPerOrder` cho luồng quản trị và đặt hàng.
 - Backend Requests: `OrderQuantityLimitService` đọc giới hạn từ mặt hàng và validate mutation.
-- Backend Catalog/Admin: cập nhật giới hạn mặt hàng có authorization riêng.
+- Backend Catalog/Admin: cập nhật giới hạn qua cùng authorization quản trị danh mục hiện có.
 - Frontend Requests: `OrderEditorSession` nhận giới hạn từ dữ liệu mặt hàng; không tự suy luận nghiệp vụ.
 - Frontend Admin: trang cấu hình dùng component/form theo design system hiện hành.
 
 Không đặt business rule trong Razor và không dùng giới hạn NCC `MinimumOrderQuantity` cho mục đích này.
 
-## 8. Kế hoạch thực thi
+## 8. Kết quả thực thi
 
 | Phase | Nội dung | Kiểm tra bắt buộc |
 |---|---|---|
@@ -165,6 +167,17 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 | Q3 | Catalog/order DTO + UI đặt hàng | Frontend tests, responsive route-real, draft cũ |
 | Q4 | UI quản trị + permission/audit | RBAC tests, route-real System Admin |
 | Q5 | Full verify và owner review | `gtas verify`, diff/SQL/recovery review |
+
+### 8.1 Bằng chứng kiểm tra hiện tại
+
+- Backend unit tests: `577/577` đạt.
+- Frontend unit tests: `503/503` đạt.
+- Frontend UI contract tests: `2/2` đạt.
+- Backend integration tests mặc định: `14` đạt, `11` test LocalDB opt-in được bỏ qua theo cấu hình suite.
+- EF model: không còn pending model changes.
+- Migration đã chạy thành công cho cả database mới và database nâng cấp từ migration liền trước trên LocalDB.
+- `gtas verify -Scope backend` và `gtas verify -Scope frontend` đều đạt; build Release không có warning/error, NuGet audit và secret scan đều sạch.
+- Route-real chưa chụp lại trong lượt cuối vì `dotnet watch` của owner tự thoát do lỗi Hot Reload của Roslyn khi nhận đồng thời nhiều file mới; không tự khởi động lại process thuộc owner.
 
 ## 9. Ngoài phạm vi phase đầu
 

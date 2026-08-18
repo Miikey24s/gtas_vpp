@@ -165,6 +165,39 @@ public sealed class VppCatalogServiceTests
     }
 
     [Fact]
+    public async Task CreateAndUpdateItem_ValidatesAndPersistsMaxQuantityPerOrder()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var (uomId, categoryId) = await SeedReferencesAsync(context);
+        var service = CreateService(context);
+
+        var created = await service.CreateItemAsync(
+            new VppItemCreateRequest
+            {
+                VppCode = "VPP-LIMIT",
+                VppName = "Giấy giới hạn",
+                UomId = uomId,
+                VppCategoryId = categoryId,
+                MaxQuantityPerOrder = 750
+            },
+            userId: 7);
+
+        Assert.Equal(750, created.MaxQuantityPerOrder);
+
+        await Assert.ThrowsAsync<BusinessException>(() => service.UpdateItemAsync(
+            new VppItemUpdateRequest
+            {
+                Id = created.Id,
+                VppCode = created.VppCode,
+                VppName = created.VppName,
+                UomId = uomId,
+                VppCategoryId = categoryId,
+                MaxQuantityPerOrder = 1_001
+            },
+            userId: 7));
+    }
+
+    [Fact]
     public async Task HardDeleteItem_RequiresDeactivationAndDeletesItem()
     {
         await using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

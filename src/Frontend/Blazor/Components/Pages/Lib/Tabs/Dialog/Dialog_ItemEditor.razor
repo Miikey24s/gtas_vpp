@@ -1,6 +1,7 @@
 @* PAGE: Lib/Tabs/Dialog/Dialog_ItemEditor.razor *@
 @using gtas_vpp_fe.Features.CatalogPricing.Api
 @using gtas_vpp_fe.Services
+@using gtas_vpp_shared.Constants
 @using gtas_vpp_shared.DTOs.Req.Library
 @using gtas_vpp_shared.DTOs.Res.Library
 @inject DialogService DialogService
@@ -46,6 +47,20 @@
                     </RadzenFormField>
                 </RadzenColumn>
             </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenFormField Text="@Loc["MaxQuantityPerOrder"]" Variant="Variant.Outlined">
+                        <RadzenNumeric TValue="int"
+                                       @bind-Value="Model.MaxQuantityPerOrder"
+                                       Min="@VppOrderQuantityLimits.Minimum"
+                                       Max="@VppOrderQuantityLimits.Maximum"
+                                       Step="1"
+                                       ShowUpDown="true"
+                                       Style="width:100%" />
+                    </RadzenFormField>
+                    <small class="vpp-field-hint">@Loc["MaxQuantityPerOrderHint"]</small>
+                </RadzenColumn>
+            </RadzenRow>
             <RadzenFormField Text="@Loc["Description"]" Variant="Variant.Outlined">
                 <RadzenTextArea @bind-Value="Model.Description" Rows="4" Style="width:100%" />
             </RadzenFormField>
@@ -75,7 +90,9 @@
         if (string.IsNullOrWhiteSpace(Model.VppCode)
             || string.IsNullOrWhiteSpace(Model.VppName)
             || Model.VppCategoryId == Guid.Empty
-            || Model.UomId == Guid.Empty)
+            || Model.UomId == Guid.Empty
+            || Model.MaxQuantityPerOrder is < VppOrderQuantityLimits.Minimum
+                or > VppOrderQuantityLimits.Maximum)
         {
             ToastService.Show(
                 NotificationSeverity.Warning,
@@ -98,7 +115,8 @@
                     VppName = Model.VppName,
                     Description = Model.Description,
                     UomId = Model.UomId,
-                    VppCategoryId = Model.VppCategoryId
+                    VppCategoryId = Model.VppCategoryId,
+                    MaxQuantityPerOrder = Model.MaxQuantityPerOrder
                 });
             }
             else
@@ -110,7 +128,8 @@
                     VppName = Model.VppName,
                     Description = Model.Description,
                     UomId = Model.UomId,
-                    VppCategoryId = Model.VppCategoryId
+                    VppCategoryId = Model.VppCategoryId,
+                    MaxQuantityPerOrder = Model.MaxQuantityPerOrder
                 });
             }
 

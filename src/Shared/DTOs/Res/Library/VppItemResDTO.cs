@@ -7,6 +7,7 @@ namespace gtas_vpp_shared.DTOs.Res.Library
     {
         public string? VppCode { get; set; }
         public string? VppName { get; set; }
+        public int MaxQuantityPerOrder { get; set; } = VppOrderQuantityLimits.Default;
         public Guid UomId { get; set; }
         public string? UomCode { get; set; }
         public string? UomName { get; set; }

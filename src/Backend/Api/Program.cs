@@ -120,6 +120,7 @@ builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();
 builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IOrderQuantityLimitService, OrderQuantityLimitService>();
 builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();
 builder.Services.AddScoped<IVppDashboardChartQueryService, VppDashboardChartQueryService>();
 builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();

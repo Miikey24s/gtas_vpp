@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using gtas_vpp_shared.Constants;
 
 namespace gtas_vpp_shared.DTOs.Req.Library;
 
@@ -15,6 +16,9 @@ public sealed class VppItemUpdateRequest
 
     public Guid UomId { get; set; }
     public Guid VppCategoryId { get; set; }
+
+    [Range(VppOrderQuantityLimits.Minimum, VppOrderQuantityLimits.Maximum)]
+    public int MaxQuantityPerOrder { get; set; } = VppOrderQuantityLimits.Default;
 
     [StringLength(500)]
     public string? Description { get; set; }

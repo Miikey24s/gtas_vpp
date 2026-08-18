@@ -323,6 +323,7 @@ public partial class Tab_ItemLibrary : VppServerGridComponentBase<VppItemResDTO>
         VppCategoryId = row.VppCategoryId,
         VppCategoryCode = row.VppCategoryCode,
         VppCategoryName = row.VppCategoryName,
+        MaxQuantityPerOrder = row.MaxQuantityPerOrder,
         IsDeleted = row.IsDeleted,
         CreatedAtUtc = row.CreatedAtUtc,
         CreatedByUserId = row.CreatedByUserId,

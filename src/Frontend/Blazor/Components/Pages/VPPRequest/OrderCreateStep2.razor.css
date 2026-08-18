@@ -289,6 +289,12 @@
     font-size: var(--vpp-text-xs);
 }
 
+.vpp-order-item-limit {
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    line-height: var(--vpp-leading-tight);
+}
+
 .vpp-order-draft-columns,
 .vpp-order-draft-item-main {
     display: grid;
@@ -348,6 +354,18 @@
 
 .vpp-order-quantity-stepper button {
     background: var(--vpp-bg-surface);
+}
+
+.vpp-order-quantity-stepper button:disabled {
+    color: var(--vpp-text-disabled);
+    background: var(--vpp-surface-grid-header);
+    cursor: not-allowed;
+}
+
+.vpp-order-quantity-warning {
+    margin: var(--vpp-space-2) 0 0;
+    color: var(--vpp-danger);
+    font-size: var(--vpp-text-xs);
 }
 
 .vpp-order-quantity-input {

@@ -82,6 +82,7 @@ public sealed class VPPRequestServiceConstructionTests
         Assert.Contains("builder.Services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IUserNameResolver, UserNameResolver>();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IVPPRequestService, VPPRequestService>();", programRegistrationLines);
+        Assert.Contains("builder.Services.AddScoped<IOrderQuantityLimitService, OrderQuantityLimitService>();", programRegistrationLines);
         Assert.Contains("builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();", programRegistrationLines);
         Assert.DoesNotContain("builder.Services.Configure<JiraSettings>(Configuration.GetSection(\"JiraSettings\"));", programRegistrationLines);
         Assert.DoesNotContain("builder.Services.AddSingleton<IEnvironmentResolver, EnvironmentResolver>();", programRegistrationLines);
@@ -103,7 +104,8 @@ public sealed class VPPRequestServiceConstructionTests
                     typeof(IConfiguration),
                     typeof(PeriodCalculator),
                     typeof(VppRequestPolicy),
-                    typeof(IVppPeriodService)
+                    typeof(IVppPeriodService),
+                    typeof(IOrderQuantityLimitService)
                 }
                 .OrderBy(type => type.FullName),
             constructorParameterTypes.OrderBy(type => type.FullName));
@@ -135,6 +137,7 @@ public sealed class VPPRequestServiceConstructionTests
         services.AddScoped<IUserNameResolver, UserNameResolver>();
         services.AddScoped<IDynamicDbContextFactory, DynamicDbContextFactory>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IOrderQuantityLimitService, OrderQuantityLimitService>();
         services.AddScoped<IVPPRequestService, VPPRequestService>();
         services.AddScoped<IVppPeriodService, VppPeriodService>();
 

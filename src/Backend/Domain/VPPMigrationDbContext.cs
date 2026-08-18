@@ -100,6 +100,8 @@ namespace gtas_vpp_be.Model
             {
                 en.Property(x => x.VppCode).HasMaxLength(64).IsRequired();
                 en.Property(x => x.VppName).HasMaxLength(250).IsRequired();
+                en.Property(x => x.MaxQuantityPerOrder)
+                    .HasDefaultValue(VppItemQuantityLimits.Default);
                 en.HasIndex(x => x.VppCode)
                     .HasDatabaseName("UX_VppItems_VppCode")
                     .IsUnique();
@@ -108,6 +110,9 @@ namespace gtas_vpp_be.Model
                     .IncludeProperties(x => new { x.VppName, x.UomId });
                 en.HasOne(x => x.Uom).WithMany(x => x.VppItemsByUom).OnDelete(DeleteBehavior.Restrict);
                 en.HasOne(x => x.VppCategory).WithMany(x => x.VppItems).OnDelete(DeleteBehavior.Restrict);
+                en.ToTable(table => table.HasCheckConstraint(
+                    "CK_VppItems_MaxQuantityPerOrder_Range",
+                    $"[MaxQuantityPerOrder] >= {VppItemQuantityLimits.Minimum} AND [MaxQuantityPerOrder] <= {VppItemQuantityLimits.Maximum}"));
             });
             modelBuilder.Entity<SupplierProductMapping>(en =>
             {

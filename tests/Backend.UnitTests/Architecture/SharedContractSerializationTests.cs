@@ -106,6 +106,7 @@ public sealed class SharedContractSerializationTests
             "description",
             "id",
             "isDeleted",
+            "maxQuantityPerOrder",
             "supplierProductMappings",
             "uom",
             "uomCode",

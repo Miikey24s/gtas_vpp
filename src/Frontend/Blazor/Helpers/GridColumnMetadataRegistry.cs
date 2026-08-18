@@ -44,11 +44,12 @@ public static class GridColumnMetadataRegistry
                     Define<VppItemResDTO>(nameof(VppItemResDTO.UomId), "Unit", order: 1, isDropdownList: true),
                     Define<VppItemResDTO>(nameof(VppItemResDTO.Uom), ignore: true, order: 2),
                     Define<VppItemResDTO>(nameof(VppItemResDTO.VppCategoryId), "Category", order: 3, isDropdownList: true),
-                    Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultSupplierName), "Supplier", "180px", order: 4, isReadOnly: true),
-                    Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultPrice), "Price", "140px", order: 5, isReadOnly: true),
-                    Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultVatRate), ignore: true, order: 6),
-                    Define<VppItemResDTO>(nameof(VppItemResDTO.VppCategory), ignore: true, order: 7),
-                    Define<VppItemResDTO>(nameof(VppItemResDTO.SupplierProductMappings), ignore: true, order: 8)
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.MaxQuantityPerOrder), "MaxQuantityPerOrder", "140px", order: 4),
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultSupplierName), "Supplier", "180px", order: 5, isReadOnly: true),
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultPrice), "Price", "140px", order: 6, isReadOnly: true),
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.DefaultVatRate), ignore: true, order: 7),
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.VppCategory), ignore: true, order: 8),
+                    Define<VppItemResDTO>(nameof(VppItemResDTO.SupplierProductMappings), ignore: true, order: 9)
                 })
         };
 

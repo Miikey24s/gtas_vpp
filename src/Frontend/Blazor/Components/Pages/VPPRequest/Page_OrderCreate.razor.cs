@@ -356,6 +356,15 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                         Duration = 3000
                     });
                     return false;
+                case OrderEditorValidationError.QuantityLimitExceeded:
+                    Toast.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = Loc["Order"],
+                        Detail = Loc["OrderQuantityLimitExceeded"],
+                        Duration = 4000
+                    });
+                    return false;
                 default:
                     return true;
             }

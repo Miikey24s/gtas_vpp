@@ -23,14 +23,14 @@ public sealed class VppCatalogService : IVppCatalogService
     {
         "Id", "VppCode", "VppName", "Description", "UomId", "UomCode", "UomName",
         "VppCategoryId", "VppCategoryCode", "VppCategoryName",
-        "DefaultSupplierName", "DefaultPrice", "DefaultVatRate", "SupplierCount", "IsDeleted"
+        "MaxQuantityPerOrder", "DefaultSupplierName", "DefaultPrice", "DefaultVatRate", "SupplierCount", "IsDeleted"
     };
 
     private static readonly HashSet<string> AllowedFilterTokens = new(StringComparer.OrdinalIgnoreCase)
     {
         "Id", "VppCode", "VppName", "Description", "UomId", "UomCode", "UomName",
         "VppCategoryId", "VppCategoryCode", "VppCategoryName",
-        "DefaultSupplierName", "DefaultPrice", "DefaultVatRate", "SupplierCount", "IsDeleted",
+        "MaxQuantityPerOrder", "DefaultSupplierName", "DefaultPrice", "DefaultVatRate", "SupplierCount", "IsDeleted",
         "x", "it", "new", "Contains", "StartsWith", "EndsWith", "Equals", "ToLower", "ToUpper",
         "and", "or", "not", "true", "false", "null"
     };
@@ -129,6 +129,7 @@ public sealed class VppCatalogService : IVppCatalogService
         CancellationToken cancellationToken = default)
     {
         var values = NormalizeAndValidate(request.VppCode, request.VppName, request.Description);
+        ValidateMaxQuantityPerOrder(request.MaxQuantityPerOrder);
         await ValidateReferencesAsync(request.UomId, request.VppCategoryId, cancellationToken);
         await EnsureCodeAvailableAsync(values.Code, null, cancellationToken);
 
@@ -138,6 +139,7 @@ public sealed class VppCatalogService : IVppCatalogService
             Id = Guid.NewGuid(),
             VppCode = values.Code,
             VppName = values.Name,
+            MaxQuantityPerOrder = request.MaxQuantityPerOrder,
             Description = values.Description,
             UomId = request.UomId,
             VppCategoryId = request.VppCategoryId,
@@ -160,6 +162,7 @@ public sealed class VppCatalogService : IVppCatalogService
         CancellationToken cancellationToken = default)
     {
         var values = NormalizeAndValidate(request.VppCode, request.VppName, request.Description);
+        ValidateMaxQuantityPerOrder(request.MaxQuantityPerOrder);
         var entity = await _unitOfWork.VPPContext.Set<VppItem>()
             .FirstOrDefaultAsync(x => x.Id == request.Id && !x.IsDeleted, cancellationToken)
             ?? throw new KeyNotFoundException($"Catalog item {request.Id} was not found.");
@@ -169,6 +172,7 @@ public sealed class VppCatalogService : IVppCatalogService
 
         entity.VppCode = values.Code;
         entity.VppName = values.Name;
+        entity.MaxQuantityPerOrder = request.MaxQuantityPerOrder;
         entity.Description = values.Description;
         entity.UomId = request.UomId;
         entity.VppCategoryId = request.VppCategoryId;
@@ -304,6 +308,7 @@ public sealed class VppCatalogService : IVppCatalogService
             Id = x.Id,
             VppCode = x.VppCode,
             VppName = x.VppName,
+            MaxQuantityPerOrder = x.MaxQuantityPerOrder,
             Description = x.Description,
             UomId = x.UomId,
             UomCode = x.Uom != null ? x.Uom.Code : null,
@@ -359,6 +364,7 @@ public sealed class VppCatalogService : IVppCatalogService
             "VppCategoryId" => (await query.Select(x => x.VppCategoryId).Distinct().ToListAsync(cancellationToken)).Cast<object?>().ToList(),
             "VppCategoryCode" => (await query.Select(x => x.VppCategoryCode).Distinct().ToListAsync(cancellationToken)).Cast<object?>().ToList(),
             "VppCategoryName" => (await query.Select(x => x.VppCategoryName).Distinct().ToListAsync(cancellationToken)).Cast<object?>().ToList(),
+            "MaxQuantityPerOrder" => (await query.Select(x => x.MaxQuantityPerOrder).Distinct().ToListAsync(cancellationToken)).Cast<object?>().ToList(),
             "DefaultSupplierName" => (await query.Select(x => x.DefaultSupplierName).Distinct().ToListAsync(cancellationToken)).Cast<object?>().ToList(),
             "DefaultPrice" => (await query.Select(x => x.DefaultPrice).Distinct().ToListAsync(cancellationToken)).Cast<object?>().ToList(),
             "DefaultVatRate" => (await query.Select(x => x.DefaultVatRate).Distinct().ToListAsync(cancellationToken)).Cast<object?>().ToList(),
@@ -480,6 +486,15 @@ public sealed class VppCatalogService : IVppCatalogService
         return (normalizedCode, normalizedName, normalizedDescription);
     }
 
+    private static void ValidateMaxQuantityPerOrder(int value)
+    {
+        if (value is < VppOrderQuantityLimits.Minimum or > VppOrderQuantityLimits.Maximum)
+        {
+            throw new BusinessException(
+                $"Số lượng tối đa mỗi đơn phải từ {VppOrderQuantityLimits.Minimum} đến {VppOrderQuantityLimits.Maximum}.");
+        }
+    }
+
     private async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
@@ -502,6 +517,7 @@ public sealed class VppCatalogService : IVppCatalogService
         Id = row.Id,
         VppCode = row.VppCode,
         VppName = row.VppName,
+        MaxQuantityPerOrder = row.MaxQuantityPerOrder,
         Description = row.Description,
         UomId = row.UomId,
         UomCode = row.UomCode,
@@ -554,6 +570,7 @@ public sealed class VppCatalogService : IVppCatalogService
         public Guid Id { get; set; }
         public string? VppCode { get; set; }
         public string? VppName { get; set; }
+        public int MaxQuantityPerOrder { get; set; }
         public string? Description { get; set; }
         public Guid UomId { get; set; }
         public string? UomCode { get; set; }

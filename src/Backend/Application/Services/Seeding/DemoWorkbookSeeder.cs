@@ -62,6 +62,7 @@ public static class DemoWorkbookSeeder
         var itemByCode = await ReconcileCatalogAndPricesAsync(
             context,
             catalogRows,
+            orderRows,
             actorUserId,
             nowUtc,
             cancellationToken);
@@ -114,6 +115,7 @@ public static class DemoWorkbookSeeder
     private static async Task<IReadOnlyDictionary<string, VppItem>> ReconcileCatalogAndPricesAsync(
         VPPMigrationDbContext context,
         IReadOnlyList<DemoCatalogRow> rows,
+        IReadOnlyList<DemoOrderRow> orderRows,
         int actorUserId,
         DateTime nowUtc,
         CancellationToken cancellationToken)
@@ -216,6 +218,15 @@ public static class DemoWorkbookSeeder
             .Where(x => !x.IsDeleted)
             .ToListAsync(cancellationToken);
         var itemByCode = new Dictionary<string, VppItem>(StringComparer.OrdinalIgnoreCase);
+        var generatedLimits = orderRows
+            .GroupBy(x => x.ItemCode, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                group => group.Key,
+                group => Math.Clamp(
+                    group.Max(x => x.Quantity) * VppOrderQuantityLimits.DemoMultiplier,
+                    VppOrderQuantityLimits.DemoFloor,
+                    VppOrderQuantityLimits.Maximum),
+                StringComparer.OrdinalIgnoreCase);
 
         foreach (var row in rows)
         {
@@ -236,6 +247,9 @@ public static class DemoWorkbookSeeder
                 item = new VppItem
                 {
                     Id = StableGuid($"demo-item|{row.ItemCode}"),
+                    MaxQuantityPerOrder = generatedLimits.GetValueOrDefault(
+                        row.ItemCode,
+                        VppOrderQuantityLimits.Default),
                     CreatedByUserId = actorUserId,
                     CreatedAtUtc = nowUtc
                 };

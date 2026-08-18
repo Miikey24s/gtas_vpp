@@ -97,6 +97,7 @@
                                                              Toggled="@(() => ToggleProductCode(row.Id))"
                                                              CopyRequested="@CopyProductCodeAsync"
                                                              TriggerClass="vpp-order-builder-code" />
+                                        <span class="vpp-order-item-limit">@Loc["MaxQuantityPerOrderFormat", row.MaxQuantityPerOrder]</span>
                                     </div>
                                 </div>
                                 <span class="vpp-order-builder-virtual-cell" role="cell">@row.VppCategoryName</span>
@@ -191,6 +192,7 @@
                                 <div class="vpp-order-builder-item-cell">
                                     <strong>@item.VppName</strong>
                                     <small>@item.VppCode</small>
+                                    <span class="vpp-order-item-limit">@Loc["MaxQuantityPerOrderFormat", item.EffectiveMaxQuantityPerOrder]</span>
                                 </div>
                                 <div class="vpp-order-quantity-stepper" aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")">
                                      @* QUANTITY: Điều chỉnh số lượng trong bản nháp. *@
@@ -198,13 +200,16 @@
                                     <input type="number"
                                            class="vpp-order-quantity-input"
                                            min="1"
-                                           max="9999"
+                                           max="@item.EffectiveMaxQuantityPerOrder"
                                            step="1"
                                            value="@item.Quantity"
                                            inputmode="numeric"
                                            aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")"
                                            @onchange="args => SetQuantity(item, args.Value)" />
-                                    <button type="button" @onclick="() => ChangeQuantity(item, 1)" aria-label="@Loc["IncreaseQuantity"]">+</button>
+                                    <button type="button"
+                                            @onclick="() => ChangeQuantity(item, 1)"
+                                            aria-label="@Loc["IncreaseQuantity"]"
+                                            disabled="@Editor.IsAtQuantityLimit(item)">+</button>
                                 </div>
                                 <span class="vpp-order-draft-unit">@item.UomName</span>
                                 <div class="vpp-order-draft-item-actions">
@@ -226,6 +231,10 @@
                                     </button>
                                 </div>
                             </div>
+                            @if (Editor.ExceedsQuantityLimit(item))
+                            {
+                                <p class="vpp-order-quantity-warning">@Loc["OrderItemQuantityLimitExceeded", item.EffectiveMaxQuantityPerOrder]</p>
+                            }
                              @* ITEM NOTE: Popover chỉnh sửa ghi chú của từng mặt hàng. *@
                              <div id="@GetItemNotePopoverId(item)"
                                  class="vpp-order-note-popover vpp-transient-surface vpp-transient-surface--center"
@@ -448,6 +457,7 @@
             _allProductOptions.AddRange(await Requests.GetCatalogSnapshotAsync(
                 SnapshotBatchSize,
                 "VppName"));
+            ReconcileSelectedItemLimits();
             BuildFilterOptions();
             ApplyProductFilters();
         }
@@ -460,6 +470,21 @@
         finally
         {
             IsLoadingProducts = false;
+        }
+    }
+
+    private void ReconcileSelectedItemLimits()
+    {
+        var limitsByItem = _allProductOptions.ToDictionary(
+            item => item.Id,
+            item => item.MaxQuantityPerOrder);
+
+        foreach (var selectedItem in Editor.SelectedItems)
+        {
+            if (limitsByItem.TryGetValue(selectedItem.VppId, out var limit))
+            {
+                selectedItem.MaxQuantityPerOrder = limit;
+            }
         }
     }
 
@@ -569,6 +594,7 @@
             VppName = row.VppName,
             UomCode = row.UomCode,
             UomName = row.UomName,
+            MaxQuantityPerOrder = row.MaxQuantityPerOrder,
             Quantity = 1
         }))
         {

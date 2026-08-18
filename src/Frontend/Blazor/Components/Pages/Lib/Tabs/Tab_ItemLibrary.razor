@@ -27,6 +27,7 @@
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="Id" Title="@Loc["SystemId"]" Width="270px" MinWidth="240px" Visible="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="VppCategoryName" Title="@Loc["Category"]" Width="150px" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="UomName" Title="@Loc["UOM"]" Width="92px" TextAlign="TextAlign.Center" Filterable="false"><HeaderTemplate><span title="@Loc["UOM"]">@Loc["UomCompact"]</span></HeaderTemplate></RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="VppItemResDTO" Property="MaxQuantityPerOrder" Title="@Loc["MaxQuantityPerOrder"]" Width="118px" MinWidth="118px" TextAlign="TextAlign.Right" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="DefaultSupplierName" Title="@Loc["Supplier"]" Width="140px" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="SupplierCount" Title="@Loc["SupplierCount"]" Width="125px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false" Pickable="true" />
                     <RadzenDataGridColumn TItem="VppItemResDTO" Property="IsDeleted" Title="@Loc["Status"]" Width="110px" MinWidth="110px" TextAlign="TextAlign.Center" Filterable="false" Sortable="false"><Template Context="row"><VppStatusBadge Text="@(row.IsDeleted ? Loc["Inactive"] : Loc["Active"])" Tone="@VppStatusToneContract.Resolve(row.IsDeleted ? "Inactive" : "Active")" /></Template></RadzenDataGridColumn>

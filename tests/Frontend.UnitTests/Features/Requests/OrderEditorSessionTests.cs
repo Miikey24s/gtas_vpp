@@ -39,7 +39,8 @@ public sealed class OrderEditorSessionTests
         {
             VppId = Guid.NewGuid(),
             VppName = "Giấy A4",
-            Quantity = 2
+            Quantity = 2,
+            MaxQuantityPerOrder = 10
         };
         var second = new OrderEditorSession.SelectedItem
         {
@@ -57,7 +58,7 @@ public sealed class OrderEditorSessionTests
         editor.ChangeQuantity(first, -10);
         Assert.Equal(1, first.Quantity);
         editor.SetQuantity(first, "12000");
-        Assert.Equal(9999, first.Quantity);
+        Assert.Equal(10, first.Quantity);
         editor.SetQuantity(first, "not-a-number");
         Assert.Equal(1, first.Quantity);
 
@@ -132,5 +133,24 @@ public sealed class OrderEditorSessionTests
         Assert.Equal(0, changeCount);
         Assert.Equal(1, editor.SelectedItemCount);
         Assert.Equal(4, editor.TotalQuantity);
+    }
+
+    [Fact]
+    public void Validation_RejectsHydratedDraftAboveCurrentItemLimit()
+    {
+        var editor = new OrderEditorSession();
+        editor.ReplaceItems(
+        [
+            new OrderEditorSession.SelectedItem
+            {
+                VppId = Guid.NewGuid(),
+                Quantity = 6,
+                MaxQuantityPerOrder = 5
+            }
+        ]);
+
+        Assert.Equal(
+            OrderEditorValidationError.QuantityLimitExceeded,
+            editor.ValidateForSubmission());
     }
 }

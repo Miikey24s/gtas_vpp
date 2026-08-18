@@ -1,3 +1,5 @@
+using gtas_vpp_shared.Constants;
+
 namespace gtas_vpp_fe.Features.Requests.Editor;
 
 public enum OrderEditorStep
@@ -11,7 +13,8 @@ public enum OrderEditorValidationError
     None,
     SupplementReasonRequired,
     EmptySelection,
-    InvalidItem
+    InvalidItem,
+    QuantityLimitExceeded
 }
 
 public sealed class OrderEditorSession
@@ -101,14 +104,14 @@ public sealed class OrderEditorSession
 
     public void ChangeQuantity(SelectedItem item, int delta)
     {
-        item.Quantity = Math.Clamp(item.Quantity + delta, 1, 9999);
+        item.Quantity = Math.Clamp(item.Quantity + delta, 1, item.EffectiveMaxQuantityPerOrder);
         NotifyChanged();
     }
 
     public void SetQuantity(SelectedItem item, object? value)
     {
         var parsed = int.TryParse(value?.ToString(), out var quantity) ? quantity : 1;
-        item.Quantity = Math.Clamp(parsed, 1, 9999);
+        item.Quantity = Math.Clamp(parsed, 1, item.EffectiveMaxQuantityPerOrder);
         NotifyChanged();
     }
 
@@ -148,10 +151,21 @@ public sealed class OrderEditorSession
             return OrderEditorValidationError.EmptySelection;
         }
 
-        return _selectedItems.Any(item => item.VppId == Guid.Empty || item.Quantity <= 0)
-            ? OrderEditorValidationError.InvalidItem
+        if (_selectedItems.Any(item => item.VppId == Guid.Empty || item.Quantity <= 0))
+        {
+            return OrderEditorValidationError.InvalidItem;
+        }
+
+        return _selectedItems.Any(ExceedsQuantityLimit)
+            ? OrderEditorValidationError.QuantityLimitExceeded
             : OrderEditorValidationError.None;
     }
+
+    public bool ExceedsQuantityLimit(SelectedItem item)
+        => item.Quantity > item.EffectiveMaxQuantityPerOrder;
+
+    public bool IsAtQuantityLimit(SelectedItem item)
+        => item.Quantity >= item.EffectiveMaxQuantityPerOrder;
 
     public void NotifyChanged() => Changed?.Invoke();
 
@@ -163,6 +177,11 @@ public sealed class OrderEditorSession
         public string? UomCode { get; set; }
         public string? UomName { get; set; }
         public int Quantity { get; set; } = 1;
+        public int MaxQuantityPerOrder { get; set; } = VppOrderQuantityLimits.Default;
+        public int EffectiveMaxQuantityPerOrder => Math.Clamp(
+            MaxQuantityPerOrder,
+            VppOrderQuantityLimits.Minimum,
+            VppOrderQuantityLimits.Maximum);
         public string? Description { get; set; }
     }
 }

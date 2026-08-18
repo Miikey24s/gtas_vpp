@@ -521,6 +521,7 @@ namespace gtas_vpp_be.Controllers
                 Id = x.Id,
                 VppCode = x.VppCode,
                 VppName = x.VppName,
+                MaxQuantityPerOrder = x.MaxQuantityPerOrder,
                 Description = x.Description,
                 VppCategoryId = x.VppCategoryId,
                 VppCategoryCode = x.VppCategoryCode,

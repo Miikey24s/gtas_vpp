@@ -1459,4 +1459,9 @@
   <data name="SettlementSupplierPlanScopeHint" xml:space="preserve"><value>So sánh theo giá và VAT; chưa tính phí vận chuyển hoặc điều khoản hợp đồng.</value></data>
   <data name="SettlementUseSupplierPlan" xml:space="preserve"><value>Dùng đề xuất</value></data>
   <data name="SettlementKeepSingleSupplier" xml:space="preserve"><value>Giữ 1 nhà cung cấp</value></data>
+  <data name="MaxQuantityPerOrder" xml:space="preserve"><value>Tối đa/đơn</value></data>
+  <data name="MaxQuantityPerOrderHint" xml:space="preserve"><value>Giới hạn cho mặt hàng này trong mỗi đơn.</value></data>
+  <data name="MaxQuantityPerOrderFormat" xml:space="preserve"><value>Tối đa {0}/đơn</value></data>
+  <data name="OrderQuantityLimitExceeded" xml:space="preserve"><value>Một số mặt hàng đang vượt số lượng tối đa cho mỗi đơn.</value></data>
+  <data name="OrderItemQuantityLimitExceeded" xml:space="preserve"><value>Vượt giới hạn hiện tại: tối đa {0}/đơn.</value></data>
 </root>

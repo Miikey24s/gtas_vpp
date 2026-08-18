@@ -13,6 +13,7 @@ namespace gtas_vpp_be.Model.Library
     {
         public string? VppCode { get; set; }
         public string? VppName { get; set; }
+        public int MaxQuantityPerOrder { get; set; } = VppItemQuantityLimits.Default;
         public Guid UomId { get; set; }
         public LookupValue Uom { get; set; } = default!;
         public Guid VppCategoryId { get; set; }
