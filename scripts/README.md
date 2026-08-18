@@ -49,4 +49,15 @@ Các lệnh khác:
 
 `preflight`, `doctor` và `verify` nhận `all`, `frontend`, `backend`, `tests` hoặc `thesis`; `preflight`/`doctor` còn hỗ trợ `-OutputFormat json`. Các lệnh chỉ in metadata an toàn, không đọc giá trị secret. `verify` chạy đúng gate theo scope, luôn kiểm tra agent setup, Gitleaks và whitespace; UI thay đổi vẫn phải được kiểm tra trên route Blazor thật riêng.
 
+## Mở nhanh Razor source từ UI khi demo/bảo vệ
+
+Frontend Debug dùng package `FindRazorSourceFile`; Visual Studio 2026 cài extension cùng tên từ Marketplace.
+Khi app đang chạy Debug, nhấn `Ctrl+Shift+F` trong trình duyệt để bật Inspection Mode, rê chuột đến vùng UI
+và click để Visual Studio mở file `.razor` tạo ra vùng đó. Nhấn `Esc` để thoát.
+
+Package tự vô hiệu hóa trong Release. Không deploy Debug build vì đường dẫn source đầy đủ có thể xuất hiện
+trong marker phục vụ inspector. Nếu component chỉ render component con hoặc có nhiều root element, kết quả
+có thể chỉ đến component gần nhất; dùng `F12`, `Shift+F12` hoặc Copilot Agent Mode để lần tiếp code-behind,
+API client, controller, service và test.
+
 Script chỉ cho phép `init-db` và `bootstrap-admin` trên database có `TEST` hoặc `DEMO`; không lưu secret trong repository. Danh mục cấu hình đầy đủ nằm tại [`../docs/configuration/LOCAL-CONFIGURATION.md`](../docs/configuration/LOCAL-CONFIGURATION.md).
