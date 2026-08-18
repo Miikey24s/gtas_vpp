@@ -6,19 +6,17 @@
 
 ### Mục tiêu
 
-Thay giới hạn kỹ thuật `1–9999` đang nằm trong ô nhập số lượng bằng quy tắc nghiệp vụ có thể cấu hình, dễ hiểu với nhân viên và không làm thay đổi các đơn cũ.
+Thay giới hạn kỹ thuật `1–9999` bằng trần an toàn theo từng mặt hàng để chặn số lượng vô lý như `1.000.000–2.000.000`, nhưng vẫn đủ rộng cho nhu cầu văn phòng thông thường.
 
 ### Phương án khuyến nghị
 
 - Mỗi mặt hàng có một mức **tối đa trong một đơn**.
 - Cùng một giới hạn áp dụng độc lập cho cả đơn thường và đơn bổ sung; không cộng dồn hai đơn thành giới hạn của cả kỳ.
 - Đơn thường và đơn bổ sung đi qua cùng một bộ kiểm tra `Qty`; trường `IsAdditionalOrder` không tạo ra hai công thức giới hạn khác nhau.
-- Ví dụ giới hạn 20 Ram/đơn: đơn thường được đặt tối đa 20 Ram và đơn bổ sung cũng được đặt tối đa 20 Ram. Tổng hai đơn có thể là 40 Ram; đây là behavior được chấp nhận theo quyết định nghiệp vụ hiện tại.
-- Có hai lớp cấu hình: mức mặc định toàn công ty và mức riêng cho từng mặt hàng.
-- Hệ thống tạo sẵn mức ban đầu từ lịch sử đặt hàng theo thuật toán xác định; quản trị được sửa tay sau đó và dữ liệu sinh tự động không ghi đè cấu hình đã chỉnh.
-- Cấu hình có kỳ bắt đầu áp dụng; không sửa ngược kỳ đã đóng/chốt.
-- Kỳ đang mở vẫn được chỉnh: đơn đã gửi giữ nguyên; draft và các lần sửa/gửi tiếp theo phải đạt giới hạn mới.
-- Mức mặc định toàn công ty để trống nghĩa là không giới hạn. Mặt hàng riêng chọn rõ `Theo mặc định`, `Không giới hạn` hoặc `Tùy chỉnh`; không dùng `0` để tránh nhập nhầm ý nghĩa.
+- Trần hệ thống là `1.000` cho một mặt hàng trong một đơn; mặt hàng mới mặc định nhận mức này.
+- Dữ liệu hiện có được sinh mức ban đầu theo công thức đơn giản: `số lớn nhất từng đặt × 3`, sau đó ép trong khoảng `500–1.000`.
+- Quản trị hệ thống có thể sửa mức của từng mặt hàng trong khoảng `1–1.000`; không cần policy hiệu lực theo kỳ hoặc màn cấu hình nhiều tầng.
+- Đơn đã gửi giữ nguyên. Draft và các lần sửa/gửi tiếp theo phải đạt giới hạn hiện tại của mặt hàng.
 - Chưa thêm ngoại lệ theo từng phòng ban hoặc từng người trong đợt đầu.
 
 ### Vì sao không giới hạn “tổng số lượng của cả đơn”
@@ -28,15 +26,15 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 ### Các bước dự kiến
 
 1. [Chốt quy tắc nghiệp vụ](#3-các-quyết-định-cần-owner-duyệt).
-2. [Thêm cấu hình và dữ liệu hiệu lực](#4-thiết-kế-dữ-liệu-đề-xuất).
+2. [Thêm cột giới hạn vào danh mục mặt hàng](#4-thiết-kế-dữ-liệu-đề-xuất).
 3. [Kiểm tra ở mọi đường tạo/sửa đơn](#5-quy-tắc-tính-và-kiểm-tra).
 4. [Hiển thị giới hạn thân thiện trên UI](#6-ui-theo-design-system).
 5. [Chạy migration/test an toàn](#8-kế-hoạch-thực-thi).
 
 ### Rủi ro chính
 
-- Đơn bổ sung, sửa đơn, khôi phục đơn và điều chỉnh sau đóng kỳ đều phải dùng chung một policy service.
-- Hạ giới hạn giữa kỳ có thể làm draft hoặc đơn đang chỉnh sửa không còn hợp lệ; UI phải báo rõ và backend phải kiểm tra lại khi gửi.
+- Đơn bổ sung, sửa đơn, khôi phục đơn và điều chỉnh sau đóng kỳ đều phải dùng chung một service kiểm tra.
+- Hạ giới hạn có thể làm draft hoặc đơn đang chỉnh sửa không còn hợp lệ; UI phải báo rõ và backend phải kiểm tra lại khi gửi.
 
 ## 2. Hiện trạng đã kiểm tra
 
@@ -55,76 +53,59 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 | Q1 | Giới hạn theo dòng đơn hay cả kỳ | Theo từng mặt hàng trong từng đơn |
 | Q2 | Áp dụng cho đơn bổ sung thế nào | Dùng cùng giới hạn với đơn thường, nhưng kiểm tra độc lập từng đơn |
 | Q3 | Mức `0` có nghĩa gì | Không cho nhập `0`; dùng trạng thái mặt hàng để ngừng đặt |
-| Q4 | Không cấu hình thì xử lý thế nào | Không giới hạn để giữ behavior hiện tại |
-| Q5 | Cho đổi giới hạn kỳ đang mở không | Có; đơn đã gửi giữ nguyên, draft và lần sửa/gửi tiếp theo phải đạt giới hạn mới |
+| Q4 | Mức mặc định là bao nhiêu | `1.000` cho mỗi mặt hàng trong một đơn |
+| Q5 | Cho đổi giới hạn khi đang có kỳ mở không | Có; đơn đã gửi giữ nguyên, draft và lần sửa/gửi tiếp theo phải đạt giới hạn mới |
 | Q6 | Quản lý có được vượt giới hạn không | Không vượt âm thầm; nếu cần sẽ làm thao tác ngoại lệ riêng, bắt buộc lý do/audit ở phase sau |
 | Q7 | Có cấu hình riêng theo phòng ban/người dùng không | Chưa làm ở phase đầu; chỉ mở rộng khi có nghiệp vụ thật |
 | Q8 | Hiển thị cấu hình ở đâu | Trong Danh mục mặt hàng hệ thống; không đặt trong Bảng giá NCC |
-| Q9 | Mức giới hạn ban đầu lấy từ đâu | Sinh gợi ý từ lịch sử từng mặt hàng, sau đó quản trị có thể sửa tay |
+| Q9 | Mức giới hạn ban đầu lấy từ đâu | `Clamp(MaxQtyTừngĐặt × 3, 500, 1.000)`; chưa có lịch sử thì dùng `1.000` |
 
 ### 3.1 Cách áp dụng cho hai loại đơn
 
-| Loại đơn | Giới hạn 20 Ram/đơn | Cách kiểm tra |
+| Loại đơn | Ví dụ giới hạn 500/đơn | Cách kiểm tra |
 |---|---:|---|
-| Đơn thường | Tối đa 20 Ram | Chỉ kiểm tra số lượng trong đơn thường |
-| Đơn bổ sung | Tối đa 20 Ram | Chỉ kiểm tra số lượng trong đơn bổ sung |
+| Đơn thường | Tối đa 500 | Chỉ kiểm tra số lượng trong đơn thường |
+| Đơn bổ sung | Tối đa 500 | Chỉ kiểm tra số lượng trong đơn bổ sung |
 
-Không lấy số lượng đơn thường trừ khỏi đơn bổ sung. Nếu sau này doanh nghiệp cần giới hạn tổng cấp phát theo kỳ, đó là một policy khác và phải được duyệt riêng.
+Không lấy số lượng đơn thường trừ khỏi đơn bổ sung. Nếu sau này doanh nghiệp cần giới hạn tổng cấp phát theo kỳ, đó là một quy tắc khác và phải được duyệt riêng.
 
-Việc kiểm tra không tách thành hai service. `OrderQuantityLimitService` nhận danh sách dòng của một đơn và áp dụng cùng policy, bất kể `IsAdditionalOrder` là `true` hay `false`.
+Việc kiểm tra không tách thành hai service. `OrderQuantityLimitService` nhận danh sách dòng của một đơn và áp dụng cùng giới hạn mặt hàng, bất kể `IsAdditionalOrder` là `true` hay `false`.
 
 ## 4. Thiết kế dữ liệu đề xuất
 
-### 4.1 Bảng policy hiệu lực theo kỳ
+### 4.1 Cột giới hạn trên mặt hàng
 
-Tạo entity nội bộ `OrderQuantityLimitPolicy` theo hướng additive:
+Thêm trực tiếp vào `VppItems` theo hướng additive:
 
-- `Id`
-- `MemberCompanyCode`
-- `VppItemId` nullable: `null` là mức mặc định toàn công ty; có giá trị là mức riêng của mặt hàng
-- `Mode`: `Unlimited` hoặc `Custom`; mặt hàng không có policy riêng thì kế thừa mức mặc định
-- `MaxQuantityPerOrder` nullable: số lượng tối đa của mặt hàng trong một đơn
-- `EffectiveFromYear`, `EffectiveFromMonth`
-- audit chuẩn từ `BaseModel`
+- `MaxQuantityPerOrder int not null`, mặc định `1.000`.
+- Check constraint: giá trị từ `1` đến `1.000`.
+- Không tạo bảng policy riêng, không tạo phiên bản và không gắn kỳ hiệu lực.
 
-Ràng buộc:
+Đây là thuộc tính của danh mục mặt hàng hệ thống, không thuộc bảng giá hay nhà cung cấp. Cùng một mặt hàng luôn có cùng trần an toàn dù quản lý chọn NCC/bảng giá nào khi chốt kỳ.
 
-- Các mức tối đa phải lớn hơn `0` nếu có giá trị.
-- `Unlimited` yêu cầu `MaxQuantityPerOrder` là null; `Custom` yêu cầu có `MaxQuantityPerOrder`.
-- Một công ty chỉ có một policy cho cùng mặt hàng và cùng kỳ bắt đầu.
-- Foreign key tới `VppItem` dùng restrict; không hard-delete policy lịch sử.
-- Index theo `MemberCompanyCode + VppItemId + EffectiveFromYear + EffectiveFromMonth`.
+### 4.2 Sinh giá trị cho dữ liệu hiện có
 
-### 4.2 Cách chọn policy
+Chạy backfill xác định, idempotent cho các mặt hàng hiện có:
 
-Với kỳ cần đặt:
+```text
+Mức sinh = Clamp(Số lượng lớn nhất từng đặt × 3, 500, 1.000)
+```
 
-1. Lấy policy riêng của mặt hàng mới nhất có kỳ hiệu lực không lớn hơn kỳ đang đặt.
-2. Nếu không có policy riêng, lấy policy mặc định toàn công ty theo cùng quy tắc.
-3. `Unlimited` nghĩa là không giới hạn; `Custom` áp dụng `MaxQuantityPerOrder`.
-4. Nếu không có cả policy riêng lẫn mặc định, giữ behavior hiện tại là không giới hạn.
+- Chỉ đọc revision hiện hành của các đơn không bị hủy, từ chối hoặc soft-delete.
+- Đơn thường và đơn bổ sung được xem như nhau vì cùng trường `Qty`.
+- Mặt hàng chưa từng được đặt nhận mức `1.000`.
+- Kết quả luôn là số nguyên và không vượt trần hệ thống.
+- Backfill chỉ chạy một lần; về sau không tự đổi giá trị quản trị đã sửa.
 
-Thiết kế này giữ được lịch sử theo kỳ mà không cần sửa các đơn cũ hoặc snapshot hàng loạt toàn catalog.
+Ví dụ:
 
-### 4.3 Sinh mức giới hạn ban đầu
+| Số lớn nhất từng đặt | Nhân 3 | Mức lưu |
+|---:|---:|---:|
+| 72 | 216 | 500 |
+| 200 | 600 | 600 |
+| 756 | 2.268 | 1.000 |
 
-Không yêu cầu quản trị nhập tay toàn bộ catalog. Khi triển khai lần đầu hoặc seed dữ liệu demo, hệ thống chạy một bộ sinh mức giới hạn xác định và idempotent:
-
-1. Gom `Qty` theo từng mặt hàng từ revision hiện hành của các đơn đã gửi và còn hiệu lực; đơn thường và đơn bổ sung là các mẫu như nhau vì cùng quy tắc số lượng.
-2. Nếu mặt hàng có ít nhất 5 mẫu, lấy mức bao phủ 95% dữ liệu cũ (`P95`), cộng 20% khoảng an toàn rồi làm tròn lên.
-3. Nếu chỉ có 1–4 mẫu, lấy số lượng cao nhất đã đặt, cộng 20% rồi làm tròn lên.
-4. Làm tròn thân thiện: đến 10 giữ số nguyên; 11–50 làm tròn lên bội số 5; trên 50 làm tròn lên bội số 10.
-5. Nếu mặt hàng chưa có lịch sử, thử lấy trung vị mức đã sinh của các mặt hàng cùng danh mục và đơn vị. Nếu vẫn không đủ dữ liệu thì dùng mức mặc định công ty; chưa có mặc định thì để `Không giới hạn`.
-
-Ví dụ: giấy A4 có `P95 = 17 Ram`; cộng 20% thành `20,4`, làm tròn lên bội số 5 thành `25 Ram/đơn`.
-
-Quy tắc an toàn:
-
-- Chỉ tạo policy còn thiếu; không ghi đè mức quản trị đã nhập hoặc sửa.
-- Cùng một bộ dữ liệu luôn sinh cùng kết quả để seed có thể chạy lại.
-- Không dùng AI để tự quyết hạn mức nghiệp vụ.
-- Với dữ liệu thật đang có, UI quản trị hiển thị bản xem trước trước khi lưu hàng loạt để có thể sửa hoặc bỏ chọn từng mặt hàng.
-- Với dữ liệu TEST/DEMO, seed có thể lưu trực tiếp kết quả xác định để lần chạy mới luôn có dữ liệu trình diễn; vẫn không ghi đè policy đã tồn tại.
+Chọn hệ số `3` thay vì `5` vì vẫn tạo khoảng dự phòng lớn nhưng ít đẩy mọi mặt hàng lên trần `1.000`.
 
 ## 5. Quy tắc tính và kiểm tra
 
@@ -143,35 +124,33 @@ Số lượng dòng hiện tại <= Tối đa/đơn
 
 Ví dụ:
 
-> Giấy A4 được đặt tối đa 20 Ram trong mỗi đơn. Số lượng hiện tại là 25 Ram, vui lòng giảm còn 20 Ram hoặc ít hơn.
+> Giấy A4 được đặt tối đa 500 Ram trong mỗi đơn. Số lượng hiện tại là 1.200 Ram, vui lòng giảm còn 500 Ram hoặc ít hơn.
 
-Không hiển thị tên class, policy code hoặc lỗi SQL cho người dùng.
+Không hiển thị tên class, mã kỹ thuật hoặc lỗi SQL cho người dùng.
 
 ## 6. UI theo design system
 
 ### 6.1 Nhân viên đặt hàng
 
-- Dưới tên/đơn vị mặt hàng hiển thị dòng phụ `Tối đa 20/đơn` khi có giới hạn.
+- Dưới tên/đơn vị mặt hàng hiển thị dòng phụ `Tối đa 500/đơn`.
 - Stepper dùng `Tối đa/đơn`; nút `+` mờ khi đạt giới hạn nhưng vẫn giữ Stable Capability Surface.
 - Nhập vượt mức tự đưa về mức hợp lệ và hiện validation ngay cạnh dòng, không chỉ toast.
 - Bước xem lại hiển thị cảnh báo nếu dữ liệu draft cũ không còn hợp lệ.
 
 ### 6.2 Quản trị hệ thống
 
-- `Cấu hình đặt hàng`: nhập mức mặc định và chọn kỳ bắt đầu áp dụng.
-- `Danh mục mặt hàng`: action cấu hình giới hạn riêng với ba lựa chọn `Theo mặc định`, `Không giới hạn`, `Tùy chỉnh`.
-- Lần đầu mở cấu hình có thể xem danh sách mức hệ thống đã gợi ý, sửa trực tiếp rồi xác nhận; không phải mở từng mặt hàng để nhập tay.
-- Grid quản trị thêm cột pickable `Tối đa/đơn`. Đây là dữ liệu chính sách đặt hàng được join từ policy, không thêm trực tiếp vào bảng giá NCC.
-- Hiển thị trước câu dễ hiểu: `Áp dụng từ kỳ 09/2026 · Tối đa 20/đơn`.
-- Khi chọn kỳ đang mở, form cảnh báo rằng giới hạn mới áp dụng cho draft và các lần sửa/gửi tiếp theo; đơn đã gửi không bị tự động thay đổi.
+- `Danh mục mặt hàng`: thêm trường số `Tối đa/đơn`, cho nhập từ `1–1.000`.
+- Grid quản trị thêm cột pickable `Tối đa/đơn`, đọc trực tiếp từ mặt hàng; không thêm vào bảng giá NCC.
+- Khi sửa, helper text giải thích ngắn: `Giới hạn cho một mặt hàng trong mỗi đơn`.
+- Nếu đang có draft vượt mức mới, hệ thống không tự sửa draft; nhân viên sẽ được báo khi mở hoặc gửi lại.
 - Quyền mới đề xuất `ORDER_QUANTITY_LIMIT_MANAGE`, mặc định chỉ cấp Quản trị hệ thống.
 
 ## 7. API và module ownership
 
-- Shared: DTO đọc/ghi policy và mức giới hạn đã resolve cho catalog đặt hàng.
-- Backend Requests: `OrderQuantityLimitService` resolve policy và validate mutation.
-- Backend Catalog/Admin: query/mutation policy có authorization riêng.
-- Frontend Requests: `OrderEditorSession` nhận giới hạn đã resolve; không tự suy luận nghiệp vụ.
+- Shared: DTO mặt hàng bổ sung `MaxQuantityPerOrder` cho luồng quản trị và đặt hàng.
+- Backend Requests: `OrderQuantityLimitService` đọc giới hạn từ mặt hàng và validate mutation.
+- Backend Catalog/Admin: cập nhật giới hạn mặt hàng có authorization riêng.
+- Frontend Requests: `OrderEditorSession` nhận giới hạn từ dữ liệu mặt hàng; không tự suy luận nghiệp vụ.
 - Frontend Admin: trang cấu hình dùng component/form theo design system hiện hành.
 
 Không đặt business rule trong Razor và không dùng giới hạn NCC `MinimumOrderQuantity` cho mục đích này.
@@ -181,8 +160,8 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 | Phase | Nội dung | Kiểm tra bắt buộc |
 |---|---|---|
 | Q0 | Characterization hiện trạng, chốt Q1–Q9 | Tests khóa behavior hiện tại và đường mutation |
-| Q1 | Entity, mapping, migration additive, API policy và bộ sinh mức ban đầu | EF pending-model, SQL review, fresh/upgrade LocalDB, seed idempotent |
-| Q2 | Resolver + validation chung cho create/update/recreate/restore/post-close | Unit + integration, boundary và revision cases |
+| Q1 | Thêm cột `VppItems.MaxQuantityPerOrder`, migration additive và backfill ×3 trong khoảng 500–1.000 | EF pending-model, SQL review, fresh/upgrade LocalDB, backfill idempotent |
+| Q2 | Validation chung cho create/update/recreate/restore/post-close | Unit + integration, boundary và revision cases |
 | Q3 | Catalog/order DTO + UI đặt hàng | Frontend tests, responsive route-real, draft cũ |
 | Q4 | UI quản trị + permission/audit | RBAC tests, route-real System Admin |
 | Q5 | Full verify và owner review | `gtas verify`, diff/SQL/recovery review |
