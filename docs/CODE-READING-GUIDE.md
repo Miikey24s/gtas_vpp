@@ -152,6 +152,9 @@ Tất cả nằm ở `/library?tab=N`. Mỗi nghiệp vụ dùng tab typed riên
 `VppCollectionWorkspace`/`VppSplitEditorWorkspace` + `VppDataSurfaceFrame`; generic reflection grid và
 record inspector cũ đã được xóa để tránh chồng CRUD, CSS và permission contract.
 
+Backend `LibraryController` chỉ điều phối HTTP. `LibraryQueryService`, `LibraryMutationService` và
+`LibraryIntegrityService` lần lượt sở hữu đọc, ghi và kiểm tra phụ thuộc; không còn generic controller base.
+
 | Hình | Atlas | Route | Component | API | Mục luận văn |
 |---|---|---|---|---|---|
 | — | `classes` | `/library?tab=0` | `Pages/Lib/Tabs/Tab_LookupLibrary.razor` | `LibraryController /{tableCode}` | §2.3.1.6 |
@@ -185,6 +188,9 @@ hash, security stamp và token không được render hoặc đưa vào form.
 - **Ma trận action 18×3:** đọc trực tiếp `CanonicalRbac.Actions/Personas/HasAction`, không có nút lưu.
 - **Ánh xạ UI:** dữ liệu từ `GET groups/{id}/page-components`; chỉ component UI có `CanConfigure`
   mới được bật/tắt. `GroupCode` lấy từ DTO backend, tuyệt đối không suy ra từ tên vai trò đã dịch.
+
+`PermissionController` chỉ điều phối các service typed. Persona dùng `PermissionGroupQueryService`, membership
+dùng `UserGroupMembershipQueryService`; controller không truy cập `VPPContext` trực tiếp.
 
 ### M7 — Báo cáo
 

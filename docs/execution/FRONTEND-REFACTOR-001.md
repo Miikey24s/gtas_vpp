@@ -30,12 +30,12 @@
 | Quyết định thời điểm | Refactor được bắt đầu **trước** final visual acceptance; owner đã chấp thuận current runtime sau khi FR8C hoàn tất. Correction sau này vẫn tách riêng rồi refactor tiếp phần bị ảnh hưởng | [Timing contract](#plan-detail-timing) |
 | Phạm vi | Blazor/Radzen frontend, frontend tests và tài liệu đọc code; không đổi API/DTO/database/RBAC/nghiệp vụ, không khôi phục React | [Scope](#plan-detail-scope) |
 | Phương án | Giữ một project Blazor, giữ design system hiện có; tổ chức dần theo feature `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, cộng `Platform` dùng chung | [Target structure](#plan-detail-target-structure) |
-| Các bước chính | FR0–FR9 đã xong; các checkpoint FR10A Catalog/Pricing → FR10B Period/Requests → FR10C Settlement cùng lát Identity UI đã triển khai. Còn route-real matrix và residual readability review; không mở lại global rewrite | [Waves](#plan-detail-waves) |
+| Các bước chính | FR0–FR10 đã xong theo lát feature. Full repository verify và isolated route-real matrix đều PASS | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English; comment tiếng Việt `quick-scan` cho trách nhiệm → bước orchestration → kết quả/tác động → lý do/lifecycle. Mỗi comment 1 ý, đọc lướt được; không mô tả từng dòng markup/C# | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Architecture/hotspot/final review: `gpt-5.6-sol`; lát rõ và lặp lại: `gpt-5.6-terra`. Probe live 18/08 timeout nên chỉ mở checkpoint độc lập, không hạ chất lượng để vừa quota | [Routing](#plan-detail-routing) |
 | Baseline hiện tại | Baseline `b404d52f` đã full verify PASS, frontend unit/architecture `502/502`; import/cập nhật giá và suggestion NCC đã được tích hợp. FR10 vẫn cần characterization + route-real review riêng trước từng module | [Evidence](#plan-detail-evidence) |
 | Rủi ro chính | Tách orchestration làm lệch state/lifecycle; move/rename làm test path-based vỡ; feature client thành wrapper vô nghĩa; shared CSS/Radzen change làm visual hoặc popup behavior đổi âm thầm | [Risks](#plan-detail-risks) |
-| Việc làm ngay | Chạy isolated route-real matrix cho các route đã chạm, xác nhận responsive/VI-EN/Light-Dark và rà residual hotspot; giữ FR9 Stable Capability Surface và motif route hiện tại | [Continuation](#plan-detail-continuation) |
+| Việc làm ngay | Plan đã đóng; feature mới tiếp tục tuân FR9 Stable Capability Surface và motif route hiện tại | [Continuation](#plan-detail-continuation) |
 
 **Thuật ngữ:**
 
@@ -542,7 +542,7 @@ contract, `sol` high/xhigh cho boundary và route-real review. Đây chỉ là k
 | **FR7 — Requests write & Settlement** | Core thesis workflow tách theo use case nhưng behavior/mutation không đổi | Order editor session, draft store/autosave, submission coordinator, step components; supplement approval; settlement query/preview/confirm/correct/export; cancellation/dispose | `gpt-5.6-sol` xhigh, `terra` high implement | 15–38% | OrderCreate, OrderManagement, DS3, pending workspace, ExportDownload; API/DB observable outcome; idempotency/draft/recreate/correction parity |
 | **FR8 — Global hardening & final acceptance** | Xóa owner cạnh tranh còn lại, hoàn tất test/docs và owner duyệt UI cuối qua ba checkpoint tách biệt | FR8A shell/shared/CSS/JS → FR8B test-only cleanup → FR8C route/docs/final acceptance | `gpt-5.6-sol` xhigh | 10–25% | Mỗi checkpoint có commit/gate riêng; golden chỉ sau FR8C owner approval |
 | **FR9 — Stable Capability Surface retrofit** | Người dùng luôn thấy cùng cấu trúc chức năng và data surface; action chưa dùng được hiện mờ có lý do thay vì biến mất, empty không làm layout đổi hình | Audit action manifest + empty-state matrix; bổ sung typed disabled reason; retrofit theo thứ tự Admin → Requests → Operations → Analytics; không đổi API/RBAC/nghiệp vụ | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high checkpoint review | 15–40%; safety envelope 65% | Mỗi module: permission matrix + business-state matrix + base/filtered/error state; architecture + focused route + route-real responsive pass trước module kế |
-| **FR10 — Post-feature readability** (`CHECKPOINT SLICES COMPLETE`) | Các UI mới dễ đọc và có owner rõ mà không đổi behavior hoặc motif | FR10A tách preview/confirm; FR10B cache period view và dùng chung approval decision lifecycle; FR10C tách settlement state reset; Identity UI dùng chung empty permission state | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high/xhigh boundary review | Không có đo aggregate đáng tin cậy | `9b417152`, `f9fef820`, `5eda46e8`, `ae723735`, `0631e30c`; frontend `502/502`, build sạch; route-real matrix còn mở |
+| **FR10 — Post-feature readability** (`COMPLETE`) | Các UI mới dễ đọc và có owner rõ mà không đổi behavior hoặc motif | FR10A tách preview/confirm; FR10B cache period view và dùng chung approval decision lifecycle; FR10C tách settlement state reset; Identity UI dùng chung empty permission state | `gpt-5.6-terra` high implement, `gpt-5.6-sol` high/xhigh boundary review | Không có đo aggregate đáng tin cậy | `9b417152`, `f9fef820`, `5eda46e8`, `ae723735`, `0631e30c`; frontend `502/502`, route-real `2/2`, 28 màn hình × 4 viewport |
 
 Một implementer chính giữ context. Reviewer/subagent chỉ audit/verify độc lập; agent cùng sửa source phải
 dùng worktree riêng và không chạm cùng module.
@@ -566,7 +566,7 @@ dùng worktree riêng và không chạm cùng module.
 | FR8A–FR8B | `COMPLETE` | Không tách thêm global CSS/JS/test helper nếu chưa có lifecycle hoặc acceptance evidence |
 | FR8C | `COMPLETE — OWNER APPROVED 2026-08-04` | Golden artifact deferred đến clean reproducible HEAD/thesis-slide finalization |
 | FR9 | `COMPLETE — QA PASS 2026-08-13` | Stable Capability Surface đã retrofit shared contract, Admin, Requests, Operations và Analytics; frontend `434/434`, route-real `2/2 + 10/10 + 5/5`, visual representative routes đã review |
-| FR10 | `CHECKPOINT SLICES COMPLETE — FINAL ROUTE-REAL REVIEW IN PROGRESS` | FR10A `9b417152`; FR10B `f9fef820`, `5eda46e8`; FR10C `ae723735`; Identity UI `0631e30c`. Frontend `502/502`, build sạch; chưa đóng wave trước responsive route-real matrix |
+| FR10 | `COMPLETE — VERIFIED 2026-08-18` | FR10A `9b417152`; FR10B `f9fef820`, `5eda46e8`; FR10C `ae723735`; Identity UI `0631e30c`. Frontend `502/502`, full verify PASS; isolated Atlas matrix `2/2`, 28 screens × 4 viewports |
 
 ### FR10 contract và thứ tự thực thi
 

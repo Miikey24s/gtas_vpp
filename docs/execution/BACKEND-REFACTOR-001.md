@@ -1,6 +1,6 @@
 # BACKEND-REFACTOR-001 — Backend dễ đọc, dễ trình bày và dễ bảo trì
 
-- Status: B0R–B2 COMPLETE — B3–B8 CHECKPOINT SLICES COMPLETE; FINAL INTEGRATION/OWNERSHIP REVIEW IN PROGRESS
+- Status: B0R–B8 COMPLETE — VERIFIED 2026-08-18
 - Priority: P1
 - Path: STANDARD — behavior-preserving modular refactor
 - Owner: Nguyễn An Nam
@@ -32,7 +32,7 @@
 | Kết quả cần đạt | Backend vẫn chạy y như hiện tại nhưng người mới có thể lần từ API → use case → database nhanh, tên dễ hiểu, class có trách nhiệm rõ, không còn rác đã chứng minh | [Objective](#plan-detail-objective) |
 | Phạm vi | `src/Backend`, backend tests và tài liệu đọc code; không redesign UI, không đổi API/JSON/quyền/nghiệp vụ/schema | [Scope](#plan-detail-scope) |
 | Phương án | Giữ modular monolith và 4 project hiện tại; tổ chức dần theo module `IdentityAccess`, `CatalogPricing`, `Requests`, `Settlement`, `Reports`, `Notifications`, `Platform`; không big-bang rewrite | [Target structure](#plan-detail-target-structure) |
-| Các bước chính | Đã xong B0R–B2 và C0; các checkpoint B3 Catalog/Pricing → B4 Period/Requests → B5 Settlement/Correction → B6 Identity → B7 Platform → B8 Persistence đã được triển khai theo lát nhỏ. Còn final integration, route-real và residual ownership review trước khi đóng plan | [Waves](#plan-detail-waves) |
+| Các bước chính | Đã xong B0R–B8 và C0; controller Catalog/Requests/Identity không còn generic base hoặc direct `VPPContext`. Còn full verification và route-real evidence trước khi đóng plan | [Waves](#plan-detail-waves) |
 | Comment/naming | Identifier English; comment tiếng Việt `quick-scan` cho vai trò → bước chính → kết quả/tác động → lý do/ràng buộc. Chi tiết nhưng mỗi comment chỉ 1 ý, đọc lướt được; không comment từng câu lệnh | [Readability contract](#plan-detail-readability) |
 | Model/quota routing | Probe live 18/08 bị timeout nên capacity chưa được xác nhận. Khuyến nghị `gpt-5.6-terra` high cho lát rõ contract, `gpt-5.6-sol` high/xhigh cho boundary/review; chỉ mở checkpoint độc lập và đo lại trước wave kế | [Routing](#plan-detail-routing) |
 | Kiểm tra | Mỗi checkpoint khóa route/permission/JSON trước, chạy focused test trong vòng lặp và full backend gate trước commit. Chức năng mới chỉ chuyển từ `FROZEN` sang `ACCEPTED` sau checklist thực tế của owner và regression test tương ứng | [Verification](#plan-detail-verification) |
@@ -114,7 +114,7 @@ Số test chỉ là snapshot ngày refresh, không phải invariant lâu dài.
 | `Application/Services/Seeding/DemoWorkbookSeeder.cs` | 1.475 | Parse, validate, reconcile và write demo data trong một file |
 | `Application/Services/Settlement/PeriodSettlementService.cs` | 1.311 | Preview, confirm/correct, revision query, legacy settlement và snapshot logic cùng class |
 | `Api/Controllers/VPPRequestController.cs` | 1.194 | Transport, filter/query, export, notification và dashboard query bị trộn; còn direct EF cho dashboard |
-| `Api/Controllers/LibraryController.cs` | 1.168 | Typed query tồn tại song song generic CRUD/PATCH và direct `VPPContext` access |
+| `Api/Controllers/LibraryController.cs` | 1.168 tại baseline | Đã giải quyết: controller mỏng gọi query/mutation/integrity service; không còn direct `VPPContext` |
 | `Api/Controllers/PermissionController.cs` | 1.090 | Permission/user query, mapping và transaction qua `IUnitOfWork.VPPContext` trong controller |
 | `Api/Authorization/AccountLifecycleService.cs` | 1.028 | Account lifecycle và security branching là hotspot Identity/Access mới |
 | `Application/Services/Seeding/SeedData.cs` | 960 | Reference seed, demo seed, SQL script, prices-file parsing và validation |
@@ -471,7 +471,7 @@ src/Backend/
 | **B3 — Catalog & Pricing** (`CHECKPOINT COMPLETE`) | Typed import/read paths rõ hơn mà không đổi contract | Tách mapping/batch/apply, preview/confirm và dùng chung price-list field mapping; không thay rule import hoặc wire contract | `gpt-5.6-sol` high design/review, `terra` high implement | Không có đo aggregate đáng tin cậy | `aa1090b0`, `9b417152`, `5782c969`; backend `564/564`, frontend `502/502`, build sạch |
 | **B4 — Period & Requests** (`CHECKPOINT COMPLETE`) | Giảm lặp ở query/filter và làm rõ lifecycle kỳ | Dùng chung order/history filters, tách initial state và comment transition tự động; chưa tuyên bố đã thu nhỏ toàn bộ `VPPRequestService` | `gpt-5.6-sol` xhigh plan/review, `terra` high implement | Không có đo aggregate đáng tin cậy | `01fb8739`, `4fcdf0b3`, `3ed690fc`, `2bb15990`; full unit/build xanh |
 | **B5 — Settlement & post-settlement correction** (`CHECKPOINT COMPLETE`) | Preview/exception selection có boundary rõ hơn | Tách demand snapshot và exception selection; giữ snapshot, VAT, correction và revision contract hiện tại | `gpt-5.6-sol` xhigh, `terra` high implement | Không có đo aggregate đáng tin cậy | `7aa70030`, `9747548e`; full unit/build xanh |
-| **B6 — Identity & Access** (`CHECKPOINT COMPLETE`) | Validation command có owner rõ hơn | Tách registration và membership validation; chưa xóa toàn bộ direct-context debt trong `PermissionController` | `gpt-5.6-sol` xhigh, `terra` high implement | Không có đo aggregate đáng tin cậy | `b2f8eeb2`, `9f76697c`; focused identity/bootstrap `63/63` |
+| **B6 — Identity & Access** (`COMPLETE`) | Validation và query có owner rõ | Tách registration/membership validation, persona detail và membership query; controller không đọc DbContext trực tiếp | `gpt-5.6-sol` xhigh, `terra` high implement | Không có đo aggregate đáng tin cậy | `b2f8eeb2`, `9f76697c`, `3322f5b0`; backend `574/574` |
 | **B7 — Platform, composition & operations** (`CHECKPOINT COMPLETE`) | Composition và database initialization dễ lần hơn | Chuyển deployment database contract và tách `DatabaseInitializationRunner`; giữ retry, deterministic failure và SQL application lock | `gpt-5.6-sol` high/xhigh | Không có đo aggregate đáng tin cậy | `e7c3ec79`, `afed582b`; API build sạch, focused platform/database `48/48` |
 | **B8 — Persistence mapping & final review** (`CHECKPOINT COMPLETE`) | Giảm mapping drift có kiểm chứng zero-delta | Dùng chung trusted-access mapping cho runtime/migration context; chưa mass-share mapping khác vì hai context có view và constraint ownership khác nhau | `gpt-5.6-sol` xhigh | Không có đo aggregate đáng tin cậy | `058f2fa0`; EF pending-model check không có thay đổi, focused identity/bootstrap `63/63` |
 
@@ -751,12 +751,15 @@ không cần xin duyệt lại từng turn và chỉ dừng ở behavior/API/dat
 - Catalog/Pricing: `aa1090b0`, `9b417152`, `5782c969`. Period/Requests: `01fb8739`, `4fcdf0b3`,
   `3ed690fc`, `2bb15990`. Settlement: `7aa70030`, `9747548e`. Identity: `b2f8eeb2`, `9f76697c`.
   Platform/Persistence: `e7c3ec79`, `058f2fa0`, `afed582b`.
-- Evidence gần nhất: backend unit `564/564`, frontend unit `502/502`; API và Blazor build sạch. Shared
+- Final ownership cleanup: dashboard query `0802f006`; Library read/write `433fe184`, `f680919a`; typed
+  category/persona/membership reads và xóa `BaseGenericController` ở `3322f5b0`.
+- Evidence gần nhất: backend unit `574/574`, frontend unit `502/502`; API và Blazor build sạch. Shared
   trusted-access mapping đạt EF zero-delta; focused identity/bootstrap `63/63`, platform/database `48/48`.
   LocalDB/import integration vẫn phải báo đúng skip nếu môi trường không có disposable SQL Server.
-- Đây là **checkpoint completion**, chưa phải tuyên bố mọi hotspot đã được chia xong. `VPPRequestService`,
-  `LibraryController`, `PermissionController` và một số orchestration lớn còn residual ownership debt; chỉ
-  xử lý tiếp khi characterization chứng minh lát tách mới tạo navigation/test seam rõ, không refactor theo LOC.
+- Full `verify -Scope all` PASS: agent `63/63`, build 0 warning/error, UI smoke `2/2`, integration
+  `14 passed / 11 skipped`, EF zero-delta, NuGet audit, thesis verification và Gitleaks đều PASS.
+- Các hotspot lớn còn lại chỉ được tách tiếp khi có use case/test seam cụ thể; plan này không dùng LOC để
+  mở rộng refactor sau khi controller ownership và integration gate đã sạch.
 
 - Checkpoint series hiện tại trên branch `Nam`: `d2fd8598` → `0c74f911` → `65a72d66` → `b14716b7`
   → `de0a20fb` → `e5589326`; mỗi lát giữ repository chạy được trước khi mở lát tiếp theo.
