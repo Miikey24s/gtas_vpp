@@ -289,6 +289,30 @@ public sealed class VppPeriodServiceTests
     }
 
     [Fact]
+    public async Task Manual_period_rejects_a_past_business_month_even_with_future_deadlines()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        // Provider dùng giờ nghiệp vụ Việt Nam; 01:00 ngày 01/08 tương ứng 18:00 UTC ngày 31/07.
+        var service = CreateService(context, new DateTime(2026, 8, 1, 1, 0, 0));
+        var request = new VppOrderPeriodManualCreateReqDTO
+        {
+            Year = 2026,
+            Month = 7,
+            OpenAtLocal = new DateTime(2026, 8, 1, 8, 0, 0),
+            CloseAtLocal = new DateTime(2026, 9, 5),
+            SupplementApprovalDeadlineLocal = new DateTime(2026, 9, 10),
+            Reason = "Không được tạo bù kỳ đã qua."
+        };
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+            service.CreateManualAsync("ACME", 5615, request));
+
+        Assert.Equal("Không thể tạo kỳ đặt hàng trong quá khứ.", exception.Message);
+        Assert.Empty(context.Periods);
+    }
+
+    [Fact]
     public async Task Manual_period_can_recreate_a_soft_deleted_legacy_period()
     {
         await using var context = ServiceTestHelpers.CreateInMemoryContext(

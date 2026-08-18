@@ -37,6 +37,9 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("Settings.SupplementApprovalGraceDays", createPeriodDialog, StringComparison.Ordinal);
         Assert.Contains("Settings.PostCloseAdjustmentDays", createPeriodDialog, StringComparison.Ordinal);
         Assert.Contains("Bạn có thể đổi riêng cho kỳ này", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("AvailableMonthOptions", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("Không thể tạo kỳ đặt hàng trong quá khứ.", createPeriodDialog, StringComparison.Ordinal);
+        Assert.DoesNotContain("targetYear - 1", createPeriodDialog, StringComparison.Ordinal);
     }
 
     [Fact]

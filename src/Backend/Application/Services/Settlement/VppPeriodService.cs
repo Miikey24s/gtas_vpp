@@ -303,12 +303,15 @@ public sealed class VppPeriodService : IVppPeriodService
         var company = NormalizeCompanyCode(memberCompanyCode);
         var period = new Period(request.Year, request.Month);
         ValidatePeriod(period);
+        var nowUtc = CurrentUtc();
+        var settings = await ResolveSettingsAsync(company, nowUtc, cancellationToken);
+        var currentLocal = ToBusinessLocal(nowUtc, settings.TimeZoneId);
+        ValidateNotPastPeriod(period, currentLocal);
         if (await FindTrackedAsync(company, period, cancellationToken) is not null)
         {
             throw new ConflictException(
                 $"Kỳ {period.Month:00}/{period.Year} đã tồn tại và không thể tạo trùng.");
         }
-        var settings = await ResolveSettingsAsync(company, CurrentUtc(), cancellationToken);
         var supplementDays = request.SupplementApprovalGraceDays;
         var adjustmentDays = request.PostCloseAdjustmentDays ?? settings.PostCloseAdjustmentDays;
         ValidateWindowDays(supplementDays, adjustmentDays);
@@ -325,12 +328,12 @@ public sealed class VppPeriodService : IVppPeriodService
             supplementLocal,
             request.CloseAtLocal.AddDays(adjustmentDays),
             settings.TimeZoneId);
-        if (schedule.SubmissionDeadlineUtc <= CurrentUtc())
+        if (schedule.SubmissionDeadlineUtc <= nowUtc)
         {
             throw new BusinessException("Không thể tạo kỳ có hạn nhận đơn đã qua.");
         }
 
-        var state = schedule.StartAtUtc > CurrentUtc()
+        var state = schedule.StartAtUtc > nowUtc
             ? VppPeriodState.Scheduled
             : VppPeriodState.Open;
         var created = await CreatePersistedAsync(
@@ -1131,6 +1134,17 @@ public sealed class VppPeriodService : IVppPeriodService
         if (period.Year is < 1 or > 9999 || period.Month is < 1 or > 12)
         {
             throw new ArgumentOutOfRangeException(nameof(period));
+        }
+    }
+
+    private static void ValidateNotPastPeriod(Period period, DateTime currentLocal)
+    {
+        // Kỳ là nhãn tháng nghiệp vụ: lịch mở/đóng tương lai không được dùng để tạo bù tháng đã qua.
+        var requestedKey = (period.Year * 100) + period.Month;
+        var currentKey = (currentLocal.Year * 100) + currentLocal.Month;
+        if (requestedKey < currentKey)
+        {
+            throw new BusinessException("Không thể tạo kỳ đặt hàng trong quá khứ.");
         }
     }
 

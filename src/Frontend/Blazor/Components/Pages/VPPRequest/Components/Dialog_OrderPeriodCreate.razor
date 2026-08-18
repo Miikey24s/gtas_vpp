@@ -20,7 +20,7 @@
         <div class="vpp-order-period-create-grid">
             <RadzenFormField Text="Tháng" Variant="Variant.Outlined">
                 <RadzenDropDown TValue="int"
-                                Data="@MonthOptions"
+                                Data="@AvailableMonthOptions"
                                 TextProperty="Label"
                                 ValueProperty="Value"
                                 @bind-Value="Request.Month"
@@ -111,6 +111,8 @@
 
     private bool initialized;
     private string ValidationMessage { get; set; } = string.Empty;
+    private DateTime CurrentBusinessDate { get; set; }
+    private IReadOnlyList<MonthOption> AvailableMonthOptions { get; set; } = [];
     private IReadOnlyList<int> YearOptions { get; set; } = [];
     private VppOrderPeriodManualCreateReqDTO Request { get; set; } = new();
     private DateTime SupplementDeadline { get; set; }
@@ -124,10 +126,17 @@
         }
 
         initialized = true;
-        var today = DateTime.Today;
-        var targetYear = SuggestedYear > 0 ? SuggestedYear : today.Year;
-        var targetMonth = SuggestedMonth is >= 1 and <= 12 ? SuggestedMonth : today.Month;
-        YearOptions = Enumerable.Range(Math.Max(2024, targetYear - 1), 6).ToArray();
+        CurrentBusinessDate = GetBusinessNow();
+        var suggestedYear = SuggestedYear > 0 ? SuggestedYear : CurrentBusinessDate.Year;
+        var targetYear = Math.Max(suggestedYear, CurrentBusinessDate.Year);
+        var suggestedMonth = SuggestedMonth is >= 1 and <= 12
+            ? SuggestedMonth
+            : CurrentBusinessDate.Month;
+        var targetMonth = targetYear == CurrentBusinessDate.Year
+            ? Math.Max(suggestedMonth, CurrentBusinessDate.Month)
+            : suggestedMonth;
+        var yearCount = Math.Max(6, targetYear - CurrentBusinessDate.Year + 1);
+        YearOptions = Enumerable.Range(CurrentBusinessDate.Year, yearCount).ToArray();
         Request = new VppOrderPeriodManualCreateReqDTO
         {
             Year = targetYear,
@@ -141,6 +150,7 @@
 
     private void RecalculateSchedule()
     {
+        RefreshAvailableMonths();
         if (Request.Year is < 1 or > 9999 || Request.Month is < 1 or > 12)
         {
             return;
@@ -152,6 +162,21 @@
         Request.OpenAtLocal = BoundaryLocal(openMonth, Settings.DefaultNewPeriodOpenDay);
         Request.CloseAtLocal = BoundaryLocal(closeMonth, Settings.DefaultPeriodCloseDay);
         RefreshDeadlines();
+    }
+
+    private void RefreshAvailableMonths()
+    {
+        AvailableMonthOptions = Request.Year == CurrentBusinessDate.Year
+            ? MonthOptions.Where(option => option.Value >= CurrentBusinessDate.Month).ToArray()
+            : Request.Year > CurrentBusinessDate.Year
+                ? MonthOptions
+                : [];
+
+        if (AvailableMonthOptions.Count > 0
+            && AvailableMonthOptions.All(option => option.Value != Request.Month))
+        {
+            Request.Month = AvailableMonthOptions[0].Value;
+        }
     }
 
     private DateTime BoundaryLocal(DateTime month, int requestedDay)
@@ -186,6 +211,13 @@
 
     private string Validate()
     {
+        var currentBusinessDate = GetBusinessNow();
+        var requestedKey = (Request.Year * 100) + Request.Month;
+        var currentKey = (currentBusinessDate.Year * 100) + currentBusinessDate.Month;
+        if (requestedKey < currentKey)
+        {
+            return "Không thể tạo kỳ đặt hàng trong quá khứ.";
+        }
         if (Request.CloseAtLocal <= Request.OpenAtLocal)
         {
             return "Ngày đóng phải sau ngày mở.";
@@ -203,6 +235,26 @@
         return adjustmentDays < supplementDays
             ? "Thời gian chỉnh đơn phải bằng hoặc dài hơn thời gian nhận đơn bổ sung."
             : string.Empty;
+    }
+
+    private DateTime GetBusinessNow()
+    {
+        var timeZoneId = string.IsNullOrWhiteSpace(Settings.TimeZoneId)
+            ? "Asia/Ho_Chi_Minh"
+            : Settings.TimeZoneId;
+        try
+        {
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return DateTime.Now;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return DateTime.Now;
+        }
     }
 
     private static string FormatDateTime(DateTime value) => value.ToString("HH:mm dd/MM/yyyy");
