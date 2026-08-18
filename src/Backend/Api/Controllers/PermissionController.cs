@@ -21,7 +21,6 @@ using System.Linq.Dynamic.Core;
 using static gtas_vpp_be.Service.Helpers.Config;
 using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionPageComponentResDTO;
 using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionComponentAccessResDTO;
-using AuthGroupDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionGroupResDTO;
 using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.UserAdministrationResDTO;
 using MembershipDto = gtas_vpp_shared.DTOs.Res.Permission.MembershipAdministrationResDTO;
 using UserMembershipDto = gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO;
@@ -42,6 +41,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IPermissionChangeNotifier _permissionChangeNotifier;
         private readonly IMembershipAdministrationService _membershipAdministrationService;
         private readonly ISecurityAuditQueryService _securityAuditQueryService;
+        private readonly IUserAdministrationQueryService _userAdministrationQueryService;
 
         public PermissionController(
             IGenericRepository<PermissionGroup> groupRepository,
@@ -52,7 +52,8 @@ namespace gtas_vpp_be.Controllers
             IDateTimeProvider dateTimeProvider,
             IPermissionChangeNotifier permissionChangeNotifier,
             IMembershipAdministrationService membershipAdministrationService,
-            ISecurityAuditQueryService securityAuditQueryService)
+            ISecurityAuditQueryService securityAuditQueryService,
+            IUserAdministrationQueryService userAdministrationQueryService)
         {
             _groupRepository = groupRepository;
             _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
@@ -65,6 +66,7 @@ namespace gtas_vpp_be.Controllers
             _permissionChangeNotifier = permissionChangeNotifier;
             _membershipAdministrationService = membershipAdministrationService;
             _securityAuditQueryService = securityAuditQueryService;
+            _userAdministrationQueryService = userAdministrationQueryService;
         }
 
         private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
@@ -701,211 +703,28 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] string? distinct = null,
             [FromQuery] string? distinctFilter = null)
         {
-            var hasSearch = !string.IsNullOrWhiteSpace(search);
-            // Identity do ứng dụng sở hữu là nguồn có thẩm quyền cho tài khoản. Dòng lịch sử
-            // GTAS_MENU/v_Users không bao giờ được tạo membership có thể ghi.
-            var usersQuery = _unitOfWork.VPPContext.Users.AsNoTracking();
+            var result = await _userAdministrationQueryService.GetPageAsync(
+                new UserAdministrationQuery(
+                    search,
+                    accountStatus,
+                    groupId,
+                    departmentId,
+                    hasActiveMembership,
+                    filter,
+                    skip,
+                    top,
+                    orderby,
+                    distinct,
+                    distinctFilter),
+                HttpContext.RequestAborted);
 
-            if (!string.IsNullOrWhiteSpace(accountStatus))
+            if (!result.Succeeded)
             {
-                if (!Enum.TryParse<AppAccountStatus>(accountStatus.Trim(), true, out var parsedStatus))
-                {
-                    return BadRequest(new
-                    {
-                        code = "INVALID_ACCOUNT_STATUS",
-                        message = "Account status must be Active, PendingApproval or Disabled."
-                    });
-                }
-
-                usersQuery = usersQuery.Where(user => user.AccountStatus == parsedStatus);
+                return BadRequest(new { code = result.ErrorCode, message = result.ErrorMessage });
             }
 
-            if (hasSearch)
-            {
-                var searchText = search!.Trim();
-                usersQuery = usersQuery.Where(x =>
-                    (x.UserName != null && x.UserName.Contains(searchText))
-                    || (x.Email != null && x.Email.Contains(searchText))
-                    || (x.EmployeeCode != null && x.EmployeeCode.Contains(searchText))
-                    || (x.FullName != null && x.FullName.Contains(searchText)));
-            }
-
-            var userGroupsQuery = _unitOfWork.VPPContext.Set<UserGroupMembership>()
-                .AsNoTracking()
-                .Where(mapping => !mapping.IsDeleted
-                    && mapping.AccountId.HasValue
-                    && mapping.UserId == mapping.AccountId)
-                .Include(x => x.PermissionGroup)
-                .Include(x => x.Department);
-
-            IQueryable<UserListDto> query =
-                from user in usersQuery
-                join userGroup in userGroupsQuery on (int?)user.Id equals userGroup.AccountId into userGroupJoin
-                from userGroup in userGroupJoin.DefaultIfEmpty()
-                select new UserListDto
-                {
-                    Id = userGroup == null ? Guid.Empty : userGroup.Id,
-                    UserId = user.Id,
-                    UserLogin = user.UserName,
-                    FullName = user.FullName,
-                    Email = user.Email,
-                    EmployeeCode = user.EmployeeCode,
-                    EmailConfirmed = user.EmailConfirmed,
-                    MustChangePassword = user.MustChangePassword,
-                    GoogleEmail = null,
-                    IsAdmin = userGroup != null
-                              && userGroup.PermissionGroup != null
-                              && userGroup.PermissionGroup.GroupCode == CanonicalRbac.SystemAdmin.GroupCode,
-                    GroupId = userGroup == null ? Guid.Empty : userGroup.PermissionGroupId,
-                    GroupName = userGroup == null || userGroup.PermissionGroup == null ? string.Empty : userGroup.PermissionGroup.GroupName,
-                    CreatedByUserId = userGroup == null ? 0 : userGroup.CreatedByUserId,
-                    CreatedAtUtc = userGroup == null ? null : userGroup.CreatedAtUtc,
-                    UpdatedByUserId = userGroup == null ? 0 : userGroup.UpdatedByUserId,
-                    UpdatedAtUtc = userGroup == null ? null : userGroup.UpdatedAtUtc,
-                    // Các trường tương thích cho Radzen grid hiện tại. UI quản trị chuyên biệt
-                    // sẽ hiển thị cả hai trạng thái.
-                    IsDeleted = user.AccountStatus != AppAccountStatus.Active || userGroup == null,
-                    UserType = user.AccountStatus == AppAccountStatus.Active
-                        ? "Active application account"
-                        : user.AccountStatus == AppAccountStatus.PendingApproval
-                            ? "Pending approval"
-                            : "Disabled application account",
-                    Description = userGroup == null ? null : userGroup.Description,
-                    DepartmentName = userGroup == null || userGroup.Department == null
-                         ? string.Empty
-                         : userGroup.Department.Name,
-                    DepartmentId = userGroup == null ? null : userGroup.DepartmentId,
-                    AccountStatus = user.AccountStatus == AppAccountStatus.Active
-                         ? nameof(AppAccountStatus.Active)
-                         : user.AccountStatus == AppAccountStatus.PendingApproval
-                             ? nameof(AppAccountStatus.PendingApproval)
-                             : nameof(AppAccountStatus.Disabled),
-                    LastLoginAtUtc = user.LastLoginAtUtc,
-                    SessionVersion = user.SessionVersion,
-                    GroupCode = userGroup == null || userGroup.PermissionGroup == null
-                         ? null
-                         : userGroup.PermissionGroup.GroupCode,
-                    IsActive = user.AccountStatus == AppAccountStatus.Active && userGroup != null,
-                    RowVersion = userGroup == null ? null : userGroup.RowVersion,
-                    UserGroup = userGroup == null || userGroup.PermissionGroup == null
-                        ? null
-                        : new AuthGroupDto
-                        {
-                            Id = userGroup.PermissionGroup.Id,
-                            GroupName = userGroup.PermissionGroup.GroupName,
-                            ParentGroupId = userGroup.PermissionGroup.ParentGroupId,
-                            Description = userGroup.PermissionGroup.Description,
-                            CreatedByUserId = userGroup.PermissionGroup.CreatedByUserId,
-                            CreatedAtUtc = userGroup.PermissionGroup.CreatedAtUtc,
-                            UpdatedByUserId = userGroup.PermissionGroup.UpdatedByUserId,
-                            UpdatedAtUtc = userGroup.PermissionGroup.UpdatedAtUtc,
-                            IsDeleted = userGroup.PermissionGroup.IsDeleted
-                        }
-                };
-
-            if (groupId.HasValue)
-            {
-                query = query.Where(user => user.GroupId == groupId.Value);
-            }
-
-            if (departmentId.HasValue)
-            {
-                query = query.Where(user => user.DepartmentId == departmentId.Value);
-            }
-
-            if (hasActiveMembership.HasValue)
-            {
-                query = hasActiveMembership.Value
-                    ? query.Where(user => user.GroupId != Guid.Empty)
-                    : query.Where(user => user.GroupId == Guid.Empty);
-            }
-
-            if (!string.IsNullOrWhiteSpace(filter))
-            {
-                try
-                {
-                    query = query.Where(filter);
-                }
-                catch
-                {
-                    // Giữ endpoint hoạt động an toàn khi gặp biểu thức Radzen chưa hỗ trợ.
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(distinct))
-            {
-                var propertyInfo = typeof(UserListDto).GetProperty(distinct);
-                if (propertyInfo != null)
-                {
-                    var distinctValues = await query
-                        .Select(distinct)
-                        .Distinct()
-                        .ToDynamicListAsync();
-
-                    var filteredValues = distinctValues
-                        .Where(val => val != null)
-                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
-                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
-                        .ToList();
-
-                    Response.Headers.Append("X-Total-Count", filteredValues.Count.ToString());
-
-                    IEnumerable<object> pageValues = filteredValues.Cast<object>();
-                    if (skip.HasValue && skip.Value > 0)
-                    {
-                        pageValues = pageValues.Skip(skip.Value);
-                    }
-
-                    if (top.HasValue && top.Value > 0)
-                    {
-                        pageValues = pageValues.Take(top.Value);
-                    }
-
-                    var distinctDtos = pageValues.Select(val =>
-                    {
-                        var dto = new UserListDto();
-                        propertyInfo.SetValue(dto, val);
-                        return dto;
-                    }).ToList();
-
-                    return Ok(distinctDtos);
-                }
-            }
-
-            var totalCount = await query.CountAsync();
-
-            if (!string.IsNullOrWhiteSpace(orderby))
-            {
-                try
-                {
-                    query = query.OrderBy(orderby);
-                }
-                catch
-                {
-                    query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.FullName).ThenBy(x => x.UserLogin);
-                }
-            }
-            else
-            {
-                query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.FullName).ThenBy(x => x.UserLogin);
-            }
-
-            if (skip.HasValue && skip.Value > 0)
-            {
-                query = query.Skip(skip.Value);
-            }
-
-            if (top.HasValue && top.Value > 0)
-            {
-                query = query.Take(top.Value);
-            }
-
-            var page = await query.ToListAsync();
-            page = await _userNameResolver.WithUserNamesAsync(page, _unitOfWork.VPPContext);
-
-            Response.Headers.Append("X-Total-Count", totalCount.ToString());
-
-            return Ok(page);
+            Response.Headers.Append("X-Total-Count", result.TotalCount.ToString(CultureInfo.InvariantCulture));
+            return Ok(result.Items);
         }
 
         [HttpGet("user-groups")]

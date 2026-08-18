@@ -180,7 +180,8 @@ public sealed class MembershipPermissionControllerTests
             new FakeDateTimeProvider(DateTime.UtcNow),
             Mock.Of<IPermissionChangeNotifier>(),
             Mock.Of<IMembershipAdministrationService>(),
-            new SecurityAuditQueryService(context))
+            new SecurityAuditQueryService(context),
+            new UserAdministrationQueryService(context, resolver.Object))
         {
             ControllerContext = new ControllerContext
             {

@@ -406,7 +406,8 @@ public sealed class CanonicalPermissionControllerTests
             new FakeDateTimeProvider(DateTime.UtcNow),
             (permissionChangeNotifier ?? new Mock<IPermissionChangeNotifier>()).Object,
             Mock.Of<IMembershipAdministrationService>(),
-            new SecurityAuditQueryService(context))
+            new SecurityAuditQueryService(context),
+            new UserAdministrationQueryService(context, Mock.Of<IUserNameResolver>()))
         {
             ControllerContext = new ControllerContext
             {
