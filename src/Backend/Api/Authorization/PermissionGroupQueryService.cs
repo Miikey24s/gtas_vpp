@@ -4,6 +4,7 @@ using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Permission;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 
@@ -26,6 +27,11 @@ public interface IPermissionGroupQueryService
 {
     Task<PermissionGroupQueryResult> GetPageAsync(
         PermissionGroupQuery request,
+        CancellationToken cancellationToken = default);
+
+    Task<PermissionGroupResDTO?> GetByIdAsync(
+        Guid id,
+        bool includeUserNames,
         CancellationToken cancellationToken = default);
 }
 
@@ -110,6 +116,27 @@ public sealed class PermissionGroupQueryService(
         }
 
         return new PermissionGroupQueryResult(page, totalCount);
+    }
+
+    public async Task<PermissionGroupResDTO?> GetByIdAsync(
+        Guid id,
+        bool includeUserNames,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Set<PermissionGroup>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(group => group.Id == id && !group.IsDeleted, cancellationToken);
+        if (entity is null)
+        {
+            return null;
+        }
+
+        if (includeUserNames)
+        {
+            await _userNameResolver.IncludeUserInfoAsync(entity, _context);
+        }
+
+        return entity.Adapt<PermissionGroupResDTO>();
     }
 
     private static IQueryable<PermissionGroupResDTO> ApplyDynamicFilter(

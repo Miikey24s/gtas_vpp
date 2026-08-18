@@ -54,6 +54,21 @@ public sealed class VppCatalogService : IVppCatalogService
         _dateTimeProvider = dateTimeProvider;
     }
 
+    public async Task<IReadOnlyList<VppCategoryResDTO>> GetCategoriesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _unitOfWork.VPPContext.Set<VppCategory>()
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted)
+            .Select(x => new VppCategoryResDTO
+            {
+                Id = x.Id,
+                VppCategoryCode = x.VppCategoryCode,
+                VppCategoryName = x.VppCategoryName
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<VppItemResDTO?> GetItemAsync(
         Guid id,
         bool includeDeleted = false,

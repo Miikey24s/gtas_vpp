@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using System.Linq.Expressions;
 using static gtas_vpp_be.Service.Helpers.Config;
 using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionPageComponentResDTO;
 using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.UserAdministrationResDTO;
@@ -26,39 +25,30 @@ namespace gtas_vpp_be.Controllers
     [Route("api/[controller]")]
     public class PermissionController : ControllerBase
     {
-        private readonly IGenericRepository<PermissionGroup> _groupRepository;
-        private readonly IGenericRepository<UserGroupMembership> _userGroupRepository;
-        private readonly IUserNameResolver _userNameResolver;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMembershipAdministrationService _membershipAdministrationService;
         private readonly IPermissionMappingMutationService _permissionMappingMutationService;
         private readonly ISecurityAuditQueryService _securityAuditQueryService;
         private readonly IUserAdministrationQueryService _userAdministrationQueryService;
         private readonly IPermissionGroupQueryService _permissionGroupQueryService;
         private readonly IPermissionPageComponentQueryService _permissionPageComponentQueryService;
+        private readonly IUserGroupMembershipQueryService _userGroupMembershipQueryService;
 
         public PermissionController(
-            IGenericRepository<PermissionGroup> groupRepository,
-            IGenericRepository<UserGroupMembership> userGroupRepository,
-            IUserNameResolver userNameResolver,
-            IUnitOfWork unitOfWork,
             IMembershipAdministrationService membershipAdministrationService,
             IPermissionMappingMutationService permissionMappingMutationService,
             ISecurityAuditQueryService securityAuditQueryService,
             IUserAdministrationQueryService userAdministrationQueryService,
             IPermissionGroupQueryService permissionGroupQueryService,
-            IPermissionPageComponentQueryService permissionPageComponentQueryService)
+            IPermissionPageComponentQueryService permissionPageComponentQueryService,
+            IUserGroupMembershipQueryService userGroupMembershipQueryService)
         {
-            _groupRepository = groupRepository;
-            _userGroupRepository = userGroupRepository;
-            _userNameResolver = userNameResolver;
-            _unitOfWork = unitOfWork;
             _membershipAdministrationService = membershipAdministrationService;
             _permissionMappingMutationService = permissionMappingMutationService;
             _securityAuditQueryService = securityAuditQueryService;
             _userAdministrationQueryService = userAdministrationQueryService;
             _permissionGroupQueryService = permissionGroupQueryService;
             _permissionPageComponentQueryService = permissionPageComponentQueryService;
+            _userGroupMembershipQueryService = userGroupMembershipQueryService;
         }
 
         private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
@@ -99,11 +89,11 @@ namespace gtas_vpp_be.Controllers
                 return NotFound();
             }
 
-            var entity = await GetByIdAsync(_groupRepository, id, getFullName);
-            if (entity is null || entity.IsDeleted) return NotFound();
-
-            var rs = entity.Adapt<PermissionGroupResDTO>();
-            return Ok(rs);
+            var result = await _permissionGroupQueryService.GetByIdAsync(
+                id,
+                getFullName,
+                HttpContext.RequestAborted);
+            return result is null ? NotFound() : Ok(result);
         }
 
         [HttpGet("groups/{id:guid}/page-components")]
@@ -127,7 +117,10 @@ namespace gtas_vpp_be.Controllers
         [Authorize(Policy = Permissions.PermissionManage)]
         public async Task<IActionResult> UpdateGroup(Guid id, [FromBody] PermissionGroupUpdateReqDTO req)
         {
-            var current = await GetByIdAsync(_groupRepository, id, true);
+            var current = await _permissionGroupQueryService.GetByIdAsync(
+                id,
+                includeUserNames: true,
+                HttpContext.RequestAborted);
 
             if (current is null)
             {
@@ -249,30 +242,9 @@ namespace gtas_vpp_be.Controllers
         {
             try
             {
-                if (userId.HasValue)
-                {
-                    var userGroups = await ReadAsync(
-                        _userGroupRepository,
-                        getFullName: true,
-                        expression: x => x.UserId == userId.Value
-                                         && x.AccountId == userId.Value
-                                         && !x.IsDeleted);
-
-                    var dtoList = userGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>>();
-                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>());
-                }
-                else
-                {
-                    var allUserGroups = await ReadAsync(
-                        _userGroupRepository,
-                        getFullName: true,
-                        expression: x => x.AccountId.HasValue
-                                         && x.UserId == x.AccountId.Value
-                                         && !x.IsDeleted);
-
-                    var dtoList = allUserGroups?.Adapt<List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>>();
-                    return Ok(dtoList ?? new List<gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO>());
-                }
+                return Ok(await _userGroupMembershipQueryService.GetAsync(
+                    userId,
+                    HttpContext.RequestAborted));
             }
             catch (Exception ex)
             {
@@ -323,27 +295,5 @@ namespace gtas_vpp_be.Controllers
                 _ => throw new InvalidOperationException("Unsupported permission mapping result.")
             };
 
-        private async Task<List<T>> ReadAsync<T>(
-            IGenericRepository<T> repository,
-            bool getFullName = false,
-            Expression<Func<T, bool>>? expression = null,
-            Func<IQueryable<T>, IQueryable<T>>? include = null) where T : class
-        {
-            var data = await repository.ReadAsync(expression, include);
-            return getFullName
-                ? await _userNameResolver.WithUserNamesAsync(data, _unitOfWork.VPPContext)
-                : data;
-        }
-
-        private async Task<T?> GetByIdAsync<T>(IGenericRepository<T> repository, object id, bool getFullName) where T : class
-        {
-            var entity = await repository.GetByIdAsync(id);
-            if (entity is not null && getFullName)
-            {
-                await _userNameResolver.IncludeUserInfoAsync(entity, _unitOfWork.VPPContext);
-            }
-
-            return entity;
-        }
     }
 }

@@ -173,10 +173,6 @@ public sealed class MembershipPermissionControllerTests
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context).Object;
 
         return new PermissionController(
-            Mock.Of<IGenericRepository<PermissionGroup>>(),
-            Mock.Of<IGenericRepository<UserGroupMembership>>(),
-            resolver.Object,
-            unitOfWork,
             Mock.Of<IMembershipAdministrationService>(),
             new PermissionMappingMutationService(
                 Mock.Of<IGenericRepository<GroupPageComponentMapping>>(),
@@ -186,7 +182,8 @@ public sealed class MembershipPermissionControllerTests
             new SecurityAuditQueryService(context),
             new UserAdministrationQueryService(context, resolver.Object),
             new PermissionGroupQueryService(context, resolver.Object),
-            new PermissionPageComponentQueryService(context))
+            new PermissionPageComponentQueryService(context),
+            new UserGroupMembershipQueryService(context, resolver.Object))
         {
             ControllerContext = new ControllerContext
             {

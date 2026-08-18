@@ -257,7 +257,6 @@ public sealed class LibraryDependencyImpactTests
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
         var dateTimeProvider = new FakeDateTimeProvider(DateTime.UtcNow);
         return new LibraryController(
-            new Mock<IServiceProvider>().Object,
             new Mock<IUserNameResolver>().Object,
             unitOfWork.Object,
             dateTimeProvider)

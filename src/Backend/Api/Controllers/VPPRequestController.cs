@@ -1,5 +1,4 @@
 using gtas_vpp_be.Authorization;
-using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
@@ -21,7 +20,7 @@ namespace gtas_vpp_be.Controllers
     [ApiController]
     [Authorize]
     [Route("api/[controller]")]
-    public class VPPRequestController : BaseGenericController
+    public class VPPRequestController : ControllerBase
     {
         private readonly IVPPRequestService _vppService;
         private readonly IPermissionService _permissionService;
@@ -30,15 +29,11 @@ namespace gtas_vpp_be.Controllers
         private readonly IVppDashboardChartQueryService _dashboardChartQueryService;
 
         public VPPRequestController(
-            IServiceProvider serviceProvider,
-            IUserNameResolver userNameResolver,
-            IUnitOfWork unitOfWork,
             IVPPRequestService vppService,
             IPermissionService permissionService,
             IAppNotificationService notificationService,
             IVppCatalogService catalogService,
             IVppDashboardChartQueryService dashboardChartQueryService)
-            : base(serviceProvider, userNameResolver, unitOfWork)
         {
             _vppService = vppService;
             _permissionService = permissionService;
@@ -545,17 +540,7 @@ namespace gtas_vpp_be.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetCategories()
         {
-            var data = await ReadEntitiesAsync<VppCategory>(
-                true,
-                x => !x.IsDeleted);
-
-            var result = (data ?? new()).Select(x => new VppCategoryResDTO
-            {
-                Id = x.Id,
-                VppCategoryCode = x.VppCategoryCode,
-                VppCategoryName = x.VppCategoryName
-            }).ToList();
-
+            var result = await _catalogService.GetCategoriesAsync(HttpContext.RequestAborted);
             return Ok(result);
         }
 

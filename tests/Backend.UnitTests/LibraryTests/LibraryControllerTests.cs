@@ -42,7 +42,6 @@ public class LibraryControllerTests
             .ReturnsAsync((List<Supplier> list, gtas_vpp_be.Service.Helpers.Context.VPPContext ctx) => list);
 
         var controller = new LibraryController(
-            serviceProvider.Object,
             userNameResolver.Object,
             unitOfWork.Object,
             dateTimeProvider)
@@ -99,7 +98,7 @@ public class LibraryControllerTests
         );
         await context.SaveChangesAsync();
 
-        var controller = new LibraryController(serviceProvider.Object, userNameResolver.Object, unitOfWork.Object, dateTimeProvider)
+        var controller = new LibraryController(userNameResolver.Object, unitOfWork.Object, dateTimeProvider)
         {
             ControllerContext = new ControllerContext
             {
@@ -181,7 +180,6 @@ public class LibraryControllerTests
         userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<Supplier>>(), context))
             .ReturnsAsync((List<Supplier> list, gtas_vpp_be.Service.Helpers.Context.VPPContext _) => list);
         var controller = new LibraryController(
-            serviceProvider.Object,
             userNameResolver.Object,
             unitOfWork.Object,
             new FakeDateTimeProvider(now))
@@ -231,7 +229,6 @@ public class LibraryControllerTests
         userNameResolver.Setup(x => x.WithUserNamesAsync(It.IsAny<List<VppItemResDTO>>(), context))
             .ReturnsAsync((List<VppItemResDTO> list, gtas_vpp_be.Service.Helpers.Context.VPPContext _) => list);
         var controller = new LibraryController(
-            Mock.Of<IServiceProvider>(),
             userNameResolver.Object,
             unitOfWork.Object,
             new FakeDateTimeProvider(now))
@@ -376,7 +373,6 @@ public class LibraryControllerTests
             .Setup(x => x.WithUserNamesAsync(It.IsAny<List<Supplier>>(), context))
             .ReturnsAsync((List<Supplier> rows, gtas_vpp_be.Service.Helpers.Context.VPPContext _) => rows);
         return new LibraryController(
-            Mock.Of<IServiceProvider>(),
             userNameResolver.Object,
             unitOfWork.Object,
             new FakeDateTimeProvider(DateTime.UtcNow))
@@ -397,7 +393,6 @@ public class LibraryControllerTests
             .Setup(provider => provider.GetService(typeof(IGenericRepository<TModel>)))
             .Returns(new GenericRepository<TModel>(unitOfWork.Object));
         var controller = new LibraryController(
-            serviceProvider.Object,
             Mock.Of<IUserNameResolver>(),
             unitOfWork.Object,
             new FakeDateTimeProvider(now))

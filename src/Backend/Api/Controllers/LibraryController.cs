@@ -14,7 +14,7 @@ namespace gtas_vpp_be.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class LibraryController : BaseGenericController
+public class LibraryController : ControllerBase
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly ILibraryIntegrityService _libraryIntegrityService;
@@ -22,14 +22,12 @@ public class LibraryController : BaseGenericController
     private readonly ILibraryMutationService _libraryMutationService;
 
     public LibraryController(
-        IServiceProvider serviceProvider,
         IUserNameResolver userNameResolver,
         IUnitOfWork unitOfWork,
         IDateTimeProvider dateTimeProvider,
         ILibraryIntegrityService? libraryIntegrityService = null,
         ILibraryQueryService? libraryQueryService = null,
         ILibraryMutationService? libraryMutationService = null)
-        : base(serviceProvider, userNameResolver, unitOfWork)
     {
         _libraryIntegrityService = libraryIntegrityService ?? new LibraryIntegrityService(unitOfWork);
         _libraryQueryService = libraryQueryService ?? new LibraryQueryService(unitOfWork, userNameResolver);

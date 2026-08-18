@@ -5,6 +5,9 @@ namespace gtas_vpp_be.Service.Services;
 
 public interface IVppCatalogService
 {
+    Task<IReadOnlyList<VppCategoryResDTO>> GetCategoriesAsync(
+        CancellationToken cancellationToken = default);
+
     Task<VppItemResDTO?> GetItemAsync(
         Guid id,
         bool includeDeleted = false,

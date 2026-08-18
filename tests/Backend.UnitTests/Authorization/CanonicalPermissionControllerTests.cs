@@ -173,22 +173,16 @@ public sealed class CanonicalPermissionControllerTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var group = CreateGroup(CanonicalRbac.SystemAdmin);
-        var groups = new Mock<IGenericRepository<PermissionGroup>>();
-        groups
-            .Setup(repository => repository.GetByIdAsync(It.Is<object>(id => id.Equals(group.Id))))
-            .ReturnsAsync(group);
-        var controller = CreateController(context, groupRepository: groups);
+        context.PermissionGroups.Add(group);
+        await context.SaveChangesAsync();
+        var controller = CreateController(context);
 
         var action = await controller.UpdateGroup(
             group.Id,
             new PermissionGroupUpdateReqDTO { GroupName = "Super administrator" });
 
         Assert.IsType<ConflictObjectResult>(action);
-        groups.Verify(
-            repository => repository.UpdateAsync(
-                It.IsAny<PermissionGroup>(),
-                It.IsAny<Expression<Func<PermissionGroup, object>>[]?>()),
-            Times.Never);
+        Assert.NotEqual("Super administrator", group.GroupName);
     }
 
     [Fact]
@@ -498,7 +492,6 @@ public sealed class CanonicalPermissionControllerTests
 
     private static PermissionController CreateController(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context,
-        Mock<IGenericRepository<PermissionGroup>>? groupRepository = null,
         Mock<IGenericRepository<GroupPageComponentMapping>>? mappingRepository = null,
         Mock<IPermissionChangeNotifier>? permissionChangeNotifier = null)
     {
@@ -508,10 +501,6 @@ public sealed class CanonicalPermissionControllerTests
             ?? new Mock<IPermissionChangeNotifier>();
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context).Object;
         var controller = new PermissionController(
-            (groupRepository ?? new Mock<IGenericRepository<PermissionGroup>>()).Object,
-            Mock.Of<IGenericRepository<UserGroupMembership>>(),
-            Mock.Of<IUserNameResolver>(),
-            unitOfWork,
             Mock.Of<IMembershipAdministrationService>(),
             new PermissionMappingMutationService(
                 resolvedMappingRepository.Object,
@@ -521,7 +510,8 @@ public sealed class CanonicalPermissionControllerTests
             new SecurityAuditQueryService(context),
             new UserAdministrationQueryService(context, Mock.Of<IUserNameResolver>()),
             new PermissionGroupQueryService(context, Mock.Of<IUserNameResolver>()),
-            new PermissionPageComponentQueryService(context))
+            new PermissionPageComponentQueryService(context),
+            new UserGroupMembershipQueryService(context, Mock.Of<IUserNameResolver>()))
         {
             ControllerContext = new ControllerContext
             {

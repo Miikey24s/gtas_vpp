@@ -10,6 +10,7 @@ using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
+using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -232,6 +233,35 @@ public class VPPRequestControllerTests
         var result = await controller.GetDashboardCharts();
 
         Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task GetCategories_ReturnsOnlyActiveCatalogCategories()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        context.Set<VppCategory>().AddRange(
+            new VppCategory
+            {
+                Id = Guid.NewGuid(),
+                VppCategoryCode = "ACTIVE",
+                VppCategoryName = "Active category"
+            },
+            new VppCategory
+            {
+                Id = Guid.NewGuid(),
+                VppCategoryCode = "DELETED",
+                VppCategoryName = "Deleted category",
+                IsDeleted = true
+            });
+        await context.SaveChangesAsync();
+        var controller = CreateController(Mock.Of<IVPPRequestService>(), context);
+
+        var result = await controller.GetCategories();
+
+        var rows = Assert.IsType<List<VppCategoryResDTO>>(Assert.IsType<OkObjectResult>(result).Value);
+        var row = Assert.Single(rows);
+        Assert.Equal("ACTIVE", row.VppCategoryCode);
+        Assert.Equal("Active category", row.VppCategoryName);
     }
 
     [Fact]
@@ -1109,9 +1139,6 @@ public class VPPRequestControllerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         var controller = new VPPRequestController(
-            new ServiceCollection().BuildServiceProvider(),
-            Mock.Of<IUserNameResolver>(),
-            unitOfWork.Object,
             service,
             permissionService ?? defaultPermissionService.Object,
             Mock.Of<IAppNotificationService>(),

@@ -41,7 +41,6 @@ public sealed class CatalogControllerTests
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var controller = new LibraryController(
-            new Mock<IServiceProvider>().Object,
             Mock.Of<IUserNameResolver>(),
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
             new FakeDateTimeProvider(DateTime.UtcNow));
