@@ -168,10 +168,10 @@
         }
 
         var target = new DateTime(Request.Year, Request.Month, 1);
-        var openMonth = target.AddMonths(-1);
         var closeMonth = target.AddMonths(1);
         var businessNow = GetBusinessNow();
-        var configuredOpenAt = BoundaryLocal(openMonth, Settings.DefaultNewPeriodOpenDay);
+        // Kỳ nào dùng ngày mở mặc định của chính tháng đó; không lùi về tháng trước như rolling horizon cũ.
+        var configuredOpenAt = BoundaryLocal(target, Settings.DefaultNewPeriodOpenDay);
         Request.OpenAtLocal = configuredOpenAt < businessNow
             ? RoundUpToMinute(businessNow)
             : configuredOpenAt;

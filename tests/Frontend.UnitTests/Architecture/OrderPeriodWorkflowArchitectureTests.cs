@@ -45,6 +45,8 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("nameof(Dialog_OrderPeriodCreate.ExistingPeriods)", operationsCode, StringComparison.Ordinal);
         Assert.Contains("Không thể tạo kỳ đặt hàng trong quá khứ.", createPeriodDialog, StringComparison.Ordinal);
         Assert.Contains("Kỳ đặt hàng này đã tồn tại.", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("BoundaryLocal(target, Settings.DefaultNewPeriodOpenDay)", createPeriodDialog, StringComparison.Ordinal);
+        Assert.DoesNotContain("target.AddMonths(-1)", createPeriodDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("targetYear - 1", createPeriodDialog, StringComparison.Ordinal);
     }
 
