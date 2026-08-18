@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using System.Text.Json;
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Controllers;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Notifications;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
@@ -158,6 +160,78 @@ public class VPPRequestControllerTests
                 It.IsAny<IEnumerable<int>?>(),
                 It.IsAny<IEnumerable<int>?>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task GetDashboardCharts_ValidUser_AggregatesOnlyOwnActiveOrdersAndDetails()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 9, 10, 8, 0, 0, DateTimeKind.Utc);
+        var augustOrder = CreateDashboardOrder(
+            userId: 5615,
+            submittedDate: new DateTime(2026, 8, 5, 9, 0, 0, DateTimeKind.Utc),
+            status: 1,
+            now,
+            (2, false),
+            (3, false),
+            (100, true));
+        var septemberOrder = CreateDashboardOrder(
+            userId: 5615,
+            submittedDate: new DateTime(2026, 9, 5, 9, 0, 0, DateTimeKind.Utc),
+            status: 7,
+            now,
+            (7, false));
+        var otherUserOrder = CreateDashboardOrder(
+            userId: 99,
+            submittedDate: new DateTime(2026, 8, 6, 9, 0, 0, DateTimeKind.Utc),
+            status: 1,
+            now,
+            (50, false));
+        var deletedOwnOrder = CreateDashboardOrder(
+            userId: 5615,
+            submittedDate: new DateTime(2026, 8, 7, 9, 0, 0, DateTimeKind.Utc),
+            status: 1,
+            now,
+            (20, false));
+        deletedOwnOrder.IsDeleted = true;
+
+        context.AddRange(augustOrder, septemberOrder, otherUserOrder, deletedOwnOrder);
+        await context.SaveChangesAsync();
+        var controller = CreateController(Mock.Of<IVPPRequestService>(), context, new Claim("UserID", "5615"));
+
+        var result = await controller.GetDashboardCharts();
+
+        var ok = Assert.IsType<OkObjectResult>(result);
+        using var payload = JsonDocument.Parse(JsonSerializer.Serialize(ok.Value));
+        var root = payload.RootElement;
+        Assert.Equal(2, root.GetProperty("TotalOrders").GetInt32());
+
+        var monthly = root.GetProperty("Monthly").EnumerateArray().ToArray();
+        Assert.Equal(2, monthly.Length);
+        Assert.Equal("2026-08", monthly[0].GetProperty("Month").GetString());
+        Assert.Equal(1, monthly[0].GetProperty("OrderCount").GetInt32());
+        Assert.Equal(5, monthly[0].GetProperty("TotalQty").GetInt32());
+        Assert.Equal(2, monthly[0].GetProperty("TotalLines").GetInt32());
+        Assert.Equal("2026-09", monthly[1].GetProperty("Month").GetString());
+        Assert.Equal(7, monthly[1].GetProperty("TotalQty").GetInt32());
+
+        var statuses = root.GetProperty("StatusDistribution").EnumerateArray().ToArray();
+        Assert.Contains(statuses, item =>
+            item.GetProperty("Status").GetString() == "Submitted" &&
+            item.GetProperty("Count").GetInt32() == 1);
+        Assert.Contains(statuses, item =>
+            item.GetProperty("Status").GetString() == "Approved" &&
+            item.GetProperty("Count").GetInt32() == 1);
+    }
+
+    [Fact]
+    public async Task GetDashboardCharts_MissingUserId_ReturnsUnauthorized()
+    {
+        var controller = CreateController(Mock.Of<IVPPRequestService>());
+
+        var result = await controller.GetDashboardCharts();
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
     }
 
     [Fact]
@@ -1066,6 +1140,41 @@ public class VPPRequestControllerTests
             .ReturnsAsync((ClaimsPrincipal _, string permission, CancellationToken _) =>
                 allowed.Contains(permission));
         return service;
+    }
+
+    private static VppRequest CreateDashboardOrder(
+        int userId,
+        DateTime submittedDate,
+        int status,
+        DateTime now,
+        params (int Quantity, bool IsDeleted)[] details)
+    {
+        var requestId = Guid.NewGuid();
+        return new VppRequest
+        {
+            Id = requestId,
+            VppCode = $"VPP-{requestId:N}",
+            Year = submittedDate.Year,
+            Month = submittedDate.Month,
+            SubmittedDate = submittedDate,
+            Status = status,
+            CreatedByUserId = userId,
+            CreatedAtUtc = now,
+            UpdatedByUserId = userId,
+            UpdatedAtUtc = now,
+            RequestDetails = details.Select(detail => new VppRequestDetail
+            {
+                Id = Guid.NewGuid(),
+                VppId = Guid.NewGuid(),
+                RequestId = requestId,
+                Qty = detail.Quantity,
+                IsDeleted = detail.IsDeleted,
+                CreatedByUserId = userId,
+                CreatedAtUtc = now,
+                UpdatedByUserId = userId,
+                UpdatedAtUtc = now
+            }).ToList()
+        };
     }
 
     private static Task<IActionResult> InvokeSupplementDecisionAsync(
