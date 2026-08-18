@@ -284,6 +284,44 @@ public sealed class CanonicalPermissionControllerTests
     }
 
     [Fact]
+    public async Task PatchComponentMapping_UpdatesUiMappingAndNotifiesGroup()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var componentCode = CanonicalRbac.GetUiComponents(CanonicalRbac.Employee.GroupId).First();
+        var fixture = await CreateMappingAsync(context, CanonicalRbac.Employee.GroupId, componentCode);
+        var mappings = MappingRepository(fixture.Mapping);
+        mappings
+            .Setup(repository => repository.UpdateAsync(
+                It.IsAny<GroupPageComponentMapping>(),
+                It.IsAny<Expression<Func<GroupPageComponentMapping, object>>[]?>()))
+            .ReturnsAsync((GroupPageComponentMapping mapping, Expression<Func<GroupPageComponentMapping, object>>[]? _) => mapping);
+        var notifier = new Mock<IPermissionChangeNotifier>();
+        var controller = CreateController(
+            context,
+            mappingRepository: mappings,
+            permissionChangeNotifier: notifier);
+
+        var action = await controller.PatchComponentMapping(new PatchComponentMappingReqDTO
+        {
+            PageComponentMappingId = fixture.Mapping.PageComponentMappingId,
+            PermissionGroupId = fixture.Mapping.PermissionGroupId,
+            IsVisible = true,
+            IsEnable = false
+        });
+
+        var response = Assert.IsType<OkObjectResult>(action);
+        Assert.Same(fixture.Mapping, response.Value);
+        Assert.True(fixture.Mapping.IsVisible);
+        Assert.False(fixture.Mapping.IsEnable);
+        Assert.Equal(1000001006, fixture.Mapping.UpdatedByUserId);
+        notifier.Verify(
+            service => service.NotifyGroupChangedAsync(
+                CanonicalRbac.Employee.GroupId,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task PatchComponentMappingsBatch_UpdatesUiMappingsAtomicallyAndWritesAudit()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
