@@ -59,7 +59,7 @@ namespace gtas_vpp_be.Model
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            ConfigureTrustedAccess(modelBuilder);
+            modelBuilder.ConfigureTrustedAccess();
             modelBuilder.Entity<PageComponentMapping>(en =>
             {
                 en.HasKey(x => x.Id);
@@ -320,69 +320,6 @@ namespace gtas_vpp_be.Model
                     .IsUnique();
                 en.HasIndex(x => new { x.Status, x.NextAttemptAtUtc })
                     .HasDatabaseName("IX_EmailOutboxMessages_Due");
-            });
-        }
-
-        private static void ConfigureTrustedAccess(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<AppUser>(en =>
-            {
-                en.Property(x => x.Id).UseIdentityColumn(1_000_000_000, 1);
-                en.Property(x => x.FullName).HasMaxLength(250);
-                en.Property(x => x.EmployeeCode).HasMaxLength(50);
-                en.Property(x => x.AccountStatus).HasConversion<string>().HasMaxLength(32);
-                en.Property(x => x.SessionVersion).HasDefaultValue(1L);
-                en.Property(x => x.RowVersion).IsRowVersion();
-                en.HasIndex(x => x.NormalizedEmail)
-                    .HasDatabaseName("UX_AspNetUsers_NormalizedEmail")
-                    .HasFilter("[NormalizedEmail] IS NOT NULL")
-                    .IsUnique();
-                en.HasIndex(x => x.EmployeeCode)
-                    .HasDatabaseName("UX_AspNetUsers_EmployeeCode")
-                    .HasFilter("[EmployeeCode] IS NOT NULL")
-                    .IsUnique();
-            });
-            modelBuilder.Entity<PermissionGroup>(en =>
-            {
-                en.Property(x => x.GroupCode).HasMaxLength(50);
-                en.HasIndex(x => x.GroupCode)
-                    .HasDatabaseName("UX_PermissionGroups_GroupCode_Active")
-                    .HasFilter("[IsDeleted] = 0")
-                    .IsUnique();
-            });
-            modelBuilder.Entity<UserGroupMembership>(en =>
-            {
-                en.Property(x => x.RowVersion).IsRowVersion();
-                en.HasOne<AppUser>()
-                    .WithMany()
-                    .HasForeignKey(x => x.AccountId)
-                    .OnDelete(DeleteBehavior.Restrict);
-                en.HasIndex(x => x.AccountId)
-                    .HasDatabaseName("UX_UserGroupMemberships_OneActivePerUser")
-                    .HasFilter("[IsDeleted] = 0 AND [AccountId] IS NOT NULL")
-                    .IsUnique();
-                en.ToTable(table => table.HasCheckConstraint(
-                    "CK_UserGroupMemberships_ActivePrimaryDepartment",
-                    "[IsDeleted] = 1 OR ([AccountId] IS NOT NULL AND [UserId] = [AccountId] AND [DepartmentId] <> '00000000-0000-0000-0000-000000000000')"));
-            });
-            modelBuilder.Entity<SecurityAudit>(en =>
-            {
-                en.Property(x => x.Id).HasDefaultValueSql("NEWID()");
-                en.Property(x => x.OccurredAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
-                en.HasIndex(x => new { x.TargetUserId, x.OccurredAtUtc })
-                    .HasDatabaseName("IX_SecurityAudits_TargetOccurredAt");
-                en.HasIndex(x => new { x.Action, x.OccurredAtUtc })
-                    .HasDatabaseName("IX_SecurityAudits_ActionOccurredAt");
-            });
-            modelBuilder.Entity<AuthBootstrapOperation>(en =>
-            {
-                en.Property(x => x.OperationKey).HasMaxLength(128);
-                en.Property(x => x.InputFingerprint).HasMaxLength(64);
-                en.Property(x => x.Status).HasMaxLength(32);
-                en.HasOne<AppUser>()
-                    .WithMany()
-                    .HasForeignKey(x => x.AccountId)
-                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
 
