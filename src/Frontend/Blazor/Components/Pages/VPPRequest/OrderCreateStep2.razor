@@ -67,6 +67,7 @@
                         <span role="columnheader">@Loc["ItemName"]</span>
                         <span role="columnheader">@Loc["Category"]</span>
                         <span role="columnheader">@Loc["UOM"]</span>
+                        <span role="columnheader">@Loc["MaxQuantityPerOrder"]</span>
                         <span role="columnheader">@Loc["Actions"]</span>
                     </div>
 
@@ -97,11 +98,11 @@
                                                              Toggled="@(() => ToggleProductCode(row.Id))"
                                                              CopyRequested="@CopyProductCodeAsync"
                                                              TriggerClass="vpp-order-builder-code" />
-                                        <span class="vpp-order-item-limit">@Loc["MaxQuantityPerOrderFormat", row.MaxQuantityPerOrder]</span>
                                     </div>
                                 </div>
                                 <span class="vpp-order-builder-virtual-cell" role="cell">@row.VppCategoryName</span>
                                 <span class="vpp-order-builder-virtual-cell is-centered" role="cell">@row.UomName</span>
+                                <span class="vpp-order-builder-virtual-cell is-limit" role="cell">@row.MaxQuantityPerOrder.ToString("N0")</span>
                                 <div class="vpp-order-builder-virtual-cell is-action" role="cell">
                                     @if (IsSelected(row.Id))
                                     {
@@ -168,7 +169,7 @@
             @* COLUMNS: Tiêu đề các cột mặt hàng đã chọn trong đơn. *@
             <div class="vpp-order-draft-columns" aria-hidden="true">
                 <span>@Loc["ItemName"]</span>
-                <span>@Loc["QuantityShort"]</span>
+                <span>@Loc["Quantity"]</span>
                 <span>@Loc["UOM"]</span>
                 <span>@Loc["Actions"]</span>
             </div>
@@ -192,24 +193,26 @@
                                 <div class="vpp-order-builder-item-cell">
                                     <strong>@item.VppName</strong>
                                     <small>@item.VppCode</small>
-                                    <span class="vpp-order-item-limit">@Loc["MaxQuantityPerOrderFormat", item.EffectiveMaxQuantityPerOrder]</span>
                                 </div>
-                                <div class="vpp-order-quantity-stepper" aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")">
-                                     @* QUANTITY: Điều chỉnh số lượng trong bản nháp. *@
-                                     <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Quantity <= 1)">−</button>
-                                    <input type="number"
-                                           class="vpp-order-quantity-input"
-                                           min="1"
-                                           max="@item.EffectiveMaxQuantityPerOrder"
-                                           step="1"
-                                           value="@item.Quantity"
-                                           inputmode="numeric"
-                                           aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")"
-                                           @onchange="args => SetQuantity(item, args.Value)" />
-                                    <button type="button"
-                                            @onclick="() => ChangeQuantity(item, 1)"
-                                            aria-label="@Loc["IncreaseQuantity"]"
-                                            disabled="@Editor.IsAtQuantityLimit(item)">+</button>
+                                <div class="vpp-order-quantity-cell">
+                                    <div class="vpp-order-quantity-stepper" aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")">
+                                         @* QUANTITY: Điều chỉnh số lượng trong bản nháp. *@
+                                         <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Quantity <= 1)">−</button>
+                                        <input type="number"
+                                               class="vpp-order-quantity-input"
+                                               min="1"
+                                               max="@item.EffectiveMaxQuantityPerOrder"
+                                               step="1"
+                                               value="@item.Quantity"
+                                               inputmode="numeric"
+                                               aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")"
+                                               @onchange="args => SetQuantity(item, args.Value)" />
+                                        <button type="button"
+                                                @onclick="() => ChangeQuantity(item, 1)"
+                                                aria-label="@Loc["IncreaseQuantity"]"
+                                                disabled="@Editor.IsAtQuantityLimit(item)">+</button>
+                                    </div>
+                                    <small class="vpp-order-quantity-limit">@Loc["OrderLineQuantityLimitFormat", item.EffectiveMaxQuantityPerOrder]</small>
                                 </div>
                                 <span class="vpp-order-draft-unit">@item.UomName</span>
                                 <div class="vpp-order-draft-item-actions">

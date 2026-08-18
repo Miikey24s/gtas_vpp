@@ -61,17 +61,25 @@ public sealed class OrderQuantityLimitUiTests : TestBase, IAuthenticatedUiTest
             NameRegex = new Regex("^Chỉnh sửa đơn ", RegexOptions.IgnoreCase)
         }).Last.ClickAsync();
 
-        await Page.WaitForURLAsync(new Regex(".*/dashboard/order-create.*orderId=.*", RegexOptions.IgnoreCase));
+        await WaitForUrlMatchAsync(
+            new Regex(".*/dashboard/order-create.*orderId=.*", RegexOptions.IgnoreCase),
+            TimeSpan.FromSeconds(30));
+        var catalogSurface = Page.Locator("[data-testid='order-create-catalog-data-surface']");
+        await Assertions.Expect(catalogSurface.GetByRole(AriaRole.Columnheader, new()
+        {
+            Name = "Tối đa/đơn",
+            Exact = true
+        })).ToBeVisibleAsync();
+
         var draftItem = Page.Locator(".vpp-order-draft-item").First;
         await draftItem.WaitForAsync();
-        var limitText = (await draftItem.Locator(".vpp-order-item-limit").InnerTextAsync()).Trim();
-        limitText.Should().MatchRegex("^Tối đa [0-9.]+/đơn$");
+        var limitText = (await draftItem.Locator(".vpp-order-quantity-limit").InnerTextAsync()).Trim();
+        limitText.Should().MatchRegex("^Tối đa [0-9.]+$");
 
         var quantityInput = draftItem.Locator(".vpp-order-quantity-input");
         var inputMaximum = await quantityInput.GetAttributeAsync("max");
         inputMaximum.Should().NotBeNullOrWhiteSpace();
         limitText.Replace("Tối đa ", string.Empty, StringComparison.Ordinal)
-            .Replace("/đơn", string.Empty, StringComparison.Ordinal)
             .Replace(".", string.Empty, StringComparison.Ordinal)
             .Should().Be(inputMaximum);
 
@@ -80,8 +88,12 @@ public sealed class OrderQuantityLimitUiTests : TestBase, IAuthenticatedUiTest
         await Assertions.Expect(draftItem.Locator(".vpp-order-quantity-stepper button").Last)
             .ToBeDisabledAsync(new() { Timeout = 5_000 });
 
+        await CaptureIfRequestedAsync("order-quantity-limit-order-selection.png");
+
         await Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục", Exact = true }).ClickAsync();
-        await Page.Locator(".vpp-order-review-grid-frame .vpp-order-item-limit").First.WaitForAsync();
+        await Page.Locator(".vpp-order-review-grid-frame").WaitForAsync();
+        await Assertions.Expect(Page.Locator(".vpp-order-review-grid-frame .vpp-order-quantity-limit"))
+            .ToHaveCountAsync(0);
         await CaptureIfRequestedAsync("order-quantity-limit-order.png");
     }
 
@@ -102,5 +114,22 @@ public sealed class OrderQuantityLimitUiTests : TestBase, IAuthenticatedUiTest
             Caret = ScreenshotCaret.Hide,
             Scale = ScreenshotScale.Css
         });
+    }
+
+    private async Task WaitForUrlMatchAsync(Regex expectedUrl, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow.Add(timeout);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (expectedUrl.IsMatch(Page.Url))
+            {
+                return;
+            }
+
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+        }
+
+        throw new TimeoutException(
+            $"Timed out waiting for URL '{expectedUrl}'. Last URL: {Page.Url}");
     }
 }

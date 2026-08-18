@@ -570,6 +570,10 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("vpp-order-action-save", selection, StringComparison.Ordinal);
         Assert.Contains("vpp-order-action-note", selection, StringComparison.Ordinal);
         Assert.Contains("popovertarget=\"@GetItemNotePopoverId(item)\"", selection, StringComparison.Ordinal);
+        Assert.Contains("@Loc[\"MaxQuantityPerOrder\"]", selection, StringComparison.Ordinal);
+        Assert.Contains("vpp-order-quantity-limit", selection, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-item-limit", selection, StringComparison.Ordinal);
+        Assert.DoesNotContain("MaxQuantityPerOrderFormat", review, StringComparison.Ordinal);
         Assert.Contains("VppDataSourceMode.ClientSnapshotPaged", selection, StringComparison.Ordinal);
         Assert.Contains("SnapshotBatchSize = 100", selection, StringComparison.Ordinal);
         Assert.Contains("<RadzenPager", selection, StringComparison.Ordinal);

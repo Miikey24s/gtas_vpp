@@ -171,12 +171,6 @@
     font-size: var(--vpp-text-xs);
 }
 
-.vpp-order-review-grid-frame ::deep .vpp-order-item-limit {
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-    line-height: var(--vpp-leading-tight);
-}
-
 .vpp-order-draft-remove {
     display: inline-flex;
     width: 30px;

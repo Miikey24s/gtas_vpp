@@ -134,10 +134,11 @@ Không hiển thị tên class, mã kỹ thuật hoặc lỗi SQL cho người d
 
 ### 6.1 Nhân viên đặt hàng
 
-- Dưới tên/đơn vị mặt hàng hiển thị dòng phụ `Tối đa 500/đơn`.
-- Stepper dùng `Tối đa/đơn`; nút `+` mờ khi đạt giới hạn nhưng vẫn giữ Stable Capability Surface.
+- Danh mục chọn hàng hiển thị một cột riêng `Tối đa/đơn`; tên và mã mặt hàng vẫn giữ đúng hai dòng, không chèn giới hạn thành dòng thứ ba.
+- Trong `Đơn đang tạo`, giới hạn đặt ngay dưới bộ tăng/giảm số lượng với nhãn gọn `Tối đa 500`; ngữ cảnh của pane đã thể hiện đây là giới hạn của đơn hiện tại.
+- Bước xem lại không lặp lại giới hạn; backend vẫn kiểm tra khi gửi và UI vẫn cảnh báo nếu draft vượt mức.
+- Nút `+` mờ khi đạt giới hạn nhưng vẫn giữ Stable Capability Surface.
 - Nhập vượt mức tự đưa về mức hợp lệ và hiện validation ngay cạnh dòng, không chỉ toast.
-- Bước xem lại hiển thị cảnh báo nếu dữ liệu draft cũ không còn hợp lệ.
 
 ### 6.2 Quản trị hệ thống
 
@@ -179,7 +180,7 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 - `gtas verify -Scope backend` và `gtas verify -Scope frontend` đều đạt; build Release không có warning/error, NuGet audit và secret scan đều sạch.
 - Authenticated E2E `OrderQuantityLimitUiTests.QuantityLimit_IsConfigurableAndVisibleAcrossAdminAndOrderFlow`: `1/1` đạt trên database/host cô lập.
 - Route quản trị đã xác nhận trường `Tối đa/đơn` có khoảng `1–1.000` và mặc định `1.000`.
-- Route tạo đơn đã xác nhận nhãn `Tối đa 1.000/đơn`, input dùng đúng trần, nút tăng khóa khi đạt mức tối đa và bước xem lại giữ đúng số lượng.
+- Route tạo đơn đã xác nhận cột `Tối đa/đơn`, nhãn cạnh bộ số lượng, input dùng đúng trần và nút tăng khóa khi đạt mức tối đa.
 - Đã kiểm tra trực quan ảnh route thật ở viewport `1366×768`; dialog quản trị và bước xem lại đơn không vỡ layout.
 - Không khởi động lại hoặc chiếm quyền process `dotnet watch` của owner; E2E sử dụng AppHost riêng và tự dọn môi trường cô lập.
 

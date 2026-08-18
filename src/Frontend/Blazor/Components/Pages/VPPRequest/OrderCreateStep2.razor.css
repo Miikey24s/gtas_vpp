@@ -148,8 +148,8 @@
 .vpp-order-builder-virtual-header,
 .vpp-order-builder-virtual-row {
     display: grid;
-    grid-template-columns: 56px minmax(240px, 1fr) 220px 110px 100px;
-    min-width: 760px;
+    grid-template-columns: 44px minmax(180px, 1.35fr) minmax(120px, 0.85fr) 72px 94px 84px;
+    min-width: 640px;
     align-items: center;
 }
 
@@ -179,12 +179,13 @@
 
 .vpp-order-builder-virtual-header > span:first-child,
 .vpp-order-builder-virtual-header > span:nth-child(4),
-.vpp-order-builder-virtual-header > span:nth-child(5) {
+.vpp-order-builder-virtual-header > span:nth-child(5),
+.vpp-order-builder-virtual-header > span:nth-child(6) {
     text-align: center;
 }
 
 .vpp-order-builder-virtual-body {
-    min-width: 760px;
+    min-width: 640px;
 }
 
 .vpp-order-builder-virtual-body:has(.vpp-data-grid-empty-state) {
@@ -217,8 +218,14 @@
 
 .vpp-order-builder-virtual-cell.is-index,
 .vpp-order-builder-virtual-cell.is-centered,
+.vpp-order-builder-virtual-cell.is-limit,
 .vpp-order-builder-virtual-cell.is-action {
     text-align: center;
+}
+
+.vpp-order-builder-virtual-cell.is-limit {
+    color: var(--vpp-text-secondary);
+    font-variant-numeric: tabular-nums;
 }
 
 .vpp-order-builder-virtual-cell.is-action {
@@ -289,16 +296,10 @@
     font-size: var(--vpp-text-xs);
 }
 
-.vpp-order-item-limit {
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-    line-height: var(--vpp-leading-tight);
-}
-
 .vpp-order-draft-columns,
 .vpp-order-draft-item-main {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 112px 72px 76px;
+    grid-template-columns: minmax(0, 1fr) 124px 72px 76px;
     align-items: center;
     gap: var(--vpp-space-2);
 }
@@ -335,6 +336,22 @@
     gap: 2px;
     width: 100%;
     text-align: center;
+}
+
+.vpp-order-quantity-cell {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.vpp-order-quantity-limit {
+    overflow: hidden;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-xs);
+    line-height: var(--vpp-leading-tight);
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .vpp-order-quantity-stepper button,
