@@ -34,6 +34,26 @@ public sealed class DemoPersonaScenarioSeederTests
             await context.Requests.Select(request => request.Status).ToArrayAsync(),
             status => status == (int)VPPStatus.Pending);
 
+        var periods = await context.Periods.ToDictionaryAsync(period => period.Id);
+        Assert.All(periods.Values, period =>
+        {
+            Assert.Equal(5, (period.SupplementApprovalDeadlineUtc - period.SubmissionDeadlineUtc).TotalDays);
+            Assert.Equal(10, (period.PostCloseAdjustmentDeadlineUtc!.Value - period.SubmissionDeadlineUtc).TotalDays);
+        });
+
+        var supplements = await context.Requests
+            .Where(request => request.IsAdditionalOrder)
+            .ToListAsync();
+        Assert.All(supplements, request =>
+        {
+            var period = periods[request.PeriodId!.Value];
+            Assert.True(request.SubmittedDate > period.SubmissionDeadlineUtc);
+            Assert.True(request.SubmittedDate <= period.SupplementApprovalDeadlineUtc);
+            var resolvedAt = request.ApprovedAt ?? request.RejectedAt ?? request.CancelledAt;
+            Assert.NotNull(resolvedAt);
+            Assert.True(resolvedAt <= period.SupplementApprovalDeadlineUtc);
+        });
+
         foreach (var userId in new[] { 101, 102, 103 })
         {
             var requests = await context.Requests

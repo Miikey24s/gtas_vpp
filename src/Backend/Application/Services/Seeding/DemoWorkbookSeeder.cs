@@ -36,6 +36,8 @@ public static class DemoWorkbookSeeder
     private const int LatestSourceMonth = 3;
     private const string DemoEmailSuffix = "@demo.gtas.local";
     private const string LegacyDemoDescription = "Normalized PPJ workbook demo fixture";
+    private const string SupplementScenarioIdempotencyPrefix = "workbook-supplement-";
+    private const string PersonaSupplementIdempotencyPrefix = "persona-demo-sup-";
 
     private static readonly Guid DefaultPriceListId =
         Guid.Parse("00000000-0000-0000-0000-000000000700");
@@ -508,14 +510,6 @@ public static class DemoWorkbookSeeder
     {
         var previousAnchor = new DateTime(currentPeriod.Year, currentPeriod.Month, 1).AddMonths(-1);
         var previousPeriod = new Period(previousAnchor.Year, previousAnchor.Month);
-        var currentOwnerRequest = regularRequests.FirstOrDefault(request =>
-            request.Year == currentPeriod.Year
-            && request.Month == currentPeriod.Month
-            && request.CreatedByUserId == owner.User.Id);
-        var currentPeerRequest = regularRequests.FirstOrDefault(request =>
-            request.Year == currentPeriod.Year
-            && request.Month == currentPeriod.Month
-            && request.CreatedByUserId != owner.User.Id);
         var previousRequest = regularRequests.FirstOrDefault(request =>
                 request.Year == previousPeriod.Year
                 && request.Month == previousPeriod.Month
@@ -523,39 +517,26 @@ public static class DemoWorkbookSeeder
             ?? regularRequests.FirstOrDefault(request =>
                 request.Year == previousPeriod.Year
                 && request.Month == previousPeriod.Month);
+        var desiredRequestIds = new HashSet<Guid>();
 
-        if (currentOwnerRequest is not null)
+        if (previousRequest?.PeriodId is Guid previousPeriodId)
         {
-            await UpsertSupplementScenarioAsync(
-                context,
-                currentOwnerRequest,
-                "current-owner-cancelled",
-                VPPStatus.Cancelled,
-                "Không còn nhu cầu bổ sung.",
-                owner.User.Id,
-                nowUtc.AddHours(-4),
-                nowUtc.AddHours(-1),
+            var persistedPeriod = await context.Periods.SingleAsync(
+                period => period.Id == previousPeriodId,
                 cancellationToken);
-        }
+            var requestId = StableGuid("workbook-supplement|previous-approved");
+            desiredRequestIds.Add(requestId);
+            var submittedAtUtc = persistedPeriod.SubmissionDeadlineUtc.AddHours(1);
+            var resolvedAtUtc = submittedAtUtc.AddHours(4);
 
-        if (currentPeerRequest is not null)
-        {
-            await UpsertSupplementScenarioAsync(
-                context,
-                currentPeerRequest,
-                "current-peer-pending",
-                VPPStatus.Pending,
-                "Bổ sung vật tư phát sinh trong kỳ.",
-                owner.User.Id,
-                nowUtc.AddHours(-3),
-                null,
-                cancellationToken);
-        }
+            // Đơn bổ sung chỉ phát sinh sau khi kỳ thường đóng và phải được xử lý
+            // trong chính cửa sổ bổ sung của kỳ trước.
+            if (resolvedAtUtc > persistedPeriod.SupplementApprovalDeadlineUtc)
+            {
+                throw new InvalidOperationException(
+                    $"Demo supplement window is invalid for period {persistedPeriod.Month:00}/{persistedPeriod.Year}.");
+            }
 
-        if (previousRequest is not null)
-        {
-            var submittedAtUtc = previousRequest.SubmittedDate
-                ?? previousRequest.CreatedAtUtc;
             await UpsertSupplementScenarioAsync(
                 context,
                 previousRequest,
@@ -563,9 +544,46 @@ public static class DemoWorkbookSeeder
                 VPPStatus.Approved,
                 "Bổ sung theo nhu cầu đã xác nhận.",
                 owner.User.Id,
-                submittedAtUtc.AddHours(2),
-                submittedAtUtc.AddDays(1),
+                submittedAtUtc,
+                resolvedAtUtc,
                 cancellationToken);
+        }
+
+        await RetireObsoleteSupplementScenariosAsync(
+            context,
+            desiredRequestIds,
+            owner.User.Id,
+            nowUtc,
+            cancellationToken);
+    }
+
+    private static async Task RetireObsoleteSupplementScenariosAsync(
+        VPPMigrationDbContext context,
+        IReadOnlySet<Guid> desiredRequestIds,
+        int actorUserId,
+        DateTime nowUtc,
+        CancellationToken cancellationToken)
+    {
+        var obsoleteRequests = await context.Requests
+            .Include(request => request.RequestDetails)
+            .Where(request => request.IdempotencyKey != null
+                              && request.IdempotencyKey.StartsWith(SupplementScenarioIdempotencyPrefix)
+                              && !desiredRequestIds.Contains(request.Id))
+            .ToListAsync(cancellationToken);
+
+        foreach (var request in obsoleteRequests)
+        {
+            request.IsDeleted = true;
+            request.IsCurrentRevision = false;
+            request.UpdatedByUserId = actorUserId;
+            request.UpdatedAtUtc = nowUtc;
+
+            foreach (var detail in request.RequestDetails.Where(detail => !detail.IsDeleted))
+            {
+                detail.IsDeleted = true;
+                detail.UpdatedByUserId = actorUserId;
+                detail.UpdatedAtUtc = nowUtc;
+            }
         }
     }
 
@@ -623,6 +641,7 @@ public static class DemoWorkbookSeeder
         request.CancelReason = status == VPPStatus.Cancelled ? reason : null;
         request.IdempotencyKey = $"workbook-supplement-{scenarioKey}";
         request.CommandPayloadHash = Sha256Hex(request.IdempotencyKey);
+        request.IsCurrentRevision = true;
         request.UpdatedByUserId = workflowActorUserId;
         request.UpdatedAtUtc = resolvedAtUtc ?? submittedAtUtc;
         request.IsDeleted = false;
@@ -789,6 +808,7 @@ public static class DemoWorkbookSeeder
         var requestCount = 0;
         var detailCount = 0;
         var seededRegularRequests = new List<VppRequest>();
+        var desiredRegularRequestIds = new HashSet<Guid>();
         foreach (var departmentMonth in orderRows
                      .GroupBy(x => new { x.DepartmentCode, x.SourceMonth })
                      .OrderBy(x => x.Key.SourceMonth)
@@ -872,6 +892,8 @@ public static class DemoWorkbookSeeder
             request.UpdatedByUserId = owner.User.Id;
             request.UpdatedAtUtc = nowUtc;
             request.IsDeleted = false;
+            request.IsCurrentRevision = true;
+            desiredRegularRequestIds.Add(request.Id);
 
             var currentItemCodes = departmentMonth.Select(x => x.ItemCode)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -923,6 +945,12 @@ public static class DemoWorkbookSeeder
             requestCount++;
         }
 
+        RetireObsoleteRegularRequests(
+            existingDemoRequests,
+            desiredRegularRequestIds,
+            owner.User.Id,
+            nowUtc);
+
         // Flush phần workbook lớn trước khi tạo scenario bổ sung. Nếu app demo đang
         // mở đồng thời, rowversion có thể đổi giữa lúc đọc và lúc ghi; retry chỉ áp
         // dụng client-wins cho projection TEST/DEMO do seeder này sở hữu.
@@ -934,6 +962,9 @@ public static class DemoWorkbookSeeder
             currentPeriod,
             nowUtc,
             cancellationToken);
+        await ReconcileLegacyPersonaSupplementWindowsAsync(
+            context,
+            cancellationToken);
 
         await SaveDemoChangesWithConcurrencyRetryAsync(context, cancellationToken);
         Log.Information(
@@ -941,6 +972,101 @@ public static class DemoWorkbookSeeder
             requestCount,
             detailCount,
             owner.User.UserName);
+    }
+
+    private static async Task ReconcileLegacyPersonaSupplementWindowsAsync(
+        VPPMigrationDbContext context,
+        CancellationToken cancellationToken)
+    {
+        var requests = await context.Requests
+            .Where(request => !request.IsDeleted
+                              && request.IsCurrentRevision
+                              && request.IsAdditionalOrder
+                              && request.IdempotencyKey != null
+                              && request.IdempotencyKey.StartsWith(PersonaSupplementIdempotencyPrefix))
+            .ToListAsync(cancellationToken);
+        if (requests.Count == 0)
+        {
+            return;
+        }
+
+        var periodIds = requests
+            .Where(request => request.PeriodId.HasValue)
+            .Select(request => request.PeriodId!.Value)
+            .Distinct()
+            .ToArray();
+        var periods = await context.Periods
+            .Where(period => periodIds.Contains(period.Id))
+            .ToDictionaryAsync(period => period.Id, cancellationToken);
+        var requestIds = requests.Select(request => request.Id).ToArray();
+        var logs = await context.RequestLogs
+            .Where(log => requestIds.Contains(log.RequestId))
+            .ToListAsync(cancellationToken);
+
+        foreach (var request in requests)
+        {
+            if (!request.PeriodId.HasValue
+                || !periods.TryGetValue(request.PeriodId.Value, out var period))
+            {
+                throw new InvalidOperationException(
+                    $"Demo supplement {request.Id} is missing its period.");
+            }
+
+            var submittedAtUtc = period.SubmissionDeadlineUtc.AddHours(1);
+            var resolvedAtUtc = submittedAtUtc.AddHours(4);
+            if (resolvedAtUtc > period.SupplementApprovalDeadlineUtc)
+            {
+                throw new InvalidOperationException(
+                    $"Demo supplement window is invalid for period {period.Month:00}/{period.Year}.");
+            }
+
+            // Dữ liệu persona đời cũ từng phát sinh đơn bổ sung trước khi kỳ đóng.
+            // Chuẩn hóa cả yêu cầu và timeline để lần seed lại vẫn đúng nghiệp vụ mới.
+            request.SubmittedDate = submittedAtUtc;
+            request.ApprovedAt = request.Status == (int)VPPStatus.Approved ? resolvedAtUtc : null;
+            request.RejectedAt = request.Status == (int)VPPStatus.Rejected ? resolvedAtUtc : null;
+            request.CancelledAt = request.Status == (int)VPPStatus.Cancelled ? resolvedAtUtc : null;
+            request.UpdatedAtUtc = request.Status == (int)VPPStatus.Pending
+                ? submittedAtUtc
+                : resolvedAtUtc;
+
+            foreach (var log in logs.Where(log => log.RequestId == request.Id))
+            {
+                if (string.Equals(log.Action, "SUBMITTED", StringComparison.OrdinalIgnoreCase))
+                {
+                    log.LogDate = submittedAtUtc;
+                }
+                else if (string.Equals(log.Action, "APPROVED", StringComparison.OrdinalIgnoreCase)
+                         || string.Equals(log.Action, "REJECTED", StringComparison.OrdinalIgnoreCase)
+                         || string.Equals(log.Action, "CANCELLED", StringComparison.OrdinalIgnoreCase))
+                {
+                    log.LogDate = resolvedAtUtc;
+                }
+            }
+        }
+    }
+
+    private static void RetireObsoleteRegularRequests(
+        IReadOnlyList<VppRequest> existingDemoRequests,
+        IReadOnlySet<Guid> desiredRequestIds,
+        int actorUserId,
+        DateTime nowUtc)
+    {
+        foreach (var request in existingDemoRequests.Where(request =>
+                     !desiredRequestIds.Contains(request.Id)))
+        {
+            request.IsDeleted = true;
+            request.IsCurrentRevision = false;
+            request.UpdatedByUserId = actorUserId;
+            request.UpdatedAtUtc = nowUtc;
+
+            foreach (var detail in request.RequestDetails.Where(detail => !detail.IsDeleted))
+            {
+                detail.IsDeleted = true;
+                detail.UpdatedByUserId = actorUserId;
+                detail.UpdatedAtUtc = nowUtc;
+            }
+        }
     }
 
     private static async Task SaveDemoChangesWithConcurrencyRetryAsync(
@@ -1214,7 +1340,12 @@ public static class DemoWorkbookSeeder
         period.SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
             periodValue,
             TimeSpan.FromDays(VppRequestPolicy.DefaultSupplementApprovalGraceDays));
-        period.State = ResolvePeriodState(periodValue, isCurrent, calculator, nowUtc);
+        period.PostCloseAdjustmentDeadlineUtc = period.SubmissionDeadlineUtc.AddDays(
+            VppRequestPolicy.DefaultPostCloseAdjustmentDays);
+        if (period.State != VppPeriodState.Settled)
+        {
+            period.State = ResolvePeriodState(periodValue, isCurrent, calculator, nowUtc);
+        }
         period.Description = null;
         period.UpdatedByUserId = actorUserId;
         period.UpdatedAtUtc = nowUtc;

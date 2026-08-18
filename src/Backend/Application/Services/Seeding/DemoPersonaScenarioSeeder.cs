@@ -248,41 +248,49 @@ public static partial class DemoPersonaScenarioSeeder
         CancellationToken cancellationToken)
     {
         var companyCode = memberCompanyCode.ToString(CultureInfo.InvariantCulture);
+        var ownedPeriodId = StableGuid(
+            $"persona-demo-period|{companyCode}|{periodValue.Year:D4}{periodValue.Month:D2}");
         var period = await context.Periods.SingleOrDefaultAsync(
             candidate => candidate.MemberCompanyCode == companyCode
                          && candidate.Year == periodValue.Year
                          && candidate.Month == periodValue.Month
                          && !candidate.IsDeleted,
             cancellationToken);
-        if (period is not null)
+        if (period is not null && period.Id != ownedPeriodId)
         {
             return period;
         }
 
-        period = new VppPeriod
+        period ??= new VppPeriod
         {
-            Id = StableGuid($"persona-demo-period|{companyCode}|{periodValue.Year:D4}{periodValue.Month:D2}"),
+            Id = ownedPeriodId,
             MemberCompanyCode = companyCode,
-            TimeZoneId = "Asia/Ho_Chi_Minh",
             Year = periodValue.Year,
             Month = periodValue.Month,
-            StartAtUtc = calculator.StartAtUtc(periodValue),
-            SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(periodValue),
-            SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
-                periodValue,
-                TimeSpan.FromDays(2)),
-            State = isCurrent ? VppPeriodState.Open : VppPeriodState.Pricing,
-            LastTransitionUserId = isCurrent ? null : actorUserId,
-            LastTransitionAtUtc = isCurrent ? null : nowUtc,
-            LastTransitionReason = isCurrent ? null : "Dữ liệu demo lịch sử đã hoàn tất tiếp nhận.",
-            Description = "Kỳ dữ liệu demo cho ba persona canonical.",
             CreatedByUserId = actorUserId,
-            CreatedAtUtc = nowUtc,
-            UpdatedByUserId = actorUserId,
-            UpdatedAtUtc = nowUtc,
-            IsDeleted = false
+            CreatedAtUtc = nowUtc
         };
-        context.Periods.Add(period);
+        if (context.Entry(period).State == EntityState.Detached)
+        {
+            context.Periods.Add(period);
+        }
+
+        period.TimeZoneId = "Asia/Ho_Chi_Minh";
+        period.StartAtUtc = calculator.StartAtUtc(periodValue);
+        period.SubmissionDeadlineUtc = calculator.SubmissionDeadlineUtc(periodValue);
+        period.SupplementApprovalDeadlineUtc = calculator.SupplementApprovalDeadlineUtc(
+            periodValue,
+            TimeSpan.FromDays(VppRequestPolicy.DefaultSupplementApprovalGraceDays));
+        period.PostCloseAdjustmentDeadlineUtc = period.SubmissionDeadlineUtc.AddDays(
+            VppRequestPolicy.DefaultPostCloseAdjustmentDays);
+        period.State = isCurrent ? VppPeriodState.Open : VppPeriodState.Pricing;
+        period.LastTransitionUserId = isCurrent ? null : actorUserId;
+        period.LastTransitionAtUtc = isCurrent ? null : nowUtc;
+        period.LastTransitionReason = isCurrent ? null : "Dữ liệu demo lịch sử đã hoàn tất tiếp nhận.";
+        period.Description = "Kỳ dữ liệu demo cho ba persona canonical.";
+        period.UpdatedByUserId = actorUserId;
+        period.UpdatedAtUtc = nowUtc;
+        period.IsDeleted = false;
         await context.SaveChangesAsync(cancellationToken);
         return period;
     }

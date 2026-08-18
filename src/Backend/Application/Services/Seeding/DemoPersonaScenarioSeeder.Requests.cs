@@ -127,8 +127,16 @@ public static partial class DemoPersonaScenarioSeeder
         var request = await context.Requests
             .Include(candidate => candidate.RequestDetails)
             .SingleOrDefaultAsync(candidate => candidate.Id == requestId, cancellationToken);
-        var submittedAtUtc = (baseRequest.SubmittedDate ?? baseRequest.CreatedAtUtc).AddDays(1);
+        var period = await context.Periods.SingleAsync(
+            candidate => candidate.Id == baseRequest.PeriodId.Value,
+            cancellationToken);
+        var submittedAtUtc = period.SubmissionDeadlineUtc.AddHours(1);
         var resolvedAtUtc = submittedAtUtc.AddHours(4);
+        if (resolvedAtUtc > period.SupplementApprovalDeadlineUtc)
+        {
+            throw new InvalidOperationException(
+                $"Demo supplement window is invalid for period {period.Month:00}/{period.Year}.");
+        }
         if (request is null)
         {
             request = new VppRequest

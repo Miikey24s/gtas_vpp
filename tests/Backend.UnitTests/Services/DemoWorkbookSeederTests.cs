@@ -113,6 +113,12 @@ public sealed class DemoWorkbookSeederTests
         Assert.Contains("không tự mở lại membership", seederSource, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("user.AccountStatus = AppAccountStatus.Disabled;", seederSource, StringComparison.Ordinal);
         Assert.DoesNotContain("user.LockoutEnd = DateTimeOffset.MaxValue;", seederSource, StringComparison.Ordinal);
+        Assert.Contains("RetireObsoleteSupplementScenariosAsync", seederSource, StringComparison.Ordinal);
+        Assert.Contains("RetireObsoleteRegularRequests", seederSource, StringComparison.Ordinal);
+        Assert.Contains("ReconcileLegacyPersonaSupplementWindowsAsync", seederSource, StringComparison.Ordinal);
+        Assert.Contains("DefaultPostCloseAdjustmentDays", seederSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("current-owner-cancelled", seederSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("current-peer-pending", seederSource, StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()

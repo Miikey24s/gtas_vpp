@@ -11,6 +11,7 @@ public sealed class VppRequestPolicy
 {
     public const int DefaultDeadlineDay = 5;
     public const int DefaultSupplementApprovalGraceDays = 5;
+    public const int DefaultPostCloseAdjustmentDays = 10;
 
     // Luận văn §1.2.3: "Tối đa ba đơn bổ sung" được duyệt trong một kỳ.
     public const int DefaultMaxApprovedSupplements = 3;
