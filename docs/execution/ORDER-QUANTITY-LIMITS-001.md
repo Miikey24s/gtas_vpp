@@ -1,6 +1,6 @@
 # ORDER-QUANTITY-LIMITS-001 — Giới hạn số lượng đặt hàng linh hoạt
 
-**Trạng thái:** `IMPLEMENTED — CHỜ OWNER KIỂM TRA UI THỰC TẾ`
+**Trạng thái:** `COMPLETED — ĐÃ KIỂM TRA ROUTE THỰC TẾ`
 
 **Ngày triển khai:** `2026-08-18`
 
@@ -73,7 +73,7 @@ Không lấy số lượng đơn thường trừ khỏi đơn bổ sung. Nếu s
 
 Việc kiểm tra không tách thành hai service. `OrderQuantityLimitService` nhận danh sách dòng của một đơn và áp dụng cùng giới hạn mặt hàng, bất kể `IsAdditionalOrder` là `true` hay `false`.
 
-## 4. Thiết kế dữ liệu đề xuất
+## 4. Thiết kế dữ liệu đã triển khai
 
 ### 4.1 Cột giới hạn trên mặt hàng
 
@@ -177,7 +177,11 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 - EF model: không còn pending model changes.
 - Migration đã chạy thành công cho cả database mới và database nâng cấp từ migration liền trước trên LocalDB.
 - `gtas verify -Scope backend` và `gtas verify -Scope frontend` đều đạt; build Release không có warning/error, NuGet audit và secret scan đều sạch.
-- Route-real chưa chụp lại trong lượt cuối vì `dotnet watch` của owner tự thoát do lỗi Hot Reload của Roslyn khi nhận đồng thời nhiều file mới; không tự khởi động lại process thuộc owner.
+- Authenticated E2E `OrderQuantityLimitUiTests.QuantityLimit_IsConfigurableAndVisibleAcrossAdminAndOrderFlow`: `1/1` đạt trên database/host cô lập.
+- Route quản trị đã xác nhận trường `Tối đa/đơn` có khoảng `1–1.000` và mặc định `1.000`.
+- Route tạo đơn đã xác nhận nhãn `Tối đa 1.000/đơn`, input dùng đúng trần, nút tăng khóa khi đạt mức tối đa và bước xem lại giữ đúng số lượng.
+- Đã kiểm tra trực quan ảnh route thật ở viewport `1366×768`; dialog quản trị và bước xem lại đơn không vỡ layout.
+- Không khởi động lại hoặc chiếm quyền process `dotnet watch` của owner; E2E sử dụng AppHost riêng và tự dọn môi trường cô lập.
 
 ## 9. Ngoài phạm vi phase đầu
 
