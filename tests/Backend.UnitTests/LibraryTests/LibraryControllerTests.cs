@@ -7,6 +7,8 @@ using gtas_vpp_shared.DTOs.Res.Library;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Security.Claims;
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -293,6 +295,79 @@ public class LibraryControllerTests
         Assert.IsType<NotFoundObjectResult>(result);
     }
 
+    [Fact]
+    public async Task GenericCreate_Supplier_UsesServerAuditFieldsAndStartsActive()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 8, 18, 9, 30, 0, DateTimeKind.Utc);
+        var controller = CreateMutationController<Supplier>(context, now, userId: 5615);
+        using var payloadDocument = JsonDocument.Parse("""
+            {
+              "id": "11111111-1111-1111-1111-111111111111",
+              "supplierShortName": "NEW",
+              "supplierName": "New supplier",
+              "createdByUserId": 99,
+              "updatedByUserId": 99,
+              "isDeleted": true
+            }
+            """);
+
+        var result = await controller.GenericCreate("suppliers", payloadDocument.RootElement.Clone());
+
+        var response = Assert.IsType<OkObjectResult>(result);
+        var dto = Assert.IsType<SupplierResDTO>(response.Value);
+        var entity = Assert.Single(context.Set<Supplier>());
+        Assert.NotEqual(Guid.Empty, entity.Id);
+        Assert.Equal(entity.Id, dto.Id);
+        Assert.Equal(5615, entity.CreatedByUserId);
+        Assert.Equal(5615, entity.UpdatedByUserId);
+        Assert.Equal(now, entity.CreatedAtUtc);
+        Assert.Equal(now, entity.UpdatedAtUtc);
+        Assert.False(entity.IsDeleted);
+    }
+
+    [Fact]
+    public async Task GenericPatch_Supplier_AllowsStatusButIgnoresAuditFields()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var createdAt = new DateTime(2026, 8, 1, 8, 0, 0, DateTimeKind.Utc);
+        var now = new DateTime(2026, 8, 18, 9, 30, 0, DateTimeKind.Utc);
+        var supplier = new Supplier
+        {
+            Id = Guid.NewGuid(),
+            SupplierShortName = "OLD",
+            SupplierName = "Old supplier",
+            CreatedByUserId = 7,
+            UpdatedByUserId = 7,
+            CreatedAtUtc = createdAt,
+            UpdatedAtUtc = createdAt
+        };
+        context.Add(supplier);
+        await context.SaveChangesAsync();
+        var controller = CreateMutationController<Supplier>(context, now, userId: 5615);
+        using var payloadDocument = JsonDocument.Parse("""
+            {
+              "supplierName": "Updated supplier",
+              "createdByUserId": 99,
+              "updatedByUserId": 99,
+              "createdAtUtc": "2030-01-01T00:00:00Z",
+              "isDeleted": true
+            }
+            """);
+
+        var result = await controller.GenericPatch("suppliers", supplier.Id, payloadDocument.RootElement.Clone());
+
+        Assert.IsType<OkObjectResult>(result);
+        var entity = await context.Set<Supplier>().FindAsync(supplier.Id);
+        Assert.NotNull(entity);
+        Assert.Equal("Updated supplier", entity.SupplierName);
+        Assert.True(entity.IsDeleted);
+        Assert.Equal(7, entity.CreatedByUserId);
+        Assert.Equal(createdAt, entity.CreatedAtUtc);
+        Assert.Equal(5615, entity.UpdatedByUserId);
+        Assert.Equal(now, entity.UpdatedAtUtc);
+    }
+
     private static LibraryController CreateController(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
     {
         var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
@@ -308,5 +383,35 @@ public class LibraryControllerTests
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
+    }
+
+    private static LibraryController CreateMutationController<TModel>(
+        gtas_vpp_be.Service.Helpers.Context.VPPContext context,
+        DateTime now,
+        int userId)
+        where TModel : class
+    {
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        var serviceProvider = new Mock<IServiceProvider>();
+        serviceProvider
+            .Setup(provider => provider.GetService(typeof(IGenericRepository<TModel>)))
+            .Returns(new GenericRepository<TModel>(unitOfWork.Object));
+        var controller = new LibraryController(
+            serviceProvider.Object,
+            Mock.Of<IUserNameResolver>(),
+            unitOfWork.Object,
+            new FakeDateTimeProvider(now))
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(
+                        [new Claim("UserID", userId.ToString())],
+                        "TestAuth"))
+                }
+            }
+        };
+        return controller;
     }
 }
