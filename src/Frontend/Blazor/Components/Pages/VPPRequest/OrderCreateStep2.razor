@@ -537,11 +537,9 @@
     // FILTERING: Lọc snapshot và reset vị trí phân trang.
     private void ApplyProductFilters()
     {
-        var search = SearchText?.Trim();
+        var search = VppSearchText.Normalize(SearchText);
         ProductOptions = _allProductOptions.Where(item =>
-                (string.IsNullOrEmpty(search)
-                    || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                    || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+                VppSearchText.MatchesAny(search, item.VppName, item.VppCode)
                 && (string.IsNullOrEmpty(CategoryFilter) || string.Equals(item.VppCategoryName, CategoryFilter, StringComparison.CurrentCultureIgnoreCase))
                 && (string.IsNullOrEmpty(UnitFilter) || string.Equals(item.UomName, UnitFilter, StringComparison.CurrentCultureIgnoreCase)))
             .ToList();

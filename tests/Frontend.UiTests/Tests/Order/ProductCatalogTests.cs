@@ -31,6 +31,14 @@ public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
         (await Page.Locator("[data-testid='catalog-data-surface']").GetAttributeAsync("data-vpp-data-source-mode")).Should().Be("server-paging");
         (await grid.Locator("thead th").First.InnerTextAsync()).Trim().Should().Be("#");
         (await grid.Locator("tbody tr").First.Locator("td").First.InnerTextAsync()).Trim().Should().Be("1");
+
+        var searchInput = Page.Locator(".vpp-catalog-filter-group .vpp-filter-search input");
+        await searchInput.FillAsync("giay");
+        await Assertions.Expect(grid.Locator("tbody"))
+            .ToContainTextAsync("Giấy", new() { Timeout = 15_000 });
+        await searchInput.FillAsync(string.Empty);
+        await Assertions.Expect(grid.Locator("tbody tr").First).ToBeVisibleAsync();
+
         var itemHeader = grid.Locator("thead th").Nth(1);
         var idleSortIcon = itemHeader
             .Locator(".rz-sortable-column-icon.rzi-sort:not(.rzi-sort-asc):not(.rzi-sort-desc)");

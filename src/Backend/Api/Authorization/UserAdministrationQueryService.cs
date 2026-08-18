@@ -1,5 +1,6 @@
 using System.Globalization;
 using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
@@ -72,14 +73,27 @@ public sealed class UserAdministrationQueryService(
             usersQuery = usersQuery.Where(user => user.AccountStatus == parsedStatus);
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Search))
+        var search = VietnameseSearch.PrepareTerm(request.Search);
+        if (!string.IsNullOrWhiteSpace(search))
         {
-            var search = request.Search.Trim();
-            usersQuery = usersQuery.Where(user =>
-                (user.UserName != null && user.UserName.Contains(search))
-                || (user.Email != null && user.Email.Contains(search))
-                || (user.EmployeeCode != null && user.EmployeeCode.Contains(search))
-                || (user.FullName != null && user.FullName.Contains(search)));
+            if (_context.Database.IsSqlServer())
+            {
+                var pattern = VietnameseSearch.BuildContainsPattern(search);
+                usersQuery = usersQuery.Where(user =>
+                    (user.UserName != null && EF.Functions.Like(EF.Functions.Collate(user.UserName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (user.Email != null && EF.Functions.Like(EF.Functions.Collate(user.Email.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (user.EmployeeCode != null && EF.Functions.Like(EF.Functions.Collate(user.EmployeeCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (user.FullName != null && EF.Functions.Like(EF.Functions.Collate(user.FullName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+            }
+            else
+            {
+                var searchUpper = search.ToUpperInvariant();
+                usersQuery = usersQuery.Where(user =>
+                    (user.UserName != null && user.UserName.ToUpper().Contains(searchUpper))
+                    || (user.Email != null && user.Email.ToUpper().Contains(searchUpper))
+                    || (user.EmployeeCode != null && user.EmployeeCode.ToUpper().Contains(searchUpper))
+                    || (user.FullName != null && user.FullName.ToUpper().Contains(searchUpper)));
+            }
         }
 
         // Chỉ membership app-owned, active và cùng account/user mới được chiếu lên màn quản trị.
@@ -247,12 +261,12 @@ public sealed class UserAdministrationQueryService(
             .Select(request.Distinct)
             .Distinct()
             .ToDynamicListAsync(cancellationToken);
+        var normalizedDistinctFilter = VietnameseSearch.Normalize(request.DistinctFilter);
         var filteredValues = values
             .Where(value => value != null)
-            .Where(value => string.IsNullOrWhiteSpace(request.DistinctFilter)
-                || (Convert.ToString(value, CultureInfo.CurrentCulture)?.Contains(
-                    request.DistinctFilter,
-                    StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(value => VietnameseSearch.Contains(
+                Convert.ToString(value, CultureInfo.CurrentCulture),
+                normalizedDistinctFilter))
             .ToList();
 
         IEnumerable<object> pageValues = filteredValues.Cast<object>();

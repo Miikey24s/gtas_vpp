@@ -930,7 +930,7 @@ public sealed class VPPRequestLifecycleTests
                 Month = 4,
                 IsAdditionalOrder = true,
                 BaseRequestId = itRegular.Id,
-                SupplementReason = "IT supplement for scope test",
+                SupplementReason = "Cần bổ sung giấy A4 cho phòng IT",
                 Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
             },
             5615,
@@ -958,10 +958,24 @@ public sealed class VPPRequestLifecycleTests
             Company,
             "IT",
             canViewAllDepartments: true);
+        var noAccentSearchRows = await service.GetPendingAdditionalOrdersAsync(
+            Company,
+            "IT",
+            canViewAllDepartments: true,
+            search: "giay");
+        var accentedSearchRows = await service.GetPendingAdditionalOrdersAsync(
+            Company,
+            "IT",
+            canViewAllDepartments: true,
+            search: "giấy");
 
         Assert.Single(departmentRows);
         Assert.Equal("IT", departmentRows[0].DepartmentCode);
         Assert.Equal(2, allRows.Count);
+        Assert.Single(noAccentSearchRows);
+        Assert.Equal("IT", noAccentSearchRows[0].DepartmentCode);
+        Assert.Single(accentedSearchRows);
+        Assert.Equal(noAccentSearchRows[0].Id, accentedSearchRows[0].Id);
         Assert.All(allRows, row => Assert.True(row.CanApproveSupplement));
         Assert.All(allRows, row => Assert.True(row.CanRejectSupplement));
     }

@@ -48,10 +48,16 @@ public abstract class ReportBase : ComponentBase, IDisposable
         [new(null, Localizer["AllYears"]), .. AvailableYears.Select(year => new VppFilterOption<int?>(year, year.ToString(CultureInfo.InvariantCulture)))];
     protected IReadOnlyList<VppFilterOption<int?>> MonthFilterOptions =>
         [new(null, Localizer["AllMonths"]), .. MonthOptions.Select(month => new VppFilterOption<int?>(month.Value, month.Label))];
-    protected IReadOnlyList<ReportDepartmentPointResDTO> FilteredDepartmentBreakdown => Summary?.DepartmentBreakdown
-        .Where(item => string.IsNullOrWhiteSpace(DepartmentSearchText)
-            || item.Code.Contains(DepartmentSearchText.Trim(), StringComparison.OrdinalIgnoreCase))
-        .ToList() ?? [];
+    protected IReadOnlyList<ReportDepartmentPointResDTO> FilteredDepartmentBreakdown
+    {
+        get
+        {
+            var normalizedSearch = VppSearchText.Normalize(DepartmentSearchText);
+            return Summary?.DepartmentBreakdown
+                .Where(item => VppSearchText.Contains(item.Code, normalizedSearch))
+                .ToList() ?? [];
+        }
+    }
     protected IReadOnlyList<StatusChartPoint> StatusChartData => Summary?.StatusBreakdown
         .Where(item => item.OrderCount > 0)
         .Select(item => new StatusChartPoint(Localizer[item.ResourceKey], item.OrderCount))

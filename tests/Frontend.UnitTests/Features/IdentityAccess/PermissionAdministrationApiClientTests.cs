@@ -37,7 +37,7 @@ public sealed class PermissionAdministrationApiClientTests
             "CreatedAtUtc desc"));
 
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Permission/groups?getFullName=true&", StringComparison.Ordinal));
-        Assert.Contains(endpoints, endpoint => endpoint.Contains("GroupCode", StringComparison.Ordinal));
+        Assert.Contains(endpoints, endpoint => endpoint.Contains("search=admin", StringComparison.Ordinal));
         Assert.Contains(endpoints, endpoint => endpoint.Contains("skip=10", StringComparison.Ordinal));
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Permission/security-audits?", StringComparison.Ordinal));
         Assert.Contains(endpoints, endpoint => endpoint.Contains("action=ACCOUNT_ACTIVATED", StringComparison.Ordinal));

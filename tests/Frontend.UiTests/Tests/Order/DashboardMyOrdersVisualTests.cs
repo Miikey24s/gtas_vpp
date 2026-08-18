@@ -31,10 +31,11 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
 
             (await action.InnerTextAsync()).Should().Contain("Tạo đơn bổ sung");
             (await action.IsEnabledAsync()).Should().BeFalse(
-                "kỳ đang mở chưa thuộc cửa sổ gửi đơn bổ sung, nhưng capability vẫn phải hiện ổn định ở trạng thái mờ");
-            (await Page.Locator(".vpp-orders-deadline-status strong").InnerTextAsync())
-                .Should().Be("Mở sau khi kỳ đóng",
-                    "card thời hạn không được hiển thị đếm ngược như thể đơn bổ sung đã nhận ngay trong kỳ mở");
+                "kỳ bổ sung đã hết hạn vẫn phải giữ capability ở trạng thái mờ");
+            (await Page.Locator(
+                    ".vpp-orders-period-decision-card .vpp-decision-select-label")
+                .InnerTextAsync()).Should().Be("07/2026",
+                "tab đơn bổ sung phải dùng kỳ đã đóng gần nhất, không dùng kỳ đang mở 08/2026");
             (await Page.EvaluateAsync<bool>(
                 "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
                 .Should().BeFalse($"tab đơn bổ sung không được tràn ngang ở {viewport.Width}px");

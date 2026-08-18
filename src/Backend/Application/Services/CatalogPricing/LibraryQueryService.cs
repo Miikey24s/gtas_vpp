@@ -3,6 +3,7 @@ using System.Linq.Dynamic.Core;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Helpers;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Library;
 using Mapster;
@@ -148,12 +149,7 @@ public sealed class LibraryQueryService : ILibraryQueryService
             query = query.Where(item => item.Id == request.Id.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(cleanSearch))
-        {
-            query = query.Where(item =>
-                (item.VppName != null && item.VppName.Contains(cleanSearch))
-                || (item.VppCode != null && item.VppCode.Contains(cleanSearch)));
-        }
+        query = ApplyVppItemSearch(query, cleanSearch);
 
         var totalCount = await query.CountAsync(cancellationToken);
         var items = await query.OrderBy(item => item.VppCode).Take(5000).ToListAsync(cancellationToken);
@@ -222,12 +218,7 @@ public sealed class LibraryQueryService : ILibraryQueryService
                 baseQuery = baseQuery.Where(item => !item.IsDeleted);
             }
 
-            if (!string.IsNullOrWhiteSpace(cleanSearch))
-            {
-                baseQuery = baseQuery.Where(item =>
-                    (item.VppCode != null && item.VppCode.Contains(cleanSearch))
-                    || (item.VppName != null && item.VppName.Contains(cleanSearch)));
-            }
+            baseQuery = ApplyVppItemSearch(baseQuery, cleanSearch);
 
             var query = baseQuery.Select(item => new VppItemResDTO
             {
@@ -312,10 +303,12 @@ public sealed class LibraryQueryService : ILibraryQueryService
                 if (propertyInfo != null)
                 {
                     var distinctValues = await query.Select(request.Distinct).Distinct().ToDynamicListAsync();
+                    var normalizedDistinctFilter = VietnameseSearch.Normalize(request.DistinctFilter);
                     var filteredValues = distinctValues
                         .Where(value => value != null)
-                        .Where(value => string.IsNullOrWhiteSpace(request.DistinctFilter)
-                            || (Convert.ToString(value, CultureInfo.CurrentCulture)?.Contains(request.DistinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .Where(value => VietnameseSearch.Contains(
+                            Convert.ToString(value, CultureInfo.CurrentCulture),
+                            normalizedDistinctFilter))
                         .ToList();
                     IEnumerable<object> pageValues = filteredValues.Cast<object>();
                     if (request.Skip is > 0) pageValues = pageValues.Skip(request.Skip.Value);
@@ -389,10 +382,12 @@ public sealed class LibraryQueryService : ILibraryQueryService
                 if (propertyInfo != null)
                 {
                     var distinctValues = await query.Select(request.Distinct).Distinct().ToDynamicListAsync();
+                    var normalizedDistinctFilter = VietnameseSearch.Normalize(request.DistinctFilter);
                     var filteredValues = distinctValues
                         .Where(value => value != null)
-                        .Where(value => string.IsNullOrWhiteSpace(request.DistinctFilter)
-                            || (Convert.ToString(value, CultureInfo.CurrentCulture)?.Contains(request.DistinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .Where(value => VietnameseSearch.Contains(
+                            Convert.ToString(value, CultureInfo.CurrentCulture),
+                            normalizedDistinctFilter))
                         .ToList();
                     IEnumerable<object> pageValues = filteredValues.Cast<object>();
                     if (request.Skip is > 0) pageValues = pageValues.Skip(request.Skip.Value);
@@ -576,48 +571,106 @@ public sealed class LibraryQueryService : ILibraryQueryService
         }
     }
 
-    private static IQueryable<TModel> ApplyLibrarySearch<TModel>(IQueryable<TModel> query, string? searchText)
+    private IQueryable<TModel> ApplyLibrarySearch<TModel>(IQueryable<TModel> query, string? searchText)
         where TModel : class
     {
         if (string.IsNullOrWhiteSpace(searchText)) return query;
+        var term = VietnameseSearch.PrepareTerm(searchText);
+        var isSqlServer = _unitOfWork.VPPContext.Database.IsSqlServer();
+        var pattern = VietnameseSearch.BuildContainsPattern(term);
+        var searchUpper = term.ToUpperInvariant();
         if (typeof(TModel) == typeof(LookupCategory))
         {
-            return (IQueryable<TModel>)((IQueryable<LookupCategory>)query).Where(row =>
-                (row.Code != null && row.Code.Contains(searchText))
-                || (row.Name != null && row.Name.Contains(searchText))
-                || (row.Description != null && row.Description.Contains(searchText)));
+            var typedQuery = (IQueryable<LookupCategory>)query;
+            return (IQueryable<TModel>)(isSqlServer
+                ? typedQuery.Where(row =>
+                    (row.Code != null && EF.Functions.Like(EF.Functions.Collate(row.Code.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.Name != null && EF.Functions.Like(EF.Functions.Collate(row.Name.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.Description != null && EF.Functions.Like(EF.Functions.Collate(row.Description.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")))
+                : typedQuery.Where(row =>
+                    (row.Code != null && row.Code.ToUpper().Contains(searchUpper))
+                    || (row.Name != null && row.Name.ToUpper().Contains(searchUpper))
+                    || (row.Description != null && row.Description.ToUpper().Contains(searchUpper))));
         }
         if (typeof(TModel) == typeof(LookupValue))
         {
-            return (IQueryable<TModel>)((IQueryable<LookupValue>)query).Where(row =>
-                row.Code.Contains(searchText)
-                || row.Value.Contains(searchText)
-                || (row.Description != null && row.Description.Contains(searchText)));
+            var typedQuery = (IQueryable<LookupValue>)query;
+            return (IQueryable<TModel>)(isSqlServer
+                ? typedQuery.Where(row =>
+                    EF.Functions.Like(EF.Functions.Collate(row.Code.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")
+                    || EF.Functions.Like(EF.Functions.Collate(row.Value.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")
+                    || (row.Description != null && EF.Functions.Like(EF.Functions.Collate(row.Description.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")))
+                : typedQuery.Where(row =>
+                    row.Code.ToUpper().Contains(searchUpper)
+                    || row.Value.ToUpper().Contains(searchUpper)
+                    || (row.Description != null && row.Description.ToUpper().Contains(searchUpper))));
         }
         if (typeof(TModel) == typeof(VppCategory))
         {
-            return (IQueryable<TModel>)((IQueryable<VppCategory>)query).Where(row =>
-                (row.VppCategoryCode != null && row.VppCategoryCode.Contains(searchText))
-                || (row.VppCategoryName != null && row.VppCategoryName.Contains(searchText)));
+            var typedQuery = (IQueryable<VppCategory>)query;
+            return (IQueryable<TModel>)(isSqlServer
+                ? typedQuery.Where(row =>
+                    (row.VppCategoryCode != null && EF.Functions.Like(EF.Functions.Collate(row.VppCategoryCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.VppCategoryName != null && EF.Functions.Like(EF.Functions.Collate(row.VppCategoryName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")))
+                : typedQuery.Where(row =>
+                    (row.VppCategoryCode != null && row.VppCategoryCode.ToUpper().Contains(searchUpper))
+                    || (row.VppCategoryName != null && row.VppCategoryName.ToUpper().Contains(searchUpper))));
         }
         if (typeof(TModel) == typeof(Supplier))
         {
-            return (IQueryable<TModel>)((IQueryable<Supplier>)query).Where(row =>
-                (row.SupplierShortName != null && row.SupplierShortName.Contains(searchText))
-                || (row.SupplierName != null && row.SupplierName.Contains(searchText))
-                || (row.Address1 != null && row.Address1.Contains(searchText))
-                || (row.Address2 != null && row.Address2.Contains(searchText))
-                || (row.Address3 != null && row.Address3.Contains(searchText))
-                || (row.Ward != null && row.Ward.Contains(searchText))
-                || (row.City != null && row.City.Contains(searchText)));
+            var typedQuery = (IQueryable<Supplier>)query;
+            return (IQueryable<TModel>)(isSqlServer
+                ? typedQuery.Where(row =>
+                    (row.SupplierShortName != null && EF.Functions.Like(EF.Functions.Collate(row.SupplierShortName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.SupplierName != null && EF.Functions.Like(EF.Functions.Collate(row.SupplierName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.Address1 != null && EF.Functions.Like(EF.Functions.Collate(row.Address1.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.Address2 != null && EF.Functions.Like(EF.Functions.Collate(row.Address2.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.Address3 != null && EF.Functions.Like(EF.Functions.Collate(row.Address3.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.Ward != null && EF.Functions.Like(EF.Functions.Collate(row.Ward.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.City != null && EF.Functions.Like(EF.Functions.Collate(row.City.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")))
+                : typedQuery.Where(row =>
+                    (row.SupplierShortName != null && row.SupplierShortName.ToUpper().Contains(searchUpper))
+                    || (row.SupplierName != null && row.SupplierName.ToUpper().Contains(searchUpper))
+                    || (row.Address1 != null && row.Address1.ToUpper().Contains(searchUpper))
+                    || (row.Address2 != null && row.Address2.ToUpper().Contains(searchUpper))
+                    || (row.Address3 != null && row.Address3.ToUpper().Contains(searchUpper))
+                    || (row.Ward != null && row.Ward.ToUpper().Contains(searchUpper))
+                    || (row.City != null && row.City.ToUpper().Contains(searchUpper))));
         }
         if (typeof(TModel) == typeof(Department))
         {
-            return (IQueryable<TModel>)((IQueryable<Department>)query).Where(row =>
-                (row.Code != null && row.Code.Contains(searchText))
-                || (row.Name != null && row.Name.Contains(searchText)));
+            var typedQuery = (IQueryable<Department>)query;
+            return (IQueryable<TModel>)(isSqlServer
+                ? typedQuery.Where(row =>
+                    (row.Code != null && EF.Functions.Like(EF.Functions.Collate(row.Code.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (row.Name != null && EF.Functions.Like(EF.Functions.Collate(row.Name.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")))
+                : typedQuery.Where(row =>
+                    (row.Code != null && row.Code.ToUpper().Contains(searchUpper))
+                    || (row.Name != null && row.Name.ToUpper().Contains(searchUpper))));
         }
         return query;
+    }
+
+    private IQueryable<VppItem> ApplyVppItemSearch(IQueryable<VppItem> query, string? searchText)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            return query;
+        }
+
+        var term = VietnameseSearch.PrepareTerm(searchText);
+        if (_unitOfWork.VPPContext.Database.IsSqlServer())
+        {
+            var pattern = VietnameseSearch.BuildContainsPattern(term);
+            return query.Where(item =>
+                (item.VppCode != null && EF.Functions.Like(EF.Functions.Collate(item.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (item.VppName != null && EF.Functions.Like(EF.Functions.Collate(item.VppName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+        }
+
+        var searchUpper = term.ToUpperInvariant();
+        return query.Where(item =>
+            (item.VppCode != null && item.VppCode.ToUpper().Contains(searchUpper))
+            || (item.VppName != null && item.VppName.ToUpper().Contains(searchUpper)));
     }
 
     private static VppItemResDTO ToVppItemDto(

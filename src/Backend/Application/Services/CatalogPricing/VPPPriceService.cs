@@ -113,14 +113,27 @@ namespace gtas_vpp_be.Service.Services
                     UpdatedAtUtc = mapping == null ? null : mapping.UpdatedAtUtc
                 };
 
-            if (!string.IsNullOrWhiteSpace(search))
+            var searchText = VietnameseSearch.PrepareTerm(search);
+            if (!string.IsNullOrWhiteSpace(searchText))
             {
-                var searchText = search.Trim();
-                query = query.Where(x =>
-                    (x.VppCode != null && x.VppCode.Contains(searchText))
-                    || (x.VppName != null && x.VppName.Contains(searchText))
-                    || (x.CategoryName != null && x.CategoryName.Contains(searchText))
-                    || (x.UomName != null && x.UomName.Contains(searchText)));
+                if (_scopedUow.VPPContext.Database.IsSqlServer())
+                {
+                    var pattern = VietnameseSearch.BuildContainsPattern(searchText);
+                    query = query.Where(x =>
+                        (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.CategoryName != null && EF.Functions.Like(EF.Functions.Collate(x.CategoryName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.UomName != null && EF.Functions.Like(EF.Functions.Collate(x.UomName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                }
+                else
+                {
+                    var searchUpper = searchText.ToUpperInvariant();
+                    query = query.Where(x =>
+                        (x.VppCode != null && x.VppCode.ToUpper().Contains(searchUpper))
+                        || (x.VppName != null && x.VppName.ToUpper().Contains(searchUpper))
+                        || (x.CategoryName != null && x.CategoryName.ToUpper().Contains(searchUpper))
+                        || (x.UomName != null && x.UomName.ToUpper().Contains(searchUpper)));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(filter))
@@ -138,10 +151,12 @@ namespace gtas_vpp_be.Service.Services
                         .Distinct()
                         .ToDynamicListAsync();
 
+                    var normalizedDistinctFilter = VietnameseSearch.Normalize(distinctFilter);
                     var filteredValues = distinctValues
                         .Where(val => val != null)
-                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
-                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .Where(val => VietnameseSearch.Contains(
+                            Convert.ToString(val, CultureInfo.CurrentCulture),
+                            normalizedDistinctFilter))
                         .ToList();
 
                     IEnumerable<object> pageValues = filteredValues.Cast<object>();

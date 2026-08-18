@@ -51,7 +51,8 @@ public sealed record PendingAdditionalOrdersQuery(
     int Skip,
     int Top,
     string? Filter = null,
-    string? OrderBy = null);
+    string? OrderBy = null,
+    string Search = "");
 
 public sealed record OrderFilterValuesQuery(
     string Column,
@@ -263,6 +264,7 @@ public sealed class RequestsQueryClient(IAPIServices api)
             $"skip={Math.Max(0, query.Skip)}",
             $"top={Math.Max(1, query.Top)}"
         };
+        AddTextQuery(queryParams, "search", query.Search);
         AddTextQuery(queryParams, "filter", query.Filter);
         AddTextQuery(
             queryParams,

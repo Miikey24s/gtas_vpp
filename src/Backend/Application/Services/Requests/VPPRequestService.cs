@@ -72,13 +72,15 @@ namespace gtas_vpp_be.Service.Services
         Task<List<VppRequestResDTO>> GetPendingAdditionalOrdersAsync(
             string? memberCompanyCode = null,
             string? departmentCode = null,
-            bool canViewAllDepartments = false);
+            bool canViewAllDepartments = false,
+            string? search = null);
         Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(
             int? skip,
             int? top,
             string? memberCompanyCode = null,
             string? departmentCode = null,
-            bool canViewAllDepartments = false);
+            bool canViewAllDepartments = false,
+            string? search = null);
         Task<AggregatedVppResDTO> GetPeriodDemandAsync(int year, int month, string? memberCompanyCode = null);
         Task ApproveAdditionalOrderAsync(Guid id, int adminId, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
         Task RejectAdditionalOrderAsync(Guid id, int adminId, string? reason, byte[] rowVersion, string? idempotencyKey, string? actorDepartmentCode, bool canApproveCrossDepartment, string? memberCompanyCode);
@@ -381,7 +383,7 @@ namespace gtas_vpp_be.Service.Services
             return (result, totalCount);
         }
 
-        private static IQueryable<VppRequest> ApplyHistoryFilters(
+        private IQueryable<VppRequest> ApplyHistoryFilters(
             IQueryable<VppRequest> query,
             int? exactPeriod,
             string? search,
@@ -394,12 +396,23 @@ namespace gtas_vpp_be.Service.Services
                 query = query.Where(order => ((order.Year * 100) + order.Month) == exactPeriod.Value);
             }
 
-            var normalizedSearch = search?.Trim();
+            var normalizedSearch = VietnameseSearch.PrepareTerm(search);
             if (!string.IsNullOrWhiteSpace(normalizedSearch))
             {
-                query = query.Where(order =>
-                    (order.VppCode != null && order.VppCode.Contains(normalizedSearch))
-                    || (order.Description != null && order.Description.Contains(normalizedSearch)));
+                if (_scopedUow.VPPContext.Database.IsSqlServer())
+                {
+                    var pattern = VietnameseSearch.BuildContainsPattern(normalizedSearch);
+                    query = query.Where(order =>
+                        (order.VppCode != null && EF.Functions.Like(EF.Functions.Collate(order.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (order.Description != null && EF.Functions.Like(EF.Functions.Collate(order.Description.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                }
+                else
+                {
+                    var searchUpper = normalizedSearch.ToUpperInvariant();
+                    query = query.Where(order =>
+                        (order.VppCode != null && order.VppCode.ToUpper().Contains(searchUpper))
+                        || (order.Description != null && order.Description.ToUpper().Contains(searchUpper)));
+                }
             }
 
             if (status.HasValue)
@@ -1666,7 +1679,8 @@ namespace gtas_vpp_be.Service.Services
         public async Task<List<VppRequestResDTO>> GetPendingAdditionalOrdersAsync(
             string? memberCompanyCode = null,
             string? departmentCode = null,
-            bool canViewAllDepartments = false)
+            bool canViewAllDepartments = false,
+            string? search = null)
         {
             var result = await _scopedUow.VPPContext.Set<VppRequest>()
                 .AsNoTracking()
@@ -1683,7 +1697,18 @@ namespace gtas_vpp_be.Service.Services
 
             await ApplyRequesterNamesAsync(result);
             await ApplyPeriodFlagsAsync(result);
-            return result;
+            if (string.IsNullOrWhiteSpace(search))
+            {
+                return result;
+            }
+
+            var normalizedSearch = VietnameseSearch.Normalize(search);
+            return result.Where(order =>
+                    VietnameseSearch.Contains(order.VppCode, normalizedSearch)
+                    || VietnameseSearch.Contains(order.RequesterName, normalizedSearch)
+                    || VietnameseSearch.Contains(order.DepartmentCode, normalizedSearch)
+                    || VietnameseSearch.Contains(order.Description, normalizedSearch))
+                .ToList();
         }
 
         public async Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(
@@ -1691,8 +1716,28 @@ namespace gtas_vpp_be.Service.Services
             int? top,
             string? memberCompanyCode = null,
             string? departmentCode = null,
-            bool canViewAllDepartments = false)
+            bool canViewAllDepartments = false,
+            string? search = null)
         {
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var filtered = await GetPendingAdditionalOrdersAsync(
+                    memberCompanyCode,
+                    departmentCode,
+                    canViewAllDepartments,
+                    search);
+                var page = filtered
+                    .OrderByDescending(order => order.UpdatedAtUtc)
+                    .Skip(Math.Max(0, skip ?? 0))
+                    .Take(Math.Max(1, top ?? filtered.Count))
+                    .ToList();
+                return (
+                    page,
+                    filtered.Count,
+                    filtered.Sum(order => order.TotalLines),
+                    filtered.Sum(order => order.TotalQty));
+            }
+
             var query = _scopedUow.VPPContext.Set<VppRequest>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted && x.IsCurrentRevision
@@ -2115,8 +2160,9 @@ namespace gtas_vpp_be.Service.Services
                 openPeriods = [await GetPeriodForMutationAsync(company, anchor)];
             }
 
-            // Danh sách chọn gồm kỳ đang mở cho đơn thường và kỳ vừa đóng còn hạn
-            // bổ sung. Kỳ đã chốt/Pricing không xuất hiện nên chốt sớm khóa ngay CTA.
+            // Danh sách chọn gồm kỳ đang mở cho đơn thường, kỳ còn hạn bổ sung và
+            // kỳ trước gần nhất để người dùng vẫn xem được dữ liệu sau khi hết hạn/chốt.
+            // Capability tạo đơn vẫn được tính riêng ở dưới, không mở lại nghiệp vụ.
             var supplementPeriods = await _scopedUow.VPPContext.Set<VppPeriod>()
                 .AsNoTracking()
                 .Where(x => !x.IsDeleted
@@ -2125,8 +2171,21 @@ namespace gtas_vpp_be.Service.Services
                     && x.SubmissionDeadlineUtc <= nowUtc
                     && nowUtc < x.SupplementApprovalDeadlineUtc)
                 .ToListAsync();
+            var previousPeriod = await _scopedUow.VPPContext.Set<VppPeriod>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                    && x.MemberCompanyCode == company
+                    && (x.State == VppPeriodState.SubmissionClosed
+                        || x.State == VppPeriodState.Pricing
+                        || x.State == VppPeriodState.Settled)
+                    && (x.Year < anchor.Year
+                        || (x.Year == anchor.Year && x.Month < anchor.Month)))
+                .OrderByDescending(x => x.Year)
+                .ThenByDescending(x => x.Month)
+                .FirstOrDefaultAsync();
             var availablePeriods = openPeriods
                 .Concat(supplementPeriods)
+                .Concat(previousPeriod is null ? [] : [previousPeriod])
                 .GroupBy(x => x.Id)
                 .Select(group => group.First())
                 .ToArray();
@@ -2135,7 +2194,7 @@ namespace gtas_vpp_be.Service.Services
                 && availablePeriods.All(x => x.Id != selectedPeriodId.Value))
             {
                 throw new BusinessException(
-                    "Kỳ được chọn không còn nhận đơn.");
+                    "Kỳ được chọn không còn trong danh sách đặt hàng.");
             }
 
             var period = selectedPeriodId.HasValue

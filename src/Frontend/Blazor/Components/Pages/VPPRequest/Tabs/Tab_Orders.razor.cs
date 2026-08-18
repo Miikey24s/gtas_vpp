@@ -6,6 +6,7 @@ using gtas_vpp_fe.Components.DesignSystem.Primitives;
 using gtas_vpp_fe.Services;
 using gtas_vpp_fe.Components.Pages.VPPRequest.Components;
 using gtas_vpp_fe.Features.Requests.Api;
+using gtas_vpp_fe.Features.Requests.State;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using gtas_vpp_shared.DTOs.Res.VPP;
@@ -28,7 +29,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [Inject] public RequestsExportClient Exports { get; set; } = default!;
         [Parameter] public IEnumerable<Claim>? claims { get; set; }
         [SupplyParameterFromQuery(Name = "orderView")] public string? OrderViewQuery { get; set; }
+        // periodId chỉ giữ tương thích cho liên kết cũ. Hai loại đơn dùng query riêng
+        // để đổi tab không làm mất kỳ người dùng đã chọn ở tab còn lại.
         [SupplyParameterFromQuery(Name = "periodId")] public Guid? PeriodIdQuery { get; set; }
+        [SupplyParameterFromQuery(Name = "regularPeriodId")] public Guid? RegularPeriodIdQuery { get; set; }
+        [SupplyParameterFromQuery(Name = "supplementPeriodId")] public Guid? SupplementPeriodIdQuery { get; set; }
 
         // ORDER VIEWS: Kỳ được chọn riêng; selector ngang chỉ còn phân loại đơn.
         protected const int CurrentOrderViewIndex = 0;
@@ -44,7 +49,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public bool IsLoading { get; set; } = true;
         public bool ViewerVisible { get; set; }
         public VppRequestResDTO? ViewingOrder { get; set; }
-        public VppPeriodInfoResDTO? PeriodInfo { get; set; }
+        public VppPeriodInfoResDTO? RegularPeriodInfo { get; set; }
+        public VppPeriodInfoResDTO? SupplementPeriodInfo { get; set; }
+        public VppPeriodInfoResDTO? PeriodInfo => OrderViewSelectedIndex == SupplementOrderViewIndex
+            ? SupplementPeriodInfo
+            : RegularPeriodInfo;
+        private IReadOnlyList<VppOpenPeriodOptionResDTO> _availablePeriods = [];
         private readonly HashSet<Guid> _cancellingOrderIds = new();
         private readonly HashSet<Guid> _restoringOrderIds = new();
         private Guid? _selectedSupplementOrderId;
@@ -57,15 +67,14 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         public DateTime CurrentOrderPeriodDate => PeriodInfo is { } p
             ? new DateTime(p.CurrentPeriodYear, p.CurrentPeriodMonth, 1)
             : new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        private DateTime? RegularPeriodDate => ToPeriodDate(RegularPeriodInfo);
+        private DateTime? SupplementPeriodDate => ToPeriodDate(SupplementPeriodInfo);
 
         public DateTime SelectedDeadlineDate => OrderViewSelectedIndex == SupplementOrderViewIndex
             ? PeriodInfo?.SupplementApprovalDeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(9)
             : PeriodInfo?.DeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(4);
 
         public int RemainingDeadlineDays => (SelectedDeadlineDate.Date - DateTime.Today).Days;
-        private bool IsSupplementWaitingForPeriodClose =>
-            OrderViewSelectedIndex == SupplementOrderViewIndex
-            && string.Equals(PeriodInfo?.PeriodState, "Open", StringComparison.OrdinalIgnoreCase);
         public string CurrentOrderPeriodText => DateFormatter.Format(CurrentOrderPeriodDate, DateFormatter.MonthYear);
         public string SelectedDeadlineText => DateFormatter.Format(SelectedDeadlineDate, DateFormatter.LongDate);
         public string SelectedDeadlineLabel => OrderViewSelectedIndex == SupplementOrderViewIndex
@@ -73,25 +82,24 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             : Loc["RegularOrderDeadline"].Value;
         public string SelectedDeadlineStatusText => RemainingDeadlineDays switch
         {
-            _ when IsSupplementWaitingForPeriodClose => Loc["OpensAfterPeriodCloses"].Value,
             < 0 => Loc["DeadlinePassed"].Value,
             0 => Loc["DeadlineIsToday"].Value,
             _ => string.Format(Loc["RemainingDeadlineDaysFormat"], RemainingDeadlineDays)
         };
-        public string SelectedDeadlineToneClass => IsSupplementWaitingForPeriodClose
-            ? string.Empty
-            : RemainingDeadlineDays < 0
+        public string SelectedDeadlineToneClass => RemainingDeadlineDays < 0
             ? "is-expired"
             : RemainingDeadlineDays <= 2
                 ? "is-urgent"
                 : string.Empty;
-        protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => PeriodInfo?.OpenPeriods
+        protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => ActivePeriodOptions
             .Select(option => new VppDecisionOption<Guid?>(
                 option.PeriodId,
                 FormatPeriodOption(option)))
             .ToArray() ?? [];
         public IReadOnlyList<VppRequestResDTO> CurrentPeriodAdditionalOrders => AdditionalOrders
-            .Where(order => order.Year == CurrentOrderPeriodDate.Year && order.Month == CurrentOrderPeriodDate.Month)
+            .Where(order => SupplementPeriodDate is { } period
+                && order.Year == period.Year
+                && order.Month == period.Month)
             .ToArray();
         protected VppRequestResDTO? CurrentRegularOrder => ActiveOrders.FirstOrDefault();
         protected VppRequestResDTO? SelectedSupplementOrder => CurrentPeriodAdditionalOrders
@@ -120,12 +128,12 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private bool CanCreate => PermissionState.HasPermission(Permissions.RequestCreate);
         private bool CanUpdateOwnOrders => PermissionState.HasPermission(Permissions.RequestUpdateOwn);
         private bool CanCancelOwnOrders => PermissionState.HasPermission(Permissions.RequestCancelOwn);
-        private bool CanCreateRegular => CanCreate && PeriodInfo?.CanCreateOrder == true;
-        private bool CanCreateSupplement => CanCreate && PeriodInfo?.CanCreateAdditional == true;
-        private bool CanCopyPrevious => CanCreate && PeriodInfo?.CanCopyPrevious == true;
+        private bool CanCreateRegular => CanCreate && RegularPeriodInfo?.CanCreateOrder == true;
+        private bool CanCreateSupplement => CanCreate && SupplementPeriodInfo?.CanCreateAdditional == true;
+        private bool CanCopyPrevious => CanCreate && RegularPeriodInfo?.CanCopyPrevious == true;
         // Luôn cho người có quyền thấy CTA trong đúng tab; capability từ backend
         // quyết định enabled/disabled để người dùng hiểu vì sao chưa thể tạo.
-        private bool ShowSupplementAction => CanCreate && PeriodInfo is not null;
+        private bool ShowSupplementAction => CanCreate && SupplementPeriodInfo is not null;
         private string SupplementActionHint => CanCreateSupplement
             ? Loc["RequestAdditional"].Value
             : SupplementUnavailableDescription;
@@ -133,27 +141,27 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         {
             get
             {
-                if (PeriodInfo is null)
+                if (SupplementPeriodInfo is null)
                 {
                     return Loc["SupplementUnavailable"].Value;
                 }
 
-                if (PeriodInfo.HasPendingAdditional)
+                if (SupplementPeriodInfo.HasPendingAdditional)
                 {
                     return Loc["SupplementPendingMustResolve"].Value;
                 }
 
-                if (PeriodInfo.RemainingApprovedSupplementQuota <= 0)
+                if (SupplementPeriodInfo.RemainingApprovedSupplementQuota <= 0)
                 {
                     return Loc["SupplementApprovedQuotaFull"].Value;
                 }
 
-                if (PeriodInfo.RemainingSupplementAttempts <= 0)
+                if (SupplementPeriodInfo.RemainingSupplementAttempts <= 0)
                 {
                     return Loc["SupplementAttemptLimitFull"].Value;
                 }
 
-                return PeriodInfo.CanCreateAdditionalReason
+                return SupplementPeriodInfo.CanCreateAdditionalReason
                     ?? Loc["SupplementUnavailable"].Value;
             }
         }
@@ -163,10 +171,49 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             var period = DateFormatter.Format(
                 new DateTime(option.Year, option.Month, 1),
                 DateFormatter.MonthYear);
-            return option.State == "SubmissionClosed"
-                ? $"{period} · nhận bổ sung"
-                : period;
+            return period;
         }
+
+        private static bool IsRegularPeriod(VppOpenPeriodOptionResDTO option) =>
+            string.Equals(option.State, "Open", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsSupplementPeriod(VppOpenPeriodOptionResDTO option) =>
+            option.State is not null
+            && (option.State.Equals("SubmissionClosed", StringComparison.OrdinalIgnoreCase)
+                || option.State.Equals("Pricing", StringComparison.OrdinalIgnoreCase)
+                || option.State.Equals("Settled", StringComparison.OrdinalIgnoreCase));
+
+        private static DateTime? ToPeriodDate(VppPeriodInfoResDTO? info) => info is null
+            ? null
+            : new DateTime(info.CurrentPeriodYear, info.CurrentPeriodMonth, 1);
+
+        private async Task<VppPeriodInfoResDTO?> LoadSelectedPeriodInfoAsync(
+            VppPeriodInfoResDTO? overview,
+            Guid? selectedPeriodId)
+        {
+            if (selectedPeriodId is not Guid periodId)
+            {
+                return null;
+            }
+
+            return overview?.SelectedPeriodId == periodId
+                ? overview
+                : await Requests.GetPeriodInfoAsync(periodId);
+        }
+
+        private string BuildPeriodQueryUri(string orderView) =>
+            NavigationManager.GetUriWithQueryParameters(new Dictionary<string, object?>
+            {
+                ["orderView"] = orderView,
+                ["regularPeriodId"] = RegularPeriodInfo?.SelectedPeriodId,
+                ["supplementPeriodId"] = SupplementPeriodInfo?.SelectedPeriodId,
+                ["periodId"] = null
+            });
+
+        private IReadOnlyList<VppOpenPeriodOptionResDTO> ActivePeriodOptions =>
+            OrderViewSelectedIndex == SupplementOrderViewIndex
+                ? _availablePeriods.Where(IsSupplementPeriod).ToArray()
+                : _availablePeriods.Where(IsRegularPeriod).ToArray();
         private string? CurrentEmptyActionText => CanCreateRegular
             ? Loc["CreateOrderThisCycle"].Value
             : CanCopyPrevious
@@ -211,7 +258,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             OrderViewSelectedIndex = normalizedIndex;
             if (!string.Equals(OrderViewQuery, queryValue, StringComparison.OrdinalIgnoreCase))
             {
-                var uri = NavigationManager.GetUriWithQueryParameter("orderView", queryValue);
+                var uri = BuildPeriodQueryUri(queryValue);
                 NavigationManager.NavigateTo(uri, replace: true);
             }
 
@@ -257,17 +304,35 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected override async Task OnInitializedAsync()
         {
-            // P1: Tải PeriodInfo TRƯỚC để ngày suy ra như CurrentOrderPeriodDate phản ánh
-            // dữ liệu có thẩm quyền của BE trước khi badge/header render.
-            await LoadPeriodInfoAsync();
+            // Tải cả hai context kỳ trước khi lấy đơn. Đơn thường mặc định kỳ đang mở,
+            // đơn bổ sung mặc định kỳ trước gần nhất; backend vẫn quyết định kỳ đó
+            // còn được tạo bổ sung hay chỉ được xem dữ liệu.
+            await LoadPeriodInfosAsync();
             await LoadOrdersAsync();
         }
 
-        private async Task LoadPeriodInfoAsync()
+        private async Task LoadPeriodInfosAsync()
         {
             try
             {
-                PeriodInfo = await Requests.GetPeriodInfoAsync(PeriodIdQuery);
+                var overview = await Requests.GetPeriodInfoAsync();
+                _availablePeriods = overview?.OpenPeriods ?? [];
+
+                var legacyRegularId = OrderViewSelectedIndex == CurrentOrderViewIndex
+                    ? PeriodIdQuery
+                    : null;
+                var legacySupplementId = OrderViewSelectedIndex == SupplementOrderViewIndex
+                    ? PeriodIdQuery
+                    : null;
+                var selection = OrderPeriodSelectionPolicy.Select(
+                    _availablePeriods,
+                    RegularPeriodIdQuery ?? legacyRegularId,
+                    SupplementPeriodIdQuery ?? legacySupplementId);
+
+                RegularPeriodInfo = await LoadSelectedPeriodInfoAsync(overview, selection.RegularPeriodId);
+                SupplementPeriodInfo = await LoadSelectedPeriodInfoAsync(overview, selection.SupplementPeriodId);
+                RegularPeriodIdQuery = RegularPeriodInfo?.SelectedPeriodId;
+                SupplementPeriodIdQuery = SupplementPeriodInfo?.SelectedPeriodId;
             }
             catch (Exception ex)
             {
@@ -293,16 +358,29 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
             try
             {
-                var data = await Requests.GetMyOrdersAsync(
-                [
-                    new OrderPeriod(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month)
-                ]);
+                var periods = new[] { RegularPeriodDate, SupplementPeriodDate }
+                    .OfType<DateTime>()
+                    .Select(period => new OrderPeriod(period.Year, period.Month))
+                    .Distinct()
+                    .ToArray();
+                var batches = await Task.WhenAll(periods.Select(period =>
+                    Requests.GetMyOrdersAsync([period])));
+                var allOrders = batches
+                    .SelectMany(batch => batch)
+                    .GroupBy(order => order.Id)
+                    .Select(group => group.First())
+                    .OrderByDescending(order => order.UpdatedAtUtc)
+                    .ToList();
 
-                var allOrders = data.OrderByDescending(x => x.UpdatedAtUtc).ToList();
-
-                // Tách đơn theo loại.
-                ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == CurrentOrderPeriodDate.Year && x.Month == CurrentOrderPeriodDate.Month).ToList();
-                AdditionalOrders = allOrders.Where(x => x.IsAdditionalOrder).OrderByDescending(x => x.SubmittedDate ?? x.UpdatedAtUtc).ToList();
+                ActiveOrders = allOrders.Where(order =>
+                        !order.IsAdditionalOrder
+                        && RegularPeriodDate is { } period
+                        && order.Year == period.Year
+                        && order.Month == period.Month)
+                    .ToList();
+                AdditionalOrders = allOrders.Where(order => order.IsAdditionalOrder)
+                    .OrderByDescending(order => order.SubmittedDate ?? order.UpdatedAtUtc)
+                    .ToList();
 
                 if (CurrentPeriodAdditionalOrders.All(order => order.Id != _selectedSupplementOrderId))
                 {
@@ -335,16 +413,28 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 return;
             }
 
-            if (PeriodInfo?.OpenPeriods.All(option => option.PeriodId != periodId) != false
-                || PeriodInfo.SelectedPeriodId == periodId)
+            if (ActivePeriodOptions.All(option => option.PeriodId != periodId)
+                || PeriodInfo?.SelectedPeriodId == periodId)
             {
                 return;
             }
 
-            PeriodIdQuery = periodId;
-            var uri = NavigationManager.GetUriWithQueryParameter("periodId", periodId);
+            var selectedInfo = await Requests.GetPeriodInfoAsync(periodId);
+            if (OrderViewSelectedIndex == SupplementOrderViewIndex)
+            {
+                SupplementPeriodInfo = selectedInfo;
+                SupplementPeriodIdQuery = periodId;
+            }
+            else
+            {
+                RegularPeriodInfo = selectedInfo;
+                RegularPeriodIdQuery = periodId;
+            }
+
+            var uri = BuildPeriodQueryUri(OrderViewSelectedIndex == SupplementOrderViewIndex
+                ? "supplement"
+                : "current");
             NavigationManager.NavigateTo(uri, replace: true);
-            await LoadPeriodInfoAsync();
             await LoadOrdersAsync();
         }
 
@@ -353,24 +443,25 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             if (isAdditional ? !CanCreateSupplement : !CanCreateRegular)
             {
                 var reason = isAdditional
-                    ? PeriodInfo?.CanCreateAdditionalReason
-                    : PeriodInfo?.CanCreateOrderReason;
+                    ? SupplementPeriodInfo?.CanCreateAdditionalReason
+                    : RegularPeriodInfo?.CanCreateOrderReason;
                 Toast.Warning(Loc["Order"], reason ?? Loc["RequestActionUnavailable"]);
                 return;
             }
 
-            NavigationManager.NavigateTo($"/dashboard/order-create?isAdditional={isAdditional}&periodId={PeriodInfo?.SelectedPeriodId}");
+            var selectedPeriod = isAdditional ? SupplementPeriodInfo : RegularPeriodInfo;
+            NavigationManager.NavigateTo($"/dashboard/order-create?isAdditional={isAdditional}&periodId={selectedPeriod?.SelectedPeriodId}");
             await Task.CompletedTask;
         }
 
         protected async Task CopyPreviousAsync()
         {
-            if (!CanCreate || PeriodInfo?.CanCopyPrevious != true)
+            if (!CanCreate || RegularPeriodInfo?.CanCopyPrevious != true)
             {
                 return;
             }
 
-            NavigationManager.NavigateTo($"/dashboard/order-create?copyFrom=previous&periodId={PeriodInfo?.SelectedPeriodId}");
+            NavigationManager.NavigateTo($"/dashboard/order-create?copyFrom=previous&periodId={RegularPeriodInfo?.SelectedPeriodId}");
             await Task.CompletedTask;
         }
 
@@ -448,7 +539,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     Detail = Loc["OrderCancelledSuccess"],
                     Duration = 3000
                 });
-                await LoadPeriodInfoAsync();
+                await LoadPeriodInfosAsync();
                 await LoadOrdersAsync();
             }
             catch (Exception ex)
@@ -509,7 +600,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     Detail = Loc["OrderRestoredSuccess"],
                     Duration = 3000
                 });
-                await LoadPeriodInfoAsync();
+                await LoadPeriodInfosAsync();
                 await LoadOrdersAsync();
             }
             catch (Exception ex)

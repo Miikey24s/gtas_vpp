@@ -60,11 +60,7 @@ public sealed class PermissionAdministrationApiClient(IAPIServices api)
         var search = query.Search.Trim();
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var escaped = EscapeDynamicString(search).ToLowerInvariant();
-            var filter =
-                $"((GroupCode ?? \"\").ToLower().Contains(\"{escaped}\") || " +
-                $"(GroupName ?? \"\").ToLower().Contains(\"{escaped}\"))";
-            queryParams.Add($"filter={Uri.EscapeDataString(filter)}");
+            queryParams.Add($"search={Uri.EscapeDataString(search)}");
         }
 
         AppendPagingAndSort(queryParams, query.Skip, query.Top, query.OrderBy);
@@ -107,7 +103,4 @@ public sealed class PermissionAdministrationApiClient(IAPIServices api)
         }
     }
 
-    private static string EscapeDynamicString(string value) => value
-        .Replace("\\", "\\\\", StringComparison.Ordinal)
-        .Replace("\"", "\\\"", StringComparison.Ordinal);
 }

@@ -168,9 +168,9 @@
     private PickerRenderState BuildRenderState()
     {
         var pickableColumns = GetPickableColumns();
+        var normalizedSearch = VppSearchText.Normalize(searchText);
         var filteredColumns = pickableColumns
-            .Where(column => string.IsNullOrWhiteSpace(searchText)
-                || GetColumnTitle(column).Contains(searchText, StringComparison.CurrentCultureIgnoreCase))
+            .Where(column => VppSearchText.Contains(GetColumnTitle(column), normalizedSearch))
             .ToArray();
         var visibleCount = pickableColumns.Count(column => column.GetVisible());
         var canReset = pickableColumns.Any(column =>

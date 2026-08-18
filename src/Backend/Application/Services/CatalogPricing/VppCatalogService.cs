@@ -17,8 +17,6 @@ public sealed class VppCatalogService : IVppCatalogService
 {
     private const int DefaultPageSize = 20;
     private const int MaxPageSize = 100;
-    private const string SearchCollation = "Vietnamese_100_CI_AI";
-
     private static readonly HashSet<string> AllowedColumns = new(StringComparer.OrdinalIgnoreCase)
     {
         "Id", "VppCode", "VppName", "Description", "UomId", "UomCode", "UomName",
@@ -281,14 +279,14 @@ public sealed class VppCatalogService : IVppCatalogService
         {
             if (context.Database.IsSqlServer())
             {
-                var pattern = $"%{EscapeLikePattern(search)}%";
+                var pattern = VietnameseSearch.BuildContainsPattern(search);
                 baseQuery = baseQuery.Where(x =>
-                    (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode, SearchCollation), pattern, "\\"))
-                    || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName, SearchCollation), pattern, "\\"))
-                    || (x.VppCategory != null && x.VppCategory.VppCategoryCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryCode, SearchCollation), pattern, "\\"))
-                    || (x.VppCategory != null && x.VppCategory.VppCategoryName != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryName, SearchCollation), pattern, "\\"))
-                    || (x.Uom != null && x.Uom.Code != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Code, SearchCollation), pattern, "\\"))
-                    || (x.Uom != null && x.Uom.Value != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Value, SearchCollation), pattern, "\\")));
+                    (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (x.VppCategory != null && x.VppCategory.VppCategoryCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (x.VppCategory != null && x.VppCategory.VppCategoryName != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (x.Uom != null && x.Uom.Code != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Code.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                    || (x.Uom != null && x.Uom.Value != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Value.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
             }
             else
             {
@@ -373,9 +371,9 @@ public sealed class VppCatalogService : IVppCatalogService
             _ => throw new ArgumentException($"Distinct column '{property}' is not supported.")
         };
 
+        var normalizedDistinctFilter = VietnameseSearch.Normalize(distinctFilter);
         return values
-            .Where(value => string.IsNullOrWhiteSpace(distinctFilter)
-                || (value?.ToString()?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(value => VietnameseSearch.Contains(value?.ToString(), normalizedDistinctFilter))
             .OrderBy(value => value?.ToString(), StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
@@ -558,12 +556,6 @@ public sealed class VppCatalogService : IVppCatalogService
     }
 
     private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    private static string EscapeLikePattern(string value)
-        => value.Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("%", "\\%", StringComparison.Ordinal)
-            .Replace("_", "\\_", StringComparison.Ordinal)
-            .Replace("[", "\\[", StringComparison.Ordinal);
 
     private sealed class CatalogRow
     {

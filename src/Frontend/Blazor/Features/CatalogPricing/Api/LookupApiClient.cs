@@ -116,7 +116,12 @@ public sealed class LookupApiClient(IAPIServices api)
             queryParams.Add(fixedQuery);
         }
 
-        var toolbarFilter = BuildFilter(query.Search, query.Status, codeProperty, nameProperty);
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            queryParams.Add($"searchText={Uri.EscapeDataString(query.Search.Trim())}");
+        }
+
+        var toolbarFilter = BuildFilter(query.Status);
         if (!string.IsNullOrWhiteSpace(toolbarFilter))
         {
             queryParams.Add($"filter={Uri.EscapeDataString(toolbarFilter)}");
@@ -132,25 +137,9 @@ public sealed class LookupApiClient(IAPIServices api)
         return $"{endpoint}?{string.Join("&", queryParams)}";
     }
 
-    private static string? BuildFilter(
-        string search,
-        string status,
-        string codeProperty,
-        string nameProperty)
+    private static string? BuildFilter(string status)
     {
         var clauses = new List<string>();
-        var normalizedSearch = search.Trim();
-        if (!string.IsNullOrWhiteSpace(normalizedSearch))
-        {
-            var escaped = normalizedSearch
-                .Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("\"", "\\\"", StringComparison.Ordinal)
-                .ToLowerInvariant();
-            clauses.Add(
-                $"(({codeProperty} ?? \"\").ToLower().Contains(\"{escaped}\") || " +
-                $"({nameProperty} ?? \"\").ToLower().Contains(\"{escaped}\"))");
-        }
-
         if (string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
         {
             clauses.Add("IsDeleted == false");

@@ -2,18 +2,9 @@ namespace gtas_vpp_fe.Features.Requests.Approval;
 
 public static class PendingApprovalFilterBuilder
 {
-    public static string? Build(string searchText, string departmentCode)
+    public static string? Build(string departmentCode)
     {
         var filters = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(searchText))
-        {
-            var search = EscapeValue(searchText);
-            filters.Add($"((VppCode != null && VppCode.ToLower().Contains(\"{search}\")) || "
-                + $"(RequesterName != null && RequesterName.ToLower().Contains(\"{search}\")) || "
-                + $"(DepartmentCode != null && DepartmentCode.ToLower().Contains(\"{search}\")) || "
-                + $"(Description != null && Description.ToLower().Contains(\"{search}\")))");
-        }
 
         if (!string.IsNullOrWhiteSpace(departmentCode))
         {

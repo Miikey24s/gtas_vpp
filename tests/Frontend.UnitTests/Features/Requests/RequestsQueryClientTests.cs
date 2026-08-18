@@ -196,7 +196,11 @@ public sealed class RequestsQueryClientTests
                 2,
                 true));
         var pending = await client.GetPendingAdditionalOrdersAsync(
-            new PendingAdditionalOrdersQuery(0, 20, "DepartmentCode == \"IT\""));
+            new PendingAdditionalOrdersQuery(
+                0,
+                20,
+                "DepartmentCode == \"IT\"",
+                Search: "giay"));
 
         var historyEndpoint = Uri.UnescapeDataString(endpoints[0]);
         Assert.StartsWith("/api/VPPRequest/department-order-history?", historyEndpoint, StringComparison.Ordinal);
@@ -207,6 +211,7 @@ public sealed class RequestsQueryClientTests
         Assert.Contains("status=2", historyEndpoint, StringComparison.Ordinal);
         Assert.Contains("isAdditionalOrder=true", historyEndpoint, StringComparison.Ordinal);
         Assert.Contains("filter=DepartmentCode == \"IT\"", Uri.UnescapeDataString(endpoints[1]), StringComparison.Ordinal);
+        Assert.Contains("search=giay", Uri.UnescapeDataString(endpoints[1]), StringComparison.Ordinal);
         Assert.Contains("orderby=SubmittedDate asc", Uri.UnescapeDataString(endpoints[1]), StringComparison.Ordinal);
         Assert.Equal((12, 34, 56), (history.TotalCount, history.TotalLines, history.TotalQuantity));
         Assert.Equal((12, 34, 56), (pending.TotalCount, pending.TotalLines, pending.TotalQuantity));

@@ -1,3 +1,4 @@
+using gtas_vpp_fe.Helpers;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.VPP;
 using gtas_vpp_shared.Enums;
@@ -118,12 +119,10 @@ public static class SettlementWorkspaceProjection
         IEnumerable<AggregatedVppItemResDTO> items,
         SettlementItemFilter filter)
     {
-        var search = filter.Search.Trim();
+        var search = VppSearchText.Normalize(filter.Search);
         return items
             .Where(item =>
-                (string.IsNullOrWhiteSpace(search)
-                 || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                 || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+                VppSearchText.MatchesAny(search, item.VppCode, item.VppName)
                 && (string.IsNullOrWhiteSpace(filter.Category)
                     || string.Equals(
                         item.CategoryName,
@@ -144,7 +143,7 @@ public static class SettlementWorkspaceProjection
         IReadOnlyList<SettlementFinancialAllocationResDTO>? allocations = null,
         IReadOnlyList<AggregatedVppItemResDTO>? demandItems = null)
     {
-        var search = filter.Search.Trim();
+        var search = VppSearchText.Normalize(filter.Search);
         return orders
             .Where(order => MatchesOrderGroupFilter(order, departments, filter, search))
             .GroupBy(
@@ -166,7 +165,7 @@ public static class SettlementWorkspaceProjection
         SettlementOrderGroupFilter filter,
         IReadOnlyList<SettlementFinancialAllocationResDTO>? allocations = null)
     {
-        var search = filter.Search.Trim();
+        var search = VppSearchText.Normalize(filter.Search);
         return orders
             .Where(order => MatchesOrderGroupFilter(order, departments, filter, search))
             .GroupBy(GetRequesterGroupKey)
@@ -265,13 +264,13 @@ public static class SettlementWorkspaceProjection
         IReadOnlyList<DepartmentResDTO> departments,
         SettlementOrderGroupFilter filter,
         string search) =>
-        (string.IsNullOrWhiteSpace(search)
-         || (order.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-         || (order.RequesterName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-         || (order.Description?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-         || (order.DepartmentCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-         || GetDepartmentName(order.DepartmentCode, departments)
-             .Contains(search, StringComparison.CurrentCultureIgnoreCase))
+        VppSearchText.MatchesAny(
+            search,
+            order.VppCode,
+            order.RequesterName,
+            order.Description,
+            order.DepartmentCode,
+            GetDepartmentName(order.DepartmentCode, departments))
         && (filter.OrderType switch
         {
             "regular" => !order.IsAdditionalOrder,

@@ -33,6 +33,7 @@ public sealed class LookupApiClientTests
         Assert.Contains("skip=20", endpoint);
         Assert.Contains("top=15", endpoint);
         Assert.Contains("orderby=Name%20desc", endpoint);
+        Assert.Contains("searchText=A%2FB", endpoint);
         Assert.Contains("filter=", endpoint);
         Assert.Contains("IsDeleted%20%3D%3D%20true", endpoint);
     }

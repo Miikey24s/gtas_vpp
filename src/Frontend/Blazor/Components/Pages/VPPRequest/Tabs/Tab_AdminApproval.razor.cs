@@ -205,7 +205,8 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 CurrentSkip,
                 PageSize,
                 CurrentFilterExpression,
-                CurrentOrderByExpression));
+                CurrentOrderByExpression,
+                PendingSearchText));
 
         private void NavigateToPeriodTab(string periodTab)
         {
@@ -322,7 +323,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         }
 
         private string? BuildPendingFilter() => PendingApprovalFilterBuilder.Build(
-            PendingSearchText,
             PendingDepartmentCode);
 
         private async Task OnPendingLoadDataAsync(LoadDataArgs args)

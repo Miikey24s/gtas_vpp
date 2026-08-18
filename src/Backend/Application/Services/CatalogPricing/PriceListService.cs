@@ -55,14 +55,27 @@ namespace gtas_vpp_be.Service.Services
         {
             IQueryable<PriceListResDTO> query = PriceListDtoQuery(showDeleted);
 
-            var normalizedSearch = search?.Trim();
+            var normalizedSearch = VietnameseSearch.PrepareTerm(search);
             if (!string.IsNullOrWhiteSpace(normalizedSearch))
             {
-                query = query.Where(x =>
-                    (x.PriceListCode != null && x.PriceListCode.Contains(normalizedSearch))
-                    || (x.PriceListName != null && x.PriceListName.Contains(normalizedSearch))
-                    || (x.SupplierName != null && x.SupplierName.Contains(normalizedSearch))
-                    || (x.ContractCode != null && x.ContractCode.Contains(normalizedSearch)));
+                if (_scopedUow.VPPContext.Database.IsSqlServer())
+                {
+                    var pattern = VietnameseSearch.BuildContainsPattern(normalizedSearch);
+                    query = query.Where(x =>
+                        (x.PriceListCode != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.PriceListName != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.SupplierName != null && EF.Functions.Like(EF.Functions.Collate(x.SupplierName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.ContractCode != null && EF.Functions.Like(EF.Functions.Collate(x.ContractCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                }
+                else
+                {
+                    var searchUpper = normalizedSearch.ToUpperInvariant();
+                    query = query.Where(x =>
+                        (x.PriceListCode != null && x.PriceListCode.ToUpper().Contains(searchUpper))
+                        || (x.PriceListName != null && x.PriceListName.ToUpper().Contains(searchUpper))
+                        || (x.SupplierName != null && x.SupplierName.ToUpper().Contains(searchUpper))
+                        || (x.ContractCode != null && x.ContractCode.ToUpper().Contains(searchUpper)));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(filter))
@@ -80,10 +93,12 @@ namespace gtas_vpp_be.Service.Services
                         .Distinct()
                         .ToDynamicListAsync();
 
+                    var normalizedDistinctFilter = VietnameseSearch.Normalize(distinctFilter);
                     var filteredValues = distinctValues
                         .Where(val => val != null)
-                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
-                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
+                        .Where(val => VietnameseSearch.Contains(
+                            Convert.ToString(val, CultureInfo.CurrentCulture),
+                            normalizedDistinctFilter))
                         .ToList();
 
                     IEnumerable<object> pagedValues = filteredValues.Cast<object>();

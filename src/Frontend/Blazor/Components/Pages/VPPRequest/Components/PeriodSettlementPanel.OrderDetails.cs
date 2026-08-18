@@ -498,11 +498,9 @@ public partial class PeriodSettlementPanel
 
     private void RebuildOrderDetailRows()
     {
-        var search = orderDetailSearch.Trim();
+        var search = VppSearchText.Normalize(orderDetailSearch);
         var filtered = (selectedOrderDetail?.Items ?? []).Where(item =>
-            (string.IsNullOrWhiteSpace(search)
-             || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-             || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+            VppSearchText.MatchesAny(search, item.VppCode, item.VppName)
             && (string.IsNullOrWhiteSpace(orderDetailCategory)
                 || string.Equals(item.CategoryName, orderDetailCategory, StringComparison.CurrentCultureIgnoreCase))
             && (string.IsNullOrWhiteSpace(orderDetailUnit)

@@ -184,13 +184,7 @@ public sealed class CatalogApiClient(IAPIServices api)
         var search = query.Search.Trim();
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var escaped = search
-                .Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("\"", "\\\"", StringComparison.Ordinal)
-                .ToLowerInvariant();
-            filters.Add(
-                $"(({codeProperty} ?? \"\").ToLower().Contains(\"{escaped}\") || " +
-                $"({nameProperty} ?? \"\").ToLower().Contains(\"{escaped}\"))");
+            queryParams.Add($"searchText={Uri.EscapeDataString(search)}");
         }
 
         filters.AddRange(query.Activity switch

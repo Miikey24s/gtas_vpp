@@ -641,7 +641,7 @@ public class VPPRequestControllerTests
             new Claim("DepartmentCode", "IT"),
             new Claim("MemberCompanyCode", "77500"));
 
-        var result = await controller.GetPendingAdditionalOrders(null, null, null, null);
+        var result = await controller.GetPendingAdditionalOrders(null, null, null, null, null);
 
         Assert.IsType<ForbidResult>(result);
         service.VerifyNoOtherCalls();
@@ -657,7 +657,8 @@ public class VPPRequestControllerTests
                 10,
                 "77500",
                 "IT",
-                true))
+                true,
+                null))
             .ReturnsAsync((expected, 2, 3, 4));
         var controller = CreateControllerWithPermissions(
             service.Object,
@@ -665,7 +666,7 @@ public class VPPRequestControllerTests
             new Claim("DepartmentCode", "IT"),
             new Claim("MemberCompanyCode", "77500"));
 
-        var result = await controller.GetPendingAdditionalOrders(5, 10, null, null);
+        var result = await controller.GetPendingAdditionalOrders(5, 10, null, null, null);
 
         var ok = Assert.IsType<OkObjectResult>(result);
         Assert.Same(expected, ok.Value);
@@ -725,7 +726,7 @@ public class VPPRequestControllerTests
             new() { Id = Guid.NewGuid(), Status = 1 }
         };
         var service = new Mock<IVPPRequestService>();
-        service.Setup(item => item.GetPendingAdditionalOrdersAsync("77500", "IT", false))
+        service.Setup(item => item.GetPendingAdditionalOrdersAsync("77500", "IT", false, null))
             .ReturnsAsync(expected);
         var permissionService = PermissionsAllowing(decisionPermission);
         var controller = CreateControllerWithPermissions(
@@ -750,7 +751,7 @@ public class VPPRequestControllerTests
             distinctFilter: null);
 
         Assert.IsType<OkObjectResult>(result);
-        service.Verify(item => item.GetPendingAdditionalOrdersAsync("77500", "IT", false), Times.Once);
+        service.Verify(item => item.GetPendingAdditionalOrdersAsync("77500", "IT", false, null), Times.Once);
     }
 
     [Fact]

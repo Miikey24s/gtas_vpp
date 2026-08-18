@@ -1,5 +1,6 @@
 using System.Globalization;
 using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
@@ -12,6 +13,7 @@ namespace gtas_vpp_be.Authorization;
 
 public sealed record PermissionGroupQuery(
     bool IncludeUserNames,
+    string? Search,
     string? Filter,
     int? Skip,
     int? Top,
@@ -54,9 +56,12 @@ public sealed class PermissionGroupQueryService(
             .Select(persona => persona.GroupId)
             .ToArray();
 
-        IQueryable<PermissionGroupResDTO> query = _context.Set<PermissionGroup>()
+        var groupQuery = _context.Set<PermissionGroup>()
             .AsNoTracking()
-            .Where(group => canonicalGroupIds.Contains(group.Id) && !group.IsDeleted)
+            .Where(group => canonicalGroupIds.Contains(group.Id) && !group.IsDeleted);
+        groupQuery = ApplySearch(groupQuery, request.Search);
+
+        IQueryable<PermissionGroupResDTO> query = groupQuery
             .Select(group => new PermissionGroupResDTO
             {
                 Id = group.Id,
@@ -139,6 +144,40 @@ public sealed class PermissionGroupQueryService(
         return entity.Adapt<PermissionGroupResDTO>();
     }
 
+    private IQueryable<PermissionGroup> ApplySearch(
+        IQueryable<PermissionGroup> query,
+        string? search)
+    {
+        var term = VietnameseSearch.PrepareTerm(search);
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            return query;
+        }
+
+        if (_context.Database.IsSqlServer())
+        {
+            var pattern = VietnameseSearch.BuildContainsPattern(term);
+            return query.Where(group =>
+                (group.GroupCode != null && EF.Functions.Like(
+                    EF.Functions.Collate(
+                        group.GroupCode.Replace("đ", "d").Replace("Đ", "D"),
+                        VietnameseSearch.SqlServerCollation),
+                    pattern,
+                    "\\"))
+                || (group.GroupName != null && EF.Functions.Like(
+                    EF.Functions.Collate(
+                        group.GroupName.Replace("đ", "d").Replace("Đ", "D"),
+                        VietnameseSearch.SqlServerCollation),
+                    pattern,
+                    "\\")));
+        }
+
+        var searchUpper = term.ToUpperInvariant();
+        return query.Where(group =>
+            (group.GroupCode != null && group.GroupCode.ToUpper().Contains(searchUpper))
+            || (group.GroupName != null && group.GroupName.ToUpper().Contains(searchUpper)));
+    }
+
     private static IQueryable<PermissionGroupResDTO> ApplyDynamicFilter(
         IQueryable<PermissionGroupResDTO> query,
         string? filter)
@@ -179,12 +218,12 @@ public sealed class PermissionGroupQueryService(
             .Select(request.Distinct)
             .Distinct()
             .ToDynamicListAsync(cancellationToken);
+        var normalizedDistinctFilter = VietnameseSearch.Normalize(request.DistinctFilter);
         var filteredValues = values
             .Where(value => value != null)
-            .Where(value => string.IsNullOrWhiteSpace(request.DistinctFilter)
-                || (Convert.ToString(value, CultureInfo.CurrentCulture)?.Contains(
-                    request.DistinctFilter,
-                    StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(value => VietnameseSearch.Contains(
+                Convert.ToString(value, CultureInfo.CurrentCulture),
+                normalizedDistinctFilter))
             .ToList();
 
         IEnumerable<object> pageValues = filteredValues.Cast<object>();

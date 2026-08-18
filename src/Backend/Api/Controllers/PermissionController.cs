@@ -57,6 +57,7 @@ namespace gtas_vpp_be.Controllers
         [ProducesResponseType(typeof(List<PermissionGroupResDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGroups(
             [FromQuery] bool getFullName = true,
+            [FromQuery] string? search = null,
             [FromQuery] string? filter = null,
             [FromQuery] int? skip = null,
             [FromQuery] int? top = null,
@@ -67,6 +68,7 @@ namespace gtas_vpp_be.Controllers
             var result = await _permissionGroupQueryService.GetPageAsync(
                 new PermissionGroupQuery(
                     getFullName,
+                    search,
                     filter,
                     skip,
                     top,

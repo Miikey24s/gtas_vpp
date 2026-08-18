@@ -1,3 +1,4 @@
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using Microsoft.EntityFrameworkCore;
@@ -120,7 +121,7 @@ public sealed class SecurityAuditQueryService(VPPContext context) : ISecurityAud
         };
     }
 
-    private static IQueryable<SecurityAuditResDTO> ApplyFilters(
+    private IQueryable<SecurityAuditResDTO> ApplyFilters(
         IQueryable<SecurityAuditResDTO> query,
         SecurityAuditQuery request)
     {
@@ -141,18 +142,35 @@ public sealed class SecurityAuditQueryService(VPPContext context) : ISecurityAud
             return query;
         }
 
-        var search = request.Search.Trim();
+        var search = VietnameseSearch.PrepareTerm(request.Search);
+        if (_context.Database.IsSqlServer())
+        {
+            var pattern = VietnameseSearch.BuildContainsPattern(search);
+            return query.Where(audit =>
+                EF.Functions.Like(EF.Functions.Collate(audit.Action.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")
+                || EF.Functions.Like(EF.Functions.Collate(audit.ResourceType.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")
+                || (audit.ResourceId != null && EF.Functions.Like(EF.Functions.Collate(audit.ResourceId.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (audit.Summary != null && EF.Functions.Like(EF.Functions.Collate(audit.Summary.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (audit.Reason != null && EF.Functions.Like(EF.Functions.Collate(audit.Reason.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (audit.CorrelationId != null && EF.Functions.Like(EF.Functions.Collate(audit.CorrelationId.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (audit.ActorUserName != null && EF.Functions.Like(EF.Functions.Collate(audit.ActorUserName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (audit.ActorFullName != null && EF.Functions.Like(EF.Functions.Collate(audit.ActorFullName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (audit.TargetUserName != null && EF.Functions.Like(EF.Functions.Collate(audit.TargetUserName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                || (audit.TargetFullName != null && EF.Functions.Like(EF.Functions.Collate(audit.TargetFullName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+        }
+
+        var searchUpper = search.ToUpperInvariant();
         return query.Where(audit =>
-            audit.Action.Contains(search)
-            || audit.ResourceType.Contains(search)
-            || (audit.ResourceId != null && audit.ResourceId.Contains(search))
-            || (audit.Summary != null && audit.Summary.Contains(search))
-            || (audit.Reason != null && audit.Reason.Contains(search))
-            || (audit.CorrelationId != null && audit.CorrelationId.Contains(search))
-            || (audit.ActorUserName != null && audit.ActorUserName.Contains(search))
-            || (audit.ActorFullName != null && audit.ActorFullName.Contains(search))
-            || (audit.TargetUserName != null && audit.TargetUserName.Contains(search))
-            || (audit.TargetFullName != null && audit.TargetFullName.Contains(search)));
+            audit.Action.ToUpper().Contains(searchUpper)
+            || audit.ResourceType.ToUpper().Contains(searchUpper)
+            || (audit.ResourceId != null && audit.ResourceId.ToUpper().Contains(searchUpper))
+            || (audit.Summary != null && audit.Summary.ToUpper().Contains(searchUpper))
+            || (audit.Reason != null && audit.Reason.ToUpper().Contains(searchUpper))
+            || (audit.CorrelationId != null && audit.CorrelationId.ToUpper().Contains(searchUpper))
+            || (audit.ActorUserName != null && audit.ActorUserName.ToUpper().Contains(searchUpper))
+            || (audit.ActorFullName != null && audit.ActorFullName.ToUpper().Contains(searchUpper))
+            || (audit.TargetUserName != null && audit.TargetUserName.ToUpper().Contains(searchUpper))
+            || (audit.TargetFullName != null && audit.TargetFullName.ToUpper().Contains(searchUpper)));
     }
 
     private static IQueryable<SecurityAuditResDTO> Order(

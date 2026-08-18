@@ -1,5 +1,6 @@
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Notifications;
+using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.VPP;
@@ -636,7 +637,7 @@ namespace gtas_vpp_be.Controllers
         [Authorize]
         [ProducesResponseType<List<VppRequestResDTO>>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetPendingAdditionalOrders([FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? filter, [FromQuery] string? orderby)
+        public async Task<IActionResult> GetPendingAdditionalOrders([FromQuery] int? skip, [FromQuery] int? top, [FromQuery] string? search, [FromQuery] string? filter, [FromQuery] string? orderby)
         {
             if (!await HasSupplementDecisionPermissionAsync()) return Forbid();
 
@@ -647,7 +648,8 @@ namespace gtas_vpp_be.Controllers
                 var scopedData = await _vppService.GetPendingAdditionalOrdersAsync(
                     CurrentMemberCompanyCode,
                     CurrentDepartmentCode,
-                    canViewAllDepartments);
+                    canViewAllDepartments,
+                    search);
                 var (filteredData, filteredTotalCount, filteredTotalLines, filteredTotalQty) = ApplyOrderGridOperations(scopedData, filter, orderby, skip, top);
                 Response.Headers.Append("X-Total-Count", filteredTotalCount.ToString());
                 Response.Headers.Append("X-Total-Lines", filteredTotalLines.ToString());
@@ -661,7 +663,8 @@ namespace gtas_vpp_be.Controllers
                     top,
                     CurrentMemberCompanyCode,
                     CurrentDepartmentCode,
-                    canViewAllDepartments);
+                    canViewAllDepartments,
+                    search);
             Response.Headers.Append("X-Total-Count", totalCount.ToString());
             Response.Headers.Append("X-Total-Lines", totalLines.ToString());
             Response.Headers.Append("X-Total-Qty", totalQty.ToString());
@@ -820,11 +823,12 @@ namespace gtas_vpp_be.Controllers
             string column,
             string? distinctFilter)
         {
+            var normalizedDistinctFilter = VietnameseSearch.Normalize(distinctFilter);
             return column switch
             {
                 "Period" => data
                     .Where(x => !string.IsNullOrWhiteSpace(x.Period))
-                    .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.Period.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => VietnameseSearch.Contains(x.Period, normalizedDistinctFilter))
                     .GroupBy(x => x.Period)
                     .OrderBy(g => g.First().Year)
                     .ThenBy(g => g.First().Month)
@@ -837,7 +841,7 @@ namespace gtas_vpp_be.Controllers
                     .ToList(),
                 "StatusText" => data
                     .Where(x => !string.IsNullOrWhiteSpace(x.StatusText))
-                    .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.StatusText.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => VietnameseSearch.Contains(x.StatusText, normalizedDistinctFilter))
                     .GroupBy(x => x.StatusText)
                     .OrderBy(g => g.First().Status)
                     .Select(g => new Dictionary<string, object?>
@@ -849,14 +853,14 @@ namespace gtas_vpp_be.Controllers
                     })
                     .ToList(),
                 "TotalLines" => data
-                    .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.TotalLines.ToString().Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => VietnameseSearch.Contains(x.TotalLines.ToString(), normalizedDistinctFilter))
                     .Select(x => x.TotalLines)
                     .Distinct()
                     .OrderBy(x => x)
                     .Select(x => new Dictionary<string, object?> { ["TotalLines"] = x })
                     .ToList(),
                 "TotalQty" => data
-                    .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.TotalQty.ToString().Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => VietnameseSearch.Contains(x.TotalQty.ToString(), normalizedDistinctFilter))
                     .Select(x => x.TotalQty)
                     .Distinct()
                     .OrderBy(x => x)
@@ -864,7 +868,7 @@ namespace gtas_vpp_be.Controllers
                     .ToList(),
                 "SubmittedDate" or "SubmittedDateText" => data
                     .Where(x => x.SubmittedDate.HasValue)
-                    .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.SubmittedDateText.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => VietnameseSearch.Contains(x.SubmittedDateText, normalizedDistinctFilter))
                     .GroupBy(x => x.SubmittedDateText)
                     .OrderByDescending(g => g.First().SubmittedDate)
                     .Select(g => new Dictionary<string, object?>
@@ -875,7 +879,7 @@ namespace gtas_vpp_be.Controllers
                     .ToList(),
                 "RequesterName" => data
                     .Where(x => !string.IsNullOrWhiteSpace(x.RequesterName))
-                    .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.RequesterName!.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => VietnameseSearch.Contains(x.RequesterName, normalizedDistinctFilter))
                     .Select(x => x.RequesterName)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .OrderBy(x => x)
@@ -887,7 +891,7 @@ namespace gtas_vpp_be.Controllers
                         Value = GetOrderColumnValue(x, column)
                     })
                     .Where(x => x.Value != null)
-                    .Where(x => string.IsNullOrWhiteSpace(distinctFilter) || x.Value!.ToString()!.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => VietnameseSearch.Contains(x.Value?.ToString(), normalizedDistinctFilter))
                     .Select(x => x.Value)
                     .Distinct()
                     .OrderBy(x => x)

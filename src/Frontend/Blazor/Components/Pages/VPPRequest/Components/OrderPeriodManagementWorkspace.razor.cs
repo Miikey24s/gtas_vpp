@@ -316,11 +316,12 @@ public partial class OrderPeriodManagementWorkspace
     private void RefreshPeriodView()
     {
         // Tính một lần sau mỗi thay đổi thay vì materialize lại cùng danh sách nhiều lần trong một render.
-        var normalizedSearch = periodSearchText.Trim();
+        var normalizedSearch = VppSearchText.Normalize(periodSearchText);
         FilteredPeriods = Periods
-            .Where(period => string.IsNullOrWhiteSpace(normalizedSearch)
-                || PeriodLabel(period).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase)
-                || (period.LastTransitionReason?.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(period => VppSearchText.MatchesAny(
+                normalizedSearch,
+                PeriodLabel(period),
+                period.LastTransitionReason))
             .Where(period => string.IsNullOrWhiteSpace(selectedPeriodState)
                 || (selectedPeriodState == "Inactive"
                     ? period.IsDeleted

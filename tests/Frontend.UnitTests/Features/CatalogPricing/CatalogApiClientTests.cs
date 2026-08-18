@@ -34,8 +34,7 @@ public sealed class CatalogApiClientTests
         Assert.Contains("skip=10", endpoint);
         Assert.Contains("top=25", endpoint);
         Assert.Contains("orderby=VppCategoryName%20desc", endpoint);
-        Assert.Contains("VppCategoryCode", Uri.UnescapeDataString(endpoint));
-        Assert.Contains("VppCategoryName", Uri.UnescapeDataString(endpoint));
+        Assert.Contains("searchText=Paper", endpoint);
         Assert.Contains("IsDeleted == false", Uri.UnescapeDataString(endpoint));
     }
 
@@ -105,6 +104,7 @@ public sealed class CatalogApiClientTests
         await client.SetSupplierDeletedAsync(id, new CatalogStatusChange(true, DateTime.UnixEpoch, 42));
 
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/suppliers?showDeleted=true&", StringComparison.Ordinal));
+        Assert.Contains(endpoints, endpoint => endpoint.Contains("searchText=office", StringComparison.Ordinal));
         Assert.Contains(endpoints, endpoint => Uri.UnescapeDataString(endpoint).Contains("IsDeleted == true", StringComparison.Ordinal));
         Assert.Contains($"/api/Library/suppliers/{id}/dependency-impact", endpoints);
         Assert.Contains($"/api/Library/suppliers/{id}", endpoints);
@@ -145,6 +145,7 @@ public sealed class CatalogApiClientTests
         Assert.Contains("/api/Library/departments?showDeleted=false", endpoints);
         Assert.Contains("/api/Library/departments?top=1000&showDeleted=false&orderby=Name", endpoints);
         Assert.Contains(endpoints, endpoint => endpoint.StartsWith("/api/Library/departments?showDeleted=true&", StringComparison.Ordinal));
+        Assert.Contains(endpoints, endpoint => endpoint.Contains("searchText=IT", StringComparison.Ordinal));
         Assert.Contains(endpoints, endpoint => Uri.UnescapeDataString(endpoint).Contains($"ParentDepartmentId == \"{id}\"", StringComparison.Ordinal));
         Assert.Contains($"/api/Library/departments/{id}/dependency-impact", endpoints);
     }
@@ -209,6 +210,7 @@ public sealed class CatalogApiClientTests
         Assert.Contains(calls, call => call.Endpoint == "/api/Library/lookup-values?showDeleted=true");
         Assert.Contains(calls, call => call.Endpoint == "/api/Library/suppliers?showDeleted=true");
         var pageEndpoint = Assert.Single(calls, call => call.Method == "GET_PAGE").Endpoint;
+        Assert.Contains("search=pen", pageEndpoint);
         Assert.Contains("categoryId=77777777-7777-7777-7777-777777777777", pageEndpoint);
         Assert.Contains("UomId%20%3D%3D%20%2288888888-8888-8888-8888-888888888888%22", pageEndpoint);
         Assert.Contains("DefaultSupplierName == \"VPP Gia Định\"", Uri.UnescapeDataString(pageEndpoint));

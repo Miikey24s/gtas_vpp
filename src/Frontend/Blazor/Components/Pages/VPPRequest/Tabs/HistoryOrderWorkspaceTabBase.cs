@@ -698,11 +698,9 @@ public abstract class HistoryOrderWorkspaceTabBase : BaseOrderTab, IAsyncDisposa
     protected void RebuildDetailRows()
     {
         var items = _selectedOrder?.Items ?? [];
-        var search = _detailSearch.Trim();
+        var search = VppSearchText.Normalize(_detailSearch);
         var filtered = items.Where(item =>
-            (string.IsNullOrEmpty(search)
-                || (item.VppCode?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false)
-                || (item.VppName?.Contains(search, StringComparison.CurrentCultureIgnoreCase) ?? false))
+            VppSearchText.MatchesAny(search, item.VppCode, item.VppName)
             && (string.IsNullOrEmpty(_detailCategory)
                 || string.Equals(item.CategoryName, _detailCategory, StringComparison.CurrentCultureIgnoreCase))
             && (string.IsNullOrEmpty(_detailUom)
