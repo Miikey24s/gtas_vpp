@@ -38,7 +38,13 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("Settings.PostCloseAdjustmentDays", createPeriodDialog, StringComparison.Ordinal);
         Assert.Contains("Bạn có thể đổi riêng cho kỳ này", createPeriodDialog, StringComparison.Ordinal);
         Assert.Contains("AvailableMonthOptions", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("DisabledProperty=\"Disabled\"", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("ExistingPeriods.Any", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("Min=\"@MinimumOpenAtLocal\"", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("Min=\"@MinimumCloseAtLocal\"", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("nameof(Dialog_OrderPeriodCreate.ExistingPeriods)", operationsCode, StringComparison.Ordinal);
         Assert.Contains("Không thể tạo kỳ đặt hàng trong quá khứ.", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("Kỳ đặt hàng này đã tồn tại.", createPeriodDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("targetYear - 1", createPeriodDialog, StringComparison.Ordinal);
     }
 

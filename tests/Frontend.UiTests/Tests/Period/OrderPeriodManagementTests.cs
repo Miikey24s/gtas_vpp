@@ -454,6 +454,15 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
                 "Các giá trị được lấy từ cấu hình chung. Bạn có thể đổi riêng cho kỳ này.",
                 new() { Exact = true }))
             .ToBeVisibleAsync();
+
+        await createDialog.GetByTestId("period-create-month").ClickAsync();
+        var disabledExistingMonth = Page
+            .Locator(".rz-dropdown-panel:visible .rz-dropdown-item.rz-state-disabled")
+            .Filter(new LocatorFilterOptions { HasText = "Đã có kỳ" })
+            .First;
+        await Assertions.Expect(disabledExistingMonth).ToBeVisibleAsync();
+        await Page.Keyboard.PressAsync("Escape");
+
         await createDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
         await Assertions.Expect(createDialog).ToBeHiddenAsync();
 

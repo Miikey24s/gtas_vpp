@@ -229,6 +229,7 @@ public partial class OrderPeriodManagementWorkspace
                 new Dictionary<string, object?>
                 {
                     [nameof(Dialog_OrderPeriodCreate.Settings)] = settings,
+                    [nameof(Dialog_OrderPeriodCreate.ExistingPeriods)] = Periods.ToArray(),
                     [nameof(Dialog_OrderPeriodCreate.SuggestedYear)] = target.Year,
                     [nameof(Dialog_OrderPeriodCreate.SuggestedMonth)] = target.Month
                 },

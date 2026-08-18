@@ -20,9 +20,11 @@
         <div class="vpp-order-period-create-grid">
             <RadzenFormField Text="Tháng" Variant="Variant.Outlined">
                 <RadzenDropDown TValue="int"
+                                data-testid="period-create-month"
                                 Data="@AvailableMonthOptions"
                                 TextProperty="Label"
                                 ValueProperty="Value"
+                                DisabledProperty="Disabled"
                                 @bind-Value="Request.Month"
                                 Change="@(_ => RecalculateSchedule())"
                                 class="vpp-order-period-create-control" />
@@ -37,14 +39,17 @@
             <RadzenFormField Text="Ngày mở" Variant="Variant.Outlined">
                 <RadzenDatePicker TValue="DateTime"
                                   @bind-Value="Request.OpenAtLocal"
+                                  Min="@MinimumOpenAtLocal"
                                   DateFormat="HH:mm dd/MM/yyyy"
                                   ShowTime="true"
                                   ShowSeconds="false"
+                                  Change="@(_ => RefreshDeadlines())"
                                   class="vpp-order-period-create-control" />
             </RadzenFormField>
             <RadzenFormField Text="Ngày đóng" Variant="Variant.Outlined">
                 <RadzenDatePicker TValue="DateTime"
                                   @bind-Value="Request.CloseAtLocal"
+                                  Min="@MinimumCloseAtLocal"
                                   DateFormat="HH:mm dd/MM/yyyy"
                                   ShowTime="true"
                                   ShowSeconds="false"
@@ -93,6 +98,7 @@
                           PrimaryText="Thêm kỳ"
                           PrimaryIcon="add"
                           PrimaryButtonStyle="ButtonStyle.Primary"
+                          PrimaryDisabled="@(!HasAvailableSelection)"
                           CancelClick="@CancelAsync"
                           PrimaryClick="@SubmitAsync" />
     </Footer>
@@ -100,14 +106,13 @@
 
 @code {
     [Parameter, EditorRequired] public VppOrderPeriodSettingsResDTO Settings { get; set; } = new();
+    [Parameter] public IReadOnlyCollection<VppManagedPeriodResDTO> ExistingPeriods { get; set; } = [];
     [Parameter] public int SuggestedYear { get; set; }
     [Parameter] public int SuggestedMonth { get; set; }
 
-    private sealed record MonthOption(int Value, string Label);
+    private sealed record MonthOption(int Value, string Label, bool Disabled);
 
-    private static readonly IReadOnlyList<MonthOption> MonthOptions = Enumerable.Range(1, 12)
-        .Select(month => new MonthOption(month, $"Tháng {month:00}"))
-        .ToArray();
+    private static readonly IReadOnlyList<int> Months = Enumerable.Range(1, 12).ToArray();
 
     private bool initialized;
     private string ValidationMessage { get; set; } = string.Empty;
@@ -117,6 +122,12 @@
     private VppOrderPeriodManualCreateReqDTO Request { get; set; } = new();
     private DateTime SupplementDeadline { get; set; }
     private DateTime AdjustmentDeadline { get; set; }
+    private DateTime MinimumOpenAtLocal => RoundUpToMinute(CurrentBusinessDate);
+    private DateTime MinimumCloseAtLocal => Request.OpenAtLocal >= MinimumOpenAtLocal
+        ? Request.OpenAtLocal.AddMinutes(1)
+        : MinimumOpenAtLocal.AddMinutes(1);
+    private bool HasAvailableSelection => AvailableMonthOptions.Any(option =>
+        option.Value == Request.Month && !option.Disabled);
 
     protected override void OnParametersSet()
     {
@@ -170,17 +181,31 @@
 
     private void RefreshAvailableMonths()
     {
-        AvailableMonthOptions = Request.Year == CurrentBusinessDate.Year
-            ? MonthOptions.Where(option => option.Value >= CurrentBusinessDate.Month).ToArray()
-            : Request.Year > CurrentBusinessDate.Year
-                ? MonthOptions
-                : [];
+        AvailableMonthOptions = Months
+            .Select(month => CreateMonthOption(Request.Year, month))
+            .ToArray();
 
-        if (AvailableMonthOptions.Count > 0
-            && AvailableMonthOptions.All(option => option.Value != Request.Month))
+        if (!HasAvailableSelection)
         {
-            Request.Month = AvailableMonthOptions[0].Value;
+            var firstAvailableMonth = AvailableMonthOptions.FirstOrDefault(option => !option.Disabled);
+            if (firstAvailableMonth is not null)
+            {
+                Request.Month = firstAvailableMonth.Value;
+            }
         }
+    }
+
+    private MonthOption CreateMonthOption(int year, int month)
+    {
+        var periodExists = ExistingPeriods.Any(period => period.Year == year && period.Month == month);
+        var isPast = year < CurrentBusinessDate.Year
+            || (year == CurrentBusinessDate.Year && month < CurrentBusinessDate.Month);
+        var suffix = periodExists
+            ? " · Đã có kỳ"
+            : isPast
+                ? " · Đã qua"
+                : string.Empty;
+        return new MonthOption(month, $"Tháng {month:00}{suffix}", periodExists || isPast);
     }
 
     private DateTime BoundaryLocal(DateTime month, int requestedDay)
@@ -221,6 +246,10 @@
         if (requestedKey < currentKey)
         {
             return "Không thể tạo kỳ đặt hàng trong quá khứ.";
+        }
+        if (ExistingPeriods.Any(period => period.Year == Request.Year && period.Month == Request.Month))
+        {
+            return "Kỳ đặt hàng này đã tồn tại.";
         }
         if (Request.OpenAtLocal < currentBusinessDate)
         {
