@@ -36,6 +36,7 @@ public partial class PeriodSettlementPanel : IDisposable
     [Inject] private IToastService Toast { get; set; } = default!;
     [Inject] private DialogService DialogService { get; set; } = default!;
     [Inject] private PeriodSettlementState State { get; set; } = default!;
+    [Inject] private SettlementFeatureOptions SettlementFeatures { get; set; } = default!;
 
     [Parameter] public int Year { get; set; }
     [Parameter] public int Month { get; set; }
@@ -215,6 +216,8 @@ public partial class PeriodSettlementPanel : IDisposable
     private Guid? SelectedPriceListId => Preview?.PrimaryPriceListId;
     private PriceBookQuoteResDTO? SelectedQuote => Preview?.PrimaryQuote;
     private SettlementSupplierRecommendationResDTO? SupplierRecommendation => Preview?.SupplierRecommendation;
+    private IReadOnlyList<SettlementExceptionReqDTO> ActiveSettlementExceptions =>
+        SettlementFeatures.MultiSupplierSelectionEnabled ? State.Exceptions : [];
     private bool HasEligibleSingleSupplier => SupplierRecommendation is
     {
         BaselineSupplierId: not null,
@@ -535,7 +538,7 @@ public partial class PeriodSettlementPanel : IDisposable
                 supplierId,
                 priceListId,
                 DateTime.UtcNow,
-                State.Exceptions));
+                ActiveSettlementExceptions));
 
             State.SelectedSupplierId = preview?.PrimarySupplierId;
             State.SetPreview(preview);
@@ -989,7 +992,7 @@ public partial class PeriodSettlementPanel : IDisposable
                         Month,
                         Preview,
                         $"resettle-{Year:D4}{Month:D2}-{Guid.NewGuid():N}",
-                        State.Exceptions,
+                        ActiveSettlementExceptions,
                         BuildResettlementReason()));
             }
             else
@@ -999,7 +1002,7 @@ public partial class PeriodSettlementPanel : IDisposable
                     Month,
                     Preview,
                     State.IdempotencyKey!,
-                    State.Exceptions));
+                    ActiveSettlementExceptions));
             }
             State.RequireFreshPreviewForNextSubmission();
             await ReloadPeriodAsync();
@@ -1020,7 +1023,9 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task ApplySupplierRecommendationAsync()
     {
-        if (SupplierRecommendation is not { IsRecommended: true } recommendation || isPreviewLoading)
+        if (!SettlementFeatures.MultiSupplierSelectionEnabled
+            || SupplierRecommendation is not { IsRecommended: true } recommendation
+            || isPreviewLoading)
         {
             return;
         }
@@ -1038,7 +1043,9 @@ public partial class PeriodSettlementPanel : IDisposable
 
     private async Task KeepSingleSupplierAsync()
     {
-        if (isPreviewLoading || !HasEligibleSingleSupplier)
+        if (!SettlementFeatures.MultiSupplierSelectionEnabled
+            || isPreviewLoading
+            || !HasEligibleSingleSupplier)
         {
             return;
         }

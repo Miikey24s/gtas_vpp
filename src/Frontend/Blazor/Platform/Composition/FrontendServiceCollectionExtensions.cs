@@ -105,6 +105,7 @@ public static class FrontendServiceCollectionExtensions
         services.AddScoped<SettlementApiClient>();
         services.AddScoped<PostSettlementOrderCorrectionApiClient>();
         services.AddScoped<PeriodSettlementState>();
+        services.AddSingleton(new SettlementFeatureOptions(settings.EnableMultiSupplierSettlement));
         services.AddScoped<ReportsApiClient>();
 
         return services;

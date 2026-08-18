@@ -87,7 +87,8 @@
         </VppDecisionCardGroup>
     </section>
 
-    @if (SupplierRecommendation is { IsRecommended: true } recommendation)
+    @if (SettlementFeatures.MultiSupplierSelectionEnabled
+        && SupplierRecommendation is { IsRecommended: true } recommendation)
     {
         <div class="vpp-settlement-supplier-recommendation @(IsSupplierRecommendationApplied ? "is-applied" : null)"
              role="status"

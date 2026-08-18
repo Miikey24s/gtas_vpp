@@ -1,7 +1,9 @@
 @using System.Globalization
+@using gtas_vpp_fe.Features.Settlement.State
 @using gtas_vpp_shared.DTOs.Res.VPP
 @using gtas_vpp_shared.DTOs.Res.Library
 @inject DialogService DialogService
+@inject SettlementFeatureOptions SettlementFeatures
 
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Workspace"
                         TestId="settlement-preview-dialog"
@@ -43,7 +45,8 @@
             <article class="is-total"><span>@Loc["TotalValue"]</span><strong>@Money(GrandTotal)</strong></article>
         </div>
 
-        @if (WorkingPreview.Exceptions.Any(exception => exception.IsValid)
+        @if (SettlementFeatures.MultiSupplierSelectionEnabled
+            && WorkingPreview.Exceptions.Any(exception => exception.IsValid)
             && WorkingPreview.SupplierRecommendation is { Suppliers.Count: > 1 } supplierPlan)
         {
             <section class="vpp-settlement-preview-suppliers" aria-label="@Loc["SettlementSupplierPlanApplied"]">

@@ -46,6 +46,8 @@ public sealed class PeriodSettlementWorkspaceTests : TestBase, IAuthenticatedUiT
         await Assertions.Expect(Page.Locator(".vpp-settlement-decision-cards:visible"))
             .ToBeVisibleAsync();
         await Assertions.Expect(Page.Locator(".vpp-settlement-export-card:visible")).ToHaveCountAsync(2);
+        await Assertions.Expect(Page.GetByTestId("settlement-supplier-recommendation"))
+            .ToHaveCountAsync(0);
         var decisionCardWidths = await Page.Locator(
                 ".vpp-settlement-decision-cards:visible > .vpp-decision-select, "
                 + ".vpp-settlement-decision-cards:visible > .vpp-settlement-export-card")

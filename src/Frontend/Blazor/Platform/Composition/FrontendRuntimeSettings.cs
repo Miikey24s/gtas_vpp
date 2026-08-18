@@ -8,7 +8,8 @@ public sealed record FrontendRuntimeSettings(
     TimeSpan ApiRequestTimeout,
     string DataProtectionKeysPath,
     CookieSecurePolicy AuthCookieSecurePolicy,
-    bool BypassApiServerCertificateValidation)
+    bool BypassApiServerCertificateValidation,
+    bool EnableMultiSupplierSettlement)
 {
     public static FrontendRuntimeSettings Resolve(
         IConfiguration configuration,
@@ -34,6 +35,7 @@ public sealed record FrontendRuntimeSettings(
             environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always,
             ApiBaseUrlResolver.ShouldBypassServerCertificateValidation(
                 environment.IsDevelopment(),
-                apiBaseUri));
+                apiBaseUri),
+            configuration.GetValue("Features:Settlement:MultiSupplierEnabled", false));
     }
 }

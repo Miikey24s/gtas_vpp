@@ -44,6 +44,7 @@ public sealed class FrontendCompositionRootTests
                      "AddScoped<NotificationInboxState>",
                      "AddScoped<OrderDraftStore>",
                      "AddScoped<PeriodSettlementState>",
+                     "AddSingleton(new SettlementFeatureOptions(settings.EnableMultiSupplierSettlement))",
                      "AddSingleton<LoginTicketCache>",
                      "AddHttpClient<IAPIServices, APIServices>",
                      "AddHttpClient<AccountApiClient>",
@@ -119,6 +120,7 @@ public sealed class FrontendCompositionRootTests
         Assert.Contains("CookieSecurePolicy.SameAsRequest", settings, StringComparison.Ordinal);
         Assert.Contains("CookieSecurePolicy.Always", settings, StringComparison.Ordinal);
         Assert.Contains("ShouldBypassServerCertificateValidation", settings, StringComparison.Ordinal);
+        Assert.Contains("Features:Settlement:MultiSupplierEnabled\", false", settings, StringComparison.Ordinal);
     }
 
     private static void AssertMarkersAppearInOrder(string source, IReadOnlyList<string> markers)

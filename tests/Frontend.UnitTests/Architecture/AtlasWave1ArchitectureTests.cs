@@ -196,6 +196,7 @@ public sealed class AtlasWave1ArchitectureTests
         var workspace = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodOperationsWorkspace.razor");
         var settlement = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor");
         var settlementCode = ReadFrontendSource("Components/Pages/VPPRequest/Components/PeriodSettlementPanel.razor.cs");
+        var settlementPreviewDialog = ReadFrontendSource("Components/Pages/VPPRequest/Components/Dialog_SettlementPreview.razor");
         var settlementClient = ReadFrontendSource("Features/Settlement/Api/SettlementApiClient.cs");
         var settlementRequestFactory = ReadFrontendSource("Features/Settlement/Submission/SettlementRequestFactory.cs");
 
@@ -218,9 +219,12 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.Contains("HasPeriodBlockers", settlement, StringComparison.Ordinal);
         Assert.Contains("Preview?.Blockers", settlementCode, StringComparison.Ordinal);
         Assert.Contains("State.Exceptions", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("SettlementFeatures.MultiSupplierSelectionEnabled", settlement, StringComparison.Ordinal);
+        Assert.Contains("SettlementFeatures.MultiSupplierSelectionEnabled", settlementPreviewDialog, StringComparison.Ordinal);
         Assert.Contains("data-testid=\"settlement-supplier-recommendation\"", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementSupplierPlanAvailable", settlement, StringComparison.Ordinal);
         Assert.Contains("ApplySupplierRecommendationAsync", settlementCode, StringComparison.Ordinal);
+        Assert.Contains("!SettlementFeatures.MultiSupplierSelectionEnabled", settlementCode, StringComparison.Ordinal);
         Assert.Contains("PriceListId = suggestion.PriceListId", settlementCode, StringComparison.Ordinal);
         Assert.Contains("SettlementRequestFactory.BuildConfirm", settlementCode, StringComparison.Ordinal);
         Assert.Contains("InputHash = preview.InputHash", settlementRequestFactory, StringComparison.Ordinal);
