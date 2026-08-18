@@ -12,8 +12,10 @@ Thay giới hạn kỹ thuật `1–9999` đang nằm trong ô nhập số lư�
 
 - Mỗi mặt hàng có một mức **tối đa trong một đơn**.
 - Cùng một giới hạn áp dụng độc lập cho cả đơn thường và đơn bổ sung; không cộng dồn hai đơn thành giới hạn của cả kỳ.
+- Đơn thường và đơn bổ sung đi qua cùng một bộ kiểm tra `Qty`; trường `IsAdditionalOrder` không tạo ra hai công thức giới hạn khác nhau.
 - Ví dụ giới hạn 20 Ram/đơn: đơn thường được đặt tối đa 20 Ram và đơn bổ sung cũng được đặt tối đa 20 Ram. Tổng hai đơn có thể là 40 Ram; đây là behavior được chấp nhận theo quyết định nghiệp vụ hiện tại.
 - Có hai lớp cấu hình: mức mặc định toàn công ty và mức riêng cho từng mặt hàng.
+- Hệ thống tạo sẵn mức ban đầu từ lịch sử đặt hàng theo thuật toán xác định; quản trị được sửa tay sau đó và dữ liệu sinh tự động không ghi đè cấu hình đã chỉnh.
 - Cấu hình có kỳ bắt đầu áp dụng; không sửa ngược kỳ đã đóng/chốt.
 - Kỳ đang mở vẫn được chỉnh: đơn đã gửi giữ nguyên; draft và các lần sửa/gửi tiếp theo phải đạt giới hạn mới.
 - Mức mặc định toàn công ty để trống nghĩa là không giới hạn. Mặt hàng riêng chọn rõ `Theo mặc định`, `Không giới hạn` hoặc `Tùy chỉnh`; không dùng `0` để tránh nhập nhầm ý nghĩa.
@@ -42,6 +44,7 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 - `OrderEditorSession` đang `Math.Clamp(..., 1, 9999)`.
 - Backend `VPPRequestService.ValidateItems` mới kiểm tra số lượng lớn hơn `0` và không trùng mặt hàng; chưa có trần nghiệp vụ.
 - Các luồng tạo, sửa, tạo lại, khôi phục và điều chỉnh sau đóng kỳ đều đi qua dữ liệu `Qty`, nên cần một nơi kiểm tra dùng chung.
+- Đơn thường và đơn bổ sung dùng cùng entity/dòng chi tiết; khác biệt nghiệp vụ chính nằm ở `IsAdditionalOrder`, trạng thái và lý do bổ sung.
 - `MinimumOrderQuantity` hiện có thuộc báo giá/NCC và là **số lượng tối thiểu khi mua từ NCC**, không phải giới hạn tối đa nhân viên được đặt.
 - `SupplierProductMapping` chỉ được biết sau khi chọn NCC/bảng giá ở bước chốt kỳ. Vì vậy `Tối đa mỗi đơn` không được đặt trong bảng giá NCC; nếu làm vậy, cùng một đơn của nhân viên có thể hợp lệ hoặc không hợp lệ chỉ vì quản lý đổi NCC khi chốt kỳ.
 
@@ -57,6 +60,7 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 | Q6 | Quản lý có được vượt giới hạn không | Không vượt âm thầm; nếu cần sẽ làm thao tác ngoại lệ riêng, bắt buộc lý do/audit ở phase sau |
 | Q7 | Có cấu hình riêng theo phòng ban/người dùng không | Chưa làm ở phase đầu; chỉ mở rộng khi có nghiệp vụ thật |
 | Q8 | Hiển thị cấu hình ở đâu | Trong Danh mục mặt hàng hệ thống; không đặt trong Bảng giá NCC |
+| Q9 | Mức giới hạn ban đầu lấy từ đâu | Sinh gợi ý từ lịch sử từng mặt hàng, sau đó quản trị có thể sửa tay |
 
 ### 3.1 Cách áp dụng cho hai loại đơn
 
@@ -66,6 +70,8 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 | Đơn bổ sung | Tối đa 20 Ram | Chỉ kiểm tra số lượng trong đơn bổ sung |
 
 Không lấy số lượng đơn thường trừ khỏi đơn bổ sung. Nếu sau này doanh nghiệp cần giới hạn tổng cấp phát theo kỳ, đó là một policy khác và phải được duyệt riêng.
+
+Việc kiểm tra không tách thành hai service. `OrderQuantityLimitService` nhận danh sách dòng của một đơn và áp dụng cùng policy, bất kể `IsAdditionalOrder` là `true` hay `false`.
 
 ## 4. Thiết kế dữ liệu đề xuất
 
@@ -99,6 +105,26 @@ Với kỳ cần đặt:
 4. Nếu không có cả policy riêng lẫn mặc định, giữ behavior hiện tại là không giới hạn.
 
 Thiết kế này giữ được lịch sử theo kỳ mà không cần sửa các đơn cũ hoặc snapshot hàng loạt toàn catalog.
+
+### 4.3 Sinh mức giới hạn ban đầu
+
+Không yêu cầu quản trị nhập tay toàn bộ catalog. Khi triển khai lần đầu hoặc seed dữ liệu demo, hệ thống chạy một bộ sinh mức giới hạn xác định và idempotent:
+
+1. Gom `Qty` theo từng mặt hàng từ revision hiện hành của các đơn đã gửi và còn hiệu lực; đơn thường và đơn bổ sung là các mẫu như nhau vì cùng quy tắc số lượng.
+2. Nếu mặt hàng có ít nhất 5 mẫu, lấy mức bao phủ 95% dữ liệu cũ (`P95`), cộng 20% khoảng an toàn rồi làm tròn lên.
+3. Nếu chỉ có 1–4 mẫu, lấy số lượng cao nhất đã đặt, cộng 20% rồi làm tròn lên.
+4. Làm tròn thân thiện: đến 10 giữ số nguyên; 11–50 làm tròn lên bội số 5; trên 50 làm tròn lên bội số 10.
+5. Nếu mặt hàng chưa có lịch sử, thử lấy trung vị mức đã sinh của các mặt hàng cùng danh mục và đơn vị. Nếu vẫn không đủ dữ liệu thì dùng mức mặc định công ty; chưa có mặc định thì để `Không giới hạn`.
+
+Ví dụ: giấy A4 có `P95 = 17 Ram`; cộng 20% thành `20,4`, làm tròn lên bội số 5 thành `25 Ram/đơn`.
+
+Quy tắc an toàn:
+
+- Chỉ tạo policy còn thiếu; không ghi đè mức quản trị đã nhập hoặc sửa.
+- Cùng một bộ dữ liệu luôn sinh cùng kết quả để seed có thể chạy lại.
+- Không dùng AI để tự quyết hạn mức nghiệp vụ.
+- Với dữ liệu thật đang có, UI quản trị hiển thị bản xem trước trước khi lưu hàng loạt để có thể sửa hoặc bỏ chọn từng mặt hàng.
+- Với dữ liệu TEST/DEMO, seed có thể lưu trực tiếp kết quả xác định để lần chạy mới luôn có dữ liệu trình diễn; vẫn không ghi đè policy đã tồn tại.
 
 ## 5. Quy tắc tính và kiểm tra
 
@@ -134,6 +160,7 @@ Không hiển thị tên class, policy code hoặc lỗi SQL cho người dùng.
 
 - `Cấu hình đặt hàng`: nhập mức mặc định và chọn kỳ bắt đầu áp dụng.
 - `Danh mục mặt hàng`: action cấu hình giới hạn riêng với ba lựa chọn `Theo mặc định`, `Không giới hạn`, `Tùy chỉnh`.
+- Lần đầu mở cấu hình có thể xem danh sách mức hệ thống đã gợi ý, sửa trực tiếp rồi xác nhận; không phải mở từng mặt hàng để nhập tay.
 - Grid quản trị thêm cột pickable `Tối đa/đơn`. Đây là dữ liệu chính sách đặt hàng được join từ policy, không thêm trực tiếp vào bảng giá NCC.
 - Hiển thị trước câu dễ hiểu: `Áp dụng từ kỳ 09/2026 · Tối đa 20/đơn`.
 - Khi chọn kỳ đang mở, form cảnh báo rằng giới hạn mới áp dụng cho draft và các lần sửa/gửi tiếp theo; đơn đã gửi không bị tự động thay đổi.
@@ -153,8 +180,8 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 
 | Phase | Nội dung | Kiểm tra bắt buộc |
 |---|---|---|
-| Q0 | Characterization hiện trạng, chốt Q1–Q8 | Tests khóa behavior hiện tại và đường mutation |
-| Q1 | Entity, mapping, migration additive, API policy | EF pending-model, SQL review, fresh/upgrade LocalDB |
+| Q0 | Characterization hiện trạng, chốt Q1–Q9 | Tests khóa behavior hiện tại và đường mutation |
+| Q1 | Entity, mapping, migration additive, API policy và bộ sinh mức ban đầu | EF pending-model, SQL review, fresh/upgrade LocalDB, seed idempotent |
 | Q2 | Resolver + validation chung cho create/update/recreate/restore/post-close | Unit + integration, boundary và revision cases |
 | Q3 | Catalog/order DTO + UI đặt hàng | Frontend tests, responsive route-real, draft cũ |
 | Q4 | UI quản trị + permission/audit | RBAC tests, route-real System Admin |
