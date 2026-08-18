@@ -19,7 +19,56 @@
 .vpp-order-correction-items {
     display: grid;
     gap: var(--vpp-space-3);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.vpp-order-correction-item {
+    align-items: center;
+    background: var(--vpp-surface-raised);
+    border: 1px solid var(--vpp-border-default);
+    border-radius: var(--vpp-radius-md);
+    display: grid;
+    gap: var(--vpp-space-3);
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 240px) auto;
+    min-height: 64px;
+    padding: var(--vpp-space-3);
+    transition: background-color var(--vpp-transition-fast), border-color var(--vpp-transition-fast), opacity var(--vpp-transition-fast);
+}
+
+.vpp-order-correction-item.is-removed {
+    background: var(--vpp-surface-canvas);
+    border-color: var(--vpp-border-default);
+    opacity: .72;
+}
+
+.vpp-order-correction-item-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.vpp-order-correction-item-copy small {
+    color: var(--vpp-text-secondary);
+}
+
+.vpp-order-correction-item-title {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vpp-space-2);
+}
+
+.vpp-order-correction-quantity {
+    align-items: center;
+    display: grid;
+    gap: var(--vpp-space-2);
+    grid-template-columns: minmax(32px, auto) auto minmax(96px, 1fr);
+}
+
+.vpp-order-correction-summary {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vpp-space-2);
 }
 
 .vpp-order-correction-help {
@@ -28,7 +77,8 @@
 }
 
 @media (max-width: 640px) {
-    .vpp-order-correction-items {
+    .vpp-order-correction-item {
+        align-items: stretch;
         grid-template-columns: 1fr;
     }
 }

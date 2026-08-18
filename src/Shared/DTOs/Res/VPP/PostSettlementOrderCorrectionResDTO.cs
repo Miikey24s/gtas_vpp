@@ -25,6 +25,9 @@ public sealed class PostSettlementOrderCorrectionResDTO
     public DateTime? DecidedAtUtc { get; set; }
     public Guid? ResultRequestId { get; set; }
     public Guid? ResultSettlementId { get; set; }
+    public int ChangedItemCount { get; set; }
+    public int RemovedItemCount { get; set; }
+    public IReadOnlyList<Guid> RemovedItemIds { get; set; } = [];
     public byte[]? RowVersion { get; set; }
     public IReadOnlyList<PostSettlementOrderCorrectionItemResDTO> Items { get; set; } = [];
 }

@@ -1,3 +1,4 @@
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Share;
 
 namespace gtas_vpp_shared.DTOs.Res.VPP
@@ -11,6 +12,7 @@ namespace gtas_vpp_shared.DTOs.Res.VPP
         public string? UomName { get; set; }
         public string? CategoryName { get; set; }
         public int Qty { get; set; }
+        public int MaxQuantityPerOrder { get; set; } = VppOrderQuantityLimits.Default;
         public long CurrentSinglePrice { get; set; }
         public long TotalPrice => (long)Qty * CurrentSinglePrice;
     }

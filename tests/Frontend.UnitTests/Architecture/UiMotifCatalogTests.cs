@@ -344,6 +344,9 @@ public sealed class UiMotifCatalogTests
         Assert.Contains("<VppAdaptiveDialogShell", correctionDialog, StringComparison.Ordinal);
         Assert.Contains("<VppDialogActions", correctionDialog, StringComparison.Ordinal);
         Assert.Contains("<VppDecisionSelect TValue=\"string\"", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("RemoveFromOrder", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("Items.Where(item => !item.IsRemoved)", correctionDialog, StringComparison.Ordinal);
+        Assert.Contains("ActiveItemCount > 0", correctionDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("<select", correctionDialog, StringComparison.OrdinalIgnoreCase);
     }
 

@@ -39,10 +39,12 @@ public interface IPostSettlementOrderCorrectionService
 
 public sealed class PostSettlementOrderCorrectionService(
     IUnitOfWork scopedUow,
-    IDateTimeProvider dateTimeProvider) : IPostSettlementOrderCorrectionService
+    IDateTimeProvider dateTimeProvider,
+    IOrderQuantityLimitService quantityLimits) : IPostSettlementOrderCorrectionService
 {
     private readonly IUnitOfWork _scopedUow = scopedUow;
     private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
+    private readonly IOrderQuantityLimitService _quantityLimits = quantityLimits;
 
     public async Task<PostSettlementOrderCorrectionResDTO> CreateAsync(
         string memberCompanyCode,
@@ -97,7 +99,16 @@ public sealed class PostSettlementOrderCorrectionService(
 
         var normalizedItems = action == PostSettlementOrderCorrectionAction.Cancel
             ? []
-            : ValidateItems(request.Items, settlement.Items);
+            : ValidateItems(request.Items, header.RequestDetails, settlement.Items);
+        if (action == PostSettlementOrderCorrectionAction.Adjust)
+        {
+            await _quantityLimits.ValidateAsync(normalizedItems.Select(item => new VppRequestDetailItemReqDTO
+            {
+                VppId = item.VppId,
+                Qty = item.Qty,
+                Description = item.Description
+            }), cancellationToken);
+        }
         var correction = new PostSettlementOrderCorrection
         {
             Id = Guid.NewGuid(),
@@ -231,12 +242,13 @@ public sealed class PostSettlementOrderCorrectionService(
                     correction.EmployeeNote,
                     RequestRevisionId = replacement.Id,
                     CurrentSettlementId = currentSettlement.Id,
+                    Delta = BuildDelta(currentRequest, correction),
                     WaitingForResettlement = true
                 })
             });
 
             await _scopedUow.CommitAsync();
-            return Map(correction, replacement, currentSettlement);
+            return Map(correction, currentRequest, currentSettlement);
         }
         catch
         {
@@ -271,6 +283,7 @@ public sealed class PostSettlementOrderCorrectionService(
         => _scopedUow.VPPContext.Set<PostSettlementOrderCorrection>()
             .Include(x => x.Items.Where(item => !item.IsDeleted))
             .Include(x => x.Request)
+                .ThenInclude(x => x.RequestDetails.Where(item => !item.IsDeleted))
             .Include(x => x.Settlement);
 
     private static VppRequest BuildRequestRevision(
@@ -351,6 +364,7 @@ public sealed class PostSettlementOrderCorrectionService(
 
     private static List<PostSettlementOrderCorrectionItemReqDTO> ValidateItems(
         IReadOnlyCollection<PostSettlementOrderCorrectionItemReqDTO>? items,
+        IEnumerable<VppRequestDetail> sourceItems,
         IEnumerable<SettlementItem> settlementItems)
     {
         if (items is null || items.Count == 0)
@@ -359,15 +373,26 @@ public sealed class PostSettlementOrderCorrectionService(
             throw new BusinessException("Mặt hàng và số lượng điều chỉnh không hợp lệ.");
         if (items.GroupBy(x => x.VppId).Any(group => group.Count() > 1))
             throw new BusinessException("Mỗi mặt hàng chỉ được xuất hiện một lần.");
+        var sourceQuantities = sourceItems
+            .GroupBy(x => x.VppId)
+            .ToDictionary(group => group.Key, group => group.First().Qty);
+        var sourceIds = sourceQuantities.Keys.ToHashSet();
+        if (items.Any(x => !sourceIds.Contains(x.VppId)))
+            throw new BusinessException("Không thể thêm mặt hàng mới khi điều chỉnh đơn sau chốt.");
         var settledIds = settlementItems.Select(x => x.VppId).ToHashSet();
         if (items.Any(x => !settledIds.Contains(x.VppId)))
-            throw new BusinessException("Không thể thêm mặt hàng chưa có trong bảng chốt hiện hành.");
-        return items.Select(x => new PostSettlementOrderCorrectionItemReqDTO
+            throw new BusinessException("Mặt hàng không còn trong bản chốt hiện hành. Hãy tải lại trước khi điều chỉnh.");
+        var normalized = items.Select(x => new PostSettlementOrderCorrectionItemReqDTO
         {
             VppId = x.VppId,
             Qty = x.Qty,
             Description = NormalizeOptionalText(x.Description, 500)
         }).ToList();
+        var hasQuantityChange = normalized.Any(x => sourceQuantities[x.VppId] != x.Qty);
+        var hasRemovedItem = normalized.Count != sourceQuantities.Count;
+        if (!hasQuantityChange && !hasRemovedItem)
+            throw new BusinessException("Đơn chưa có thay đổi nào để gửi duyệt.");
+        return normalized;
     }
 
     private static void EnsurePendingDecision(
@@ -385,7 +410,10 @@ public sealed class PostSettlementOrderCorrectionService(
     private static PostSettlementOrderCorrectionResDTO Map(
         PostSettlementOrderCorrection correction,
         VppRequest request,
-        Settlement settlement) => new()
+        Settlement settlement)
+    {
+        var delta = BuildDelta(request, correction);
+        return new PostSettlementOrderCorrectionResDTO
         {
             Id = correction.Id,
             PeriodId = correction.PeriodId,
@@ -410,6 +438,9 @@ public sealed class PostSettlementOrderCorrectionService(
             DecidedAtUtc = correction.DecidedAtUtc,
             ResultRequestId = correction.ResultRequestId,
             ResultSettlementId = correction.ResultSettlementId,
+            ChangedItemCount = delta.ChangedItems.Length,
+            RemovedItemCount = delta.RemovedItemIds.Length,
+            RemovedItemIds = delta.RemovedItemIds,
             RowVersion = correction.RowVersion,
             Items = correction.Items.Select(x => new PostSettlementOrderCorrectionItemResDTO
             {
@@ -418,6 +449,39 @@ public sealed class PostSettlementOrderCorrectionService(
                 Description = x.Description
             }).ToArray()
         };
+    }
+
+    private static CorrectionDelta BuildDelta(
+        VppRequest source,
+        PostSettlementOrderCorrection correction)
+    {
+        var original = source.RequestDetails
+            .Where(x => !x.IsDeleted)
+            .GroupBy(x => x.VppId)
+            .ToDictionary(x => x.Key, x => x.First().Qty);
+        if (correction.Action == PostSettlementOrderCorrectionAction.Cancel)
+        {
+            return new CorrectionDelta([], original.Keys.OrderBy(x => x).ToArray());
+        }
+
+        var target = correction.Items
+            .Where(x => !x.IsDeleted)
+            .GroupBy(x => x.VppId)
+            .ToDictionary(x => x.Key, x => x.First().Qty);
+        var changed = target
+            .Where(x => original.TryGetValue(x.Key, out var oldQty) && oldQty != x.Value)
+            .OrderBy(x => x.Key)
+            .Select(x => new QuantityDelta(x.Key, original[x.Key], x.Value))
+            .ToArray();
+        var removed = original.Keys
+            .Where(id => !target.ContainsKey(id))
+            .OrderBy(id => id)
+            .ToArray();
+        return new CorrectionDelta(changed, removed);
+    }
+
+    private sealed record QuantityDelta(Guid VppId, int OldQty, int NewQty);
+    private sealed record CorrectionDelta(QuantityDelta[] ChangedItems, Guid[] RemovedItemIds);
 
     private static PostSettlementOrderCorrectionAction ParseAction(string? value)
         => Enum.TryParse<PostSettlementOrderCorrectionAction>(value, true, out var action)

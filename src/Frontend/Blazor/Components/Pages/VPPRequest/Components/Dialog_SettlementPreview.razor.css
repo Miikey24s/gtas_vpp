@@ -163,6 +163,13 @@
     gap: 2px;
 }
 
+.vpp-settlement-preview-change-badges {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vpp-space-2);
+}
+
 .vpp-settlement-preview-no-change {
     margin: 0;
     padding: 0 var(--vpp-space-3) var(--vpp-space-3);

@@ -1,5 +1,6 @@
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
+using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Library;
 using gtas_vpp_shared.DTOs.Res.Permission;
@@ -61,7 +62,10 @@ namespace gtas_vpp_be.Mappings
                 .Map(dest => dest.VppName, src => src.VppItem != null ? src.VppItem.VppName : null)
                 .Map(dest => dest.UomCode, src => src.VppItem != null && src.VppItem.Uom != null ? src.VppItem.Uom.Code : null)
                 .Map(dest => dest.UomName, src => src.VppItem != null && src.VppItem.Uom != null ? src.VppItem.Uom.Value : null)
-                .Map(dest => dest.CategoryName, src => src.VppItem != null && src.VppItem.VppCategory != null ? src.VppItem.VppCategory.VppCategoryName : null);
+                .Map(dest => dest.CategoryName, src => src.VppItem != null && src.VppItem.VppCategory != null ? src.VppItem.VppCategory.VppCategoryName : null)
+                .Map(dest => dest.MaxQuantityPerOrder, src => src.VppItem != null
+                    ? src.VppItem.MaxQuantityPerOrder
+                    : VppOrderQuantityLimits.Default);
 
             config.NewConfig<gtas_vpp_be.Model.VPP.VppRequest, gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO>()
                 .Map(dest => dest.TotalLines, src => src.RequestDetails.Count(d => !d.IsDeleted))

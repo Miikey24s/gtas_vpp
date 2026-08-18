@@ -91,7 +91,22 @@
                             <article>
                                 <div>
                                     <strong>@change.RequestCode</strong>
-                                    <span>@CorrectionAction(change.Action)</span>
+                                    @if (string.Equals(change.Action, "Cancel", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <VppStatusBadge Text="@Loc["CancelEntireOrder"]"
+                                                        Tone="VppStatusTone.Danger" />
+                                    }
+                                    else
+                                    {
+                                        <span class="vpp-settlement-preview-change-badges">
+                                            <VppStatusBadge Text="@Loc["CorrectionChangedCount", change.ChangedItemCount]"
+                                                            Tone="VppStatusTone.Info"
+                                                            Muted="@(change.ChangedItemCount == 0)" />
+                                            <VppStatusBadge Text="@Loc["CorrectionRemovedCount", change.RemovedItemCount]"
+                                                            Tone="VppStatusTone.Danger"
+                                                            Muted="@(change.RemovedItemCount == 0)" />
+                                        </span>
+                                    }
                                 </div>
                                 <span>@change.Reason</span>
                             </article>
@@ -259,8 +274,4 @@
         string.Equals(before, after, StringComparison.CurrentCultureIgnoreCase)
             ? after ?? "–"
             : $"{before ?? "–"} → {after ?? "–"}";
-    private string CorrectionAction(string action) => string.Equals(action, "Cancel", StringComparison.OrdinalIgnoreCase)
-        ? Loc["CancelOrder"]
-        : Loc["UpdateQuantity"];
-
 }

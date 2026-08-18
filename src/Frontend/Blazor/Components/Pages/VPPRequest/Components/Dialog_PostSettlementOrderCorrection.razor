@@ -1,6 +1,7 @@
 @* PAGE: VPPRequest/Components/Dialog_PostSettlementOrderCorrection.razor *@
 @using gtas_vpp_shared.DTOs.Req.VPP
 @using gtas_vpp_shared.DTOs.Res.VPP
+@using gtas_vpp_shared.Constants
 @inject DialogService DialogService
 
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard"
@@ -40,18 +41,63 @@
 
             @if (Action == AdjustAction)
             {
-                <section class="vpp-order-correction-items" aria-label="@Loc["UpdateQuantity"]">
+                <section class="vpp-order-correction-items" aria-label="@Loc["AdjustOrderItems"]">
                     @foreach (var item in Items)
                     {
-                        <RadzenFormField Text="@item.Name" Variant="Variant.Outlined">
-                            <RadzenNumeric TValue="int"
-                                           @bind-Value="item.Quantity"
-                                           Min="1"
-                                           class="vpp-order-correction-control" />
-                        </RadzenFormField>
+                        <article class="vpp-order-correction-item @(item.IsRemoved ? "is-removed" : null)">
+                            <div class="vpp-order-correction-item-copy">
+                                <div class="vpp-order-correction-item-title">
+                                    <strong>@item.Name</strong>
+                                    @if (item.IsRemoved)
+                                    {
+                                        <VppStatusBadge Text="@Loc["MarkedForRemoval"]"
+                                                        Tone="VppStatusTone.Danger"
+                                                        Muted="true" />
+                                    }
+                                </div>
+                                <small>@Loc["OrderLineQuantityLimitFormat", item.MaxQuantity]</small>
+                            </div>
+                            <div class="vpp-order-correction-quantity" aria-label="@Loc["Quantity"]">
+                                <span>@item.OriginalQuantity</span>
+                                <span aria-hidden="true">→</span>
+                                <RadzenNumeric TValue="int"
+                                               @bind-Value="item.Quantity"
+                                               Min="1"
+                                               Max="@item.MaxQuantity"
+                                               Disabled="@item.IsRemoved"
+                                               class="vpp-order-correction-control" />
+                            </div>
+                            <VppAdminIconAction Icon="@(item.IsRemoved ? VppIcons.Reset : VppIcons.Close)"
+                                                Text="@(item.IsRemoved ? Loc["UndoRemoval"] : Loc["RemoveFromOrder"])"
+                                                Title="@(item.IsRemoved ? Loc["UndoRemoval"] : Loc["RemoveFromOrder"])"
+                                                ButtonStyle="@(item.IsRemoved ? ButtonStyle.Light : ButtonStyle.Danger)"
+                                                Variant="Variant.Outlined"
+                                                Click="@(_ => ToggleRemoved(item))" />
+                        </article>
                     }
                 </section>
+                <div class="vpp-order-correction-summary" aria-label="@Loc["ChangeSummary"]">
+                    <VppStatusBadge Text="@Loc["CorrectionChangedCount", ChangedItemCount]"
+                                    Tone="VppStatusTone.Info"
+                                    Muted="@(ChangedItemCount == 0)" />
+                    <VppStatusBadge Text="@Loc["CorrectionRemovedCount", RemovedItemCount]"
+                                    Tone="VppStatusTone.Danger"
+                                    Muted="@(RemovedItemCount == 0)" />
+                </div>
                 <small class="vpp-order-correction-help">@Loc["ExistingOrderItemsOnly"]</small>
+                @if (ActiveItemCount == 0)
+                {
+                    <VppInlineNotice Tone="VppStatusTone.Danger">
+                        @Loc["CannotRemoveAllOrderItems"]
+                    </VppInlineNotice>
+                }
+            }
+            else
+            {
+                <VppInlineNotice Tone="VppStatusTone.Warning"
+                                 Title="@Loc["CancelEntireOrder"]">
+                    @Loc["CancelEntireOrderWarning"]
+                </VppInlineNotice>
             }
 
             @if (ShowValidationMessage)
@@ -89,15 +135,27 @@
 
     private IReadOnlyList<VppDecisionOption<string>> ActionOptions =>
     [
-        new(AdjustAction, Loc["UpdateQuantity"]),
-        new(CancelAction, Loc["CancelOrder"])
+        new(AdjustAction, Loc["AdjustOrderItems"]),
+        new(CancelAction, Loc["CancelEntireOrder"])
     ];
 
     private bool CanSubmit => Reason.Trim().Length is >= 5 and <= 500
         && EmployeeNote.Trim().Length is >= 5 and <= 500
-        && (Action == CancelAction || (Items.Count > 0 && Items.All(item => item.Quantity > 0)));
+        && (Action == CancelAction || (HasOrderChange
+            && ActiveItemCount > 0
+            && Items.Where(item => !item.IsRemoved)
+                .All(item => item.Quantity is > 0 && item.Quantity <= item.MaxQuantity)));
 
-    private string ValidationMessage => Loc["OrderCorrectionInputHint"];
+    private int ActiveItemCount => Items.Count(item => !item.IsRemoved);
+    private int ChangedItemCount => Items.Count(item => !item.IsRemoved && item.Quantity != item.OriginalQuantity);
+    private int RemovedItemCount => Items.Count(item => item.IsRemoved);
+    private bool HasOrderChange => ChangedItemCount > 0 || RemovedItemCount > 0;
+
+    private string ValidationMessage => ActiveItemCount == 0
+        ? Loc["CannotRemoveAllOrderItems"]
+        : !HasOrderChange
+            ? Loc["CorrectionNoChanges"]
+            : Loc["OrderCorrectionInputHint"];
 
     protected override void OnParametersSet()
     {
@@ -110,7 +168,11 @@
         {
             VppId = item.VppId,
             Name = item.VppName ?? item.VppCode ?? item.VppId.ToString(),
+            OriginalQuantity = item.Qty,
             Quantity = item.Qty,
+            MaxQuantity = item.MaxQuantityPerOrder > 0
+                ? item.MaxQuantityPerOrder
+                : VppOrderQuantityLimits.Default,
             Description = item.Description
         }).ToList();
     }
@@ -123,6 +185,16 @@
     }
 
     private Task CancelAsync() => DialogService.TryCloseAsync(null);
+
+    private void ToggleRemoved(CorrectionItemModel item)
+    {
+        item.IsRemoved = !item.IsRemoved;
+        if (!item.IsRemoved)
+        {
+            item.Quantity = item.OriginalQuantity;
+        }
+        ShowValidationMessage = false;
+    }
 
     private async Task SubmitAsync()
     {
@@ -138,7 +210,8 @@
             EmployeeNote.Trim(),
             Action == CancelAction
                 ? []
-                : Items.Select(item => new PostSettlementOrderCorrectionItemReqDTO
+                : Items.Where(item => !item.IsRemoved)
+                    .Select(item => new PostSettlementOrderCorrectionItemReqDTO
                 {
                     VppId = item.VppId,
                     Qty = item.Quantity,
@@ -156,7 +229,10 @@
     {
         public Guid VppId { get; init; }
         public string Name { get; init; } = string.Empty;
+        public int OriginalQuantity { get; init; }
         public int Quantity { get; set; }
+        public int MaxQuantity { get; init; } = VppOrderQuantityLimits.Default;
+        public bool IsRemoved { get; set; }
         public string? Description { get; init; }
     }
 }

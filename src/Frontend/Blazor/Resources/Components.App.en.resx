@@ -1410,12 +1410,23 @@
   <data name="Decision" xml:space="preserve"><value>Decision</value></data>
   <data name="UpdateQuantity" xml:space="preserve"><value>Update quantities</value></data>
   <data name="CancelOrder" xml:space="preserve"><value>Cancel order</value></data>
-  <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Only quantities for items already in the order can be adjusted.</value></data>
+  <data name="AdjustOrderItems" xml:space="preserve"><value>Adjust order items</value></data>
+  <data name="CancelEntireOrder" xml:space="preserve"><value>Cancel entire order</value></data>
+  <data name="RemoveFromOrder" xml:space="preserve"><value>Remove from order</value></data>
+  <data name="UndoRemoval" xml:space="preserve"><value>Undo</value></data>
+  <data name="MarkedForRemoval" xml:space="preserve"><value>Will be removed</value></data>
+  <data name="ChangeSummary" xml:space="preserve"><value>Change summary</value></data>
+  <data name="CorrectionChangedCount" xml:space="preserve"><value>Quantity changed: {0}</value></data>
+  <data name="CorrectionRemovedCount" xml:space="preserve"><value>Removed: {0}</value></data>
+  <data name="CorrectionNoChanges" xml:space="preserve"><value>No order changes have been made.</value></data>
+  <data name="CannotRemoveAllOrderItems" xml:space="preserve"><value>Keep at least one item. If the order is no longer needed, choose Cancel entire order.</value></data>
+  <data name="CancelEntireOrderWarning" xml:space="preserve"><value>The order will be cancelled after another manager approves it. The current settlement remains until the period is settled again.</value></data>
+  <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Change quantities or remove existing items; new items cannot be added.</value></data>
   <data name="SendRequest" xml:space="preserve"><value>Send request</value></data>
-  <data name="OrderCorrectionInputHint" xml:space="preserve"><value>Enter a reason and message between 5 and 500 characters; item quantities must be greater than 0.</value></data>
+  <data name="OrderCorrectionInputHint" xml:space="preserve"><value>Enter a reason and message between 5 and 500 characters; quantities must stay within each item's limit.</value></data>
   <data name="RequestSent" xml:space="preserve"><value>Request sent</value></data>
   <data name="SavedSettlementVersions" xml:space="preserve"><value>Saved settlement versions</value></data>
-  <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Each approved adjustment is saved as a new version. Earlier versions remain available for comparison.</value></data>
+  <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Each time the period is settled again, a new settlement version is created. Earlier versions remain available for comparison.</value></data>
   <data name="ViewSavedVersions" xml:space="preserve"><value>View saved versions</value></data>
   <data name="SettlementHistoryAction" xml:space="preserve"><value>Settlement history</value></data>
   <data name="SettlementResettleAction" xml:space="preserve"><value>Settle again</value></data>

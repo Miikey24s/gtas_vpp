@@ -6,6 +6,7 @@ using gtas_vpp_be.Service.Services;
 using gtas_vpp_be.Tests.TestSupport;
 using gtas_vpp_shared.DTOs.Req.VPP;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace gtas_vpp_be.Tests.PeriodSettlementTests;
@@ -245,18 +246,125 @@ public sealed class PostSettlementOrderCorrectionServiceTests
         Assert.Equal("Rejected", rejected.Status);
     }
 
+    [Fact]
+    public async Task Adjust_can_change_quantity_and_remove_one_existing_item()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context, includeSecondItem: true);
+        var service = CreateService(context);
+
+        var pending = await service.CreateAsync("77500", 5615, new PostSettlementOrderCorrectionCreateReqDTO
+        {
+            RequestId = seed.RequestId,
+            Action = "Adjust",
+            Reason = "Bỏ mặt hàng không còn nhu cầu và cập nhật số lượng",
+            EmployeeNote = "Đơn đã được cập nhật theo nhu cầu mới của phòng ban.",
+            RequestRowVersion = seed.RequestRowVersion,
+            Items = [new PostSettlementOrderCorrectionItemReqDTO { VppId = seed.VppId, Qty = 3 }]
+        });
+
+        Assert.Equal(1, pending.ChangedItemCount);
+        Assert.Equal(1, pending.RemovedItemCount);
+        Assert.Contains(seed.SecondVppId, pending.RemovedItemIds);
+
+        var tracked = await context.Set<PostSettlementOrderCorrection>().SingleAsync();
+        tracked.RowVersion = [3, 2, 1];
+        var confirmed = await service.ConfirmAsync(
+            pending.Id,
+            5616,
+            new PostSettlementOrderCorrectionDecisionReqDTO { RowVersion = tracked.RowVersion });
+
+        Assert.Equal(1, confirmed.ChangedItemCount);
+        Assert.Equal(1, confirmed.RemovedItemCount);
+        var current = await context.Set<VppRequest>()
+            .Include(x => x.RequestDetails)
+            .SingleAsync(x => x.IsCurrentRevision);
+        var remaining = Assert.Single(current.RequestDetails, x => !x.IsDeleted);
+        Assert.Equal(seed.VppId, remaining.VppId);
+        Assert.Equal(3, remaining.Qty);
+        var log = await context.Set<RequestLog>().SingleAsync(x => x.Action == "POST_SETTLEMENT_ADJUST");
+        Assert.Contains("ChangedItems", log.LogJS, StringComparison.Ordinal);
+        Assert.Contains("RemovedItemIds", log.LogJS, StringComparison.Ordinal);
+        Assert.Contains(seed.SecondVppId.ToString(), log.LogJS, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Adjust_rejects_item_from_another_order_even_when_present_in_settlement()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context);
+        var settlement = await context.Set<Settlement>().Include(x => x.Items).SingleAsync();
+        var foreignVppId = Guid.NewGuid();
+        context.Set<SettlementItem>().Add(
+            CreateSettlementItem(settlement.Id, foreignVppId, settlement.PriceListId, "PAPER-01"));
+        var trackedRequest = await context.Set<VppRequest>().SingleAsync();
+        context.Entry(trackedRequest).State = EntityState.Unchanged;
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var error = await Assert.ThrowsAsync<BusinessException>(() => service.CreateAsync(
+            "77500",
+            5615,
+            new PostSettlementOrderCorrectionCreateReqDTO
+            {
+                RequestId = seed.RequestId,
+                Action = "Adjust",
+                Reason = "Thử thêm mặt hàng của đơn khác vào đơn hiện tại",
+                EmployeeNote = "Yêu cầu này phải bị hệ thống từ chối để bảo vệ dữ liệu.",
+                RequestRowVersion = seed.RequestRowVersion,
+                Items = [new PostSettlementOrderCorrectionItemReqDTO { VppId = foreignVppId, Qty = 1 }]
+            }));
+
+        Assert.Contains("Không thể thêm mặt hàng mới", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Adjust_rejects_request_without_any_change()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context);
+        var service = CreateService(context);
+
+        var error = await Assert.ThrowsAsync<BusinessException>(() => service.CreateAsync(
+            "77500",
+            5615,
+            new PostSettlementOrderCorrectionCreateReqDTO
+            {
+                RequestId = seed.RequestId,
+                Action = "Adjust",
+                Reason = "Gửi lại đơn nhưng không thay đổi nội dung nào",
+                EmployeeNote = "Yêu cầu không thay đổi phải được hệ thống từ chối.",
+                RequestRowVersion = seed.RequestRowVersion,
+                Items = [new PostSettlementOrderCorrectionItemReqDTO { VppId = seed.VppId, Qty = 2 }]
+            }));
+
+        Assert.Contains("chưa có thay đổi", error.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static PostSettlementOrderCorrectionService CreateService(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context)
-        => new(ServiceTestHelpers.CreateUnitOfWorkMock(context).Object, new FakeDateTimeProvider(Now));
+    {
+        var limits = new Mock<IOrderQuantityLimitService>();
+        limits.Setup(x => x.ValidateAsync(
+                It.IsAny<IEnumerable<VppRequestDetailItemReqDTO>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        return new PostSettlementOrderCorrectionService(
+            ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
+            new FakeDateTimeProvider(Now),
+            limits.Object);
+    }
 
     private static async Task<SeedResult> SeedAsync(
-        gtas_vpp_be.Service.Helpers.Context.VPPContext context)
+        gtas_vpp_be.Service.Helpers.Context.VPPContext context,
+        bool includeSecondItem = false)
     {
         var periodId = Guid.NewGuid();
         var requestId = Guid.NewGuid();
         var settlementId = Guid.NewGuid();
         var settlementItemId = Guid.NewGuid();
         var vppId = Guid.NewGuid();
+        var secondVppId = Guid.NewGuid();
         var priceListId = Guid.NewGuid();
         var rowVersion = new byte[] { 4, 5, 6 };
         context.Set<VppPeriod>().Add(new VppPeriod
@@ -308,8 +416,22 @@ public sealed class PostSettlementOrderCorrectionServiceTests
                 UpdatedAtUtc = Now.AddDays(-1)
             }]
         };
+        if (includeSecondItem)
+        {
+            request.RequestDetails.Add(new VppRequestDetail
+            {
+                Id = Guid.NewGuid(),
+                RequestId = requestId,
+                VppId = secondVppId,
+                Qty = 4,
+                CreatedByUserId = 100,
+                CreatedAtUtc = Now.AddMonths(-1),
+                UpdatedByUserId = 100,
+                UpdatedAtUtc = Now.AddDays(-1)
+            });
+        }
         context.Set<VppRequest>().Add(request);
-        context.Set<Settlement>().Add(new Settlement
+        var settlement = new Settlement
         {
             Id = settlementId,
             PeriodId = periodId,
@@ -338,35 +460,49 @@ public sealed class PostSettlementOrderCorrectionServiceTests
             CreatedAtUtc = Now.AddDays(-1),
             UpdatedByUserId = 5000,
             UpdatedAtUtc = Now.AddDays(-1),
-            Items = [new SettlementItem
-            {
-                Id = settlementItemId,
-                SettlementId = settlementId,
-                VppId = vppId,
-                VppCode = "PEN-01",
-                VppName = "Bút",
-                UomId = Guid.NewGuid(),
-                UomCode = "EA",
-                UomName = "Cái",
-                SupplierId = Guid.NewGuid(),
-                PriceListId = priceListId,
-                PriceBookItemId = Guid.NewGuid(),
-                Quantity = 2,
-                NetUnitPrice = 100,
-                VatRate = 10,
-                NetAmount = 200,
-                VatAmount = 20,
-                GrossAmount = 220,
-                CreatedByUserId = 5000,
-                CreatedAtUtc = Now.AddDays(-1),
-                UpdatedByUserId = 5000,
-                UpdatedAtUtc = Now.AddDays(-1)
-            }]
-        });
+            Items = [CreateSettlementItem(settlementId, vppId, priceListId, "PEN-01", settlementItemId)]
+        };
+        if (includeSecondItem)
+            settlement.Items.Add(CreateSettlementItem(settlementId, secondVppId, priceListId, "NOTE-01"));
+        context.Set<Settlement>().Add(settlement);
         await context.SaveChangesAsync();
         request.RowVersion = rowVersion;
-        return new SeedResult(requestId, vppId, rowVersion);
+        return new SeedResult(requestId, vppId, secondVppId, rowVersion);
     }
 
-    private sealed record SeedResult(Guid RequestId, Guid VppId, byte[] RequestRowVersion);
+    private static SettlementItem CreateSettlementItem(
+        Guid settlementId,
+        Guid vppId,
+        Guid priceListId,
+        string code,
+        Guid? id = null) => new()
+    {
+        Id = id ?? Guid.NewGuid(),
+        SettlementId = settlementId,
+        VppId = vppId,
+        VppCode = code,
+        VppName = code,
+        UomId = Guid.NewGuid(),
+        UomCode = "EA",
+        UomName = "Cái",
+        SupplierId = Guid.NewGuid(),
+        PriceListId = priceListId,
+        PriceBookItemId = Guid.NewGuid(),
+        Quantity = 2,
+        NetUnitPrice = 100,
+        VatRate = 10,
+        NetAmount = 200,
+        VatAmount = 20,
+        GrossAmount = 220,
+        CreatedByUserId = 5000,
+        CreatedAtUtc = Now.AddDays(-1),
+        UpdatedByUserId = 5000,
+        UpdatedAtUtc = Now.AddDays(-1)
+    };
+
+    private sealed record SeedResult(
+        Guid RequestId,
+        Guid VppId,
+        Guid SecondVppId,
+        byte[] RequestRowVersion);
 }

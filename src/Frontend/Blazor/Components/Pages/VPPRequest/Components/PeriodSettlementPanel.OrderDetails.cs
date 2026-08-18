@@ -459,13 +459,6 @@ public partial class PeriodSettlementPanel
         }
     }
 
-    private static string PostSettlementCorrectionActionText(string action) => action switch
-    {
-        "Adjust" => "Cập nhật đơn",
-        "Cancel" => "Hủy đơn",
-        _ => action
-    };
-
     private void BuildOrderDetailOptions()
     {
         orderDetailCategories.Clear();

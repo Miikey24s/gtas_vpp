@@ -583,8 +583,25 @@
                         <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Title="@Loc["Order"]" Width="220px">
                             <Template Context="correction"><strong>@correction.RequestCode</strong></Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Title="@Loc["Change"]" Width="150px">
-                            <Template Context="correction">@PostSettlementCorrectionActionText(correction.Action)</Template>
+                        <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Title="@Loc["Change"]" Width="250px">
+                            <Template Context="correction">
+                                @if (string.Equals(correction.Action, "Cancel", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <VppStatusBadge Text="@Loc["CancelEntireOrder"]"
+                                                    Tone="VppStatusTone.Danger" />
+                                }
+                                else
+                                {
+                                    <div class="vpp-settlement-correction-summary">
+                                        <VppStatusBadge Text="@Loc["CorrectionChangedCount", correction.ChangedItemCount]"
+                                                        Tone="VppStatusTone.Info"
+                                                        Muted="@(correction.ChangedItemCount == 0)" />
+                                        <VppStatusBadge Text="@Loc["CorrectionRemovedCount", correction.RemovedItemCount]"
+                                                        Tone="VppStatusTone.Danger"
+                                                        Muted="@(correction.RemovedItemCount == 0)" />
+                                    </div>
+                                }
+                            </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Property="EmployeeNote" Title="@Loc["EmployeeMessage"]" />
                         <RadzenDataGridColumn TItem="PostSettlementOrderCorrectionResDTO" Property="RequestedByUserId" Title="@Loc["RequestedBy"]" Width="140px" />

@@ -470,3 +470,10 @@
     --vpp-data-grid-min-width: 58rem;
     --vpp-admin-actions-width: 190px;
 }
+
+.vpp-settlement-correction-summary {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vpp-space-2);
+}

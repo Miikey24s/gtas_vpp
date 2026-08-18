@@ -1409,13 +1409,24 @@
   <data name="Decision" xml:space="preserve"><value>Quyết định</value></data>
   <data name="UpdateQuantity" xml:space="preserve"><value>Cập nhật số lượng</value></data>
   <data name="CancelOrder" xml:space="preserve"><value>Hủy đơn</value></data>
+  <data name="AdjustOrderItems" xml:space="preserve"><value>Điều chỉnh mặt hàng</value></data>
+  <data name="CancelEntireOrder" xml:space="preserve"><value>Hủy toàn bộ đơn</value></data>
+  <data name="RemoveFromOrder" xml:space="preserve"><value>Bỏ khỏi đơn</value></data>
+  <data name="UndoRemoval" xml:space="preserve"><value>Hoàn tác</value></data>
+  <data name="MarkedForRemoval" xml:space="preserve"><value>Sẽ bỏ</value></data>
+  <data name="ChangeSummary" xml:space="preserve"><value>Tóm tắt thay đổi</value></data>
+  <data name="CorrectionChangedCount" xml:space="preserve"><value>Đổi số lượng: {0}</value></data>
+  <data name="CorrectionRemovedCount" xml:space="preserve"><value>Bỏ khỏi đơn: {0}</value></data>
+  <data name="CorrectionNoChanges" xml:space="preserve"><value>Chưa có thay đổi nào trong đơn.</value></data>
+  <data name="CannotRemoveAllOrderItems" xml:space="preserve"><value>Phải giữ ít nhất một mặt hàng. Nếu không còn nhu cầu, chọn Hủy toàn bộ đơn.</value></data>
+  <data name="CancelEntireOrderWarning" xml:space="preserve"><value>Đơn sẽ được hủy sau khi một quản lý khác duyệt. Bản chốt hiện tại vẫn được giữ đến khi kỳ được chốt lại.</value></data>
   <data name="ChangeReason" xml:space="preserve"><value>Lý do thay đổi</value></data>
-  <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Chỉ điều chỉnh số lượng của các mặt hàng đang có trong đơn.</value></data>
+  <data name="ExistingOrderItemsOnly" xml:space="preserve"><value>Có thể đổi số lượng hoặc bỏ mặt hàng đang có; không thể thêm mặt hàng mới.</value></data>
   <data name="SendRequest" xml:space="preserve"><value>Gửi yêu cầu</value></data>
-  <data name="OrderCorrectionInputHint" xml:space="preserve"><value>Nhập lý do và thông báo từ 5 đến 500 ký tự; số lượng mặt hàng phải lớn hơn 0.</value></data>
+  <data name="OrderCorrectionInputHint" xml:space="preserve"><value>Nhập lý do và thông báo từ 5 đến 500 ký tự; số lượng phải nằm trong giới hạn của mặt hàng.</value></data>
   <data name="RequestSent" xml:space="preserve"><value>Đã gửi yêu cầu</value></data>
   <data name="SavedSettlementVersions" xml:space="preserve"><value>Các bản chốt đã lưu</value></data>
-  <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Mỗi lần điều chỉnh được lưu thành một bản mới. Các bản trước vẫn được giữ để đối chiếu.</value></data>
+  <data name="SavedSettlementVersionsHint" xml:space="preserve"><value>Mỗi lần chốt lại kỳ sẽ tạo một bản chốt mới. Các bản trước vẫn được giữ để đối chiếu.</value></data>
   <data name="ViewSavedVersions" xml:space="preserve"><value>Xem các bản đã lưu</value></data>
   <data name="SettlementHistoryAction" xml:space="preserve"><value>Lịch sử chốt</value></data>
   <data name="SettlementResettleAction" xml:space="preserve"><value>Chốt lại kỳ</value></data>

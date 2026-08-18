@@ -1950,3 +1950,11 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - `Đơn hàng của tôi` là nơi chọn kỳ và loại đơn trước khi mở editor; mọi action tạo, sao chép, sửa và tạo lại đều truyền `periodId` sang `/dashboard/order-create`.
 - Trang tạo đơn không lặp card/selector `Kỳ đặt hàng`. Kỳ đã chọn tiếp tục hiển thị dạng ngữ cảnh read-only trong pane `Đơn đang tạo`, đồng thời backend vẫn kiểm tra kỳ khi tải và gửi đơn.
 - Liên kết trực tiếp không có `periodId` tiếp tục dùng kỳ mặc định do period-info trả về để giữ tương thích, nhưng editor không trở thành nơi đổi kỳ giữa chừng.
+
+### 16.13 Điều chỉnh từng mặt hàng sau chốt — 2026-08-19
+
+- `Điều chỉnh sau chốt` có ba khả năng rõ ràng: đổi số lượng, bỏ từng mặt hàng đang có hoặc hủy toàn bộ đơn. Không cho thêm mặt hàng mới trong luồng này; nhu cầu mới phải đi qua đơn bổ sung đúng nghiệp vụ.
+- Danh sách mặt hàng giữ bề mặt ổn định: dòng bị bỏ vẫn hiện mờ với trạng thái `Sẽ bỏ` và action `Hoàn tác`. Phải giữ ít nhất một mặt hàng khi chọn điều chỉnh; nếu bỏ toàn bộ thì chuyển sang `Hủy toàn bộ đơn`.
+- Frontend kiểm tra thay đổi thật, giới hạn số lượng mỗi đơn và khóa gửi khi không hợp lệ. Backend kiểm tra lại mặt hàng thuộc đúng đơn nguồn, còn trong bản chốt hiện hành, không vượt giới hạn và từ chối yêu cầu không có thay đổi.
+- Yêu cầu vẫn cần một quản lý khác duyệt. Duyệt chỉ tạo bản đơn hiện hành mới và đánh dấu kỳ có thay đổi chưa chốt; quản lý phải mở preview rồi `Chốt lại kỳ` để tạo bản chốt N+1. Bản chốt cũ không bị sửa hoặc xóa.
+- Hàng chờ duyệt và preview chốt lại hiển thị số mặt hàng đổi số lượng, số mặt hàng bị bỏ hoặc `Hủy toàn bộ đơn`. Nhật ký lưu delta có cấu trúc để đối chiếu mà không lộ thuật ngữ kỹ thuật trên UI.
