@@ -662,4 +662,3 @@ static async Task<SqlConnection> AcquireMigrationLockAsync(string connectionStri
         throw;
     }
 }
-
