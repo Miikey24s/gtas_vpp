@@ -252,4 +252,61 @@ public class LibraryControllerTests
         var rows = Assert.IsType<List<VppItemResDTO>>(Assert.IsType<OkObjectResult>(result).Value);
         Assert.Equal(1, Assert.Single(rows).SupplierCount);
     }
+
+    [Fact]
+    public async Task GenericGet_SupplierDistinct_ReturnsPagedValuesAndTotalHeader()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        context.Set<Supplier>().AddRange(
+            new Supplier { Id = Guid.NewGuid(), SupplierName = "Alpha", SupplierShortName = "A1" },
+            new Supplier { Id = Guid.NewGuid(), SupplierName = "Alpha", SupplierShortName = "A2" },
+            new Supplier { Id = Guid.NewGuid(), SupplierName = "Beta", SupplierShortName = "B1" });
+        await context.SaveChangesAsync();
+        var controller = CreateController(context);
+
+        var result = await controller.GenericGet(
+            tableCode: "suppliers",
+            id: null,
+            searchText: null,
+            lookupCategoryId: null,
+            filter: null,
+            skip: 0,
+            top: 1,
+            orderby: null,
+            distinct: nameof(Supplier.SupplierName),
+            distinctFilter: null);
+
+        var rows = Assert.IsType<List<SupplierResDTO>>(Assert.IsType<OkObjectResult>(result).Value);
+        Assert.Single(rows);
+        Assert.Equal("2", controller.Response.Headers["X-Total-Count"].ToString());
+        Assert.Contains(rows[0].SupplierName, new[] { "Alpha", "Beta" });
+    }
+
+    [Fact]
+    public async Task GenericGetById_MissingVppItem_ReturnsNotFound()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var controller = CreateController(context);
+
+        var result = await controller.GenericGetById("vpp-items", Guid.NewGuid());
+
+        Assert.IsType<NotFoundObjectResult>(result);
+    }
+
+    private static LibraryController CreateController(gtas_vpp_be.Service.Helpers.Context.VPPContext context)
+    {
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context);
+        var userNameResolver = new Mock<IUserNameResolver>();
+        userNameResolver
+            .Setup(x => x.WithUserNamesAsync(It.IsAny<List<Supplier>>(), context))
+            .ReturnsAsync((List<Supplier> rows, gtas_vpp_be.Service.Helpers.Context.VPPContext _) => rows);
+        return new LibraryController(
+            Mock.Of<IServiceProvider>(),
+            userNameResolver.Object,
+            unitOfWork.Object,
+            new FakeDateTimeProvider(DateTime.UtcNow))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+    }
 }
