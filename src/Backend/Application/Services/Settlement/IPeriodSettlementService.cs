@@ -30,6 +30,10 @@ namespace gtas_vpp_be.Service.Services
             int y,
             int m,
             CancellationToken cancellationToken = default);
+        Task<List<SettlementRevisionResDTO>> ListRevisionSummariesAsync(
+            int y,
+            int m,
+            CancellationToken cancellationToken = default);
         Task<SettlementExportResult?> ExportPdfAsync(
             Guid settlementId,
             CancellationToken cancellationToken = default);

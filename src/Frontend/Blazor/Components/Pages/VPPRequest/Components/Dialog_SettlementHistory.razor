@@ -1,38 +1,59 @@
 @using gtas_vpp_fe.Helpers
+@using gtas_vpp_fe.Features.Settlement.Api
 @using gtas_vpp_shared.DTOs.Res.VPP
 @inject DialogService DialogService
+@inject SettlementApiClient Settlement
 
 <VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard" TestId="settlement-version-history-dialog">
     <Intro>
         <p class="vpp-settlement-history-intro">@Loc["SavedSettlementVersionsHint"]</p>
     </Intro>
     <ChildContent>
-        <div class="vpp-settlement-history-list">
-            @foreach (var version in Versions.OrderByDescending(item => item.RevisionNumber))
-            {
-                <article class="vpp-settlement-history-item @(version.IsCurrentRevision ? "is-current" : null)">
-                    <div class="vpp-settlement-history-heading">
-                        <div>
-                            <strong>@string.Format(Loc["SettlementVersionLabel"], version.RevisionNumber)</strong>
-                            <span>@DateFormatter.Format(version.ConfirmedAtUtc, DateFormatter.LongDate)</span>
+        @if (isLoading)
+        {
+            <SkeletonGrid Rows="3" Cols="3" />
+        }
+        else if (!string.IsNullOrWhiteSpace(loadError))
+        {
+            <VppContentState State="VppContentStateKind.Error"
+                             Icon="error_outline"
+                             Title="@Loc["SavedSettlementVersions"]"
+                             Description="@loadError" />
+        }
+        else if (Versions.Count == 0)
+        {
+            <VppContentState State="VppContentStateKind.Empty"
+                             Title="@Loc["NoData"]" />
+        }
+        else
+        {
+            <div class="vpp-settlement-history-list">
+                @foreach (var version in Versions)
+                {
+                    <article class="vpp-settlement-history-item @(version.IsCurrentRevision ? "is-current" : null)">
+                        <div class="vpp-settlement-history-heading">
+                            <div>
+                                <strong>@string.Format(Loc["SettlementVersionLabel"], version.RevisionNumber)</strong>
+                                <span>@DateFormatter.Format(version.ConfirmedAtUtc, DateFormatter.LongDate)</span>
+                            </div>
+                            @if (version.IsCurrentRevision)
+                            {
+                                <VppCategoryChip Text="@Loc["CurrentlyUsed"]" Tone="VppCategoryTone.Accent" />
+                            }
                         </div>
-                        @if (version.IsCurrentRevision)
+                        <dl>
+                            <div><dt>@Loc["Supplier"]</dt><dd>@version.PrimarySupplierName</dd></div>
+                            <div><dt>@Loc["PriceList"]</dt><dd>@version.PriceListName</dd></div>
+                            <div><dt>@Loc["TotalValue"]</dt><dd>@version.GrandTotal.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</dd></div>
+                        </dl>
+                        @if (!string.IsNullOrWhiteSpace(version.CorrectionReason))
                         {
-                            <VppCategoryChip Text="@Loc["CurrentlyUsed"]" Tone="VppCategoryTone.Accent" />
+                            <p><span>@Loc["ChangeReason"]</span>@version.CorrectionReason</p>
                         }
-                    </div>
-                    <dl>
-                        <div><dt>@Loc["Supplier"]</dt><dd>@version.PrimarySupplierName</dd></div>
-                        <div><dt>@Loc["PriceList"]</dt><dd>@version.PriceListName</dd></div>
-                        <div><dt>@Loc["TotalValue"]</dt><dd>@version.GrandTotal.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"))</dd></div>
-                    </dl>
-                    @if (!string.IsNullOrWhiteSpace(version.CorrectionReason))
-                    {
-                        <p><span>@Loc["ChangeReason"]</span>@version.CorrectionReason</p>
-                    }
-                </article>
-            }
-        </div>
+                    </article>
+                }
+            </div>
+        }
     </ChildContent>
     <Footer>
         <VppDialogActions CancelText="@Loc["Close"]"
@@ -42,7 +63,28 @@
 </VppAdaptiveDialogShell>
 
 @code {
-    [Parameter] public IReadOnlyList<SettlementRevisionResDTO> Versions { get; set; } = [];
+    [Parameter] public int Year { get; set; }
+    [Parameter] public int Month { get; set; }
+
+    private IReadOnlyList<SettlementRevisionResDTO> Versions { get; set; } = [];
+    private bool isLoading = true;
+    private string? loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Versions = await Settlement.ListVersionsAsync(Year, Month);
+        }
+        catch (Exception ex)
+        {
+            loadError = UiErrorMapper.GetMessage(ex, Loc);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 
     private Task CloseAsync() => DialogService.TryCloseAsync(null);
 }

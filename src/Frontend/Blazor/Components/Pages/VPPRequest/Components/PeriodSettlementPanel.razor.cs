@@ -505,12 +505,12 @@ public partial class PeriodSettlementPanel : IDisposable
         isLoadingSettlementHistory = true;
         try
         {
-            var versions = await Settlement.ListVersionsAsync(Year, Month);
             await DialogService.OpenAsync<Dialog_SettlementHistory>(
                 Loc["SavedSettlementVersions"],
                 new Dictionary<string, object?>
                 {
-                    [nameof(Dialog_SettlementHistory.Versions)] = versions
+                    [nameof(Dialog_SettlementHistory.Year)] = Year,
+                    [nameof(Dialog_SettlementHistory.Month)] = Month
                 },
                 VppAdminDialogProfiles.Create(
                     VppAdminDialogSize.Standard,
@@ -519,7 +519,7 @@ public partial class PeriodSettlementPanel : IDisposable
         }
         catch (Exception ex)
         {
-            Toast.Error(Loc["SavedSettlementVersions"], UiErrorMapper.GetMessage(ex, Loc));
+            Toast.Error(ex, Loc);
         }
         finally
         {

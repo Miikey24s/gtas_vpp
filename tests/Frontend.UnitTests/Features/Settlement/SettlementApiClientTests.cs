@@ -49,7 +49,7 @@ public sealed class SettlementApiClientTests
 
         Assert.Contains(("/api/periodsettlement/2026/7", typeof(PeriodSettlementResDTO)), getCalls);
         Assert.Contains(("/api/periodsettlement/current/2026/7", typeof(SettlementRevisionResDTO)), getCalls);
-        Assert.Contains(("/api/periodsettlement/revisions/2026/7", typeof(List<SettlementRevisionResDTO>)), getCalls);
+        Assert.Contains(("/api/periodsettlement/revisions/2026/7?summaryOnly=true", typeof(List<SettlementRevisionResDTO>)), getCalls);
         Assert.Contains(("/api/VPPRequest/period-demand?year=2026&month=7", typeof(AggregatedVppResDTO)), getCalls);
         Assert.Equal(3, snapshot.Count);
         Assert.Equal(2, pageCalls.Count);

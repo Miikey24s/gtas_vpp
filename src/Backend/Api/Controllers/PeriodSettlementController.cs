@@ -92,11 +92,14 @@ namespace gtas_vpp_be.Controllers
         public async Task<IActionResult> ListRevisions(
             int y,
             int m,
+            [FromQuery] bool summaryOnly,
             CancellationToken cancellationToken)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            return Ok(await _periodSettlementService.ListRevisionsAsync(y, m, cancellationToken));
+            return Ok(summaryOnly
+                ? await _periodSettlementService.ListRevisionSummariesAsync(y, m, cancellationToken)
+                : await _periodSettlementService.ListRevisionsAsync(y, m, cancellationToken));
         }
 
         [HttpGet("{settlementId:guid}/export.pdf")]

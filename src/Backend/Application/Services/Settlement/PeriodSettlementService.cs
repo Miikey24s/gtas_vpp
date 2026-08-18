@@ -251,6 +251,62 @@ namespace gtas_vpp_be.Service.Services
             return entities.Select(MapRevision).ToList();
         }
 
+        public async Task<List<SettlementRevisionResDTO>> ListRevisionSummariesAsync(
+            int y,
+            int m,
+            CancellationToken cancellationToken = default)
+        {
+            ValidatePeriod(y, m);
+            var company = CanonicalRbac.DefaultMemberCompanyCode.ToString(
+                System.Globalization.CultureInfo.InvariantCulture);
+
+            // Dialog lịch sử chỉ cần metadata và tổng tiền. Chi tiết mặt hàng/phân bổ vẫn
+            // thuộc endpoint đầy đủ để tránh tải hàng nghìn dòng trước khi dialog xuất hiện.
+            return await _scopedUow.VPPContext.Set<Settlement>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                    && x.MemberCompanyCode == company
+                    && x.Year == y
+                    && x.Month == m)
+                .OrderByDescending(x => x.RevisionNumber)
+                .Select(x => new SettlementRevisionResDTO
+                {
+                    Id = x.Id,
+                    PeriodId = x.PeriodId,
+                    Year = x.Year,
+                    Month = x.Month,
+                    RevisionNumber = x.RevisionNumber,
+                    IsCurrentRevision = x.IsCurrentRevision,
+                    IsCorrection = x.IsCorrection,
+                    SupersedesSettlementId = x.SupersedesSettlementId,
+                    CorrectionReason = x.CorrectionReason,
+                    PrimarySupplierId = x.PrimarySupplierId,
+                    PrimarySupplierName = x.PrimarySupplierName,
+                    PriceListId = x.PriceListId,
+                    PriceListName = x.PriceListName,
+                    PriceListVersion = x.PriceListVersion,
+                    PriceAsOfUtc = x.PriceAsOfUtc,
+                    CalculationVersion = x.CalculationVersion,
+                    InputHash = x.InputHash,
+                    CurrencyCode = x.CurrencyCode,
+                    Subtotal = x.Subtotal,
+                    DiscountAmount = x.DiscountAmount,
+                    RebateAmount = x.RebateAmount,
+                    FeeAmount = x.FeeAmount,
+                    ShippingAmount = x.ShippingAmount,
+                    VatAmount = x.VatAmount,
+                    RoundingAdjustment = x.RoundingAdjustment,
+                    GrandTotal = x.GrandTotal,
+                    ConfirmedAtUtc = x.ConfirmedAtUtc,
+                    ConfirmedByUserId = x.ConfirmedByUserId,
+                    HasExternalProcurementImpact = x.HasExternalProcurementImpact,
+                    RowVersion = x.RowVersion,
+                    ItemCount = x.Items.Count,
+                    AllocationCount = x.Allocations.Count
+                })
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<SettlementExportResult?> ExportPdfAsync(
             Guid settlementId,
             CancellationToken cancellationToken = default)

@@ -63,7 +63,7 @@ public sealed class SettlementApiClient(
 
     public async Task<IReadOnlyList<SettlementRevisionResDTO>> ListVersionsAsync(int year, int month) =>
         await api.GetFromApiAsync<List<SettlementRevisionResDTO>>(
-            $"{SettlementBase}/revisions/{year}/{month}") ?? [];
+            $"{SettlementBase}/revisions/{year}/{month}?summaryOnly=true") ?? [];
 
     public Task<SettlementRevisionResDTO?> CorrectAsync(
         Guid settlementId,

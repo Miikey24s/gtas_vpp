@@ -595,3 +595,15 @@ Fix `--DcpPublisher:RandomizePorts=false` trong `TestBase.cs` vẫn giữ — n�
 | Luận văn §3.3.5.1 | "người dùng có quyền có thể xuất PDF hoặc Excel" | `ReportsController` chỉ có `export` (CSV) và `export.xlsx`; không có endpoint PDF | Sửa thành "xuất CSV hoặc Excel" cho khớp §3.4 |
 
 Không sửa file Word trong ATLAS-001 (D9). Ghi lại ở đây để không bị quên khi owner mở lại phạm vi luận văn.
+
+---
+
+## 13. Tinh chỉnh hiệu năng dialog chốt kỳ — 2026-08-19
+
+- **Lịch sử chốt:** mở dialog trước rồi tải dữ liệu bên trong; endpoint danh sách dùng projection
+  tóm tắt, không tải toàn bộ mặt hàng và phân bổ của mọi bản chốt.
+- **Chốt lại kỳ:** dialog render phần tổng quan và 10 đơn đầu ở frame đầu tiên, sau đó nối phần
+  danh sách còn lại; các lựa chọn nhà cung cấp/bảng giá được tính một lần thay vì lặp mỗi render.
+- Giữ nguyên endpoint lịch sử đầy đủ cho consumer cần chi tiết, không đổi nghiệp vụ chốt/chốt lại.
+- Gate: build frontend/backend, unit/architecture test settlement và route-real Playwright của
+  `PeriodSettlementWorkspaceTests`.

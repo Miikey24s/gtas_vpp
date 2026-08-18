@@ -77,7 +77,11 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.DoesNotContain("ReopenForResettlement", settlement, StringComparison.Ordinal);
         Assert.Contains("SettlementVersionText", settlement, StringComparison.Ordinal);
         Assert.Contains("SavedSettlementVersions", historyDialog, StringComparison.Ordinal);
+        Assert.Contains("Settlement.ListVersionsAsync(Year, Month)", historyDialog, StringComparison.Ordinal);
+        Assert.Contains("nameof(Dialog_SettlementHistory.Year)", settlementCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("var versions = await Settlement.ListVersionsAsync", settlementCode, StringComparison.Ordinal);
         Assert.Contains("SettlementChangesSinceLastVersion", settlementPreviewDialog, StringComparison.Ordinal);
+        Assert.Contains("InitialOrderRenderCount", settlementPreviewDialog, StringComparison.Ordinal);
         Assert.Contains("PendingCorrectionCount", settlementPreviewDialog, StringComparison.Ordinal);
         Assert.Contains("PreviewSelectionChanged", settlementPreviewDialog, StringComparison.Ordinal);
         Assert.Contains("OrderAdjustmentRequested", settlementPreviewDialog, StringComparison.Ordinal);

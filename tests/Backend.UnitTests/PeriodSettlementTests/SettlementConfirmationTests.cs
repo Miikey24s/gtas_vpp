@@ -158,6 +158,16 @@ public sealed class SettlementConfirmationTests
                 Assert.Equal(1, original.RevisionNumber);
                 Assert.False(original.IsCurrentRevision);
             });
+
+        var summaries = await service.ListRevisionSummariesAsync(2026, 7);
+        Assert.Equal(2, summaries.Count);
+        Assert.All(summaries, summary =>
+        {
+            Assert.Empty(summary.Items);
+            Assert.Empty(summary.Allocations);
+            Assert.True(summary.ItemCount > 0);
+            Assert.True(summary.AllocationCount > 0);
+        });
     }
 
     [Fact]

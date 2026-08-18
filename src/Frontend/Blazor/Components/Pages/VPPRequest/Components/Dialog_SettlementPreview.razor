@@ -111,7 +111,7 @@
                 <span>@string.Format(Loc["SettlementPreviewOrderSummary"], Orders.Count, WorkingPreview.RequestedLineCount)</span>
             </header>
             <div class="vpp-settlement-preview-order-list">
-                @foreach (var order in Orders.OrderBy(item => item.DepartmentCode).ThenBy(item => item.VppCode))
+                @foreach (var order in visibleOrders)
                 {
                     <article>
                         <div><strong>@order.VppCode</strong><span>@(order.RequesterName ?? "–")</span></div>
@@ -157,18 +157,11 @@
     private bool isUpdatingSelection;
     private Guid? SelectedSupplierId => WorkingPreview.PrimarySupplierId;
     private Guid? SelectedPriceListId => WorkingPreview.PrimaryPriceListId;
-    private IReadOnlyList<VppDecisionOption<Guid?>> SupplierOptions => Quotes
-        .Where(quote => quote.IsEligible)
-        .GroupBy(quote => quote.SupplierId)
-        .Select(group => group.OrderBy(quote => quote.Rank).First())
-        .OrderBy(quote => quote.Rank)
-        .Select(quote => new VppDecisionOption<Guid?>(quote.SupplierId, quote.SupplierName ?? "–"))
-        .ToArray();
-    private IReadOnlyList<VppDecisionOption<Guid?>> PriceListOptions => Quotes
-        .Where(quote => quote.IsEligible && quote.SupplierId == SelectedSupplierId)
-        .OrderBy(quote => quote.Rank)
-        .Select(quote => new VppDecisionOption<Guid?>(quote.PriceListId, quote.PriceListCode ?? "–"))
-        .ToArray();
+    private const int InitialOrderRenderCount = 10;
+    private IReadOnlyList<VppDecisionOption<Guid?>> SupplierOptions { get; set; } = [];
+    private IReadOnlyList<VppDecisionOption<Guid?>> PriceListOptions { get; set; } = [];
+    private IReadOnlyList<VppRequestResDTO> sortedOrders = [];
+    private IReadOnlyList<VppRequestResDTO> visibleOrders = [];
     private string SupplierName => WorkingPreview.PrimaryQuote?.SupplierName ?? "–";
     private string PriceListName => WorkingPreview.PrimaryQuote?.PriceListCode ?? "–";
     private decimal VatAmount => WorkingPreview.PrimaryQuote?.VatAmount ?? 0;
@@ -176,7 +169,29 @@
     private decimal BeforeVat => GrandTotal - VatAmount;
     private int CurrentRevisionNumber => CurrentSettlement?.RevisionNumber ?? 0;
 
-    protected override void OnInitialized() => WorkingPreview = Preview;
+    protected override void OnInitialized()
+    {
+        WorkingPreview = Preview;
+        sortedOrders = Orders
+            .OrderBy(item => item.DepartmentCode)
+            .ThenBy(item => item.VppCode)
+            .ToArray();
+        visibleOrders = sortedOrders.Take(InitialOrderRenderCount).ToArray();
+        RebuildDecisionOptions();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || visibleOrders.Count == sortedOrders.Count)
+        {
+            return;
+        }
+
+        // Mở dialog bằng phần tóm tắt trước; danh sách dài được nối ở frame kế tiếp để
+        // thao tác phản hồi ngay nhưng người dùng vẫn nhận đủ dữ liệu như trước.
+        visibleOrders = sortedOrders;
+        await InvokeAsync(StateHasChanged);
+    }
 
     private Task CancelAsync() => DialogService.TryCloseAsync(false);
     private Task ConfirmAsync() => DialogService.TryCloseAsync(true);
@@ -211,11 +226,27 @@
         try
         {
             WorkingPreview = await PreviewSelectionChanged!(supplierId, priceListId) ?? WorkingPreview;
+            RebuildDecisionOptions();
         }
         finally
         {
             isUpdatingSelection = false;
         }
+    }
+    private void RebuildDecisionOptions()
+    {
+        SupplierOptions = Quotes
+            .Where(quote => quote.IsEligible)
+            .GroupBy(quote => quote.SupplierId)
+            .Select(group => group.OrderBy(quote => quote.Rank).First())
+            .OrderBy(quote => quote.Rank)
+            .Select(quote => new VppDecisionOption<Guid?>(quote.SupplierId, quote.SupplierName ?? "–"))
+            .ToArray();
+        PriceListOptions = Quotes
+            .Where(quote => quote.IsEligible && quote.SupplierId == SelectedSupplierId)
+            .OrderBy(quote => quote.Rank)
+            .Select(quote => new VppDecisionOption<Guid?>(quote.PriceListId, quote.PriceListCode ?? "–"))
+            .ToArray();
     }
 
     private async Task RequestOrderAdjustmentAsync(Guid orderId)

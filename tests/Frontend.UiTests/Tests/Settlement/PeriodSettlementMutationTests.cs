@@ -96,9 +96,9 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
 
         var settleButton = await WaitForEnabledActionAsync("Chốt kỳ");
         await settleButton.ClickAsync();
-        var confirmDialog = Page.Locator(".rz-dialog:visible").Last;
-        await confirmDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        await confirmDialog.GetByRole(AriaRole.Button, new() { Name = "Có", Exact = true }).ClickAsync();
+        var previewDialog = Page.GetByTestId("settlement-preview-dialog");
+        await previewDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await previewDialog.GetByRole(AriaRole.Button, new() { Name = "Chốt kỳ", Exact = true }).ClickAsync();
 
         var revisionsAfterConfirm = await WaitForRevisionCountAsync(procurementApi, targetYear, targetMonth, 1);
         await Page.GetByText("Đã chốt kỳ", new() { Exact = true }).WaitForAsync();
@@ -112,7 +112,7 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
         await Page.GetByText("Bản chốt 1", new() { Exact = true }).WaitForAsync();
         await Page.GetByRole(
                 AriaRole.Button,
-                new() { Name = "Điều chỉnh bản chốt", Exact = true })
+                new() { Name = "Chốt lại kỳ", Exact = true })
             .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
         await CaptureAsync("settlement-version-1-1366x768.png");
         (await Page.GetByRole(
