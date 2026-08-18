@@ -949,3 +949,19 @@ Snapshot đo lại ngày `2026-08-11`: weekly coverage quan sát khoảng `706% 
 | Giữ dữ liệu vận hành ngoài Git | `.gitignore` + `LVTN/data/` local | Hai workbook nguồn chỉ dùng làm bằng chứng luận văn/slide | Không stage hoặc commit workbook dữ liệu vận hành |
 
 > `slides_test.py` tiếp tục báo các shape trang trí tràn biên ở nhiều slide; đối chiếu render Microsoft PowerPoint xác nhận đây là decorative bleed chủ ý, không phải chữ hoặc ảnh nội dung bị cắt. Không sửa bố cục trong checkpoint dọn repository.
+
+---
+
+## 15. Biên nhận bản bảo vệ 2026-08-18
+
+| Nội dung | Đã lưu ở | Phạm vi/hiệu lực | Bằng chứng |
+|---|---|---|---|
+| Hoàn thiện deck bảo vệ 15 trang | `presentation/SlideBaoVe_20260818.pptx` | Bản review mới; không ghi đè `presentation/SlideBaoVe.pptx` | Đủ 15 slide 16:9, đối tượng vẫn chỉnh sửa được |
+| Đưa sơ đồ chức năng và ERD lên đúng mạch kể | Slide 3–4 | Sơ đồ chức năng ở mục 3, ERD ở mục 4 | Render PowerPoint/PDF đã kiểm tra trực quan |
+| Lồng giao diện thật vào luồng nghiệp vụ | Slide 5, 10, 11 và 13 | Tạo đơn → duyệt bổ sung → chốt kỳ; Before/After | Slide 5 dùng ba ảnh route thật đọc từ trái sang phải |
+| Tạo bản PDF dự phòng | `presentation/SlideBaoVe_20260818.pdf` | Trình chiếu/xem nhanh khi PowerPoint thay font | PDF đủ 15 trang, render 1920×1080 |
+| Đóng gói bộ ảnh dự phòng | `presentation/SlideBaoVe_20260818_Images.zip` | Dùng khi máy trình chiếu không mở ổn định PPTX/PDF | 15 PNG 1920×1080, đánh số `slide-01` đến `slide-15` |
+| Giữ nguồn cho từng slide | Speaker notes | 15/15 slide | Mỗi notes có block `[Sources]` |
+| QA template và bố cục | Workspace `.artifacts/presentation-erd-flow-20260818` | Bản review 2026-08-18 | Template fidelity `pass`, `0 issue`; montage đã xem đủ 15 trang |
+| Phân loại overflow | Deck cuối và template starter | Họa tiết tràn biên chủ ý | `slides_test.py` báo cùng đúng các slide `1,2,3,7,8,9,11,12,14,15` ở cả hai file |
+| Đối chiếu nghiệp vụ sau khi hoàn thiện slide | `docs/execution/BUSINESS-FLOW-AUDIT-20260818.md` | Code hiện tại, chưa tự sửa nghiệp vụ | Ghi rõ điểm đạt, rủi ro, quyết định cần owner chốt và thứ tự xử lý |
