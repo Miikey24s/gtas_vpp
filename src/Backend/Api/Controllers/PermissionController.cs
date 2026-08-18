@@ -17,7 +17,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Expressions;
-using System.Linq.Dynamic.Core;
 using static gtas_vpp_be.Service.Helpers.Config;
 using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionPageComponentResDTO;
 using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionComponentAccessResDTO;
@@ -42,6 +41,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IMembershipAdministrationService _membershipAdministrationService;
         private readonly ISecurityAuditQueryService _securityAuditQueryService;
         private readonly IUserAdministrationQueryService _userAdministrationQueryService;
+        private readonly IPermissionGroupQueryService _permissionGroupQueryService;
 
         public PermissionController(
             IGenericRepository<PermissionGroup> groupRepository,
@@ -53,7 +53,8 @@ namespace gtas_vpp_be.Controllers
             IPermissionChangeNotifier permissionChangeNotifier,
             IMembershipAdministrationService membershipAdministrationService,
             ISecurityAuditQueryService securityAuditQueryService,
-            IUserAdministrationQueryService userAdministrationQueryService)
+            IUserAdministrationQueryService userAdministrationQueryService,
+            IPermissionGroupQueryService permissionGroupQueryService)
         {
             _groupRepository = groupRepository;
             _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
@@ -67,6 +68,7 @@ namespace gtas_vpp_be.Controllers
             _membershipAdministrationService = membershipAdministrationService;
             _securityAuditQueryService = securityAuditQueryService;
             _userAdministrationQueryService = userAdministrationQueryService;
+            _permissionGroupQueryService = permissionGroupQueryService;
         }
 
         private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
@@ -82,135 +84,19 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] string? distinct = null,
             [FromQuery] string? distinctFilter = null)
         {
-            var canonicalGroupIds = CanonicalRbac.Personas
-                .Select(persona => persona.GroupId)
-                .ToArray();
+            var result = await _permissionGroupQueryService.GetPageAsync(
+                new PermissionGroupQuery(
+                    getFullName,
+                    filter,
+                    skip,
+                    top,
+                    orderby,
+                    distinct,
+                    distinctFilter),
+                HttpContext.RequestAborted);
 
-            IQueryable<PermissionGroupResDTO> query = _unitOfWork.VPPContext.Set<PermissionGroup>()
-                .AsNoTracking()
-                .Where(group => canonicalGroupIds.Contains(group.Id) && !group.IsDeleted)
-                .Select(group => new PermissionGroupResDTO
-                {
-                    Id = group.Id,
-                    Description = group.Description,
-                    CreatedByUserId = group.CreatedByUserId,
-                    CreatedAtUtc = group.CreatedAtUtc,
-                    UpdatedByUserId = group.UpdatedByUserId,
-                    UpdatedAtUtc = group.UpdatedAtUtc,
-                    IsDeleted = group.IsDeleted,
-                    MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
-                    GroupCode = group.GroupCode,
-                    GroupName = group.GroupName,
-                    ParentGroupId = group.ParentGroupId,
-                    UserCount = group.UserGroupMemberships == null
-                        ? 0
-                        : group.UserGroupMemberships
-                            .Where(membership => !membership.IsDeleted)
-                            .Select(membership => membership.AccountId ?? membership.UserId)
-                            .Distinct()
-                            .Count(),
-                    PermissionCount = group.GroupPageComponentMappings == null
-                        ? 0
-                        : group.GroupPageComponentMappings.Count(mapping =>
-                            mapping.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
-                            && mapping.IsVisible
-                            && mapping.IsEnable
-                            && mapping.PageComponentMapping != null
-                            && mapping.PageComponentMapping.PermissionPage != null
-                            && !mapping.PageComponentMapping.PermissionPage.IsDeleted
-                            && mapping.PageComponentMapping.PermissionComponent != null
-                            && !mapping.PageComponentMapping.PermissionComponent.IsDeleted)
-                });
-
-            if (!string.IsNullOrWhiteSpace(filter))
-            {
-                try
-                {
-                    query = query.Where(filter);
-                }
-                catch
-                {
-                    // Giữ tương thích ngược nếu Radzen gửi biểu thức chưa được hỗ trợ.
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(distinct))
-            {
-                var propertyInfo = typeof(PermissionGroupResDTO).GetProperty(distinct);
-                if (propertyInfo != null)
-                {
-                    var distinctValues = await query
-                        .Select(distinct)
-                        .Distinct()
-                        .ToDynamicListAsync();
-
-                    distinctValues = distinctValues
-                        .Where(val => val != null)
-                        .Where(val => string.IsNullOrWhiteSpace(distinctFilter)
-                            || (Convert.ToString(val, CultureInfo.CurrentCulture)?.Contains(distinctFilter, StringComparison.OrdinalIgnoreCase) ?? false))
-                        .ToList();
-
-                    Response.Headers.Append("X-Total-Count", distinctValues.Count.ToString());
-
-                    IEnumerable<object> pageValues = distinctValues.Cast<object>();
-                    if (skip.HasValue && skip.Value > 0)
-                    {
-                        pageValues = pageValues.Skip(skip.Value);
-                    }
-
-                    if (top.HasValue && top.Value > 0)
-                    {
-                        pageValues = pageValues.Take(top.Value);
-                    }
-
-                    var distinctDtos = pageValues.Select(val =>
-                    {
-                        var dto = new PermissionGroupResDTO();
-                        propertyInfo.SetValue(dto, val);
-                        return dto;
-                    }).ToList();
-
-                    return Ok(distinctDtos);
-                }
-            }
-
-            var totalCount = await query.CountAsync();
-
-            if (!string.IsNullOrWhiteSpace(orderby))
-            {
-                try
-                {
-                    query = query.OrderBy(orderby);
-                }
-                catch
-                {
-                    query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.GroupName);
-                }
-            }
-            else
-            {
-                query = query.OrderBy(x => x.IsDeleted).ThenBy(x => x.GroupName);
-            }
-
-            if (skip.HasValue && skip.Value > 0)
-            {
-                query = query.Skip(skip.Value);
-            }
-
-            if (top.HasValue && top.Value > 0)
-            {
-                query = query.Take(top.Value);
-            }
-
-            Response.Headers.Append("X-Total-Count", totalCount.ToString());
-
-            var page = await query.ToListAsync();
-            if (getFullName)
-            {
-                page = await _userNameResolver.WithUserNamesAsync(page, _unitOfWork.VPPContext);
-            }
-
-            return Ok(page);
+            Response.Headers.Append("X-Total-Count", result.TotalCount.ToString(CultureInfo.InvariantCulture));
+            return Ok(result.Items);
         }
 
         [HttpGet("groups/{id:guid}")]

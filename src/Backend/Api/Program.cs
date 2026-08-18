@@ -400,6 +400,7 @@ builder.Services.AddScoped<IAppAuthenticationService, AppAuthenticationService>(
 builder.Services.AddScoped<IMembershipAdministrationService, MembershipAdministrationService>();
 builder.Services.AddScoped<ISecurityAuditQueryService, SecurityAuditQueryService>();
 builder.Services.AddScoped<IUserAdministrationQueryService, UserAdministrationQueryService>();
+builder.Services.AddScoped<IPermissionGroupQueryService, PermissionGroupQueryService>();
 builder.Services.AddOptions<AuthBootstrapOptions>()
     .Bind(Configuration.GetSection(AuthBootstrapOptions.SectionName));
 builder.Services.AddScoped<IAuthBootstrapProvisioner, AuthBootstrapProvisioner>();

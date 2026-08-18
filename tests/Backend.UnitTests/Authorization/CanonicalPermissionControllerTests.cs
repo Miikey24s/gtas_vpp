@@ -407,7 +407,8 @@ public sealed class CanonicalPermissionControllerTests
             (permissionChangeNotifier ?? new Mock<IPermissionChangeNotifier>()).Object,
             Mock.Of<IMembershipAdministrationService>(),
             new SecurityAuditQueryService(context),
-            new UserAdministrationQueryService(context, Mock.Of<IUserNameResolver>()))
+            new UserAdministrationQueryService(context, Mock.Of<IUserNameResolver>()),
+            new PermissionGroupQueryService(context, Mock.Of<IUserNameResolver>()))
         {
             ControllerContext = new ControllerContext
             {
