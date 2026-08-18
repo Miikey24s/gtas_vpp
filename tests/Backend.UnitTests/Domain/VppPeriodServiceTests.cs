@@ -289,6 +289,36 @@ public sealed class VppPeriodServiceTests
     }
 
     [Fact]
+    public async Task Manual_period_can_recreate_a_soft_deleted_legacy_period()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        var request = new VppOrderPeriodManualCreateReqDTO
+        {
+            Year = 2026,
+            Month = 9,
+            OpenAtLocal = new DateTime(2026, 8, 26, 8, 0, 0),
+            CloseAtLocal = new DateTime(2026, 10, 5),
+            SupplementApprovalDeadlineLocal = new DateTime(2026, 10, 10),
+            Reason = "Thêm lại kỳ tháng 09 theo kế hoạch."
+        };
+        var legacy = await service.CreateManualAsync("ACME", 5615, request);
+
+        // Kỳ rolling cũ chỉ được lưu để truy vết; nó không chặn kỳ thủ công mới cùng tháng.
+        var legacyEntity = context.Periods.Single(x => x.Id == legacy.Id);
+        legacyEntity.IsDeleted = true;
+        legacyEntity.LastTransitionReason = "legacy-rolling-horizon-retired";
+        await context.SaveChangesAsync();
+
+        var recreated = await service.CreateManualAsync("ACME", 5615, request);
+
+        Assert.NotEqual(legacy.Id, recreated.Id);
+        Assert.Equal(2, context.Periods.Count(x => x.Year == 2026 && x.Month == 9));
+        Assert.Single(context.Periods.Where(x => x.Year == 2026 && x.Month == 9 && !x.IsDeleted));
+    }
+
+    [Fact]
     public async Task Locked_period_can_reopen_with_new_deadlines_and_a_reason()
     {
         await using var context = ServiceTestHelpers.CreateInMemoryContext(
