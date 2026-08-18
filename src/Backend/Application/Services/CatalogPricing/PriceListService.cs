@@ -532,7 +532,15 @@ namespace gtas_vpp_be.Service.Services
                 ExpiredByUserId = x.ExpiredByUserId,
                 StatusReason = x.StatusReason,
                 RowVersion = x.RowVersion,
-                ItemCount = x.SupplierProductMappings!.Count(m => showDeleted || !m.IsDeleted),
+                // showDeleted chỉ quyết định có hiển thị bảng giá đã vô hiệu hay không;
+                // số mặt hàng luôn phản ánh các mặt hàng duy nhất còn dùng được trong bảng giá.
+                ItemCount = x.SupplierProductMappings!
+                    .Where(mapping => !mapping.IsDeleted
+                        && mapping.VppItem != null
+                        && !mapping.VppItem.IsDeleted)
+                    .Select(mapping => mapping.VppItemId)
+                    .Distinct()
+                    .Count(),
                 DataSource = x.ImportBatches!
                     .Where(batch => !batch.IsDeleted
                         && batch.Status == PriceListImportBatchStatus.Completed)

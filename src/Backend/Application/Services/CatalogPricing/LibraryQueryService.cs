@@ -162,10 +162,10 @@ public sealed class LibraryQueryService : ILibraryQueryService
         var itemIds = items.Select(item => item.Id).ToList();
         var mappings = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
             .AsNoTracking()
-            .Where(mapping => (request.ShowDeleted || !mapping.IsDeleted)
+            .Where(mapping => !mapping.IsDeleted
                 && mapping.PriceListId == defaultPriceListId
                 && itemIds.Contains(mapping.VppItemId)
-                && (mapping.Supplier == null || request.ShowDeleted || !mapping.Supplier.IsDeleted))
+                && (mapping.Supplier == null || !mapping.Supplier.IsDeleted))
             .Select(mapping => new
             {
                 mapping.VppItemId,
@@ -236,27 +236,27 @@ public sealed class LibraryQueryService : ILibraryQueryService
                 VppCategoryId = item.VppCategoryId,
                 DefaultVatRate = VppPricingDefaults.VatRate,
                 DefaultPrice = item.SupplierProductMappings!
-                    .Where(mapping => (request.ShowDeleted || !mapping.IsDeleted)
+                    .Where(mapping => !mapping.IsDeleted
                         && mapping.PriceListId == defaultPriceListId
-                        && (mapping.Supplier == null || request.ShowDeleted || !mapping.Supplier.IsDeleted))
+                        && (mapping.Supplier == null || !mapping.Supplier.IsDeleted))
                     .OrderByDescending(mapping => mapping.IsDefault)
                     .ThenBy(mapping => mapping.Supplier != null && mapping.Supplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
                     .ThenBy(mapping => mapping.Supplier != null ? mapping.Supplier.SupplierName : null)
                     .Select(mapping => (decimal?)mapping.Price)
                     .FirstOrDefault(),
                 DefaultSupplierName = item.SupplierProductMappings!
-                    .Where(mapping => (request.ShowDeleted || !mapping.IsDeleted)
+                    .Where(mapping => !mapping.IsDeleted
                         && mapping.PriceListId == defaultPriceListId
-                        && (mapping.Supplier == null || request.ShowDeleted || !mapping.Supplier.IsDeleted))
+                        && (mapping.Supplier == null || !mapping.Supplier.IsDeleted))
                     .OrderByDescending(mapping => mapping.IsDefault)
                     .ThenBy(mapping => mapping.Supplier != null && mapping.Supplier.SupplierShortName == VppPricingDefaults.DefaultSupplierShortName ? 0 : 1)
                     .ThenBy(mapping => mapping.Supplier != null ? mapping.Supplier.SupplierName : null)
                     .Select(mapping => mapping.Supplier != null ? mapping.Supplier.SupplierName : null)
                     .FirstOrDefault(),
                 SupplierCount = item.SupplierProductMappings!
-                    .Where(mapping => (request.ShowDeleted || !mapping.IsDeleted)
+                    .Where(mapping => !mapping.IsDeleted
                         && mapping.PriceListId == defaultPriceListId
-                        && (mapping.Supplier == null || request.ShowDeleted || !mapping.Supplier.IsDeleted))
+                        && (mapping.Supplier == null || !mapping.Supplier.IsDeleted))
                     .Select(mapping => mapping.SupplierId)
                     .Distinct()
                     .Count(),
@@ -459,10 +459,10 @@ public sealed class LibraryQueryService : ILibraryQueryService
         var defaultPriceListId = await GetDefaultPriceListIdAsync(cancellationToken);
         var mappings = await _unitOfWork.VPPContext.Set<SupplierProductMapping>()
             .AsNoTracking()
-            .Where(mapping => (showDeleted || !mapping.IsDeleted)
+            .Where(mapping => !mapping.IsDeleted
                 && mapping.PriceListId == defaultPriceListId
                 && mapping.VppItemId == id
-                && (mapping.Supplier == null || showDeleted || !mapping.Supplier.IsDeleted))
+                && (mapping.Supplier == null || !mapping.Supplier.IsDeleted))
             .Select(mapping => new
             {
                 mapping.SupplierId,

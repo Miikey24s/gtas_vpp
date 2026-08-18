@@ -316,10 +316,14 @@ public sealed class VppCatalogService : IVppCatalogService
             VppCategoryId = x.VppCategoryId,
             VppCategoryCode = x.VppCategory != null ? x.VppCategory.VppCategoryCode : null,
             VppCategoryName = x.VppCategory != null ? x.VppCategory.VppCategoryName : null,
-            SupplierCount = x.SupplierProductMappings!.Count(m => !m.IsDeleted
-                && m.PriceListId == defaultPriceListId
-                && m.PriceList != null && !m.PriceList.IsDeleted
-                && (m.Supplier == null || !m.Supplier.IsDeleted)),
+            SupplierCount = x.SupplierProductMappings!
+                .Where(mapping => !mapping.IsDeleted
+                    && mapping.PriceListId == defaultPriceListId
+                    && mapping.PriceList != null && !mapping.PriceList.IsDeleted
+                    && (mapping.Supplier == null || !mapping.Supplier.IsDeleted))
+                .Select(mapping => mapping.SupplierId)
+                .Distinct()
+                .Count(),
             DefaultVatRate = VppPricingDefaults.VatRate,
             DefaultPrice = x.SupplierProductMappings!
                 .Where(m => !m.IsDeleted

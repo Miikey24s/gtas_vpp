@@ -118,6 +118,28 @@ public class PriceListServiceTests
         Assert.Equal(PriceListDataSources.Csv, Assert.Single(result.Data).DataSource);
     }
 
+    [Fact]
+    public async Task Query_ShowDeleted_CountsDistinctActiveCatalogItemsOnly()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 8, 19, 9, 0, 0);
+        var listId = await SeedListAsync(context, "COUNT", "Count items", isDefault: false, now);
+        var supplierId = await SeedSupplierAsync(context, now);
+        var itemId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, itemId);
+
+        var active = PriceRow(listId, itemId, supplierId, 100, isDefault: true, now);
+        var duplicate = PriceRow(listId, itemId, supplierId, 110, isDefault: false, now);
+        var deleted = PriceRow(listId, itemId, supplierId, 120, isDefault: false, now);
+        deleted.IsDeleted = true;
+        context.Set<SupplierProductMapping>().AddRange(active, duplicate, deleted);
+        await context.SaveChangesAsync();
+
+        var result = await CreateService(context, now).QueryAsync(showDeleted: true, search: "COUNT");
+
+        Assert.Equal(1, Assert.Single(result.Data).ItemCount);
+    }
+
     [Theory]
     [InlineData("DEFAULT", PriceListDataSources.Default)]
     [InlineData("MANUAL", PriceListDataSources.Manual)]
