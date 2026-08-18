@@ -405,7 +405,8 @@ public sealed class CanonicalPermissionControllerTests
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
             new FakeDateTimeProvider(DateTime.UtcNow),
             (permissionChangeNotifier ?? new Mock<IPermissionChangeNotifier>()).Object,
-            Mock.Of<IMembershipAdministrationService>())
+            Mock.Of<IMembershipAdministrationService>(),
+            new SecurityAuditQueryService(context))
         {
             ControllerContext = new ControllerContext
             {

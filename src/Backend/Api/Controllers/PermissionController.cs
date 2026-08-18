@@ -41,6 +41,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IPermissionChangeNotifier _permissionChangeNotifier;
         private readonly IMembershipAdministrationService _membershipAdministrationService;
+        private readonly ISecurityAuditQueryService _securityAuditQueryService;
 
         public PermissionController(
             IGenericRepository<PermissionGroup> groupRepository,
@@ -50,7 +51,8 @@ namespace gtas_vpp_be.Controllers
             IUnitOfWork unitOfWork,
             IDateTimeProvider dateTimeProvider,
             IPermissionChangeNotifier permissionChangeNotifier,
-            IMembershipAdministrationService membershipAdministrationService)
+            IMembershipAdministrationService membershipAdministrationService,
+            ISecurityAuditQueryService securityAuditQueryService)
         {
             _groupRepository = groupRepository;
             _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
@@ -62,6 +64,7 @@ namespace gtas_vpp_be.Controllers
             _dateTimeProvider = dateTimeProvider;
             _permissionChangeNotifier = permissionChangeNotifier;
             _membershipAdministrationService = membershipAdministrationService;
+            _securityAuditQueryService = securityAuditQueryService;
         }
 
         private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
@@ -660,108 +663,27 @@ namespace gtas_vpp_be.Controllers
             [FromQuery] string? orderby = null,
             CancellationToken cancellationToken = default)
         {
-            var audits = _unitOfWork.VPPContext.SecurityAudits.AsNoTracking();
-            if (occurredFromUtc.HasValue)
-            {
-                audits = audits.Where(audit => audit.OccurredAtUtc >= occurredFromUtc.Value);
-            }
-            if (occurredToUtc.HasValue)
-            {
-                audits = audits.Where(audit => audit.OccurredAtUtc <= occurredToUtc.Value);
-            }
+            var page = await _securityAuditQueryService.GetPageAsync(
+                new SecurityAuditQuery(
+                    search,
+                    action,
+                    outcome,
+                    occurredFromUtc,
+                    occurredToUtc,
+                    skip,
+                    top,
+                    orderby),
+                cancellationToken);
 
-            var users = _unitOfWork.VPPContext.Users.AsNoTracking();
-            IQueryable<SecurityAuditResDTO> query =
-                from audit in audits
-                join actor in users on audit.ActorUserId equals (int?)actor.Id into actorJoin
-                from actor in actorJoin.DefaultIfEmpty()
-                join target in users on audit.TargetUserId equals (int?)target.Id into targetJoin
-                from target in targetJoin.DefaultIfEmpty()
-                select new SecurityAuditResDTO
-                {
-                    Id = audit.Id,
-                    OccurredAtUtc = audit.OccurredAtUtc,
-                    ActorUserId = audit.ActorUserId,
-                    ActorUserName = actor == null ? null : actor.UserName,
-                    ActorFullName = actor == null ? null : actor.FullName,
-                    TargetUserId = audit.TargetUserId,
-                    TargetUserName = target == null ? null : target.UserName,
-                    TargetFullName = target == null ? null : target.FullName,
-                    Action = audit.Action,
-                    ResourceType = audit.ResourceType,
-                    ResourceId = audit.ResourceId,
-                    Outcome = audit.Outcome,
-                    Summary = audit.Summary,
-                    Reason = audit.Reason,
-                    CorrelationId = audit.CorrelationId
-                };
-
-            if (!string.IsNullOrWhiteSpace(action))
-            {
-                var actionValue = action.Trim();
-                query = query.Where(audit => audit.Action == actionValue);
-            }
-            if (!string.IsNullOrWhiteSpace(outcome))
-            {
-                var outcomeValue = outcome.Trim();
-                query = query.Where(audit => audit.Outcome == outcomeValue);
-            }
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var searchValue = search.Trim();
-                query = query.Where(audit =>
-                    audit.Action.Contains(searchValue)
-                    || audit.ResourceType.Contains(searchValue)
-                    || (audit.ResourceId != null && audit.ResourceId.Contains(searchValue))
-                    || (audit.Summary != null && audit.Summary.Contains(searchValue))
-                    || (audit.Reason != null && audit.Reason.Contains(searchValue))
-                    || (audit.CorrelationId != null && audit.CorrelationId.Contains(searchValue))
-                    || (audit.ActorUserName != null && audit.ActorUserName.Contains(searchValue))
-                    || (audit.ActorFullName != null && audit.ActorFullName.Contains(searchValue))
-                    || (audit.TargetUserName != null && audit.TargetUserName.Contains(searchValue))
-                    || (audit.TargetFullName != null && audit.TargetFullName.Contains(searchValue)));
-            }
-
-            var totalCount = await query.CountAsync(cancellationToken);
-            query = OrderSecurityAudits(query, orderby);
-            if (skip.GetValueOrDefault() > 0)
-            {
-                query = query.Skip(skip!.Value);
-            }
-            query = query.Take(Math.Clamp(top ?? 50, 1, 200));
-
-            Response.Headers.Append("X-Total-Count", totalCount.ToString(CultureInfo.InvariantCulture));
-            return Ok(await query.ToListAsync(cancellationToken));
+            Response.Headers.Append("X-Total-Count", page.TotalCount.ToString(CultureInfo.InvariantCulture));
+            return Ok(page.Items);
         }
 
         [HttpGet("security-audits/filter-options")]
         [Authorize(Policy = Permissions.PermissionManage)]
         [ProducesResponseType(typeof(SecurityAuditFilterOptionsResDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetSecurityAuditFilterOptions(CancellationToken cancellationToken)
-        {
-            var actions = await _unitOfWork.VPPContext.SecurityAudits
-                .AsNoTracking()
-                .Select(audit => audit.Action)
-                .Where(value => value != string.Empty)
-                .Distinct()
-                .OrderBy(value => value)
-                .Take(200)
-                .ToListAsync(cancellationToken);
-            var outcomes = await _unitOfWork.VPPContext.SecurityAudits
-                .AsNoTracking()
-                .Select(audit => audit.Outcome)
-                .Where(value => value != string.Empty)
-                .Distinct()
-                .OrderBy(value => value)
-                .Take(50)
-                .ToListAsync(cancellationToken);
-
-            return Ok(new SecurityAuditFilterOptionsResDTO
-            {
-                Actions = actions,
-                Outcomes = outcomes
-            });
-        }
+            => Ok(await _securityAuditQueryService.GetFilterOptionsAsync(cancellationToken));
 
         [HttpGet("users")]
         [ProducesResponseType(typeof(List<UserListDto>), StatusCodes.Status200OK)]
@@ -1056,32 +978,6 @@ namespace gtas_vpp_be.Controllers
             result.Succeeded
                 ? Ok(result.Membership)
                 : StatusCode(result.StatusCode, new { code = result.Code, message = result.Message });
-
-        private static IQueryable<SecurityAuditResDTO> OrderSecurityAudits(
-            IQueryable<SecurityAuditResDTO> query,
-            string? orderby) => orderby?.Trim().ToLowerInvariant() switch
-            {
-                "occurredatutc asc" => query.OrderBy(audit => audit.OccurredAtUtc),
-                "action asc" => query.OrderBy(audit => audit.Action).ThenByDescending(audit => audit.OccurredAtUtc),
-                "action desc" => query.OrderByDescending(audit => audit.Action).ThenByDescending(audit => audit.OccurredAtUtc),
-                "actorfullname asc" => query.OrderBy(audit => audit.ActorFullName).ThenByDescending(audit => audit.OccurredAtUtc),
-                "actorfullname desc" => query.OrderByDescending(audit => audit.ActorFullName).ThenByDescending(audit => audit.OccurredAtUtc),
-                "outcome asc" => query.OrderBy(audit => audit.Outcome).ThenByDescending(audit => audit.OccurredAtUtc),
-                "outcome desc" => query.OrderByDescending(audit => audit.Outcome).ThenByDescending(audit => audit.OccurredAtUtc),
-                "targetfullname asc" => query.OrderBy(audit => audit.TargetFullName).ThenByDescending(audit => audit.OccurredAtUtc),
-                "targetfullname desc" => query.OrderByDescending(audit => audit.TargetFullName).ThenByDescending(audit => audit.OccurredAtUtc),
-                "resourcetype asc" => query.OrderBy(audit => audit.ResourceType).ThenByDescending(audit => audit.OccurredAtUtc),
-                "resourcetype desc" => query.OrderByDescending(audit => audit.ResourceType).ThenByDescending(audit => audit.OccurredAtUtc),
-                "resourceid asc" => query.OrderBy(audit => audit.ResourceId).ThenByDescending(audit => audit.OccurredAtUtc),
-                "resourceid desc" => query.OrderByDescending(audit => audit.ResourceId).ThenByDescending(audit => audit.OccurredAtUtc),
-                "summary asc" => query.OrderBy(audit => audit.Summary).ThenByDescending(audit => audit.OccurredAtUtc),
-                "summary desc" => query.OrderByDescending(audit => audit.Summary).ThenByDescending(audit => audit.OccurredAtUtc),
-                "reason asc" => query.OrderBy(audit => audit.Reason).ThenByDescending(audit => audit.OccurredAtUtc),
-                "reason desc" => query.OrderByDescending(audit => audit.Reason).ThenByDescending(audit => audit.OccurredAtUtc),
-                "correlationid asc" => query.OrderBy(audit => audit.CorrelationId).ThenByDescending(audit => audit.OccurredAtUtc),
-                "correlationid desc" => query.OrderByDescending(audit => audit.CorrelationId).ThenByDescending(audit => audit.OccurredAtUtc),
-                _ => query.OrderByDescending(audit => audit.OccurredAtUtc)
-            };
 
         private async Task<List<T>> ReadAsync<T>(
             IGenericRepository<T> repository,

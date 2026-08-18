@@ -179,7 +179,8 @@ public sealed class MembershipPermissionControllerTests
             ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
             new FakeDateTimeProvider(DateTime.UtcNow),
             Mock.Of<IPermissionChangeNotifier>(),
-            Mock.Of<IMembershipAdministrationService>())
+            Mock.Of<IMembershipAdministrationService>(),
+            new SecurityAuditQueryService(context))
         {
             ControllerContext = new ControllerContext
             {
