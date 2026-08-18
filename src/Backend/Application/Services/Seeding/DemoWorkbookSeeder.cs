@@ -1068,18 +1068,19 @@ public static class DemoWorkbookSeeder
                     FullName = row.FullName,
                     EmployeeCode = row.EmployeeCode,
                     MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
-                    AccountStatus = AppAccountStatus.Disabled,
-                    MustChangePassword = false,
+                    AccountStatus = AppAccountStatus.Active,
+                    MustChangePassword = true,
                     SessionVersion = 1,
                     EmailConfirmed = false,
                     PasswordHash = null,
                     SecurityStamp = Guid.NewGuid().ToString("N"),
                     ConcurrencyStamp = Guid.NewGuid().ToString("N"),
                     LockoutEnabled = true,
-                    LockoutEnd = DateTimeOffset.MaxValue,
+                    LockoutEnd = null,
                     CreatedAtUtc = nowUtc,
                     UpdatedAtUtc = nowUtc,
-                    DisabledAtUtc = nowUtc
+                    ActivatedAtUtc = nowUtc,
+                    DisabledAtUtc = null
                 };
                 context.Users.Add(user);
                 users.Add(user);
@@ -1093,12 +1094,23 @@ public static class DemoWorkbookSeeder
                 user.FullName = row.FullName;
                 user.EmployeeCode = row.EmployeeCode;
                 user.MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode;
-                user.AccountStatus = AppAccountStatus.Disabled;
-                user.PasswordHash = null;
-                user.LockoutEnabled = true;
-                user.LockoutEnd = DateTimeOffset.MaxValue;
                 user.UpdatedAtUtc = nowUtc;
-                user.DisabledAtUtc ??= nowUtc;
+
+                if (IsLegacyLockedDemoAccount(user))
+                {
+                    // Fixture cũ khóa account vĩnh viễn nên membership không thể bật lại.
+                    // Chỉ sửa đúng dấu vết cũ; trạng thái quản trị về sau vẫn được giữ nguyên.
+                    user.AccountStatus = AppAccountStatus.Active;
+                    user.MustChangePassword = string.IsNullOrWhiteSpace(user.PasswordHash)
+                        || user.MustChangePassword;
+                    user.LockoutEnabled = true;
+                    user.LockoutEnd = null;
+                    user.ActivatedAtUtc ??= nowUtc;
+                    user.DisabledAtUtc = null;
+                    user.SessionVersion = checked(user.SessionVersion + 1);
+                    user.SecurityStamp = Guid.NewGuid().ToString("N");
+                    user.ConcurrencyStamp = Guid.NewGuid().ToString("N");
+                }
             }
 
             result[row.DepartmentCode] = user;
@@ -1106,44 +1118,44 @@ public static class DemoWorkbookSeeder
 
         await context.SaveChangesAsync(cancellationToken);
 
+        var demoUserIds = result.Values
+            .Where(user => user.Id != owner.User.Id)
+            .Select(user => user.Id)
+            .Distinct()
+            .ToArray();
         var memberships = await context.UserGroupMemberships
-            .Where(x => x.AccountId != null && !x.IsDeleted)
+            .Where(x => demoUserIds.Contains(x.UserId)
+                || (x.AccountId.HasValue && demoUserIds.Contains(x.AccountId.Value)))
             .ToListAsync(cancellationToken);
         foreach (var pair in result.Where(x => x.Value.Id != owner.User.Id))
         {
             var user = pair.Value;
             var department = departmentByCode[pair.Key];
-            var membership = memberships.FirstOrDefault(x => x.AccountId == user.Id);
-            if (membership is null)
+            var membership = memberships.FirstOrDefault(x =>
+                x.AccountId == user.Id || x.UserId == user.Id);
+            if (membership is not null)
             {
-                membership = new UserGroupMembership
-                {
-                    Id = StableGuid($"demo-membership|{user.NormalizedUserName}"),
-                    UserId = user.Id,
-                    AccountId = user.Id,
-                    PermissionGroupId = CanonicalRbac.Employee.GroupId,
-                    DepartmentId = department.Id,
-                    Description = null,
-                    CreatedByUserId = owner.User.Id,
-                    CreatedAtUtc = nowUtc,
-                    UpdatedByUserId = owner.User.Id,
-                    UpdatedAtUtc = nowUtc,
-                    IsDeleted = false
-                };
-                context.UserGroupMemberships.Add(membership);
-                memberships.Add(membership);
+                // Không tự mở lại membership đã bị quản trị viên vô hiệu hóa và
+                // không ghi đè nhóm/phòng ban đã được chỉnh sau lần seed đầu tiên.
+                continue;
             }
-            else
+
+            membership = new UserGroupMembership
             {
-                membership.UserId = user.Id;
-                membership.AccountId = user.Id;
-                membership.PermissionGroupId = CanonicalRbac.Employee.GroupId;
-                membership.DepartmentId = department.Id;
-                membership.Description = null;
-                membership.UpdatedByUserId = owner.User.Id;
-                membership.UpdatedAtUtc = nowUtc;
-                membership.IsDeleted = false;
-            }
+                Id = StableGuid($"demo-membership|{user.NormalizedUserName}"),
+                UserId = user.Id,
+                AccountId = user.Id,
+                PermissionGroupId = CanonicalRbac.Employee.GroupId,
+                DepartmentId = department.Id,
+                Description = null,
+                CreatedByUserId = owner.User.Id,
+                CreatedAtUtc = nowUtc,
+                UpdatedByUserId = owner.User.Id,
+                UpdatedAtUtc = nowUtc,
+                IsDeleted = false
+            };
+            context.UserGroupMemberships.Add(membership);
+            memberships.Add(membership);
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -1495,6 +1507,12 @@ public static class DemoWorkbookSeeder
 
     private static bool IsOwnedDemoUser(AppUser user) =>
         user.Email?.EndsWith(DemoEmailSuffix, StringComparison.OrdinalIgnoreCase) == true;
+
+    private static bool IsLegacyLockedDemoAccount(AppUser user) =>
+        IsOwnedDemoUser(user)
+        && user.AccountStatus == AppAccountStatus.Disabled
+        && string.IsNullOrWhiteSpace(user.PasswordHash)
+        && user.LockoutEnd == DateTimeOffset.MaxValue;
 
     private static DateTime NormalizeUtc(DateTime value) => value.Kind switch
     {

@@ -106,6 +106,13 @@ public sealed class DemoWorkbookSeederTests
         Assert.Contains(".Chunk(1000)", seederSource, StringComparison.Ordinal);
         Assert.Contains("? EntityState.Detached", seederSource, StringComparison.Ordinal);
         Assert.Contains(": EntityState.Added;", seederSource, StringComparison.Ordinal);
+        Assert.Contains("AccountStatus = AppAccountStatus.Active", seederSource, StringComparison.Ordinal);
+        Assert.Contains("IsLegacyLockedDemoAccount(user)", seederSource, StringComparison.Ordinal);
+        Assert.Contains("user.LockoutEnd = null;", seederSource, StringComparison.Ordinal);
+        Assert.Contains("if (membership is not null)", seederSource, StringComparison.Ordinal);
+        Assert.Contains("không tự mở lại membership", seederSource, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("user.AccountStatus = AppAccountStatus.Disabled;", seederSource, StringComparison.Ordinal);
+        Assert.DoesNotContain("user.LockoutEnd = DateTimeOffset.MaxValue;", seederSource, StringComparison.Ordinal);
     }
 
     private static string FindRepositoryRoot()
