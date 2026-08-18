@@ -137,6 +137,7 @@ builder.Services.AddScoped<IPostSettlementOrderCorrectionService, PostSettlement
 builder.Services.AddScoped<IVppCatalogService, VppCatalogService>();
 builder.Services.AddScoped<ILibraryIntegrityService, LibraryIntegrityService>();
 builder.Services.AddScoped<ILibraryQueryService, LibraryQueryService>();
+builder.Services.AddScoped<ILibraryMutationService, LibraryMutationService>();
 builder.Services.AddReportsModule(Configuration);
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();

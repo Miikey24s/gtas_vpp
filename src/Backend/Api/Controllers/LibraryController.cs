@@ -6,10 +6,8 @@ using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Services;
 using gtas_vpp_shared.Constants;
 using gtas_vpp_shared.DTOs.Res.Library;
-using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace gtas_vpp_be.Controllers;
 
@@ -19,18 +17,9 @@ namespace gtas_vpp_be.Controllers;
 public class LibraryController : BaseGenericController
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
-    private static readonly HashSet<string> WriteDeniedFields = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Id",
-        "CreatedByUserId",
-        "CreatedAtUtc",
-        "UpdatedByUserId",
-        "UpdatedAtUtc"
-    };
-
-    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly ILibraryIntegrityService _libraryIntegrityService;
     private readonly ILibraryQueryService _libraryQueryService;
+    private readonly ILibraryMutationService _libraryMutationService;
 
     public LibraryController(
         IServiceProvider serviceProvider,
@@ -38,12 +27,14 @@ public class LibraryController : BaseGenericController
         IUnitOfWork unitOfWork,
         IDateTimeProvider dateTimeProvider,
         ILibraryIntegrityService? libraryIntegrityService = null,
-        ILibraryQueryService? libraryQueryService = null)
+        ILibraryQueryService? libraryQueryService = null,
+        ILibraryMutationService? libraryMutationService = null)
         : base(serviceProvider, userNameResolver, unitOfWork)
     {
-        _dateTimeProvider = dateTimeProvider;
         _libraryIntegrityService = libraryIntegrityService ?? new LibraryIntegrityService(unitOfWork);
         _libraryQueryService = libraryQueryService ?? new LibraryQueryService(unitOfWork, userNameResolver);
+        _libraryMutationService = libraryMutationService
+            ?? new LibraryMutationService(unitOfWork, dateTimeProvider, userNameResolver);
     }
 
     [HttpGet("{tableCode}")]
@@ -133,18 +124,12 @@ public class LibraryController : BaseGenericController
             if (validation is not null) return validation;
         }
 
-        var json = payload.GetRawText();
-        return tableCode.ToLowerInvariant() switch
-        {
-            "lookup-categories" => await CreateAsync<LookupCategory, LookupCategoryResDTO>(json),
-            "lookup-values" => await CreateAsync<LookupValue, LookupValueResDTO>(json),
-            "vpp-categories" => await CreateAsync<VppCategory, VppCategoryResDTO>(json),
-            "vpp-items" => await CreateAsync<VppItem, VppItemResDTO>(json),
-            "suppliers" => await CreateAsync<Supplier, SupplierResDTO>(json),
-            "supplier-product-mappings" => await CreateAsync<SupplierProductMapping, SupplierProductMappingResDTO>(json),
-            "departments" => await CreateAsync<Department, DepartmentResDTO>(json),
-            _ => BadRequest(new { Message = $"Create for Table Code '{tableCode}' is not supported." })
-        };
+        var result = await _libraryMutationService.CreateAsync(
+            tableCode,
+            payload,
+            CurrentUserId,
+            HttpContext.RequestAborted);
+        return MapMutationResult(result);
     }
 
     [HttpPut("{tableCode}")]
@@ -153,26 +138,20 @@ public class LibraryController : BaseGenericController
     {
         if (IsMigratedVppItemTable(tableCode)) return MigratedVppItemMutationProblem();
 
-        var json = payload.GetRawText();
         if (tableCode.Equals("departments", StringComparison.OrdinalIgnoreCase))
         {
-            var dto = JsonSerializer.Deserialize<DepartmentResDTO>(json, JsonOptions);
+            var dto = JsonSerializer.Deserialize<DepartmentResDTO>(payload.GetRawText(), JsonOptions);
             if (dto is null) return BadRequest(new { Message = "Department payload is invalid." });
             var validation = await ValidateDepartmentPayloadAsync(payload, dto.Id);
             if (validation is not null) return validation;
         }
 
-        return tableCode.ToLowerInvariant() switch
-        {
-            "lookup-categories" => await UpdateAsync<LookupCategory, LookupCategoryResDTO>(json),
-            "lookup-values" => await UpdateAsync<LookupValue, LookupValueResDTO>(json),
-            "vpp-categories" => await UpdateAsync<VppCategory, VppCategoryResDTO>(json),
-            "vpp-items" => await UpdateAsync<VppItem, VppItemResDTO>(json),
-            "suppliers" => await UpdateAsync<Supplier, SupplierResDTO>(json),
-            "supplier-product-mappings" => await UpdateAsync<SupplierProductMapping, SupplierProductMappingResDTO>(json),
-            "departments" => await UpdateAsync<Department, DepartmentResDTO>(json),
-            _ => BadRequest(new { Message = $"Update for Table Code '{tableCode}' is not supported." })
-        };
+        var result = await _libraryMutationService.UpdateAsync(
+            tableCode,
+            payload,
+            CurrentUserId,
+            HttpContext.RequestAborted);
+        return MapMutationResult(result);
     }
 
     [HttpPatch("{tableCode}/{id:guid}")]
@@ -210,17 +189,13 @@ public class LibraryController : BaseGenericController
             if (validation is not null) return validation;
         }
 
-        return normalizedTableCode switch
-        {
-            "lookup-categories" => await ApplyPatchAsync<LookupCategory, LookupCategoryResDTO>(id, payload),
-            "lookup-values" => await ApplyPatchAsync<LookupValue, LookupValueResDTO>(id, payload),
-            "vpp-categories" => await ApplyPatchAsync<VppCategory, VppCategoryResDTO>(id, payload),
-            "vpp-items" => await ApplyPatchAsync<VppItem, VppItemResDTO>(id, payload),
-            "suppliers" => await ApplyPatchAsync<Supplier, SupplierResDTO>(id, payload),
-            "supplier-product-mappings" => await ApplyPatchAsync<SupplierProductMapping, SupplierProductMappingResDTO>(id, payload),
-            "departments" => await ApplyPatchAsync<Department, DepartmentResDTO>(id, payload),
-            _ => BadRequest(new { Message = $"Patch for Table Code '{tableCode}' is not supported." })
-        };
+        var result = await _libraryMutationService.PatchAsync(
+            normalizedTableCode,
+            id,
+            payload,
+            CurrentUserId,
+            HttpContext.RequestAborted);
+        return MapMutationResult(result);
     }
 
     [HttpDelete("{tableCode}/{id:guid}")]
@@ -276,74 +251,16 @@ public class LibraryController : BaseGenericController
         };
     }
 
-    private async Task<IActionResult> CreateAsync<TModel, TDto>(string json)
-        where TModel : gtas_vpp_be.Model.Helpers.BaseModel
-        where TDto : class
-    {
-        var dto = JsonSerializer.Deserialize<TDto>(json, JsonOptions);
-        if (dto is null) return BadRequest();
-
-        var entity = dto.Adapt<TModel>();
-        var userId = CurrentUserId;
-        var now = _dateTimeProvider.Now;
-        entity.Id = Guid.Empty;
-        entity.CreatedAtUtc = now;
-        entity.UpdatedAtUtc = now;
-        entity.CreatedByUserId = userId;
-        entity.UpdatedByUserId = userId;
-        entity.IsDeleted = false;
-        var created = await GetRepository<TModel>().AddAsync(entity);
-        return Ok(created?.Adapt<TDto>());
-    }
-
-    private async Task<IActionResult> UpdateAsync<TModel, TDto>(string json)
-        where TModel : gtas_vpp_be.Model.Helpers.BaseModel
-        where TDto : class
-    {
-        var dto = JsonSerializer.Deserialize<TDto>(json, JsonOptions);
-        if (dto is null) return BadRequest();
-
-        var entity = dto.Adapt<TModel>();
-        var existing = await GetEntityByIdAsync<TModel>(entity.Id, false);
-        if (existing is null) return NotFound(new { Message = $"Record with ID {entity.Id} not found." });
-
-        entity.CreatedByUserId = existing.CreatedByUserId;
-        entity.CreatedAtUtc = existing.CreatedAtUtc;
-        entity.IsDeleted = existing.IsDeleted;
-        entity.UpdatedAtUtc = _dateTimeProvider.Now;
-        entity.UpdatedByUserId = CurrentUserId;
-        _unitOfWork.VPPContext.Entry(existing).State = EntityState.Detached;
-        var updated = await GetRepository<TModel>().UpdateAsync(entity);
-        return Ok(updated.Adapt<TDto>());
-    }
-
-    private async Task<IActionResult> ApplyPatchAsync<TModel, TDto>(Guid id, JsonElement payload)
-        where TModel : class
-        where TDto : class
-    {
-        var entity = await GetEntityByIdAsync<TModel>(id, true);
-        if (entity is null) return NotFound(new { Message = $"Record with ID {id} not found." });
-
-        var type = typeof(TModel);
-        foreach (var jsonProperty in payload.EnumerateObject())
-        {
-            if (WriteDeniedFields.Contains(jsonProperty.Name)) continue;
-            var property = type.GetProperty(
-                jsonProperty.Name,
-                System.Reflection.BindingFlags.IgnoreCase
-                | System.Reflection.BindingFlags.Public
-                | System.Reflection.BindingFlags.Instance);
-            if (property is null || !property.CanWrite) continue;
-            property.SetValue(entity, JsonSerializer.Deserialize(jsonProperty.Value.GetRawText(), property.PropertyType));
-        }
-
-        type.GetProperty("UpdatedAtUtc")?.SetValue(entity, _dateTimeProvider.Now);
-        type.GetProperty("UpdatedByUserId")?.SetValue(entity, CurrentUserId);
-        var updated = await GetRepository<TModel>().UpdateAsync(entity);
-        return Ok(updated.Adapt<TDto>());
-    }
-
     private int CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var userId) ? userId : 0;
+
+    private IActionResult MapMutationResult(LibraryMutationResult result)
+        => result.Status switch
+        {
+            LibraryMutationStatus.Success => Ok(result.Value),
+            LibraryMutationStatus.NotFound => NotFound(new { result.Message }),
+            _ when result.Message is null => BadRequest(),
+            _ => BadRequest(new { result.Message })
+        };
 
     private static bool IsDeletionRequested(JsonElement payload)
         => TryGetPropertyIgnoreCase(payload, nameof(gtas_vpp_be.Model.Helpers.BaseModel.IsDeleted), out var value)
