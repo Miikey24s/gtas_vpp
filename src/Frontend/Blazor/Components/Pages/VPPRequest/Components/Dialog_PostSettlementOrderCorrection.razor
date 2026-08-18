@@ -70,7 +70,7 @@
                             <VppAdminIconAction Icon="@(item.IsRemoved ? VppIcons.Reset : VppIcons.Close)"
                                                 Text="@(item.IsRemoved ? Loc["UndoRemoval"] : Loc["RemoveFromOrder"])"
                                                 Title="@(item.IsRemoved ? Loc["UndoRemoval"] : Loc["RemoveFromOrder"])"
-                                                ButtonStyle="@(item.IsRemoved ? ButtonStyle.Light : ButtonStyle.Danger)"
+                                                ButtonStyle="@(item.IsRemoved ? ButtonStyle.Base : ButtonStyle.Danger)"
                                                 Variant="Variant.Outlined"
                                                 Click="@(_ => ToggleRemoved(item))" />
                         </article>

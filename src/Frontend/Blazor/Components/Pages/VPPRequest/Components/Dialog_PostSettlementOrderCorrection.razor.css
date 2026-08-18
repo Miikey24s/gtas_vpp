@@ -37,7 +37,11 @@
 .vpp-order-correction-item.is-removed {
     background: var(--vpp-surface-canvas);
     border-color: var(--vpp-border-default);
-    opacity: .72;
+}
+
+.vpp-order-correction-item.is-removed .vpp-order-correction-item-copy,
+.vpp-order-correction-item.is-removed .vpp-order-correction-quantity {
+    opacity: .64;
 }
 
 .vpp-order-correction-item-copy {

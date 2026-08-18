@@ -128,12 +128,101 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
             .GetByRole(AriaRole.Button, new() { Name = "Đóng", Exact = true })
             .ClickAsync();
 
+        // Toast của bước chốt trước không thuộc dialog điều chỉnh và không được che bằng chứng visual.
+        var settlementToast = Page.Locator(".rz-notification:visible");
+        if (await settlementToast.CountAsync() > 0)
+        {
+            var closeToastButton = settlementToast.Last
+                .GetByRole(AriaRole.Button)
+                .Last;
+            if (await closeToastButton.CountAsync() > 0)
+            {
+                await closeToastButton.ClickAsync();
+            }
+        }
+
         var surface = Page.GetByTestId("period-settlement-data-surface");
         await surface.GetByRole(AriaRole.Button, new() { Name = "Xem đơn", Exact = true }).First.ClickAsync();
         await Page.GetByRole(
                 AriaRole.Button,
                 new() { Name = "Điều chỉnh sau chốt", Exact = true })
             .WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+
+        await Page.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Điều chỉnh sau chốt", Exact = true })
+            .ClickAsync();
+        var correctionDialog = Page.GetByTestId("post-settlement-order-correction-dialog");
+        await correctionDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+
+        // Luồng điều chỉnh chỉ thao tác trên các mặt hàng đã có trong đơn, không thêm mặt hàng mới.
+        await Assertions.Expect(correctionDialog.Locator(".vpp-order-correction-items"))
+            .ToBeVisibleAsync();
+        await Assertions.Expect(correctionDialog.Locator(".vpp-order-correction-item"))
+            .ToHaveCountAsync(1);
+        var correctionItemDisplay = await correctionDialog.Locator(".vpp-order-correction-item")
+            .EvaluateAsync<string>("node => getComputedStyle(node).display");
+        correctionItemDisplay.Should().Be("grid", "scoped CSS của dialog phải được nạp trước khi kiểm tra hình ảnh");
+        await Assertions.Expect(correctionDialog.GetByText("Đổi số lượng: 0", new() { Exact = true }))
+            .ToBeVisibleAsync();
+        await Assertions.Expect(correctionDialog.GetByText("Bỏ khỏi đơn: 0", new() { Exact = true }))
+            .ToBeVisibleAsync();
+
+        var quantityInput = correctionDialog.Locator(".vpp-order-correction-item input").First;
+        await quantityInput.FillAsync("3");
+        await Assertions.Expect(correctionDialog.GetByText("Đổi số lượng: 1", new() { Exact = true }))
+            .ToBeVisibleAsync();
+
+        await correctionDialog.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Bỏ khỏi đơn", Exact = true })
+            .ClickAsync();
+        await Assertions.Expect(correctionDialog.GetByText("Sẽ bỏ", new() { Exact = true }))
+            .ToBeVisibleAsync();
+        await Assertions.Expect(correctionDialog.GetByText("Bỏ khỏi đơn: 1", new() { Exact = true }))
+            .ToBeVisibleAsync();
+        var undoButton = correctionDialog.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Hoàn tác", Exact = true });
+        await Assertions.Expect(undoButton).ToBeEnabledAsync();
+        var undoOpacity = await undoButton.EvaluateAsync<double>(
+            "node => Number.parseFloat(getComputedStyle(node).opacity)");
+        undoOpacity.Should().BeGreaterThanOrEqualTo(
+            0.9,
+            "hàng bị bỏ có thể làm mờ dữ liệu nhưng không được làm mờ thao tác Hoàn tác");
+        var removeAllItemsWarning = correctionDialog.GetByText(
+            "Phải giữ ít nhất một mặt hàng. Nếu không còn nhu cầu, chọn Hủy toàn bộ đơn.",
+            new() { Exact = true });
+        await Assertions.Expect(removeAllItemsWarning).ToBeVisibleAsync();
+        await Assertions.Expect(correctionDialog.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Gửi yêu cầu", Exact = true }))
+            .ToBeDisabledAsync();
+        await removeAllItemsWarning.EvaluateAsync(
+            "node => node.scrollIntoView({ block: 'center', inline: 'nearest' })");
+        await CaptureAsync("post-settlement-order-item-removal-1366x768.png");
+
+        await correctionDialog.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Hoàn tác", Exact = true })
+            .ClickAsync();
+        await Assertions.Expect(quantityInput).ToHaveValueAsync("4");
+        await Assertions.Expect(correctionDialog.GetByText("Đổi số lượng: 0", new() { Exact = true }))
+            .ToBeVisibleAsync();
+
+        await correctionDialog.GetByRole(
+                AriaRole.Button,
+                new() { Name = "Thay đổi", Exact = true })
+            .ClickAsync();
+        await Page.GetByRole(
+                AriaRole.Option,
+                new() { Name = "Hủy toàn bộ đơn", Exact = true })
+            .ClickAsync();
+        await Assertions.Expect(correctionDialog.GetByText(
+                "Đơn sẽ được hủy sau khi một quản lý khác duyệt. Bản chốt hiện tại vẫn được giữ đến khi kỳ được chốt lại.",
+                new() { Exact = true }))
+            .ToBeVisibleAsync();
+        await CaptureAsync("post-settlement-order-correction-1366x768.png");
     }
 
     private async Task OpenSettlementAsync(int year, int month)

@@ -1958,3 +1958,4 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Frontend kiểm tra thay đổi thật, giới hạn số lượng mỗi đơn và khóa gửi khi không hợp lệ. Backend kiểm tra lại mặt hàng thuộc đúng đơn nguồn, còn trong bản chốt hiện hành, không vượt giới hạn và từ chối yêu cầu không có thay đổi.
 - Yêu cầu vẫn cần một quản lý khác duyệt. Duyệt chỉ tạo bản đơn hiện hành mới và đánh dấu kỳ có thay đổi chưa chốt; quản lý phải mở preview rồi `Chốt lại kỳ` để tạo bản chốt N+1. Bản chốt cũ không bị sửa hoặc xóa.
 - Hàng chờ duyệt và preview chốt lại hiển thị số mặt hàng đổi số lượng, số mặt hàng bị bỏ hoặc `Hủy toàn bộ đơn`. Nhật ký lưu delta có cấu trúc để đối chiếu mà không lộ thuật ngữ kỹ thuật trên UI.
+- Verification 2026-08-19: backend focused `10/10`, frontend architecture `29/29`, route-real isolated Release `1/1`; ảnh kiểm tra gồm trạng thái bỏ/hoàn tác mặt hàng và hủy toàn bộ đơn tại `TestResults/goal-post-settlement/`.
