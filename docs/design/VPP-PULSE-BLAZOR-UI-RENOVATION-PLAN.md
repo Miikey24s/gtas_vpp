@@ -1931,6 +1931,7 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 ### 16.10 My Orders theo kỳ được chọn — 2026-08-18
 
 - Header `Đơn hàng của tôi` dùng ba card bằng nhau: `Kỳ đặt hàng`, `Hạn gửi đơn thường`, `Hạn gửi đơn bổ sung`. Hai mốc hạn luôn hiện cùng lúc và cùng thuộc kỳ đang chọn; chuyển loại đơn không làm hàng card đổi cấu trúc.
+- Card bổ sung diễn đạt theo đúng vòng đời: khi kỳ thường còn mở hiển thị `Mở sau N ngày`; khi cửa sổ bổ sung đã mở mới hiển thị `Còn N ngày`; kỳ đang chốt hoặc đã chốt hiển thị `Đã đóng`. Ngày bên phải vẫn là hạn cuối nhận đơn bổ sung.
 - Selector ngang chỉ phân loại `Đơn thường | Đơn bổ sung`; bỏ `Kỳ trước` vì kỳ đã được chọn ở card trên và lịch sử đơn đã có route riêng.
 - URL `orderView=previous` cũ fallback về đơn thường; route catalog không tiếp tục quảng bá biến thể đã nghỉ.
 - Migration chuyển tiếp chỉ soft-delete 09–10/2026 do rolling cũ tự sinh khi chưa có bất kỳ dữ liệu nghiệp vụ; giữ 08/2026 và mọi kỳ thủ công/có đơn.

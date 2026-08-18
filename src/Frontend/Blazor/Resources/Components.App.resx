@@ -660,6 +660,10 @@
   <data name="SupplementOrderDeadline" xml:space="preserve"><value>Hạn gửi đơn bổ sung</value></data>
   <data name="DeadlinePassed" xml:space="preserve"><value>Đã hết hạn</value></data>
   <data name="OpensAfterPeriodCloses" xml:space="preserve"><value>Mở sau khi kỳ đóng</value></data>
+  <data name="SupplementOpensInDaysFormat" xml:space="preserve"><value>Mở sau {0} ngày</value></data>
+  <data name="SupplementOpensToday" xml:space="preserve"><value>Mở hôm nay</value></data>
+  <data name="SupplementWindowClosed" xml:space="preserve"><value>Đã đóng</value></data>
+  <data name="SupplementWindowNotOpen" xml:space="preserve"><value>Chưa mở</value></data>
   <data name="RegularOrder" xml:space="preserve"><value>Đơn thường</value></data>
   <data name="PreviousCycleOrder" xml:space="preserve"><value>Đơn kỳ trước</value></data>
   <data name="OrderItemsSummaryFormat" xml:space="preserve"><value>{0} mặt hàng · tổng số lượng {1}</value></data>

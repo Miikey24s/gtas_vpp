@@ -767,6 +767,10 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("SupplementOrderDeadline", source, StringComparison.Ordinal);
         Assert.Contains("RegularDeadlineDate", codeBehind, StringComparison.Ordinal);
         Assert.Contains("SupplementDeadlineDate", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("SupplementDeadlineStatusText", source, StringComparison.Ordinal);
+        Assert.Contains("SupplementOpensInDaysFormat", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("\"SubmissionClosed\" => GetDeadlineStatusText(SupplementDeadlineDate)", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetDeadlineStatusText(SupplementDeadlineDate)</strong>", source, StringComparison.Ordinal);
         Assert.DoesNotContain("SelectedDeadline", codeBehind, StringComparison.Ordinal);
         Assert.Contains("grid-template-columns: repeat(3, minmax(0, 1fr))", styles, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-story-commands", source, StringComparison.Ordinal);

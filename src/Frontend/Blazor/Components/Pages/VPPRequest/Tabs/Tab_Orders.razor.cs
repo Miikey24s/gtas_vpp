@@ -92,6 +92,29 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                 ? "is-urgent"
                 : string.Empty;
 
+        // Cửa sổ bổ sung chỉ bắt đầu sau khi kỳ đóng. Trước mốc đó card phải
+        // báo thời gian chờ mở, không được diễn đạt như thể người dùng đang còn hạn gửi.
+        public string SupplementDeadlineStatusText => PeriodInfo?.PeriodState switch
+        {
+            "Open" => GetSupplementOpeningStatusText(RegularDeadlineDate),
+            "SubmissionClosed" => GetDeadlineStatusText(SupplementDeadlineDate),
+            "Pricing" or "Settled" => Loc["SupplementWindowClosed"].Value,
+            _ => Loc["SupplementWindowNotOpen"].Value
+        };
+
+        public string SupplementDeadlineToneClass => PeriodInfo?.PeriodState == "SubmissionClosed"
+            ? GetDeadlineToneClass(SupplementDeadlineDate)
+            : string.Empty;
+
+        private string GetSupplementOpeningStatusText(DateTime opensAt) => GetRemainingDeadlineDays(opensAt) switch
+        {
+            > 0 and var remainingDays => string.Format(
+                Loc["SupplementOpensInDaysFormat"],
+                remainingDays),
+            0 => Loc["SupplementOpensToday"].Value,
+            _ => Loc["SupplementWindowNotOpen"].Value
+        };
+
         private static int GetRemainingDeadlineDays(DateTime deadlineDate) =>
             (deadlineDate.Date - DateTime.Today).Days;
         protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => ActivePeriodOptions

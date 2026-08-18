@@ -41,13 +41,13 @@
                         </div>
                     </div>
 
-                    <div class="vpp-decision-card-context vpp-orders-deadline-context @GetDeadlineToneClass(SupplementDeadlineDate)"
+                    <div class="vpp-decision-card-context vpp-orders-deadline-context @SupplementDeadlineToneClass"
                          aria-label="@Loc["SupplementOrderDeadline"]">
                         <small>@Loc["SupplementOrderDeadline"]</small>
                         <div class="vpp-decision-card-context-body">
                             <span class="vpp-orders-deadline-status">
                                 <VppIcon Name="@VppIcons.Schedule" />
-                                <strong>@GetDeadlineStatusText(SupplementDeadlineDate)</strong>
+                                <strong>@SupplementDeadlineStatusText</strong>
                             </span>
                             <time datetime="@SupplementDeadlineDate.ToString("O")">@FormatDeadline(SupplementDeadlineDate)</time>
                         </div>

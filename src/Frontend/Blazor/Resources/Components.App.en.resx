@@ -659,6 +659,10 @@
   <data name="RegularOrderDeadline" xml:space="preserve"><value>Regular order deadline</value></data>
   <data name="SupplementOrderDeadline" xml:space="preserve"><value>Additional order deadline</value></data>
   <data name="DeadlinePassed" xml:space="preserve"><value>Deadline passed</value></data>
+  <data name="SupplementOpensInDaysFormat" xml:space="preserve"><value>Opens in {0} day(s)</value></data>
+  <data name="SupplementOpensToday" xml:space="preserve"><value>Opens today</value></data>
+  <data name="SupplementWindowClosed" xml:space="preserve"><value>Closed</value></data>
+  <data name="SupplementWindowNotOpen" xml:space="preserve"><value>Not open yet</value></data>
   <data name="OpensAfterPeriodCloses" xml:space="preserve"><value>Opens after the cycle closes</value></data>
   <data name="RegularOrder" xml:space="preserve"><value>Regular order</value></data>
   <data name="PreviousCycleOrder" xml:space="preserve"><value>Previous cycle order</value></data>
