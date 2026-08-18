@@ -124,6 +124,7 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.Contains("Disabled: !period.CanHardDelete", operationsCode, StringComparison.Ordinal);
         Assert.Contains("DeactivatePeriodAsync", operationsCode, StringComparison.Ordinal);
         Assert.Contains("HardDeletePeriodAsync", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("await InvokeAsync(StateHasChanged);", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("ShowPeriodDetailsAsync", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Dialog_OrderPeriodDetails", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("if (period.CanCloseSubmissions || period.CanEditSchedule)", operationsCode, StringComparison.Ordinal);

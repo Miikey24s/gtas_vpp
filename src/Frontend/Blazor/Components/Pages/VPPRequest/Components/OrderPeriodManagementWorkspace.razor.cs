@@ -350,6 +350,8 @@ public partial class OrderPeriodManagementWorkspace
         finally
         {
             IsBusy = false;
+            // Menu Radzen gọi callback ngoài event pipeline của component, nên phải báo render lại sau mutation.
+            await InvokeAsync(StateHasChanged);
         }
     }
 
