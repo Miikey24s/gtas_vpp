@@ -172,21 +172,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
             ?? new DateTime(TargetPeriodDate.Year, TargetPeriodDate.Month, 1).AddMonths(1).AddDays(3);
         public string TargetPeriodText => DateFormatter.Format(TargetPeriodDate, DateFormatter.MonthYear);
         public string TargetWindowText => $"{DateFormatter.Format(TargetPeriodStartDate, DateFormatter.ShortDate)} - {DateFormatter.Format(TargetPeriodEndDate, DateFormatter.ShortDate)}";
-        protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => PeriodInfo?.OpenPeriods
-            .Select(option => new VppDecisionOption<Guid?>(
-                option.PeriodId,
-                FormatPeriodOption(option)))
-            .ToArray() ?? [];
-
-        private static string FormatPeriodOption(VppOpenPeriodOptionResDTO option)
-        {
-            var period = DateFormatter.Format(
-                new DateTime(option.Year, option.Month, 1),
-                DateFormatter.MonthYear);
-            return option.State == "SubmissionClosed"
-                ? $"{period} · nhận bổ sung"
-                : period;
-        }
 
         public bool CanSubmitForPeriod => IsEdit || IsRecreate
             ? _editingAllowed
@@ -667,34 +652,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
                 }
             }
             catch (OperationCanceledException) { }
-        }
-
-        private async Task ChangeTargetPeriodAsync(Guid? selectedPeriodId)
-        {
-            if (selectedPeriodId is not Guid periodId)
-            {
-                return;
-            }
-
-            if (PeriodInfo?.OpenPeriods.All(option => option.PeriodId != periodId) != false
-                || PeriodInfo.SelectedPeriodId == periodId)
-            {
-                return;
-            }
-
-            if (Editor.SelectedItemCount > 0)
-            {
-                Toast.Warning("Đổi kỳ", "Hãy bỏ các mặt hàng đang chọn trước khi đổi kỳ để tránh lưu nhầm đơn.");
-                return;
-            }
-
-            PeriodIdQuery = periodId;
-            NavigationManager.NavigateTo(
-                NavigationManager.GetUriWithQueryParameter("periodId", periodId),
-                replace: true);
-            await LoadPeriodInfoAsync();
-            Editor.BaseRequestId = PeriodInfo?.BaseRequestId;
-            Editor.BaseRequestCode = PeriodInfo?.BaseRequestCode;
         }
 
         private OrderSubmissionOperation BuildSubmissionOperation(

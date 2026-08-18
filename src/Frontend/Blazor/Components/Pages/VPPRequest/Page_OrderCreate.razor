@@ -23,23 +23,6 @@
                                 AriaLabel="@Loc["OrderCreationSteps"]"
                                 StepSelected="@OnOrderWorkflowStepSelected" />
 
-            @if (!IsEdit && !IsRecreate && PeriodInfo?.OpenPeriods.Count > 1)
-            {
-                <section class="vpp-order-create-period-selector" aria-labelledby="order-create-period-title">
-                    <div>
-                        <strong id="order-create-period-title">@Loc["OrderPeriod"]</strong>
-                        <span>@Loc["OrderPeriodIndependentHint"]</span>
-                    </div>
-                    <VppDecisionSelect TValue="Guid?"
-                                       Value="@PeriodInfo.SelectedPeriodId"
-                                       Options="@OpenPeriodOptions"
-                                       ValueChanged="@ChangeTargetPeriodAsync"
-                                       Placeholder="@TargetPeriodText"
-                                       AriaLabel="@Loc["OrderPeriod"]"
-                                       Class="vpp-order-create-period-decision" />
-                </section>
-            }
-
             @if (!CanSubmitForPeriod)
             {
                 <VppContentState State="VppContentStateKind.Warning"

@@ -1944,3 +1944,9 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Kỳ vô hiệu hóa vẫn xuất hiện trong danh sách với badge `Vô hiệu hóa` và filter riêng để quản lý có thể khôi phục. Chỉ khôi phục khi kỳ chưa hết hạn, không thuộc tháng quá khứ và không trùng một kỳ đang hoạt động.
 - Owner refinement 2026-08-19 (`TRANSIENT` + `CAPABILITY-SURFACE`): mutation từ menu `...` phải cập nhật ngay danh sách, bộ đếm và capability của dòng sau khi API thành công; không yêu cầu refresh trang. Callback menu Radzen nằm ngoài event pipeline của route nên workspace chủ động yêu cầu render lại sau khi hoàn tất mutation.
 - Owner refinement 2026-08-19 (`DIALOG-EDITOR` + `SELECTOR-DECISION`): dialog `Thêm kỳ` luôn giữ đủ 12 tháng để người dùng hiểu lịch, nhưng tháng đã qua hoặc đã có bản ghi (kể cả kỳ đang vô hiệu hóa) phải hiện mờ và không chọn được. Khi đổi năm, trạng thái tháng được tính lại ngay; lịch `Ngày mở/Ngày đóng` dùng giới hạn chọn để các ngày quá khứ cũng hiện mờ và không thể lưu. Backend tiếp tục là lớp kiểm tra trùng/quá khứ cuối cùng.
+
+### 16.12 Tạo đơn nhận kỳ từ My Orders — 2026-08-19
+
+- `Đơn hàng của tôi` là nơi chọn kỳ và loại đơn trước khi mở editor; mọi action tạo, sao chép, sửa và tạo lại đều truyền `periodId` sang `/dashboard/order-create`.
+- Trang tạo đơn không lặp card/selector `Kỳ đặt hàng`. Kỳ đã chọn tiếp tục hiển thị dạng ngữ cảnh read-only trong pane `Đơn đang tạo`, đồng thời backend vẫn kiểm tra kỳ khi tải và gửi đơn.
+- Liên kết trực tiếp không có `periodId` tiếp tục dùng kỳ mặc định do period-info trả về để giữ tương thích, nhưng editor không trở thành nơi đổi kỳ giữa chừng.

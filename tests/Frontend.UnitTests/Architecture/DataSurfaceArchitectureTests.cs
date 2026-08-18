@@ -66,17 +66,22 @@ public sealed class DataSurfaceArchitectureTests
     }
 
     [Fact]
-    public void OrderPeriodSelection_UsesOneTypedDecisionControlPerContext()
+    public void OrderPeriodSelection_IsOwnedByMyOrdersBeforeOpeningTheEditor()
     {
         var root = GetFrontendRoot();
         var orders = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
+        var ordersCode = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
         var create = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Page_OrderCreate.razor"));
 
         Assert.Contains("<VppDecisionSelect TValue=\"Guid?\"", orders, StringComparison.Ordinal);
-        Assert.Contains("<VppDecisionSelect TValue=\"Guid?\"", create, StringComparison.Ordinal);
+        Assert.DoesNotContain("<VppDecisionSelect TValue=\"Guid?\"", create, StringComparison.Ordinal);
+        Assert.DoesNotContain("vpp-order-create-period-selector", create, StringComparison.Ordinal);
         Assert.DoesNotContain("<select", orders, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("<select", create, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("vpp-orders-story-heading", orders, StringComparison.Ordinal);
+        Assert.Contains("/dashboard/order-create?isAdditional={isAdditional}&periodId=", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("/dashboard/order-create?copyFrom=previous&periodId=", ordersCode, StringComparison.Ordinal);
+        Assert.Contains("/dashboard/order-create?orderId={row.Id}&periodId={row.PeriodId}", ordersCode, StringComparison.Ordinal);
     }
 
     [Fact]

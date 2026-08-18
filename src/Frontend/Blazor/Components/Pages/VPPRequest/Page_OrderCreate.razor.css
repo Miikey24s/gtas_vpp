@@ -219,38 +219,3 @@
         overflow: visible;
     }
 }
-.vpp-order-create-period-selector {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: var(--vpp-space-4);
-    padding: var(--vpp-space-4);
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-lg);
-    background: var(--vpp-surface-panel);
-}
-
-.vpp-order-create-period-selector > div {
-    display: grid;
-    gap: var(--vpp-space-1);
-}
-
-.vpp-order-create-period-selector span {
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-sm);
-}
-
-::deep .vpp-order-create-period-decision {
-    min-width: 12rem;
-}
-
-@media (max-width: 640px) {
-    .vpp-order-create-period-selector {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    ::deep .vpp-order-create-period-decision {
-        width: 100%;
-    }
-}
