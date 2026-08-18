@@ -15,12 +15,12 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await LoginAsAsync(TestAccounts.Employee);
         await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
 
-        var story = Page.Locator(".vpp-orders-story");
+        var story = Page.Locator(".vpp-orders-decision-area");
         var switchbar = Page.Locator(".vpp-orders-view-switchbar");
         await story.WaitForAsync();
         await switchbar.WaitForAsync();
         var selector = switchbar.Locator(".vpp-orders-view-selector");
-        (await selector.Locator("button[aria-pressed]").CountAsync()).Should().Be(3);
+        (await selector.Locator("button[aria-pressed]").CountAsync()).Should().Be(2);
         (await selector.Locator(".vpp-segmented-badge").CountAsync()).Should().Be(0,
             "My Orders uses label-only segments; counts remain in the data surface when needed");
         (await switchbar.Locator("[data-testid='create-supplement']").CountAsync()).Should().Be(0,
@@ -28,7 +28,7 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
 
         var compactGeometry = await Page.Locator(".vpp-orders-workspace").EvaluateAsync<string>("""
             root => {
-                const story = root.querySelector('.vpp-orders-story');
+                const story = root.querySelector('.vpp-orders-decision-area');
                 const switchbar = root.querySelector('.vpp-orders-view-switchbar');
                 const selectedView = root.querySelector('.vpp-orders-selected-view');
                 const selector = switchbar?.querySelector('.vpp-orders-view-selector');

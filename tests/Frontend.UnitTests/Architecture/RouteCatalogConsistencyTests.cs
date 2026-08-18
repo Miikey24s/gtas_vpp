@@ -77,7 +77,7 @@ public sealed class RouteCatalogConsistencyTests
             $"Navigation query metadata drifted. Actual: {string.Join(", ", RouteCatalog.NavigationQueryParams)}");
 
         Assert.Equal(
-            ["current", "supplement", "previous"],
+            ["current", "supplement"],
             RouteCatalog.Authenticated
                 .Where(route => route.Key.StartsWith("dashboard.my-orders.", StringComparison.Ordinal))
                 .Select(route => route.Path.Split("orderView=").Last())

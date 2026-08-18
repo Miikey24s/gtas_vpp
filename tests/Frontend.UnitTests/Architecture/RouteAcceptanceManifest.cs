@@ -65,14 +65,6 @@ public static class RouteAcceptanceManifest
             "OrderManagementTests.Employees_CreateSupplements_ManagerApprovesAndRejects_WithAuditableEndStates",
             "dashboard.my-orders"),
         new(
-            "dashboard.my-orders.previous",
-            "/dashboard?tab=0&orderView=previous",
-            RouteAcceptanceClassification.JustifiedEquivalent,
-            "The previous-order query is a catalogued view variant of the tested My Orders workspace.",
-            "tests/Frontend.UnitTests/Architecture/RouteCatalogConsistencyTests.cs",
-            "RouteCatalogConsistencyTests.NavigationMetadata_CoversEveryLogicalQueryVariant",
-            "dashboard.my-orders"),
-        new(
             "dashboard.history",
             "/dashboard?tab=1",
             RouteAcceptanceClassification.Tested,

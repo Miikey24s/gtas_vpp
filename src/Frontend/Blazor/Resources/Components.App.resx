@@ -656,7 +656,11 @@
   <data name="OrderCycleSummary" xml:space="preserve"><value>Tóm tắt kỳ đặt hàng</value></data>
   <data name="CurrentOrderPeriod" xml:space="preserve"><value>Kỳ hiện tại</value></data>
   <data name="CurrentRegularOrder" xml:space="preserve"><value>Đơn kỳ hiện tại</value></data>
-  <data name="RegularOrder" xml:space="preserve"><value>Đơn chính</value></data>
+  <data name="RegularOrderDeadline" xml:space="preserve"><value>Hạn gửi đơn thường</value></data>
+  <data name="SupplementOrderDeadline" xml:space="preserve"><value>Hạn gửi đơn bổ sung</value></data>
+  <data name="DeadlinePassed" xml:space="preserve"><value>Đã hết hạn</value></data>
+  <data name="OpensAfterPeriodCloses" xml:space="preserve"><value>Mở sau khi kỳ đóng</value></data>
+  <data name="RegularOrder" xml:space="preserve"><value>Đơn thường</value></data>
   <data name="PreviousCycleOrder" xml:space="preserve"><value>Đơn kỳ trước</value></data>
   <data name="OrderItemsSummaryFormat" xml:space="preserve"><value>{0} mặt hàng · tổng số lượng {1}</value></data>
   <data name="NoAdditionalOrdersYet" xml:space="preserve"><value>Chưa có đơn bổ sung</value></data>

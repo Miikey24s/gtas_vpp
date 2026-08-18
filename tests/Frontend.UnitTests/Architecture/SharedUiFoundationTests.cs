@@ -759,6 +759,8 @@ public sealed class SharedUiFoundationTests
         var segmentedSelectorInteractions = File.ReadAllText(Path.Combine(root, "Components", "DesignSystem", "Composites", "VppSegmentedSelector.razor.js"));
         Assert.Contains("vpp-orders-view-selector", source, StringComparison.Ordinal);
         Assert.Contains("<VppSegmentedSelector", source, StringComparison.Ordinal);
+        Assert.Contains("<VppDecisionCardGroup", source, StringComparison.Ordinal);
+        Assert.Contains("vpp-orders-decision-cards", source, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-story-commands", source, StringComparison.Ordinal);
         Assert.Contains("PrimaryActionText=\"@SupplementPrimaryActionText\"", source, StringComparison.Ordinal);
         Assert.Contains("data-testid=\"@PrimaryActionTestId\"", orderPanel, StringComparison.Ordinal);
@@ -770,7 +772,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("export-excel-coming-soon", source, StringComparison.Ordinal);
         Assert.DoesNotContain("PdfExportText", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("ExcelExportText", codeBehind, StringComparison.Ordinal);
-        Assert.Equal(3, source.Split("<VppOrderWorkspacePanel", StringSplitOptions.None).Length - 1);
+        Assert.Equal(2, source.Split("<VppOrderWorkspacePanel", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("previous-order-panel", source, StringComparison.Ordinal);
         Assert.DoesNotContain("<RadzenTabs", source, StringComparison.Ordinal);
         Assert.Contains("role=\"group\"", segmentedSelector, StringComparison.Ordinal);
         Assert.Contains("aria-pressed", segmentedSelector, StringComparison.Ordinal);

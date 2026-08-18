@@ -12,52 +12,40 @@
     <div class="vpp-orders-workspace order-page">
         @if (IsLoading)
         {
-            <SkeletonPage Cards="3" Rows="5" Cols="4" FillAvailable="true" />
+            <SkeletonPage Cards="2" Rows="5" Cols="4" FillAvailable="true" />
         }
         else
         {
-            <section class="vpp-orders-story vpp-orders-overview" aria-labelledby="orders-period-label">
-                <header class="vpp-orders-story-header">
-                    <div class="vpp-orders-period-summary">
-                        <div class="vpp-orders-period-icon" aria-hidden="true">
-                            <VppIcon Name="@VppIcons.Calendar" />
-                        </div>
-                        <div class="vpp-orders-period-context">
-                            <span id="orders-period-label" class="vpp-orders-period-label">@Loc["OrderPeriod"]</span>
-                            @if (PeriodInfo is not null && PeriodInfo.OpenPeriods.Count > 0)
-                            {
-                                <VppDecisionSelect TValue="Guid?"
-                                                   Value="@PeriodInfo.SelectedPeriodId"
-                                                   Options="@OpenPeriodOptions"
-                                                   ValueChanged="@ChangeSelectedPeriodAsync"
-                                                   Placeholder="@CurrentOrderPeriodText"
-                                                   AriaLabel="@Loc["OrderPeriod"]"
-                                                   Class="vpp-orders-period-decision" />
-                            }
-                            else
-                            {
-                                <strong class="vpp-orders-period-value">@CurrentOrderPeriodText</strong>
-                            }
-                        </div>
-                    </div>
+            <section class="vpp-orders-decision-area" aria-label="@Loc["OrderPeriod"]">
+                <VppDecisionCardGroup Class="vpp-orders-decision-cards">
+                    <VppDecisionSelect TValue="Guid?"
+                                       Value="@PeriodInfo?.SelectedPeriodId"
+                                       Options="@OpenPeriodOptions"
+                                       ValueChanged="@ChangeSelectedPeriodAsync"
+                                       Placeholder="@CurrentOrderPeriodText"
+                                       AriaLabel="@Loc["OrderPeriod"]"
+                                       Eyebrow="@Loc["OrderPeriod"]"
+                                       Class="vpp-decision-card vpp-orders-period-decision-card"
+                                       TriggerClass="vpp-decision-card-trigger"
+                                       Disabled="@(PeriodInfo is null || OpenPeriodOptions.Count == 0)" />
 
-                    @if (PeriodInfo is not null)
-                    {
-                        <div class="vpp-orders-deadline-card @(RemainingDeadlineDays <= 2 ? "is-urgent" : null)">
+                    <div class="vpp-decision-card-context vpp-orders-deadline-context @SelectedDeadlineToneClass"
+                         aria-label="@SelectedDeadlineLabel">
+                        <small>@SelectedDeadlineLabel</small>
+                        <div class="vpp-decision-card-context-body">
                             <span class="vpp-orders-deadline-status">
                                 <VppIcon Name="@VppIcons.Schedule" />
-                                <strong>@RemainingDeadlineText</strong>
+                                <strong>@SelectedDeadlineStatusText</strong>
                             </span>
-                            <span class="vpp-orders-deadline-label">@Loc["SubmissionDeadline"]</span>
-                            <time datetime="@CurrentDeadlineDate.ToString("O")">@CurrentDeadlineText</time>
+                            <time datetime="@SelectedDeadlineDate.ToString("O")">@SelectedDeadlineText</time>
                         </div>
-                    }
-                </header>
+                    </div>
+                </VppDecisionCardGroup>
             </section>
 
-            @* TOOLBAR: Chuyển giữa đơn kỳ hiện tại, đơn bổ sung và kỳ trước. *@
+            @* TOOLBAR: Loại đơn áp dụng cho kỳ được chọn ở card phía trên. *@
             <section class="vpp-orders-view-switchbar" aria-label="@Loc["OrderCycleSummary"]">
-                <div class="vpp-orders-story-controls">
+                <div class="vpp-orders-view-controls">
                     <VppSegmentedSelector TValue="int"
                                           Value="@OrderViewSelectedIndex"
                                           Options="@OrderViewOptions"
@@ -74,7 +62,7 @@
                 {
                     <VppOrderWorkspacePanel @key="@CurrentRegularOrder?.Id"
                                             TestId="current-order-panel"
-                                            PanelLabel="@Loc["CurrentRegularOrder"]"
+                                            PanelLabel="@Loc["RegularOrder"]"
                                             Order="@CurrentRegularOrder"
                                             SelectedOrderId="@(CurrentRegularOrder?.Id ?? Guid.Empty)"
                                              CanEdit="@(CurrentRegularOrder is not null && CanUpdate(CurrentRegularOrder))"
@@ -140,25 +128,6 @@
                                             HistoryRequested="@OpenHistoryAsync"
                                             CancelRequested="@CancelOrderAsync"
                                             ExportRequested="@(format => ExportOrderAsync(SelectedSupplementOrder!, format))"
-                                            BusyExportFormat="@ExportingOrderFormat"
-                                            CopyCodeRequested="@CopyToClipboard" />
-                }
-                else
-                {
-                    <VppOrderWorkspacePanel @key="@PreviousRegularOrder?.Id"
-                                            TestId="previous-order-panel"
-                                            PanelLabel="@($"{Loc["PreviousOrderPeriod"]} · {PreviousOrderPeriodText}")"
-                                            Order="@PreviousRegularOrder"
-                                            SelectedOrderId="@(PreviousRegularOrder?.Id ?? Guid.Empty)"
-                                            ReadOnly="true"
-                                            EmptyIcon="@VppIcons.History"
-                                            EmptyTitle="@Loc["NoPreviousOrderYet"]"
-                                            EmptyDescription="@Loc["NoRegularOrdersFoundPreviousCycle"]"
-                                            PrimaryActionText="@PreviousPrimaryActionText"
-                                            PrimaryActionIcon="@VppIcons.Copy"
-                                            PrimaryActionRequested="@CopyPreviousAsync"
-                                            HistoryRequested="@OpenHistoryAsync"
-                                            ExportRequested="@(format => ExportOrderAsync(PreviousRegularOrder!, format))"
                                             BusyExportFormat="@ExportingOrderFormat"
                                             CopyCodeRequested="@CopyToClipboard" />
                 }

@@ -514,7 +514,7 @@ Vòng duyệt đầu tạo đúng **28 canonical desktop screens ở `1920×1080
 | Shared shell | Sidebar cha–con–cháu, primary header tabs, account menu, role annotation, responsive drawer | M0 và toàn bộ screen authenticated M2–M8 | Navigation tree theo quyền, tab đang chọn, role; không tạo shell riêng theo page |
 | Collection workspace | KPI tùy chọn → filter toolbar → data card/table → pager/state | Product Catalog chỉ đọc, Department Summary, All Orders, Reports và các danh sách không cần detail cố định | KPI, schema cột, export/action theo capability, server paging |
 | Master–detail workspace | Filter toolbar → list/table trái → persistent inspector phải; compact chuyển detail thành overlay | Supplement/Pending Approval, 7 Library screen, Users; History dùng biến thể grid riêng nhưng tái sử dụng detail primitive | Width list/detail, field summary, action slot, read-only/mutation capability |
-| Order-detail surface | Order meta → filter → bảng 6 cột `# / Mặt hàng / Danh mục / Đơn vị / Số lượng / Ghi chú` → shared state | My Orders current/supplement/previous và History detail | Width, meta, filter availability và action slot; kỳ trước/History không có mutation action |
+| Order-detail surface | Order meta → filter → bảng 6 cột `# / Mặt hàng / Danh mục / Đơn vị / Số lượng / Ghi chú` → shared state | My Orders regular/supplement của kỳ đang chọn và History detail | Width, meta, filter availability và action slot; History không có mutation action |
 | Workflow/wizard | Step navigation → working table/form → summary rail → validation/confirm | Order Create/Edit và Settlement confirm | Số bước phải lấy từ nghiệp vụ/source; action/validation theo trạng thái, không tự thêm bước |
 | Period operation | Period hero → readiness/KPI → exception list/chart → guarded action | Period Review, Pending Approvals, Settlement | Quy tắc chặn/cảnh báo, quyền chốt/duyệt, audit và confirmation |
 | Canonical account flow | Centered account shell → form/progress/message → primary action/links | Login, forgot/reset/change password, logout, register non-production | Field, validation, copy và môi trường; Login/Logout bám UI hiện hành |
@@ -666,7 +666,7 @@ quyền và dữ liệu. Frontend hiện tại được giữ khi đã tốt hơ
 |---|---|---|---|
 | 01 Login | `/Account/Login` | ISOLATED_QA_PASS — OWNER_REVIEW | Account shell + validation + capture runtime sạch |
 | 02 Đơn hàng của tôi | `/dashboard?tab=0` | ISOLATED_QA_PASS — OWNER_REVIEW | Period story, KPI, order workspace và PDF/XLSX tải thật |
-| 02B Đặt hàng nhiều kỳ | Employee `/dashboard?tab=0&periodId={id}`; admin `/dashboard?tab=5&periodTab=periods` | AUTOMATED_QA_PASS — OWNER_REVIEW | Rolling horizon mặc định 3 kỳ, cấu hình 0–12, kỳ rời rạc và lịch độc lập. Admin dùng canonical Collection/DataGrid với collection actions, lifecycle badge và capability-driven row actions; settings/manual period vẫn progressive disclosure, sparse period không làm thủng chuỗi mặc định. Mọi mutation dùng `PERIOD_SETTLE`; Employee chọn được mọi period Open. Sau chốt dùng request + settlement revisions, notification deep link và four-eyes. Chi tiết/evidence tại `docs/execution/MULTI-PERIOD-ORDERING-001.md` |
+| 02B Chọn kỳ đặt hàng | Employee `/dashboard?tab=0&periodId={id}`; admin `/dashboard?tab=5&periodTab=periods` | IMPLEMENTED — VALIDATION IN PROGRESS | Scheduler chỉ duy trì một kỳ chuẩn; quản lý có thể thêm kỳ rời rạc với lịch độc lập. Employee chọn mọi kỳ đang mở bằng card kỳ, rồi chọn `Đơn thường / Đơn bổ sung`; card còn lại hiển thị đúng hạn gửi của loại đơn đang xem. Mọi mutation dùng `PERIOD_SETTLE`; sau chốt dùng request + settlement revisions, notification deep link và four-eyes. Thiết kế rolling 3 kỳ trong `MULTI-PERIOD-ORDERING-001.md` chỉ còn là lịch sử; authority hiện hành nằm tại `ORDERING-PRICING-REVISION-20260818.md`. |
 | 03 Tạo/sửa đơn | `/dashboard/order-create` | ISOLATED_QA_PASS — OWNER_REVIEW | Quy trình hai bước; mutation edit/history/cancel pass |
 | 04 Lịch sử | `/dashboard?tab=1` | ISOLATED_QA_PASS — OWNER_REVIEW | Summary/chart/list/detail; chart suy biến dùng empty state thay SVG `NaN` |
 | 05 Danh mục mặt hàng | `/dashboard?tab=2` | ISOLATED_QA_PASS — OWNER_REVIEW | Toolbar/state theo Atlas, không lộ giá cho nhân viên |
@@ -1700,7 +1700,7 @@ Trạng thái source Blazor sau khi owner yêu cầu triển khai M0→M2:
 - [x] M1: Login, Register, Forgot/Reset/Change Password, ConfirmEmail và Logout dùng trực tiếp `VppAccountWorkspace`; adapter account shell đã retire, form Radzen/validation/responsive state giữ nguyên.
 - [x] M2 Catalog: bộ lọc nằm cùng card header; server paging dùng `Count + LoadData + Skip/Take`; bỏ cột trạng thái nhân viên và nút tải giả chưa có endpoint.
 - [x] M2 Order Create: header hai bước căn giữa; footer theo hierarchy `Quay lại | Lưu nháp → Ghi chú → Tiếp tục`; ghi chú đơn/mặt hàng dùng popover; catalog chọn mặt hàng dùng virtualization và không dùng pager.
-- [x] M2 My Orders/History: giữ selector current/supplement/previous, detail virtualization và history server paging; bỏ PDF/Excel disabled giả ở My Orders vì backend chưa có endpoint tương ứng.
+- [x] M2 My Orders/History: kỳ được chọn bằng decision card; selector ngang chỉ còn `Đơn thường / Đơn bổ sung`; giữ detail virtualization và History server paging. PDF/Excel My Orders dùng endpoint tải thật hiện hành.
 - [x] Browser QA Atlas đã được đóng trong `ATLAS-001`: đủ 28 logical screen tại `390×844`, `768×1024`, `1366×768`, `1920×1080` (112 tổ hợp), không page overflow, console error hoặc network failure ngoài allow-list đã ghi nhận.
 
 Quy tắc dữ liệu đã khóa bằng architecture tests: collection dài hữu hạn dùng server paging; vùng chọn/chi tiết cần cuộn liên tục dùng virtualization; một grid không đồng thời hiển thị pager và continuous scroll.
@@ -1719,7 +1719,7 @@ luận văn/slide. Không đổi API/database/RBAC chỉ để khớp visual tro
 | Lịch sử / Tổng hợp phòng ban | `IMPLEMENTED — QA PASS` | Khi danh sách có dữ liệu, đơn đầu tiên phải được chọn và tải chi tiết ngay; hàng được chọn hiện nền xanh trước mọi click của user. DataGrid chi tiết được re-key khi snapshot đổi để không giữ trang rỗng cũ. |
 | Chốt kỳ | `IMPLEMENTED — QA PASS` | Selector kỳ là `Kỳ trước · Kỳ này · Tùy chọn`; `Kỳ này` luôn là kỳ đặt hàng hiện tại từ `PeriodInfo`, `Kỳ trước` là kỳ liền trước và là lựa chọn mặc định khi mở route. Nhà cung cấp/bảng giá tự chọn mặc định giữ nền neutral, chỉ hiện active sau thao tác user; phòng ban hiển thị tên, giữ code làm giá trị lọc. Header bảng hiển thị badge `Chưa chốt kỳ / Đã chốt kỳ`; PDF/Excel chỉ render và thực thi khi `IsSettled=true` cùng `SettlementId` hiện hành. Input hash dùng lựa chọn hiệu lực thực tế để preview tự chọn vẫn xác nhận được. |
 | Quản lý người dùng | `IMPLEMENTED — QA PASS` | Nhóm quyền và phòng ban chỉnh trực tiếp bằng dropdown không-search tại đúng cột, dùng cùng height/radius/surface/popup/focus/disabled với filter canonical. Tài khoản chờ duyệt có nút Duyệt rõ ràng; quyền truy cập dùng switch hai chiều dựa trên membership, giữ guard self/last-admin/backend. Bỏ action `manage_accounts`, nút vô hiệu hóa một chiều, dialog membership và model cũ. |
-| Kỳ đặt hàng hiện tại | `IMPLEMENTED — QA PASS` | Dùng summary compact gồm icon, kỳ hiện tại và deadline card; desktop phân vùng rõ, mobile xếp dọc, không tạo card trang trí dư thừa. |
+| Kỳ đặt hàng hiện tại | `IMPLEMENTED — FOCUSED QA PASS` | Dùng hai decision card bằng nhau: card chọn kỳ và card hạn gửi theo loại đơn; desktop hai cột, mobile xếp dọc. Selector ngang chỉ còn `Đơn thường / Đơn bổ sung`; đơn bổ sung của kỳ đang mở hiển thị `Mở sau khi kỳ đóng`. |
 | Hiệu năng phiên dài | `IMPLEMENTED — SOAK QA PASS` | Scroll/resize/mutation của header, sidebar, History, period picker và cell popover được gộp tối đa một việc mỗi animation frame; hai observer DOM toàn cục được hợp nhất thành một hàng đợi lọc theo motif, observer/listener/animation cục bộ được hủy khi route rời DOM. Regression dùng CDP xác nhận sau 8 vòng enhanced navigation: document/node/listener không tăng tuyến tính, 250 scroll event chỉ xếp 5 frame và nửa sau không chậm hơn nửa đầu. |
 
 Correction runtime ngày 2026-07-31 cho Quản lý người dùng: account `PendingApproval` chỉ hiển thị action `Duyệt` có nhãn; nút bật sau khi chọn đủ nhóm quyền và phòng ban, còn access switch chỉ xuất hiện sau kích hoạt. Mọi trạng thái khóa phải có lý do đọc được; guard chống tự sửa membership vẫn giữ nguyên ở UI và backend.
@@ -1920,8 +1920,15 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 
 ### 16.9 Owner plan revision: kỳ, bổ sung và Excel — 2026-08-18
 
-- Plan canonical: [`ORDERING-PRICING-REVISION-20260818`](../execution/ORDERING-PRICING-REVISION-20260818.md). Trạng thái `OWNER REVIEW — PLAN ONLY`; chưa đổi behavior UI/backend trong lượt ghi nhận.
+- Plan canonical: [`ORDERING-PRICING-REVISION-20260818`](../execution/ORDERING-PRICING-REVISION-20260818.md). Trạng thái `IMPLEMENTED — FOCUSED QA PASS`.
 - Đơn bổ sung target mới dùng phương án B: chỉ mở capability cho kỳ đã đóng trong 5 ngày; nếu chốt sớm thì action giữ vị trí nhưng disabled và giải thích kỳ đã chốt.
 - Trang Các kỳ đặt hàng target mới bỏ ý niệm rolling 3 kỳ khỏi UI. Scheduler tự mở một kỳ chuẩn; action cấp collection `Thêm kỳ` mở dialog dùng lịch mặc định nhưng cho quản lý điều chỉnh. Kỳ thủ công chưa đến ngày mở hiển thị `Chưa mở`, không dùng copy `Sắp mở`.
 - File Excel target mới chỉ còn mã/tên/đơn vị/đơn giá/VAT/ghi chú. MOQ, ngày giao, giá mặc định cấp dòng và điều khoản thương mại ẩn phải được gỡ đồng bộ khỏi template, mapping, preview và apply; không chỉ ẩn cột grid.
 - Một hay nhiều NCC đang quay lại decision gate. UI tiếp tục một NCC; không dùng ADR-015 làm approval để bật tính năng cho đến khi owner chọn A/B/C trong plan canonical.
+
+### 16.10 My Orders theo kỳ được chọn — 2026-08-18
+
+- Header `Đơn hàng của tôi` dùng hai card bằng nhau: card chọn `Kỳ đặt hàng` và card `Hạn gửi đơn` tự đổi theo loại đơn đang xem.
+- Selector ngang chỉ phân loại `Đơn thường | Đơn bổ sung`; bỏ `Kỳ trước` vì kỳ đã được chọn ở card trên và lịch sử đơn đã có route riêng.
+- URL `orderView=previous` cũ fallback về đơn thường; route catalog không tiếp tục quảng bá biến thể đã nghỉ.
+- Migration chuyển tiếp chỉ soft-delete 09–10/2026 do rolling cũ tự sinh khi chưa có bất kỳ dữ liệu nghiệp vụ; giữ 08/2026 và mọi kỳ thủ công/có đơn.

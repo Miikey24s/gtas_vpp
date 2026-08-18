@@ -93,11 +93,11 @@ public sealed class OrderCreateTests : TestBase, IMutatingUiTest
         (columnGeometry[5] / gridWidth).Should().BeApproximately(0.12, 0.01, "the UOM track should use the canonical 12% ratio");
         (columnGeometry[6] / gridWidth).Should().BeApproximately(0.14, 0.01, "the quantity track should use the canonical 14% ratio");
         (columnGeometry[7] / gridWidth).Should().BeApproximately(0.20, 0.01, "the note track should use the canonical 20% ratio");
-        (await Page.Locator(".vpp-orders-story-heading p").CountAsync()).Should().Be(0,
+        (await Page.Locator(".vpp-orders-decision-area p").CountAsync()).Should().Be(0,
             "a submitted order should not repeat navigation or processing guidance below the takeaway");
-        (await Page.Locator(".vpp-orders-view-selector > button").CountAsync()).Should().Be(3,
-            "the submitted story should keep regular, supplement and previous-cycle context visible");
-        await Page.GetByText("Đơn kỳ hiện tại", new() { Exact = true }).Last.WaitForAsync();
+        (await Page.Locator(".vpp-orders-view-selector > button").CountAsync()).Should().Be(2,
+            "the selected period should expose only regular and supplement order types");
+        await Page.GetByText("Đơn thường", new() { Exact = true }).Last.WaitForAsync();
 
         var evidenceDirectory = Environment.GetEnvironmentVariable("UITEST_EVIDENCE_DIR");
         if (!string.IsNullOrWhiteSpace(evidenceDirectory))

@@ -18,7 +18,7 @@
     gap: var(--vpp-space-4);
 }
 
-/* ── Câu chuyện dữ liệu Đơn hàng của tôi ─────────────────────── */
+/* ── Workspace Đơn hàng của tôi ──────────────────────────────── */
 .vpp-orders-workspace {
     display: flex;
     flex-direction: column;
@@ -30,109 +30,7 @@
     overflow: hidden;
 }
 
-.vpp-orders-story {
-    position: relative;
-    display: block;
-    flex: 0 0 auto;
-    padding: var(--vpp-space-3);
-    overflow: hidden;
-    border: 1px solid var(--vpp-border-default);
-    border-radius: var(--vpp-radius-card);
-    background: var(--vpp-bg-elevated);
-}
-
-.vpp-orders-story::before {
-    display: none;
-}
-
-.vpp-orders-story-header {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--vpp-space-4);
-}
-
-.vpp-orders-period-summary {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: var(--vpp-space-3);
-}
-
-.vpp-orders-period-icon {
-    display: inline-grid;
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-    place-items: center;
-    border-radius: var(--vpp-radius-lg);
-    background: color-mix(in srgb, var(--vpp-primary-500) 9%, var(--vpp-bg-elevated));
-    color: var(--vpp-primary-600);
-}
-
-.vpp-orders-period-icon .vpp-icon {
-    font-size: 1.25rem;
-}
-
-.vpp-orders-period-label {
-    display: block;
-    color: var(--vpp-text-secondary);
-    font-size: var(--vpp-text-xs);
-    font-weight: var(--vpp-font-weight-semibold);
-    letter-spacing: .01em;
-}
-
-.vpp-orders-overview-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--vpp-space-2) var(--vpp-space-4);
-    margin-top: var(--vpp-space-2);
-}
-
-.vpp-orders-deadline-card {
-    display: grid;
-    min-width: min(20rem, 42vw);
-    grid-template-columns: auto auto;
-    align-items: center;
-    gap: 2px var(--vpp-space-3);
-    padding: var(--vpp-space-2) var(--vpp-space-3);
-    border-inline-start: var(--vpp-border-width) solid var(--vpp-border-default);
-}
-
-.vpp-orders-deadline-status {
-    display: inline-flex;
-    grid-column: 1 / -1;
-    align-items: center;
-    gap: var(--vpp-space-1);
-    color: var(--vpp-text-primary);
-    font-size: var(--vpp-text-sm);
-}
-
-.vpp-orders-deadline-status .vpp-icon {
-    color: var(--vpp-primary-600);
-    font-size: 1rem;
-}
-
-.vpp-orders-deadline-card.is-urgent .vpp-orders-deadline-status,
-.vpp-orders-deadline-card.is-urgent .vpp-orders-deadline-status .vpp-icon {
-    color: var(--vpp-warning);
-}
-
-.vpp-orders-deadline-label,
-.vpp-orders-deadline-card time {
-    color: var(--vpp-text-muted);
-    font-size: var(--vpp-text-xs);
-}
-
-.vpp-orders-deadline-card time {
-    color: var(--vpp-text-secondary);
-    font-variant-numeric: tabular-nums;
-    text-align: end;
-}
-
-.vpp-orders-story-controls {
+.vpp-orders-view-controls {
     display: grid;
     align-items: center;
     gap: var(--vpp-space-2);
@@ -140,7 +38,7 @@
     margin-top: 0;
 }
 
-.vpp-orders-story-controls > .vpp-segmented-selector {
+.vpp-orders-view-controls > .vpp-segmented-selector {
     justify-self: start;
 }
 
@@ -460,32 +358,14 @@
 }
 
 @media (max-width: 991px) {
-    .vpp-orders-story-controls {
+    .vpp-orders-view-controls {
         align-items: stretch;
         flex-wrap: wrap;
     }
 }
 
 @media (max-width: 767px) {
-    .vpp-orders-story {
-        padding: var(--vpp-space-3);
-    }
-
-    .vpp-orders-story-header {
-        align-items: stretch;
-        flex-direction: column;
-        gap: var(--vpp-space-3);
-    }
-
-    .vpp-orders-deadline-card {
-        width: 100%;
-        min-width: 0;
-        padding: var(--vpp-space-2) 0 0;
-        border-block-start: var(--vpp-border-width) solid var(--vpp-border-default);
-        border-inline-start: 0;
-    }
-
-    .vpp-orders-story-controls {
+    .vpp-orders-view-controls {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
     }
@@ -515,19 +395,6 @@
     .vpp-order-attempt-picker {
         align-items: flex-start;
         flex-direction: column;
-    }
-}
-
-@media print {
-    .vpp-orders-story {
-        padding: 12pt;
-        background: #fff;
-    }
-
-    .vpp-orders-story,
-    .vpp-orders-archive {
-        border-color: #666;
-        box-shadow: none;
     }
 }
 

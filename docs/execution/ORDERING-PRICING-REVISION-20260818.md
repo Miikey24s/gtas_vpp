@@ -1,6 +1,6 @@
 # ORDERING-PRICING-REVISION-20260818 — Điều chỉnh luồng kỳ, đơn bổ sung và bảng giá
 
-- Status: **IMPLEMENTED — VALIDATION IN PROGRESS**
+- Status: **IMPLEMENTED — FOCUSED QA PASS**
 - Date: `2026-08-18`
 - Scope: kỳ đặt hàng, đơn bổ sung, điều chỉnh sau chốt, bảng giá Excel, điều khoản thương mại và lựa chọn nhà cung cấp
 - Replaces current product direction in: `MULTI-PERIOD-ORDERING-001`, `MULTI-SUPPLIER-SETTLEMENT-001` where this document says otherwise
@@ -71,7 +71,9 @@ Khi đã chốt sớm hoặc hết 5 ngày
 
 ### 1.3. UI theo design system
 
-- Entry point đặt tại đơn thường của kỳ vừa đóng trong `Lịch sử đơn`; không đưa kỳ đã đóng trở lại selector đặt đơn thường.
+- `Đơn hàng của tôi` chọn kỳ bằng một card quyết định; kỳ đang mở và kỳ còn trong cửa sổ bổ sung cùng nằm trong danh sách khi có capability hợp lệ.
+- Selector ngang chỉ còn `Đơn thường | Đơn bổ sung`. Kỳ đã chọn là nguồn ngữ cảnh duy nhất; không lặp `Kỳ trước` thành một loại đơn thứ ba.
+- Khi chọn `Đơn thường` trên kỳ đã đóng, action tạo đơn thường giữ vị trí nhưng bị khóa. Khi chọn `Đơn bổ sung`, card hạn chuyển sang hạn gửi bổ sung của chính kỳ đó; nếu kỳ còn mở, card ghi `Mở sau khi kỳ đóng` thay vì đếm ngược gây hiểu nhầm.
 - Action `Tạo đơn bổ sung` giữ vị trí ổn định theo `CAPABILITY-SURFACE`: khả dụng thì bật; hết hạn/đã chốt/đang có đơn chờ thì mờ và có lý do ngắn.
 - Trang `Duyệt đơn bổ sung` giữ list-detail, hiển thị kỳ, hạn còn lại và nguyên nhân không thể duyệt.
 - Copy thân thiện: `Kỳ đã chốt nên không nhận thêm đơn bổ sung.` hoặc `Đã hết thời hạn gửi đơn bổ sung.`
@@ -84,6 +86,8 @@ Khi đã chốt sớm hoặc hết 5 ngày
 - Có `Pending`: chốt sớm bị chặn.
 - Không có `Pending`: chốt sớm thành công và khóa tạo bổ sung ngay.
 - Preview cũ bị vô hiệu nếu có đơn bổ sung phát sinh trước lúc confirm.
+
+Validation 2026-08-18: build frontend/migration sạch `0 warning`; architecture/route test trọng tâm `6/6`; browser QA My Orders responsive pass trên fixture cô lập; TEST DB xác nhận 08/2026 còn hoạt động, 09–10/2026 được soft-delete và không có đơn/bản chốt bị tác động.
 
 <a id="period-plan"></a>
 
@@ -132,6 +136,13 @@ Validation:
 ### 2.4. Trạng thái hiển thị
 
 Kỳ đã tạo nhưng chưa đến ngày mở cần xuất hiện trong trang quản lý để còn sửa lịch. Khuyến nghị dùng nhãn **`Chưa mở`**, không dùng `Sắp mở`; backend có thể tiếp tục dùng state kỹ thuật `Scheduled`.
+
+### 2.5. Dọn dữ liệu rolling cũ
+
+- Migration chuyển tiếp soft-delete đúng kỳ tự sinh `09/2026` và `10/2026` khi `08/2026` vẫn là kỳ mở hiện tại.
+- Guard bắt buộc: kỳ đích phải do `rolling-horizon-top-up` tạo, đang mở và chưa từng có đơn, bản chốt hoặc yêu cầu điều chỉnh.
+- Không mở quyền xóa kỳ chung trong API/UI; kỳ thủ công và mọi kỳ đã phát sinh nghiệp vụ được giữ nguyên.
+- Sau cleanup, scheduler thấy đã có một kỳ mở nên không tạo bù 09–10 ngay lập tức.
 
 Thao tác chính trên mọi dòng vẫn ổn định:
 

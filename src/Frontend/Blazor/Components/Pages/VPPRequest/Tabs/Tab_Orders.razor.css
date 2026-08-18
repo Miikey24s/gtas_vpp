@@ -1,42 +1,52 @@
-.vpp-orders-period-context {
-    display: grid;
-    gap: 2px;
+.vpp-orders-decision-area {
     min-width: 0;
 }
 
-.vpp-orders-period-value {
-    color: var(--vpp-text-primary);
-    font-size: var(--vpp-text-xl);
-    font-weight: var(--vpp-font-weight-bold);
-    line-height: var(--vpp-leading-tight);
+::deep .vpp-orders-decision-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-::deep .vpp-orders-period-decision {
-    width: 11.5rem;
+::deep .vpp-orders-deadline-context {
+    transition: border-color var(--vpp-transition-fast),
+                background-color var(--vpp-transition-fast);
+}
+
+::deep .vpp-orders-deadline-context.is-urgent {
+    border-color: color-mix(in srgb, var(--vpp-warning) 42%, var(--vpp-border-default));
+    background: color-mix(in srgb, var(--vpp-warning) 5%, var(--vpp-bg-elevated));
+}
+
+::deep .vpp-orders-deadline-context.is-expired {
+    border-color: color-mix(in srgb, var(--vpp-danger) 36%, var(--vpp-border-default));
+    background: color-mix(in srgb, var(--vpp-danger) 4%, var(--vpp-bg-elevated));
+}
+
+::deep .vpp-orders-deadline-status {
+    display: inline-flex;
     min-width: 0;
+    align-items: center;
+    gap: var(--vpp-space-1);
 }
 
-::deep .vpp-orders-period-decision .vpp-decision-select-trigger {
-    min-height: 2.5rem;
-    padding-inline: var(--vpp-space-2);
-    background: color-mix(in srgb, var(--vpp-text-primary) 4%, var(--vpp-surface-control));
-    font-size: var(--vpp-text-xl);
-    font-weight: var(--vpp-font-weight-bold);
-    line-height: var(--vpp-leading-tight);
-    box-shadow: inset 0 0 0 1px var(--vpp-border-default) !important;
+::deep .vpp-orders-deadline-status .vpp-icon {
+    flex: 0 0 auto;
+    color: var(--vpp-text-tertiary);
 }
 
-::deep .vpp-orders-period-decision .vpp-decision-select-trigger:hover {
-    background: color-mix(in srgb, var(--vpp-text-primary) 8%, var(--vpp-surface-control));
-    box-shadow: inset 0 0 0 1px var(--vpp-border-strong) !important;
-}
-
-::deep .vpp-orders-period-decision .vpp-decision-select-trigger:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--vpp-border-focus) !important;
+::deep .vpp-orders-deadline-context time {
+    flex: 0 0 auto;
+    color: var(--vpp-text-secondary);
+    font-size: var(--vpp-text-sm);
+    white-space: nowrap;
 }
 
 @media (max-width: 720px) {
-    ::deep .vpp-orders-period-decision {
-        width: 100%;
+    ::deep .vpp-orders-decision-cards {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    ::deep .vpp-orders-deadline-context .vpp-decision-card-context-body {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

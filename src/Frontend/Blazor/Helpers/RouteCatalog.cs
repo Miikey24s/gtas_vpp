@@ -88,13 +88,6 @@ public static class RouteCatalog
             AnyOfPermissions: [Permissions.RequestOrder]),
 
         new(
-            Key: "dashboard.my-orders.previous",
-            Path: "/dashboard?tab=0&orderView=previous",
-            Title: "MyOrders",
-            PageCode: Config.Page_ComponentCode.PageCode.Dashboard,
-            AnyOfPermissions: [Permissions.RequestOrder]),
-
-        new(
             Key: "dashboard.history",
             Path: "/dashboard?tab=1",
             Title: "History",

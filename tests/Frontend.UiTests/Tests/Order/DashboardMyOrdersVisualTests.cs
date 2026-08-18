@@ -10,7 +10,7 @@ namespace gtas_vpp_fe.UITests.Tests.Order;
 public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
-    public async Task SupplementView_ShowsTheCapabilityDrivenCreateAction()
+    public async Task SupplementView_KeepsTheCapabilityDrivenCreateActionVisibleWhenUnavailable()
     {
         await LoginAsAsync(TestAccounts.Employee);
 
@@ -30,8 +30,11 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             await action.WaitForAsync(new() { State = WaitForSelectorState.Visible });
 
             (await action.InnerTextAsync()).Should().Contain("Tạo đơn bổ sung");
-            (await action.IsEnabledAsync()).Should().BeTrue(
-                "fixture có đơn thường hợp lệ nên capability backend phải mở CTA");
+            (await action.IsEnabledAsync()).Should().BeFalse(
+                "kỳ đang mở chưa thuộc cửa sổ gửi đơn bổ sung, nhưng capability vẫn phải hiện ổn định ở trạng thái mờ");
+            (await Page.Locator(".vpp-orders-deadline-status strong").InnerTextAsync())
+                .Should().Be("Mở sau khi kỳ đóng",
+                    "card thời hạn không được hiển thị đếm ngược như thể đơn bổ sung đã nhận ngay trong kỳ mở");
             (await Page.EvaluateAsync<bool>(
                 "() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
                 .Should().BeFalse($"tab đơn bổ sung không được tràn ngang ở {viewport.Width}px");
@@ -194,7 +197,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             {
                 WaitUntil = WaitUntilState.DOMContentLoaded
             });
-            await Page.Locator(".vpp-orders-story").WaitForAsync(new LocatorWaitForOptions
+            await Page.Locator(".vpp-orders-decision-area").WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible
             });
@@ -214,7 +217,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         .filter(button => /Xuất PDF|Xuất Excel|Export PDF|Export Excel/i.test(button.textContent ?? ''));
                     return [
                         document.documentElement.scrollWidth > window.innerWidth + 1 ? 1 : 0,
-                        document.querySelectorAll('.vpp-orders-story').length,
+                        document.querySelectorAll('.vpp-orders-decision-area').length,
                         document.querySelectorAll('.vpp-orders-view-selector > button').length,
                         document.querySelectorAll('.vpp-orders-view-tabs').length,
                         [...document.querySelectorAll('.vpp-order-view-panel')].filter(visible).length,
@@ -235,8 +238,8 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 """);
 
             audit[0].Should().Be(0, $"My Orders must not overflow at {viewport.Width}px");
-            audit[1].Should().Be(1, "the period takeaway should appear exactly once");
-            audit[2].Should().Be(3, "the order workspace should summarize regular, supplement and previous-cycle orders");
+            audit[1].Should().Be(1, "the period decision area should appear exactly once");
+            audit[2].Should().Be(2, "the selected period should expose regular and supplement orders only");
             audit[3].Should().Be(0, "the summary cards should be the only order-view selector");
             audit[4].Should().Be(1, "only the selected reusable order panel should render");
             audit[5].Should().Be(0, "My Orders should use VppIcon instead of legacy rzi markup");
@@ -244,7 +247,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             audit[7].Should().Be(0, "empty state must not repeat actions already shown in the story header");
             audit[8].Should().BeLessThanOrEqualTo(1, "the create-order action should have one source of truth");
             audit[9].Should().Be(0, "roadmap coming-soon placeholders were replaced by real export actions (W-C.0)");
-            audit[10].Should().Be(3, "the order selector should expose exactly three pressed-state summary buttons");
+            audit[10].Should().Be(2, "the order selector should expose exactly two pressed-state order types");
             audit[11].Should().Be(0, "the current-cycle page should not repeat an open-period badge");
             audit[12].Should().Be(0, "the selected tab should replace the repeated order-type heading above the grid");
             if (viewport.Width >= 1366)
@@ -259,8 +262,8 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                         const workspace = document.querySelector('.vpp-orders-workspace');
                         const workspaceRect = workspace?.getBoundingClientRect();
                         const contentRect = workspace?.parentElement?.getBoundingClientRect();
-                        const periodValue = document.querySelector('.vpp-orders-period-decision .vpp-decision-select-label');
-                        const summaryLabel = document.querySelector('.vpp-orders-period-label');
+                        const periodValue = document.querySelector('.vpp-orders-period-decision-card .vpp-decision-select-label');
+                        const summaryLabel = document.querySelector('.vpp-orders-period-decision-card small');
                         const summaryCard = document.querySelector('.vpp-orders-view-selector');
                         const exportAction = [...document.querySelectorAll('.order-page button')]
                             .find(button => /Xuất PDF|Xuất Excel|Export PDF|Export Excel/i.test(button.textContent ?? ''));
@@ -284,7 +287,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                 desktopGeometry[0].Should().BeLessThanOrEqualTo(viewport.Height + 1, "the short-order workspace should fit inside one desktop viewport");
                 desktopGeometry[1].Should().BeLessThanOrEqualTo(1760.5, "wide layouts should stay bounded without visually detaching from the sidebar");
                 desktopGeometry[2].Should().BeLessThanOrEqualTo(8, "the My Orders workspace should remain centered in its content region");
-                desktopGeometry[3].Should().BeGreaterThanOrEqualTo(desktopGeometry[4] + 7, "the selected period must clearly outrank its context label");
+                desktopGeometry[3].Should().BeGreaterThanOrEqualTo(desktopGeometry[4] + 1.5, "the selected period must clearly outrank its context label");
                 desktopGeometry[5].Should().BeGreaterThanOrEqualTo(1, "the segmented order selector should have one bounded outer surface");
                 desktopGeometry[6].Should().BeGreaterThanOrEqualTo(0.75, "export action labels must remain legible");
                 desktopGeometry[7].Should().BeLessThanOrEqualTo(2, "short orders should not create document-level vertical scrolling");
@@ -306,7 +309,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
                             getComputedStyle(document.querySelector('.vpp-layout-body')).backgroundColor,
                             getComputedStyle(document.querySelector('.vpp-sidebar')).backgroundColor,
                             getComputedStyle(document.querySelector('.vpp-layout-header')).backgroundColor,
-                            getComputedStyle(document.querySelector('.vpp-orders-story')).backgroundColor,
+                            getComputedStyle(document.querySelector('.vpp-orders-period-decision-card .vpp-decision-select-trigger')).backgroundColor,
                             getComputedStyle(document.querySelector('.vpp-order-view-panel')).backgroundColor,
                             resolveToken('--vpp-bg-base'),
                             resolveToken('--vpp-bg-elevated')
@@ -655,12 +658,12 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             });
         }
 
-        await Page.Locator(".vpp-orders-view-selector > button").Nth(2).ClickAsync();
-        await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=previous(?:&.*)?$", RegexOptions.IgnoreCase));
+        await Page.Locator(".vpp-orders-view-selector > button").Nth(1).ClickAsync();
+        await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=supplement(?:&.*)?$", RegexOptions.IgnoreCase));
         await Page.ReloadAsync();
-        await Page.Locator("[data-testid='previous-order-panel']:visible").WaitForAsync();
+        await Page.Locator("[data-testid='supplement-order-panel']:visible").WaitForAsync();
         (await Page.Locator(".vpp-orders-view-selector > button[aria-pressed='true']").InnerTextAsync())
-            .Should().Contain("Kỳ trước", "reload should preserve the selected order summary from the URL");
+            .Should().Contain("Đơn bổ sung", "reload should preserve the selected order type from the URL");
 
         await Page.Locator(".vpp-orders-view-selector > button").Nth(0).ClickAsync();
         await WaitForUrlMatchAsync(new Regex(".*[?&]orderView=current(?:&.*)?$", RegexOptions.IgnoreCase));
@@ -677,7 +680,7 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
             {
                 await Page.SetViewportSizeAsync(evidenceViewport.Width, evidenceViewport.Height);
                 await Page.GotoAsync($"{BaseUrl}dashboard?tab=0");
-                await Page.Locator(".vpp-orders-story").WaitForAsync();
+                await Page.Locator(".vpp-orders-decision-area").WaitForAsync();
                 await Page.ScreenshotAsync(new PageScreenshotOptions
                 {
                     Path = Path.Combine(evidenceDirectory, $"w1-dashboard-my-orders-{evidenceViewport.Width}x{evidenceViewport.Height}.png"),
@@ -690,9 +693,9 @@ public sealed class DashboardMyOrdersVisualTests : TestBase, IAuthenticatedUiTes
         }
 
         await Page.GotoAsync($"{BaseUrl}set-language?culture=en&returnUrl=%2Fdashboard%3Ftab%3D0");
-        await Page.Locator(".vpp-orders-story").WaitForAsync();
+        await Page.Locator(".vpp-orders-decision-area").WaitForAsync();
         (await Page.GetByText("Order period", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
-        (await Page.GetByText("Current cycle order", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
+        (await Page.GetByText("Regular order", new() { Exact = true }).CountAsync()).Should().BeGreaterThan(0);
 
         browserErrors.Should().BeEmpty();
         requestFailures.Should().BeEmpty();

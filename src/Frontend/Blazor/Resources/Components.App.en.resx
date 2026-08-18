@@ -656,6 +656,10 @@
   <data name="OrderCycleSummary" xml:space="preserve"><value>Order cycle summary</value></data>
   <data name="CurrentOrderPeriod" xml:space="preserve"><value>Current cycle</value></data>
   <data name="CurrentRegularOrder" xml:space="preserve"><value>Current cycle order</value></data>
+  <data name="RegularOrderDeadline" xml:space="preserve"><value>Regular order deadline</value></data>
+  <data name="SupplementOrderDeadline" xml:space="preserve"><value>Additional order deadline</value></data>
+  <data name="DeadlinePassed" xml:space="preserve"><value>Deadline passed</value></data>
+  <data name="OpensAfterPeriodCloses" xml:space="preserve"><value>Opens after the cycle closes</value></data>
   <data name="RegularOrder" xml:space="preserve"><value>Regular order</value></data>
   <data name="PreviousCycleOrder" xml:space="preserve"><value>Previous cycle order</value></data>
   <data name="OrderItemsSummaryFormat" xml:space="preserve"><value>{0} items · total quantity {1}</value></data>

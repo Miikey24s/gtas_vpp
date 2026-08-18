@@ -30,13 +30,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         [SupplyParameterFromQuery(Name = "orderView")] public string? OrderViewQuery { get; set; }
         [SupplyParameterFromQuery(Name = "periodId")] public Guid? PeriodIdQuery { get; set; }
 
-        // ORDER VIEWS: Các chế độ xem đơn hiện tại, đơn bổ sung và đơn kỳ trước.
+        // ORDER VIEWS: Kỳ được chọn riêng; selector ngang chỉ còn phân loại đơn.
         protected const int CurrentOrderViewIndex = 0;
         protected const int SupplementOrderViewIndex = 1;
-        protected const int PreviousOrderViewIndex = 2;
 
         public List<VppRequestResDTO> ActiveOrders { get; set; } = new();
-        public List<VppRequestResDTO> PreviousOrders { get; set; } = new();
         public List<VppRequestResDTO> AdditionalOrders { get; set; } = new();
 
         // DATA STATE: Bật sẵn loading để render skeleton trong lúc dữ liệu đang tải.
@@ -60,18 +58,33 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             ? new DateTime(p.CurrentPeriodYear, p.CurrentPeriodMonth, 1)
             : new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
-        public DateTime PreviousOrderPeriodDate => PeriodInfo is { } p
-            ? new DateTime(p.PreviousPeriodYear, p.PreviousPeriodMonth, 1)
-            : CurrentOrderPeriodDate.AddMonths(-1);
+        public DateTime SelectedDeadlineDate => OrderViewSelectedIndex == SupplementOrderViewIndex
+            ? PeriodInfo?.SupplementApprovalDeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(9)
+            : PeriodInfo?.DeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(4);
 
-        public DateTime CurrentDeadlineDate => PeriodInfo?.DeadlineDate
-            ?? new DateTime(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month, 1).AddMonths(1).AddDays(4);
-
-        public int RemainingDeadlineDays => Math.Max(0, (CurrentDeadlineDate.Date - DateTime.Today).Days);
+        public int RemainingDeadlineDays => (SelectedDeadlineDate.Date - DateTime.Today).Days;
+        private bool IsSupplementWaitingForPeriodClose =>
+            OrderViewSelectedIndex == SupplementOrderViewIndex
+            && string.Equals(PeriodInfo?.PeriodState, "Open", StringComparison.OrdinalIgnoreCase);
         public string CurrentOrderPeriodText => DateFormatter.Format(CurrentOrderPeriodDate, DateFormatter.MonthYear);
-        public string PreviousOrderPeriodText => DateFormatter.Format(PreviousOrderPeriodDate, DateFormatter.MonthYear);
-        public string CurrentDeadlineText => DateFormatter.Format(CurrentDeadlineDate, DateFormatter.LongDate);
-        public string RemainingDeadlineText => RemainingDeadlineDays == 0 ? Loc["DeadlineIsToday"].Value : string.Format(Loc["RemainingDeadlineDaysFormat"], RemainingDeadlineDays);
+        public string SelectedDeadlineText => DateFormatter.Format(SelectedDeadlineDate, DateFormatter.LongDate);
+        public string SelectedDeadlineLabel => OrderViewSelectedIndex == SupplementOrderViewIndex
+            ? Loc["SupplementOrderDeadline"].Value
+            : Loc["RegularOrderDeadline"].Value;
+        public string SelectedDeadlineStatusText => RemainingDeadlineDays switch
+        {
+            _ when IsSupplementWaitingForPeriodClose => Loc["OpensAfterPeriodCloses"].Value,
+            < 0 => Loc["DeadlinePassed"].Value,
+            0 => Loc["DeadlineIsToday"].Value,
+            _ => string.Format(Loc["RemainingDeadlineDaysFormat"], RemainingDeadlineDays)
+        };
+        public string SelectedDeadlineToneClass => IsSupplementWaitingForPeriodClose
+            ? string.Empty
+            : RemainingDeadlineDays < 0
+            ? "is-expired"
+            : RemainingDeadlineDays <= 2
+                ? "is-urgent"
+                : string.Empty;
         protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => PeriodInfo?.OpenPeriods
             .Select(option => new VppDecisionOption<Guid?>(
                 option.PeriodId,
@@ -81,7 +94,6 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             .Where(order => order.Year == CurrentOrderPeriodDate.Year && order.Month == CurrentOrderPeriodDate.Month)
             .ToArray();
         protected VppRequestResDTO? CurrentRegularOrder => ActiveOrders.FirstOrDefault();
-        protected VppRequestResDTO? PreviousRegularOrder => PreviousOrders.FirstOrDefault();
         protected VppRequestResDTO? SelectedSupplementOrder => CurrentPeriodAdditionalOrders
             .FirstOrDefault(order => order.Id == _selectedSupplementOrderId)
             ?? CurrentPeriodAdditionalOrders.FirstOrDefault();
@@ -97,34 +109,9 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
 
         protected IReadOnlyList<VppSegmentedOption<int>> OrderViewOptions =>
         [
-            new(CurrentOrderViewIndex, Loc["CurrentRegularOrder"]),
-            new(SupplementOrderViewIndex, Loc["AdditionalOrders"]),
-            new(PreviousOrderViewIndex, Loc["PreviousOrderPeriod"])
+            new(CurrentOrderViewIndex, Loc["RegularOrder"]),
+            new(SupplementOrderViewIndex, Loc["AdditionalOrders"])
         ];
-        public string OrdersStoryDescription
-        {
-            get
-            {
-                if (PeriodInfo is null)
-                {
-                    return Loc["CouldNotDetermineCurrentPeriodPleaseReload"].Value;
-                }
-
-                if (!PeriodInfo.IsSubmissionOpen || PeriodInfo.IsDeadlinePassed)
-                {
-                    return Loc["OrdersStoryClosedDescription"].Value;
-                }
-
-                if (TotalOrders > 0)
-                {
-                    return string.Empty;
-                }
-
-                return RemainingDeadlineDays == 0
-                    ? string.Format(Loc["OrdersStoryTodayDescriptionFormat"].Value, CurrentDeadlineText)
-                    : string.Format(Loc["OrdersStoryOpenDescriptionFormat"].Value, RemainingDeadlineDays, CurrentDeadlineText);
-            }
-        }
         public string EmptyCurrentOrdersDescription => CanCreateRegular
             ? Loc["NoCurrentRegularOrdersNextStep"].Value
             : Loc["NoOrdersSubmittedCurrentPeriod"].Value;
@@ -199,16 +186,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private string? SupplementPrimaryActionText => SelectedSupplementOrder is not null && ShowSupplementAction
             ? Loc["RequestAdditional"].Value
             : null;
-        private string? PreviousPrimaryActionText => PreviousRegularOrder is not null && CanCopyPrevious
-            ? Loc["CopyPreviousOrder"].Value
-            : null;
-
         protected override void OnParametersSet()
         {
             OrderViewSelectedIndex = OrderViewQuery?.Trim().ToLowerInvariant() switch
             {
                 "supplement" => SupplementOrderViewIndex,
-                "previous" => PreviousOrderViewIndex,
                 _ => CurrentOrderViewIndex
             };
         }
@@ -218,13 +200,11 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             var normalizedIndex = index switch
             {
                 SupplementOrderViewIndex => SupplementOrderViewIndex,
-                PreviousOrderViewIndex => PreviousOrderViewIndex,
                 _ => CurrentOrderViewIndex
             };
             var queryValue = normalizedIndex switch
             {
                 SupplementOrderViewIndex => "supplement",
-                PreviousOrderViewIndex => "previous",
                 _ => "current"
             };
 
@@ -315,15 +295,13 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             {
                 var data = await Requests.GetMyOrdersAsync(
                 [
-                    new OrderPeriod(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month),
-                    new OrderPeriod(PreviousOrderPeriodDate.Year, PreviousOrderPeriodDate.Month)
+                    new OrderPeriod(CurrentOrderPeriodDate.Year, CurrentOrderPeriodDate.Month)
                 ]);
 
                 var allOrders = data.OrderByDescending(x => x.UpdatedAtUtc).ToList();
 
                 // Tách đơn theo loại.
                 ActiveOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == CurrentOrderPeriodDate.Year && x.Month == CurrentOrderPeriodDate.Month).ToList();
-                PreviousOrders = allOrders.Where(x => !x.IsAdditionalOrder && x.Year == PreviousOrderPeriodDate.Year && x.Month == PreviousOrderPeriodDate.Month).ToList();
                 AdditionalOrders = allOrders.Where(x => x.IsAdditionalOrder).OrderByDescending(x => x.SubmittedDate ?? x.UpdatedAtUtc).ToList();
 
                 if (CurrentPeriodAdditionalOrders.All(order => order.Id != _selectedSupplementOrderId))

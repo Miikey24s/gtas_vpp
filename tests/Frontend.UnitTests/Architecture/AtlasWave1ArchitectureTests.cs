@@ -655,7 +655,7 @@ public sealed class AtlasWave1ArchitectureTests
 
         Assert.Contains("CurrentOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.Contains("SupplementOrderViewIndex", ordersCode, StringComparison.Ordinal);
-        Assert.Contains("PreviousOrderViewIndex", ordersCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("PreviousOrderViewIndex", ordersCode, StringComparison.Ordinal);
         Assert.Contains("RequestsQueryClient", ordersCode, StringComparison.Ordinal);
         Assert.Contains("RequestsCommandClient", ordersCode, StringComparison.Ordinal);
         Assert.Contains("RequestsExportClient", ordersCode, StringComparison.Ordinal);
