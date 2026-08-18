@@ -170,16 +170,19 @@ public sealed class MembershipPermissionControllerTests
                 It.IsAny<List<UserAdministrationResDTO>>(),
                 It.IsAny<DbContext>()))
             .ReturnsAsync((List<UserAdministrationResDTO> users, DbContext _) => users);
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context).Object;
 
         return new PermissionController(
             Mock.Of<IGenericRepository<PermissionGroup>>(),
-            Mock.Of<IGenericRepository<GroupPageComponentMapping>>(),
             Mock.Of<IGenericRepository<UserGroupMembership>>(),
             resolver.Object,
-            ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
-            new FakeDateTimeProvider(DateTime.UtcNow),
-            Mock.Of<IPermissionChangeNotifier>(),
+            unitOfWork,
             Mock.Of<IMembershipAdministrationService>(),
+            new PermissionMappingMutationService(
+                Mock.Of<IGenericRepository<GroupPageComponentMapping>>(),
+                unitOfWork,
+                new FakeDateTimeProvider(DateTime.UtcNow),
+                Mock.Of<IPermissionChangeNotifier>()),
             new SecurityAuditQueryService(context),
             new UserAdministrationQueryService(context, resolver.Object),
             new PermissionGroupQueryService(context, resolver.Object),

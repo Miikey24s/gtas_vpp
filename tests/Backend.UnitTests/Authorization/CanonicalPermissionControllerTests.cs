@@ -502,15 +502,22 @@ public sealed class CanonicalPermissionControllerTests
         Mock<IGenericRepository<GroupPageComponentMapping>>? mappingRepository = null,
         Mock<IPermissionChangeNotifier>? permissionChangeNotifier = null)
     {
+        var resolvedMappingRepository = mappingRepository
+            ?? new Mock<IGenericRepository<GroupPageComponentMapping>>();
+        var resolvedNotifier = permissionChangeNotifier
+            ?? new Mock<IPermissionChangeNotifier>();
+        var unitOfWork = ServiceTestHelpers.CreateUnitOfWorkMock(context).Object;
         var controller = new PermissionController(
             (groupRepository ?? new Mock<IGenericRepository<PermissionGroup>>()).Object,
-            (mappingRepository ?? new Mock<IGenericRepository<GroupPageComponentMapping>>()).Object,
             Mock.Of<IGenericRepository<UserGroupMembership>>(),
             Mock.Of<IUserNameResolver>(),
-            ServiceTestHelpers.CreateUnitOfWorkMock(context).Object,
-            new FakeDateTimeProvider(DateTime.UtcNow),
-            (permissionChangeNotifier ?? new Mock<IPermissionChangeNotifier>()).Object,
+            unitOfWork,
             Mock.Of<IMembershipAdministrationService>(),
+            new PermissionMappingMutationService(
+                resolvedMappingRepository.Object,
+                unitOfWork,
+                new FakeDateTimeProvider(DateTime.UtcNow),
+                resolvedNotifier.Object),
             new SecurityAuditQueryService(context),
             new UserAdministrationQueryService(context, Mock.Of<IUserNameResolver>()),
             new PermissionGroupQueryService(context, Mock.Of<IUserNameResolver>()),

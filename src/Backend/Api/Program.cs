@@ -402,6 +402,7 @@ builder.Services.AddScoped<ISecurityAuditQueryService, SecurityAuditQueryService
 builder.Services.AddScoped<IUserAdministrationQueryService, UserAdministrationQueryService>();
 builder.Services.AddScoped<IPermissionGroupQueryService, PermissionGroupQueryService>();
 builder.Services.AddScoped<IPermissionPageComponentQueryService, PermissionPageComponentQueryService>();
+builder.Services.AddScoped<IPermissionMappingMutationService, PermissionMappingMutationService>();
 builder.Services.AddOptions<AuthBootstrapOptions>()
     .Bind(Configuration.GetSection(AuthBootstrapOptions.SectionName));
 builder.Services.AddScoped<IAuthBootstrapProvisioner, AuthBootstrapProvisioner>();
