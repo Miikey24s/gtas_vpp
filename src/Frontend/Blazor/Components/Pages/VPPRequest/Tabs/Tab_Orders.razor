@@ -8,11 +8,11 @@
 
 @if (CanView)
 {
-    @* HEADER: Kỳ đang chọn và thời hạn gửi đơn. *@
+    @* HEADER: Một kỳ và hai mốc hạn luôn hiện cùng nhau để dễ đối chiếu. *@
     <div class="vpp-orders-workspace order-page">
         @if (IsLoading)
         {
-            <SkeletonPage Cards="2" Rows="5" Cols="4" FillAvailable="true" />
+            <SkeletonPage Cards="3" Rows="5" Cols="4" FillAvailable="true" />
         }
         else
         {
@@ -29,15 +29,27 @@
                                        TriggerClass="vpp-decision-card-trigger"
                                        Disabled="@(PeriodInfo is null || OpenPeriodOptions.Count == 0)" />
 
-                    <div class="vpp-decision-card-context vpp-orders-deadline-context @SelectedDeadlineToneClass"
-                         aria-label="@SelectedDeadlineLabel">
-                        <small>@SelectedDeadlineLabel</small>
+                    <div class="vpp-decision-card-context vpp-orders-deadline-context @GetDeadlineToneClass(RegularDeadlineDate)"
+                         aria-label="@Loc["RegularOrderDeadline"]">
+                        <small>@Loc["RegularOrderDeadline"]</small>
                         <div class="vpp-decision-card-context-body">
                             <span class="vpp-orders-deadline-status">
                                 <VppIcon Name="@VppIcons.Schedule" />
-                                <strong>@SelectedDeadlineStatusText</strong>
+                                <strong>@GetDeadlineStatusText(RegularDeadlineDate)</strong>
                             </span>
-                            <time datetime="@SelectedDeadlineDate.ToString("O")">@SelectedDeadlineText</time>
+                            <time datetime="@RegularDeadlineDate.ToString("O")">@FormatDeadline(RegularDeadlineDate)</time>
+                        </div>
+                    </div>
+
+                    <div class="vpp-decision-card-context vpp-orders-deadline-context @GetDeadlineToneClass(SupplementDeadlineDate)"
+                         aria-label="@Loc["SupplementOrderDeadline"]">
+                        <small>@Loc["SupplementOrderDeadline"]</small>
+                        <div class="vpp-decision-card-context-body">
+                            <span class="vpp-orders-deadline-status">
+                                <VppIcon Name="@VppIcons.Schedule" />
+                                <strong>@GetDeadlineStatusText(SupplementDeadlineDate)</strong>
+                            </span>
+                            <time datetime="@SupplementDeadlineDate.ToString("O")">@FormatDeadline(SupplementDeadlineDate)</time>
                         </div>
                     </div>
                 </VppDecisionCardGroup>

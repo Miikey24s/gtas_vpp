@@ -20,6 +20,14 @@ public sealed class F4OwnerReviewTests : TestBase, IAuthenticatedUiTest
         await story.WaitForAsync();
         await switchbar.WaitForAsync();
         var selector = switchbar.Locator(".vpp-orders-view-selector");
+        var decisionCards = story.Locator(".vpp-orders-decision-cards > *");
+        (await decisionCards.CountAsync()).Should().Be(3,
+            "My Orders phải luôn hiển thị kỳ, hạn đơn thường và hạn đơn bổ sung");
+        var decisionCardWidths = await decisionCards.EvaluateAllAsync<double[]>(
+            "elements => elements.map(element => element.getBoundingClientRect().width)");
+        (decisionCardWidths.Max() - decisionCardWidths.Min()).Should().BeLessThanOrEqualTo(1,
+            "ba card quyết định phải có chiều ngang bằng nhau trên desktop");
+        (await story.Locator(".vpp-orders-deadline-context").CountAsync()).Should().Be(2);
         (await selector.Locator("button[aria-pressed]").CountAsync()).Should().Be(2);
         (await selector.Locator(".vpp-segmented-badge").CountAsync()).Should().Be(0,
             "My Orders uses label-only segments; counts remain in the data surface when needed");

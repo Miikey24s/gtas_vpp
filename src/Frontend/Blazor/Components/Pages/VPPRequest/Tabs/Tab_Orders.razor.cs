@@ -70,27 +70,30 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         private DateTime? RegularPeriodDate => ToPeriodDate(RegularPeriodInfo);
         private DateTime? SupplementPeriodDate => ToPeriodDate(SupplementPeriodInfo);
 
-        public DateTime SelectedDeadlineDate => OrderViewSelectedIndex == SupplementOrderViewIndex
-            ? PeriodInfo?.SupplementApprovalDeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(9)
-            : PeriodInfo?.DeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(4);
-
-        public int RemainingDeadlineDays => (SelectedDeadlineDate.Date - DateTime.Today).Days;
+        public DateTime RegularDeadlineDate =>
+            PeriodInfo?.DeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(4);
+        public DateTime SupplementDeadlineDate =>
+            PeriodInfo?.SupplementApprovalDeadlineDate ?? CurrentOrderPeriodDate.AddMonths(1).AddDays(9);
         public string CurrentOrderPeriodText => DateFormatter.Format(CurrentOrderPeriodDate, DateFormatter.MonthYear);
-        public string SelectedDeadlineText => DateFormatter.Format(SelectedDeadlineDate, DateFormatter.LongDate);
-        public string SelectedDeadlineLabel => OrderViewSelectedIndex == SupplementOrderViewIndex
-            ? Loc["SupplementOrderDeadline"].Value
-            : Loc["RegularOrderDeadline"].Value;
-        public string SelectedDeadlineStatusText => RemainingDeadlineDays switch
+
+        public string FormatDeadline(DateTime deadlineDate) =>
+            DateFormatter.Format(deadlineDate, DateFormatter.LongDate);
+
+        public string GetDeadlineStatusText(DateTime deadlineDate) => GetRemainingDeadlineDays(deadlineDate) switch
         {
             < 0 => Loc["DeadlinePassed"].Value,
             0 => Loc["DeadlineIsToday"].Value,
-            _ => string.Format(Loc["RemainingDeadlineDaysFormat"], RemainingDeadlineDays)
+            var remainingDays => string.Format(Loc["RemainingDeadlineDaysFormat"], remainingDays)
         };
-        public string SelectedDeadlineToneClass => RemainingDeadlineDays < 0
+
+        public string GetDeadlineToneClass(DateTime deadlineDate) => GetRemainingDeadlineDays(deadlineDate) < 0
             ? "is-expired"
-            : RemainingDeadlineDays <= 2
+            : GetRemainingDeadlineDays(deadlineDate) <= 2
                 ? "is-urgent"
                 : string.Empty;
+
+        private static int GetRemainingDeadlineDays(DateTime deadlineDate) =>
+            (deadlineDate.Date - DateTime.Today).Days;
         protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => ActivePeriodOptions
             .Select(option => new VppDecisionOption<Guid?>(
                 option.PeriodId,

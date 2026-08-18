@@ -3,7 +3,7 @@
 }
 
 ::deep .vpp-orders-decision-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 ::deep .vpp-orders-deadline-context {
@@ -40,13 +40,19 @@
     white-space: nowrap;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1100px) {
     ::deep .vpp-orders-decision-cards {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     ::deep .vpp-orders-deadline-context .vpp-decision-card-context-body {
         align-items: flex-start;
         flex-direction: column;
+    }
+}
+
+@media (max-width: 720px) {
+    ::deep .vpp-orders-decision-cards {
+        grid-template-columns: minmax(0, 1fr);
     }
 }

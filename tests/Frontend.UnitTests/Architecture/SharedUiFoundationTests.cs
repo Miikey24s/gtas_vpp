@@ -741,6 +741,7 @@ public sealed class SharedUiFoundationTests
         var root = GetFrontendRoot();
         var source = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor"));
         var codeBehind = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.cs"));
+        var styles = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Tabs", "Tab_Orders.razor.css"));
         var orderPanel = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Components", "VppOrderWorkspacePanel.razor"));
         var orderCreate = File.ReadAllText(Path.Combine(root, "Components", "Pages", "VPPRequest", "Page_OrderCreate.razor.cs"));
         var submissionCoordinator = File.ReadAllText(Path.Combine(root, "Features", "Requests", "Submission", "OrderSubmissionCoordinator.cs"));
@@ -761,6 +762,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<VppSegmentedSelector", source, StringComparison.Ordinal);
         Assert.Contains("<VppDecisionCardGroup", source, StringComparison.Ordinal);
         Assert.Contains("vpp-orders-decision-cards", source, StringComparison.Ordinal);
+        Assert.Equal(2, source.Split("vpp-orders-deadline-context", StringSplitOptions.None).Length - 1);
+        Assert.Contains("RegularOrderDeadline", source, StringComparison.Ordinal);
+        Assert.Contains("SupplementOrderDeadline", source, StringComparison.Ordinal);
+        Assert.Contains("RegularDeadlineDate", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("SupplementDeadlineDate", codeBehind, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedDeadline", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: repeat(3, minmax(0, 1fr))", styles, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-story-commands", source, StringComparison.Ordinal);
         Assert.Contains("PrimaryActionText=\"@SupplementPrimaryActionText\"", source, StringComparison.Ordinal);
         Assert.Contains("data-testid=\"@PrimaryActionTestId\"", orderPanel, StringComparison.Ordinal);
