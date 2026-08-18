@@ -1,7 +1,9 @@
 # BUSINESS-FLOW-AUDIT-20260818 — Rà soát luồng nghiệp vụ GTAS VPP
 
-> Ngày rà soát: `2026-08-18`  
-> Phạm vi: code hiện tại của `src/Backend`, `src/Frontend/Blazor`, DTO dùng chung và các test tập trung liên quan.  
+> Ngày rà soát: `2026-08-18`
+>
+> Phạm vi: code hiện tại của `src/Backend`, `src/Frontend/Blazor`, DTO dùng chung và các test tập trung liên quan.
+>
 > Tính chất: **audit đọc và đối chiếu**, chưa sửa nghiệp vụ trong tài liệu này.
 
 ## 0. Bản một ánh nhìn
@@ -443,4 +445,3 @@ Hiện database/service đã có một số cột hoặc guard chuẩn bị trư
 3. Sau chốt có cho thêm mặt hàng hoàn toàn mới không, hay chỉ sửa/hủy phần đã chốt?
 4. Các endpoint đóng/mở lại/xóa kỳ có giữ làm công cụ khôi phục cho quản trị hệ thống không?
 5. Có đồng ý tạm ép hợp đồng/chiết khấu/phụ phí/vận chuyển về `0` cho đến khi module tương ứng được làm đầy đủ không?
-
