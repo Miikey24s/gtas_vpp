@@ -102,6 +102,73 @@ public sealed class CanonicalPermissionControllerTests
     }
 
     [Fact]
+    public async Task GetGroupPageComponents_ReturnsStableAdministrationModesForCanonicalPersona()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var page = new PermissionPage
+        {
+            Id = Guid.NewGuid(),
+            PageCode = "PERMISSION_TEST",
+            PageName = "Permission test",
+            Type = "Page",
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        };
+        var components = new[]
+        {
+            CreateComponent(Permissions.PermissionManage, "Manage permission"),
+            CreateComponent(Permissions.MenuPermission, "Permission menu"),
+            CreateComponent("UNDECLARED_COMPONENT", "Outside role ceiling")
+        };
+        var pageMappings = components.Select(component => new PageComponentMapping
+        {
+            Id = Guid.NewGuid(),
+            PermissionPageId = page.Id,
+            PermissionPage = page,
+            PermissionComponentId = component.Id,
+            PermissionComponent = component
+        }).ToArray();
+        var groupMappings = pageMappings.Select(mapping => new GroupPageComponentMapping
+        {
+            PermissionGroupId = CanonicalRbac.SystemAdmin.GroupId,
+            PageComponentMappingId = mapping.Id,
+            PageComponentMapping = mapping,
+            MemberCompanyCode = CanonicalRbac.DefaultMemberCompanyCode,
+            IsVisible = true,
+            IsEnable = true,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow
+        }).ToArray();
+        context.AddRange(page);
+        context.AddRange(components);
+        context.AddRange(pageMappings);
+        context.AddRange(groupMappings);
+        await context.SaveChangesAsync();
+        var controller = CreateController(context);
+
+        var action = await controller.GetGroupPageComponents(CanonicalRbac.SystemAdmin.GroupId);
+
+        var result = Assert.IsType<OkObjectResult>(action);
+        var pages = Assert.IsType<List<gtas_vpp_shared.DTOs.Res.Auth.PermissionPageComponentResDTO>>(result.Value);
+        var returnedPage = Assert.Single(pages);
+        Assert.Equal("PERMISSION_TEST", returnedPage.PageCode);
+        Assert.Equal("ActionMatrix", returnedPage.Components.Single(item => item.ComponentCode == Permissions.PermissionManage).AdministrationMode);
+        Assert.Equal("Required", returnedPage.Components.Single(item => item.ComponentCode == Permissions.MenuPermission).AdministrationMode);
+        Assert.Equal("OutsideRoleCeiling", returnedPage.Components.Single(item => item.ComponentCode == "UNDECLARED_COMPONENT").AdministrationMode);
+    }
+
+    [Fact]
+    public async Task GetGroupPageComponents_RejectsNonCanonicalPersona()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var controller = CreateController(context);
+
+        var action = await controller.GetGroupPageComponents(Guid.NewGuid());
+
+        Assert.IsType<NotFoundResult>(action);
+    }
+
+    [Fact]
     public async Task UpdateGroup_RejectsRuntimeChangesToCanonicalRoleDefinition()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
@@ -431,6 +498,15 @@ public sealed class CanonicalPermissionControllerTests
         GroupCode = persona.GroupCode,
         GroupName = persona.GroupName,
         Description = persona.Description,
+        CreatedAtUtc = DateTime.UtcNow,
+        UpdatedAtUtc = DateTime.UtcNow
+    };
+
+    private static PermissionComponent CreateComponent(string code, string name) => new()
+    {
+        Id = Guid.NewGuid(),
+        ComponentCode = code,
+        ComponentName = name,
         CreatedAtUtc = DateTime.UtcNow,
         UpdatedAtUtc = DateTime.UtcNow
     };
