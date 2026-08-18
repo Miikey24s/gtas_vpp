@@ -13,7 +13,7 @@ namespace gtas_vpp_be.Tests.Architecture;
 
 public sealed class BackendHttpContractManifestTests
 {
-    private const int ExpectedEndpointCount = 133;
+    private const int ExpectedEndpointCount = 135;
 
     [Fact]
     public void PublicControllerContracts_MatchB0RManifest()
@@ -208,7 +208,9 @@ public sealed class BackendHttpContractManifestTests
         POST | /api/order-periods/{id:guid}/close-submissions | POLICY:PERIOD_SETTLE
         POST | /api/order-periods/{id:guid}/delete | POLICY:PERIOD_SETTLE
         POST | /api/order-periods/{id:guid}/extend-deadline | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods/{id:guid}/hard-delete | POLICY:PERIOD_SETTLE
         POST | /api/order-periods/{id:guid}/reopen-submissions | POLICY:PERIOD_SETTLE
+        POST | /api/order-periods/{id:guid}/restore | POLICY:PERIOD_SETTLE
         GET | /api/PeriodSettlement | POLICY:PERIOD_SETTLE
         POST | /api/PeriodSettlement/confirm | POLICY:PERIOD_SETTLE
         GET | /api/PeriodSettlement/current/{y:int}/{m:int} | POLICY:PERIOD_SETTLE

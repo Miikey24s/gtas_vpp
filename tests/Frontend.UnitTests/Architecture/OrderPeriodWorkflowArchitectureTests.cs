@@ -113,8 +113,13 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.DoesNotContain("VppOrderPeriodUpdateReqDTO", periodActionDialog, StringComparison.Ordinal);
         Assert.Contains("VppOrderPeriodExtendDeadlineReqDTO", periodActionDialog, StringComparison.Ordinal);
         Assert.DoesNotContain("AllowOpenWhenAllDisabled=\"true\"", operations, StringComparison.Ordinal);
-        Assert.DoesNotContain("Xóa kỳ", operationsCode, StringComparison.Ordinal);
-        Assert.DoesNotContain("DeletePeriodAsync", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Vô hiệu hóa", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Khôi phục", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Xóa kỳ", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Disabled: period.IsDeleted ? !period.CanRestore : !period.CanDeactivate", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !period.CanHardDelete", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("DeactivatePeriodAsync", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("HardDeletePeriodAsync", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("ShowPeriodDetailsAsync", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Dialog_OrderPeriodDetails", operationsCode, StringComparison.Ordinal);
         Assert.DoesNotContain("if (period.CanCloseSubmissions || period.CanEditSchedule)", operationsCode, StringComparison.Ordinal);

@@ -108,7 +108,16 @@
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="State" Title="@Loc["Status"]"
                                                       Width="150px" MinWidth="150px" TextAlign="TextAlign.Center">
-                                    <Template Context="row"><VppPeriodStateBadge State="@row.State" Compact="true" /></Template>
+                                    <Template Context="row">
+                                        @if (row.IsDeleted)
+                                        {
+                                            <VppStatusBadge Text="Vô hiệu hóa" Tone="VppStatusTone.Neutral" />
+                                        }
+                                        else
+                                        {
+                                            <VppPeriodStateBadge State="@row.State" Compact="true" />
+                                        }
+                                    </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="VppManagedPeriodResDTO" Property="OpenAtLocal" Title="@Loc["OpenDate"]"
                                                       Width="155px" MinWidth="155px" TextAlign="TextAlign.Center">
@@ -147,11 +156,12 @@
                                     <Template Context="row">
                                         <div class="vpp-admin-actions">
                                              <VppAdminIconAction Icon="visibility"
-                                                                 Text="Xem"
-                                                                 Title="Xem chi tiết"
-                                                                 ButtonStyle="ButtonStyle.Light"
-                                                                 Disabled="@IsBusy"
-                                                                 Click="@(() => NavigateToSettlement(row))" />
+                                                                  Text="Xem"
+                                                                  Title="Xem chi tiết"
+                                                                  ButtonStyle="ButtonStyle.Light"
+                                                                  Disabled="@(IsBusy || row.IsDeleted)"
+                                                                  DisabledReason="Kỳ đã vô hiệu hóa."
+                                                                  Click="@(() => NavigateToSettlement(row))" />
                                             <VppAdminIconAction Icon="fact_check"
                                                                 Text="Chốt kỳ"
                                                                 Title="Chốt kỳ"

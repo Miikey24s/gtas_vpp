@@ -102,7 +102,8 @@ public sealed class UiMotifCatalogTests
         Assert.Contains(".rz-datatable-empty", dataGridCss, StringComparison.Ordinal);
         Assert.Contains("Disabled: !period.CanExtendDeadline", periods, StringComparison.Ordinal);
         Assert.DoesNotContain("Disabled: !period.CanEditSchedule", periods, StringComparison.Ordinal);
-        Assert.DoesNotContain("Disabled: !period.CanDelete", periods, StringComparison.Ordinal);
+        Assert.Contains("!period.CanRestore : !period.CanDeactivate", periods, StringComparison.Ordinal);
+        Assert.Contains("Disabled: !period.CanHardDelete", periods, StringComparison.Ordinal);
         Assert.Contains("Visible=\"@CanManageUsers\"", users, StringComparison.Ordinal);
         Assert.Contains("Disabled=\"@(!SelectedOrder.CanApproveSupplement", approvals, StringComparison.Ordinal);
         Assert.Contains("ShowEditAction", orders, StringComparison.Ordinal);

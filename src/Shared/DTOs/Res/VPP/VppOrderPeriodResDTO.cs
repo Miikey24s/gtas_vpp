@@ -22,6 +22,7 @@ public sealed class VppOrderPeriodSettingsResDTO
 public sealed class VppManagedPeriodResDTO
 {
     public Guid Id { get; set; }
+    public bool IsDeleted { get; set; }
     public int Year { get; set; }
     public int Month { get; set; }
     public string State { get; set; } = string.Empty;
@@ -33,6 +34,9 @@ public sealed class VppManagedPeriodResDTO
     public bool HasOrders { get; set; }
     public int OrderCount { get; set; }
     public bool CanEditSchedule { get; set; }
+    public bool CanDeactivate { get; set; }
+    public bool CanRestore { get; set; }
+    public bool CanHardDelete { get; set; }
     public bool CanDelete { get; set; }
     public bool CanExtendDeadline { get; set; }
     public bool CanCloseSubmissions { get; set; }

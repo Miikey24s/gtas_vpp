@@ -34,13 +34,19 @@ public sealed class OrderPeriodApiClientTests
         await client.TopUpAsync();
         var periodId = Guid.Parse("9f79b53d-30d6-4616-b81f-2ce4d22fb540");
         await client.ReopenAsync(periodId, new VppOrderPeriodReopenSubmissionsReqDTO());
+        await client.DeactivateAsync(periodId, new VppOrderPeriodCommandReqDTO());
+        await client.RestoreAsync(periodId, new VppOrderPeriodCommandReqDTO());
+        await client.HardDeleteAsync(periodId, new VppOrderPeriodCommandReqDTO());
 
         Assert.Equal(
         [
             ("/api/order-periods/settings", typeof(VppOrderPeriodSettingsResDTO)),
             ("/api/order-periods/horizon-preview", typeof(VppPeriodHorizonPreviewResDTO)),
             ("/api/order-periods/top-up", typeof(List<VppManagedPeriodResDTO>)),
-            ($"/api/order-periods/{periodId}/reopen-submissions", typeof(VppManagedPeriodResDTO))
+            ($"/api/order-periods/{periodId}/reopen-submissions", typeof(VppManagedPeriodResDTO)),
+            ($"/api/order-periods/{periodId}/delete", typeof(object)),
+            ($"/api/order-periods/{periodId}/restore", typeof(VppManagedPeriodResDTO)),
+            ($"/api/order-periods/{periodId}/hard-delete", typeof(object))
         ], posts);
     }
 

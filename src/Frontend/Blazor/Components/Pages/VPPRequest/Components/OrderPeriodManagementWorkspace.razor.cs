@@ -28,7 +28,7 @@ public partial class OrderPeriodManagementWorkspace
     private string selectedPeriodState = string.Empty;
     private int? selectedPeriodYear;
 
-    private int OpenPeriodCount => Periods.Count(x => x.State == "Open");
+    private int OpenPeriodCount => Periods.Count(x => !x.IsDeleted && x.State == "Open");
 
     private string PeriodCollectionSummary =>
         HasPeriodFilters
@@ -51,7 +51,8 @@ public partial class OrderPeriodManagementWorkspace
         new("SubmissionClosed", "Đã đóng"),
         new("Pricing", "Đang chốt"),
         new("Settled", "Đã chốt"),
-        new("Scheduled", "Chưa mở")
+        new("Scheduled", "Chưa mở"),
+        new("Inactive", "Vô hiệu hóa")
     ];
 
     private IReadOnlyList<VppFilterOption<int?>> PeriodYearOptions =>
@@ -74,6 +75,28 @@ public partial class OrderPeriodManagementWorkspace
             () => ExtendDeadlineAsync(period),
             Disabled: !period.CanExtendDeadline,
             DisabledReason: "Không thể gia hạn kỳ ở trạng thái hiện tại."));
+
+        items.Add(new(
+            "toggle-active",
+            period.IsDeleted ? "Khôi phục" : "Vô hiệu hóa",
+            period.IsDeleted ? "restore_from_trash" : "block",
+            () => period.IsDeleted
+                ? RestorePeriodAsync(period)
+                : DeactivatePeriodAsync(period),
+            Disabled: period.IsDeleted ? !period.CanRestore : !period.CanDeactivate,
+            Tone: period.IsDeleted ? VppAdminActionTone.Default : VppAdminActionTone.Warning,
+            DisabledReason: period.IsDeleted
+                ? "Kỳ đã hết hạn, bị trùng hoặc có dữ liệu nên không thể khôi phục."
+                : "Chỉ có thể vô hiệu hóa kỳ chưa có đơn hoặc dữ liệu chốt."));
+
+        items.Add(new(
+            "hard-delete",
+            "Xóa kỳ",
+            "delete_forever",
+            () => HardDeletePeriodAsync(period),
+            Disabled: !period.CanHardDelete,
+            Tone: VppAdminActionTone.Danger,
+            DisabledReason: "Hãy vô hiệu hóa kỳ chưa có dữ liệu trước khi xóa."));
 
         return items;
     }
@@ -116,6 +139,75 @@ public partial class OrderPeriodManagementWorkspace
             _ = await PeriodsApi.ExtendAsync(period.Id, request);
             await LoadDataAsync();
             Toast.Success("Đã gia hạn", $"Kỳ {PeriodLabel(period)} đã có ngày đóng mới.");
+        });
+    }
+
+    private async Task DeactivatePeriodAsync(VppManagedPeriodResDTO period)
+    {
+        var confirm = await DialogService.Confirm(
+            $"Vô hiệu hóa kỳ {PeriodLabel(period)}? Kỳ này sẽ không còn dùng để nhận hoặc chốt đơn.",
+            "Vô hiệu hóa kỳ",
+            new ConfirmOptions { OkButtonText = "Vô hiệu hóa", CancelButtonText = "Hủy" });
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await PeriodsApi.DeactivateAsync(period.Id, new VppOrderPeriodCommandReqDTO
+            {
+                Reason = "Vô hiệu hóa kỳ chưa có dữ liệu",
+                RowVersion = period.RowVersion
+            });
+            await LoadDataAsync();
+            Toast.Success("Đã vô hiệu hóa", $"Kỳ {PeriodLabel(period)} đã được vô hiệu hóa.");
+        });
+    }
+
+    private async Task RestorePeriodAsync(VppManagedPeriodResDTO period)
+    {
+        var confirm = await DialogService.Confirm(
+            $"Khôi phục kỳ {PeriodLabel(period)}?",
+            "Khôi phục kỳ",
+            new ConfirmOptions { OkButtonText = "Khôi phục", CancelButtonText = "Hủy" });
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            _ = await PeriodsApi.RestoreAsync(period.Id, new VppOrderPeriodCommandReqDTO
+            {
+                Reason = "Khôi phục kỳ",
+                RowVersion = period.RowVersion
+            });
+            await LoadDataAsync();
+            Toast.Success("Đã khôi phục", $"Kỳ {PeriodLabel(period)} đã hoạt động trở lại.");
+        });
+    }
+
+    private async Task HardDeletePeriodAsync(VppManagedPeriodResDTO period)
+    {
+        var confirm = await DialogService.Confirm(
+            $"Xóa vĩnh viễn kỳ {PeriodLabel(period)}? Thao tác này không thể hoàn tác.",
+            "Xóa kỳ",
+            new ConfirmOptions { OkButtonText = "Xóa kỳ", CancelButtonText = "Hủy" });
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await PeriodsApi.HardDeleteAsync(period.Id, new VppOrderPeriodCommandReqDTO
+            {
+                Reason = "Xóa kỳ chưa có dữ liệu",
+                RowVersion = period.RowVersion
+            });
+            await LoadDataAsync();
+            Toast.Success("Đã xóa", $"Kỳ {PeriodLabel(period)} đã được xóa.");
         });
     }
 
@@ -180,7 +272,7 @@ public partial class OrderPeriodManagementWorkspace
             $"/dashboard?tab=5&periodTab=review&periodYear={period.Year}&periodMonth={period.Month}");
 
     private static bool CanSettlePeriod(VppManagedPeriodResDTO period) =>
-        period.State is "SubmissionClosed" or "Pricing";
+        !period.IsDeleted && (period.State is "SubmissionClosed" or "Pricing");
 
     private Task OnPeriodSearchInput(ChangeEventArgs args)
     {
@@ -230,7 +322,10 @@ public partial class OrderPeriodManagementWorkspace
                 || PeriodLabel(period).Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase)
                 || (period.LastTransitionReason?.Contains(normalizedSearch, StringComparison.OrdinalIgnoreCase) ?? false))
             .Where(period => string.IsNullOrWhiteSpace(selectedPeriodState)
-                || string.Equals(period.State, selectedPeriodState, StringComparison.OrdinalIgnoreCase))
+                || (selectedPeriodState == "Inactive"
+                    ? period.IsDeleted
+                    : !period.IsDeleted
+                        && string.Equals(period.State, selectedPeriodState, StringComparison.OrdinalIgnoreCase)))
             .Where(period => !selectedPeriodYear.HasValue || period.Year == selectedPeriodYear.Value)
             .ToList();
     }

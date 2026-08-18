@@ -49,6 +49,14 @@ public sealed class OrderPeriodApiClient(IAPIServices api)
             $"{BasePath}/{id}/reopen-submissions",
             request);
 
-    public async Task DeleteAsync(Guid id, VppOrderPeriodCommandReqDTO request)
+    public async Task DeactivateAsync(Guid id, VppOrderPeriodCommandReqDTO request)
         => _ = await api.PostFromApiAsync<object>($"{BasePath}/{id}/delete", request);
+
+    public Task<VppManagedPeriodResDTO?> RestoreAsync(
+        Guid id,
+        VppOrderPeriodCommandReqDTO request) =>
+        api.PostFromApiAsync<VppManagedPeriodResDTO>($"{BasePath}/{id}/restore", request);
+
+    public async Task HardDeleteAsync(Guid id, VppOrderPeriodCommandReqDTO request)
+        => _ = await api.PostFromApiAsync<object>($"{BasePath}/{id}/hard-delete", request);
 }

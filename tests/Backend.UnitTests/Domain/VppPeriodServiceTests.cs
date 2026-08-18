@@ -250,7 +250,7 @@ public sealed class VppPeriodServiceTests
         {
             Year = 2026,
             Month = 11,
-            OpenAtLocal = new DateTime(2026, 8, 26, 8, 0, 0),
+            OpenAtLocal = new DateTime(2026, 8, 26, 10, 0, 0),
             CloseAtLocal = new DateTime(2026, 12, 5),
             SupplementApprovalDeadlineLocal = new DateTime(2026, 12, 7),
             Reason = "Mở riêng kỳ tháng 11 theo kế hoạch mua sắm."
@@ -258,13 +258,19 @@ public sealed class VppPeriodServiceTests
 
         var created = await service.TopUpOpenHorizonAsync("ACME");
         var open = await service.GetOpenPeriodsAsync("ACME");
+        var managed = await service.ListManagedAsync("ACME");
 
         Assert.Equal(
             [(2026, 8)],
             created.Select(x => (x.Year, x.Month)).ToArray());
         Assert.Equal(
-            [(2026, 8), (2026, 11)],
+            [(2026, 8)],
             open.Select(x => (x.Year, x.Month)).ToArray());
+        Assert.Equal(
+            [(2026, 8), (2026, 11)],
+            managed.OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .Select(x => (x.Year, x.Month))
+                .ToArray());
     }
 
     [Fact]
@@ -277,7 +283,7 @@ public sealed class VppPeriodServiceTests
         {
             Year = 2026,
             Month = 11,
-            OpenAtLocal = new DateTime(2026, 8, 26, 8, 0, 0),
+            OpenAtLocal = new DateTime(2026, 8, 26, 10, 0, 0),
             CloseAtLocal = new DateTime(2026, 12, 5),
             SupplementApprovalDeadlineLocal = new DateTime(2026, 12, 7),
             Reason = "Mở riêng kỳ tháng 11."
@@ -313,6 +319,28 @@ public sealed class VppPeriodServiceTests
     }
 
     [Fact]
+    public async Task Manual_period_rejects_a_past_open_time_even_when_label_and_deadlines_are_future()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+            service.CreateManualAsync("ACME", 5615, new VppOrderPeriodManualCreateReqDTO
+            {
+                Year = 2026,
+                Month = 11,
+                OpenAtLocal = new DateTime(2026, 8, 26, 8, 0, 0),
+                CloseAtLocal = new DateTime(2026, 12, 5),
+                SupplementApprovalDeadlineLocal = new DateTime(2026, 12, 10),
+                Reason = "Không được mở kỳ bằng thời điểm đã qua."
+            }));
+
+        Assert.Equal("Ngày mở không được nằm trong quá khứ.", exception.Message);
+        Assert.Empty(context.Periods);
+    }
+
+    [Fact]
     public async Task Manual_period_can_recreate_a_soft_deleted_legacy_period()
     {
         await using var context = ServiceTestHelpers.CreateInMemoryContext(
@@ -322,7 +350,7 @@ public sealed class VppPeriodServiceTests
         {
             Year = 2026,
             Month = 9,
-            OpenAtLocal = new DateTime(2026, 8, 26, 8, 0, 0),
+            OpenAtLocal = new DateTime(2026, 8, 26, 10, 0, 0),
             CloseAtLocal = new DateTime(2026, 10, 5),
             SupplementApprovalDeadlineLocal = new DateTime(2026, 10, 10),
             Reason = "Thêm lại kỳ tháng 09 theo kế hoạch."
@@ -340,6 +368,99 @@ public sealed class VppPeriodServiceTests
         Assert.NotEqual(legacy.Id, recreated.Id);
         Assert.Equal(2, context.Periods.Count(x => x.Year == 2026 && x.Month == 9));
         Assert.Single(context.Periods.Where(x => x.Year == 2026 && x.Month == 9 && !x.IsDeleted));
+    }
+
+    [Fact]
+    public async Task Period_without_business_data_can_be_deactivated_restored_and_hard_deleted()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        var created = await service.CreateManualAsync("ACME", 5615, new VppOrderPeriodManualCreateReqDTO
+        {
+            Year = 2026,
+            Month = 11,
+            OpenAtLocal = new DateTime(2026, 8, 26, 10, 0, 0),
+            CloseAtLocal = new DateTime(2026, 12, 5),
+            SupplementApprovalDeadlineLocal = new DateTime(2026, 12, 10),
+            Reason = "Kỳ thử nghiệm vòng đời."
+        });
+        context.Periods.Single(x => x.Id == created.Id).RowVersion = [1];
+        await context.SaveChangesAsync();
+
+        var active = (await service.ListManagedAsync("ACME")).Single(x => x.Id == created.Id);
+        Assert.True(active.CanDeactivate);
+        Assert.False(active.CanHardDelete);
+
+        await service.DeleteAsync(created.Id, 5615, new VppOrderPeriodCommandReqDTO
+        {
+            Reason = "Vô hiệu hóa kỳ chưa có dữ liệu.",
+            RowVersion = active.RowVersion
+        });
+        var inactive = (await service.ListManagedAsync("ACME")).Single(x => x.Id == created.Id);
+        Assert.True(inactive.IsDeleted);
+        Assert.True(inactive.CanRestore);
+        Assert.True(inactive.CanHardDelete);
+
+        var restored = await service.RestoreAsync(created.Id, 5615, new VppOrderPeriodCommandReqDTO
+        {
+            Reason = "Khôi phục kỳ.",
+            RowVersion = inactive.RowVersion
+        });
+        Assert.False(restored.IsDeleted);
+        Assert.True(restored.CanDeactivate);
+
+        await service.DeleteAsync(created.Id, 5615, new VppOrderPeriodCommandReqDTO
+        {
+            Reason = "Vô hiệu hóa trước khi xóa.",
+            RowVersion = restored.RowVersion
+        });
+        var inactiveAgain = (await service.ListManagedAsync("ACME")).Single(x => x.Id == created.Id);
+        await service.HardDeleteAsync(created.Id, new VppOrderPeriodCommandReqDTO
+        {
+            Reason = "Xóa kỳ chưa có dữ liệu.",
+            RowVersion = inactiveAgain.RowVersion
+        });
+
+        Assert.DoesNotContain(context.Periods, x => x.Id == created.Id);
+    }
+
+    [Fact]
+    public async Task Period_with_any_order_cannot_be_deactivated_or_hard_deleted()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(
+            $"period-{Guid.NewGuid():N}");
+        var service = CreateService(context, new DateTime(2026, 8, 26, 9, 0, 0));
+        var created = await service.CreateManualAsync("ACME", 5615, new VppOrderPeriodManualCreateReqDTO
+        {
+            Year = 2026,
+            Month = 11,
+            OpenAtLocal = new DateTime(2026, 8, 26, 10, 0, 0),
+            CloseAtLocal = new DateTime(2026, 12, 5),
+            SupplementApprovalDeadlineLocal = new DateTime(2026, 12, 10),
+            Reason = "Kỳ có đơn."
+        });
+        var entity = context.Periods.Single(x => x.Id == created.Id);
+        entity.RowVersion = [1];
+        context.Requests.Add(new VppRequest
+        {
+            Id = Guid.NewGuid(),
+            PeriodId = created.Id,
+            Year = created.Year,
+            Month = created.Month,
+            MemberCompanyCode = "ACME",
+            RequestSeriesId = Guid.NewGuid(),
+            IsCurrentRevision = true
+        });
+        await context.SaveChangesAsync();
+
+        var managed = (await service.ListManagedAsync("ACME")).Single(x => x.Id == created.Id);
+        Assert.False(managed.CanDeactivate);
+        Assert.False(managed.CanHardDelete);
+        await Assert.ThrowsAsync<ConflictException>(() => service.DeleteAsync(
+            created.Id,
+            5615,
+            new VppOrderPeriodCommandReqDTO { RowVersion = managed.RowVersion }));
     }
 
     [Fact]

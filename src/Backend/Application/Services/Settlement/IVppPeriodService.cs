@@ -102,6 +102,17 @@ public interface IVppPeriodService
         VppOrderPeriodCommandReqDTO request,
         CancellationToken cancellationToken = default);
 
+    Task<VppManagedPeriodResDTO> RestoreAsync(
+        Guid periodId,
+        int actorUserId,
+        VppOrderPeriodCommandReqDTO request,
+        CancellationToken cancellationToken = default);
+
+    Task HardDeleteAsync(
+        Guid periodId,
+        VppOrderPeriodCommandReqDTO request,
+        CancellationToken cancellationToken = default);
+
     Task AdvanceDuePeriodsAsync(
         string memberCompanyCode,
         CancellationToken cancellationToken = default);

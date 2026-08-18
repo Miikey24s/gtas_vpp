@@ -1933,3 +1933,10 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Selector ngang chỉ phân loại `Đơn thường | Đơn bổ sung`; bỏ `Kỳ trước` vì kỳ đã được chọn ở card trên và lịch sử đơn đã có route riêng.
 - URL `orderView=previous` cũ fallback về đơn thường; route catalog không tiếp tục quảng bá biến thể đã nghỉ.
 - Migration chuyển tiếp chỉ soft-delete 09–10/2026 do rolling cũ tự sinh khi chưa có bất kỳ dữ liệu nghiệp vụ; giữ 08/2026 và mọi kỳ thủ công/có đơn.
+
+### 16.11 Khóa lịch quá khứ và vòng đời kỳ chưa có dữ liệu — 2026-08-19
+
+- Kỳ tạo thủ công phải có `Ngày mở` không nhỏ hơn thời điểm nghiệp vụ hiện tại và `Ngày đóng` ở tương lai. Frontend chặn sớm trong dialog; backend là nguồn kiểm tra cuối để không thể bỏ qua bằng API.
+- Stable Capability Surface của từng dòng luôn giữ nhóm `Gia hạn kỳ → Vô hiệu hóa/Khôi phục → Xóa kỳ`. Hành động không hợp lệ vẫn hiện mờ kèm lý do, không biến mất theo trạng thái.
+- Chỉ kỳ chưa có bất kỳ đơn, bản chốt hoặc yêu cầu điều chỉnh sau chốt mới được vô hiệu hóa. `Xóa kỳ` là hard delete hai bước: phải vô hiệu hóa trước và vẫn không có dữ liệu liên quan.
+- Kỳ vô hiệu hóa vẫn xuất hiện trong danh sách với badge `Vô hiệu hóa` và filter riêng để quản lý có thể khôi phục. Chỉ khôi phục khi kỳ chưa hết hạn, không thuộc tháng quá khứ và không trùng một kỳ đang hoạt động.

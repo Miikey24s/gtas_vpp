@@ -159,7 +159,11 @@
         var target = new DateTime(Request.Year, Request.Month, 1);
         var openMonth = target.AddMonths(-1);
         var closeMonth = target.AddMonths(1);
-        Request.OpenAtLocal = BoundaryLocal(openMonth, Settings.DefaultNewPeriodOpenDay);
+        var businessNow = GetBusinessNow();
+        var configuredOpenAt = BoundaryLocal(openMonth, Settings.DefaultNewPeriodOpenDay);
+        Request.OpenAtLocal = configuredOpenAt < businessNow
+            ? RoundUpToMinute(businessNow)
+            : configuredOpenAt;
         Request.CloseAtLocal = BoundaryLocal(closeMonth, Settings.DefaultPeriodCloseDay);
         RefreshDeadlines();
     }
@@ -218,11 +222,15 @@
         {
             return "Không thể tạo kỳ đặt hàng trong quá khứ.";
         }
+        if (Request.OpenAtLocal < currentBusinessDate)
+        {
+            return "Ngày mở không được nằm trong quá khứ.";
+        }
         if (Request.CloseAtLocal <= Request.OpenAtLocal)
         {
             return "Ngày đóng phải sau ngày mở.";
         }
-        if (Request.CloseAtLocal <= DateTime.Now)
+        if (Request.CloseAtLocal <= currentBusinessDate)
         {
             return "Ngày đóng phải ở tương lai.";
         }
@@ -255,6 +263,21 @@
         {
             return DateTime.Now;
         }
+    }
+
+    private static DateTime RoundUpToMinute(DateTime value)
+    {
+        var rounded = new DateTime(
+            value.Year,
+            value.Month,
+            value.Day,
+            value.Hour,
+            value.Minute,
+            0,
+            DateTimeKind.Unspecified);
+        return value.Second == 0 && value.Millisecond == 0
+            ? rounded
+            : rounded.AddMinutes(1);
     }
 
     private static string FormatDateTime(DateTime value) => value.ToString("HH:mm dd/MM/yyyy");

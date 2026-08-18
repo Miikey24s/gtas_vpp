@@ -285,7 +285,7 @@ public sealed class VppPeriodService : IVppPeriodService
         await AdvanceDuePeriodsAsync(company, cancellationToken);
         var rows = await _unitOfWork.VPPContext.Set<VppPeriod>()
             .AsNoTracking()
-            .Where(x => !x.IsDeleted && x.MemberCompanyCode == company)
+            .Where(x => x.MemberCompanyCode == company)
             .OrderByDescending(x => x.Year)
             .ThenByDescending(x => x.Month)
             .Take(48)
@@ -328,6 +328,10 @@ public sealed class VppPeriodService : IVppPeriodService
             supplementLocal,
             request.CloseAtLocal.AddDays(adjustmentDays),
             settings.TimeZoneId);
+        if (schedule.StartAtUtc < nowUtc)
+        {
+            throw new BusinessException("Ngày mở không được nằm trong quá khứ.");
+        }
         if (schedule.SubmissionDeadlineUtc <= nowUtc)
         {
             throw new BusinessException("Không thể tạo kỳ có hạn nhận đơn đã qua.");
@@ -556,16 +560,86 @@ public sealed class VppPeriodService : IVppPeriodService
         ArgumentNullException.ThrowIfNull(request);
         var period = await FindRequiredTrackedAsync(periodId, cancellationToken);
         EnsureRowVersion(period.RowVersion, request.RowVersion);
-        if (period.State is not (VppPeriodState.Draft or VppPeriodState.Scheduled))
+        if (await HasPeriodDependenciesAsync(period.Id, cancellationToken))
         {
-            throw new ConflictException("Chỉ kỳ chưa mở mới được xóa.");
-        }
-        if (await CountOrdersAsync(period.Id, cancellationToken) > 0)
-        {
-            throw new ConflictException("Không thể xóa kỳ đã có đơn.");
+            throw new ConflictException("Không thể vô hiệu hóa kỳ đã có đơn hoặc dữ liệu chốt.");
         }
         period.IsDeleted = true;
-        ApplyTransitionAudit(period, actorUserId, request.Reason ?? "period-deleted");
+        ApplyTransitionAudit(period, actorUserId, request.Reason ?? "period-deactivated");
+        await SavePeriodAsync(period, cancellationToken);
+    }
+
+    public async Task<VppManagedPeriodResDTO> RestoreAsync(
+        Guid periodId,
+        int actorUserId,
+        VppOrderPeriodCommandReqDTO request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var period = await FindRequiredAnyTrackedAsync(periodId, cancellationToken);
+        EnsureRowVersion(period.RowVersion, request.RowVersion);
+        if (!period.IsDeleted)
+        {
+            throw new ConflictException("Kỳ đặt hàng đang hoạt động.");
+        }
+        if (await HasPeriodDependenciesAsync(period.Id, cancellationToken))
+        {
+            throw new ConflictException("Không thể khôi phục kỳ đã có dữ liệu liên quan.");
+        }
+        if (await FindTrackedAsync(
+                period.MemberCompanyCode,
+                new Period(period.Year, period.Month),
+                cancellationToken) is not null)
+        {
+            throw new ConflictException(
+                $"Kỳ {period.Month:00}/{period.Year} đang có một bản hoạt động khác.");
+        }
+
+        var nowUtc = CurrentUtc();
+        ValidateNotPastPeriod(
+            new Period(period.Year, period.Month),
+            ToBusinessLocal(nowUtc, period.TimeZoneId));
+        if (period.SubmissionDeadlineUtc <= nowUtc)
+        {
+            throw new ConflictException("Kỳ đã hết hạn nên không thể khôi phục.");
+        }
+
+        var adjustmentUtc = period.PostCloseAdjustmentDeadlineUtc
+            ?? period.SubmissionDeadlineUtc.AddDays(10);
+        var schedule = new PeriodSchedule(
+            ToBusinessLocal(period.StartAtUtc, period.TimeZoneId),
+            ToBusinessLocal(period.SubmissionDeadlineUtc, period.TimeZoneId),
+            ToBusinessLocal(period.SupplementApprovalDeadlineUtc, period.TimeZoneId),
+            ToBusinessLocal(adjustmentUtc, period.TimeZoneId),
+            period.StartAtUtc,
+            period.SubmissionDeadlineUtc,
+            period.SupplementApprovalDeadlineUtc,
+            adjustmentUtc);
+        period.IsDeleted = false;
+        period.State = ResolveInitialState(schedule, nowUtc);
+        ApplyTransitionAudit(period, actorUserId, request.Reason ?? "period-restored");
+        await SavePeriodAsync(period, cancellationToken);
+        return (await MapPeriodsAsync([period], cancellationToken))[0];
+    }
+
+    public async Task HardDeleteAsync(
+        Guid periodId,
+        VppOrderPeriodCommandReqDTO request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var period = await FindRequiredAnyTrackedAsync(periodId, cancellationToken);
+        EnsureRowVersion(period.RowVersion, request.RowVersion);
+        if (!period.IsDeleted)
+        {
+            throw new ConflictException("Hãy vô hiệu hóa kỳ trước khi xóa vĩnh viễn.");
+        }
+        if (await HasPeriodDependenciesAsync(period.Id, cancellationToken))
+        {
+            throw new ConflictException("Không thể xóa kỳ đã có đơn hoặc dữ liệu chốt.");
+        }
+
+        _unitOfWork.VPPContext.Set<VppPeriod>().Remove(period);
         await SavePeriodAsync(period, cancellationToken);
     }
 
@@ -910,6 +984,48 @@ public sealed class VppPeriodService : IVppPeriodService
             .GroupBy(x => x.PeriodId!.Value)
             .Select(group => new { PeriodId = group.Key, Count = group.Count() })
             .ToDictionaryAsync(x => x.PeriodId, x => x.Count, cancellationToken);
+        var requestPeriodIds = await _unitOfWork.VPPContext.Set<VppRequest>()
+            .AsNoTracking()
+            .Where(x => x.PeriodId.HasValue && ids.Contains(x.PeriodId.Value))
+            .Select(x => x.PeriodId!.Value)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var settlementPeriodIds = await _unitOfWork.VPPContext.Set<Settlement>()
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.PeriodId))
+            .Select(x => x.PeriodId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var correctionPeriodIds = await _unitOfWork.VPPContext.Set<PostSettlementOrderCorrection>()
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.PeriodId))
+            .Select(x => x.PeriodId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var dependencyPeriodIds = requestPeriodIds
+            .Concat(settlementPeriodIds)
+            .Concat(correctionPeriodIds)
+            .ToHashSet();
+        var companies = periods.Select(x => x.MemberCompanyCode).Distinct().ToArray();
+        var years = periods.Select(x => x.Year).Distinct().ToArray();
+        var months = periods.Select(x => x.Month).Distinct().ToArray();
+        var activeRows = await _unitOfWork.VPPContext.Set<VppPeriod>()
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && companies.Contains(x.MemberCompanyCode)
+                && years.Contains(x.Year)
+                && months.Contains(x.Month))
+            .Select(x => new { x.Id, x.MemberCompanyCode, x.Year, x.Month })
+            .ToListAsync(cancellationToken);
+        var activePeriodKeys = activeRows
+            .GroupBy(
+                x => PeriodKey(x.MemberCompanyCode, x.Year, x.Month),
+                StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                group => group.Key,
+                group => group.First().Id,
+                StringComparer.OrdinalIgnoreCase);
+        var nowUtc = CurrentUtc();
         return periods
             .OrderBy(x => x.Year)
             .ThenBy(x => x.Month)
@@ -918,20 +1034,35 @@ public sealed class VppPeriodService : IVppPeriodService
                 counts.GetValueOrDefault(period.Id),
                 period.SettingsVersionId.HasValue
                     ? adjustmentDays.GetValueOrDefault(period.SettingsVersionId.Value, 10)
-                    : 10))
+                    : 10,
+                dependencyPeriodIds.Contains(period.Id),
+                activePeriodKeys.TryGetValue(
+                    PeriodKey(period.MemberCompanyCode, period.Year, period.Month),
+                    out var activeId) && activeId != period.Id,
+                nowUtc))
             .ToArray();
     }
 
     private VppManagedPeriodResDTO MapPeriod(
         VppPeriod period,
         int orderCount,
-        int postCloseAdjustmentDays)
+        int postCloseAdjustmentDays,
+        bool hasDependencies,
+        bool hasActiveDuplicate,
+        DateTime nowUtc)
     {
         var adjustmentDeadlineUtc = period.PostCloseAdjustmentDeadlineUtc
             ?? period.SubmissionDeadlineUtc.AddDays(postCloseAdjustmentDays);
+        var currentLocal = ToBusinessLocal(nowUtc, period.TimeZoneId);
+        var canRestore = period.IsDeleted
+            && !hasDependencies
+            && !hasActiveDuplicate
+            && period.SubmissionDeadlineUtc > nowUtc
+            && !IsPastPeriod(new Period(period.Year, period.Month), currentLocal);
         return new()
         {
             Id = period.Id,
+            IsDeleted = period.IsDeleted,
             Year = period.Year,
             Month = period.Month,
             State = period.State.ToString(),
@@ -952,16 +1083,20 @@ public sealed class VppPeriodService : IVppPeriodService
                 period.TimeZoneId),
             HasOrders = orderCount > 0,
             OrderCount = orderCount,
-            CanEditSchedule = period.State is VppPeriodState.Draft or VppPeriodState.Scheduled
-                || (period.State == VppPeriodState.Open && orderCount == 0),
-            CanDelete = period.State is VppPeriodState.Draft or VppPeriodState.Scheduled
-                && orderCount == 0,
-            CanExtendDeadline = period.State == VppPeriodState.Open,
-            CanCloseSubmissions = period.State == VppPeriodState.Open,
-            CanReopenSubmissions = period.State == VppPeriodState.SubmissionClosed,
-            CanAdjustOrders = period.State is VppPeriodState.SubmissionClosed or VppPeriodState.Pricing
-                && CurrentUtc() < adjustmentDeadlineUtc,
-            CanCorrectSettledOrders = period.State == VppPeriodState.Settled,
+            CanEditSchedule = !period.IsDeleted
+                && (period.State is VppPeriodState.Draft or VppPeriodState.Scheduled
+                    || (period.State == VppPeriodState.Open && orderCount == 0)),
+            CanDeactivate = !period.IsDeleted && !hasDependencies,
+            CanRestore = canRestore,
+            CanHardDelete = period.IsDeleted && !hasDependencies,
+            CanDelete = !period.IsDeleted && !hasDependencies,
+            CanExtendDeadline = !period.IsDeleted && period.State == VppPeriodState.Open,
+            CanCloseSubmissions = !period.IsDeleted && period.State == VppPeriodState.Open,
+            CanReopenSubmissions = !period.IsDeleted && period.State == VppPeriodState.SubmissionClosed,
+            CanAdjustOrders = !period.IsDeleted
+                && (period.State is VppPeriodState.SubmissionClosed or VppPeriodState.Pricing)
+                && nowUtc < adjustmentDeadlineUtc,
+            CanCorrectSettledOrders = !period.IsDeleted && period.State == VppPeriodState.Settled,
             LastTransitionReason = period.LastTransitionReason,
             LastTransitionUserId = period.LastTransitionUserId,
             LastTransitionAtLocal = period.LastTransitionAtUtc.HasValue
@@ -1023,11 +1158,31 @@ public sealed class VppPeriodService : IVppPeriodService
             .FirstOrDefaultAsync(x => !x.IsDeleted && x.Id == periodId, cancellationToken)
             ?? throw new KeyNotFoundException("Không tìm thấy kỳ đặt hàng.");
 
+    private async Task<VppPeriod> FindRequiredAnyTrackedAsync(
+        Guid periodId,
+        CancellationToken cancellationToken)
+        => await _unitOfWork.VPPContext.Set<VppPeriod>()
+            .FirstOrDefaultAsync(x => x.Id == periodId, cancellationToken)
+            ?? throw new KeyNotFoundException("Không tìm thấy kỳ đặt hàng.");
+
     private async Task<int> CountOrdersAsync(Guid periodId, CancellationToken cancellationToken)
         => await _unitOfWork.VPPContext.Set<VppRequest>()
             .AsNoTracking()
             .CountAsync(x => !x.IsDeleted && x.IsCurrentRevision && x.PeriodId == periodId,
                 cancellationToken);
+
+    private async Task<bool> HasPeriodDependenciesAsync(
+        Guid periodId,
+        CancellationToken cancellationToken)
+        => await _unitOfWork.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .AnyAsync(x => x.PeriodId == periodId, cancellationToken)
+            || await _unitOfWork.VPPContext.Set<Settlement>()
+                .AsNoTracking()
+                .AnyAsync(x => x.PeriodId == periodId, cancellationToken)
+            || await _unitOfWork.VPPContext.Set<PostSettlementOrderCorrection>()
+                .AsNoTracking()
+                .AnyAsync(x => x.PeriodId == periodId, cancellationToken);
 
     private async Task SavePeriodAsync(
         VppPeriod period,
@@ -1147,6 +1302,12 @@ public sealed class VppPeriodService : IVppPeriodService
             throw new BusinessException("Không thể tạo kỳ đặt hàng trong quá khứ.");
         }
     }
+
+    private static bool IsPastPeriod(Period period, DateTime currentLocal)
+        => (period.Year * 100) + period.Month < (currentLocal.Year * 100) + currentLocal.Month;
+
+    private static string PeriodKey(string company, int year, int month)
+        => $"{company.Trim()}|{year:D4}|{month:D2}";
 
     private static int ResolveWindowDays(DateTime closeAtUtc, DateTime deadlineUtc)
         => Math.Max(0, (int)Math.Round(

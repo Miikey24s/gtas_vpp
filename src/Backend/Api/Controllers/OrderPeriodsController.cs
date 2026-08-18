@@ -198,6 +198,34 @@ public sealed class OrderPeriodsController(IVppPeriodService periods) : Controll
         return Ok();
     }
 
+    [HttpPost("{id:guid}/restore")]
+    [Authorize(Policy = Permissions.PeriodSettle)]
+    [ProducesResponseType<VppManagedPeriodResDTO>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Restore(
+        Guid id,
+        [FromBody] VppOrderPeriodCommandReqDTO request,
+        CancellationToken cancellationToken)
+    {
+        if (!HasRequiredClaims()) return Forbid();
+        return Ok(await _periods.RestoreAsync(
+            id,
+            CurrentUserId!.Value,
+            request,
+            cancellationToken));
+    }
+
+    [HttpPost("{id:guid}/hard-delete")]
+    [Authorize(Policy = Permissions.PeriodSettle)]
+    public async Task<IActionResult> HardDelete(
+        Guid id,
+        [FromBody] VppOrderPeriodCommandReqDTO request,
+        CancellationToken cancellationToken)
+    {
+        if (!HasRequiredClaims()) return Forbid();
+        await _periods.HardDeleteAsync(id, request, cancellationToken);
+        return Ok();
+    }
+
     private bool HasRequiredClaims() =>
         CurrentUserId.HasValue && !string.IsNullOrWhiteSpace(CurrentMemberCompanyCode);
 }
