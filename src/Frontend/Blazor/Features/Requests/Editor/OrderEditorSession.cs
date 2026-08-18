@@ -104,14 +104,22 @@ public sealed class OrderEditorSession
 
     public void ChangeQuantity(SelectedItem item, int delta)
     {
-        item.Quantity = Math.Clamp(item.Quantity + delta, 1, item.EffectiveMaxQuantityPerOrder);
+        var nextQuantity = Math.Max(item.Quantity + delta, 1);
+        item.Quantity = delta > 0
+            ? Math.Min(nextQuantity, item.EffectiveMaxQuantityPerOrder)
+            : nextQuantity;
         NotifyChanged();
     }
 
     public void SetQuantity(SelectedItem item, object? value)
     {
-        var parsed = int.TryParse(value?.ToString(), out var quantity) ? quantity : 1;
-        item.Quantity = Math.Clamp(parsed, 1, item.EffectiveMaxQuantityPerOrder);
+        if (!long.TryParse(value?.ToString(), out var quantity))
+        {
+            return;
+        }
+
+        // Cho phép giữ giá trị vượt trần để UI báo lỗi rõ; backend vẫn là lớp kiểm tra cuối.
+        item.Quantity = (int)Math.Clamp(quantity, 1L, int.MaxValue);
         NotifyChanged();
     }
 
@@ -163,6 +171,9 @@ public sealed class OrderEditorSession
 
     public bool ExceedsQuantityLimit(SelectedItem item)
         => item.Quantity > item.EffectiveMaxQuantityPerOrder;
+
+    public bool HasQuantityLimitViolations
+        => _selectedItems.Any(ExceedsQuantityLimit);
 
     public bool IsAtQuantityLimit(SelectedItem item)
         => item.Quantity >= item.EffectiveMaxQuantityPerOrder;

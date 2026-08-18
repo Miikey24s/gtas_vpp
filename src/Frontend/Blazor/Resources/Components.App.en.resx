@@ -1466,9 +1466,9 @@
   <data name="SettlementSupplierPlanScopeHint" xml:space="preserve"><value>Compares price and VAT only; shipping and contract terms are not included.</value></data>
   <data name="SettlementUseSupplierPlan" xml:space="preserve"><value>Use suggestion</value></data>
   <data name="SettlementKeepSingleSupplier" xml:space="preserve"><value>Keep one supplier</value></data>
-  <data name="MaxQuantityPerOrder" xml:space="preserve"><value>Max/order</value></data>
+  <data name="MaxQuantityPerOrder" xml:space="preserve"><value>Maximum quantity</value></data>
   <data name="MaxQuantityPerOrderHint" xml:space="preserve"><value>Limit for this item in each order.</value></data>
-  <data name="OrderLineQuantityLimitFormat" xml:space="preserve"><value>Max {0:N0}</value></data>
+  <data name="OrderLineQuantityLimitFormat" xml:space="preserve"><value>Maximum quantity: {0}</value></data>
   <data name="OrderQuantityLimitExceeded" xml:space="preserve"><value>Some items exceed the maximum quantity allowed per order.</value></data>
-  <data name="OrderItemQuantityLimitExceeded" xml:space="preserve"><value>Above the current limit: max {0:N0}/order.</value></data>
+  <data name="OrderItemQuantityLimitExceeded" xml:space="preserve"><value>Quantity cannot exceed {0}.</value></data>
 </root>

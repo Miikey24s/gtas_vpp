@@ -39,7 +39,7 @@ Source hiện có **21 file / 26 DataGrid thật**. Generic type reference trong
 | Consumer | Loại | Quyết định |
 |---|---|---|
 | `HistoryOrderList` mobile list | Responsive mirror | Dùng cùng data/filter/state với desktop; không tạo data-source mode riêng |
-| `OrderCreateStep2` orderable catalog | Custom paged data surface | Nạp snapshot được phép đặt theo batch, lọc trên toàn snapshot rồi phân trang UI mặc định 100; body vẫn scroll nội bộ và không gọi API khi đổi trang; giới hạn số lượng là cột riêng `Tối đa/đơn` |
+| `OrderCreateStep2` orderable catalog | Custom paged data surface | Nạp snapshot được phép đặt theo batch, lọc trên toàn snapshot rồi phân trang UI mặc định 100; body vẫn scroll nội bộ và không gọi API khi đổi trang; giới hạn số lượng là cột riêng `Số lượng tối đa` |
 | `OrderCreateStep2` draft list | Static workflow list | Giữ action/quantity route-owned; giới hạn đặt ngay dưới stepper số lượng, không tạo dòng metadata thứ ba dưới tên/mã; chỉ nhận row rhythm/footer ở DS3 |
 | `Tab_PagePermission` permission matrix | Matrix exception | Không ép cột `#`, paging hoặc data-table motif thông thường |
 | `VppColumnPicker` option list | Popover control | Thuộc toolbar control, không tính là data grid |

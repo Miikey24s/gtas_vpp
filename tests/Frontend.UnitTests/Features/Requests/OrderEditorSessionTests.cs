@@ -30,7 +30,7 @@ public sealed class OrderEditorSessionTests
     }
 
     [Fact]
-    public void SelectionMutations_PreserveOrderClampQuantityAndRejectDuplicates()
+    public void SelectionMutations_PreserveOrderClampLowerBoundAndRejectDuplicates()
     {
         var editor = new OrderEditorSession();
         var changeCount = 0;
@@ -58,9 +58,13 @@ public sealed class OrderEditorSessionTests
         editor.ChangeQuantity(first, -10);
         Assert.Equal(1, first.Quantity);
         editor.SetQuantity(first, "12000");
-        Assert.Equal(10, first.Quantity);
+        Assert.Equal(12000, first.Quantity);
+        Assert.True(editor.HasQuantityLimitViolations);
+        Assert.Equal(OrderEditorValidationError.QuantityLimitExceeded, editor.ValidateForSubmission());
         editor.SetQuantity(first, "not-a-number");
-        Assert.Equal(1, first.Quantity);
+        Assert.Equal(12000, first.Quantity);
+        editor.SetQuantity(first, "10");
+        Assert.False(editor.HasQuantityLimitViolations);
 
         editor.UpdateItemDescription(second, "  dùng cho phòng họp  ");
         Assert.Equal("  dùng cho phòng họp  ", second.Description);

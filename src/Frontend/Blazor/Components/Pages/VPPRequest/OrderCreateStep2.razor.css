@@ -380,9 +380,12 @@
 }
 
 .vpp-order-quantity-warning {
-    margin: var(--vpp-space-2) 0 0;
+    margin: 0;
     color: var(--vpp-danger);
     font-size: var(--vpp-text-xs);
+    line-height: var(--vpp-leading-tight);
+    text-align: center;
+    white-space: normal;
 }
 
 .vpp-order-quantity-input {
@@ -403,7 +406,7 @@
 
 .vpp-order-quantity-input:focus {
     border-color: var(--vpp-primary-500);
-    box-shadow: 0 0 0 1px var(--vpp-primary-500);
+    box-shadow: none;
 }
 
 .vpp-order-draft-unit {

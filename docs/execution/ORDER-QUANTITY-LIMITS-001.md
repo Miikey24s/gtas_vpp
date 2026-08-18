@@ -114,7 +114,7 @@ Chọn hệ số `3` thay vì `5` vì vẫn tạo khoảng dự phòng lớn nh�
 ### 5.1 Khi tạo hoặc sửa
 
 ```text
-Số lượng dòng hiện tại <= Tối đa/đơn
+Số lượng dòng hiện tại <= Số lượng tối đa
 ```
 
 - Đơn thường và đơn bổ sung dùng cùng công thức, nhưng mỗi đơn được kiểm tra riêng.
@@ -134,16 +134,17 @@ Không hiển thị tên class, mã kỹ thuật hoặc lỗi SQL cho người d
 
 ### 6.1 Nhân viên đặt hàng
 
-- Danh mục chọn hàng hiển thị một cột riêng `Tối đa/đơn`; tên và mã mặt hàng vẫn giữ đúng hai dòng, không chèn giới hạn thành dòng thứ ba.
-- Trong `Đơn đang tạo`, giới hạn đặt ngay dưới bộ tăng/giảm số lượng với nhãn gọn `Tối đa 500`; ngữ cảnh của pane đã thể hiện đây là giới hạn của đơn hiện tại.
+- Danh mục chọn hàng hiển thị một cột riêng `Số lượng tối đa`; tên và mã mặt hàng vẫn giữ đúng hai dòng, không chèn giới hạn thành dòng thứ ba.
+- Trong `Đơn đang tạo`, giới hạn đặt ngay dưới bộ tăng/giảm số lượng với nhãn `Số lượng tối đa: 500` và hiển thị số nguyên không phân cách hàng nghìn.
 - Bước xem lại không lặp lại giới hạn; backend vẫn kiểm tra khi gửi và UI vẫn cảnh báo nếu draft vượt mức.
 - Nút `+` mờ khi đạt giới hạn nhưng vẫn giữ Stable Capability Surface.
-- Nhập vượt mức tự đưa về mức hợp lệ và hiện validation ngay cạnh dòng, không chỉ toast.
+- Nhập vượt mức không bị tự ép về trần. UI giữ giá trị để hiện validation đỏ ngay dưới input và khóa `Tiếp tục` cho tới khi người dùng sửa hợp lệ; backend vẫn kiểm tra lại khi gửi.
+- Input chỉ có một viền focus theo design system, không chồng thêm focus ring thứ hai.
 
 ### 6.2 Quản trị hệ thống
 
-- `Danh mục mặt hàng`: thêm trường số `Tối đa/đơn`, cho nhập từ `1–1.000`.
-- Grid quản trị thêm cột pickable `Tối đa/đơn`, đọc trực tiếp từ mặt hàng; không thêm vào bảng giá NCC.
+- `Danh mục mặt hàng`: thêm trường số `Số lượng tối đa`, cho nhập từ `1–1000`.
+- Grid quản trị thêm cột pickable `Số lượng tối đa`, đọc trực tiếp từ mặt hàng; không thêm vào bảng giá NCC.
 - Khi sửa, helper text giải thích ngắn: `Giới hạn cho một mặt hàng trong mỗi đơn`.
 - Nếu đang có draft vượt mức mới, hệ thống không tự sửa draft; nhân viên sẽ được báo khi mở hoặc gửi lại.
 - Tái sử dụng quyền quản trị danh mục mặt hàng hiện có; không thêm permission riêng chỉ cho một trường dữ liệu.
@@ -172,15 +173,15 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 ### 8.1 Bằng chứng kiểm tra hiện tại
 
 - Backend unit tests: `577/577` đạt.
-- Frontend unit tests: `503/503` đạt.
+- Frontend unit tests: `512/512` đạt.
 - Frontend UI contract tests: `2/2` đạt.
 - Backend integration tests mặc định: `14` đạt, `11` test LocalDB opt-in được bỏ qua theo cấu hình suite.
 - EF model: không còn pending model changes.
 - Migration đã chạy thành công cho cả database mới và database nâng cấp từ migration liền trước trên LocalDB.
 - `gtas verify -Scope backend` và `gtas verify -Scope frontend` đều đạt; build Release không có warning/error, NuGet audit và secret scan đều sạch.
 - Authenticated E2E `OrderQuantityLimitUiTests.QuantityLimit_IsConfigurableAndVisibleAcrossAdminAndOrderFlow`: `1/1` đạt trên database/host cô lập.
-- Route quản trị đã xác nhận trường `Tối đa/đơn` có khoảng `1–1.000` và mặc định `1.000`.
-- Route tạo đơn đã xác nhận cột `Tối đa/đơn`, nhãn cạnh bộ số lượng, input dùng đúng trần và nút tăng khóa khi đạt mức tối đa.
+- Route quản trị đã xác nhận trường `Số lượng tối đa` có khoảng `1–1000` và mặc định `1000`.
+- Route tạo đơn đã xác nhận cột `Số lượng tối đa`, nhãn cạnh bộ số lượng, validation khi vượt trần và nút tăng khóa khi đạt mức tối đa.
 - Đã kiểm tra trực quan ảnh route thật ở viewport `1366×768`; dialog quản trị và bước xem lại đơn không vỡ layout.
 - Không khởi động lại hoặc chiếm quyền process `dotnet watch` của owner; E2E sử dụng AppHost riêng và tự dọn môi trường cô lập.
 

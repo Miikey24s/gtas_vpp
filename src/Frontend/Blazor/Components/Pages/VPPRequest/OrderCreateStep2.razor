@@ -102,7 +102,7 @@
                                 </div>
                                 <span class="vpp-order-builder-virtual-cell" role="cell">@row.VppCategoryName</span>
                                 <span class="vpp-order-builder-virtual-cell is-centered" role="cell">@row.UomName</span>
-                                <span class="vpp-order-builder-virtual-cell is-limit" role="cell">@row.MaxQuantityPerOrder.ToString("N0")</span>
+                                <span class="vpp-order-builder-virtual-cell is-limit" role="cell">@row.MaxQuantityPerOrder</span>
                                 <div class="vpp-order-builder-virtual-cell is-action" role="cell">
                                     @if (IsSelected(row.Id))
                                     {
@@ -199,20 +199,26 @@
                                          @* QUANTITY: Điều chỉnh số lượng trong bản nháp. *@
                                          <button type="button" @onclick="() => ChangeQuantity(item, -1)" aria-label="@Loc["DecreaseQuantity"]" disabled="@(item.Quantity <= 1)">−</button>
                                         <input type="number"
-                                               class="vpp-order-quantity-input"
+                                               class="vpp-order-quantity-input vpp-focus-border-only"
                                                min="1"
-                                               max="@item.EffectiveMaxQuantityPerOrder"
                                                step="1"
                                                value="@item.Quantity"
                                                inputmode="numeric"
+                                               aria-invalid="@(Editor.ExceedsQuantityLimit(item) ? "true" : "false")"
+                                               aria-describedby="@GetQuantityHelpId(item)"
                                                aria-label="@($"{Loc["Quantity"].Value}: {GetItemLabel(item)}")"
-                                               @onchange="args => SetQuantity(item, args.Value)" />
+                                               @oninput="args => SetQuantity(item, args.Value)" />
                                         <button type="button"
                                                 @onclick="() => ChangeQuantity(item, 1)"
                                                 aria-label="@Loc["IncreaseQuantity"]"
                                                 disabled="@Editor.IsAtQuantityLimit(item)">+</button>
                                     </div>
-                                    <small class="vpp-order-quantity-limit">@Loc["OrderLineQuantityLimitFormat", item.EffectiveMaxQuantityPerOrder]</small>
+                                    <small id="@GetQuantityHelpId(item)"
+                                           class="@(Editor.ExceedsQuantityLimit(item) ? "vpp-order-quantity-warning" : "vpp-order-quantity-limit")">
+                                        @(Editor.ExceedsQuantityLimit(item)
+                                            ? Loc["OrderItemQuantityLimitExceeded", item.EffectiveMaxQuantityPerOrder]
+                                            : Loc["OrderLineQuantityLimitFormat", item.EffectiveMaxQuantityPerOrder])
+                                    </small>
                                 </div>
                                 <span class="vpp-order-draft-unit">@item.UomName</span>
                                 <div class="vpp-order-draft-item-actions">
@@ -234,10 +240,6 @@
                                     </button>
                                 </div>
                             </div>
-                            @if (Editor.ExceedsQuantityLimit(item))
-                            {
-                                <p class="vpp-order-quantity-warning">@Loc["OrderItemQuantityLimitExceeded", item.EffectiveMaxQuantityPerOrder]</p>
-                            }
                              @* ITEM NOTE: Popover chỉnh sửa ghi chú của từng mặt hàng. *@
                              <div id="@GetItemNotePopoverId(item)"
                                  class="vpp-order-note-popover vpp-transient-surface vpp-transient-surface--center"
@@ -389,7 +391,8 @@
         || !string.IsNullOrWhiteSpace(CategoryFilter)
         || !string.IsNullOrWhiteSpace(UnitFilter);
 
-    private bool CanContinue => Editor.SelectedItemCount > 0;
+    private bool CanContinue => Editor.SelectedItemCount > 0
+        && !Editor.HasQuantityLimitViolations;
     private string OrderNoteLabel => Editor.IsAdditional ? Loc["SupplementReason"].Value : Loc["OrderNote"].Value;
     private string OrderNotePlaceholder => Editor.IsAdditional ? Loc["SupplementReasonPlaceholder"].Value : Loc["OrderNotePlaceholder"].Value;
     private string? OrderNote => Editor.IsAdditional ? Editor.SupplementReason : Editor.Description;
@@ -635,6 +638,9 @@
 
     private static string GetItemLabel(OrderEditorSession.SelectedItem item)
         => !string.IsNullOrWhiteSpace(item.VppName) ? item.VppName : item.VppCode ?? string.Empty;
+
+    private string GetQuantityHelpId(OrderEditorSession.SelectedItem item)
+        => $"vpp-order-quantity-help-{_instanceId}-{item.VppId:N}";
 
     private string GetItemNotePopoverId(OrderEditorSession.SelectedItem item)
         => $"vpp-item-note-{_instanceId}-{item.VppId:N}";

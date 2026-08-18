@@ -26,7 +26,7 @@ public sealed class OrderQuantityLimitUiTests : TestBase, IAuthenticatedUiTest
         var columnPicker = Page.Locator(".vpp-column-picker-popover:popover-open");
         await columnPicker.WaitForAsync();
         (await columnPicker.Locator(".vpp-column-picker-label").AllInnerTextsAsync())
-            .Should().Contain("Tối đa/đơn");
+            .Should().Contain("Số lượng tối đa");
         await Page.Keyboard.PressAsync("Escape");
 
         var addItemButton = itemSurface.GetByRole(AriaRole.Button, new()
@@ -36,7 +36,7 @@ public sealed class OrderQuantityLimitUiTests : TestBase, IAuthenticatedUiTest
         await addItemButton.ClickAsync();
 
         var dialog = Page.Locator(".rz-dialog:visible").Last;
-        await dialog.GetByText("Tối đa/đơn", new() { Exact = true }).WaitForAsync();
+        await dialog.GetByText("Số lượng tối đa", new() { Exact = true }).WaitForAsync();
         await CaptureIfRequestedAsync("order-quantity-limit-admin.png");
         var limitEditor = dialog.Locator(".rz-numeric input").First;
         await limitEditor.WaitForAsync();
@@ -67,24 +67,31 @@ public sealed class OrderQuantityLimitUiTests : TestBase, IAuthenticatedUiTest
         var catalogSurface = Page.Locator("[data-testid='order-create-catalog-data-surface']");
         await Assertions.Expect(catalogSurface.GetByRole(AriaRole.Columnheader, new()
         {
-            Name = "Tối đa/đơn",
+            Name = "Số lượng tối đa",
             Exact = true
         })).ToBeVisibleAsync();
 
         var draftItem = Page.Locator(".vpp-order-draft-item").First;
         await draftItem.WaitForAsync();
         var limitText = (await draftItem.Locator(".vpp-order-quantity-limit").InnerTextAsync()).Trim();
-        limitText.Should().MatchRegex("^Tối đa [0-9.]+$");
+        limitText.Should().MatchRegex("^Số lượng tối đa: [0-9]+$");
 
         var quantityInput = draftItem.Locator(".vpp-order-quantity-input");
         var inputMaximum = await quantityInput.GetAttributeAsync("max");
-        inputMaximum.Should().NotBeNullOrWhiteSpace();
-        limitText.Replace("Tối đa ", string.Empty, StringComparison.Ordinal)
-            .Replace(".", string.Empty, StringComparison.Ordinal)
-            .Should().Be(inputMaximum);
+        inputMaximum.Should().BeNull();
+        var configuredLimit = int.Parse(
+            limitText.Replace("Số lượng tối đa: ", string.Empty, StringComparison.Ordinal));
 
-        await quantityInput.FillAsync(inputMaximum!);
-        await quantityInput.PressAsync("Tab");
+        await quantityInput.FillAsync((configuredLimit + 1).ToString());
+        await Assertions.Expect(draftItem.Locator(".vpp-order-quantity-warning"))
+            .ToContainTextAsync(configuredLimit.ToString());
+        await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Tiếp tục", Exact = true }))
+            .ToBeDisabledAsync();
+        await CaptureIfRequestedAsync("order-quantity-limit-validation.png");
+
+        await quantityInput.FillAsync(configuredLimit.ToString());
+        await Assertions.Expect(draftItem.Locator(".vpp-order-quantity-warning"))
+            .ToHaveCountAsync(0);
         await Assertions.Expect(draftItem.Locator(".vpp-order-quantity-stepper button").Last)
             .ToBeDisabledAsync(new() { Timeout = 5_000 });
 

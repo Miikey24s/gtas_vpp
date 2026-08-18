@@ -51,6 +51,14 @@ h1[tabindex="-1"]:focus-visible {
     box-shadow: none !important;
 }
 
+/* Input gọn tự sở hữu border focus; bỏ outline toàn cục để không tạo viền kép. */
+.vpp-focus-border-only:focus-visible {
+    border-color: var(--vpp-primary-500) !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+}
+
 /* Inline decision select dùng cùng focus inset với filter canonical; không để
    focus ring Radzen tạo viền xanh đậm khác motif ngay trong cell. */
 .vpp-data-grid .vpp-admin-inline-select.rz-dropdown:focus-visible,
