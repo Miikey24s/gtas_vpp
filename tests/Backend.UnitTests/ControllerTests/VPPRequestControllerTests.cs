@@ -1115,7 +1115,8 @@ public class VPPRequestControllerTests
             service,
             permissionService ?? defaultPermissionService.Object,
             Mock.Of<IAppNotificationService>(),
-            new VppCatalogService(unitOfWork.Object, new FakeDateTimeProvider(DateTime.UtcNow)));
+            new VppCatalogService(unitOfWork.Object, new FakeDateTimeProvider(DateTime.UtcNow)),
+            new VppDashboardChartQueryService(unitOfWork.Object));
 
         controller.ControllerContext = new ControllerContext
         {

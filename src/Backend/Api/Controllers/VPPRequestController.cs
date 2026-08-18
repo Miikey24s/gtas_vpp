@@ -27,6 +27,7 @@ namespace gtas_vpp_be.Controllers
         private readonly IPermissionService _permissionService;
         private readonly IAppNotificationService _notificationService;
         private readonly IVppCatalogService _catalogService;
+        private readonly IVppDashboardChartQueryService _dashboardChartQueryService;
 
         public VPPRequestController(
             IServiceProvider serviceProvider,
@@ -35,13 +36,15 @@ namespace gtas_vpp_be.Controllers
             IVPPRequestService vppService,
             IPermissionService permissionService,
             IAppNotificationService notificationService,
-            IVppCatalogService catalogService)
+            IVppCatalogService catalogService,
+            IVppDashboardChartQueryService dashboardChartQueryService)
             : base(serviceProvider, userNameResolver, unitOfWork)
         {
             _vppService = vppService;
             _permissionService = permissionService;
             _notificationService = notificationService;
             _catalogService = catalogService;
+            _dashboardChartQueryService = dashboardChartQueryService;
         }
 
         private int? CurrentUserId => int.TryParse(User.FindFirstValue("UserID"), out var id) ? id : null;
@@ -994,63 +997,10 @@ namespace gtas_vpp_be.Controllers
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
 
-            // P3.3 (F-13): GroupBy chạy ở database (Monthly + StatusDistribution + TotalOrders)
-            // nên mỗi lần tải dashboard không materialize toàn bộ tập đơn hàng.
-            // Trước đây ToListAsync() kéo mọi đơn của user (200/năm × 1000 user × n request/ngày)
-            // rồi group trong memory, tạo hot path lớn nhất của dashboard.
-            var baseQuery = _unitOfWork.VPPContext.Set<gtas_vpp_be.Model.VPP.VppRequest>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted && x.CreatedByUserId == CurrentUserId.Value);
-
-            var monthlyRaw = await baseQuery
-                .Where(x => x.SubmittedDate.HasValue)
-                .GroupBy(x => new { x.SubmittedDate!.Value.Year, x.SubmittedDate.Value.Month })
-                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
-                .Select(g => new
-                {
-                    g.Key.Year,
-                    g.Key.Month,
-                    OrderCount = g.Count(),
-                    TotalQty = g.Sum(x => x.RequestDetails
-                        .Where(d => !d.IsDeleted)
-                        .Sum(d => (int?)d.Qty) ?? 0),
-                    TotalLines = g.Sum(x => x.RequestDetails.Count(d => !d.IsDeleted))
-                })
-                .ToListAsync();
-
-            // Format nhãn kỳ trong memory vì string interpolation không dịch được sang SQL.
-            var monthlyData = monthlyRaw
-                .Select(g => new
-                {
-                    Month = $"{g.Year}-{g.Month:D2}",
-                    g.OrderCount,
-                    g.TotalQty,
-                    g.TotalLines
-                })
-                .ToList();
-
-            var statusRaw = await baseQuery
-                .GroupBy(x => x.Status)
-                .Select(g => new { Status = g.Key, Count = g.Count() })
-                .ToListAsync();
-
-            var statusData = statusRaw
-                .Select(g => new
-                {
-                    // P4/F-16: Dùng bảng nhãn chung thay cho bản sao switch cục bộ.
-                    Status = VppStatusContract.GetText(g.Status),
-                    g.Count
-                })
-                .ToList();
-
-            var totalOrders = await baseQuery.CountAsync();
-
-            return Ok(new
-            {
-                Monthly = monthlyData,
-                StatusDistribution = statusData,
-                TotalOrders = totalOrders
-            });
+            var result = await _dashboardChartQueryService.GetAsync(
+                CurrentUserId.Value,
+                HttpContext.RequestAborted);
+            return Ok(result);
         }
 
         [HttpPost("additional-orders/{id:guid}/approve")]
