@@ -1,7 +1,6 @@
 using gtas_vpp_be.Authorization;
 using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
-using gtas_vpp_be.Model.View;
 using gtas_vpp_shared.DTOs.Req.Permission;
 using gtas_vpp_shared.DTOs.Res.Permission;
 using gtas_vpp_shared.DTOs.Res.Library;
@@ -19,7 +18,6 @@ using System.Globalization;
 using System.Linq.Expressions;
 using static gtas_vpp_be.Service.Helpers.Config;
 using PermissionPageDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionPageComponentResDTO;
-using PermissionComponentDto = gtas_vpp_shared.DTOs.Res.Auth.PermissionComponentAccessResDTO;
 using UserListDto = gtas_vpp_shared.DTOs.Res.Auth.UserAdministrationResDTO;
 using MembershipDto = gtas_vpp_shared.DTOs.Res.Permission.MembershipAdministrationResDTO;
 using UserMembershipDto = gtas_vpp_shared.DTOs.Res.Auth.UserGroupMembershipResDTO;
@@ -42,6 +40,7 @@ namespace gtas_vpp_be.Controllers
         private readonly ISecurityAuditQueryService _securityAuditQueryService;
         private readonly IUserAdministrationQueryService _userAdministrationQueryService;
         private readonly IPermissionGroupQueryService _permissionGroupQueryService;
+        private readonly IPermissionPageComponentQueryService _permissionPageComponentQueryService;
 
         public PermissionController(
             IGenericRepository<PermissionGroup> groupRepository,
@@ -54,7 +53,8 @@ namespace gtas_vpp_be.Controllers
             IMembershipAdministrationService membershipAdministrationService,
             ISecurityAuditQueryService securityAuditQueryService,
             IUserAdministrationQueryService userAdministrationQueryService,
-            IPermissionGroupQueryService permissionGroupQueryService)
+            IPermissionGroupQueryService permissionGroupQueryService,
+            IPermissionPageComponentQueryService permissionPageComponentQueryService)
         {
             _groupRepository = groupRepository;
             _groupPageComponentMappingRepository = groupPageComponentMappingRepository;
@@ -69,6 +69,7 @@ namespace gtas_vpp_be.Controllers
             _securityAuditQueryService = securityAuditQueryService;
             _userAdministrationQueryService = userAdministrationQueryService;
             _permissionGroupQueryService = permissionGroupQueryService;
+            _permissionPageComponentQueryService = permissionPageComponentQueryService;
         }
 
         private int CurrentUserId => int.TryParse(User.FindFirst("UserID")?.Value, out var id) ? id : 0;
@@ -121,116 +122,16 @@ namespace gtas_vpp_be.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGroupPageComponents(Guid id, [FromQuery] bool? showDeleted = false)
         {
-            if (!CanonicalRbac.Personas.Any(persona => persona.GroupId == id))
+            var result = await _permissionPageComponentQueryService.GetAsync(
+                id,
+                showDeleted == true,
+                HttpContext.RequestAborted);
+            if (!result.PersonaExists)
             {
                 return NotFound();
             }
 
-            var query = _unitOfWork.VPPContext.Set<GroupPageComponentMapping>()
-                .AsNoTracking()
-                .Include(x => x.PageComponentMapping)!.ThenInclude(x => x!.PermissionPage)
-                .Include(x => x.PageComponentMapping)!.ThenInclude(x => x!.PermissionComponent)
-                .Where(x => x.PermissionGroupId == id
-                            && x.MemberCompanyCode == CanonicalRbac.DefaultMemberCompanyCode
-                            && x.PageComponentMapping != null
-                            && x.PageComponentMapping.PermissionPage != null
-                            && x.PageComponentMapping.PermissionComponent != null);
-
-            if (showDeleted != true)
-            {
-                query = query.Where(x => !x.PageComponentMapping!.PermissionPage!.IsDeleted
-                                         && !x.PageComponentMapping!.PermissionComponent!.IsDeleted);
-            }
-
-            var groupMappings = await query.ToListAsync();
-
-            if (groupMappings.Count == 0)
-            {
-                return Ok(new List<PermissionPageDto>());
-            }
-
-            var memberCompanyCodes = groupMappings
-                .Select(x => x.MemberCompanyCode)
-                .Distinct()
-                .ToList();
-
-            var companyLookup = memberCompanyCodes.Count == 0
-                ? new Dictionary<long, v_WFXCompany>()
-                : (await _unitOfWork.VPPContext.v_WFXCompanies
-                    .AsNoTracking()
-                    .Where(x => memberCompanyCodes.Contains(x.MemberCompanyCode))
-                    .ToListAsync())
-                    .GroupBy(x => x.MemberCompanyCode)
-                    .ToDictionary(x => x.Key, x => x.First());
-
-            var result = groupMappings
-                .GroupBy(x => x.PageComponentMapping!.PermissionPageId)
-                .OrderBy(x => x.First().PageComponentMapping!.PermissionPage!.PageCode)
-                .Select(pageGroup =>
-                {
-                    var page = pageGroup.First().PageComponentMapping!.PermissionPage!;
-
-                    return new PermissionPageDto
-                    {
-                        GroupId = id,
-                        PageId = page.Id,
-                        PageCode = page.PageCode,
-                        PageName = page.PageName,
-                        Description = page.Description,
-                        CreatedByUserId = page.CreatedByUserId,
-                        CreatedAtUtc = page.CreatedAtUtc,
-                        UpdatedByUserId = page.UpdatedByUserId,
-                        UpdatedAtUtc = page.UpdatedAtUtc,
-                        IsDeleted = page.IsDeleted,
-                        Components = pageGroup
-                            .OrderBy(x => x.PageComponentMapping!.PermissionComponent!.ComponentName)
-                            .Select(groupMapping =>
-                            {
-                                var pageComponentMapping = groupMapping.PageComponentMapping!;
-                                var component = pageComponentMapping.PermissionComponent!;
-                                companyLookup.TryGetValue(groupMapping.MemberCompanyCode, out var company);
-                                var isActionGrant = Permissions.IsActionCode(component.ComponentCode);
-                                var isProtectedSystemAdminNavigation = id == CanonicalRbac.SystemAdmin.GroupId
-                                    && (string.Equals(component.ComponentCode, Permissions.MenuPermission, StringComparison.OrdinalIgnoreCase)
-                                        || string.Equals(component.ComponentCode, Permissions.PermissionUser, StringComparison.OrdinalIgnoreCase)
-                                        || string.Equals(component.ComponentCode, Permissions.PermissionComponent, StringComparison.OrdinalIgnoreCase));
-                                var isInsideRoleCeiling = CanonicalRbac.GetUiComponents(id)
-                                    .Contains(component.ComponentCode, StringComparer.OrdinalIgnoreCase);
-                                var administrationMode = isActionGrant
-                                    ? "ActionMatrix"
-                                    : isProtectedSystemAdminNavigation
-                                        ? "Required"
-                                        : isInsideRoleCeiling
-                                            ? "Configurable"
-                                            : "OutsideRoleCeiling";
-
-                                return new PermissionComponentDto
-                                {
-                                    ComponentId = component.Id,
-                                    ComponentCode = component.ComponentCode,
-                                    ComponentName = component.ComponentName,
-                                    Description = component.Description,
-                                    IsVisible = groupMapping.IsVisible,
-                                    IsEnable = groupMapping.IsEnable,
-                                    PageId = page.Id,
-                                    GroupId = id,
-                                    GroupPageComponentMappingId = pageComponentMapping.Id,
-                                    MemberCompanyCode = groupMapping.MemberCompanyCode,
-                                    CompanyName = company?.CompanyName,
-                                    CompanyShortName = company?.CompanyShortName,
-                                    IsDeleted = component.IsDeleted,
-                                    IsActionGrant = isActionGrant,
-                                    CanConfigure = !component.IsDeleted
-                                        && string.Equals(administrationMode, "Configurable", StringComparison.Ordinal),
-                                    AdministrationMode = administrationMode
-                                };
-                            })
-                            .ToList()
-                    };
-                })
-                .ToList();
-
-            return Ok(result);
+            return Ok(result.Items);
         }
 
         [HttpPut("groups/{id:guid}")]

@@ -475,7 +475,8 @@ public sealed class CanonicalPermissionControllerTests
             Mock.Of<IMembershipAdministrationService>(),
             new SecurityAuditQueryService(context),
             new UserAdministrationQueryService(context, Mock.Of<IUserNameResolver>()),
-            new PermissionGroupQueryService(context, Mock.Of<IUserNameResolver>()))
+            new PermissionGroupQueryService(context, Mock.Of<IUserNameResolver>()),
+            new PermissionPageComponentQueryService(context))
         {
             ControllerContext = new ControllerContext
             {

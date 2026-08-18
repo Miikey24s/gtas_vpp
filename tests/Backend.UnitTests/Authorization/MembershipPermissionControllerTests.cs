@@ -182,7 +182,8 @@ public sealed class MembershipPermissionControllerTests
             Mock.Of<IMembershipAdministrationService>(),
             new SecurityAuditQueryService(context),
             new UserAdministrationQueryService(context, resolver.Object),
-            new PermissionGroupQueryService(context, resolver.Object))
+            new PermissionGroupQueryService(context, resolver.Object),
+            new PermissionPageComponentQueryService(context))
         {
             ControllerContext = new ControllerContext
             {
