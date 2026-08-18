@@ -1,6 +1,6 @@
 # PRICING-IMPORT-VERSIONING-001 — Import bảng giá và tinh gọn khái niệm phiên bản
 
-- Status: ACTIVE
+- Status: **CORE IMPLEMENTED — TEMPLATE/CONTRACT REVISION WAITING OWNER APPROVAL**
 - Priority: P2
 - A+ cutline class: deferred
 - Path: STANDARD
@@ -10,6 +10,7 @@
 - Implementation approval: Owner mở triển khai ngày 2026-08-11; thực hiện trong worktree riêng để không xung đột task PPTX
 - Related scope: Catalog and pricing, settlement history, request history, order-period settings
 - Related plans: `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`, `MULTI-PERIOD-ORDERING-001.md`
+- Current revision plan: `ORDERING-PRICING-REVISION-20260818.md#excel-plan` — bỏ MOQ/ngày giao/mặc định và điều khoản thương mại ẩn khỏi toàn bộ template/parser/preview/apply contract; chưa sửa code trong lượt ghi nhận này
 - Quota snapshot: 2026-08-11 01:49, weekly-only, 867% Plus-equivalent còn lại; five-hour coverage chưa đầy đủ
 - Forecast khi thực thi: 13–33% Plus-equivalent, confidence thấp do chưa có measurement cùng loại; buffer 50% → 20–50%, decision `ENOUGH`
 
@@ -148,7 +149,7 @@ Chi tiết lỗi có thể lưu ở `PriceListImportIssue` hoặc payload audit 
 ### Không dùng AI
 
 - Đọc template chuẩn.
-- Parse số, VAT, ngày giao và MOQ.
+- Parse mã mặt hàng, đơn giá và VAT theo schema đã duyệt.
 - Kiểm tra mã mặt hàng, duplicate, range và ràng buộc database.
 - Tính preview/diff và ghi transaction.
 
@@ -219,7 +220,7 @@ Không ghép W5 vào W1–W3. Việc bỏ schema là một database cutover riê
 - Import 1, 100, 1.000+ dòng không yêu cầu nhập tay lại.
 - File nhập/xuất chỉ nhận diện mặt hàng bằng `ItemCode`; không còn cột mã mặt hàng riêng theo nhà cung cấp.
 - Duplicate item trong cùng file bị chặn rõ dòng.
-- Mã không tồn tại, giá âm, VAT sai, MOQ/lead time sai và default conflict được báo trước confirm.
+- Mã không tồn tại, giá âm và VAT sai được báo trước confirm; MOQ/ngày giao/mặc định cấp dòng là cột không còn được hỗ trợ theo revision plan mới.
 - Preview counts khớp mutation thực tế.
 - Confirm retry không tạo duplicate batch hoặc dòng giá.
 - Một lỗi database làm rollback toàn bộ batch.

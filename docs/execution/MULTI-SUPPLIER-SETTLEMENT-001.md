@@ -1,8 +1,10 @@
-# MULTI-SUPPLIER-SETTLEMENT-001 — Chốt kỳ tối đa hai nhà cung cấp
+# MULTI-SUPPLIER-SETTLEMENT-001 — Phân tích chốt kỳ một hoặc nhiều nhà cung cấp
 
-- Status: VERIFIED — OWNER REVIEW
+- Status: **PAUSED — OWNER DECISION PENDING**
 - Date: 2026-08-18
-- Authority: [ADR-015](../decisions/ADR-015-controlled-two-supplier-settlement.md)
+- Previous authority: [ADR-015](../decisions/ADR-015-controlled-two-supplier-settlement.md), hiện đang được xem xét lại
+
+> Owner revision `2026-08-18`: chưa chọn một hay nhiều NCC. UI tiếp tục tắt nhiều NCC; không mở rộng behavior trong lượt này. Phân tích và ba phương án A/B/C nằm tại [ORDERING-PRICING-REVISION-20260818](ORDERING-PRICING-REVISION-20260818.md#supplier-analysis). Kết quả xác minh phía dưới chỉ mô tả capability đã tồn tại, không còn là quyết định bật sản phẩm.
 
 ## 0. Bản một ánh nhìn
 

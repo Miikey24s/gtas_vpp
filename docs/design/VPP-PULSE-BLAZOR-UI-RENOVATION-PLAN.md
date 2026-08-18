@@ -1917,3 +1917,11 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Capability đề xuất/tách phương án chốt qua nhiều nhà cung cấp tạm ẩn bằng feature flag `Features:Settlement:MultiSupplierEnabled=false`. UI và thao tác áp dụng recommendation đều bị chặn; backend optimizer, DTO và lịch sử bản chốt được giữ để không mất dữ liệu và có thể đánh giá lại sau.
 - Màn Chốt kỳ tiếp tục dùng một nhà cung cấp và một bảng giá làm phương án chính. Việc bật lại nhiều NCC cần owner duyệt thêm chi phí vận chuyển, điều khoản hợp đồng, giới hạn số NCC và acceptance route-real.
 - Giới hạn số lượng đã triển khai theo [`ORDER-QUANTITY-LIMITS-001`](../execution/ORDER-QUANTITY-LIMITS-001.md): mỗi mặt hàng có mức tối đa cho **mỗi đơn**, áp dụng giống nhau và độc lập cho đơn thường/đơn bổ sung; không cộng dồn theo kỳ, người dùng hoặc phòng ban. Quản trị sửa trực tiếp trong Danh mục mặt hàng, frontend giữ nút tăng ở trạng thái mờ khi đạt trần và backend kiểm tra lại ở mọi đường tạo/sửa/khôi phục/tạo lại/điều chỉnh đơn.
+
+### 16.9 Owner plan revision: kỳ, bổ sung và Excel — 2026-08-18
+
+- Plan canonical: [`ORDERING-PRICING-REVISION-20260818`](../execution/ORDERING-PRICING-REVISION-20260818.md). Trạng thái `OWNER REVIEW — PLAN ONLY`; chưa đổi behavior UI/backend trong lượt ghi nhận.
+- Đơn bổ sung target mới dùng phương án B: chỉ mở capability cho kỳ đã đóng trong 5 ngày; nếu chốt sớm thì action giữ vị trí nhưng disabled và giải thích kỳ đã chốt.
+- Trang Các kỳ đặt hàng target mới bỏ ý niệm rolling 3 kỳ khỏi UI. Scheduler tự mở một kỳ chuẩn; action cấp collection `Thêm kỳ` mở dialog dùng lịch mặc định nhưng cho quản lý điều chỉnh. Kỳ thủ công chưa đến ngày mở hiển thị `Chưa mở`, không dùng copy `Sắp mở`.
+- File Excel target mới chỉ còn mã/tên/đơn vị/đơn giá/VAT/ghi chú. MOQ, ngày giao, giá mặc định cấp dòng và điều khoản thương mại ẩn phải được gỡ đồng bộ khỏi template, mapping, preview và apply; không chỉ ẩn cột grid.
+- Một hay nhiều NCC đang quay lại decision gate. UI tiếp tục một NCC; không dùng ADR-015 làm approval để bật tính năng cho đến khi owner chọn A/B/C trong plan canonical.

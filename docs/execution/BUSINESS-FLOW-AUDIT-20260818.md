@@ -5,6 +5,8 @@
 > Phạm vi: code hiện tại của `src/Backend`, `src/Frontend/Blazor`, DTO dùng chung và các test tập trung liên quan.
 >
 > Tính chất: **audit đọc và đối chiếu**, chưa sửa nghiệp vụ trong tài liệu này.
+>
+> Owner revision ngày `2026-08-18`: các quyết định mục 9 và plan [ORDERING-PRICING-REVISION-20260818](ORDERING-PRICING-REVISION-20260818.md) là target mới; phần còn lại của tài liệu tiếp tục mô tả code tại thời điểm audit.
 
 ## 0. Bản một ánh nhìn
 
@@ -20,12 +22,11 @@ Phần lớn ràng buộc quan trọng đã nằm ở backend/database, không c
 
 | Ưu tiên | Việc cần xử lý | Tác động nếu chưa xử lý |
 |---|---|---|
-| **P0** | Chặn sửa/hủy sau chốt và chốt lại khi quá `PostCloseAdjustmentDays` | Cấu hình 10 ngày hiện chưa thực sự bảo vệ nghiệp vụ |
-| **P1** | Chốt cách hiểu đơn bổ sung: tạo trước ngày đóng hay được tạo sau ngày đóng | Tránh giao diện/tài liệu mô tả khác code |
-| **P1** | Đồng bộ feature flag nhiều NCC ở cả frontend và backend | Backend hiện vẫn tính đề xuất dù UI đã tắt |
-| **P1** | Khóa các khoản thương mại và trường import đang bị ẩn khỏi UI | Giá trị ẩn vẫn có thể ảnh hưởng tổng tiền |
-| **P1** | Quyết định giữ hay bỏ `Sắp mở` và các API thao tác kỳ đã bỏ khỏi UI | Tránh capability ẩn tồn tại lâu dài |
-| **P2** | Việt hóa thông báo kỹ thuật và tách nhỏ hai service lớn | Dễ demo, dễ bảo trì và giảm rủi ro sửa dây chuyền |
+| **P0** | Sửa đơn bổ sung theo phương án B: chỉ tạo trong 5 ngày sau khi kỳ đóng | Code hiện tại vẫn chỉ cho tạo lúc kỳ mở |
+| **P1** | Đổi tự động từ rolling 3 kỳ sang một kỳ; thêm kỳ tương lai bằng action thủ công | Giảm rối nhưng vẫn cho đặt trước khi cần |
+| **P1** | Tạm tắt điều khoản thương mại ẩn bằng policy; tinh gọn file Excel | Tránh dữ liệu người dùng không thấy vẫn đổi tổng tiền |
+| **P1** | Chốt phương án một NCC, mô phỏng nhiều NCC hoặc chốt thật nhiều NCC | Backend hiện vẫn tính đề xuất dù UI đã tắt |
+| **HOLD** | Enforce 10 ngày và tách service lớn | Owner yêu cầu chưa làm vội |
 
 ### Thống kê kết quả
 
@@ -72,7 +73,7 @@ Luồng N+1 này phù hợp quyết định sản phẩm hiện tại: không �
 
 ## 2. Ma trận đánh giá chi tiết
 
-### 2.1. Cấu hình và lịch kỳ — **ĐẠT, còn 1 điểm cần quyết định**
+### 2.1. Cấu hình và lịch kỳ — **CODE HIỆN TẠI ĐẠT, TARGET ĐÃ ĐỔI**
 
 **Đã đúng**
 
@@ -88,11 +89,12 @@ Luồng N+1 này phù hợp quyết định sản phẩm hiện tại: không �
 - `src/Backend/Application/Domain/PeriodScheduleCalculator.cs:13-16`
 - `src/Backend/Application/Domain/PeriodScheduleCalculator.cs:88-155`
 
-**Cần quyết định**
+**Quyết định owner ngày 2026-08-18**
 
-- Code vẫn có trạng thái nội bộ/UI `Scheduled / Sắp mở`. Trước đây owner đã muốn bỏ cách gọi này. Nên chọn một trong hai:
-  - giữ trạng thái nội bộ nhưng UI hiển thị thân thiện là `Chưa mở`; hoặc
-  - bỏ hẳn nếu kỳ tương lai không cần tồn tại trước thời điểm mở.
+- Không tiếp tục target rolling 3 kỳ. Hệ thống chỉ tự tạo/mở một kỳ chuẩn.
+- Quản lý dùng `Thêm kỳ` để tạo kỳ đặt trước từ lịch mặc định và được điều chỉnh trước khi lưu.
+- Kỳ thủ công tương lai vẫn cần state nội bộ `Scheduled` để scheduler mở đúng thời điểm; UI khuyến nghị nhãn `Chưa mở`, không dùng `Sắp mở`.
+- `Số kỳ mở trước` sẽ rời UI; schema được giữ tạm và ép hiệu lực về `1` cho đến migration cleanup riêng.
 
 **Bằng chứng**
 
@@ -116,7 +118,7 @@ Luồng N+1 này phù hợp quyết định sản phẩm hiện tại: không �
 - `src/Backend/Application/Services/Requests/OrderQuantityLimitService.cs:29-77`
 - `src/Shared/Constants/VppOrderQuantityLimits.cs:6-12`
 
-### 2.3. Đơn bổ sung — **CẦN XÁC NHẬN CÁCH HIỂU**
+### 2.3. Đơn bổ sung — **CODE HIỆN TẠI KHÁC QUYẾT ĐỊNH MỚI**
 
 **Code hiện tại**
 
@@ -125,10 +127,11 @@ Luồng N+1 này phù hợp quyết định sản phẩm hiện tại: không �
 - Đơn bổ sung mới có trạng thái `Pending`; chỉ đơn `Approved` mới đi vào bản chốt.
 - Có giới hạn số lần bổ sung được duyệt và không cho tồn tại đồng thời nhiều đơn bổ sung đang chờ.
 
-**Điểm cần owner xác nhận**
+**Quyết định owner ngày 2026-08-18**
 
-- Nếu nghiệp vụ mong muốn là “sau ngày đóng nhân viên mới phát hiện thiếu và tạo đơn bổ sung”, code hiện tại **chưa đáp ứng**.
-- Nếu nghiệp vụ là “nhân viên gửi đơn bổ sung khi kỳ còn mở, quản lý có thêm 5 ngày để xử lý”, code hiện tại **đúng**.
+- Chọn phương án B: đơn bổ sung dành cho kỳ đã đóng và được tạo trong 5 ngày sau ngày đóng.
+- Khi quản lý chốt kỳ sớm, kỳ ngừng nhận và duyệt bổ sung ngay dù mốc 5 ngày chưa hết.
+- Nếu còn đơn bổ sung `Pending`, chốt sớm phải bị chặn; backend kiểm tra lại tại transaction confirm để chống race.
 
 **Bằng chứng**
 
@@ -136,9 +139,9 @@ Luồng N+1 này phù hợp quyết định sản phẩm hiện tại: không �
 - `src/Backend/Application/Services/Requests/VPPRequestService.cs:617-665`
 - `src/Backend/Application/Services/Requests/VPPRequestService.cs:1872-1889`
 
-**Khuyến nghị**
+**Target**
 
-Chọn rõ một câu nghiệp vụ và dùng thống nhất trong UI, slide, luận văn và test. Phương án dễ kiểm soát hơn là giữ code hiện tại: đơn phải được tạo trước ngày đóng, chỉ kéo dài thời gian duyệt.
+Tách eligibility của đơn thường và đơn bổ sung thành policy dùng chung cho API/DTO/UI. Chi tiết tại `ORDERING-PRICING-REVISION-20260818.md#supplement-flow`.
 
 ### 2.4. Giới hạn số lượng — **ĐẠT**
 
@@ -272,7 +275,7 @@ Hai service chỉ kiểm tra trạng thái `Settled`. Vì vậy về backend, qu
 - Trả câu thân thiện: `Đã hết thời hạn điều chỉnh của kỳ này.`
 - Bổ sung test ở đúng trước hạn, đúng hạn và sau hạn.
 
-### 2.10. Phạm vi sửa đơn sau chốt — **CẦN QUYẾT ĐỊNH**
+### 2.10. Phạm vi sửa đơn sau chốt — **ĐÃ XÁC NHẬN**
 
 Hiện tại có thể đổi số lượng, bỏ dòng hoặc hủy đơn; không thể thêm một mặt hàng chưa có trong bản chốt hiện hành.
 
@@ -280,9 +283,9 @@ Hiện tại có thể đổi số lượng, bỏ dòng hoặc hủy đơn; khô
 
 - `src/Backend/Application/Services/Settlement/PostSettlementOrderCorrectionService.cs:350-368`
 
-Đây là ràng buộc an toàn hợp lý. Nếu muốn xử lý “quên hẳn một mặt hàng”, nên dùng một quy trình bổ sung sau chốt riêng thay vì lặng lẽ cho thêm vào đơn cũ.
+Owner giữ ràng buộc hiện tại: chỉ sửa số lượng, bỏ dòng hoặc hủy đơn, sau đó chốt lại để tạo `Bản chốt N+1`; chưa cho thêm một mặt hàng hoàn toàn mới sau chốt.
 
-### 2.11. Chọn nhiều NCC — **TẠM TẮT ĐÚNG Ở UI, CHƯA TẮT HẲN Ở BACKEND**
+### 2.11. Chọn nhiều NCC — **TẠM TẮT, OWNER ĐANG CÂN NHẮC**
 
 - Frontend feature flag đang `false`, nên người dùng chỉ chốt với một NCC chính.
 - Backend vẫn luôn tính đề xuất tối đa hai NCC khi dựng preview.
@@ -295,9 +298,9 @@ Hiện tại có thể đổi số lượng, bỏ dòng hoặc hủy đơn; khô
 - `src/Backend/Application/Services/Settlement/PeriodSettlementService.cs:91-105`
 - `src/Backend/Application/Services/Settlement/SettlementSupplierOptimizer.cs:7-14`, `31-116`
 
-**Khuyến nghị**
+**Khuyến nghị hiện tại**
 
-Khi tính năng đang tạm tắt, backend cũng nên nhận feature flag và không chạy optimizer/không nhận exception nhiều NCC. Khi làm lại sau này mới bật đồng bộ frontend, backend, export và test.
+Giữ một NCC cho bản chốt có hiệu lực. Nếu cần đánh giá nhiều NCC, bước kế tiếp chỉ nên là mô phỏng read-only; chưa bật chốt thật cho đến khi có dữ liệu vận chuyển, minimum order, hợp đồng và export theo NCC. Phân tích A/B/C tại `ORDERING-PRICING-REVISION-20260818.md#supplier-analysis`.
 
 ### 2.12. Xuất PDF/Excel và lịch sử — **ĐẠT**
 
@@ -438,10 +441,25 @@ Hiện database/service đã có một số cột hoặc guard chuẩn bị trư
 | Đối chiếu frontend flag nhiều NCC với backend optimizer | Có sai lệch — UI tắt, backend vẫn tính |
 | Đối chiếu cấu hình 10 ngày với command correction | Có sai lệch — chưa enforce |
 
-## 8. Quyết định cần owner đối chiếu
+## 8. Quyết định còn mở sau owner review
 
-1. Đơn bổ sung được **tạo trước ngày đóng** hay **được phép tạo trong 5 ngày sau ngày đóng**?
-2. UI có cần trạng thái `Chưa mở` cho kỳ tương lai không?
-3. Sau chốt có cho thêm mặt hàng hoàn toàn mới không, hay chỉ sửa/hủy phần đã chốt?
-4. Các endpoint đóng/mở lại/xóa kỳ có giữ làm công cụ khôi phục cho quản trị hệ thống không?
-5. Có đồng ý tạm ép hợp đồng/chiết khấu/phụ phí/vận chuyển về `0` cho đến khi module tương ứng được làm đầy đủ không?
+1. Chọn phương án NCC: A một NCC, B một NCC + mô phỏng, hay C chốt thật tối đa hai NCC.
+2. Duyệt nhãn `Chưa mở` cho kỳ thủ công tương lai.
+3. Duyệt policy tạm tắt hợp đồng/chiết khấu/phụ phí/vận chuyển thay vì comment-out code.
+4. Duyệt bốn điểm file Excel: `.xlsx/.csv`, VAT trống, cột thừa và mức lưu lịch sử lần nhập.
+5. Các endpoint đóng/mở lại/xóa kỳ có giữ làm công cụ khôi phục cho quản trị hệ thống không?
+
+## 9. Owner decision addendum — 2026-08-18
+
+| Nội dung | Quyết định hiện tại |
+|---|---|
+| Deadline điều chỉnh 10 ngày | Tạm hoãn enforcement |
+| Đơn bổ sung | Chọn phương án B: tạo/duyệt trong 5 ngày sau đóng; chốt sớm khóa bổ sung ngay |
+| Một/nhiều NCC | Chưa chốt; cần phân tích trước khi bật |
+| Điều khoản thương mại ẩn | Lập phương án tạm tắt tập trung, không comment-out rải rác |
+| Excel bảng giá | Lập revision plan và chờ duyệt |
+| Mở kỳ | Tự mở một kỳ; Quản lý thêm kỳ riêng khi cần |
+| Sau chốt | Cho sửa/hủy đơn qua duyệt rồi chốt lại `N+1`; chưa thêm mặt hàng mới |
+| Refactor service lớn | Tạm hoãn |
+
+Chi tiết implementation, UI, acceptance và approval gate nằm tại [ORDERING-PRICING-REVISION-20260818](ORDERING-PRICING-REVISION-20260818.md).

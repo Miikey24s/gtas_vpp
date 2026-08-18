@@ -1,12 +1,14 @@
 # MULTI-PERIOD-ORDERING-001 — Quản lý và đặt hàng nhiều kỳ
 
-- Status: REVISION_IMPLEMENTED_PENDING_OWNER_REVIEW
+- Status: **IMPLEMENTED HISTORY — PRODUCT DIRECTION SUPERSEDED BY NEW PLAN**
 - Priority: P1
 - Owner/agent: Owner GTAS VPP / Codex triển khai
 - Branch/base: `Nam` @ `aac4aa1a`
 - Revised at (Asia/Ho_Chi_Minh): 2026-08-10
 - Approval boundary: owner đã duyệt thực thi revision ngày 2026-08-10; source, database và route-real QA đã hoàn tất, đang chờ owner duyệt UI/nghiệp vụ
 - Supplier scope: DEFERRED — NCC, vận chuyển, bảng giá, optimizer và settlement award không thuộc plan này
+
+> Owner revision `2026-08-18`: rolling horizon 3 kỳ không còn là target sản phẩm. Target mới là hệ thống tự mở một kỳ; Quản lý dùng `Thêm kỳ` khi cần đặt trước. Chưa sửa code trong revision này. Xem [ORDERING-PRICING-REVISION-20260818](ORDERING-PRICING-REVISION-20260818.md#period-plan). Nội dung dưới đây được giữ làm implementation history và bằng chứng cho code hiện tại.
 
 ## 0. Bản một ánh nhìn
 

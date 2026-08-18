@@ -1,10 +1,12 @@
 # ADR-015 — Controlled two-supplier settlement recommendation
 
-- Status: Accepted
+- Status: **Under review — execution paused**
 - Date: 2026-08-18
 - Decision: D-015
 - Direct tasks: PRICE-IMPORT-001, SET-002, UI-SYSTEM-001
 - Supersedes: the one-supplier-only interpretation of D-006; the primary-supplier snapshot remains
+
+> Owner review `2026-08-18`: quyết định dùng thật một hay hai nhà cung cấp được mở lại. UI giữ tắt; chưa triển khai mở rộng thêm. ADR này ghi lại thiết kế đã có, nhưng không còn là approval để bật tính năng. Xem `docs/execution/ORDERING-PRICING-REVISION-20260818.md`.
 
 ## Context
 
