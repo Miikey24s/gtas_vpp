@@ -186,6 +186,65 @@ public sealed class PostSettlementOrderCorrectionServiceTests
         Assert.True((await context.Set<Settlement>().SingleAsync()).IsCurrentRevision);
     }
 
+    [Fact]
+    public async Task Create_at_adjustment_deadline_is_rejected()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context);
+        var period = await context.Set<VppPeriod>().SingleAsync();
+        period.PostCloseAdjustmentDeadlineUtc = Now;
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.CreateAsync(
+            "77500",
+            5615,
+            new PostSettlementOrderCorrectionCreateReqDTO
+            {
+                RequestId = seed.RequestId,
+                Action = "Cancel",
+                Reason = "Hủy theo biên bản xác nhận của đơn vị",
+                EmployeeNote = "Đơn được đề nghị hủy sau khi đã hết hạn chỉnh.",
+                RequestRowVersion = seed.RequestRowVersion
+            }));
+    }
+
+    [Fact]
+    public async Task Confirm_at_adjustment_deadline_is_rejected_but_reject_remains_available()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var seed = await SeedAsync(context);
+        var service = CreateService(context);
+        var pending = await service.CreateAsync("77500", 5615, new PostSettlementOrderCorrectionCreateReqDTO
+        {
+            RequestId = seed.RequestId,
+            Action = "Cancel",
+            Reason = "Hủy theo biên bản xác nhận của đơn vị",
+            EmployeeNote = "Yêu cầu hủy đang chờ quản lý khác xác nhận.",
+            RequestRowVersion = seed.RequestRowVersion
+        });
+        var correction = await context.Set<PostSettlementOrderCorrection>().SingleAsync();
+        correction.RowVersion = [8, 8, 8];
+        var period = await context.Set<VppPeriod>().SingleAsync();
+        period.PostCloseAdjustmentDeadlineUtc = Now;
+        await context.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.ConfirmAsync(
+            pending.Id,
+            5616,
+            new PostSettlementOrderCorrectionDecisionReqDTO { RowVersion = correction.RowVersion }));
+
+        var rejected = await service.RejectAsync(
+            pending.Id,
+            5616,
+            new PostSettlementOrderCorrectionDecisionReqDTO
+            {
+                Reason = "Yêu cầu đã quá thời hạn điều chỉnh của kỳ.",
+                RowVersion = correction.RowVersion
+            });
+        Assert.Equal("Rejected", rejected.Status);
+    }
+
     private static PostSettlementOrderCorrectionService CreateService(
         gtas_vpp_be.Service.Helpers.Context.VPPContext context)
         => new(ServiceTestHelpers.CreateUnitOfWorkMock(context).Object, new FakeDateTimeProvider(Now));
@@ -209,6 +268,7 @@ public sealed class PostSettlementOrderCorrectionServiceTests
             StartAtUtc = Now.AddMonths(-1),
             SubmissionDeadlineUtc = Now.AddDays(-10),
             SupplementApprovalDeadlineUtc = Now.AddDays(-8),
+            PostCloseAdjustmentDeadlineUtc = Now.AddDays(1),
             State = VppPeriodState.Settled,
             CreatedByUserId = 1,
             CreatedAtUtc = Now,

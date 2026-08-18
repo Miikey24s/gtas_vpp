@@ -95,6 +95,11 @@ public sealed class PriceBookWorkflowTests
         var supplierA = Guid.NewGuid();
         var supplierB = Guid.NewGuid();
         var complete = await SeedBookAsync(context, supplierA, PriceListStatus.Published, code: "A", netPrice: 100m);
+        var bookWithLegacyTerms = await context.Set<PriceList>().SingleAsync(item => item.Id == complete.BookId);
+        bookWithLegacyTerms.DiscountRate = 5m;
+        bookWithLegacyTerms.RebateAmount = 10m;
+        bookWithLegacyTerms.FeeAmount = 20m;
+        bookWithLegacyTerms.ShippingAmount = 30m;
         await SeedBookAsync(context, supplierB, PriceListStatus.Published, code: "B", netPrice: 80m, vppId: complete.VppId);
         var secondVpp = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, secondVpp);
@@ -128,6 +133,10 @@ public sealed class PriceBookWorkflowTests
         Assert.Equal(2, result.Quotes.Count);
         Assert.True(result.Quotes[0].IsEligible);
         Assert.Equal(150m, result.Quotes[0].Subtotal);
+        Assert.Equal(0m, result.Quotes[0].DiscountAmount);
+        Assert.Equal(0m, result.Quotes[0].RebateAmount);
+        Assert.Equal(0m, result.Quotes[0].FeeAmount);
+        Assert.Equal(0m, result.Quotes[0].ShippingAmount);
         Assert.Equal(PriceCalculationEngine.CurrentVersion, result.CalculationVersion);
         Assert.False(result.Quotes[1].IsEligible);
         Assert.NotEmpty(result.Quotes[1].MissingVppIds);

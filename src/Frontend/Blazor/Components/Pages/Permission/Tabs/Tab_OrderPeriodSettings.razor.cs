@@ -68,6 +68,8 @@ public partial class Tab_OrderPeriodSettings
                 return;
             }
             Settings.Name = Settings.Name.Trim();
+            // Bộ tự động chỉ duy trì một kỳ; các kỳ khác do quản lý chủ động thêm.
+            Settings.DefaultOpenPeriodCount = 1;
             var saved = await PeriodsApi.SaveSettingsAsync(Settings);
             if (saved is null)
             {
@@ -101,7 +103,7 @@ public partial class Tab_OrderPeriodSettings
     private static VppOrderPeriodSettingsReqDTO ToRequest(VppOrderPeriodSettingsResDTO value) => new()
     {
         Name = value.Name,
-        DefaultOpenPeriodCount = value.DefaultOpenPeriodCount,
+        DefaultOpenPeriodCount = 1,
         DefaultNewPeriodOpenDay = value.DefaultNewPeriodOpenDay,
         DefaultPeriodCloseDay = value.DefaultPeriodCloseDay,
         LocalTimeOfDay = value.LocalTimeOfDay,
@@ -117,8 +119,8 @@ public partial class Tab_OrderPeriodSettings
         var today = DateTime.Today;
         return new VppOrderPeriodSettingsReqDTO
         {
-            Name = "Mặc định 3 kỳ · ngày 05",
-            DefaultOpenPeriodCount = 3,
+            Name = "Mặc định 1 kỳ · ngày 05",
+            DefaultOpenPeriodCount = 1,
             DefaultNewPeriodOpenDay = 5,
             DefaultPeriodCloseDay = 5,
             LocalTimeOfDay = TimeSpan.Zero,

@@ -1,4 +1,5 @@
 using gtas_vpp_be.Model.Auth;
+using gtas_vpp_be.Model.VPP;
 using gtas_vpp_be.Service.Helpers;
 using gtas_vpp_be.Service.Helpers.Context;
 using gtas_vpp_be.Service.Services;
@@ -45,6 +46,8 @@ public sealed class VPPRequestPeriodDemandTests
             Description = "HR regular",
             Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 5 }]
         }, PeerRequesterId, "HR", Company);
+
+        await OpenSupplementWindowAsync(context, 2026, 4);
 
         // Đơn bổ sung Pending KHÔNG được tính vào nhu cầu (chỉ Approved mới hợp lệ).
         await service.CreateOrderAsync(new VppRequestCreateReqDTO
@@ -140,6 +143,21 @@ public sealed class VPPRequestPeriodDemandTests
             CreatedAtUtc = DateTime.SpecifyKind(OpenPeriodNow, DateTimeKind.Utc),
             UpdatedAtUtc = DateTime.SpecifyKind(OpenPeriodNow, DateTimeKind.Utc)
         });
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task OpenSupplementWindowAsync(VPPContext context, int year, int month)
+    {
+        var period = await context.Set<VppPeriod>()
+            .SingleAsync(x => x.MemberCompanyCode == Company
+                && x.Year == year
+                && x.Month == month
+                && !x.IsDeleted);
+        period.State = VppPeriodState.SubmissionClosed;
+        period.SubmissionDeadlineUtc = OpenPeriodNow.AddDays(-1);
+        period.SupplementApprovalDeadlineUtc = OpenPeriodNow.AddDays(4);
+        period.PostCloseAdjustmentDeadlineUtc = OpenPeriodNow.AddDays(9);
+        period.UpdatedAtUtc = OpenPeriodNow;
         await context.SaveChangesAsync();
     }
 

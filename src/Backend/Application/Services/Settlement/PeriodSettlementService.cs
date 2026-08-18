@@ -22,9 +22,10 @@ namespace gtas_vpp_be.Service.Services
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IPriceBookWorkflowService? _priceBookWorkflowService;
         private readonly IPriceAsOfResolver? _priceAsOfResolver;
+        private readonly PricingFeaturePolicy _pricingPolicy;
 
         public PeriodSettlementService(IUnitOfWork scopedUow, IDateTimeProvider dateTimeProvider)
-            : this(scopedUow, dateTimeProvider, null, null)
+            : this(scopedUow, dateTimeProvider, null, null, null)
         {
         }
 
@@ -32,7 +33,7 @@ namespace gtas_vpp_be.Service.Services
             IUnitOfWork scopedUow,
             IDateTimeProvider dateTimeProvider,
             IPriceBookWorkflowService? priceBookWorkflowService)
-            : this(scopedUow, dateTimeProvider, priceBookWorkflowService, null)
+            : this(scopedUow, dateTimeProvider, priceBookWorkflowService, null, null)
         {
         }
 
@@ -40,12 +41,14 @@ namespace gtas_vpp_be.Service.Services
             IUnitOfWork scopedUow,
             IDateTimeProvider dateTimeProvider,
             IPriceBookWorkflowService? priceBookWorkflowService,
-            IPriceAsOfResolver? priceAsOfResolver)
+            IPriceAsOfResolver? priceAsOfResolver,
+            PricingFeaturePolicy? pricingPolicy = null)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
             _priceBookWorkflowService = priceBookWorkflowService;
             _priceAsOfResolver = priceAsOfResolver;
+            _pricingPolicy = pricingPolicy ?? PricingFeaturePolicy.Disabled;
         }
 
         public async Task<SettlementPreviewResDTO> PreviewAsync(
@@ -500,6 +503,8 @@ namespace gtas_vpp_be.Service.Services
                 }
 
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(_dateTimeProvider.Now);
+                var commercialTerms = _pricingPolicy.Resolve(
+                    book.DiscountRate, book.RebateAmount, book.FeeAmount, book.ShippingAmount);
                 var settlement = new Settlement
                 {
                     Id = Guid.NewGuid(),
@@ -524,9 +529,9 @@ namespace gtas_vpp_be.Service.Services
                     IdempotencyKey = req.IdempotencyKey.Trim(),
                     CommandPayloadHash = commandHash,
                     CurrencyCode = book.CurrencyCode,
-                    RebateAmount = PriceCalculationEngine.RoundMoney(book.RebateAmount),
-                    FeeAmount = PriceCalculationEngine.RoundMoney(book.FeeAmount),
-                    ShippingAmount = PriceCalculationEngine.RoundMoney(book.ShippingAmount),
+                    RebateAmount = PriceCalculationEngine.RoundMoney(commercialTerms.RebateAmount),
+                    FeeAmount = PriceCalculationEngine.RoundMoney(commercialTerms.FeeAmount),
+                    ShippingAmount = PriceCalculationEngine.RoundMoney(commercialTerms.ShippingAmount),
                     ConfirmedAtUtc = nowUtc,
                     ConfirmedByUserId = userId,
                     CreatedByUserId = userId,
@@ -617,7 +622,7 @@ namespace gtas_vpp_be.Service.Services
                 var basket = PriceCalculationEngine.CalculateBasket(
                     settlement.Subtotal,
                     settlement.VatAmount,
-                    book.DiscountRate,
+                    commercialTerms.DiscountRate,
                     settlement.RebateAmount,
                     settlement.FeeAmount,
                     settlement.ShippingAmount);
@@ -627,10 +632,13 @@ namespace gtas_vpp_be.Service.Services
                                  + settlement.FeeAmount + settlement.ShippingAmount + settlement.VatAmount;
                 settlement.RoundingAdjustment = settlement.GrandTotal - exactTotal;
 
-                AddCharge(settlement, "Discount", -settlement.DiscountAmount, userId, nowUtc);
-                AddCharge(settlement, "Rebate", -settlement.RebateAmount, userId, nowUtc);
-                AddCharge(settlement, "Fee", settlement.FeeAmount, userId, nowUtc);
-                AddCharge(settlement, "Shipping", settlement.ShippingAmount, userId, nowUtc);
+                if (_pricingPolicy.CommercialTermsEnabled)
+                {
+                    AddCharge(settlement, "Discount", -settlement.DiscountAmount, userId, nowUtc);
+                    AddCharge(settlement, "Rebate", -settlement.RebateAmount, userId, nowUtc);
+                    AddCharge(settlement, "Fee", settlement.FeeAmount, userId, nowUtc);
+                    AddCharge(settlement, "Shipping", settlement.ShippingAmount, userId, nowUtc);
+                }
                 AddCharge(settlement, "Rounding", settlement.RoundingAdjustment, userId, nowUtc);
 
                 var orderedAllocations = settlement.Allocations
@@ -1109,13 +1117,15 @@ namespace gtas_vpp_be.Service.Services
                 .Where(x => x.Id == quote.PriceListId)
                 .Select(x => new { x.DiscountRate, x.RebateAmount, x.FeeAmount, x.ShippingAmount })
                 .SingleAsync(cancellationToken);
+            var commercialTerms = _pricingPolicy.Resolve(
+                terms.DiscountRate, terms.RebateAmount, terms.FeeAmount, terms.ShippingAmount);
             var basket = PriceCalculationEngine.CalculateBasket(
                 quote.Subtotal,
                 quote.VatAmount,
-                terms.DiscountRate,
-                terms.RebateAmount,
-                terms.FeeAmount,
-                terms.ShippingAmount);
+                commercialTerms.DiscountRate,
+                commercialTerms.RebateAmount,
+                commercialTerms.FeeAmount,
+                commercialTerms.ShippingAmount);
             quote.DiscountAmount = basket.DiscountAmount;
             quote.GrandTotal = basket.GrandTotal;
             quote.CoveragePercent = quote.RequestedItemCount == 0

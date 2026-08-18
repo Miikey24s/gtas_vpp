@@ -85,7 +85,7 @@ public sealed class VppPeriodServiceTests
     }
 
     [Fact]
-    public async Task Top_up_creates_current_and_two_future_periods_with_independent_deadlines()
+    public async Task Top_up_keeps_one_automatic_period()
     {
         await using var context = ServiceTestHelpers.CreateInMemoryContext(
             $"period-{Guid.NewGuid():N}");
@@ -95,24 +95,9 @@ public sealed class VppPeriodServiceTests
 
         var created = await service.TopUpOpenHorizonAsync("ACME");
 
-        Assert.Equal(3, created.Count);
-        Assert.Collection(
-            created,
-            period =>
-            {
-                Assert.Equal((2026, 8), (period.Year, period.Month));
-                Assert.Equal(new DateTime(2026, 9, 5), period.CloseAtLocal);
-            },
-            period =>
-            {
-                Assert.Equal((2026, 9), (period.Year, period.Month));
-                Assert.Equal(new DateTime(2026, 10, 5), period.CloseAtLocal);
-            },
-            period =>
-            {
-                Assert.Equal((2026, 10), (period.Year, period.Month));
-                Assert.Equal(new DateTime(2026, 11, 5), period.CloseAtLocal);
-            });
+        var period = Assert.Single(created);
+        Assert.Equal((2026, 8), (period.Year, period.Month));
+        Assert.Equal(new DateTime(2026, 9, 5), period.CloseAtLocal);
     }
 
     [Fact]
@@ -126,8 +111,12 @@ public sealed class VppPeriodServiceTests
         var created = await service.TopUpOpenHorizonAsync("ACME");
 
         Assert.Equal(5, settings.SupplementApprovalGraceDays);
+        Assert.Equal(10, settings.PostCloseAdjustmentDays);
         Assert.All(created, period =>
-            Assert.Equal(period.CloseAtLocal.AddDays(5), period.SupplementApprovalDeadlineLocal));
+        {
+            Assert.Equal(period.CloseAtLocal.AddDays(5), period.SupplementApprovalDeadlineLocal);
+            Assert.Equal(period.CloseAtLocal.AddDays(10), period.PostCloseAdjustmentDeadlineLocal);
+        });
     }
 
     [Fact]
@@ -185,7 +174,7 @@ public sealed class VppPeriodServiceTests
 
         var open = await service.GetOpenPeriodsAsync("ACME");
         Assert.Equal(
-            [(2026, 9), (2026, 10), (2026, 11)],
+            [(2026, 9)],
             open.Select(x => (x.Year, x.Month)).ToArray());
         Assert.Equal(
             VppPeriodState.SubmissionClosed,
@@ -213,18 +202,18 @@ public sealed class VppPeriodServiceTests
         var effective = await service.GetEffectiveSettingsAsync("ACME");
         var created = await service.TopUpOpenHorizonAsync("ACME");
 
-        Assert.Equal(0, displayed.DefaultOpenPeriodCount);
+        Assert.Equal(1, displayed.DefaultOpenPeriodCount);
         Assert.Equal(9, displayed.EffectiveFromMonth);
-        Assert.Equal(3, effective.DefaultOpenPeriodCount);
+        Assert.Equal(1, effective.DefaultOpenPeriodCount);
         Assert.Equal(8, effective.EffectiveFromMonth);
-        Assert.Equal(3, created.Count);
+        Assert.Single(created);
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(12)]
-    public async Task Generator_respects_configured_horizon_count(int horizonCount)
+    public async Task Generator_ignores_legacy_horizon_count_and_keeps_one_period(int horizonCount)
     {
         await using var context = ServiceTestHelpers.CreateInMemoryContext(
             $"period-{Guid.NewGuid():N}");
@@ -233,8 +222,8 @@ public sealed class VppPeriodServiceTests
 
         var created = await service.TopUpOpenHorizonAsync("ACME");
 
-        Assert.Equal(horizonCount, created.Count);
-        Assert.Equal(horizonCount, (await service.GetOpenPeriodsAsync("ACME")).Count);
+        Assert.Single(created);
+        Assert.Single(await service.GetOpenPeriodsAsync("ACME"));
     }
 
     [Fact]
@@ -247,7 +236,7 @@ public sealed class VppPeriodServiceTests
         var created = await service.TopUpOpenHorizonAsync("ACME");
 
         Assert.Equal(
-            [(2026, 12), (2027, 1), (2027, 2)],
+            [(2026, 12)],
             created.Select(x => (x.Year, x.Month)).ToArray());
     }
 
@@ -271,10 +260,10 @@ public sealed class VppPeriodServiceTests
         var open = await service.GetOpenPeriodsAsync("ACME");
 
         Assert.Equal(
-            [(2026, 8), (2026, 9), (2026, 10)],
+            [(2026, 8)],
             created.Select(x => (x.Year, x.Month)).ToArray());
         Assert.Equal(
-            [(2026, 8), (2026, 9), (2026, 10), (2026, 11)],
+            [(2026, 8), (2026, 11)],
             open.Select(x => (x.Year, x.Month)).ToArray());
     }
 

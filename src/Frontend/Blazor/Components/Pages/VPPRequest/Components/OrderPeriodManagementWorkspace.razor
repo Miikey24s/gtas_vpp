@@ -40,7 +40,11 @@
                                  Class="vpp-admin-data-surface vpp-admin-collection-surface vpp-order-period-data-surface">
                 <Header>
                     <VppCollectionHeader Title="Các kỳ đặt hàng"
-                                         Summary="@PeriodCollectionSummary" />
+                                         Summary="@PeriodCollectionSummary"
+                                         AddText="Thêm kỳ"
+                                         CompactAddText="Thêm"
+                                         Disabled="@IsBusy"
+                                         AddClicked="@OpenCreatePeriodAsync" />
                 </Header>
                 <Toolbar>
                     <VppDataToolbar AriaLabel="Bộ lọc kỳ đặt hàng" Class="vpp-admin-grid-toolbar vpp-order-period-filters">

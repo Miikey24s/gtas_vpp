@@ -23,14 +23,14 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
             """
             () => {
                 const button = [...document.querySelectorAll('button')]
-                    .find(element => /import bảng giá/i.test(element.textContent || ''));
-                const row = document.querySelector('[data-testid="prices-data-surface"] tbody tr .vpp-admin-two-line-cell small');
+                    .find(element => /cập nhật giá từ file/i.test(element.textContent || ''));
+                const row = document.querySelector('[data-testid="prices-data-surface"] tbody tr td:nth-child(3)');
                 return !!button && !button.disabled && !!row?.textContent?.trim();
             }
             """,
             null,
             new() { Timeout = 60_000 });
-        var itemCode = (await surface.Locator("tbody tr .vpp-admin-two-line-cell small").First.InnerTextAsync()).Trim();
+        var itemCode = (await surface.Locator("tbody tr td:nth-child(3)").First.InnerTextAsync()).Trim();
 
         var viewports = new[]
         {
@@ -53,7 +53,7 @@ public sealed class PriceListImportTests : TestBase, IMutatingUiTest
             {
                 await SetDarkModeAsync(true);
             }
-            await Page.GetByRole(AriaRole.Button, new() { Name = "Import bảng giá" }).ClickAsync();
+            await Page.GetByRole(AriaRole.Button, new() { Name = "Cập nhật giá từ file" }).ClickAsync();
             var dialog = Page.GetByTestId("price-list-import-dialog");
             await dialog.WaitForAsync(new() { State = WaitForSelectorState.Visible });
             var csv = index == 0

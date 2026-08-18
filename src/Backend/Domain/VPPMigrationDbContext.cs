@@ -231,6 +231,8 @@ namespace gtas_vpp_be.Model
                     "[Year] BETWEEN 1 AND 9999 AND [Month] BETWEEN 1 AND 12 " +
                     "AND [SubmissionDeadlineUtc] > [StartAtUtc] " +
                     "AND [SupplementApprovalDeadlineUtc] >= [SubmissionDeadlineUtc] " +
+                    "AND ([PostCloseAdjustmentDeadlineUtc] IS NULL " +
+                    "OR [PostCloseAdjustmentDeadlineUtc] >= [SupplementApprovalDeadlineUtc]) " +
                     "AND [State] IN (0, 1, 2, 3, 4, 5)"));
                 en.HasMany(x => x.Requests)
                     .WithOne(x => x.Period)

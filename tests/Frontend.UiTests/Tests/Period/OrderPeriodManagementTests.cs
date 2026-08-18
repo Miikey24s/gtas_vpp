@@ -443,6 +443,20 @@ public sealed class OrderPeriodManagementTests : TestBase, IAuthenticatedUiTest
         await Assertions.Expect(Page.GetByRole(AriaRole.Button, new() { Name = "Mở một kỳ rời rạc", Exact = true }))
             .ToHaveCountAsync(0);
 
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Thêm kỳ", Exact = true }).ClickAsync();
+        var createDialog = Page.GetByTestId("order-period-create-dialog");
+        await Assertions.Expect(createDialog).ToBeVisibleAsync();
+        await Assertions.Expect(createDialog.GetByTestId("period-create-supplement-days").Locator("input"))
+            .ToHaveValueAsync("5");
+        await Assertions.Expect(createDialog.GetByTestId("period-create-adjustment-days").Locator("input"))
+            .ToHaveValueAsync("10");
+        await Assertions.Expect(createDialog.GetByText(
+                "Các giá trị được lấy từ cấu hình chung. Bạn có thể đổi riêng cho kỳ này.",
+                new() { Exact = true }))
+            .ToBeVisibleAsync();
+        await createDialog.GetByRole(AriaRole.Button, new() { Name = "Hủy", Exact = true }).ClickAsync();
+        await Assertions.Expect(createDialog).ToBeHiddenAsync();
+
         var periodSurface = Page.Locator("[data-testid='order-period-management-table']:visible");
         await Assertions.Expect(periodSurface.GetByRole(
                 AriaRole.Button,

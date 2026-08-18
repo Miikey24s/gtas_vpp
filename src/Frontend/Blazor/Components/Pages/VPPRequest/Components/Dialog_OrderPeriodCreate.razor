@@ -1,0 +1,209 @@
+@using gtas_vpp_shared.DTOs.Req.VPP
+@using gtas_vpp_shared.DTOs.Res.VPP
+@inject DialogService DialogService
+
+<VppAdaptiveDialogShell Size="VppAdminDialogSize.Standard"
+                        TestId="order-period-create-dialog"
+                        Class="vpp-order-period-create-dialog">
+    <Intro>
+        <div class="vpp-order-period-create-heading">
+            <div>
+                <span>Kỳ đặt hàng</span>
+                <strong>Thêm kỳ</strong>
+            </div>
+        </div>
+        <VppInlineNotice Tone="VppStatusTone.Info">
+            Các giá trị được lấy từ cấu hình chung. Bạn có thể đổi riêng cho kỳ này.
+        </VppInlineNotice>
+    </Intro>
+    <ChildContent>
+        <div class="vpp-order-period-create-grid">
+            <RadzenFormField Text="Tháng" Variant="Variant.Outlined">
+                <RadzenDropDown TValue="int"
+                                Data="@MonthOptions"
+                                TextProperty="Label"
+                                ValueProperty="Value"
+                                @bind-Value="Request.Month"
+                                Change="@(_ => RecalculateSchedule())"
+                                class="vpp-order-period-create-control" />
+            </RadzenFormField>
+            <RadzenFormField Text="Năm" Variant="Variant.Outlined">
+                <RadzenDropDown TValue="int"
+                                Data="@YearOptions"
+                                @bind-Value="Request.Year"
+                                Change="@(_ => RecalculateSchedule())"
+                                class="vpp-order-period-create-control" />
+            </RadzenFormField>
+            <RadzenFormField Text="Ngày mở" Variant="Variant.Outlined">
+                <RadzenDatePicker TValue="DateTime"
+                                  @bind-Value="Request.OpenAtLocal"
+                                  DateFormat="HH:mm dd/MM/yyyy"
+                                  ShowTime="true"
+                                  ShowSeconds="false"
+                                  class="vpp-order-period-create-control" />
+            </RadzenFormField>
+            <RadzenFormField Text="Ngày đóng" Variant="Variant.Outlined">
+                <RadzenDatePicker TValue="DateTime"
+                                  @bind-Value="Request.CloseAtLocal"
+                                  DateFormat="HH:mm dd/MM/yyyy"
+                                  ShowTime="true"
+                                  ShowSeconds="false"
+                                  Change="@(_ => RefreshDeadlines())"
+                                  class="vpp-order-period-create-control" />
+            </RadzenFormField>
+            <RadzenFormField Text="Nhận đơn bổ sung (ngày)" Variant="Variant.Outlined">
+                <RadzenNumeric TValue="int?"
+                               Name="SupplementApprovalGraceDays"
+                               data-testid="period-create-supplement-days"
+                               @bind-Value="Request.SupplementApprovalGraceDays"
+                               Min="0" Max="31"
+                               ShowUpDown="false"
+                               Change="@(_ => RefreshDeadlines())"
+                               class="vpp-order-period-create-control" />
+            </RadzenFormField>
+            <RadzenFormField Text="Cho phép chỉnh đơn (ngày)" Variant="Variant.Outlined">
+                <RadzenNumeric TValue="int?"
+                               Name="PostCloseAdjustmentDays"
+                               data-testid="period-create-adjustment-days"
+                               @bind-Value="Request.PostCloseAdjustmentDays"
+                               Min="0" Max="31"
+                               ShowUpDown="false"
+                               Change="@(_ => RefreshDeadlines())"
+                               class="vpp-order-period-create-control" />
+            </RadzenFormField>
+            <div class="vpp-order-period-create-summary is-wide">
+                <span>Nhận bổ sung đến <strong>@FormatDateTime(SupplementDeadline)</strong></span>
+                <span>Chỉnh đơn đến <strong>@FormatDateTime(AdjustmentDeadline)</strong></span>
+            </div>
+            <RadzenFormField Text="Lý do" Variant="Variant.Outlined" class="is-wide">
+                <RadzenTextArea @bind-Value="Request.Reason"
+                                Rows="3"
+                                MaxLength="500"
+                                class="vpp-order-period-create-control" />
+            </RadzenFormField>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ValidationMessage))
+        {
+            <VppInlineNotice Tone="VppStatusTone.Warning">@ValidationMessage</VppInlineNotice>
+        }
+    </ChildContent>
+    <Footer>
+        <VppDialogActions CancelText="Hủy"
+                          PrimaryText="Thêm kỳ"
+                          PrimaryIcon="add"
+                          PrimaryButtonStyle="ButtonStyle.Primary"
+                          CancelClick="@CancelAsync"
+                          PrimaryClick="@SubmitAsync" />
+    </Footer>
+</VppAdaptiveDialogShell>
+
+@code {
+    [Parameter, EditorRequired] public VppOrderPeriodSettingsResDTO Settings { get; set; } = new();
+    [Parameter] public int SuggestedYear { get; set; }
+    [Parameter] public int SuggestedMonth { get; set; }
+
+    private sealed record MonthOption(int Value, string Label);
+
+    private static readonly IReadOnlyList<MonthOption> MonthOptions = Enumerable.Range(1, 12)
+        .Select(month => new MonthOption(month, $"Tháng {month:00}"))
+        .ToArray();
+
+    private bool initialized;
+    private string ValidationMessage { get; set; } = string.Empty;
+    private IReadOnlyList<int> YearOptions { get; set; } = [];
+    private VppOrderPeriodManualCreateReqDTO Request { get; set; } = new();
+    private DateTime SupplementDeadline { get; set; }
+    private DateTime AdjustmentDeadline { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (initialized)
+        {
+            return;
+        }
+
+        initialized = true;
+        var today = DateTime.Today;
+        var targetYear = SuggestedYear > 0 ? SuggestedYear : today.Year;
+        var targetMonth = SuggestedMonth is >= 1 and <= 12 ? SuggestedMonth : today.Month;
+        YearOptions = Enumerable.Range(Math.Max(2024, targetYear - 1), 6).ToArray();
+        Request = new VppOrderPeriodManualCreateReqDTO
+        {
+            Year = targetYear,
+            Month = targetMonth,
+            SupplementApprovalGraceDays = Settings.SupplementApprovalGraceDays,
+            PostCloseAdjustmentDays = Settings.PostCloseAdjustmentDays,
+            Reason = "Thêm kỳ theo kế hoạch"
+        };
+        RecalculateSchedule();
+    }
+
+    private void RecalculateSchedule()
+    {
+        if (Request.Year is < 1 or > 9999 || Request.Month is < 1 or > 12)
+        {
+            return;
+        }
+
+        var target = new DateTime(Request.Year, Request.Month, 1);
+        var openMonth = target.AddMonths(-1);
+        var closeMonth = target.AddMonths(1);
+        Request.OpenAtLocal = BoundaryLocal(openMonth, Settings.DefaultNewPeriodOpenDay);
+        Request.CloseAtLocal = BoundaryLocal(closeMonth, Settings.DefaultPeriodCloseDay);
+        RefreshDeadlines();
+    }
+
+    private DateTime BoundaryLocal(DateTime month, int requestedDay)
+    {
+        var day = Math.Min(Math.Clamp(requestedDay, 1, 31), DateTime.DaysInMonth(month.Year, month.Month));
+        return new DateTime(month.Year, month.Month, day).Add(Settings.LocalTimeOfDay);
+    }
+
+    private void RefreshDeadlines()
+    {
+        var supplementDays = Request.SupplementApprovalGraceDays ?? Settings.SupplementApprovalGraceDays;
+        var adjustmentDays = Request.PostCloseAdjustmentDays ?? Settings.PostCloseAdjustmentDays;
+        SupplementDeadline = Request.CloseAtLocal.AddDays(supplementDays);
+        AdjustmentDeadline = Request.CloseAtLocal.AddDays(adjustmentDays);
+        Request.SupplementApprovalDeadlineLocal = SupplementDeadline;
+    }
+
+    private Task CancelAsync() => DialogService.TryCloseAsync(null);
+
+    private async Task SubmitAsync()
+    {
+        RefreshDeadlines();
+        ValidationMessage = Validate();
+        if (!string.IsNullOrWhiteSpace(ValidationMessage))
+        {
+            return;
+        }
+
+        Request.Reason = Request.Reason?.Trim();
+        await DialogService.TryCloseAsync(Request);
+    }
+
+    private string Validate()
+    {
+        if (Request.CloseAtLocal <= Request.OpenAtLocal)
+        {
+            return "Ngày đóng phải sau ngày mở.";
+        }
+        if (Request.CloseAtLocal <= DateTime.Now)
+        {
+            return "Ngày đóng phải ở tương lai.";
+        }
+        var supplementDays = Request.SupplementApprovalGraceDays ?? -1;
+        var adjustmentDays = Request.PostCloseAdjustmentDays ?? -1;
+        if (supplementDays is < 0 or > 31 || adjustmentDays is < 0 or > 31)
+        {
+            return "Số ngày phải từ 0 đến 31.";
+        }
+        return adjustmentDays < supplementDays
+            ? "Thời gian chỉnh đơn phải bằng hoặc dài hơn thời gian nhận đơn bổ sung."
+            : string.Empty;
+    }
+
+    private static string FormatDateTime(DateTime value) => value.ToString("HH:mm dd/MM/yyyy");
+}

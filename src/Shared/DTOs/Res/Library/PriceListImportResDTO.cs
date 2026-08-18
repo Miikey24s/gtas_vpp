@@ -49,9 +49,6 @@ public sealed class PriceListImportRowResDTO
     public string? MatchedUnitName { get; set; }
     public decimal? UnitPrice { get; set; }
     public decimal? VatRate { get; set; }
-    public decimal? MinimumOrderQuantity { get; set; }
-    public int? LeadTimeDays { get; set; }
-    public bool? IsDefault { get; set; }
     public string? Note { get; set; }
     public string Action { get; set; } = string.Empty;
     public List<PriceListImportIssueResDTO> Issues { get; set; } = [];

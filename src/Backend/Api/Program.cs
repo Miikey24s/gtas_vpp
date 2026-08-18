@@ -127,6 +127,9 @@ builder.Services.AddScoped<IVppPeriodService, VppPeriodService>();
 builder.Services.AddHostedService<VppPeriodRecoveryWorker>();
 builder.Services.AddScoped<IVPPPriceService, VPPPriceService>();
 builder.Services.AddScoped<IPriceAsOfResolver, PriceAsOfResolver>();
+builder.Services.AddOptions<PricingFeatureOptions>()
+    .Bind(Configuration.GetSection(PricingFeatureOptions.SectionName));
+builder.Services.AddSingleton<PricingFeaturePolicy>();
 builder.Services.AddScoped<IPriceBookWorkflowService, PriceBookWorkflowService>();
 builder.Services.AddScoped<IPriceListService, PriceListService>();
 builder.Services.AddScoped<IPriceListExportService, PriceListExportService>();

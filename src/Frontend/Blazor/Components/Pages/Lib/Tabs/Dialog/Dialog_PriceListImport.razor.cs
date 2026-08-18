@@ -294,9 +294,6 @@ public partial class Dialog_PriceListImport
         new("UnitName", FieldLabel("UnitName")),
         new("UnitPrice", FieldLabel("UnitPrice")),
         new("VatRate", FieldLabel("VatRate")),
-        new("MinimumOrderQuantity", FieldLabel("MinimumOrderQuantity")),
-        new("LeadTimeDays", FieldLabel("LeadTimeDays")),
-        new("IsDefault", FieldLabel("IsDefault")),
         new("Note", FieldLabel("Note"))
     ];
 
@@ -361,9 +358,6 @@ public partial class Dialog_PriceListImport
         "UnitName" => Loc["UOM"],
         "UnitPrice" => Loc["Price"],
         "VatRate" => Loc["VatRate"],
-        "MinimumOrderQuantity" => Loc["MinimumOrderQuantity"],
-        "LeadTimeDays" => Loc["LeadTimeDays"],
-        "IsDefault" => Loc["DefaultPrice"],
         "Note" => Loc["Notes"],
         _ => field
     };

@@ -174,6 +174,27 @@ public class PriceListServiceTests
     }
 
     [Fact]
+    public async Task Create_CommercialTermsDisabled_RejectsLegacyClientValues()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var now = new DateTime(2026, 5, 21, 9, 0, 0);
+        var supplierId = await SeedSupplierAsync(context, now);
+        var service = CreateService(context, now);
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() => service.CreateAsync(
+            new PriceListCreateReqDTO
+            {
+                Code = "LEGACY-TERMS",
+                Name = "Legacy terms",
+                SupplierId = supplierId,
+                DiscountRate = 5m
+            },
+            5615));
+
+        Assert.Contains("đang tạm tắt", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task SetDefault_FlipsDefaultBetweenLists()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
@@ -245,6 +266,12 @@ public class PriceListServiceTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 5, 21, 9, 0, 0);
         var sourceId = await SeedListAsync(context, "SRC", "Source", isDefault: true, now);
+        var source = await context.Set<PriceList>().SingleAsync(item => item.Id == sourceId);
+        source.ContractCode = "CTR-OLD";
+        source.DiscountRate = 5m;
+        source.RebateAmount = 10m;
+        source.FeeAmount = 20m;
+        source.ShippingAmount = 30m;
         var vpp1Id = Guid.NewGuid();
         var vpp2Id = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vpp1Id, vpp2Id);
@@ -266,6 +293,11 @@ public class PriceListServiceTests
         Assert.Equal("Published", clone.Status);
         Assert.Equal(1, clone.Version);
         Assert.Equal(2, clone.ItemCount);
+        Assert.Null(clone.ContractCode);
+        Assert.Equal(0m, clone.DiscountRate);
+        Assert.Equal(0m, clone.RebateAmount);
+        Assert.Equal(0m, clone.FeeAmount);
+        Assert.Equal(0m, clone.ShippingAmount);
         var clonedRows = await context.Set<SupplierProductMapping>()
             .Where(x => x.PriceListId == clone.Id)
             .OrderBy(x => x.Price)

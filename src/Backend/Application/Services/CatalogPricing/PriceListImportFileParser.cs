@@ -25,9 +25,6 @@ public sealed class PriceListImportParsedRow
     public string? UnitName { get; init; }
     public decimal? UnitPrice { get; init; }
     public decimal? VatRate { get; init; }
-    public decimal? MinimumOrderQuantity { get; init; }
-    public int? LeadTimeDays { get; init; }
-    public bool? IsDefault { get; init; }
     public string? Note { get; init; }
     public List<PriceListImportIssueResDTO> Issues { get; init; } = [];
 }
@@ -48,9 +45,6 @@ public sealed class PriceListImportFileParser
         "UnitName",
         "UnitPrice",
         "VatRate",
-        "MinimumOrderQuantity",
-        "LeadTimeDays",
-        "IsDefault",
         "Note"
     };
 
@@ -73,14 +67,6 @@ public sealed class PriceListImportFileParser
             ["vatrate"] = "VatRate",
             ["vat"] = "VatRate",
             ["thuevat"] = "VatRate",
-            ["minimumorderquantity"] = "MinimumOrderQuantity",
-            ["moq"] = "MinimumOrderQuantity",
-            ["soluongtoithieu"] = "MinimumOrderQuantity",
-            ["leadtimedays"] = "LeadTimeDays",
-            ["songaygiao"] = "LeadTimeDays",
-            ["thoigiangiao"] = "LeadTimeDays",
-            ["isdefault"] = "IsDefault",
-            ["macdinh"] = "IsDefault",
             ["note"] = "Note",
             ["ghichu"] = "Note"
         };
@@ -210,6 +196,12 @@ public sealed class PriceListImportFileParser
                 : HeaderAliases.GetValueOrDefault(NormalizeToken(sourceHeader));
             if (string.IsNullOrWhiteSpace(targetField))
             {
+                globalIssues.Add(Issue(
+                    table.Header.RowNumber,
+                    "Warning",
+                    "IGNORED_COLUMN",
+                    $"Cột {sourceHeader} không thuộc mẫu bảng giá và sẽ được bỏ qua.",
+                    sourceHeader));
                 continue;
             }
             if (!SupportedFields.Contains(targetField))
@@ -361,9 +353,6 @@ public sealed class PriceListImportFileParser
         }
 
         var vatRate = ParseOptionalDecimal(source, mappedColumns, "VatRate", issues, 0, 100, false);
-        var moq = ParseOptionalDecimal(source, mappedColumns, "MinimumOrderQuantity", issues, 0, null, false);
-        var leadTimeDays = ParseOptionalInt(source, mappedColumns, "LeadTimeDays", issues, 0);
-        var isDefault = ParseOptionalBoolean(source, mappedColumns, issues);
 
         return new PriceListImportParsedRow
         {
@@ -373,9 +362,6 @@ public sealed class PriceListImportFileParser
             UnitName = NormalizeOptional(Cell(source, mappedColumns, "UnitName")),
             UnitPrice = unitPrice,
             VatRate = vatRate,
-            MinimumOrderQuantity = moq,
-            LeadTimeDays = leadTimeDays,
-            IsDefault = isDefault,
             Note = NormalizeOptional(Cell(source, mappedColumns, "Note")),
             Issues = issues
         };
@@ -410,59 +396,6 @@ public sealed class PriceListImportFileParser
         }
 
         return value;
-    }
-
-    private static int? ParseOptionalInt(
-        SourceTableRow source,
-        IReadOnlyDictionary<string, int> columns,
-        string field,
-        ICollection<PriceListImportIssueResDTO> issues,
-        int minimum)
-    {
-        var raw = Cell(source, columns, field);
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            return null;
-        }
-
-        var number = ParseDecimal(raw, preferThousands: false);
-        if (!number.HasValue || decimal.Truncate(number.Value) != number.Value || number.Value < minimum || number.Value > int.MaxValue)
-        {
-            issues.Add(Issue(
-                source.RowNumber,
-                "Error",
-                $"{field.ToUpperInvariant()}_INVALID",
-                $"{FieldLabel(field)} phải là số nguyên lớn hơn hoặc bằng {minimum}.",
-                field));
-            return null;
-        }
-
-        return decimal.ToInt32(number.Value);
-    }
-
-    private static bool? ParseOptionalBoolean(
-        SourceTableRow source,
-        IReadOnlyDictionary<string, int> columns,
-        ICollection<PriceListImportIssueResDTO> issues)
-    {
-        var raw = Cell(source, columns, "IsDefault");
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            return null;
-        }
-
-        return NormalizeToken(raw) switch
-        {
-            "true" or "1" or "yes" or "y" or "co" => true,
-            "false" or "0" or "no" or "n" or "khong" => false,
-            _ => AddInvalidBooleanIssue()
-        };
-
-        bool? AddInvalidBooleanIssue()
-        {
-            issues.Add(Issue(source.RowNumber, "Error", "IS_DEFAULT_INVALID", "Mặc định chỉ nhận Có/Không, Yes/No, True/False hoặc 1/0.", "IsDefault"));
-            return null;
-        }
     }
 
     private static decimal? ParseDecimal(string? raw, bool preferThousands)
@@ -526,9 +459,6 @@ public sealed class PriceListImportFileParser
         "UnitName" => "Đơn vị",
         "UnitPrice" => "Đơn giá",
         "VatRate" => "Thuế VAT",
-        "MinimumOrderQuantity" => "Số lượng tối thiểu",
-        "LeadTimeDays" => "Số ngày giao",
-        "IsDefault" => "Giá mặc định",
         "Note" => "Ghi chú",
         _ => field
     };

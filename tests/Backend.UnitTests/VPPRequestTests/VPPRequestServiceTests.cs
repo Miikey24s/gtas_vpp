@@ -91,6 +91,12 @@ public class VPPRequestServiceTests
             5615,
             "IT",
             "77500");
+        var period = Assert.Single(context.Periods);
+        period.State = VppPeriodState.SubmissionClosed;
+        period.SubmissionDeadlineUtc = new DateTime(2026, 4, 9, 9, 7, 8, DateTimeKind.Utc);
+        period.SupplementApprovalDeadlineUtc = new DateTime(2026, 4, 15, 9, 7, 8, DateTimeKind.Utc);
+        period.PostCloseAdjustmentDeadlineUtc = new DateTime(2026, 4, 20, 9, 7, 8, DateTimeKind.Utc);
+        await context.SaveChangesAsync();
         var request = CreateOrderRequest(year: 2026, month: 4, isAdditionalOrder: true, vppId: vppId);
         request.BaseRequestId = regular.Id;
 

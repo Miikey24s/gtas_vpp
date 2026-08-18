@@ -15,21 +15,22 @@ public static class PriceListWorkbookBuilder
 {
     private static readonly IReadOnlyList<SimpleWorkbookColumn> Columns =
     [
-        new("ItemCode", 22),
-        new("ItemName", 34),
-        new("UnitName", 18),
-        new("UnitPrice", 18, SimpleWorkbookCellFormat.Decimal),
-        new("VatRate", 14, SimpleWorkbookCellFormat.Decimal),
-        new("Note", 32)
+        new("Mã mặt hàng", 22),
+        new("Tên mặt hàng", 34),
+        new("Đơn vị", 18),
+        new("Đơn giá", 18, SimpleWorkbookCellFormat.Decimal),
+        new("VAT (%)", 14, SimpleWorkbookCellFormat.Decimal),
+        new("Ghi chú", 32)
     ];
 
     private static readonly IReadOnlyList<IReadOnlyList<object?>> GuideRows =
     [
-        ["ItemCode", "Bắt buộc. Giữ nguyên mã mặt hàng do hệ thống cung cấp."],
-        ["ItemName", "Tên mặt hàng được điền sẵn để đối chiếu; hệ thống vẫn nhận diện theo mã mặt hàng."],
-        ["UnitName", "Đơn vị được điền sẵn. Không đổi đơn vị trong file bảng giá."],
-        ["UnitPrice", "Bắt buộc với dòng cần cập nhật. Đơn giá VND, lớn hơn hoặc bằng 0."],
-        ["VatRate", "Không bắt buộc. Từ 0 đến 100; để trống sẽ giữ VAT hiện tại hoặc dùng 0 khi thêm mới."],
+        ["Mã mặt hàng", "Bắt buộc. Giữ nguyên mã mặt hàng do hệ thống cung cấp."],
+        ["Tên mặt hàng", "Được điền sẵn để đối chiếu; hệ thống vẫn nhận diện theo mã mặt hàng."],
+        ["Đơn vị", "Được điền sẵn. Không đổi đơn vị trong file bảng giá."],
+        ["Đơn giá", "Nhập giá VND lớn hơn hoặc bằng 0. Để trống nếu không muốn cập nhật dòng đó."],
+        ["VAT (%)", "Không bắt buộc. Từ 0 đến 100; để trống sẽ giữ VAT hiện tại hoặc dùng 0 khi thêm mới."],
+        ["Ghi chú", "Không bắt buộc. Để trống sẽ giữ ghi chú hiện tại."],
         ["Dòng chưa nhập giá", "Hệ thống bỏ qua và giữ nguyên dữ liệu hiện tại."],
         ["Tên cột khác mẫu", "Hệ thống sẽ yêu cầu ghép cột trước khi kiểm tra dữ liệu."],
         ["Lưu ý", "Không thêm mặt hàng mới vào danh mục bằng file bảng giá."]

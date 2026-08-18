@@ -574,21 +574,31 @@ namespace gtas_vpp_be.Service.Services
                     memberCompanyCode,
                     requestedPeriod);
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-                if (period.State != VppPeriodState.Open || nowUtc >= period.SubmissionDeadlineUtc)
-                    throw new BusinessException("The submission window for this period is closed.");
-
                 var requestSet = _scopedUow.VPPContext.Set<VppRequest>();
-                // Giữ write guard tương thích với dòng pre-period trong lúc rollout
-                // migration/backfill cộng thêm. Kỳ công ty đã chốt phải được ưu tiên
-                // hơn kiểm tra duplicate/base ở mức user để caller nhận đúng conflict
-                // của kỳ bất biến.
+                // Chặn ngay kỳ đã bắt đầu/chốt phương án mua sắm để caller nhận
+                // đúng lý do, thay vì thông báo chung rằng cửa sổ đặt hàng đã đóng.
                 var settled = await requestSet.AsNoTracking().AnyAsync(x =>
                     x.MemberCompanyCode == memberCompanyCode
                     && (x.PeriodId == period.Id
                         || (x.PeriodId == null && x.Year == req.Year && x.Month == req.Month))
                     && !x.IsDeleted && x.SettledAt != null);
                 if (settled || period.State is VppPeriodState.Pricing or VppPeriodState.Settled)
-                    throw new BusinessException("This period has entered pricing/settlement and cannot accept new requests.");
+                {
+                    throw new BusinessException("Kỳ đã chốt hoặc đang chốt nên không thể nhận thêm đơn.");
+                }
+
+                var regularWindowOpen = period.State == VppPeriodState.Open
+                    && period.StartAtUtc <= nowUtc
+                    && nowUtc < period.SubmissionDeadlineUtc;
+                var supplementWindowOpen = period.State == VppPeriodState.SubmissionClosed
+                    && nowUtc >= period.SubmissionDeadlineUtc
+                    && nowUtc < period.SupplementApprovalDeadlineUtc;
+                if (req.IsAdditionalOrder ? !supplementWindowOpen : !regularWindowOpen)
+                {
+                    throw new BusinessException(req.IsAdditionalOrder
+                        ? "Kỳ không còn nhận đơn bổ sung."
+                        : "Kỳ không còn nhận đơn thường.");
+                }
 
                 var payloadHash = ComputePayloadHash(req);
                 var createKey = NormalizeIdempotencyKey(req.IdempotencyKey);
@@ -632,8 +642,11 @@ namespace gtas_vpp_be.Service.Services
                             && (x.Status == (int)VPPStatus.Submitted
                                 || x.Status == (int)VPPStatus.Approved)
                             && (req.BaseRequestId == null || x.Id == req.BaseRequestId));
-                    if (req.BaseRequestId.HasValue && baseRequest is null)
-                        throw new BusinessException("The selected regular order is not eligible as a supplement base.");
+                    if (baseRequest is null)
+                    {
+                        throw new BusinessException(
+                            "Cần có đơn thường đã gửi hoặc đã duyệt trước khi tạo đơn bổ sung.");
+                    }
 
                     approvedSupplementCount = await requestSet.AsNoTracking()
                         .CountAsync(x => x.CreatedByUserId == createdByUserId
@@ -815,18 +828,22 @@ namespace gtas_vpp_be.Service.Services
                         && x.MemberCompanyCode == company
                         && !x.IsDeleted)
                     ?? throw new BusinessException("Không tìm thấy kỳ của đơn.");
-                var adjustmentDays = period.SettingsVersionId.HasValue
-                    ? await _scopedUow.VPPContext.Set<VppOrderPeriodSettingsVersion>()
-                        .AsNoTracking()
-                        .Where(x => x.Id == period.SettingsVersionId.Value)
-                        .Select(x => (int?)x.PostCloseAdjustmentDays)
-                        .FirstOrDefaultAsync() ?? 10
-                    : 10;
                 var now = _dateTimeProvider.Now;
                 var nowUtc = PeriodCalculator.NormalizeNowUtc(now);
-                var adjustmentDeadlineUtc = period.SubmissionDeadlineUtc.AddDays(adjustmentDays);
+                var adjustmentDeadlineUtc = period.PostCloseAdjustmentDeadlineUtc;
+                if (!adjustmentDeadlineUtc.HasValue)
+                {
+                    var adjustmentDays = period.SettingsVersionId.HasValue
+                        ? await _scopedUow.VPPContext.Set<VppOrderPeriodSettingsVersion>()
+                            .AsNoTracking()
+                            .Where(x => x.Id == period.SettingsVersionId.Value)
+                            .Select(x => (int?)x.PostCloseAdjustmentDays)
+                            .FirstOrDefaultAsync() ?? 10
+                        : 10;
+                    adjustmentDeadlineUtc = period.SubmissionDeadlineUtc.AddDays(adjustmentDays);
+                }
                 if (period.State is not (VppPeriodState.SubmissionClosed or VppPeriodState.Pricing)
-                    || nowUtc >= adjustmentDeadlineUtc
+                    || nowUtc >= adjustmentDeadlineUtc.Value
                     || header.SettledAt is not null)
                 {
                     throw new ConflictException(
@@ -2098,18 +2115,37 @@ namespace gtas_vpp_be.Service.Services
                 openPeriods = [await GetPeriodForMutationAsync(company, anchor)];
             }
 
+            // Danh sách chọn gồm kỳ đang mở cho đơn thường và kỳ vừa đóng còn hạn
+            // bổ sung. Kỳ đã chốt/Pricing không xuất hiện nên chốt sớm khóa ngay CTA.
+            var supplementPeriods = await _scopedUow.VPPContext.Set<VppPeriod>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted
+                    && x.MemberCompanyCode == company
+                    && x.State == VppPeriodState.SubmissionClosed
+                    && x.SubmissionDeadlineUtc <= nowUtc
+                    && nowUtc < x.SupplementApprovalDeadlineUtc)
+                .ToListAsync();
+            var availablePeriods = openPeriods
+                .Concat(supplementPeriods)
+                .GroupBy(x => x.Id)
+                .Select(group => group.First())
+                .ToArray();
+
             if (selectedPeriodId.HasValue
-                && openPeriods.All(x => x.Id != selectedPeriodId.Value))
+                && availablePeriods.All(x => x.Id != selectedPeriodId.Value))
             {
                 throw new BusinessException(
-                    "Kỳ được chọn không tồn tại hoặc đã đóng nhận đơn.");
+                    "Kỳ được chọn không còn nhận đơn.");
             }
 
             var period = selectedPeriodId.HasValue
-                ? openPeriods.Single(x => x.Id == selectedPeriodId.Value)
-                : openPeriods.FirstOrDefault(x =>
+                ? availablePeriods.Single(x => x.Id == selectedPeriodId.Value)
+                : availablePeriods.FirstOrDefault(x =>
                     x.Year == anchor.Year && x.Month == anchor.Month)
-                    ?? openPeriods.OrderBy(x => x.Year).ThenBy(x => x.Month).FirstOrDefault();
+                    ?? openPeriods.OrderBy(x => x.Year).ThenBy(x => x.Month).FirstOrDefault()
+                    ?? supplementPeriods.OrderByDescending(x => x.Year)
+                        .ThenByDescending(x => x.Month)
+                        .FirstOrDefault();
             if (period is null)
             {
                 return new VppPeriodInfoResDTO
@@ -2137,7 +2173,7 @@ namespace gtas_vpp_be.Service.Services
             var previousDate = new DateTime(current.Year, current.Month, 1).AddMonths(-1);
             var previous = new Period(previousDate.Year, previousDate.Month);
             var requestSet = _scopedUow.VPPContext.Set<VppRequest>();
-            var openPeriodIds = openPeriods.Select(x => x.Id).ToArray();
+            var availablePeriodIds = availablePeriods.Select(x => x.Id).ToArray();
             var regularOrders = await requestSet.AsNoTracking()
                 .Where(x => x.CreatedByUserId == userId
                     && x.MemberCompanyCode == company
@@ -2145,7 +2181,7 @@ namespace gtas_vpp_be.Service.Services
                     && x.IsCurrentRevision
                     && !x.IsDeleted
                     && x.PeriodId.HasValue
-                    && openPeriodIds.Contains(x.PeriodId.Value))
+                    && availablePeriodIds.Contains(x.PeriodId.Value))
                 .ToListAsync();
             var regularByPeriod = regularOrders
                 .GroupBy(x => x.PeriodId!.Value)
@@ -2175,6 +2211,9 @@ namespace gtas_vpp_be.Service.Services
             var submissionOpen = period.State == VppPeriodState.Open
                 && period.StartAtUtc <= nowUtc
                 && nowUtc < period.SubmissionDeadlineUtc;
+            var supplementOpen = period.State == VppPeriodState.SubmissionClosed
+                && nowUtc >= period.SubmissionDeadlineUtc
+                && nowUtc < period.SupplementApprovalDeadlineUtc;
             var hasPreviousOrder = await requestSet.AsNoTracking().AnyAsync(x =>
                 x.CreatedByUserId == userId
                 && x.MemberCompanyCode == company
@@ -2221,7 +2260,8 @@ namespace gtas_vpp_be.Service.Services
                         ? null
                         : "You already have a regular order for this period.")
                     : "The regular submission window is closed.",
-                CanCreateAdditional = submissionOpen
+                CanCreateAdditional = supplementOpen
+                    && eligibleBaseRequest is not null
                     && approvedCount < _policy.MaxApprovedSupplements
                     && attemptCount < _policy.MaxSupplementAttempts
                     && !hasPending,
@@ -2231,14 +2271,16 @@ namespace gtas_vpp_be.Service.Services
                         ? "The approved supplement quota is full."
                         : attemptCount >= _policy.MaxSupplementAttempts
                             ? "The supplement attempt limit is full."
-                            : submissionOpen
-                                ? null
-                                : "The supplement submission window is closed.",
+                            : eligibleBaseRequest is null
+                                ? "Cần có đơn thường đã gửi hoặc đã duyệt."
+                                : supplementOpen
+                                    ? null
+                                    : "Kỳ không còn nhận đơn bổ sung.",
                 HasPreviousOrder = hasPreviousOrder,
                 CanCopyPrevious = submissionOpen
                     && baseRequest is null
                     && hasPreviousOrder,
-                OpenPeriods = openPeriods
+                OpenPeriods = availablePeriods
                     .OrderBy(x => x.Year)
                     .ThenBy(x => x.Month)
                     .Select(x => new VppOpenPeriodOptionResDTO

@@ -3,7 +3,7 @@ namespace gtas_vpp_shared.DTOs.Req.VPP;
 public sealed class VppOrderPeriodSettingsReqDTO
 {
     public string Name { get; set; } = string.Empty;
-    public int DefaultOpenPeriodCount { get; set; } = 3;
+    public int DefaultOpenPeriodCount { get; set; } = 1;
     public int DefaultNewPeriodOpenDay { get; set; } = 5;
     public int DefaultPeriodCloseDay { get; set; } = 5;
     public TimeSpan LocalTimeOfDay { get; set; } = TimeSpan.Zero;
@@ -31,6 +31,8 @@ public sealed class VppOrderPeriodManualCreateReqDTO
     public DateTime OpenAtLocal { get; set; }
     public DateTime CloseAtLocal { get; set; }
     public DateTime SupplementApprovalDeadlineLocal { get; set; }
+    public int? SupplementApprovalGraceDays { get; set; }
+    public int? PostCloseAdjustmentDays { get; set; }
     public string? Reason { get; set; }
 }
 
@@ -39,6 +41,8 @@ public sealed class VppOrderPeriodUpdateReqDTO
     public DateTime OpenAtLocal { get; set; }
     public DateTime CloseAtLocal { get; set; }
     public DateTime SupplementApprovalDeadlineLocal { get; set; }
+    public int? SupplementApprovalGraceDays { get; set; }
+    public int? PostCloseAdjustmentDays { get; set; }
     public string? Reason { get; set; }
     public byte[]? RowVersion { get; set; }
 }
@@ -53,6 +57,8 @@ public sealed class VppOrderPeriodExtendDeadlineReqDTO
 {
     public DateTime CloseAtLocal { get; set; }
     public DateTime SupplementApprovalDeadlineLocal { get; set; }
+    public int? SupplementApprovalGraceDays { get; set; }
+    public int? PostCloseAdjustmentDays { get; set; }
     public string Reason { get; set; } = string.Empty;
     public byte[]? RowVersion { get; set; }
 }

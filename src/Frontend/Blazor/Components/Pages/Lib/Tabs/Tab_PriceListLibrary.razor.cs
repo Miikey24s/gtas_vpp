@@ -128,11 +128,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                         EffectiveFromUtc = result.EffectiveFromUtc,
                         EffectiveToUtc = result.EffectiveToUtc,
                         CurrencyCode = result.CurrencyCode,
-                        ContractCode = result.ContractCode,
-                        DiscountRate = result.DiscountRate,
-                        RebateAmount = result.RebateAmount,
-                        FeeAmount = result.FeeAmount,
-                        ShippingAmount = result.ShippingAmount
+                        ContractCode = null,
+                        DiscountRate = 0m,
+                        RebateAmount = 0m,
+                        FeeAmount = 0m,
+                        ShippingAmount = 0m
                     });
                 Notify(NotificationSeverity.Success, Loc["Success"].Value, Loc["PriceListSaved"].Value);
                 await LoadAsync();
@@ -158,11 +158,11 @@ namespace gtas_vpp_fe.Components.Pages.Lib.Tabs
                 EffectiveToUtc = row.EffectiveToUtc,
                 CurrencyCode = row.CurrencyCode,
                 VatPolicy = row.VatPolicy,
-                ContractCode = row.ContractCode,
-                DiscountRate = row.DiscountRate,
-                RebateAmount = row.RebateAmount,
-                FeeAmount = row.FeeAmount,
-                ShippingAmount = row.ShippingAmount,
+                ContractCode = null,
+                DiscountRate = 0m,
+                RebateAmount = 0m,
+                FeeAmount = 0m,
+                ShippingAmount = 0m,
                 RowVersion = row.RowVersion
             });
             if (result is null) return;

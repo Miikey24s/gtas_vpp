@@ -24,9 +24,6 @@ public sealed class PriceListImportService(
         "UnitName",
         "UnitPrice",
         "VatRate",
-        "MinimumOrderQuantity",
-        "LeadTimeDays",
-        "IsDefault",
         "Note"
     };
 
@@ -338,9 +335,6 @@ public sealed class PriceListImportService(
                     existing?.Id,
                     existing?.Price ?? 0m,
                     existing?.VatRate ?? 0m,
-                    existing?.MinimumOrderQuantity ?? 0m,
-                    existing?.LeadTimeDays ?? 0,
-                    existing?.IsDefault ?? false,
                     existing?.Description,
                     issues.Any(issue => issue.Severity == "Error")
                         ? PriceListImportAction.Error
@@ -351,13 +345,10 @@ public sealed class PriceListImportService(
 
             var unitPrice = parsed.UnitPrice.Value;
             var vatRate = parsed.VatRate ?? existing?.VatRate ?? 0m;
-            var minimumOrderQuantity = parsed.MinimumOrderQuantity ?? existing?.MinimumOrderQuantity ?? 0m;
-            var leadTimeDays = parsed.LeadTimeDays ?? existing?.LeadTimeDays ?? 0;
-            var isDefault = parsed.IsDefault ?? existing?.IsDefault ?? false;
             var note = parsed.Note ?? existing?.Description;
             var action = existing is null
                 ? PriceListImportAction.Add
-                : IsChanged(existing, unitPrice, vatRate, minimumOrderQuantity, leadTimeDays, isDefault, note)
+                : IsChanged(existing, unitPrice, vatRate, note)
                     ? PriceListImportAction.Update
                     : PriceListImportAction.Unchanged;
             if (issues.Any(issue => issue.Severity == "Error"))
@@ -373,9 +364,6 @@ public sealed class PriceListImportService(
                 existing?.Id,
                 unitPrice,
                 vatRate,
-                minimumOrderQuantity,
-                leadTimeDays,
-                isDefault,
                 note,
                 action,
                 issues));
@@ -505,9 +493,6 @@ public sealed class PriceListImportService(
                     Price = row.UnitPrice,
                     NetPrice = row.UnitPrice,
                     VatRate = row.VatRate,
-                    MinimumOrderQuantity = row.MinimumOrderQuantity,
-                    LeadTimeDays = row.LeadTimeDays,
-                    IsDefault = row.IsDefault,
                     Description = row.Note,
                     CreatedByUserId = userId,
                     CreatedAtUtc = now,
@@ -522,9 +507,6 @@ public sealed class PriceListImportService(
             mapping.Price = row.UnitPrice;
             mapping.NetPrice = row.UnitPrice;
             mapping.VatRate = row.VatRate;
-            mapping.MinimumOrderQuantity = row.MinimumOrderQuantity;
-            mapping.LeadTimeDays = row.LeadTimeDays;
-            mapping.IsDefault = row.IsDefault;
             mapping.Description = row.Note;
             mapping.UpdatedByUserId = userId;
             mapping.UpdatedAtUtc = now;
@@ -629,9 +611,6 @@ public sealed class PriceListImportService(
             MatchedUnitName = row.MatchedUnitName,
             UnitPrice = row.Source.UnitPrice,
             VatRate = row.Source.VatRate,
-            MinimumOrderQuantity = row.Source.MinimumOrderQuantity,
-            LeadTimeDays = row.Source.LeadTimeDays,
-            IsDefault = row.Source.IsDefault,
             Note = row.Source.Note,
             Action = row.Action.ToString(),
             Issues = row.Issues
@@ -641,16 +620,10 @@ public sealed class PriceListImportService(
         SupplierProductMapping existing,
         decimal unitPrice,
         decimal vatRate,
-        decimal minimumOrderQuantity,
-        int leadTimeDays,
-        bool isDefault,
         string? note)
         => existing.Price != unitPrice
            || existing.NetPrice != unitPrice
            || existing.VatRate != vatRate
-           || existing.MinimumOrderQuantity != minimumOrderQuantity
-           || existing.LeadTimeDays != leadTimeDays
-           || existing.IsDefault != isDefault
            || !string.Equals(existing.Description, note, StringComparison.Ordinal);
 
     private static string SanitizeFileName(string value)
@@ -692,9 +665,6 @@ public sealed class PriceListImportService(
         Guid? ExistingMappingId,
         decimal UnitPrice,
         decimal VatRate,
-        decimal MinimumOrderQuantity,
-        int LeadTimeDays,
-        bool IsDefault,
         string? Note,
         PriceListImportAction Action,
         List<PriceListImportIssueResDTO> Issues)
@@ -705,7 +675,7 @@ public sealed class PriceListImportService(
             Guid? itemId = null,
             string? matchedItemName = null,
             string? matchedUnitName = null)
-            => new(source, itemId, matchedItemName, matchedUnitName, null, 0, 0, 0, 0, source.IsDefault ?? false, source.Note, PriceListImportAction.Error, issues);
+            => new(source, itemId, matchedItemName, matchedUnitName, null, 0, 0, source.Note, PriceListImportAction.Error, issues);
     }
 
     private sealed record EvaluationResult(

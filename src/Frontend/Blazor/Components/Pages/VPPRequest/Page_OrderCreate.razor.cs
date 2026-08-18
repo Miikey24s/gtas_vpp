@@ -175,8 +175,18 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest
         protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => PeriodInfo?.OpenPeriods
             .Select(option => new VppDecisionOption<Guid?>(
                 option.PeriodId,
-                DateFormatter.Format(new DateTime(option.Year, option.Month, 1), DateFormatter.MonthYear)))
+                FormatPeriodOption(option)))
             .ToArray() ?? [];
+
+        private static string FormatPeriodOption(VppOpenPeriodOptionResDTO option)
+        {
+            var period = DateFormatter.Format(
+                new DateTime(option.Year, option.Month, 1),
+                DateFormatter.MonthYear);
+            return option.State == "SubmissionClosed"
+                ? $"{period} · nhận bổ sung"
+                : period;
+        }
 
         public bool CanSubmitForPeriod => IsEdit || IsRecreate
             ? _editingAllowed

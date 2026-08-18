@@ -72,6 +72,8 @@ public sealed class PostSettlementOrderCorrectionService(
             ?? throw new BusinessException("Không tìm thấy kỳ của đơn.");
         if (period.State != VppPeriodState.Settled)
             throw new ConflictException("Chỉ dùng quy trình này cho kỳ đã chốt.");
+        var nowUtc = NormalizeUtc(_dateTimeProvider.Now);
+        EnsureAdjustmentWindowOpen(period, nowUtc);
 
         var settlement = await _scopedUow.VPPContext.Set<Settlement>()
             .AsNoTracking()
@@ -96,7 +98,6 @@ public sealed class PostSettlementOrderCorrectionService(
         var normalizedItems = action == PostSettlementOrderCorrectionAction.Cancel
             ? []
             : ValidateItems(request.Items, settlement.Items);
-        var nowUtc = NormalizeUtc(_dateTimeProvider.Now);
         var correction = new PostSettlementOrderCorrection
         {
             Id = Guid.NewGuid(),
@@ -186,6 +187,7 @@ public sealed class PostSettlementOrderCorrectionService(
                 throw new ConflictException("Kỳ không còn ở trạng thái đã chốt.");
 
             var nowUtc = NormalizeUtc(_dateTimeProvider.Now);
+            EnsureAdjustmentWindowOpen(period, nowUtc);
             var replacement = BuildRequestRevision(correction, currentRequest, currentSettlement, actorUserId, nowUtc);
             currentRequest.IsCurrentRevision = false;
             currentRequest.SupersededByRequestId = replacement.Id;
@@ -453,6 +455,14 @@ public sealed class PostSettlementOrderCorrectionService(
 
     private static string Hash(object payload)
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload))));
+
+    private static void EnsureAdjustmentWindowOpen(VppPeriod period, DateTime nowUtc)
+    {
+        var deadlineUtc = period.PostCloseAdjustmentDeadlineUtc
+            ?? period.SubmissionDeadlineUtc.AddDays(10);
+        if (nowUtc >= deadlineUtc)
+            throw new ConflictException("Đã hết thời gian chỉnh đơn của kỳ này.");
+    }
 
     private static DateTime NormalizeUtc(DateTime value)
         => value.Kind switch

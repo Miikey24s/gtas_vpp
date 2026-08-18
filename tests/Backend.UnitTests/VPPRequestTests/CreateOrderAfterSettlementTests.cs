@@ -25,7 +25,7 @@ public class CreateOrderAfterSettlementTests
         var ex = await Assert.ThrowsAsync<BusinessException>(() =>
             service.CreateOrderAsync(CreateOrderRequest(2026, 3, isAdditionalOrder: false, vppId), 5615, "IT", "77500"));
 
-        Assert.Contains("pricing/settlement", ex.Message);
+        Assert.Contains("đã chốt hoặc đang chốt", ex.Message);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class CreateOrderAfterSettlementTests
         var ex = await Assert.ThrowsAsync<BusinessException>(() =>
             service.CreateOrderAsync(CreateOrderRequest(2026, 4, isAdditionalOrder: true, vppId), 5615, "IT", "77500"));
 
-        Assert.Contains("pricing/settlement", ex.Message);
+        Assert.Contains("đã chốt hoặc đang chốt", ex.Message);
     }
 
     private static VPPRequestService CreateService(gtas_vpp_be.Service.Helpers.Context.VPPContext context, DateTime now)

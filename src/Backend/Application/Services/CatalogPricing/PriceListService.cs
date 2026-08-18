@@ -21,15 +21,18 @@ namespace gtas_vpp_be.Service.Services
         private readonly IUnitOfWork _scopedUow;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IUserNameResolver _userNameResolver;
+        private readonly PricingFeaturePolicy _pricingPolicy;
 
         public PriceListService(
             IUnitOfWork scopedUow,
             IDateTimeProvider dateTimeProvider,
-            IUserNameResolver userNameResolver)
+            IUserNameResolver userNameResolver,
+            PricingFeaturePolicy? pricingPolicy = null)
         {
             _scopedUow = scopedUow;
             _dateTimeProvider = dateTimeProvider;
             _userNameResolver = userNameResolver;
+            _pricingPolicy = pricingPolicy ?? PricingFeaturePolicy.Disabled;
         }
 
         public async Task<List<PriceListResDTO>> ListAsync(bool showDeleted = false)
@@ -147,8 +150,8 @@ namespace gtas_vpp_be.Service.Services
         public async Task<PriceListResDTO> CreateAsync(PriceListCreateReqDTO req, int userId)
         {
             ValidatePriceBook(req.SupplierId, req.Version, null, null, req.CurrencyCode);
-            PriceBookWorkflowService.ValidateCommercialTerms(
-                req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
+            _pricingPolicy.EnsureCommercialTermsAllowed(
+                req.ContractCode, req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
             await _scopedUow.BeginTransactionAsync();
             try
             {
@@ -209,8 +212,8 @@ namespace gtas_vpp_be.Service.Services
 
                 var effectiveFromUtc = req.EffectiveFromUtc ?? entity.EffectiveFromUtc;
                 ValidatePriceBook(req.SupplierId, req.Version, effectiveFromUtc, null, req.CurrencyCode);
-                PriceBookWorkflowService.ValidateCommercialTerms(
-                    req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
+                _pricingPolicy.EnsureCommercialTermsAllowed(
+                    req.ContractCode, req.DiscountRate, req.RebateAmount, req.FeeAmount, req.ShippingAmount);
                 await ValidateSupplierAsync(req.SupplierId);
 
                 if (req.RowVersion is { Length: > 0 })
@@ -412,11 +415,11 @@ namespace gtas_vpp_be.Service.Services
                     Status = PriceListStatus.Published,
                     CurrencyCode = source.CurrencyCode,
                     VatPolicy = source.VatPolicy,
-                    ContractCode = source.ContractCode,
-                    DiscountRate = source.DiscountRate,
-                    RebateAmount = source.RebateAmount,
-                    FeeAmount = source.FeeAmount,
-                    ShippingAmount = source.ShippingAmount,
+                    ContractCode = _pricingPolicy.CommercialTermsEnabled ? source.ContractCode : null,
+                    DiscountRate = _pricingPolicy.CommercialTermsEnabled ? source.DiscountRate : 0m,
+                    RebateAmount = _pricingPolicy.CommercialTermsEnabled ? source.RebateAmount : 0m,
+                    FeeAmount = _pricingPolicy.CommercialTermsEnabled ? source.FeeAmount : 0m,
+                    ShippingAmount = _pricingPolicy.CommercialTermsEnabled ? source.ShippingAmount : 0m,
                     PublishedAtUtc = now,
                     PublishedByUserId = userId,
                     CreatedByUserId = userId,
@@ -612,7 +615,7 @@ namespace gtas_vpp_be.Service.Services
             entity.Version = version;
         }
 
-        private static void ApplyCommercialFields(
+        private void ApplyCommercialFields(
             PriceList entity,
             string currencyCode,
             string? vatPolicy,
@@ -625,11 +628,11 @@ namespace gtas_vpp_be.Service.Services
             // Chuẩn hóa tiền tệ/chính sách tại một chỗ để Create và Update không lệch nhau.
             entity.CurrencyCode = NormalizeCurrency(currencyCode);
             entity.VatPolicy = NormalizeVatPolicy(vatPolicy);
-            entity.ContractCode = NormalizeOptional(contractCode);
-            entity.DiscountRate = discountRate;
-            entity.RebateAmount = rebateAmount;
-            entity.FeeAmount = feeAmount;
-            entity.ShippingAmount = shippingAmount;
+            entity.ContractCode = _pricingPolicy.CommercialTermsEnabled ? NormalizeOptional(contractCode) : null;
+            entity.DiscountRate = _pricingPolicy.CommercialTermsEnabled ? discountRate : 0m;
+            entity.RebateAmount = _pricingPolicy.CommercialTermsEnabled ? rebateAmount : 0m;
+            entity.FeeAmount = _pricingPolicy.CommercialTermsEnabled ? feeAmount : 0m;
+            entity.ShippingAmount = _pricingPolicy.CommercialTermsEnabled ? shippingAmount : 0m;
         }
 
         private static string NormalizeCurrency(string value)

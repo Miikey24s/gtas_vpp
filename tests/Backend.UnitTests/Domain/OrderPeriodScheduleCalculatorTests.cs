@@ -41,6 +41,7 @@ public sealed class OrderPeriodScheduleCalculatorTests
         Assert.Equal(new DateTime(2026, 8, 5), schedule.StartAtLocal);
         Assert.Equal(new DateTime(2026, 11, 5), schedule.SubmissionDeadlineLocal);
         Assert.Equal(new DateTime(2026, 11, 7), schedule.SupplementApprovalDeadlineLocal);
+        Assert.Equal(new DateTime(2026, 11, 15), schedule.PostCloseAdjustmentDeadlineLocal);
     }
 
     [Fact]
@@ -50,6 +51,7 @@ public sealed class OrderPeriodScheduleCalculatorTests
             new DateTime(2026, 8, 10),
             new DateTime(2026, 8, 5),
             new DateTime(2026, 8, 7),
+            new DateTime(2026, 8, 15),
             "Asia/Ho_Chi_Minh"));
     }
 
@@ -58,12 +60,13 @@ public sealed class OrderPeriodScheduleCalculatorTests
         MemberCompanyCode = "ACME",
         VersionNumber = 1,
         Name = "Default",
-        DefaultOpenPeriodCount = 3,
+        DefaultOpenPeriodCount = 1,
         DefaultNewPeriodOpenDay = 5,
         DefaultPeriodCloseDay = 5,
         LocalTimeOfDay = TimeSpan.Zero,
         TimeZoneId = "Asia/Ho_Chi_Minh",
         SupplementApprovalGraceDays = 2,
+        PostCloseAdjustmentDays = 10,
         EffectiveFromYear = 2026,
         EffectiveFromMonth = 8
     };

@@ -94,6 +94,7 @@ public class CreateOrderRaceConditionTests
         // requester's submitted regular request.
         var baseOrder = await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0))
             .CreateOrderAsync(regular, userId, "IT", "77500");
+        await OpenSupplementWindowAsync(database, 2026, 4, new DateTime(2026, 4, 10, 9, 0, 0));
         additional.BaseRequestId = baseOrder.Id;
         await CreateService(database, new DateTime(2026, 4, 10, 9, 0, 0))
             .CreateOrderAsync(additional, userId, "IT", "77500");
@@ -121,6 +122,7 @@ public class CreateOrderRaceConditionTests
             userId,
             "IT",
             "77500");
+        await OpenSupplementWindowAsync(database, 2026, 4, now);
         var barrier = new AsyncBarrier(4);
         var requests = Enumerable.Range(1, 4).Select(index =>
         {
@@ -287,6 +289,26 @@ public class CreateOrderRaceConditionTests
             UpdatedAtUtc = timestamp,
             IsDeleted = false
         });
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task OpenSupplementWindowAsync(
+        SqliteTestDatabase database,
+        int year,
+        int month,
+        DateTime now)
+    {
+        using var context = database.CreateContext();
+        var period = await context.Set<VppPeriod>()
+            .SingleAsync(x => x.MemberCompanyCode == "77500"
+                && x.Year == year
+                && x.Month == month
+                && !x.IsDeleted);
+        period.State = VppPeriodState.SubmissionClosed;
+        period.SubmissionDeadlineUtc = now.AddDays(-1);
+        period.SupplementApprovalDeadlineUtc = now.AddDays(4);
+        period.PostCloseAdjustmentDeadlineUtc = now.AddDays(9);
+        period.UpdatedAtUtc = now;
         await context.SaveChangesAsync();
     }
 

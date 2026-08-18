@@ -154,8 +154,8 @@ public sealed class VPPRequestLifecycleTests
         var periodInfo = await service.GetCurrentPeriodInfoAsync(RequesterId);
         Assert.True(periodInfo.HasCurrentPeriodOrder);
         Assert.False(periodInfo.CanCreateOrder);
-        Assert.True(periodInfo.CanCreateAdditional);
-        Assert.Null(periodInfo.CanCreateAdditionalReason);
+        Assert.False(periodInfo.CanCreateAdditional);
+        Assert.Contains("đơn thường", periodInfo.CanCreateAdditionalReason);
         Assert.Null(periodInfo.BaseRequestId);
 
         var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
@@ -222,115 +222,45 @@ public sealed class VPPRequestLifecycleTests
     }
 
     [Fact]
-    public async Task RestoreCancelledSupplement_KeepsAttemptAndReturnsToPending()
+    public async Task Requester_CannotCancelSupplementAfterPeriodClose()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, vppId);
+        var supplement = await CreateSupplementAsync(service, context, vppId);
         var originalVersion = await SetRowVersionAsync(context, supplement.Id);
 
-        await service.CancelOrderAsync(supplement.Id, RequesterId, new VppRequestCancelReqDTO
-        {
-            RowVersion = originalVersion,
-            IdempotencyKey = "cancel-supplement-before-restore"
-        });
-
-        var cancelled = await context.Set<VppRequest>()
-            .SingleAsync(x => x.IsAdditionalOrder && x.IsCurrentRevision);
-        var cancelledVersion = await SetRowVersionAsync(context, cancelled.Id);
-        var cancelledDto = await service.GetOrderByIdAsync(cancelled.Id);
-        Assert.NotNull(cancelledDto);
-        Assert.True(cancelledDto.CanRestore);
-        Assert.True(cancelledDto.CanRecreate);
-
-        var restored = await service.RestoreCancelledOrderAsync(
-            cancelled.Id,
-            RequesterId,
-            new VppRequestRestoreReqDTO
+        var exception = await Assert.ThrowsAsync<ConflictException>(() =>
+            service.CancelOrderAsync(supplement.Id, RequesterId, new VppRequestCancelReqDTO
             {
-                RowVersion = cancelledVersion,
-                IdempotencyKey = "restore-supplement"
-            });
+                RowVersion = originalVersion,
+                IdempotencyKey = "cancel-supplement-after-close"
+            }));
 
-        Assert.True(restored.IsAdditionalOrder);
-        Assert.Equal((int)VPPStatus.Pending, restored.Status);
-        Assert.Equal(supplement.RequestSeriesId, restored.RequestSeriesId);
-        Assert.Equal(supplement.BaseRequestSeriesId, restored.BaseRequestSeriesId);
-        Assert.Equal(supplement.SupplementSequence, restored.SupplementSequence);
-        Assert.Equal(supplement.SupplementAttemptNumber, restored.SupplementAttemptNumber);
-        Assert.Equal(supplement.SupplementReason, restored.SupplementReason);
-        Assert.Equal(1, await context.Set<VppRequest>()
-            .CountAsync(x => x.IsAdditionalOrder && x.IsCurrentRevision));
-
-        var history = Assert.IsType<gtas_vpp_shared.DTOs.Res.VPP.VppRequestHistoryResDTO>(
-            await service.GetOrderHistoryAsync(supplement.Id));
-        Assert.Equal(new[] { "CREATE", "CANCEL", "RESTORE" }, history.Timeline.Select(x => x.Action));
+        Assert.Contains("immutable", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal((int)VPPStatus.Pending,
+            (await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id)).Status);
     }
 
     [Fact]
-    public async Task RecreateCancelledSupplement_ReusesAttemptAndRequiresNewReason()
+    public async Task Requester_CannotRecreateSupplementWithoutManagerCorrection()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var originalVppId = Guid.NewGuid();
-        var recreatedVppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, originalVppId);
-        await ServiceTestHelpers.SeedActiveVPPAsync(context, recreatedVppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, originalVppId);
+        var supplement = await CreateSupplementAsync(service, context, originalVppId);
         var originalVersion = await SetRowVersionAsync(context, supplement.Id);
 
-        await service.CancelOrderAsync(supplement.Id, RequesterId, new VppRequestCancelReqDTO
-        {
-            RowVersion = originalVersion,
-            IdempotencyKey = "cancel-supplement-before-recreate"
-        });
-        var cancelled = await context.Set<VppRequest>()
-            .SingleAsync(x => x.IsAdditionalOrder && x.IsCurrentRevision);
-        var cancelledVersion = await SetRowVersionAsync(context, cancelled.Id);
-
-        var invalid = await Assert.ThrowsAsync<BusinessException>(() =>
-            service.RecreateCancelledOrderAsync(
-                cancelled.Id,
-                RequesterId,
-                new VppRequestRecreateReqDTO
-                {
-                    RowVersion = cancelledVersion,
-                    SupplementReason = "bad",
-                    Items = [new() { VppId = recreatedVppId, Qty = 3 }]
-                }));
-        Assert.Contains("5 to 500", invalid.Message);
-
-        var recreated = await service.RecreateCancelledOrderAsync(
-            cancelled.Id,
-            RequesterId,
-            new VppRequestRecreateReqDTO
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            service.CancelOrderAsync(supplement.Id, RequesterId, new VppRequestCancelReqDTO
             {
-                RowVersion = cancelledVersion,
-                IdempotencyKey = "recreate-supplement",
-                SupplementReason = "New items required after cancellation",
-                Items =
-                [
-                    new VppRequestDetailItemReqDTO
-                    {
-                        VppId = recreatedVppId,
-                        Qty = 3,
-                        Description = "Replacement supplement item"
-                    }
-                ]
-            });
+                RowVersion = originalVersion,
+                IdempotencyKey = "cancel-before-recreate"
+            }));
 
-        Assert.True(recreated.IsAdditionalOrder);
-        Assert.Equal((int)VPPStatus.Pending, recreated.Status);
-        Assert.Equal(supplement.RequestSeriesId, recreated.RequestSeriesId);
-        Assert.Equal(supplement.SupplementSequence, recreated.SupplementSequence);
-        Assert.Equal(supplement.SupplementAttemptNumber, recreated.SupplementAttemptNumber);
-        Assert.Equal("New items required after cancellation", recreated.SupplementReason);
-        var item = await context.Set<VppRequestDetail>()
-            .SingleAsync(x => x.RequestId == recreated.Id && !x.IsDeleted);
-        Assert.Equal(recreatedVppId, item.VppId);
-        Assert.Equal(3, item.Qty);
+        Assert.Single(context.Set<VppRequest>().Where(x => x.IsAdditionalOrder));
     }
 
     [Fact]
@@ -530,7 +460,7 @@ public sealed class VPPRequestLifecycleTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, vppId);
+        var supplement = await CreateSupplementAsync(service, context, vppId);
 
         Task Decision() => approve
             ? service.ApproveAdditionalOrderAsync(
@@ -560,7 +490,7 @@ public sealed class VPPRequestLifecycleTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, vppId);
+        var supplement = await CreateSupplementAsync(service, context, vppId);
 
         Task Decision() => approve
             ? service.ApproveAdditionalOrderAsync(
@@ -585,7 +515,7 @@ public sealed class VPPRequestLifecycleTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, vppId);
+        var supplement = await CreateSupplementAsync(service, context, vppId);
         var header = await context.Set<VppRequest>().SingleAsync(x => x.Id == supplement.Id);
         header.RowVersion = new byte[] { 1, 2, 3 };
         await context.SaveChangesAsync();
@@ -609,7 +539,7 @@ public sealed class VPPRequestLifecycleTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var pending = await CreateSupplementAsync(service, vppId);
+        var pending = await CreateSupplementAsync(service, context, vppId);
         var pendingHeader = await context.Set<VppRequest>()
             .SingleAsync(x => x.Id == pending.Id);
         pendingHeader.RowVersion = new byte[] { 4, 5, 6 };
@@ -627,7 +557,7 @@ public sealed class VPPRequestLifecycleTests
     }
 
     [Fact]
-    public async Task CreateSupplement_WithoutCurrentBase_CreatesStandalonePendingRequest()
+    public async Task CreateSupplement_WithoutCurrentBase_IsBlocked()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
@@ -635,65 +565,60 @@ public sealed class VPPRequestLifecycleTests
         await SeedRequesterAsync(context);
         var service = CreateService(context);
 
-        var beforeCreate = await service.GetCurrentPeriodInfoAsync(RequesterId);
-        Assert.False(beforeCreate.HasCurrentPeriodOrder);
-        Assert.True(beforeCreate.CanCreateAdditional);
-        Assert.Null(beforeCreate.BaseRequestId);
+        _ = await service.GetCurrentPeriodInfoAsync(RequesterId);
+        await OpenSupplementWindowAsync(context);
 
-        var created = await service.CreateOrderAsync(new VppRequestCreateReqDTO
-        {
-            Year = 2026,
-            Month = 4,
-            IsAdditionalOrder = true,
-            SupplementReason = "Needed for a new employee",
-            Items =
+        var periodInfo = await service.GetCurrentPeriodInfoAsync(RequesterId);
+        Assert.False(periodInfo.HasCurrentPeriodOrder);
+        Assert.False(periodInfo.CanCreateAdditional);
+        Assert.Contains("đơn thường", periodInfo.CanCreateAdditionalReason);
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(() =>
+            service.CreateOrderAsync(new VppRequestCreateReqDTO
             {
-                new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1, Description = "Paper" }
-            }
-        }, RequesterId, Department, Company);
+                Year = 2026,
+                Month = 4,
+                IsAdditionalOrder = true,
+                SupplementReason = "Needed for a new employee",
+                Items =
+                {
+                    new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1, Description = "Paper" }
+                }
+            }, RequesterId, Department, Company));
 
-        Assert.True(created.IsAdditionalOrder);
-        Assert.Equal((int)VPPStatus.Pending, created.Status);
-        Assert.Null(created.BaseRequestId);
-        Assert.Null(created.BaseRequestSeriesId);
-        Assert.Equal(1, created.SupplementAttemptNumber);
-
-        var afterCreate = await service.GetCurrentPeriodInfoAsync(RequesterId);
-        Assert.True(afterCreate.HasPendingAdditional);
-        Assert.False(afterCreate.CanCreateAdditional);
-        Assert.Contains("pending", afterCreate.CanCreateAdditionalReason);
+        Assert.Contains("đơn thường", exception.Message);
+        Assert.Empty(context.Set<VppRequest>());
     }
 
     [Fact]
-    public async Task StandaloneSupplement_DoesNotConsumeRegularSlot_AndSharesPeriodAttemptCounter()
+    public async Task LinkedSupplement_UsesTheSamePeriodAttemptCounter()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
 
-        var standalone = await service.CreateOrderAsync(new VppRequestCreateReqDTO
-        {
-            Year = 2026,
-            Month = 4,
-            IsAdditionalOrder = true,
-            SupplementReason = "Standalone first attempt",
-            Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
-        }, RequesterId, Department, Company);
-        var standaloneVersion = await SetRowVersionAsync(context, standalone.Id);
+        var regular = await CreateRegularAsync(service, vppId);
+        var first = await CreateSupplementForBaseAsync(
+            service,
+            context,
+            vppId,
+            regular.Id,
+            "Linked first attempt");
+        var firstVersion = await SetRowVersionAsync(context, first.Id);
         await service.RejectAdditionalOrderAsync(
-            standalone.Id,
+            first.Id,
             ApproverId,
             "Not required yet",
-            standaloneVersion,
-            "reject-standalone",
+            firstVersion,
+            "reject-first",
             Department,
             false,
             Company);
 
-        var regular = await CreateRegularAsync(service, vppId);
         var linked = await CreateSupplementForBaseAsync(
             service,
+            context,
             vppId,
             regular.Id,
             "Linked second attempt");
@@ -717,29 +642,54 @@ public sealed class VPPRequestLifecycleTests
         var regular = await CreateRegularAsync(service, vppId);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() =>
-            CreateSupplementForBaseAsync(service, vppId, regular.Id, reason));
+            CreateSupplementForBaseAsync(service, context, vppId, regular.Id, reason));
 
         Assert.Contains("5 to 500", exception.Message);
         Assert.Single(context.Set<VppRequest>());
     }
 
     [Fact]
-    public async Task CreateSupplement_AfterSubmissionClosed_IsBlocked()
+    public async Task CreateSupplement_InsidePostCloseWindow_IsAllowed()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
         var regular = await CreateRegularAsync(service, vppId);
+        await OpenSupplementWindowAsync(context);
+
+        var supplement = await CreateSupplementForBaseAsync(
+            service, context, vppId, regular.Id, "Needed after the deadline");
+
+        Assert.Equal((int)VPPStatus.Pending, supplement.Status);
+        Assert.Equal(2, context.Set<VppRequest>().Count());
+    }
+
+    [Fact]
+    public async Task CreateSupplement_AfterPostCloseWindow_IsBlocked()
+    {
+        using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var vppId = Guid.NewGuid();
+        await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
+        var service = CreateService(context);
+        var regular = await CreateRegularAsync(service, vppId);
+        await OpenSupplementWindowAsync(context);
         var period = Assert.Single(context.Set<VppPeriod>());
-        period.State = VppPeriodState.SubmissionClosed;
+        period.SupplementApprovalDeadlineUtc = PeriodCalculator.NormalizeNowUtc(OpenPeriodNow).AddMinutes(-1);
         await context.SaveChangesAsync();
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() =>
-            CreateSupplementForBaseAsync(
-                service, vppId, regular.Id, "Needed after the deadline"));
+            service.CreateOrderAsync(new VppRequestCreateReqDTO
+            {
+                Year = 2026,
+                Month = 4,
+                IsAdditionalOrder = true,
+                BaseRequestId = regular.Id,
+                SupplementReason = "Needed after the deadline",
+                Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
+            }, RequesterId, Department, Company));
 
-        Assert.Contains("submission window", exception.Message);
+        Assert.Contains("không còn nhận đơn bổ sung", exception.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Single(context.Set<VppRequest>());
     }
 
@@ -792,7 +742,7 @@ public sealed class VPPRequestLifecycleTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, vppId);
+        var supplement = await CreateSupplementAsync(service, context, vppId);
         var rowVersion = await SetRowVersionAsync(context, supplement.Id);
         var period = Assert.Single(context.Set<VppPeriod>());
         period.State = VppPeriodState.SubmissionClosed;
@@ -816,7 +766,7 @@ public sealed class VPPRequestLifecycleTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, vppId);
+        var supplement = await CreateSupplementAsync(service, context, vppId);
         var rowVersion = await SetRowVersionAsync(context, supplement.Id);
         var period = Assert.Single(context.Set<VppPeriod>());
         period.State = VppPeriodState.Pricing;
@@ -848,7 +798,7 @@ public sealed class VPPRequestLifecycleTests
     }
 
     [Fact]
-    public async Task RejectedAndCancelledSupplements_ConsumeAttemptsButNotApprovedQuota()
+    public async Task RejectedSupplements_ConsumeAttemptsButNotApprovedQuota()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var vppId = Guid.NewGuid();
@@ -861,40 +811,27 @@ public sealed class VPPRequestLifecycleTests
         {
             var supplement = await CreateSupplementForBaseAsync(
                 service,
+                context,
                 vppId,
                 regular.Id,
                 $"Attempt {attempt} for changing office needs",
                 $"supplement-attempt-{attempt}");
             var rowVersion = await SetRowVersionAsync(context, supplement.Id);
-            if (attempt % 2 == 0)
-            {
-                await service.CancelOrderAsync(
-                    supplement.Id,
-                    RequesterId,
-                    new VppRequestCancelReqDTO
-                    {
-                        RowVersion = rowVersion,
-                        Reason = "Requester cancelled this attempt",
-                        IdempotencyKey = $"cancel-attempt-{attempt}"
-                    });
-            }
-            else
-            {
-                await service.RejectAdditionalOrderAsync(
-                    supplement.Id,
-                    ApproverId,
-                    "Rejected for this attempt",
-                    rowVersion,
-                    $"reject-attempt-{attempt}",
-                    Department,
-                    false,
-                    Company);
-            }
+            await service.RejectAdditionalOrderAsync(
+                supplement.Id,
+                ApproverId,
+                "Rejected for this attempt",
+                rowVersion,
+                $"reject-attempt-{attempt}",
+                Department,
+                false,
+                Company);
         }
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() =>
             CreateSupplementForBaseAsync(
                 service,
+                context,
                 vppId,
                 regular.Id,
                 "Seventh attempt must be blocked",
@@ -920,7 +857,7 @@ public sealed class VPPRequestLifecycleTests
         var vppId = Guid.NewGuid();
         await ServiceTestHelpers.SeedActiveVPPAsync(context, vppId);
         var service = CreateService(context);
-        var supplement = await CreateSupplementAsync(service, vppId);
+        var supplement = await CreateSupplementAsync(service, context, vppId);
         var rowVersion = await SetRowVersionAsync(context, supplement.Id);
 
         await service.RejectAdditionalOrderAsync(
@@ -974,6 +911,18 @@ public sealed class VPPRequestLifecycleTests
             5615,
             "IT",
             Company);
+        var hrRegular = await service.CreateOrderAsync(
+            new VppRequestCreateReqDTO
+            {
+                Year = 2026,
+                Month = 4,
+                Description = "HR regular",
+                Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
+            },
+            7777,
+            "HR",
+            Company);
+        await OpenSupplementWindowAsync(context);
         await service.CreateOrderAsync(
             new VppRequestCreateReqDTO
             {
@@ -986,18 +935,6 @@ public sealed class VPPRequestLifecycleTests
             },
             5615,
             "IT",
-            Company);
-
-        var hrRegular = await service.CreateOrderAsync(
-            new VppRequestCreateReqDTO
-            {
-                Year = 2026,
-                Month = 4,
-                Description = "HR regular",
-                Items = [new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1 }]
-            },
-            7777,
-            "HR",
             Company);
         await service.CreateOrderAsync(
             new VppRequestCreateReqDTO
@@ -1078,9 +1015,11 @@ public sealed class VPPRequestLifecycleTests
 
     private static async Task<gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO> CreateSupplementAsync(
         VPPRequestService service,
+        VPPContext context,
         Guid vppId)
     {
         var regular = await CreateRegularAsync(service, vppId);
+        await OpenSupplementWindowAsync(context);
         return await service.CreateOrderAsync(new VppRequestCreateReqDTO
         {
             Year = 2026,
@@ -1095,14 +1034,17 @@ public sealed class VPPRequestLifecycleTests
         }, RequesterId, Department, Company);
     }
 
-    private static Task<gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO>
+    private static async Task<gtas_vpp_shared.DTOs.Res.VPP.VppRequestResDTO>
         CreateSupplementForBaseAsync(
             VPPRequestService service,
+            VPPContext context,
             Guid vppId,
             Guid baseRequestId,
             string? reason,
             string? idempotencyKey = null)
-        => service.CreateOrderAsync(new VppRequestCreateReqDTO
+    {
+        await OpenSupplementWindowAsync(context);
+        return await service.CreateOrderAsync(new VppRequestCreateReqDTO
         {
             Year = 2026,
             Month = 4,
@@ -1115,6 +1057,18 @@ public sealed class VPPRequestLifecycleTests
                 new VppRequestDetailItemReqDTO { VppId = vppId, Qty = 1, Description = "Paper" }
             ]
         }, RequesterId, Department, Company);
+    }
+
+    private static async Task OpenSupplementWindowAsync(VPPContext context)
+    {
+        var period = Assert.Single(context.Set<VppPeriod>());
+        var nowUtc = PeriodCalculator.NormalizeNowUtc(OpenPeriodNow);
+        period.State = VppPeriodState.SubmissionClosed;
+        period.SubmissionDeadlineUtc = nowUtc.AddDays(-1);
+        period.SupplementApprovalDeadlineUtc = nowUtc.AddDays(4);
+        period.PostCloseAdjustmentDeadlineUtc = nowUtc.AddDays(9);
+        await context.SaveChangesAsync();
+    }
 
     private static VppRequestUpdateReqDTO CreateUpdate(
         Guid id,

@@ -15,9 +15,9 @@ public sealed class PriceListImportServiceTests
     private static readonly DateTime Now = new(2026, 8, 11, 9, 30, 0);
 
     [Fact]
-    public async Task Parser_CsvSupportsVietnameseHeadersAndVietnameseNumbers()
+    public async Task Parser_CsvSupportsCanonicalVietnameseHeadersAndIgnoresLegacyColumns()
     {
-        const string csv = "Mã mặt hàng;Đơn giá;Thuế VAT;Số lượng tối thiểu;Số ngày giao;Mặc định\nA001;12.500;8,5;2,5;3;Có";
+        const string csv = "Mã mặt hàng;Đơn giá;VAT (%);Số lượng tối thiểu;Số ngày giao;Mặc định\nA001;12.500;8,5;2,5;3;Có";
         var parser = new PriceListImportFileParser();
 
         var parsed = await parser.ParseAsync(
@@ -28,10 +28,8 @@ public sealed class PriceListImportServiceTests
         Assert.Equal("A001", row.ItemCode);
         Assert.Equal(12_500m, row.UnitPrice);
         Assert.Equal(8.5m, row.VatRate);
-        Assert.Equal(2.5m, row.MinimumOrderQuantity);
-        Assert.Equal(3, row.LeadTimeDays);
-        Assert.True(row.IsDefault);
         Assert.Empty(row.Issues);
+        Assert.Equal(3, parsed.GlobalIssues.Count(issue => issue.Code == "IGNORED_COLUMN"));
     }
 
     [Fact]
@@ -106,7 +104,7 @@ public sealed class PriceListImportServiceTests
     }
 
     [Fact]
-    public async Task Parser_ReportsInvalidPriceVatMoqAndLeadTimeBeforeConfirmation()
+    public async Task Parser_ReportsInvalidPriceVatAndIgnoresLegacyColumns()
     {
         const string csv = "ItemCode,UnitPrice,VatRate,MinimumOrderQuantity,LeadTimeDays\nA001,-1,101,-2,1.5";
         var parser = new PriceListImportFileParser();
@@ -118,8 +116,7 @@ public sealed class PriceListImportServiceTests
         var issues = Assert.Single(parsed.Rows).Issues;
         Assert.Contains(issues, issue => issue.Code == "UNIT_PRICE_NEGATIVE");
         Assert.Contains(issues, issue => issue.Code == "VATRATE_INVALID");
-        Assert.Contains(issues, issue => issue.Code == "MINIMUMORDERQUANTITY_INVALID");
-        Assert.Contains(issues, issue => issue.Code == "LEADTIMEDAYS_INVALID");
+        Assert.Equal(2, parsed.GlobalIssues.Count(issue => issue.Code == "IGNORED_COLUMN"));
     }
 
     [Fact]
@@ -170,7 +167,7 @@ public sealed class PriceListImportServiceTests
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var seed = await SeedAsync(context);
         var service = CreateService(context);
-        const string csv = "ItemCode,UnitPrice,VatRate,MinimumOrderQuantity,LeadTimeDays\nA001,100,8,,\nB001,250,10,2,4\nC001,300,8,3,5";
+        const string csv = "ItemCode,UnitPrice,VatRate,Note\nA001,100,8,\nB001,250,10,Điều chỉnh giá\nC001,300,8,Giá mới";
         var preview = await service.PreviewAsync(
             seed.PriceListId,
             "confirm.csv",
@@ -201,7 +198,7 @@ public sealed class PriceListImportServiceTests
         Assert.Equal(10m, updated.VatRate);
         var added = await context.Set<SupplierProductMapping>().SingleAsync(mapping => mapping.VppItemId == seed.ItemCId);
         Assert.Equal(300m, added.Price);
-        Assert.Equal(3m, added.MinimumOrderQuantity);
+        Assert.Equal(0m, added.MinimumOrderQuantity);
 
         var duplicatePreview = await service.PreviewAsync(
             seed.PriceListId,

@@ -6,9 +6,11 @@ public sealed record PeriodSchedule(
     DateTime StartAtLocal,
     DateTime SubmissionDeadlineLocal,
     DateTime SupplementApprovalDeadlineLocal,
+    DateTime PostCloseAdjustmentDeadlineLocal,
     DateTime StartAtUtc,
     DateTime SubmissionDeadlineUtc,
-    DateTime SupplementApprovalDeadlineUtc);
+    DateTime SupplementApprovalDeadlineUtc,
+    DateTime PostCloseAdjustmentDeadlineUtc);
 
 /// <summary>
 /// Bộ tính lịch thuần cho rolling horizon. Ngày 29–31 luôn clamp về cuối tháng,
@@ -44,10 +46,12 @@ public sealed class PeriodScheduleCalculator
         }
 
         var supplementLocal = deadlineLocal.AddDays(settings.SupplementApprovalGraceDays);
+        var adjustmentLocal = deadlineLocal.AddDays(settings.PostCloseAdjustmentDays);
         return BuildExact(
             startLocal,
             deadlineLocal,
             supplementLocal,
+            adjustmentLocal,
             settings.TimeZoneId);
     }
 
@@ -55,6 +59,7 @@ public sealed class PeriodScheduleCalculator
         DateTime startAtLocal,
         DateTime submissionDeadlineLocal,
         DateTime supplementApprovalDeadlineLocal,
+        DateTime postCloseAdjustmentDeadlineLocal,
         string timeZoneId)
     {
         if (submissionDeadlineLocal <= startAtLocal)
@@ -69,6 +74,12 @@ public sealed class PeriodScheduleCalculator
                 "Supplement approval deadline cannot be earlier than submission deadline.",
                 nameof(supplementApprovalDeadlineLocal));
         }
+        if (postCloseAdjustmentDeadlineLocal < supplementApprovalDeadlineLocal)
+        {
+            throw new ArgumentException(
+                "Post-close adjustment deadline cannot be earlier than supplement deadline.",
+                nameof(postCloseAdjustmentDeadlineLocal));
+        }
 
         _ = PeriodCalculator.ResolveTimeZone(timeZoneId);
         var start = DateTime.SpecifyKind(startAtLocal, DateTimeKind.Unspecified);
@@ -76,13 +87,18 @@ public sealed class PeriodScheduleCalculator
         var supplement = DateTime.SpecifyKind(
             supplementApprovalDeadlineLocal,
             DateTimeKind.Unspecified);
+        var adjustment = DateTime.SpecifyKind(
+            postCloseAdjustmentDeadlineLocal,
+            DateTimeKind.Unspecified);
         return new PeriodSchedule(
             start,
             close,
             supplement,
+            adjustment,
             PeriodCalculator.ToUtc(start, timeZoneId),
             PeriodCalculator.ToUtc(close, timeZoneId),
-            PeriodCalculator.ToUtc(supplement, timeZoneId));
+            PeriodCalculator.ToUtc(supplement, timeZoneId),
+            PeriodCalculator.ToUtc(adjustment, timeZoneId));
     }
 
     public DateTime BoundaryLocal(

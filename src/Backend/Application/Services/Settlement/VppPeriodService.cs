@@ -16,6 +16,7 @@ namespace gtas_vpp_be.Service.Services;
 public sealed class VppPeriodService : IVppPeriodService
 {
     private const string DefaultTimeZone = "Asia/Ho_Chi_Minh";
+    private const int AutomaticOpenPeriodCount = 1;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly PeriodScheduleCalculator _scheduleCalculator;
@@ -185,7 +186,8 @@ public sealed class VppPeriodService : IVppPeriodService
             Name = string.IsNullOrWhiteSpace(request.Name)
                 ? $"Rolling horizon {request.EffectiveFromMonth:D2}/{request.EffectiveFromYear:D4}"
                 : request.Name.Trim(),
-            DefaultOpenPeriodCount = request.DefaultOpenPeriodCount,
+            // Hệ thống chỉ tự duy trì một kỳ; các kỳ khác do quản lý chủ động thêm.
+            DefaultOpenPeriodCount = AutomaticOpenPeriodCount,
             DefaultNewPeriodOpenDay = request.DefaultNewPeriodOpenDay,
             DefaultPeriodCloseDay = request.DefaultPeriodCloseDay,
             LocalTimeOfDay = request.LocalTimeOfDay,
@@ -244,11 +246,6 @@ public sealed class VppPeriodService : IVppPeriodService
         await AdvanceDuePeriodsAsync(company, cancellationToken);
         var nowUtc = CurrentUtc();
         var settings = await ResolveSettingsAsync(company, nowUtc, cancellationToken);
-        if (settings.DefaultOpenPeriodCount == 0)
-        {
-            return [];
-        }
-
         var localNow = CurrentLocal(settings);
         var monthlyOpenBoundary = _scheduleCalculator.BoundaryLocal(
             localNow.Year,
@@ -312,10 +309,21 @@ public sealed class VppPeriodService : IVppPeriodService
                 $"Kỳ {period.Month:00}/{period.Year} đã tồn tại và không thể tạo trùng.");
         }
         var settings = await ResolveSettingsAsync(company, CurrentUtc(), cancellationToken);
+        var supplementDays = request.SupplementApprovalGraceDays;
+        var adjustmentDays = request.PostCloseAdjustmentDays ?? settings.PostCloseAdjustmentDays;
+        ValidateWindowDays(supplementDays, adjustmentDays);
+        var supplementLocal = supplementDays.HasValue
+            ? request.CloseAtLocal.AddDays(supplementDays.Value)
+            : request.SupplementApprovalDeadlineLocal;
+        ValidatePeriodWindows(
+            request.CloseAtLocal,
+            supplementLocal,
+            request.CloseAtLocal.AddDays(adjustmentDays));
         var schedule = _scheduleCalculator.BuildExact(
             request.OpenAtLocal,
             request.CloseAtLocal,
-            request.SupplementApprovalDeadlineLocal,
+            supplementLocal,
+            request.CloseAtLocal.AddDays(adjustmentDays),
             settings.TimeZoneId);
         if (schedule.SubmissionDeadlineUtc <= CurrentUtc())
         {
@@ -353,10 +361,20 @@ public sealed class VppPeriodService : IVppPeriodService
             throw new ConflictException("Kỳ hiện tại không cho phép sửa lịch trực tiếp.");
         }
 
+        var currentAdjustmentDays = ResolveWindowDays(
+            period.SubmissionDeadlineUtc,
+            period.PostCloseAdjustmentDeadlineUtc
+                ?? period.SubmissionDeadlineUtc.AddDays(10));
+        var supplementLocal = request.SupplementApprovalGraceDays.HasValue
+            ? request.CloseAtLocal.AddDays(request.SupplementApprovalGraceDays.Value)
+            : request.SupplementApprovalDeadlineLocal;
+        var adjustmentDays = request.PostCloseAdjustmentDays ?? currentAdjustmentDays;
+        ValidateWindowDays(request.SupplementApprovalGraceDays, adjustmentDays);
         var schedule = _scheduleCalculator.BuildExact(
             request.OpenAtLocal,
             request.CloseAtLocal,
-            request.SupplementApprovalDeadlineLocal,
+            supplementLocal,
+            request.CloseAtLocal.AddDays(adjustmentDays),
             period.TimeZoneId);
         if (period.State == VppPeriodState.Open
             && schedule.StartAtUtc != period.StartAtUtc)
@@ -373,6 +391,7 @@ public sealed class VppPeriodService : IVppPeriodService
         period.StartAtUtc = schedule.StartAtUtc;
         period.SubmissionDeadlineUtc = schedule.SubmissionDeadlineUtc;
         period.SupplementApprovalDeadlineUtc = schedule.SupplementApprovalDeadlineUtc;
+        period.PostCloseAdjustmentDeadlineUtc = schedule.PostCloseAdjustmentDeadlineUtc;
         if (period.State is VppPeriodState.Draft or VppPeriodState.Scheduled)
         {
             period.State = schedule.StartAtUtc <= CurrentUtc()
@@ -398,9 +417,10 @@ public sealed class VppPeriodService : IVppPeriodService
             throw new ConflictException("Chỉ kỳ đang nhận đơn mới được gia hạn.");
         }
         var closeUtc = PeriodCalculator.ToUtc(request.CloseAtLocal, period.TimeZoneId);
-        var supplementUtc = PeriodCalculator.ToUtc(
-            request.SupplementApprovalDeadlineLocal,
-            period.TimeZoneId);
+        var supplementLocal = request.SupplementApprovalGraceDays.HasValue
+            ? request.CloseAtLocal.AddDays(request.SupplementApprovalGraceDays.Value)
+            : request.SupplementApprovalDeadlineLocal;
+        var supplementUtc = PeriodCalculator.ToUtc(supplementLocal, period.TimeZoneId);
         if (closeUtc <= period.SubmissionDeadlineUtc)
         {
             throw new BusinessException("Deadline mới phải muộn hơn deadline hiện tại.");
@@ -409,6 +429,20 @@ public sealed class VppPeriodService : IVppPeriodService
         {
             throw new BusinessException("Hạn duyệt đơn bổ sung không được sớm hơn hạn nhận đơn.");
         }
+        var adjustmentDays = request.PostCloseAdjustmentDays
+            ?? ResolveWindowDays(
+                period.SubmissionDeadlineUtc,
+                period.PostCloseAdjustmentDeadlineUtc
+                    ?? period.SubmissionDeadlineUtc.AddDays(10));
+        ValidateWindowDays(request.SupplementApprovalGraceDays, adjustmentDays);
+        var adjustmentUtc = PeriodCalculator.ToUtc(
+            request.CloseAtLocal.AddDays(adjustmentDays),
+            period.TimeZoneId);
+        if (adjustmentUtc < supplementUtc)
+        {
+            throw new BusinessException(
+                "Thời hạn chỉnh đơn không được sớm hơn hạn nhận đơn bổ sung.");
+        }
         if (string.IsNullOrWhiteSpace(request.Reason))
         {
             throw new BusinessException("Gia hạn kỳ bắt buộc nhập lý do.");
@@ -416,6 +450,7 @@ public sealed class VppPeriodService : IVppPeriodService
 
         period.SubmissionDeadlineUtc = closeUtc;
         period.SupplementApprovalDeadlineUtc = supplementUtc;
+        period.PostCloseAdjustmentDeadlineUtc = adjustmentUtc;
         ApplyTransitionAudit(period, actorUserId, request.Reason);
         await SavePeriodAsync(period, cancellationToken);
         return (await MapPeriodsAsync([period], cancellationToken))[0];
@@ -440,11 +475,16 @@ public sealed class VppPeriodService : IVppPeriodService
             throw new BusinessException("Đóng nhận đơn sớm bắt buộc nhập lý do.");
         }
 
+        var supplementDays = ResolveWindowDays(
+            period.SubmissionDeadlineUtc,
+            period.SupplementApprovalDeadlineUtc);
+        var adjustmentDays = ResolveWindowDays(
+            period.SubmissionDeadlineUtc,
+            period.PostCloseAdjustmentDeadlineUtc
+                ?? period.SubmissionDeadlineUtc.AddDays(10));
         period.SubmissionDeadlineUtc = nowUtc;
-        if (period.SupplementApprovalDeadlineUtc < nowUtc)
-        {
-            period.SupplementApprovalDeadlineUtc = nowUtc;
-        }
+        period.SupplementApprovalDeadlineUtc = nowUtc.AddDays(supplementDays);
+        period.PostCloseAdjustmentDeadlineUtc = nowUtc.AddDays(adjustmentDays);
         period.State = VppPeriodState.SubmissionClosed;
         ApplyTransitionAudit(period, actorUserId, request.Reason ?? "submission-deadline-reached");
         await SavePeriodAsync(period, cancellationToken);
@@ -485,8 +525,19 @@ public sealed class VppPeriodService : IVppPeriodService
                 "Hạn duyệt đơn bổ sung không được sớm hơn ngày đóng mới.");
         }
 
+        var adjustmentDays = ResolveWindowDays(
+            period.SubmissionDeadlineUtc,
+            period.PostCloseAdjustmentDeadlineUtc
+                ?? period.SubmissionDeadlineUtc.AddDays(10));
+        var adjustmentUtc = closeUtc.AddDays(adjustmentDays);
+        if (adjustmentUtc < supplementUtc)
+        {
+            adjustmentUtc = supplementUtc;
+        }
+
         period.SubmissionDeadlineUtc = closeUtc;
         period.SupplementApprovalDeadlineUtc = supplementUtc;
+        period.PostCloseAdjustmentDeadlineUtc = adjustmentUtc;
         period.State = VppPeriodState.Open;
         ApplyTransitionAudit(period, actorUserId, request.Reason);
         await SavePeriodAsync(period, cancellationToken);
@@ -682,11 +733,7 @@ public sealed class VppPeriodService : IVppPeriodService
         IReadOnlyList<VppPeriod> open,
         DateTime nowUtc)
     {
-        var targetCount = settings.DefaultOpenPeriodCount;
-        if (targetCount == 0)
-        {
-            return [];
-        }
+        var targetCount = AutomaticOpenPeriodCount;
 
         var localNow = CurrentLocal(settings);
         var anchor = ResolveAnchor(settings, localNow);
@@ -756,6 +803,7 @@ public sealed class VppPeriodService : IVppPeriodService
             StartAtUtc = schedule.StartAtUtc,
             SubmissionDeadlineUtc = schedule.SubmissionDeadlineUtc,
             SupplementApprovalDeadlineUtc = schedule.SupplementApprovalDeadlineUtc,
+            PostCloseAdjustmentDeadlineUtc = schedule.PostCloseAdjustmentDeadlineUtc,
             State = state,
             LastTransitionUserId = actorUserId == 0 ? null : actorUserId,
             LastTransitionAtUtc = nowUtc,
@@ -811,8 +859,8 @@ public sealed class VppPeriodService : IVppPeriodService
             Id = Guid.Empty,
             MemberCompanyCode = company,
             VersionNumber = 0,
-            Name = "Mặc định 3 kỳ · ngày 05",
-            DefaultOpenPeriodCount = 3,
+            Name = "Mặc định 1 kỳ · ngày 05",
+            DefaultOpenPeriodCount = AutomaticOpenPeriodCount,
             DefaultNewPeriodOpenDay = 5,
             DefaultPeriodCloseDay = 5,
             LocalTimeOfDay = TimeSpan.Zero,
@@ -876,7 +924,8 @@ public sealed class VppPeriodService : IVppPeriodService
         int orderCount,
         int postCloseAdjustmentDays)
     {
-        var adjustmentDeadlineUtc = period.SubmissionDeadlineUtc.AddDays(postCloseAdjustmentDays);
+        var adjustmentDeadlineUtc = period.PostCloseAdjustmentDeadlineUtc
+            ?? period.SubmissionDeadlineUtc.AddDays(postCloseAdjustmentDays);
         return new()
         {
             Id = period.Id,
@@ -929,7 +978,7 @@ public sealed class VppPeriodService : IVppPeriodService
             OpenAtLocal = schedule.StartAtLocal,
             CloseAtLocal = schedule.SubmissionDeadlineLocal,
             SupplementApprovalDeadlineLocal = schedule.SupplementApprovalDeadlineLocal,
-            PostCloseAdjustmentDeadlineLocal = schedule.SubmissionDeadlineLocal.AddDays(10)
+            PostCloseAdjustmentDeadlineLocal = schedule.PostCloseAdjustmentDeadlineLocal
         };
 
     private static VppOrderPeriodSettingsResDTO MapSettings(
@@ -939,7 +988,7 @@ public sealed class VppPeriodService : IVppPeriodService
             Id = entity.Id == Guid.Empty ? null : entity.Id,
             VersionNumber = entity.VersionNumber,
             Name = entity.Name,
-            DefaultOpenPeriodCount = entity.DefaultOpenPeriodCount,
+            DefaultOpenPeriodCount = AutomaticOpenPeriodCount,
             DefaultNewPeriodOpenDay = entity.DefaultNewPeriodOpenDay,
             DefaultPeriodCloseDay = entity.DefaultPeriodCloseDay,
             LocalTimeOfDay = entity.LocalTimeOfDay,
@@ -1082,6 +1131,45 @@ public sealed class VppPeriodService : IVppPeriodService
         if (period.Year is < 1 or > 9999 || period.Month is < 1 or > 12)
         {
             throw new ArgumentOutOfRangeException(nameof(period));
+        }
+    }
+
+    private static int ResolveWindowDays(DateTime closeAtUtc, DateTime deadlineUtc)
+        => Math.Max(0, (int)Math.Round(
+            (deadlineUtc - closeAtUtc).TotalDays,
+            MidpointRounding.AwayFromZero));
+
+    private static void ValidateWindowDays(int? supplementDays, int adjustmentDays)
+    {
+        if (supplementDays is < 0 or > 31)
+        {
+            throw new BusinessException("Số ngày nhận đơn bổ sung phải từ 0 đến 31.");
+        }
+        if (adjustmentDays is < 0 or > 31)
+        {
+            throw new BusinessException("Số ngày chỉnh đơn phải từ 0 đến 31.");
+        }
+        if (supplementDays.HasValue && supplementDays.Value > adjustmentDays)
+        {
+            throw new BusinessException(
+                "Số ngày chỉnh đơn phải bằng hoặc dài hơn thời gian nhận đơn bổ sung.");
+        }
+    }
+
+    private static void ValidatePeriodWindows(
+        DateTime closeAtLocal,
+        DateTime supplementDeadlineLocal,
+        DateTime adjustmentDeadlineLocal)
+    {
+        if (supplementDeadlineLocal < closeAtLocal)
+        {
+            throw new BusinessException(
+                "Hạn nhận đơn bổ sung không được sớm hơn ngày đóng kỳ.");
+        }
+        if (adjustmentDeadlineLocal < supplementDeadlineLocal)
+        {
+            throw new BusinessException(
+                "Thời hạn chỉnh đơn không được sớm hơn hạn nhận đơn bổ sung.");
         }
     }
 }

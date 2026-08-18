@@ -1336,7 +1336,7 @@
   <data name="OrderPeriodSettingsScopeTitle" xml:space="preserve"><value>Chỉ áp dụng cho kỳ được tạo sau này</value></data>
   <data name="OrderPeriodSettingsScopeDescription" xml:space="preserve"><value>Mỗi lần lưu tạo một phiên bản mới. Hệ thống không sửa ngược ngày mở, ngày đóng hoặc trạng thái của kỳ đã tồn tại.</value></data>
   <data name="OrderPeriodDefaultsTitle" xml:space="preserve"><value>Mặc định tạo kỳ</value></data>
-  <data name="OrderPeriodDefaultsDescription" xml:space="preserve"><value>Mặc định mở trước 3 kỳ, đóng ngày 05, duyệt đơn bổ sung trong 5 ngày và cho chỉnh đơn trong 10 ngày kể từ ngày đóng.</value></data>
+  <data name="OrderPeriodDefaultsDescription" xml:space="preserve"><value>Hệ thống tự duy trì 1 kỳ. Mặc định đóng ngày 05, nhận đơn bổ sung 5 ngày và cho chỉnh đơn 10 ngày kể từ ngày đóng; quản lý có thể đổi riêng khi thêm kỳ.</value></data>
   <data name="OrderPeriodSettingsName" xml:space="preserve"><value>Tên cấu hình</value></data>
   <data name="OrderPeriodSettingsNameRequired" xml:space="preserve"><value>Nhập tên cấu hình.</value></data>
   <data name="OrderPeriodOpenCount" xml:space="preserve"><value>Số kỳ mở trước</value></data>

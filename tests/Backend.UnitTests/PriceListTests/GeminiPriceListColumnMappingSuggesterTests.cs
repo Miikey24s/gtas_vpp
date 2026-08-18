@@ -40,6 +40,9 @@ public sealed class GeminiPriceListColumnMappingSuggesterTests
             Assert.Contains("Ma noi bo", body, StringComparison.Ordinal);
             Assert.Contains("Gia ban", body, StringComparison.Ordinal);
             Assert.DoesNotContain("Ghi chu", body, StringComparison.Ordinal);
+            Assert.DoesNotContain("MinimumOrderQuantity", body, StringComparison.Ordinal);
+            Assert.DoesNotContain("LeadTimeDays", body, StringComparison.Ordinal);
+            Assert.DoesNotContain("IsDefault", body, StringComparison.Ordinal);
             return JsonResponse(new
             {
                 candidates = new[]

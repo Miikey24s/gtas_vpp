@@ -75,7 +75,7 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
         protected IReadOnlyList<VppDecisionOption<Guid?>> OpenPeriodOptions => PeriodInfo?.OpenPeriods
             .Select(option => new VppDecisionOption<Guid?>(
                 option.PeriodId,
-                DateFormatter.Format(new DateTime(option.Year, option.Month, 1), DateFormatter.MonthYear)))
+                FormatPeriodOption(option)))
             .ToArray() ?? [];
         public IReadOnlyList<VppRequestResDTO> CurrentPeriodAdditionalOrders => AdditionalOrders
             .Where(order => order.Year == CurrentOrderPeriodDate.Year && order.Month == CurrentOrderPeriodDate.Month)
@@ -166,13 +166,19 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
                     return Loc["SupplementAttemptLimitFull"].Value;
                 }
 
-                if (!PeriodInfo.IsSubmissionOpen || PeriodInfo.IsDeadlinePassed)
-                {
-                    return Loc["SupplementSubmissionClosed"].Value;
-                }
-
-                return Loc["SupplementUnavailable"].Value;
+                return PeriodInfo.CanCreateAdditionalReason
+                    ?? Loc["SupplementUnavailable"].Value;
             }
+        }
+
+        private static string FormatPeriodOption(VppOpenPeriodOptionResDTO option)
+        {
+            var period = DateFormatter.Format(
+                new DateTime(option.Year, option.Month, 1),
+                DateFormatter.MonthYear);
+            return option.State == "SubmissionClosed"
+                ? $"{period} · nhận bổ sung"
+                : period;
         }
         private string? CurrentEmptyActionText => CanCreateRegular
             ? Loc["CreateOrderThisCycle"].Value

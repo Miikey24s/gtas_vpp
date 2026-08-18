@@ -5,7 +5,7 @@ public sealed class VppOrderPeriodSettingsResDTO
     public Guid? Id { get; set; }
     public int VersionNumber { get; set; }
     public string Name { get; set; } = string.Empty;
-    public int DefaultOpenPeriodCount { get; set; } = 3;
+    public int DefaultOpenPeriodCount { get; set; } = 1;
     public int DefaultNewPeriodOpenDay { get; set; } = 5;
     public int DefaultPeriodCloseDay { get; set; } = 5;
     public TimeSpan LocalTimeOfDay { get; set; }

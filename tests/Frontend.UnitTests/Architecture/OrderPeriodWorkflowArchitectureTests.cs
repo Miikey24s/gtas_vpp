@@ -15,6 +15,7 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         var settings = ReadFrontend("Components/Pages/Permission/Tabs/Tab_OrderPeriodSettings.razor");
         var operations = ReadFrontend("Components/Pages/VPPRequest/Components/OrderPeriodManagementWorkspace.razor");
         var operationsCode = ReadFrontend("Components/Pages/VPPRequest/Components/OrderPeriodManagementWorkspace.razor.cs");
+        var createPeriodDialog = ReadFrontend("Components/Pages/VPPRequest/Components/Dialog_OrderPeriodCreate.razor");
 
         Assert.Equal("/permission?tab=3", route.Path);
         Assert.Contains(Permissions.PeriodSettingsManage, route.AnyOfPermissions);
@@ -30,7 +31,12 @@ public sealed class OrderPeriodWorkflowArchitectureTests
         Assert.DoesNotContain("Mở kỳ rời rạc", operations, StringComparison.Ordinal);
         Assert.DoesNotContain("manual-period-panel", operations, StringComparison.Ordinal);
         Assert.DoesNotContain("SaveSettingsAsync", operationsCode, StringComparison.Ordinal);
-        Assert.DoesNotContain("GetCurrentSettingsAsync", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("GetCurrentSettingsAsync", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("AddText=\"Thêm kỳ\"", operations, StringComparison.Ordinal);
+        Assert.Contains("CreateManualAsync", operationsCode, StringComparison.Ordinal);
+        Assert.Contains("Settings.SupplementApprovalGraceDays", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("Settings.PostCloseAdjustmentDays", createPeriodDialog, StringComparison.Ordinal);
+        Assert.Contains("Bạn có thể đổi riêng cho kỳ này", createPeriodDialog, StringComparison.Ordinal);
     }
 
     [Fact]

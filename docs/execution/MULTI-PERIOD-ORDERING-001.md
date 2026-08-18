@@ -8,7 +8,7 @@
 - Approval boundary: owner đã duyệt thực thi revision ngày 2026-08-10; source, database và route-real QA đã hoàn tất, đang chờ owner duyệt UI/nghiệp vụ
 - Supplier scope: DEFERRED — NCC, vận chuyển, bảng giá, optimizer và settlement award không thuộc plan này
 
-> Owner revision `2026-08-18`: rolling horizon 3 kỳ không còn là target sản phẩm. Target mới là hệ thống tự mở một kỳ; Quản lý dùng `Thêm kỳ` khi cần đặt trước. Chưa sửa code trong revision này. Xem [ORDERING-PRICING-REVISION-20260818](ORDERING-PRICING-REVISION-20260818.md#period-plan). Nội dung dưới đây được giữ làm implementation history và bằng chứng cho code hiện tại.
+> Owner revision `2026-08-18`: rolling horizon 3 kỳ không còn là target sản phẩm. Hệ thống hiện chỉ tự mở một kỳ; Quản lý dùng `Thêm kỳ` khi cần đặt trước. Mặc định 5 ngày duyệt bổ sung và 10 ngày chỉnh đơn được cấu hình toàn cục, đồng thời có thể ghi đè riêng khi thêm kỳ. Xem [ORDERING-PRICING-REVISION-20260818](ORDERING-PRICING-REVISION-20260818.md#period-plan). Nội dung dưới đây chỉ được giữ làm lịch sử thiết kế cũ, không còn là product authority.
 
 ## 0. Bản một ánh nhìn
 

@@ -15,15 +15,18 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IPriceListService _priceListService;
+    private readonly PricingFeaturePolicy _pricingPolicy;
 
     public PriceBookWorkflowService(
         IUnitOfWork unitOfWork,
         IDateTimeProvider dateTimeProvider,
-        IPriceListService priceListService)
+        IPriceListService priceListService,
+        PricingFeaturePolicy? pricingPolicy = null)
     {
         _unitOfWork = unitOfWork;
         _dateTimeProvider = dateTimeProvider;
         _priceListService = priceListService;
+        _pricingPolicy = pricingPolicy ?? PricingFeaturePolicy.Disabled;
     }
 
     public async Task<PriceListResDTO> PublishAsync(
@@ -172,6 +175,8 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         var quotes = new List<PriceBookQuoteResDTO>(books.Count);
         foreach (var book in books)
         {
+            var commercialTerms = _pricingPolicy.Resolve(
+                book.DiscountRate, book.RebateAmount, book.FeeAmount, book.ShippingAmount);
             var quote = new PriceBookQuoteResDTO
             {
                 PriceListId = book.Id,
@@ -183,9 +188,9 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
                 EffectiveFromUtc = book.EffectiveFromUtc,
                 EffectiveToUtc = book.EffectiveToUtc,
                 RequestedItemCount = items.Count,
-                RebateAmount = book.RebateAmount,
-                FeeAmount = book.FeeAmount,
-                ShippingAmount = book.ShippingAmount
+                RebateAmount = commercialTerms.RebateAmount,
+                FeeAmount = commercialTerms.FeeAmount,
+                ShippingAmount = commercialTerms.ShippingAmount
             };
 
             foreach (var requested in items)
@@ -233,10 +238,10 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
             var basket = PriceCalculationEngine.CalculateBasket(
                 quote.Subtotal,
                 quote.VatAmount,
-                book.DiscountRate,
-                book.RebateAmount,
-                book.FeeAmount,
-                book.ShippingAmount);
+                commercialTerms.DiscountRate,
+                commercialTerms.RebateAmount,
+                commercialTerms.FeeAmount,
+                commercialTerms.ShippingAmount);
             quote.DiscountAmount = basket.DiscountAmount;
             quote.GrandTotal = basket.GrandTotal;
             quote.CoveragePercent = items.Count == 0
@@ -299,7 +304,10 @@ public sealed class PriceBookWorkflowService : IPriceBookWorkflowService
         {
             throw new BusinessException("PRICE-002 currently supports VND price books only.");
         }
-        ValidateCommercialTerms(entity.DiscountRate, entity.RebateAmount, entity.FeeAmount, entity.ShippingAmount);
+        if (_pricingPolicy.CommercialTermsEnabled)
+        {
+            ValidateCommercialTerms(entity.DiscountRate, entity.RebateAmount, entity.FeeAmount, entity.ShippingAmount);
+        }
 
         var supplierActive = await _unitOfWork.VPPContext.Set<Supplier>()
             .AsNoTracking()

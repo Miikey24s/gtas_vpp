@@ -42,6 +42,12 @@ public class VppPeriod : BaseModel
     /// </summary>
     public DateTime SupplementApprovalDeadlineUtc { get; set; }
 
+    /// <summary>
+    /// Hạn cuối quản lý được sửa hoặc hủy đơn trước lần chốt đầu tiên. Cột nullable
+    /// giúp các kỳ cũ tiếp tục dùng số ngày từ cấu hình đã gắn khi nâng cấp dữ liệu.
+    /// </summary>
+    public DateTime? PostCloseAdjustmentDeadlineUtc { get; set; }
+
     public VppPeriodState State { get; set; } = VppPeriodState.Open;
 
     public int? LastTransitionUserId { get; set; }

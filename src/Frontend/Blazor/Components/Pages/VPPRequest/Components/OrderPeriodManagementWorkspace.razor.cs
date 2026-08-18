@@ -51,7 +51,7 @@ public partial class OrderPeriodManagementWorkspace
         new("SubmissionClosed", "Đã đóng"),
         new("Pricing", "Đang chốt"),
         new("Settled", "Đã chốt"),
-        new("Scheduled", "Sắp mở")
+        new("Scheduled", "Chưa mở")
     ];
 
     private IReadOnlyList<VppFilterOption<int?>> PeriodYearOptions =>
@@ -117,6 +117,50 @@ public partial class OrderPeriodManagementWorkspace
             await LoadDataAsync();
             Toast.Success("Đã gia hạn", $"Kỳ {PeriodLabel(period)} đã có ngày đóng mới.");
         });
+    }
+
+    private async Task OpenCreatePeriodAsync()
+    {
+        try
+        {
+            var settings = await PeriodsApi.GetCurrentSettingsAsync()
+                ?? new VppOrderPeriodSettingsResDTO();
+            var latest = Periods
+                .OrderByDescending(period => period.Year)
+                .ThenByDescending(period => period.Month)
+                .FirstOrDefault();
+            var target = latest is null
+                ? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1)
+                : new DateTime(latest.Year, latest.Month, 1).AddMonths(1);
+            var result = await DialogService.OpenAsync<Dialog_OrderPeriodCreate>(
+                "Thêm kỳ",
+                new Dictionary<string, object?>
+                {
+                    [nameof(Dialog_OrderPeriodCreate.Settings)] = settings,
+                    [nameof(Dialog_OrderPeriodCreate.SuggestedYear)] = target.Year,
+                    [nameof(Dialog_OrderPeriodCreate.SuggestedMonth)] = target.Month
+                },
+                VppAdminDialogProfiles.Create(
+                    VppAdminDialogSize.Standard,
+                    "Thêm kỳ",
+                    closeAriaLabel: "Đóng"));
+
+            if (result is not VppOrderPeriodManualCreateReqDTO request)
+            {
+                return;
+            }
+
+            await RunAsync(async () =>
+            {
+                _ = await PeriodsApi.CreateManualAsync(request);
+                await LoadDataAsync();
+                Toast.Success("Đã thêm kỳ", $"Kỳ {request.Month:00}/{request.Year} đã được tạo.");
+            });
+        }
+        catch (Exception ex)
+        {
+            Toast.Error("Thêm kỳ", UiErrorMapper.GetMessage(ex, Loc));
+        }
     }
 
     private Task<object?> OpenPeriodExtensionDialogAsync(VppManagedPeriodResDTO period) =>

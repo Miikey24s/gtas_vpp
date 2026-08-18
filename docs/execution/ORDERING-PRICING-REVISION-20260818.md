@@ -1,6 +1,6 @@
 # ORDERING-PRICING-REVISION-20260818 — Điều chỉnh luồng kỳ, đơn bổ sung và bảng giá
 
-- Status: **OWNER REVIEW — PLAN ONLY, NO BUSINESS CODE CHANGED**
+- Status: **IMPLEMENTED — VALIDATION IN PROGRESS**
 - Date: `2026-08-18`
 - Scope: kỳ đặt hàng, đơn bổ sung, điều chỉnh sau chốt, bảng giá Excel, điều khoản thương mại và lựa chọn nhà cung cấp
 - Replaces current product direction in: `MULTI-PERIOD-ORDERING-001`, `MULTI-SUPPLIER-SETTLEMENT-001` where this document says otherwise
@@ -10,23 +10,23 @@
 
 | Mục | Quyết định/khuyến nghị hiện tại | Chi tiết |
 |---|---|---|
-| Thời hạn chỉnh đơn 10 ngày | **Tạm hoãn**, chưa enforce thêm trong lượt này | [Phạm vi tạm hoãn](#deferred-scope) |
+| Thời hạn chỉnh đơn 10 ngày | Đã enforce theo từng kỳ; mặc định `10`, cấu hình tại Quản trị hệ thống và được ghi đè khi `Thêm kỳ` | [Plan kỳ](#period-plan) |
 | Đơn bổ sung | Chọn **phương án B**: chỉ tạo cho kỳ đã đóng, trong 5 ngày sau ngày đóng; chốt sớm thì dừng nhận bổ sung ngay | [Luồng đơn bổ sung](#supplement-flow) |
 | Một hay nhiều NCC | Chưa chốt. Khuyến nghị vận hành thật bằng **một NCC** trước; nhiều NCC chỉ nên là mô phỏng cho đến khi có dữ liệu tổng chi phí đáng tin cậy | [Phân tích NCC](#supplier-analysis) |
 | Điều khoản thương mại ẩn | Không comment-out code. Dùng policy/feature flag tắt tập trung, ép dữ liệu mới về `0` và không cho dữ liệu cũ âm thầm ảnh hưởng kết quả | [Tạm tắt an toàn](#commercial-terms) |
-| Excel bảng giá | Chỉ lập plan để duyệt: file mẫu dùng mã hệ thống, bỏ MOQ/ngày giao/mặc định và toàn bộ khoản thương mại ẩn | [Plan Excel](#excel-plan) |
+| Excel bảng giá | Đã tinh gọn file mẫu/parser/preview/apply còn 6 cột nghiệp vụ; cột thừa chỉ cảnh báo và bỏ qua | [Excel bảng giá](#excel-plan) |
 | Tự mở kỳ | Hệ thống chỉ tự tạo/mở **một kỳ theo lịch bình thường**; Quản lý dùng `Thêm kỳ` khi cần đặt trước | [Plan kỳ](#period-plan) |
 | Sau chốt | Quản lý tạo yêu cầu sửa/hủy đơn, quản lý khác duyệt, sau đó chốt lại để tạo `Bản chốt N+1`; không hard delete | [Điều chỉnh sau chốt](#post-settlement) |
 | Refactor service lớn | **Tạm hoãn**, không trộn vào thay đổi nghiệp vụ trên | [Phạm vi tạm hoãn](#deferred-scope) |
 
-### Trình tự nên làm sau khi owner duyệt
+### Trình tự triển khai đã thực hiện
 
 1. Sửa đúng luồng đơn bổ sung vì đây là sai lệch nghiệp vụ trực tiếp.
 2. Đổi scheduler sang tự mở một kỳ và thêm luồng `Thêm kỳ` thủ công.
 3. Tinh gọn contract/file Excel.
 4. Tạm tắt điều khoản thương mại bằng policy tập trung.
-5. Chỉ mở wave nhiều NCC sau khi owner chọn phương án.
-6. Enforce 10 ngày và refactor service ở kế hoạch riêng sau khi phần mới đã được kiểm tra thực tế.
+5. Enforce cửa sổ chỉnh đơn 10 ngày theo snapshot của từng kỳ.
+6. Giữ nhiều NCC và refactor service ở trạng thái hoãn để không trộn thêm thay đổi lớn.
 
 <a id="supplement-flow"></a>
 
@@ -104,7 +104,7 @@ Trang Quản trị hệ thống chỉ giữ các mặc định cần thiết:
 - ngày/giờ mở kỳ;
 - ngày/giờ đóng kỳ;
 - số ngày nhận và duyệt đơn bổ sung, mặc định `5`;
-- số ngày điều chỉnh sau đóng, hiện giữ `10` nhưng chưa enforce thêm theo quyết định tạm hoãn;
+- số ngày điều chỉnh sau đóng, mặc định `10` và được backend enforce theo snapshot của từng kỳ;
 - múi giờ và tháng bắt đầu áp dụng.
 
 Ẩn `Số kỳ mở trước` khỏi UI. Trong bước chuyển tiếp, database có thể giữ `DefaultOpenPeriodCount` và service ép giá trị hiệu lực về `1`; chỉ xóa schema ở migration cleanup riêng sau consumer audit.
@@ -116,14 +116,15 @@ Dialog dùng motif form/dialog hiện hành, gồm:
 1. `Kỳ đặt hàng`: tháng và năm.
 2. `Ngày mở`: điền từ cấu hình mặc định, cho sửa.
 3. `Ngày đóng`: điền từ cấu hình mặc định, cho sửa.
-4. `Hạn đơn bổ sung`: mặc định ngày đóng + 5 ngày, cho sửa trong giới hạn policy.
-5. `Lý do/Ghi chú`: bắt buộc khi lịch khác mặc định; bình thường có thể để trống.
-6. Footer: `Hủy` → `Thêm kỳ`.
+4. `Nhận đơn bổ sung (ngày)`: mặc định `5`, cho sửa từ `0–31`.
+5. `Chỉnh đơn sau đóng (ngày)`: mặc định `10`, cho sửa từ `0–31` và không được ngắn hơn cửa sổ bổ sung.
+6. `Lý do/Ghi chú`: lưu cùng kỳ để audit thao tác thêm thủ công.
+7. Footer: `Hủy` → `Thêm kỳ`.
 
 Validation:
 
 - không trùng công ty + tháng + năm;
-- ngày mở < ngày đóng < hạn bổ sung;
+- ngày mở < ngày đóng; hạn bổ sung và hạn chỉnh đơn được tính từ ngày đóng;
 - ngày 29–31 được quy đổi theo ngày cuối tháng thật, gồm năm nhuận;
 - không tạo kỳ đã nằm hoàn toàn trong quá khứ;
 - lưu bằng row version/idempotency để không tạo hai kỳ khi bấm lặp.
@@ -190,7 +191,7 @@ Comment tiếng Việt chỉ đặt tại policy boundary, ví dụ: `// Tạm k
 
 <a id="excel-plan"></a>
 
-## 5. Plan sửa file Excel bảng giá
+## 5. Excel bảng giá đã triển khai
 
 ### 5.1. File mẫu canonical
 
@@ -229,14 +230,12 @@ Bỏ hoàn toàn khỏi template, parser, preview và apply contract:
 - Thao tác thủ công vẫn là cách mặc định; cột `Cách nhập` chỉ dùng `Thủ công` hoặc `Excel`.
 - Empty/loading/error giữ nguyên frame toolbar-header-content-footer và căn giữa theo data-surface contract.
 
-### 5.4. Gate trước implementation
+### 5.4. Quyết định triển khai
 
-Owner duyệt bốn điểm:
-
-1. file có nhận cả `.csv` hay chỉ `.xlsx`;
-2. VAT trống dùng VAT hiện hành hay bắt buộc nhập;
-3. cột thừa chỉ cảnh báo và bỏ qua;
-4. có lưu chi tiết lịch sử từng lần nhập hay chỉ audit summary.
+1. Nhận `.xlsx` và `.csv`; file mẫu canonical tải xuống là `.xlsx`.
+2. VAT trống giữ VAT hiện hành; dòng mới chưa có VAT dùng `0`.
+3. Cột thừa chỉ cảnh báo và bỏ qua, không làm cả file thất bại.
+4. Giữ import session, preview và issue theo dòng để có thể kiểm tra lại lần nhập.
 
 <a id="post-settlement"></a>
 
@@ -253,7 +252,6 @@ Owner duyệt bốn điểm:
 
 ## 7. Phạm vi tạm hoãn
 
-- Chưa enforce deadline 10 ngày cho correction/chốt lại trong wave gần nhất.
 - Chưa tách `VPPRequestService` và `PeriodSettlementService`.
 - Chưa bật nhiều NCC trong vận hành thật.
 - Chưa làm PO, hợp đồng, tự tính vận chuyển hoặc AI đọc hợp đồng.
@@ -265,13 +263,13 @@ Quota probe ngày `2026-08-18` đã timeout sau hai lần thử giới hạn, n�
 
 | Wave | Nội dung | Model + effort khuyến nghị | Gate | Trạng thái |
 |---|---|---|---|---|
-| P0 | Ghi nhận quyết định, cập nhật authority/plan | `gpt-5.6-terra · high` | Tài liệu không mâu thuẫn; `git diff --check` | DONE — PLAN ONLY |
-| W1 | Policy đơn bổ sung phương án B + command/query/tests | `gpt-5.6-sol · high` | Boundary tests, race với chốt sớm, integration DB | WAITING OWNER APPROVAL |
-| W2 | Auto một kỳ + `Thêm kỳ` thủ công + settings/UI/tests | `gpt-5.6-sol · high` cho domain; `gpt-5.6-terra · high` cho UI | Scheduler/duplicate/timezone + 4 viewport route-real | WAITING OWNER APPROVAL |
-| W3 | Tinh gọn Excel template/parser/preview/apply | `gpt-5.6-sol · high` backend; `gpt-5.6-terra · high` UI | XLSX fixtures, atomic import, route-real dialog | WAITING OWNER APPROVAL |
-| W4 | Feature policy tắt commercial terms | `gpt-5.6-sol · high` | Audit dữ liệu cũ, calculation/export regression | WAITING OWNER APPROVAL |
+| P0 | Ghi nhận quyết định, cập nhật authority/plan | `gpt-5.6-terra · high` | Tài liệu không mâu thuẫn; `git diff --check` | COMPLETED |
+| W1 | Policy đơn bổ sung phương án B + command/query/tests | `gpt-5.6-sol · high` | Boundary tests, race với chốt sớm, integration DB | COMPLETED |
+| W2 | Auto một kỳ + `Thêm kỳ` thủ công + settings/UI/tests | `gpt-5.6-sol · high` cho domain; `gpt-5.6-terra · high` cho UI | Scheduler/duplicate/timezone + route-real | COMPLETED |
+| W3 | Tinh gọn Excel template/parser/preview/apply | `gpt-5.6-sol · high` backend; `gpt-5.6-terra · high` UI | XLSX fixtures, atomic import, route-real dialog | COMPLETED |
+| W4 | Feature policy tắt commercial terms + deadline 10 ngày | `gpt-5.6-sol · high` | Calculation/export/correction regression | COMPLETED |
 | W5 | Một/nhiều NCC | Chọn sau decision gate | Có dữ liệu tổng chi phí và owner chọn A/B/C | PAUSED |
-| W6 | Deadline 10 ngày + refactor service | `gpt-5.6-sol · xhigh` | Characterization trước refactor, full backend/FE QA | DEFERRED BY OWNER |
+| W6 | Refactor service lớn | `gpt-5.6-sol · xhigh` | Characterization trước refactor, full backend/FE QA | DEFERRED BY OWNER |
 
 Theo official OpenAI documentation hiện tại, `gpt-5.6-sol` phù hợp phần reasoning/coding phức tạp; `gpt-5.6-terra` cân bằng chất lượng và chi phí cho phần triển khai rõ, lặp lại. Đây là routing khuyến nghị, không phải xác nhận model đang active.
 
@@ -281,4 +279,4 @@ Theo official OpenAI documentation hiện tại, `gpt-5.6-sol` phù hợp phần
 - Backend là authority; UI disabled không thay cho permission/policy.
 - Chuỗi VI/EN, loading/empty/error/disabled/success và `CAPABILITY-SURFACE` đầy đủ.
 - Test hẹp trong vòng lặp; migration/DB check khi chạm schema; route thật tại `390×844`, `768×1024`, `1366×768`, `1920×1080` khi chạm UI.
-- Review toàn bộ diff, `git diff --check`, commit local đúng scope; không gộp W6 vào W1–W4.
+- Review toàn bộ diff, `git diff --check`, commit local đúng scope; không gộp refactor lớn vào W1–W4.

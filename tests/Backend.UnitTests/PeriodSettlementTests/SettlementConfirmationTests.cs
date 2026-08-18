@@ -48,7 +48,11 @@ public sealed class SettlementConfirmationTests
         Assert.Equal(VppPeriodState.Settled,
             (await context.Set<VppPeriod>().SingleAsync()).State);
         Assert.Single(await context.Set<Settlement>().ToListAsync());
-        Assert.Equal(5, await context.Set<SettlementCharge>().CountAsync());
+        Assert.Equal(1, await context.Set<SettlementCharge>().CountAsync());
+        Assert.Equal(0m, first.DiscountAmount);
+        Assert.Equal(0m, first.RebateAmount);
+        Assert.Equal(0m, first.FeeAmount);
+        Assert.Equal(0m, first.ShippingAmount);
     }
 
     [Fact]

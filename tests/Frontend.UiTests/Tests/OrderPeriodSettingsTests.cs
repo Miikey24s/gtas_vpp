@@ -28,6 +28,10 @@ public sealed class OrderPeriodSettingsTests : TestBase, IAuthenticatedUiTest
 
         (await workspace.Locator(".vpp-order-period-settings-form-grid").CountAsync()).Should().Be(1);
         (await workspace.Locator(".rz-numeric").CountAsync()).Should().BeGreaterThanOrEqualTo(7);
+        await Assertions.Expect(workspace.Locator("input[name='SupplementApprovalGraceDays']"))
+            .ToHaveValueAsync("5");
+        await Assertions.Expect(workspace.Locator("input[name='PostCloseAdjustmentDays']"))
+            .ToHaveValueAsync("10");
         (await workspace.GetByText("Chỉ áp dụng cho kỳ được tạo sau này", new() { Exact = true }).CountAsync())
             .Should().Be(1);
         (await workspace.GetByRole(AriaRole.Button, new() { Name = "Lưu cấu hình áp dụng", Exact = true }).CountAsync())

@@ -63,17 +63,6 @@ else
                             </div>
 
                             <div class="vpp-order-period-settings-field">
-                                <RadzenLabel Text="@Loc["OrderPeriodOpenCount"]" Component="OrderPeriodOpenCount" />
-                                <RadzenNumeric TValue="int" Name="OrderPeriodOpenCount"
-                                               @bind-Value="Settings.DefaultOpenPeriodCount"
-                                               Min="0" Max="12" ShowUpDown="false"
-                                               Disabled="@IsBusy"
-                                               class="vpp-order-period-settings-control" />
-                                <RadzenNumericRangeValidator Component="OrderPeriodOpenCount" Min="0" Max="12"
-                                                             Text="@Loc["OrderPeriodOpenCountRange"]" />
-                            </div>
-
-                            <div class="vpp-order-period-settings-field">
                                 <RadzenLabel Text="@Loc["OrderPeriodAutoOpenDay"]" Component="OrderPeriodAutoOpenDay" />
                                 <RadzenNumeric TValue="int" Name="OrderPeriodAutoOpenDay"
                                                @bind-Value="Settings.DefaultNewPeriodOpenDay"
@@ -216,8 +205,6 @@ else
                                                           Width="120px" TextAlign="TextAlign.Center">
                                         <Template Context="row">@($"{row.EffectiveFromMonth:00}/{row.EffectiveFromYear}")</Template>
                                     </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Property="DefaultOpenPeriodCount"
-                                                          Title="@Loc["OrderPeriodOpenCountShort"]" Width="100px" TextAlign="TextAlign.Center" />
                                     <RadzenDataGridColumn TItem="VppOrderPeriodSettingsResDTO" Title="@Loc["DefaultSchedule"]"
                                                           Width="155px" TextAlign="TextAlign.Center">
                                         <Template Context="row">@($"{row.DefaultNewPeriodOpenDay:00} → {row.DefaultPeriodCloseDay:00}")</Template>

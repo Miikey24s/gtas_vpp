@@ -1337,7 +1337,7 @@
   <data name="OrderPeriodSettingsScopeTitle" xml:space="preserve"><value>Applies only to periods created later</value></data>
   <data name="OrderPeriodSettingsScopeDescription" xml:space="preserve"><value>Each save creates a new version. Existing period dates and states are never rewritten.</value></data>
   <data name="OrderPeriodDefaultsTitle" xml:space="preserve"><value>Period creation defaults</value></data>
-  <data name="OrderPeriodDefaultsDescription" xml:space="preserve"><value>Defaults to three open periods, day 05 closing, five supplement approval days, and ten days to adjust orders after closing.</value></data>
+  <data name="OrderPeriodDefaultsDescription" xml:space="preserve"><value>The system keeps one period active. Defaults are day 05 closing, five supplement days, and ten adjustment days after closing; managers can override them when adding a period.</value></data>
   <data name="OrderPeriodSettingsName" xml:space="preserve"><value>Configuration name</value></data>
   <data name="OrderPeriodSettingsNameRequired" xml:space="preserve"><value>Enter a configuration name.</value></data>
   <data name="OrderPeriodOpenCount" xml:space="preserve"><value>Periods kept open</value></data>
