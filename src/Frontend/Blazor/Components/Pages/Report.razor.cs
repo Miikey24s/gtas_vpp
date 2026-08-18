@@ -54,7 +54,7 @@ public abstract class ReportBase : ComponentBase, IDisposable
         {
             var normalizedSearch = VppSearchText.Normalize(DepartmentSearchText);
             return Summary?.DepartmentBreakdown
-                .Where(item => VppSearchText.Contains(item.Code, normalizedSearch))
+                .Where(item => VppSearchText.MatchesAny(normalizedSearch, item.Code))
                 .ToList() ?? [];
         }
     }

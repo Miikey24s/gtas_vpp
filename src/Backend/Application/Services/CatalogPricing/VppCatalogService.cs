@@ -275,29 +275,31 @@ public sealed class VppCatalogService : IVppCatalogService
             baseQuery = baseQuery.Where(x => x.VppCategoryId == categoryId.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(search))
+        var searchTerms = VietnameseSearch.Tokenize(search);
+        if (searchTerms.Count > 0)
         {
             if (context.Database.IsSqlServer())
             {
-                var pattern = VietnameseSearch.BuildContainsPattern(search);
-                baseQuery = baseQuery.Where(x =>
-                    (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (x.VppCategory != null && x.VppCategory.VppCategoryCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (x.VppCategory != null && x.VppCategory.VppCategoryName != null && EF.Functions.Like(EF.Functions.Collate(x.VppCategory.VppCategoryName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (x.Uom != null && x.Uom.Code != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Code.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (x.Uom != null && x.Uom.Value != null && EF.Functions.Like(EF.Functions.Collate(x.Uom.Value.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                foreach (var term in searchTerms)
+                {
+                    var pattern = VietnameseSearch.BuildContainsPattern(term);
+                    baseQuery = baseQuery.Where(x =>
+                        (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                }
             }
             else
             {
-                var searchUpper = search.ToUpper();
-                baseQuery = baseQuery.Where(x =>
-                    (x.VppCode != null && x.VppCode.ToUpper().Contains(searchUpper))
-                    || (x.VppName != null && x.VppName.ToUpper().Contains(searchUpper))
-                    || (x.VppCategory != null && x.VppCategory.VppCategoryCode != null && x.VppCategory.VppCategoryCode.ToUpper().Contains(searchUpper))
-                    || (x.VppCategory != null && x.VppCategory.VppCategoryName != null && x.VppCategory.VppCategoryName.ToUpper().Contains(searchUpper))
-                    || (x.Uom != null && x.Uom.Code != null && x.Uom.Code.ToUpper().Contains(searchUpper))
-                    || (x.Uom != null && x.Uom.Value != null && x.Uom.Value.ToUpper().Contains(searchUpper)));
+                foreach (var term in searchTerms)
+                {
+                    baseQuery = baseQuery.Where(x =>
+                        VietnameseSearch.Normalize(x.VppCode).Contains(term)
+                        || VietnameseSearch.Compact(x.VppCode).Contains(term)
+                        || VietnameseSearch.Normalize(x.VppName).Contains(term)
+                        || VietnameseSearch.Compact(x.VppName).Contains(term));
+                }
             }
         }
 

@@ -766,7 +766,7 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("data-testid=\"@PrimaryActionTestId\"", orderPanel, StringComparison.Ordinal);
         Assert.Contains("EmptyActionDisabled=\"@PrimaryActionDisabled\"", orderPanel, StringComparison.Ordinal);
         Assert.Contains("Disabled=\"@EmptyActionDisabled\"", orderItemsSurface, StringComparison.Ordinal);
-        Assert.Contains("ShowSupplementAction => CanCreate && PeriodInfo is not null", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("ShowSupplementAction => CanCreate && SupplementPeriodInfo is not null", codeBehind, StringComparison.Ordinal);
         Assert.Contains("PrimaryActionTestId=\"create-supplement\"", source, StringComparison.Ordinal);
         Assert.DoesNotContain("export-pdf-coming-soon", source, StringComparison.Ordinal);
         Assert.DoesNotContain("export-excel-coming-soon", source, StringComparison.Ordinal);
@@ -781,7 +781,8 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("root.dataset.vppIndicatorMotion = 'off'", segmentedSelectorInteractions, StringComparison.Ordinal);
         Assert.Contains("delete root.dataset.vppIndicatorMotion", segmentedSelectorInteractions, StringComparison.Ordinal);
         Assert.Contains("orderView", codeBehind, StringComparison.Ordinal);
-        Assert.Contains("GetUriWithQueryParameter(\"orderView\"", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("BuildPeriodQueryUri", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("GetUriWithQueryParameters", codeBehind, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-deadline-track", source, StringComparison.Ordinal);
         Assert.DoesNotContain("vpp-orders-selection-summary", source, StringComparison.Ordinal);
         Assert.DoesNotContain("SelectedOrderViewSummary", codeBehind, StringComparison.Ordinal);

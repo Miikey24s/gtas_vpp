@@ -396,22 +396,31 @@ namespace gtas_vpp_be.Service.Services
                 query = query.Where(order => ((order.Year * 100) + order.Month) == exactPeriod.Value);
             }
 
-            var normalizedSearch = VietnameseSearch.PrepareTerm(search);
-            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            var searchTerms = VietnameseSearch.Tokenize(search);
+            if (searchTerms.Count > 0)
             {
                 if (_scopedUow.VPPContext.Database.IsSqlServer())
                 {
-                    var pattern = VietnameseSearch.BuildContainsPattern(normalizedSearch);
-                    query = query.Where(order =>
-                        (order.VppCode != null && EF.Functions.Like(EF.Functions.Collate(order.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                        || (order.Description != null && EF.Functions.Like(EF.Functions.Collate(order.Description.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                    foreach (var term in searchTerms)
+                    {
+                        var pattern = VietnameseSearch.BuildContainsPattern(term);
+                        query = query.Where(order =>
+                            (order.VppCode != null && EF.Functions.Like(EF.Functions.Collate(order.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (order.VppCode != null && EF.Functions.Like(EF.Functions.Collate(order.VppCode.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (order.Description != null && EF.Functions.Like(EF.Functions.Collate(order.Description.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (order.Description != null && EF.Functions.Like(EF.Functions.Collate(order.Description.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                    }
                 }
                 else
                 {
-                    var searchUpper = normalizedSearch.ToUpperInvariant();
-                    query = query.Where(order =>
-                        (order.VppCode != null && order.VppCode.ToUpper().Contains(searchUpper))
-                        || (order.Description != null && order.Description.ToUpper().Contains(searchUpper)));
+                    foreach (var term in searchTerms)
+                    {
+                        query = query.Where(order =>
+                            VietnameseSearch.Normalize(order.VppCode).Contains(term)
+                            || VietnameseSearch.Compact(order.VppCode).Contains(term)
+                            || VietnameseSearch.Normalize(order.Description).Contains(term)
+                            || VietnameseSearch.Compact(order.Description).Contains(term));
+                    }
                 }
             }
 
@@ -1682,33 +1691,18 @@ namespace gtas_vpp_be.Service.Services
             bool canViewAllDepartments = false,
             string? search = null)
         {
-            var result = await _scopedUow.VPPContext.Set<VppRequest>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted && x.IsCurrentRevision
-                     && x.IsAdditionalOrder
-                    && x.Status == (int)VPPStatus.Pending
-                    && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode)
-                    && (canViewAllDepartments
-                        || (!string.IsNullOrEmpty(departmentCode)
-                            && x.DepartmentCode == departmentCode)))
+            var result = await BuildPendingAdditionalOrdersQuery(
+                    memberCompanyCode,
+                    departmentCode,
+                    canViewAllDepartments,
+                    search)
                 .ProjectToType<VppRequestResDTO>()
                 .AsSplitQuery()
                 .ToListAsync();
 
             await ApplyRequesterNamesAsync(result);
             await ApplyPeriodFlagsAsync(result);
-            if (string.IsNullOrWhiteSpace(search))
-            {
-                return result;
-            }
-
-            var normalizedSearch = VietnameseSearch.Normalize(search);
-            return result.Where(order =>
-                    VietnameseSearch.Contains(order.VppCode, normalizedSearch)
-                    || VietnameseSearch.Contains(order.RequesterName, normalizedSearch)
-                    || VietnameseSearch.Contains(order.DepartmentCode, normalizedSearch)
-                    || VietnameseSearch.Contains(order.Description, normalizedSearch))
-                .ToList();
+            return result;
         }
 
         public async Task<(List<VppRequestResDTO> Data, int TotalCount, int TotalLines, int TotalQty)> GetPendingAdditionalOrdersPagedAsync(
@@ -1719,34 +1713,11 @@ namespace gtas_vpp_be.Service.Services
             bool canViewAllDepartments = false,
             string? search = null)
         {
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var filtered = await GetPendingAdditionalOrdersAsync(
-                    memberCompanyCode,
-                    departmentCode,
-                    canViewAllDepartments,
-                    search);
-                var page = filtered
-                    .OrderByDescending(order => order.UpdatedAtUtc)
-                    .Skip(Math.Max(0, skip ?? 0))
-                    .Take(Math.Max(1, top ?? filtered.Count))
-                    .ToList();
-                return (
-                    page,
-                    filtered.Count,
-                    filtered.Sum(order => order.TotalLines),
-                    filtered.Sum(order => order.TotalQty));
-            }
-
-            var query = _scopedUow.VPPContext.Set<VppRequest>()
-                .AsNoTracking()
-                .Where(x => !x.IsDeleted && x.IsCurrentRevision
-                    && x.IsAdditionalOrder
-                    && x.Status == (int)VPPStatus.Pending
-                    && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode)
-                    && (canViewAllDepartments
-                        || (!string.IsNullOrEmpty(departmentCode)
-                            && x.DepartmentCode == departmentCode)));
+            var query = BuildPendingAdditionalOrdersQuery(
+                memberCompanyCode,
+                departmentCode,
+                canViewAllDepartments,
+                search);
 
             var stats = await query.Select(x => new
             {
@@ -1773,6 +1744,46 @@ namespace gtas_vpp_be.Service.Services
             await ApplyRequesterNamesAsync(result);
             await ApplyPeriodFlagsAsync(result);
             return (result, stats?.TotalCount ?? 0, stats?.TotalLines ?? 0, stats?.TotalQty ?? 0);
+        }
+
+        private IQueryable<VppRequest> BuildPendingAdditionalOrdersQuery(
+            string? memberCompanyCode,
+            string? departmentCode,
+            bool canViewAllDepartments,
+            string? search)
+        {
+            var query = _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted && x.IsCurrentRevision
+                    && x.IsAdditionalOrder
+                    && x.Status == (int)VPPStatus.Pending
+                    && (string.IsNullOrEmpty(memberCompanyCode) || x.MemberCompanyCode == memberCompanyCode)
+                    && (canViewAllDepartments
+                        || (!string.IsNullOrEmpty(departmentCode)
+                            && x.DepartmentCode == departmentCode)));
+
+            foreach (var term in VietnameseSearch.Tokenize(search))
+            {
+                if (_scopedUow.VPPContext.Database.IsSqlServer())
+                {
+                    var pattern = VietnameseSearch.BuildContainsPattern(term);
+                    query = query.Where(order =>
+                        (order.VppCode != null && EF.Functions.Like(EF.Functions.Collate(order.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (order.VppCode != null && EF.Functions.Like(EF.Functions.Collate(order.VppCode.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (order.Description != null && EF.Functions.Like(EF.Functions.Collate(order.Description.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (order.Description != null && EF.Functions.Like(EF.Functions.Collate(order.Description.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                }
+                else
+                {
+                    query = query.Where(order =>
+                        VietnameseSearch.Normalize(order.VppCode).Contains(term)
+                        || VietnameseSearch.Compact(order.VppCode).Contains(term)
+                        || VietnameseSearch.Normalize(order.Description).Contains(term)
+                        || VietnameseSearch.Compact(order.Description).Contains(term));
+                }
+            }
+
+            return query;
         }
 
         // Gom nhu cầu kỳ (bước 2 luồng vận hành kỳ, §3.3.3.4): tổng hợp theo mặt hàng từ

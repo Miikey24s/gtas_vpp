@@ -55,26 +55,31 @@ namespace gtas_vpp_be.Service.Services
         {
             IQueryable<PriceListResDTO> query = PriceListDtoQuery(showDeleted);
 
-            var normalizedSearch = VietnameseSearch.PrepareTerm(search);
-            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            var searchTerms = VietnameseSearch.Tokenize(search);
+            if (searchTerms.Count > 0)
             {
                 if (_scopedUow.VPPContext.Database.IsSqlServer())
                 {
-                    var pattern = VietnameseSearch.BuildContainsPattern(normalizedSearch);
-                    query = query.Where(x =>
-                        (x.PriceListCode != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                        || (x.PriceListName != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                        || (x.SupplierName != null && EF.Functions.Like(EF.Functions.Collate(x.SupplierName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                        || (x.ContractCode != null && EF.Functions.Like(EF.Functions.Collate(x.ContractCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                    foreach (var term in searchTerms)
+                    {
+                        var pattern = VietnameseSearch.BuildContainsPattern(term);
+                        query = query.Where(x =>
+                            (x.PriceListCode != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (x.PriceListCode != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListCode.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (x.PriceListName != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (x.PriceListName != null && EF.Functions.Like(EF.Functions.Collate(x.PriceListName.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                    }
                 }
                 else
                 {
-                    var searchUpper = normalizedSearch.ToUpperInvariant();
-                    query = query.Where(x =>
-                        (x.PriceListCode != null && x.PriceListCode.ToUpper().Contains(searchUpper))
-                        || (x.PriceListName != null && x.PriceListName.ToUpper().Contains(searchUpper))
-                        || (x.SupplierName != null && x.SupplierName.ToUpper().Contains(searchUpper))
-                        || (x.ContractCode != null && x.ContractCode.ToUpper().Contains(searchUpper)));
+                    foreach (var term in searchTerms)
+                    {
+                        query = query.Where(x =>
+                            VietnameseSearch.Normalize(x.PriceListCode).Contains(term)
+                            || VietnameseSearch.Compact(x.PriceListCode).Contains(term)
+                            || VietnameseSearch.Normalize(x.PriceListName).Contains(term)
+                            || VietnameseSearch.Compact(x.PriceListName).Contains(term));
+                    }
                 }
             }
 

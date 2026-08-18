@@ -67,6 +67,22 @@ public class LibraryControllerTests
         var okResult = Assert.IsType<OkObjectResult>(result);
         var list = Assert.IsType<List<SupplierResDTO>>(okResult.Value);
         Assert.Equal("Nhà cung cấp văn phòng", Assert.Single(list).SupplierName);
+
+        var compactResult = await controller.GenericGet(
+            tableCode: "suppliers",
+            id: null,
+            searchText: "nhacungcapvanphong",
+            lookupCategoryId: null,
+            filter: null,
+            skip: 0,
+            top: 20,
+            orderby: null,
+            distinct: null,
+            distinctFilter: null);
+
+        var compactOkResult = Assert.IsType<OkObjectResult>(compactResult);
+        var compactList = Assert.IsType<List<SupplierResDTO>>(compactOkResult.Value);
+        Assert.Equal("Nhà cung cấp văn phòng", Assert.Single(compactList).SupplierName);
     }
 
     [Fact]

@@ -170,7 +170,7 @@
         var pickableColumns = GetPickableColumns();
         var normalizedSearch = VppSearchText.Normalize(searchText);
         var filteredColumns = pickableColumns
-            .Where(column => VppSearchText.Contains(GetColumnTitle(column), normalizedSearch))
+            .Where(column => VppSearchText.MatchesAny(normalizedSearch, GetColumnTitle(column)))
             .ToArray();
         var visibleCount = pickableColumns.Count(column => column.GetVisible());
         var canReset = pickableColumns.Any(column =>

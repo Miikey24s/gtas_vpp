@@ -73,26 +73,33 @@ public sealed class UserAdministrationQueryService(
             usersQuery = usersQuery.Where(user => user.AccountStatus == parsedStatus);
         }
 
-        var search = VietnameseSearch.PrepareTerm(request.Search);
-        if (!string.IsNullOrWhiteSpace(search))
+        var searchTerms = VietnameseSearch.Tokenize(request.Search);
+        if (searchTerms.Count > 0)
         {
             if (_context.Database.IsSqlServer())
             {
-                var pattern = VietnameseSearch.BuildContainsPattern(search);
-                usersQuery = usersQuery.Where(user =>
-                    (user.UserName != null && EF.Functions.Like(EF.Functions.Collate(user.UserName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (user.Email != null && EF.Functions.Like(EF.Functions.Collate(user.Email.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (user.EmployeeCode != null && EF.Functions.Like(EF.Functions.Collate(user.EmployeeCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                    || (user.FullName != null && EF.Functions.Like(EF.Functions.Collate(user.FullName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                foreach (var term in searchTerms)
+                {
+                    var pattern = VietnameseSearch.BuildContainsPattern(term);
+                    usersQuery = usersQuery.Where(user =>
+                        (user.UserName != null && EF.Functions.Like(EF.Functions.Collate(user.UserName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (user.UserName != null && EF.Functions.Like(EF.Functions.Collate(user.UserName.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (user.Email != null && EF.Functions.Like(EF.Functions.Collate(user.Email.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (user.FullName != null && EF.Functions.Like(EF.Functions.Collate(user.FullName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                        || (user.FullName != null && EF.Functions.Like(EF.Functions.Collate(user.FullName.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                }
             }
             else
             {
-                var searchUpper = search.ToUpperInvariant();
-                usersQuery = usersQuery.Where(user =>
-                    (user.UserName != null && user.UserName.ToUpper().Contains(searchUpper))
-                    || (user.Email != null && user.Email.ToUpper().Contains(searchUpper))
-                    || (user.EmployeeCode != null && user.EmployeeCode.ToUpper().Contains(searchUpper))
-                    || (user.FullName != null && user.FullName.ToUpper().Contains(searchUpper)));
+                foreach (var term in searchTerms)
+                {
+                    usersQuery = usersQuery.Where(user =>
+                        VietnameseSearch.Normalize(user.UserName).Contains(term)
+                        || VietnameseSearch.Compact(user.UserName).Contains(term)
+                        || VietnameseSearch.Normalize(user.Email).Contains(term)
+                        || VietnameseSearch.Normalize(user.FullName).Contains(term)
+                        || VietnameseSearch.Compact(user.FullName).Contains(term));
+                }
             }
         }
 

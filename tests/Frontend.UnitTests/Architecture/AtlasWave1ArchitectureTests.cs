@@ -269,13 +269,15 @@ public sealed class AtlasWave1ArchitectureTests
         Assert.DoesNotContain("_decisionIdempotencyKeys", hostCode, StringComparison.Ordinal);
         Assert.DoesNotContain("VppCode.ToLower().Contains", hostCode, StringComparison.Ordinal);
         Assert.DoesNotContain("DepartmentCode.ToLower() ==", hostCode, StringComparison.Ordinal);
+        Assert.Contains("PendingSearchText", hostCode, StringComparison.Ordinal);
+        Assert.Contains("new PendingAdditionalOrdersQuery", hostCode, StringComparison.Ordinal);
         Assert.DoesNotContain("Guid.NewGuid().ToString(\"N\")", hostCode, StringComparison.Ordinal);
         Assert.DoesNotContain("IAPIServices", hostCode, StringComparison.Ordinal);
         Assert.DoesNotContain("PostFromApi", hostCode, StringComparison.Ordinal);
         Assert.Contains("FillAvailableSpace=\"true\"", approvals, StringComparison.Ordinal);
         Assert.DoesNotContain("RadzenDataGrid", host, StringComparison.Ordinal);
         Assert.True(host.Split('\n').Length < 100);
-        Assert.Contains("VppCode.ToLower().Contains", filterBuilder, StringComparison.Ordinal);
+        Assert.DoesNotContain("VppCode.ToLower().Contains", filterBuilder, StringComparison.Ordinal);
         Assert.Contains("DepartmentCode.ToLower() ==", filterBuilder, StringComparison.Ordinal);
         Assert.Contains("ApproveOrderReqDTO", decisionFactory, StringComparison.Ordinal);
         Assert.Contains("RejectOrderReqDTO", decisionFactory, StringComparison.Ordinal);

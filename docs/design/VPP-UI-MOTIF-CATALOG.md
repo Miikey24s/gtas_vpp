@@ -67,6 +67,8 @@ Quy tắc vị trí lọc trong data grid:
 
 - `FILTER-TOOLBAR` là lớp lọc hiển thị chính và phải nằm trước vùng dữ liệu.
 - Search trên tập dữ liệu lớn chạy ở server với collation tiếng Việt không phân biệt dấu và chuẩn hóa riêng `Đ/đ`; danh sách cục bộ đã tải dùng `VppSearchText`. Từ khóa chỉ chuẩn hóa một lần mỗi lượt lọc, debounce 250–350ms, không bỏ paging/authorization để lọc lại toàn bộ ở browser.
+- Search tách tối đa 10 từ khóa: mỗi từ phải xuất hiện trong ít nhất một trường được nêu ở placeholder (`AND` giữa các từ, `OR` giữa các trường). So sánh thêm bản bỏ khoảng trắng để `butlong` khớp `Bút lông`; không tự suy diễn danh mục/đơn vị, không fuzzy typo và không âm thầm mở rộng sang cột có filter riêng.
+- Placeholder là hợp đồng hành vi: `Tìm mã hoặc tên mặt hàng` chỉ tìm mã/tên mặt hàng; danh mục, đơn vị, trạng thái và nhà cung cấp phải đi qua filter tương ứng. Search/filter luôn áp trước `CountAsync` và `Skip/Take`.
 - Thứ tự canonical là `Tìm kiếm → filter theo thứ tự cột từ trái sang phải → Áp dụng (nếu route cần submit) → Xóa bộ lọc → Cột`. Search là truy vấn toàn dòng nên luôn đứng đầu; selector phạm vi/decision như kỳ, tab hoặc mode nằm ở context riêng và không chen vào thứ tự filter dữ liệu.
 - Filter chỉ map tới cột nào thì phải đứng cùng thứ tự tương đối với cột đó. Nếu filter áp cho dữ liệu không có cột riêng, đặt sau các filter đã map cột nhưng trước `Xóa bộ lọc`; ghi ngoại lệ trong consumer ledger.
 - Header cột mặc định chỉ sở hữu sort; admin grid không bật Radzen `FilterMode.CheckBoxList` theo mặc định.

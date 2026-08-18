@@ -978,7 +978,7 @@
   <data name="LibrarySearchItems" xml:space="preserve"><value>Search item code or name</value></data>
   <data name="LibrarySearchDepartments" xml:space="preserve"><value>Search department code or name</value></data>
   <data name="LibrarySearchSuppliers" xml:space="preserve"><value>Search short name or supplier</value></data>
-  <data name="LibrarySearchPriceLists" xml:space="preserve"><value>Search price list code</value></data>
+  <data name="LibrarySearchPriceLists" xml:space="preserve"><value>Search price list code or name</value></data>
   <data name="LibrarySearchPrices" xml:space="preserve"><value>Search items in the price list</value></data>
   <data name="AddClass" xml:space="preserve"><value>Add catalog type</value></data>
   <data name="AddCategory" xml:space="preserve"><value>Add category</value></data>

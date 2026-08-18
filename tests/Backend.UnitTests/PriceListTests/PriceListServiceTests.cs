@@ -13,7 +13,7 @@ namespace gtas_vpp_be.Tests.PriceListTests;
 public class PriceListServiceTests
 {
     [Fact]
-    public async Task Query_Search_MatchesCodeNameSupplierAndContract()
+    public async Task Query_Search_MatchesCodeAndName_WithoutExpandingToHiddenFields()
     {
         using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
         var now = new DateTime(2026, 7, 20, 9, 0, 0);
@@ -51,12 +51,16 @@ public class PriceListServiceTests
         var service = CreateService(context, now);
 
         var byCode = await service.QueryAsync(search: "PPJ");
+        var byName = await service.QueryAsync(search: "Office supplies");
+        var byCompactName = await service.QueryAsync(search: "officesupplies");
         var bySupplier = await service.QueryAsync(search: "Supplier");
         var byContract = await service.QueryAsync(search: "ALPHA");
 
         Assert.Single(byCode.Data);
-        Assert.Single(bySupplier.Data);
-        Assert.Single(byContract.Data);
+        Assert.Single(byName.Data);
+        Assert.Single(byCompactName.Data);
+        Assert.Empty(bySupplier.Data);
+        Assert.Empty(byContract.Data);
         Assert.Equal("PPJ-2026", byCode.Data[0].PriceListCode);
     }
 

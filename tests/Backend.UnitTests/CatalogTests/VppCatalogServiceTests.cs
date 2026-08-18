@@ -33,6 +33,35 @@ public sealed class VppCatalogServiceTests
     }
 
     [Fact]
+    public async Task QueryItems_SearchesOnlyItemCodeAndName_WithAllTermsAndCompactInput()
+    {
+        await using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());
+        var (uomId, categoryId) = await SeedReferencesAsync(context);
+        var category = await context.Set<VppCategory>().SingleAsync(row => row.Id == categoryId);
+        category.VppCategoryName = "But viet";
+        context.Set<VppItem>().AddRange(
+            CreateItem("VPP-BOARD", "Bang 0,8m x 1,2m", uomId, categoryId),
+            CreateItem("VPP-PM04", "But long dau PM04", uomId, categoryId),
+            CreateItem("VPP-PEN", "But bi", uomId, categoryId));
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        var oneTerm = await service.QueryItemsAsync(
+            null, "but", null, 0, 20, null, null, null, false);
+        Assert.Equal(2, oneTerm.TotalCount);
+        Assert.DoesNotContain(oneTerm.Items, item => item.VppCode == "VPP-BOARD");
+
+        var allTerms = await service.QueryItemsAsync(
+            null, "but long", null, 0, 20, null, null, null, false);
+        Assert.Equal("VPP-PM04", Assert.Single(allTerms.Items).VppCode);
+
+        var compact = await service.QueryItemsAsync(
+            null, "butlong", null, 0, 20, null, null, null, false);
+        Assert.Equal("VPP-PM04", Assert.Single(compact.Items).VppCode);
+    }
+
+    [Fact]
     public async Task QueryItems_RejectsUnsupportedFilterAndSortMembers()
     {
         await using var context = ServiceTestHelpers.CreateInMemoryContext(Guid.NewGuid().ToString());

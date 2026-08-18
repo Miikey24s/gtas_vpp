@@ -978,7 +978,7 @@
   <data name="LibrarySearchItems" xml:space="preserve"><value>Tìm mã hoặc tên mặt hàng</value></data>
   <data name="LibrarySearchDepartments" xml:space="preserve"><value>Tìm mã hoặc tên phòng ban</value></data>
   <data name="LibrarySearchSuppliers" xml:space="preserve"><value>Tìm tên viết tắt hoặc nhà cung cấp</value></data>
-  <data name="LibrarySearchPriceLists" xml:space="preserve"><value>Tìm mã bảng giá</value></data>
+  <data name="LibrarySearchPriceLists" xml:space="preserve"><value>Tìm mã hoặc tên bảng giá</value></data>
   <data name="LibrarySearchPrices" xml:space="preserve"><value>Tìm mặt hàng trong bảng giá</value></data>
   <data name="AddClass" xml:space="preserve"><value>Thêm loại danh mục</value></data>
   <data name="AddCategory" xml:space="preserve"><value>Thêm danh mục</value></data>

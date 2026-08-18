@@ -9,6 +9,38 @@ namespace gtas_vpp_fe.UITests.Tests.Order;
 public sealed class ProductCatalogTests : TestBase, IAuthenticatedUiTest
 {
     [Fact]
+    public async Task Employee_SearchesCatalogByAllItemNameTerms_WithOrWithoutVietnameseSpacing()
+    {
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsAsync(TestAccounts.Employee);
+        await Page.GotoAsync($"{BaseUrl}dashboard?tab=2", new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
+
+        var grid = Page.Locator(".vpp-catalog-grid:visible").Last;
+        await grid.WaitForAsync(new LocatorWaitForOptions
+        {
+            State = WaitForSelectorState.Visible,
+            Timeout = 60_000
+        });
+
+        var searchInput = Page.Locator(".vpp-catalog-filter-group .vpp-filter-search input");
+        foreach (var keyword in new[] { "but long", "butlong", "bút-lông" })
+        {
+            await searchInput.FillAsync(keyword);
+            await Assertions.Expect(grid.Locator("tbody"))
+                .ToContainTextAsync("Bút Lông", new() { Timeout = 15_000 });
+        }
+
+        await searchInput.FillAsync("but");
+        await Assertions.Expect(grid.Locator("tbody"))
+            .ToContainTextAsync("Bút", new() { Timeout = 15_000 });
+        await Assertions.Expect(grid.Locator("tbody"))
+            .Not.ToContainTextAsync("Bảng 0,8m x 1,2m", new() { Timeout = 15_000 });
+    }
+
+    [Fact]
     public async Task Employee_CanBrowseRequestProductCatalog()
     {
         await Page.SetViewportSizeAsync(1366, 768);

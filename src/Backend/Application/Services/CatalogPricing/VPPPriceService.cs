@@ -113,26 +113,31 @@ namespace gtas_vpp_be.Service.Services
                     UpdatedAtUtc = mapping == null ? null : mapping.UpdatedAtUtc
                 };
 
-            var searchText = VietnameseSearch.PrepareTerm(search);
-            if (!string.IsNullOrWhiteSpace(searchText))
+            var searchTerms = VietnameseSearch.Tokenize(search);
+            if (searchTerms.Count > 0)
             {
                 if (_scopedUow.VPPContext.Database.IsSqlServer())
                 {
-                    var pattern = VietnameseSearch.BuildContainsPattern(searchText);
-                    query = query.Where(x =>
-                        (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                        || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                        || (x.CategoryName != null && EF.Functions.Like(EF.Functions.Collate(x.CategoryName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
-                        || (x.UomName != null && EF.Functions.Like(EF.Functions.Collate(x.UomName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                    foreach (var term in searchTerms)
+                    {
+                        var pattern = VietnameseSearch.BuildContainsPattern(term);
+                        query = query.Where(x =>
+                            (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (x.VppCode != null && EF.Functions.Like(EF.Functions.Collate(x.VppCode.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\"))
+                            || (x.VppName != null && EF.Functions.Like(EF.Functions.Collate(x.VppName.Replace(" ", "").Replace("đ", "d").Replace("Đ", "D"), VietnameseSearch.SqlServerCollation), pattern, "\\")));
+                    }
                 }
                 else
                 {
-                    var searchUpper = searchText.ToUpperInvariant();
-                    query = query.Where(x =>
-                        (x.VppCode != null && x.VppCode.ToUpper().Contains(searchUpper))
-                        || (x.VppName != null && x.VppName.ToUpper().Contains(searchUpper))
-                        || (x.CategoryName != null && x.CategoryName.ToUpper().Contains(searchUpper))
-                        || (x.UomName != null && x.UomName.ToUpper().Contains(searchUpper)));
+                    foreach (var term in searchTerms)
+                    {
+                        query = query.Where(x =>
+                            VietnameseSearch.Normalize(x.VppCode).Contains(term)
+                            || VietnameseSearch.Compact(x.VppCode).Contains(term)
+                            || VietnameseSearch.Normalize(x.VppName).Contains(term)
+                            || VietnameseSearch.Compact(x.VppName).Contains(term));
+                    }
                 }
             }
 
