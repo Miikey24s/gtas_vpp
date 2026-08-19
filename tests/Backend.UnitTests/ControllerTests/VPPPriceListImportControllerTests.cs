@@ -96,23 +96,58 @@ public sealed class VPPPriceListImportControllerTests
     }
 
     [Fact]
-    public async Task DownloadGenericTemplate_ReturnsWorkbookWithoutSelectingPriceList()
+    public async Task DownloadGenericTemplate_ReturnsDefaultPriceListWorkbook()
     {
-        var expected = new PriceListImportTemplateResult(
+        var priceListId = Guid.NewGuid();
+        var expected = new PriceListExportResult(
             [0x50, 0x4B, 0x03, 0x04],
-            "GTAS-VPP-Mau-nhap-bang-gia-bang-gia.xlsx",
+            "GTAS-VPP-Bang-gia-DEFAULT.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        var imports = new Mock<IPriceListImportService>();
-        imports.Setup(service => service.BuildTemplateAsync(null, It.IsAny<CancellationToken>()))
+        var priceLists = new Mock<IPriceListService>();
+        priceLists.Setup(service => service.ListAsync(false))
+            .ReturnsAsync([
+                new PriceListResDTO
+                {
+                    Id = priceListId,
+                    PriceListCode = "DEFAULT",
+                    PriceListName = "Mặc định",
+                    IsDefault = true,
+                    Status = "Published"
+                }
+            ]);
+        var exports = new Mock<IPriceListExportService>();
+        exports.Setup(service => service.ExportExcelAsync(priceListId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
-        var controller = Controller(imports.Object);
+        var controller = Controller(Mock.Of<IPriceListImportService>(), exports.Object, priceLists.Object);
 
         var result = await controller.DownloadGenericImportTemplate(TestContext.Current.CancellationToken);
 
         var file = Assert.IsType<FileContentResult>(result);
         Assert.Equal(expected.Content, file.FileContents);
         Assert.Equal(expected.FileName, file.FileDownloadName);
-        imports.VerifyAll();
+        priceLists.VerifyAll();
+        exports.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DownloadSelectedTemplate_ReturnsExactSelectedPriceListWorkbook()
+    {
+        var priceListId = Guid.NewGuid();
+        var expected = new PriceListExportResult(
+            [0x50, 0x4B, 0x03, 0x04],
+            "GTAS-VPP-Bang-gia-BG-01.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        var exports = new Mock<IPriceListExportService>();
+        exports.Setup(service => service.ExportExcelAsync(priceListId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+        var controller = Controller(Mock.Of<IPriceListImportService>(), exports.Object);
+
+        var result = await controller.DownloadImportTemplate(priceListId, TestContext.Current.CancellationToken);
+
+        var file = Assert.IsType<FileContentResult>(result);
+        Assert.Equal(expected.Content, file.FileContents);
+        Assert.Equal(expected.FileName, file.FileDownloadName);
+        exports.VerifyAll();
     }
 
     [Fact]
@@ -138,10 +173,11 @@ public sealed class VPPPriceListImportControllerTests
 
     private static VPPPriceListController Controller(
         IPriceListImportService importService,
-        IPriceListExportService? exportService = null)
+        IPriceListExportService? exportService = null,
+        IPriceListService? priceListService = null)
     {
         var controller = new VPPPriceListController(
-            Mock.Of<IPriceListService>(),
+            priceListService ?? Mock.Of<IPriceListService>(),
             Mock.Of<IPriceBookWorkflowService>(),
             importService,
             exportService);

@@ -129,7 +129,7 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
         await dialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
 
         var templateDownload = await Page.RunAndWaitForDownloadAsync(() => templateButton.ClickAsync());
-        await AssertXlsxDownloadAsync(templateDownload, "GTAS-VPP-Mau-nhap-bang-gia-");
+        await AssertXlsxDownloadAsync(templateDownload, "GTAS-VPP-Bang-gia-");
 
         var menuButton = surface.GetByTestId("price-list-lifecycle-menu").First;
         await menuButton.ClickAsync();
@@ -405,6 +405,19 @@ public sealed class PricingAndReportMotifTests : TestBase, IAuthenticatedUiTest
         using var archive = ZipFile.OpenRead(path!);
         archive.GetEntry("xl/workbook.xml").Should().NotBeNull();
         archive.GetEntry("xl/styles.xml").Should().NotBeNull();
+
+        var worksheetText = string.Join(
+            "\n",
+            archive.Entries
+                .Where(entry => entry.FullName.StartsWith("xl/worksheets/", StringComparison.Ordinal))
+                .Select(entry =>
+                {
+                    using var reader = new StreamReader(entry.Open());
+                    return reader.ReadToEnd();
+                }));
+        worksheetText.Should().Contain("Mã mặt hàng");
+        worksheetText.Should().Contain("Đơn giá");
+        worksheetText.Should().Contain("VAT (%)");
     }
 
     private async Task AssertReportContractsAsync(int viewportWidth, int viewportHeight)

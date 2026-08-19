@@ -1,4 +1,5 @@
 using System.Text.Json;
+using gtas_vpp_be.Model.Auth;
 using gtas_vpp_be.Model.Library;
 using gtas_vpp_be.Model.View;
 using gtas_vpp_be.Model.VPP;
@@ -318,7 +319,10 @@ namespace gtas_vpp_be.Service.Services
             return settlement is null
                 ? null
                 : new SettlementExportResult(
-                    SettlementPdfBuilder.Build(settlement, lookups!.SupplierNames),
+                    SettlementPdfBuilder.Build(
+                        settlement,
+                        lookups!.SupplierNames,
+                        lookups.UnitNames),
                     ExportFileContract.Settlement(
                         settlement.Year, settlement.Month, settlement.RevisionNumber, "pdf"),
                     ExportFileContract.PdfContentType);
@@ -338,7 +342,10 @@ namespace gtas_vpp_be.Service.Services
                     SettlementWorkbookBuilder.Build(
                         settlement,
                         lookups!.SupplierNames,
-                        lookups.PriceListNames),
+                        lookups.PriceListNames,
+                        lookups.UnitNames,
+                        lookups.Requests,
+                        lookups.ConfirmedByName),
                     ExportFileContract.Settlement(
                         settlement.Year, settlement.Month, settlement.RevisionNumber, "xlsx"),
                     ExportFileContract.ExcelContentType);
@@ -551,6 +558,7 @@ namespace gtas_vpp_be.Service.Services
 
                 var products = await _scopedUow.VPPContext.Set<VppItem>()
                     .AsNoTracking()
+                    .Include(x => x.Uom)
                     .Where(x => vppIds.Contains(x.Id) && !x.IsDeleted)
                     .ToDictionaryAsync(x => x.Id, cancellationToken);
                 if (products.Count != vppIds.Length)
@@ -1031,7 +1039,9 @@ namespace gtas_vpp_be.Service.Services
                 .Include(x => x.Items)
                 .Include(x => x.Allocations)
                     .ThenInclude(x => x.SettlementItem)
-                .AsNoTracking()
+                // Hai collection lớn phải tách query để tránh nhân chéo Items x Allocations.
+                .AsSplitQuery()
+                .AsNoTrackingWithIdentityResolution()
                 .FirstOrDefaultAsync(x => x.Id == settlementId
                     && !x.IsDeleted
                     && x.MemberCompanyCode == company,
@@ -1044,6 +1054,8 @@ namespace gtas_vpp_be.Service.Services
         {
             var supplierIds = settlement.Items.Select(item => item.SupplierId).Distinct().ToArray();
             var priceListIds = settlement.Items.Select(item => item.PriceListId).Distinct().ToArray();
+            var unitIds = settlement.Items.Select(item => item.UomId).Distinct().ToArray();
+            var requestIds = settlement.Allocations.Select(item => item.RequestHeaderId).Distinct().ToArray();
             var suppliers = await _scopedUow.VPPContext.Set<Supplier>()
                 .AsNoTracking()
                 .Where(supplier => supplierIds.Contains(supplier.Id))
@@ -1058,7 +1070,60 @@ namespace gtas_vpp_be.Service.Services
                     priceList => priceList.Id,
                     priceList => priceList.PriceListName ?? priceList.PriceListCode ?? priceList.Id.ToString(),
                     cancellationToken);
-            return new SettlementExportLookups(suppliers, priceLists);
+            var unitNames = await _scopedUow.VPPContext.Set<LookupValue>()
+                .AsNoTracking()
+                .Where(unit => unitIds.Contains(unit.Id))
+                .ToDictionaryAsync(
+                    unit => unit.Id,
+                    unit => unit.Value ?? unit.Code ?? unit.Id.ToString(),
+                    cancellationToken);
+            var requests = await _scopedUow.VPPContext.Set<VppRequest>()
+                .AsNoTracking()
+                .Where(request => requestIds.Contains(request.Id))
+                .Select(request => new
+                {
+                    request.Id,
+                    request.VppCode,
+                    request.IsAdditionalOrder,
+                    request.Status,
+                    request.CreatedByUserId
+                })
+                .ToListAsync(cancellationToken);
+            var userIds = requests
+                .Select(request => request.CreatedByUserId)
+                .Append(settlement.ConfirmedByUserId)
+                .Where(userId => userId > 0)
+                .Distinct()
+                .ToArray();
+            var users = await _scopedUow.VPPContext.Set<AppUser>()
+                .AsNoTracking()
+                .Where(user => userIds.Contains(user.Id))
+                .ToDictionaryAsync(
+                    user => user.Id,
+                    user => string.IsNullOrWhiteSpace(user.FullName)
+                        ? user.UserName ?? user.Id.ToString()
+                        : user.FullName,
+                    cancellationToken);
+            var culture = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+            var requestLookups = requests.ToDictionary(
+                request => request.Id,
+                request => new SettlementRequestExportInfo(
+                    request.VppCode ?? request.Id.ToString(),
+                    request.IsAdditionalOrder ? "Đơn bổ sung" : "Đơn thường",
+                    users.GetValueOrDefault(request.CreatedByUserId, request.CreatedByUserId.ToString()),
+                    VppStatusContract.GetText(
+                        request.Status,
+                        isAdditionalOrder: request.IsAdditionalOrder,
+                        culture: culture)));
+            var confirmedByName = users.GetValueOrDefault(
+                settlement.ConfirmedByUserId,
+                settlement.ConfirmedByUserId.ToString());
+            return new SettlementExportLookups(
+                suppliers,
+                priceLists,
+                unitNames,
+                requestLookups,
+                confirmedByName);
         }
 
         private async Task<Settlement?> FindIdempotentAsync(
@@ -1544,7 +1609,10 @@ namespace gtas_vpp_be.Service.Services
 
         private sealed record SettlementExportLookups(
             IReadOnlyDictionary<Guid, string> SupplierNames,
-            IReadOnlyDictionary<Guid, string> PriceListNames);
+            IReadOnlyDictionary<Guid, string> PriceListNames,
+            IReadOnlyDictionary<Guid, string> UnitNames,
+            IReadOnlyDictionary<Guid, SettlementRequestExportInfo> Requests,
+            string ConfirmedByName);
 
         private async Task<PriceList?> ResolvePriceListAsync(Guid? priceListId)
         {

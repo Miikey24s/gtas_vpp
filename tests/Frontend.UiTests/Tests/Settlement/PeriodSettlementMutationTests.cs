@@ -1,5 +1,8 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Diagnostics;
+using System.IO.Compression;
+using System.Text;
 using FluentAssertions;
 using gtas_vpp_fe.UITests.Core;
 using gtas_vpp_shared.DTOs.Req;
@@ -15,6 +18,53 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
 {
     private const string ScreenshotDirectoryEnvironmentVariable = "GTAS_SETTLEMENT_MUTATION_SCREENSHOT_DIR";
     private const string AdjustmentReason = "Chọn nhầm bảng giá và cần lưu lại kết quả đúng";
+
+    [Fact]
+    public async Task Settlement_ExportsCompletePdfAndWorkbookAfterConfirmation()
+    {
+        BackendBaseUrl.Should().NotBeNullOrWhiteSpace();
+        using var procurementApi = await CreateAuthorizedApiClientAsync(TestAccounts.Procurement);
+        var period = await procurementApi.GetFromJsonAsync<VppPeriodInfoResDTO>(
+            "/api/VPPRequest/period-info",
+            TestContext.Current.CancellationToken);
+        period.Should().NotBeNull();
+
+        var targetYear = period!.PreviousPeriodYear;
+        var targetMonth = period.PreviousPeriodMonth;
+        await Page.SetViewportSizeAsync(1366, 768);
+        await LoginAsAsync(TestAccounts.Procurement);
+        await OpenSettlementAsync(targetYear, targetMonth);
+
+        var settleButton = await WaitForEnabledActionAsync("Chốt kỳ");
+        await settleButton.ClickAsync();
+        var previewDialog = Page.GetByTestId("settlement-preview-dialog");
+        await previewDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await previewDialog.GetByRole(AriaRole.Button, new() { Name = "Chốt kỳ", Exact = true }).ClickAsync();
+        _ = await WaitForRevisionCountAsync(procurementApi, targetYear, targetMonth, 1);
+        await Page.GetByText("Đã chốt kỳ", new() { Exact = true }).WaitForAsync();
+
+        var pdf = await DownloadSettlementAsync("PDF", ".pdf");
+        var workbook = await DownloadSettlementAsync("Excel", ".xlsx");
+
+        using var archive = ZipFile.OpenRead(workbook.Path);
+        var workbookXml = ReadArchiveEntry(archive, "xl/workbook.xml");
+        workbookXml.Should().Contain("Tổng quan");
+        workbookXml.Should().Contain("Mặt hàng");
+        workbookXml.Should().Contain("Phân bổ");
+
+        var worksheetText = string.Join(
+            "\n",
+            archive.Entries
+                .Where(entry => entry.FullName.StartsWith("xl/worksheets/", StringComparison.Ordinal))
+                .Select(entry => ReadArchiveEntry(archive, entry.FullName)));
+        worksheetText.Should().Contain("Thành tiền trước VAT");
+        worksheetText.Should().Contain("Tổng cộng");
+        worksheetText.Should().Contain("Mã đơn");
+        worksheetText.Should().Contain("Người đặt");
+
+        pdf.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(15));
+        workbook.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(15));
+    }
 
     [Fact]
     public async Task Settlement_AdjustmentFromUi_KeepsTheOldVersionAndCreatesVersionTwo()
@@ -293,6 +343,46 @@ public sealed class PeriodSettlementMutationTests : TestBase, IMutatingUiTest
             client.Dispose();
             throw;
         }
+    }
+
+    private async Task<(string Path, TimeSpan Elapsed)> DownloadSettlementAsync(
+        string buttonName,
+        string expectedExtension)
+    {
+        var button = Page.GetByRole(AriaRole.Button, new() { Name = buttonName, Exact = true });
+        await button.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 60_000 });
+        await Assertions.Expect(button).ToBeEnabledAsync(new() { Timeout = 60_000 });
+
+        var stopwatch = Stopwatch.StartNew();
+        var download = await Page.RunAndWaitForDownloadAsync(() => button.ClickAsync());
+        stopwatch.Stop();
+
+        download.SuggestedFilename.Should().StartWith("GTAS-VPP-Chot-ky-");
+        download.SuggestedFilename.Should().EndWith(expectedExtension);
+        (await download.FailureAsync()).Should().BeNull();
+
+        var path = await download.PathAsync();
+        path.Should().NotBeNullOrWhiteSpace();
+        var bytes = await File.ReadAllBytesAsync(path!, TestContext.Current.CancellationToken);
+        bytes.Length.Should().BeGreaterThan(32);
+        if (expectedExtension == ".pdf")
+        {
+            Encoding.ASCII.GetString(bytes, 0, 4).Should().Be("%PDF");
+        }
+        else
+        {
+            bytes.Take(2).Should().Equal((byte)'P', (byte)'K');
+        }
+
+        return (path!, stopwatch.Elapsed);
+    }
+
+    private static string ReadArchiveEntry(ZipArchive archive, string path)
+    {
+        var entry = archive.GetEntry(path);
+        entry.Should().NotBeNull();
+        using var reader = new StreamReader(entry!.Open(), Encoding.UTF8);
+        return reader.ReadToEnd();
     }
 
     private async Task CaptureAsync(string fileName)

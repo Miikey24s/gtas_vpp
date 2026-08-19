@@ -210,10 +210,11 @@ namespace gtas_vpp_be.Controllers
         public async Task<IActionResult> DownloadImportTemplate(Guid id, CancellationToken cancellationToken)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
-            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            if (_exportService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
 
-            var template = await _importService.BuildTemplateAsync(id, cancellationToken);
-            return File(template.Content, template.ContentType, template.FileName);
+            // File đang dùng chính là mẫu nhập lại, tránh duy trì hai định dạng Excel khác nhau.
+            var export = await _exportService.ExportExcelAsync(id, cancellationToken);
+            return File(export.Content, export.ContentType, export.FileName);
         }
 
         [HttpGet("imports/template.xlsx")]
@@ -222,10 +223,22 @@ namespace gtas_vpp_be.Controllers
         public async Task<IActionResult> DownloadGenericImportTemplate(CancellationToken cancellationToken)
         {
             if (CurrentUserId is null) return Unauthorized(new { Message = "Invalid UserID claim." });
-            if (_importService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            if (_exportService is null) return StatusCode(StatusCodes.Status503ServiceUnavailable);
 
-            var template = await _importService.BuildTemplateAsync(null, cancellationToken);
-            return File(template.Content, template.ContentType, template.FileName);
+            var priceLists = await _priceListService.ListAsync(showDeleted: false);
+            var selected = priceLists
+                .Where(item => !item.IsDeleted && string.Equals(item.Status, "Published", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(item => item.IsDefault)
+                .ThenBy(item => item.PriceListName)
+                .ThenBy(item => item.PriceListCode)
+                .FirstOrDefault();
+            if (selected is null)
+            {
+                return NotFound(new { Message = "Không có bảng giá đang hoạt động để tải." });
+            }
+
+            var export = await _exportService.ExportExcelAsync(selected.Id, cancellationToken);
+            return File(export.Content, export.ContentType, export.FileName);
         }
 
         [HttpGet("{id:guid}/export.xlsx")]

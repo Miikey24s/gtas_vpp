@@ -1,6 +1,6 @@
 # PRICING-IMPORT-VERSIONING-001 — Import bảng giá và tinh gọn khái niệm phiên bản
 
-- Status: **CORE IMPLEMENTED — TEMPLATE/CONTRACT REVISION WAITING OWNER APPROVAL**
+- Status: **CORE IMPLEMENTED — CURRENT PRICE WORKBOOK IS THE IMPORT TEMPLATE**
 - Priority: P2
 - A+ cutline class: deferred
 - Path: STANDARD
@@ -10,7 +10,7 @@
 - Implementation approval: Owner mở triển khai ngày 2026-08-11; thực hiện trong worktree riêng để không xung đột task PPTX
 - Related scope: Catalog and pricing, settlement history, request history, order-period settings
 - Related plans: `VPP-PULSE-BLAZOR-UI-RENOVATION-PLAN.md`, `MULTI-PERIOD-ORDERING-001.md`
-- Current revision plan: `ORDERING-PRICING-REVISION-20260818.md#excel-plan` — bỏ MOQ/ngày giao/mặc định và điều khoản thương mại ẩn khỏi toàn bộ template/parser/preview/apply contract; chưa sửa code trong lượt ghi nhận này
+- Current revision: `ORDERING-PRICING-REVISION-20260818.md#excel-plan` đã được triển khai; file Excel xuất từ bảng giá đang chọn hoặc bảng giá mặc định đang hoạt động cũng chính là file mẫu để chỉnh sửa và nhập lại.
 - Quota snapshot: 2026-08-11 01:49, weekly-only, 867% Plus-equivalent còn lại; five-hour coverage chưa đầy đủ
 - Forecast khi thực thi: 13–33% Plus-equivalent, confidence thấp do chưa có measurement cùng loại; buffer 50% → 20–50%, decision `ENOUGH`
 

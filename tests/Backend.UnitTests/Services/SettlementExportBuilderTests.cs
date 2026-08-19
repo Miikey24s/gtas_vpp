@@ -14,8 +14,23 @@ public sealed class SettlementExportBuilderTests
         var settlement = SampleSettlement();
         var supplierNames = settlement.Items.ToDictionary(item => item.SupplierId, _ => "VPP Gia Định");
         var priceListNames = settlement.Items.ToDictionary(item => item.PriceListId, _ => "Bảng giá miền Nam");
+        var unitName = "Cây";
+        var unitNames = settlement.Items.ToDictionary(item => item.UomId, _ => unitName);
+        var allocation = Assert.Single(settlement.Allocations);
+        var requests = new Dictionary<Guid, SettlementRequestExportInfo>
+        {
+            [allocation.RequestHeaderId] = new("VPP-202607-001", "Đơn thường", "Nguyễn An Nam", "Đã gửi")
+        };
+        settlement.Items.Single().UomCode = settlement.Items.Single().UomId.ToString();
+        settlement.Items.Single().UomName = settlement.Items.Single().UomId.ToString();
 
-        var bytes = SettlementWorkbookBuilder.Build(settlement, supplierNames, priceListNames);
+        var bytes = SettlementWorkbookBuilder.Build(
+            settlement,
+            supplierNames,
+            priceListNames,
+            unitNames,
+            requests,
+            "Quản lý Nguyễn");
 
         using var archive = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
         Assert.Equal(3, archive.Entries.Count(entry =>
@@ -25,9 +40,14 @@ public sealed class SettlementExportBuilderTests
         Assert.Contains("Bút bi Thiên Long TL-027", itemSheet);
         Assert.Contains("VPP Gia Định", itemSheet);
         Assert.Contains("Bảng giá miền Nam", itemSheet);
-        Assert.Contains("IT", ReadEntry(archive, "xl/worksheets/sheet3.xml"));
+        Assert.Contains(unitName, itemSheet);
+        Assert.DoesNotContain(settlement.Items.Single().UomId.ToString(), itemSheet);
+        var allocationSheet = ReadEntry(archive, "xl/worksheets/sheet3.xml");
+        Assert.Contains("IT", allocationSheet);
+        Assert.Contains("VPP-202607-001", allocationSheet);
+        Assert.Contains("Nguyễn An Nam", allocationSheet);
         Assert.Contains("state=\"frozen\"", ReadEntry(archive, "xl/worksheets/sheet2.xml"));
-        Assert.Contains("autoFilter", ReadEntry(archive, "xl/worksheets/sheet3.xml"));
+        Assert.Contains("autoFilter", allocationSheet);
     }
 
     [Fact]
@@ -35,7 +55,10 @@ public sealed class SettlementExportBuilderTests
     {
         var settlement = SampleSettlement();
         var supplierNames = settlement.Items.ToDictionary(item => item.SupplierId, _ => "VPP Gia Định");
-        var bytes = SettlementPdfBuilder.Build(settlement, supplierNames);
+        var unitNames = settlement.Items.ToDictionary(item => item.UomId, _ => "Cây");
+        settlement.Items.Single().UomCode = settlement.Items.Single().UomId.ToString();
+        settlement.Items.Single().UomName = settlement.Items.Single().UomId.ToString();
+        var bytes = SettlementPdfBuilder.Build(settlement, supplierNames, unitNames);
 
         Assert.True(bytes.Length > 1000);
         Assert.Equal("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));

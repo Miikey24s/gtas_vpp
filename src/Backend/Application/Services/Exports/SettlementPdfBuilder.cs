@@ -10,7 +10,8 @@ public static class SettlementPdfBuilder
 {
     public static byte[] Build(
         Settlement settlement,
-        IReadOnlyDictionary<Guid, string>? supplierNames = null)
+        IReadOnlyDictionary<Guid, string>? supplierNames = null,
+        IReadOnlyDictionary<Guid, string>? unitNames = null)
     {
         ArgumentNullException.ThrowIfNull(settlement);
         supplierNames ??= new Dictionary<Guid, string>();
@@ -109,7 +110,8 @@ public static class SettlementPdfBuilder
                                 cell.Item().Text(supplierNames.GetValueOrDefault(item.SupplierId, "–"))
                                     .FontSize(6.5f).FontColor(Colors.Grey.Darken1);
                             });
-                            table.Cell().Element(VppPdfTheme.TableBodyCell).Text(item.UomName);
+                            table.Cell().Element(VppPdfTheme.TableBodyCell)
+                                .Text(SettlementExportValueResolver.ResolveUnitName(item, unitNames));
                             table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.Quantity.ToString("N0", culture));
                             table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.NetUnitPrice.ToString("N0", culture));
                             table.Cell().Element(VppPdfTheme.TableBodyCell).AlignRight().Text(item.GrossAmount.ToString("N0", culture));
