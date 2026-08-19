@@ -18,7 +18,7 @@ public sealed class OrderQuantityLimitServiceTests
         await ServiceTestHelpers.SeedActiveVPPAsync(context, itemId);
         var item = await context.VppItems.SingleAsync(x => x.Id == itemId);
         item.VppName = "Giấy A4";
-        item.MaxQuantityPerOrder = 500;
+        item.MaxQuantityPerOrder = 300;
         await context.SaveChangesAsync();
 
         var service = new OrderQuantityLimitService(
@@ -26,16 +26,16 @@ public sealed class OrderQuantityLimitServiceTests
 
         await service.ValidateAsync(
         [
-            new VppRequestDetailItemReqDTO { VppId = itemId, Qty = 500 }
+            new VppRequestDetailItemReqDTO { VppId = itemId, Qty = 300 }
         ]);
 
         var exception = await Assert.ThrowsAsync<BusinessException>(() => service.ValidateAsync(
         [
-            new VppRequestDetailItemReqDTO { VppId = itemId, Qty = 501 }
+            new VppRequestDetailItemReqDTO { VppId = itemId, Qty = 301 }
         ]));
 
         Assert.Contains("Giấy A4", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("tối đa 500", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("tối đa 300", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -44,5 +44,6 @@ public sealed class OrderQuantityLimitServiceTests
         Assert.Equal(gtas_vpp_shared.Constants.VppOrderQuantityLimits.Minimum, VppItemQuantityLimits.Minimum);
         Assert.Equal(gtas_vpp_shared.Constants.VppOrderQuantityLimits.Default, VppItemQuantityLimits.Default);
         Assert.Equal(gtas_vpp_shared.Constants.VppOrderQuantityLimits.Maximum, VppItemQuantityLimits.Maximum);
+        Assert.Equal(300, VppItemQuantityLimits.Maximum);
     }
 }

@@ -6,6 +6,6 @@ namespace gtas_vpp_be.Model.Library;
 public static class VppItemQuantityLimits
 {
     public const int Minimum = 1;
-    public const int Default = 1_000;
-    public const int Maximum = 1_000;
+    public const int Default = 300;
+    public const int Maximum = 300;
 }

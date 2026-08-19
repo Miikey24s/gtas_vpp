@@ -207,11 +207,11 @@ public sealed class VppCatalogServiceTests
                 VppName = "Giấy giới hạn",
                 UomId = uomId,
                 VppCategoryId = categoryId,
-                MaxQuantityPerOrder = 750
+                MaxQuantityPerOrder = 300
             },
             userId: 7);
 
-        Assert.Equal(750, created.MaxQuantityPerOrder);
+        Assert.Equal(300, created.MaxQuantityPerOrder);
 
         await Assert.ThrowsAsync<BusinessException>(() => service.UpdateItemAsync(
             new VppItemUpdateRequest
@@ -221,7 +221,7 @@ public sealed class VppCatalogServiceTests
                 VppName = created.VppName,
                 UomId = uomId,
                 VppCategoryId = categoryId,
-                MaxQuantityPerOrder = 1_001
+                MaxQuantityPerOrder = 301
             },
             userId: 7));
     }

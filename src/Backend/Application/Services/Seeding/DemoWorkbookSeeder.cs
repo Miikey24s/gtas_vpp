@@ -220,16 +220,6 @@ public static class DemoWorkbookSeeder
             .Where(x => !x.IsDeleted)
             .ToListAsync(cancellationToken);
         var itemByCode = new Dictionary<string, VppItem>(StringComparer.OrdinalIgnoreCase);
-        var generatedLimits = orderRows
-            .GroupBy(x => x.ItemCode, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(
-                group => group.Key,
-                group => Math.Clamp(
-                    group.Max(x => x.Quantity) * VppOrderQuantityLimits.DemoMultiplier,
-                    VppOrderQuantityLimits.DemoFloor,
-                    VppOrderQuantityLimits.Maximum),
-                StringComparer.OrdinalIgnoreCase);
-
         foreach (var row in rows)
         {
             var targetCategory = categoryByCode[row.CategoryCode];
@@ -249,9 +239,7 @@ public static class DemoWorkbookSeeder
                 item = new VppItem
                 {
                     Id = StableGuid($"demo-item|{row.ItemCode}"),
-                    MaxQuantityPerOrder = generatedLimits.GetValueOrDefault(
-                        row.ItemCode,
-                        VppOrderQuantityLimits.Default),
+                    MaxQuantityPerOrder = VppOrderQuantityLimits.Default,
                     CreatedByUserId = actorUserId,
                     CreatedAtUtc = nowUtc
                 };

@@ -1920,6 +1920,7 @@ Browser runtime là visual authority; không dùng Figma làm pixel source và k
 - Màn Chốt kỳ tiếp tục dùng một nhà cung cấp và một bảng giá làm phương án chính. Việc bật lại nhiều NCC cần owner duyệt thêm chi phí vận chuyển, điều khoản hợp đồng, giới hạn số NCC và acceptance route-real.
 - Giới hạn số lượng đã triển khai theo [`ORDER-QUANTITY-LIMITS-001`](../execution/ORDER-QUANTITY-LIMITS-001.md): mỗi mặt hàng có mức tối đa cho **mỗi đơn**, áp dụng giống nhau và độc lập cho đơn thường/đơn bổ sung; không cộng dồn theo kỳ, người dùng hoặc phòng ban. Quản trị sửa trực tiếp trong Danh mục mặt hàng, frontend giữ nút tăng ở trạng thái mờ khi đạt trần và backend kiểm tra lại ở mọi đường tạo/sửa/khôi phục/tạo lại/điều chỉnh đơn.
 - Owner refinement 2026-08-18/19: trong luồng tạo đơn, giới hạn chỉ xuất hiện tại danh mục chọn hàng và pane `Đơn đang tạo`. Danh mục dùng cột riêng `Số lượng tối đa`; pane đặt nhãn ngay dưới stepper, hiển thị số nguyên không phân cách hàng nghìn. Nhập vượt trần phải giữ nguyên để báo validation đỏ và khóa `Tiếp tục`, không hard-clamp; input chỉ có một viền focus. Không chèn giới hạn thành dòng thứ ba dưới tên/mã và không lặp lại ở bước xem lại.
+- Owner refinement 2026-08-19: trần và giá trị mặc định giảm từ `1.000` xuống `300` cho một mặt hàng trong một đơn. Cấu hình mặt hàng cao hơn `300` được migration hạ về `300`; đơn đã gửi và lịch sử số lượng không bị viết lại.
 
 ### 16.9 Owner plan revision: kỳ, bổ sung và Excel — 2026-08-18
 

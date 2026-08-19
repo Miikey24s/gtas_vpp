@@ -2,7 +2,7 @@
 
 **Trạng thái:** `COMPLETED — ĐÃ KIỂM TRA ROUTE THỰC TẾ`
 
-**Ngày triển khai:** `2026-08-18`
+**Ngày triển khai:** `2026-08-18`; cập nhật trần `300` ngày `2026-08-19`
 
 ## 1. Bản một ánh nhìn
 
@@ -15,9 +15,9 @@ Thay giới hạn kỹ thuật `1–9999` bằng trần an toàn theo từng m�
 - Mỗi mặt hàng có một mức **tối đa trong một đơn**.
 - Cùng một giới hạn áp dụng độc lập cho cả đơn thường và đơn bổ sung; không cộng dồn hai đơn thành giới hạn của cả kỳ.
 - Đơn thường và đơn bổ sung đi qua cùng một bộ kiểm tra `Qty`; trường `IsAdditionalOrder` không tạo ra hai công thức giới hạn khác nhau.
-- Trần hệ thống là `1.000` cho một mặt hàng trong một đơn; mặt hàng mới mặc định nhận mức này.
-- Dữ liệu hiện có được sinh mức ban đầu theo công thức đơn giản: `số lớn nhất từng đặt × 3`, sau đó ép trong khoảng `500–1.000`.
-- Quản trị hệ thống có thể sửa mức của từng mặt hàng trong khoảng `1–1.000`; không cần policy hiệu lực theo kỳ hoặc màn cấu hình nhiều tầng.
+- Trần hệ thống là `300` cho một mặt hàng trong một đơn; mặt hàng mới mặc định nhận mức này.
+- Cấu hình hiện có cao hơn `300` được hạ về `300`; mức thấp hơn vẫn được giữ nguyên.
+- Quản trị hệ thống có thể sửa mức của từng mặt hàng trong khoảng `1–300`; không cần policy hiệu lực theo kỳ hoặc màn cấu hình nhiều tầng.
 - Đơn đã gửi giữ nguyên. Draft và các lần sửa/gửi tiếp theo phải đạt giới hạn hiện tại của mặt hàng.
 - Chưa thêm ngoại lệ theo từng phòng ban hoặc từng người trong đợt đầu.
 
@@ -55,19 +55,19 @@ Các đơn vị như Ram, Cây, Hộp và Cuộn không tương đương nhau. M
 | Q1 | Giới hạn theo dòng đơn hay cả kỳ | Theo từng mặt hàng trong từng đơn |
 | Q2 | Áp dụng cho đơn bổ sung thế nào | Dùng cùng giới hạn với đơn thường, nhưng kiểm tra độc lập từng đơn |
 | Q3 | Mức `0` có nghĩa gì | Không cho nhập `0`; dùng trạng thái mặt hàng để ngừng đặt |
-| Q4 | Mức mặc định là bao nhiêu | `1.000` cho mỗi mặt hàng trong một đơn |
+| Q4 | Mức mặc định là bao nhiêu | `300` cho mỗi mặt hàng trong một đơn |
 | Q5 | Cho đổi giới hạn khi đang có kỳ mở không | Có; đơn đã gửi giữ nguyên, draft và lần sửa/gửi tiếp theo phải đạt giới hạn mới |
 | Q6 | Quản lý có được vượt giới hạn không | Không vượt âm thầm; nếu cần sẽ làm thao tác ngoại lệ riêng, bắt buộc lý do/audit ở phase sau |
 | Q7 | Có cấu hình riêng theo phòng ban/người dùng không | Chưa làm ở phase đầu; chỉ mở rộng khi có nghiệp vụ thật |
 | Q8 | Hiển thị cấu hình ở đâu | Trong Danh mục mặt hàng hệ thống; không đặt trong Bảng giá NCC |
-| Q9 | Mức giới hạn ban đầu lấy từ đâu | `Clamp(MaxQtyTừngĐặt × 3, 500, 1.000)`; chưa có lịch sử thì dùng `1.000` |
+| Q9 | Mức giới hạn ban đầu lấy từ đâu | Mặt hàng mới dùng `300`; cấu hình cũ lớn hơn `300` được hạ về `300` |
 
 ### 3.1 Cách áp dụng cho hai loại đơn
 
-| Loại đơn | Ví dụ giới hạn 500/đơn | Cách kiểm tra |
+| Loại đơn | Ví dụ giới hạn 300/đơn | Cách kiểm tra |
 |---|---:|---|
-| Đơn thường | Tối đa 500 | Chỉ kiểm tra số lượng trong đơn thường |
-| Đơn bổ sung | Tối đa 500 | Chỉ kiểm tra số lượng trong đơn bổ sung |
+| Đơn thường | Tối đa 300 | Chỉ kiểm tra số lượng trong đơn thường |
+| Đơn bổ sung | Tối đa 300 | Chỉ kiểm tra số lượng trong đơn bổ sung |
 
 Không lấy số lượng đơn thường trừ khỏi đơn bổ sung. Nếu sau này doanh nghiệp cần giới hạn tổng cấp phát theo kỳ, đó là một quy tắc khác và phải được duyệt riêng.
 
@@ -79,35 +79,18 @@ Việc kiểm tra không tách thành hai service. `OrderQuantityLimitService` n
 
 Thêm trực tiếp vào `VppItems` theo hướng additive:
 
-- `MaxQuantityPerOrder int not null`, mặc định `1.000`.
-- Check constraint: giá trị từ `1` đến `1.000`.
+- `MaxQuantityPerOrder int not null`, mặc định `300`.
+- Check constraint: giá trị từ `1` đến `300`.
 - Không tạo bảng policy riêng, không tạo phiên bản và không gắn kỳ hiệu lực.
 
 Đây là thuộc tính của danh mục mặt hàng hệ thống, không thuộc bảng giá hay nhà cung cấp. Cùng một mặt hàng luôn có cùng trần an toàn dù quản lý chọn NCC/bảng giá nào khi chốt kỳ.
 
-### 4.2 Sinh giá trị cho dữ liệu hiện có
+### 4.2 Chuẩn hóa dữ liệu hiện có
 
-Chạy backfill xác định, idempotent cho các mặt hàng hiện có:
-
-```text
-Mức sinh = Clamp(Số lượng lớn nhất từng đặt × 3, 500, 1.000)
-```
-
-- Chỉ đọc revision hiện hành của các đơn không bị hủy, từ chối hoặc soft-delete.
-- Đơn thường và đơn bổ sung được xem như nhau vì cùng trường `Qty`.
-- Mặt hàng chưa từng được đặt nhận mức `1.000`.
-- Kết quả luôn là số nguyên và không vượt trần hệ thống.
-- Backfill chỉ chạy một lần; về sau không tự đổi giá trị quản trị đã sửa.
-
-Ví dụ:
-
-| Số lớn nhất từng đặt | Nhân 3 | Mức lưu |
-|---:|---:|---:|
-| 72 | 216 | 500 |
-| 200 | 600 | 600 |
-| 756 | 2.268 | 1.000 |
-
-Chọn hệ số `3` thay vì `5` vì vẫn tạo khoảng dự phòng lớn nhưng ít đẩy mọi mặt hàng lên trần `1.000`.
+- Migration đầu tiên từng sinh giới hạn theo lịch sử đặt hàng trong khoảng `500–1.000`.
+- Sau quyết định hạ trần, migration mới chỉ hạ các cấu hình lớn hơn `300` về `300`.
+- Cấu hình từ `1–300` được giữ nguyên.
+- Đơn đã gửi, bản chốt và lịch sử số lượng không bị sửa; draft và lần sửa/gửi tiếp theo phải đạt giới hạn hiện tại.
 
 ## 5. Quy tắc tính và kiểm tra
 
@@ -126,7 +109,7 @@ Số lượng dòng hiện tại <= Số lượng tối đa
 
 Ví dụ:
 
-> Giấy A4 được đặt tối đa 500 Ram trong mỗi đơn. Số lượng hiện tại là 1.200 Ram, vui lòng giảm còn 500 Ram hoặc ít hơn.
+> Giấy A4 được đặt tối đa 300 Ram trong mỗi đơn. Số lượng hiện tại là 350 Ram, vui lòng giảm còn 300 Ram hoặc ít hơn.
 
 Không hiển thị tên class, mã kỹ thuật hoặc lỗi SQL cho người dùng.
 
@@ -135,7 +118,7 @@ Không hiển thị tên class, mã kỹ thuật hoặc lỗi SQL cho người d
 ### 6.1 Nhân viên đặt hàng
 
 - Danh mục chọn hàng hiển thị một cột riêng `Số lượng tối đa`; tên và mã mặt hàng vẫn giữ đúng hai dòng, không chèn giới hạn thành dòng thứ ba.
-- Trong `Đơn đang tạo`, giới hạn đặt ngay dưới bộ tăng/giảm số lượng với nhãn `Số lượng tối đa: 500` và hiển thị số nguyên không phân cách hàng nghìn.
+- Trong `Đơn đang tạo`, giới hạn đặt ngay dưới bộ tăng/giảm số lượng với nhãn `Số lượng tối đa: 300` và hiển thị số nguyên không phân cách hàng nghìn.
 - Bước xem lại không lặp lại giới hạn; backend vẫn kiểm tra khi gửi và UI vẫn cảnh báo nếu draft vượt mức.
 - Nút `+` mờ khi đạt giới hạn nhưng vẫn giữ Stable Capability Surface.
 - Nhập vượt mức không bị tự ép về trần. UI giữ giá trị để hiện validation đỏ ngay dưới input và khóa `Tiếp tục` cho tới khi người dùng sửa hợp lệ; backend vẫn kiểm tra lại khi gửi.
@@ -143,7 +126,7 @@ Không hiển thị tên class, mã kỹ thuật hoặc lỗi SQL cho người d
 
 ### 6.2 Quản trị hệ thống
 
-- `Danh mục mặt hàng`: thêm trường số `Số lượng tối đa`, cho nhập từ `1–1000`.
+- `Danh mục mặt hàng`: thêm trường số `Số lượng tối đa`, cho nhập từ `1–300`.
 - Grid quản trị thêm cột pickable `Số lượng tối đa`, đọc trực tiếp từ mặt hàng; không thêm vào bảng giá NCC.
 - Khi sửa, helper text giải thích ngắn: `Giới hạn cho một mặt hàng trong mỗi đơn`.
 - Nếu đang có draft vượt mức mới, hệ thống không tự sửa draft; nhân viên sẽ được báo khi mở hoặc gửi lại.
@@ -164,7 +147,7 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 | Phase | Nội dung | Kiểm tra bắt buộc |
 |---|---|---|
 | Q0 | Characterization hiện trạng, chốt Q1–Q9 | Tests khóa behavior hiện tại và đường mutation |
-| Q1 | Thêm cột `VppItems.MaxQuantityPerOrder`, migration additive và backfill ×3 trong khoảng 500–1.000 | EF pending-model, SQL review, fresh/upgrade LocalDB, backfill idempotent |
+| Q1 | Thêm cột `VppItems.MaxQuantityPerOrder`; migration cập nhật hạ trần về `300` | EF pending-model, SQL review, fresh/upgrade LocalDB, backfill idempotent |
 | Q2 | Validation chung cho create/update/recreate/restore/post-close | Unit + integration, boundary và revision cases |
 | Q3 | Catalog/order DTO + UI đặt hàng | Frontend tests, responsive route-real, draft cũ |
 | Q4 | UI quản trị + permission/audit | RBAC tests, route-real System Admin |
@@ -172,6 +155,8 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 
 ### 8.1 Bằng chứng kiểm tra hiện tại
 
+- Cập nhật `300` ngày 2026-08-19: backend focused tests `3/3`, frontend editor tests `6/6`, EF không có pending model changes.
+- Database cô lập đã kiểm tra cả fresh migration và nâng cấp từ migration liền trước; giá trị mẫu `1.000` được hạ thành `300`, default là `300` và check constraint là `1–300`.
 - Backend unit tests: `577/577` đạt.
 - Frontend unit tests: `512/512` đạt.
 - Frontend UI contract tests: `2/2` đạt.
@@ -180,7 +165,7 @@ Không đặt business rule trong Razor và không dùng giới hạn NCC `Minim
 - Migration đã chạy thành công cho cả database mới và database nâng cấp từ migration liền trước trên LocalDB.
 - `gtas verify -Scope backend` và `gtas verify -Scope frontend` đều đạt; build Release không có warning/error, NuGet audit và secret scan đều sạch.
 - Authenticated E2E `OrderQuantityLimitUiTests.QuantityLimit_IsConfigurableAndVisibleAcrossAdminAndOrderFlow`: `1/1` đạt trên database/host cô lập.
-- Route quản trị đã xác nhận trường `Số lượng tối đa` có khoảng `1–1000` và mặc định `1000`.
+- Route quản trị dùng khoảng `1–300` và mặc định `300`.
 - Route tạo đơn đã xác nhận cột `Số lượng tối đa`, nhãn cạnh bộ số lượng, validation khi vượt trần và nút tăng khóa khi đạt mức tối đa.
 - Đã kiểm tra trực quan ảnh route thật ở viewport `1366×768`; dialog quản trị và bước xem lại đơn không vỡ layout.
 - Không khởi động lại hoặc chiếm quyền process `dotnet watch` của owner; E2E sử dụng AppHost riêng và tự dọn môi trường cô lập.
