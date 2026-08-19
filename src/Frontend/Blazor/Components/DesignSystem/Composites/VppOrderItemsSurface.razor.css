@@ -108,6 +108,19 @@
     height: 100%;
 }
 
+::deep .vpp-order-grid-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--vpp-space-2);
+    margin-top: var(--vpp-space-4);
+}
+
+::deep .vpp-order-grid-empty-actions .rz-button {
+    margin-top: 0;
+}
+
 ::deep .vpp-order-items-grid table {
     position: relative;
     width: 100%;

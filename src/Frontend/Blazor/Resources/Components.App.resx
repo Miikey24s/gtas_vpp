@@ -207,7 +207,7 @@
   <data name="OrderItems" xml:space="preserve"><value>Mặt hàng</value></data>
   <data name="Reload" xml:space="preserve"><value>Tải lại</value></data>
     <data name="CreateOrderThisCycle" xml:space="preserve"><value>Tạo đơn kỳ này</value></data>
-  <data name="CopyPreviousOrder" xml:space="preserve"><value>Sao chép kỳ trước</value></data>
+  <data name="CopyPreviousOrder" xml:space="preserve"><value>Sao chép đơn kỳ trước</value></data>
   <data name="OrderPeriod" xml:space="preserve"><value>Kỳ đặt hàng</value></data>
   <data name="PeriodEnd" xml:space="preserve"><value>Hạn gửi đơn</value></data>
   <data name="TotalLineItems" xml:space="preserve"><value>Tổng mặt hàng</value></data>

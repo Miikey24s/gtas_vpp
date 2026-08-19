@@ -240,19 +240,30 @@ namespace gtas_vpp_fe.Components.Pages.VPPRequest.Tabs
             OrderViewSelectedIndex == SupplementOrderViewIndex
                 ? _availablePeriods.Where(IsSupplementPeriod).ToArray()
                 : _availablePeriods.Where(IsRegularPeriod).ToArray();
-        private string? CurrentEmptyActionText => CanCreateRegular
+        private bool ShowRegularEmptyActions => CanCreate && RegularPeriodInfo is not null;
+        private string? CurrentEmptyActionText => ShowRegularEmptyActions
             ? Loc["CreateOrderThisCycle"].Value
-            : CanCopyPrevious
-                ? Loc["CopyPreviousOrder"].Value
-                : null;
+            : null;
+        private bool CurrentEmptyActionDisabled => !CanCreateRegular;
+        private string CurrentEmptyActionTitle => CanCreateRegular
+            ? Loc["CreateOrderThisCycle"].Value
+            : RegularPeriodInfo?.CanCreateOrderReason ?? Loc["RequestActionUnavailable"].Value;
+        private string? CurrentSecondaryEmptyActionText => ShowRegularEmptyActions
+            ? Loc["CopyPreviousOrder"].Value
+            : null;
+        private bool CurrentSecondaryEmptyActionDisabled => !CanCopyPrevious;
+        private string CurrentSecondaryEmptyActionTitle => CanCopyPrevious
+            ? Loc["CopyPreviousOrder"].Value
+            : CanCreateRegular
+                ? Loc["NoPreviousOrderFoundToCopy"].Value
+                : RegularPeriodInfo?.CanCreateOrderReason ?? Loc["RequestActionUnavailable"].Value;
         private string? CurrentPrimaryActionText => CurrentRegularOrder is not null && CanCreateRegular
             ? Loc["CreateOrderThisCycle"].Value
             : null;
         private string CurrentPrimaryActionIcon => VppIcons.Add;
         private EventCallback CurrentPrimaryActionRequested => EventCallback.Factory.Create(this, CreateRegularOrderAsync);
-        private EventCallback CurrentEmptyActionRequested => EventCallback.Factory.Create(
-            this,
-            CanCreateRegular ? CreateRegularOrderAsync : CopyPreviousAsync);
+        private EventCallback CurrentEmptyActionRequested => EventCallback.Factory.Create(this, CreateRegularOrderAsync);
+        private EventCallback CurrentSecondaryEmptyActionRequested => EventCallback.Factory.Create(this, CopyPreviousAsync);
         private string? SupplementEmptyActionText => ShowSupplementAction
             ? Loc["RequestAdditional"].Value
             : null;

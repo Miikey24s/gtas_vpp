@@ -776,7 +776,8 @@ public sealed class SharedUiFoundationTests
         Assert.DoesNotContain("vpp-orders-story-commands", source, StringComparison.Ordinal);
         Assert.Contains("PrimaryActionText=\"@SupplementPrimaryActionText\"", source, StringComparison.Ordinal);
         Assert.Contains("data-testid=\"@PrimaryActionTestId\"", orderPanel, StringComparison.Ordinal);
-        Assert.Contains("EmptyActionDisabled=\"@PrimaryActionDisabled\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("EmptyActionDisabled=\"@EmptyActionDisabled\"", orderPanel, StringComparison.Ordinal);
+        Assert.Contains("EmptySecondaryActionDisabled=\"@EmptySecondaryActionDisabled\"", orderPanel, StringComparison.Ordinal);
         Assert.Contains("Disabled=\"@EmptyActionDisabled\"", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("ShowSupplementAction => CanCreate && SupplementPeriodInfo is not null", codeBehind, StringComparison.Ordinal);
         Assert.Contains("PrimaryActionTestId=\"create-supplement\"", source, StringComparison.Ordinal);
@@ -861,7 +862,13 @@ public sealed class SharedUiFoundationTests
         Assert.Contains("<EmptyTemplate>", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("EmptyActionText", orderItemsSurface, StringComparison.Ordinal);
         Assert.Contains("EmptyActionClick", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("EmptySecondaryActionText", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("EmptySecondaryActionClick", orderItemsSurface, StringComparison.Ordinal);
+        Assert.Contains("EmptySecondaryActionText=\"@CurrentSecondaryEmptyActionText\"", source, StringComparison.Ordinal);
+        Assert.Contains("EmptySecondaryActionDisabled=\"@CurrentSecondaryEmptyActionDisabled\"", source, StringComparison.Ordinal);
+        Assert.Contains("copy-previous-order", source, StringComparison.Ordinal);
         Assert.Contains("CreateOrderThisCycle", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("CopyPreviousOrder", codeBehind, StringComparison.Ordinal);
         Assert.Contains("AvailableOrders.Count > 1", orderPanel, StringComparison.Ordinal);
         Assert.DoesNotContain("max-width: 1760px;", kpiStyles, StringComparison.Ordinal);
         Assert.DoesNotContain("margin-inline: auto;", kpiStyles, StringComparison.Ordinal);

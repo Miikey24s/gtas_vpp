@@ -140,9 +140,14 @@
                           EmptyDescription="@EmptyDescription"
                           EmptyActionText="@EmptyActionText"
                           EmptyActionClick="@EmptyActionClick"
-                          EmptyActionDisabled="@PrimaryActionDisabled"
-                          EmptyActionTitle="@PrimaryActionTitle"
-                          EmptyActionTestId="@PrimaryActionTestId"
+                          EmptyActionDisabled="@EmptyActionDisabled"
+                          EmptyActionTitle="@EmptyActionTitle"
+                          EmptyActionTestId="@EmptyActionTestId"
+                          EmptySecondaryActionText="@EmptySecondaryActionText"
+                          EmptySecondaryActionClick="@EmptySecondaryActionClick"
+                          EmptySecondaryActionDisabled="@EmptySecondaryActionDisabled"
+                          EmptySecondaryActionTitle="@EmptySecondaryActionTitle"
+                          EmptySecondaryActionTestId="@EmptySecondaryActionTestId"
                           Categories="@CategoryFilterOptions"
                           Units="@UnitFilterOptions"
                           SearchText="@(ItemSearch ?? string.Empty)"
@@ -190,6 +195,14 @@
     [Parameter, EditorRequired] public string EmptyDescription { get; set; } = string.Empty;
     [Parameter] public string? EmptyActionText { get; set; }
     [Parameter] public EventCallback EmptyActionClick { get; set; }
+    [Parameter] public bool EmptyActionDisabled { get; set; }
+    [Parameter] public string? EmptyActionTitle { get; set; }
+    [Parameter] public string EmptyActionTestId { get; set; } = "order-empty-action";
+    [Parameter] public string? EmptySecondaryActionText { get; set; }
+    [Parameter] public EventCallback EmptySecondaryActionClick { get; set; }
+    [Parameter] public bool EmptySecondaryActionDisabled { get; set; }
+    [Parameter] public string? EmptySecondaryActionTitle { get; set; }
+    [Parameter] public string EmptySecondaryActionTestId { get; set; } = "order-empty-secondary-action";
     [Parameter] public EventCallback<VppRequestResDTO> EditRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> RestoreRequested { get; set; }
     [Parameter] public EventCallback<VppRequestResDTO> RecreateRequested { get; set; }

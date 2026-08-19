@@ -94,15 +94,31 @@
                         <span class="vpp-orders-empty-icon"><VppIcon Name="@EmptyIcon" /></span>
                         <strong>@EmptyTitle</strong>
                         <p>@EmptyDescription</p>
-                        @if (HasEmptyAction)
+                        @if (HasAnyEmptyAction)
                         {
-                            <RadzenButton Text="@EmptyActionText"
-                                          Icon="@VppIcons.Add"
-                                          ButtonStyle="ButtonStyle.Primary"
-                                          Click="@(async _ => await EmptyActionClick.InvokeAsync())"
-                                          Disabled="@EmptyActionDisabled"
-                                          Title="@EmptyActionTitle"
-                                          data-testid="@EffectiveEmptyActionTestId" />
+                            <div class="vpp-order-grid-empty-actions">
+                                @if (HasEmptySecondaryAction)
+                                {
+                                    <RadzenButton Text="@EmptySecondaryActionText"
+                                                  Icon="@VppIcons.Copy"
+                                                  ButtonStyle="ButtonStyle.Base"
+                                                  Variant="Radzen.Variant.Outlined"
+                                                  Click="@(async _ => await EmptySecondaryActionClick.InvokeAsync())"
+                                                  Disabled="@EmptySecondaryActionDisabled"
+                                                  Title="@EmptySecondaryActionTitle"
+                                                  data-testid="@EffectiveEmptySecondaryActionTestId" />
+                                }
+                                @if (HasEmptyAction)
+                                {
+                                    <RadzenButton Text="@EmptyActionText"
+                                                  Icon="@VppIcons.Add"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Click="@(async _ => await EmptyActionClick.InvokeAsync())"
+                                                  Disabled="@EmptyActionDisabled"
+                                                  Title="@EmptyActionTitle"
+                                                  data-testid="@EffectiveEmptyActionTestId" />
+                                }
+                            </div>
                         }
                     }
                 </div>
@@ -233,6 +249,11 @@
     [Parameter] public bool EmptyActionDisabled { get; set; }
     [Parameter] public string? EmptyActionTitle { get; set; }
     [Parameter] public string? EmptyActionTestId { get; set; }
+    [Parameter] public string? EmptySecondaryActionText { get; set; }
+    [Parameter] public EventCallback EmptySecondaryActionClick { get; set; }
+    [Parameter] public bool EmptySecondaryActionDisabled { get; set; }
+    [Parameter] public string? EmptySecondaryActionTitle { get; set; }
+    [Parameter] public string? EmptySecondaryActionTestId { get; set; }
     [Parameter] public int? ActiveCodeNumber { get; set; }
     [Parameter] public int? ActiveNoteNumber { get; set; }
     [Parameter] public EventCallback<int> CodeToggled { get; set; }
@@ -265,9 +286,15 @@
             : VppDataSurfaceState.Empty;
     private bool IsHistoryDrawer => Variant == VppOrderItemsSurfaceVariant.HistoryDrawer;
     private bool HasEmptyAction => !string.IsNullOrWhiteSpace(EmptyActionText) && EmptyActionClick.HasDelegate;
+    private bool HasEmptySecondaryAction => !string.IsNullOrWhiteSpace(EmptySecondaryActionText)
+        && EmptySecondaryActionClick.HasDelegate;
+    private bool HasAnyEmptyAction => HasEmptyAction || HasEmptySecondaryAction;
     private string EffectiveEmptyActionTestId => string.IsNullOrWhiteSpace(EmptyActionTestId)
         ? $"{TestId}-empty-action"
         : EmptyActionTestId;
+    private string EffectiveEmptySecondaryActionTestId => string.IsNullOrWhiteSpace(EmptySecondaryActionTestId)
+        ? $"{TestId}-empty-secondary-action"
+        : EmptySecondaryActionTestId;
     private bool ShowNoteColumn => true;
     private bool HasOpenTransientSurface => ActiveCodeNumber.HasValue || ActiveNoteNumber.HasValue;
     private bool UsePaging => Items.Count > VppPagingProfiles.SmallStatic.PagingThreshold;
