@@ -1,6 +1,7 @@
 param(
     [switch]$Apply,
-    [switch]$IncludeThesisIntermediates
+    [switch]$IncludeThesisIntermediates,
+    [switch]$IncludePresentationIntermediates
 )
 
 $ErrorActionPreference = "Stop"
@@ -53,11 +54,14 @@ function Remove-WorkspaceTarget {
 $fixedTargets = @(
     ".vs",
     ".playwright-mcp",
+    ".artifacts",
+    "artifacts",
     "tmp",
     "tools",
     "scripts\browser\node_modules",
     "scripts\browser\dist",
     "scripts\browser\test-results",
+    "scripts\presentation\node_modules",
     "docs\design\atlas\output",
     "LVTN\render",
     ".tmp",
@@ -66,6 +70,16 @@ $fixedTargets = @(
 
 if ($IncludeThesisIntermediates) {
     $fixedTargets += "LVTN\_render_tmp"
+}
+
+if ($IncludePresentationIntermediates) {
+    $fixedTargets += @(
+        "presentation\SlideBaoVe_10_Slides.pptx",
+        "presentation\SlideBaoVe_10_Slides_contact-sheet.png",
+        "presentation\SlideBaoVe_ERD_Chen_ThuNghiem.pptx",
+        "scripts\presentation\erd-chen-slide07.png",
+        "scripts\presentation\erd-crowsfoot-slide07.png"
+    )
 }
 
 foreach ($relativePath in $fixedTargets) {
@@ -82,6 +96,16 @@ $generatedDirectories = Get-ChildItem -LiteralPath $workspace -Recurse -Director
 
 foreach ($directory in $generatedDirectories) {
     Remove-WorkspaceTarget -Target $directory.FullName
+}
+
+$inspectionOutputs = Get-ChildItem -LiteralPath (Join-Path $workspace "presentation") -File -Force -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -like "*.inspect.ndjson" }
+
+foreach ($file in $inspectionOutputs) {
+    & $git check-ignore -q -- $file.FullName
+    if ($LASTEXITCODE -eq 0) {
+        Remove-WorkspaceTarget -Target $file.FullName
+    }
 }
 
 if ($IncludeThesisIntermediates) {

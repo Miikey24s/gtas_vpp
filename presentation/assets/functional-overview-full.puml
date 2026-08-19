@@ -1,0 +1,83 @@
+@startwbs
+' Sơ đồ chức năng tổng quát dùng trong slide bảo vệ.
+' Giữ đầy đủ chức năng nhưng dùng bố cục cây hộp giống hình trong luận văn.
+
+<style>
+wbsDiagram {
+  BackgroundColor transparent
+  LineColor #17324D
+  FontName Arial
+  FontColor #17324D
+  FontSize 17
+  node {
+    BackgroundColor white
+    LineColor #17324D
+    FontName Arial
+    FontColor #17324D
+    FontSize 17
+    RoundCorner 5
+  }
+  :depth(0) {
+    BackgroundColor #0B253B
+    LineColor #0B253B
+    FontColor white
+    FontSize 24
+    FontStyle bold
+  }
+  :depth(1) {
+    BackgroundColor #DDF2EA
+    LineColor #17324D
+    FontSize 19
+    FontStyle bold
+  }
+  :depth(2) {
+    BackgroundColor white
+    LineColor #17324D
+    FontSize 16
+  }
+}
+</style>
+
+* GTAS VPP
+** Tài khoản và phân quyền
+*** Đăng nhập, tạo và\nkhôi phục tài khoản
+*** Áp dụng quyền truy cập
+*** Quản lý người dùng
+*** Quản lý nhóm quyền
+*** Theo dõi nhật ký\nbảo mật
+*** Cấu hình kỳ\nđặt hàng
+** Đặt hàng thông thường
+*** Chọn kỳ đang nhận đơn
+*** Tạo mới hoặc\nsao chép đơn
+*** Kiểm tra giới hạn\nsố lượng
+*** Chỉnh sửa, hủy hoặc\nkhôi phục đơn
+*** Theo dõi trạng thái\nvà lịch sử
+** Đơn bổ sung
+*** Xác định thời gian\nnhận bổ sung
+*** Tạo đơn cho\nkỳ đã đóng
+*** Kiểm tra điều kiện\nvà giới hạn
+*** Duyệt hoặc từ chối đơn
+*** Theo dõi kết quả\nxử lý
+** Danh mục và bảng giá
+*** Quản lý loại, danh mục\nvà mặt hàng
+*** Quản lý đơn vị tính\nvà phòng ban
+*** Quản lý nhà cung cấp
+*** Quản lý bảng giá\nvà giá mặt hàng
+*** Nhập, cập nhật bảng giá\ntừ Excel
+*** Xuất file mẫu\nvà bảng giá
+** Quản lý và chốt kỳ
+*** Tự mở một kỳ\ntheo cấu hình
+*** Thêm kỳ thủ công\nkhi cần
+*** Sửa lịch hoặc\ngia hạn kỳ
+*** Chọn nhà cung cấp\nvà bảng giá
+*** Xem trước và\nchốt kỳ
+*** Điều chỉnh đơn\nvà chốt lại
+*** Lưu, xuất\ncác bản chốt
+** Theo dõi và báo cáo
+*** Tổng hợp cá nhân,\nphòng ban, công ty
+*** Lọc và tra cứu\ndữ liệu
+*** Xem chỉ số, biểu đồ,\nmặt hàng nổi bật
+*** Xuất PDF, Excel và CSV
+*** Nhận thông báo và\ntheo dõi hộp thư
+
+@endwbs
